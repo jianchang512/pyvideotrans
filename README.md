@@ -16,13 +16,20 @@
 # 源码部署方式
 
 1. 电脑安装好 python 3.9+
-2. git clone https://github.com/jianchang512/pyvideotrans
-3. cd pyvideotrans
-4. pip install -r requirements.txt
+2. `git clone https://github.com/jianchang512/pyvideotrans`
+3. `cd pyvideotrans`
+4. `pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下
-6. python sp.py
-7. 本地打包  pyinstaller -w sp.py
+6. `python sp.py`
+7. 本地打包 ` pyinstaller -w sp.py`
 
+# 截图
+
+![](./tmp/1.jpg)
+![](./tmp/2.jpg)
+![](./tmp/3.jpg)
+![](./tmp/4.jpg)
+![](./tmp/5.jpg)
 
 # 特殊处理
 
