@@ -26,7 +26,6 @@
 # 截图
 
 ![](./tmp/7.gif)
-![](./tmp/1.jpg)
 ![](./tmp/2.jpg)
 ![](./tmp/3.jpg)
 ![](./tmp/4.jpg)
