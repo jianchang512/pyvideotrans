@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+dev
+venv
+dist
+source
+ffmpeg.exe
+__pycache__
+build
