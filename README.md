@@ -31,7 +31,7 @@
 ![](./tmp/4.jpg)
 ![](./tmp/5.jpg)
 
-# 特殊处理
+# 可能的问题
 
 > 在使用httpx和 googletrans 配置代理时可能报错，将 googletrans 包下 client.py 57 行左右改为 `proxies 类型 改为 httpcore.SyncHTTPProxy`
 
