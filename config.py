@@ -21,7 +21,7 @@ langlist = {
 #当前执行目录
 rootdir = os.getcwd()
 #添加环境变量 ffmpeg
-os.environ['path'] = rootdir + ';' + os.environ['path']
+os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 # 日志队列
 qu = queue.Queue(100)
 
