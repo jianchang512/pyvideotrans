@@ -194,8 +194,7 @@ def get_large_audio_transcription(aud_path, ext="wav",video_ext='mp4'):
         else:
             qu.put(f"【get_large_audio_transcription】正在创建语音切分标识文件...")
             updatebtn(mp4name, f"视频{mp4name} 正在创建语音切分标识文件")
-            nonsilent_data = detect_nonsilent(normalized_sound, min_silence_len=min_slien, silence_thresh=-20.0 - thd,
-                                              seek_step=1)
+            nonsilent_data = detect_nonsilent(normalized_sound, min_silence_len=min_slien, silence_thresh=-20.0 - thd, seek_step=1)
             if current_status == 'stop':
                 return
             qu.put(f"【get_large_audio_transcription】detect_nonsilent 完成，开始 shorten_voice...")
@@ -282,9 +281,9 @@ def get_large_audio_transcription(aud_path, ext="wav",video_ext='mp4'):
         qu.put(f"字幕文件已存在，直接使用 {sub_name=}")
         updatebtn(mp4name, "开始合成字幕")
 
-    shutil.rmtree(tmp_path)
-    if os.path.exists(aud_path):
-        os.remove(aud_path)
+    # shutil.rmtree(tmp_path)
+    # if os.path.exists(aud_path):
+    #     os.remove(aud_path)
     updatebtn(mp4name, f"视频{mp4name} 开始合成字幕")
     # 最终生成的视频地址
     target_mp4 = os.path.join(video_config['target_dir'], f"{mp4name}")
