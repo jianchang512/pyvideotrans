@@ -32,12 +32,11 @@ Speech recognition and text translation are done using the Google API, and text-
 ![](./images/en1.png)
 ![](./images/en2.png)
 
-# Original Video
-[![Original Video](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/watch?v=uTXp3Lrb1G8)
+# Original Video and Translated Video
 
-# Translated Video
-[![Translated Video](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/watch?v=KinW4O1Sq5M)
+[Original Video](https://www.wonyes.org/images/raw.mp4)
 
+[Translated Video](https://www.wonyes.org/images/new.mp4)
 
 # Possible Issues
 
