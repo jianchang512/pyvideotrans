@@ -35,11 +35,11 @@
 ![](./images/3.png)
 
 # 原视频
-<video src="https://www.wonyes.org/images/raw.mp4" controls title="原视频"></video>
-
+<video width="640" src="https://www.wonyes.org/images/raw.mp4" controls title="原视频"></video>
+![原视频](https://www.wonyes.org/images/raw.mp4)
 
 # 翻译后的视频
-<video src="https://www.wonyes.org/images/new.mp4" controls title="翻译后的视频"></video>
+<video width="640" src="https://www.wonyes.org/images/new.mp4" controls title="翻译后的视频"></video>
 
 # 可能的问题
 
