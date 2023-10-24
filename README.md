@@ -35,18 +35,10 @@
 ![](./images/3.png)
 
 # 原视频
-![](./images/raw.mp4)
-<video width="640" height="480" controls>
-  <source src="./images/raw.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
+![原视频](./images/raw.mp4)
 
 # 翻译后的视频
-<video width="640" height="480" controls>
-  <source src="./images/new.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![原视频](./images/new.mp4)
 
 # 可能的问题
 
