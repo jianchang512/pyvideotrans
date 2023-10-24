@@ -35,11 +35,11 @@
 ![](./images/3.png)
 
 # 原视频
-[![原视频](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/watch?v=uTXp3Lrb1G8)
+<video src="https://www.wonyes.org/images/raw.mp4" controls title="原视频"></video>
 
 
 # 翻译后的视频
-[![翻译后的视频](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/watch?v=KinW4O1Sq5M)
+<video src="https://www.wonyes.org/images/new.mp4" controls title="翻译后的视频"></video>
 
 # 可能的问题
 
