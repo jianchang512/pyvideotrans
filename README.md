@@ -35,10 +35,11 @@
 ![](./images/3.png)
 
 # 原视频
-<video src="./images/raw.mp4" controls title="原视频"></video>
+[![原视频](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/embed/uTXp3Lrb1G8)
+
 
 # 翻译后的视频
-<video src="./images/new.mp4" controls title="翻译后的视频"></video>
+[![翻译后的视频](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/embed/KinW4O1Sq5M)
 
 # 可能的问题
 
