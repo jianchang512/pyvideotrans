@@ -36,9 +36,10 @@
 
 # 原视频
 <video width="640" src="https://www.wonyes.org/images/raw.mp4" controls title="原视频"></video>
-![原视频](https://www.wonyes.org/images/raw.mp4)
+[原视频](https://www.wonyes.org/images/raw.mp4)
 
 # 翻译后的视频
+[翻译后的视频](https://www.wonyes.org/images/new.mp4)
 <video width="640" src="https://www.wonyes.org/images/new.mp4" controls title="翻译后的视频"></video>
 
 # 可能的问题
