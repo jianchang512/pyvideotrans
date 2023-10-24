@@ -35,11 +35,11 @@
 ![](./images/3.png)
 
 # 原视频
-[![原视频](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/embed/uTXp3Lrb1G8)
+[![原视频](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/watch?v=uTXp3Lrb1G8)
 
 
 # 翻译后的视频
-[![翻译后的视频](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/embed/KinW4O1Sq5M)
+[![翻译后的视频](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/watch?v=KinW4O1Sq5M)
 
 # 可能的问题
 

@@ -29,22 +29,15 @@ Speech recognition and text translation are done using the Google API, and text-
 
 # Software Preview Screenshots
 
-![](./images/1.png)
-![](./images/2.png)
-![](./images/3.png)
+![](./images/en1.png)
+![](./images/en2.png)
 
 # Original Video
-![](./images/raw.mp4)
-<video width="640" height="480" controls>
-  <source src="./images/raw.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Original Video](https://img.youtube.com/vi/uTXp3Lrb1G8/hqdefault.jpg)](https://www.youtube.com/watch?v=uTXp3Lrb1G8)
 
 # Translated Video
-<video width="640" height="480" controls>
-  <source src="./images/new.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Translated Video](https://img.youtube.com/vi/KinW4O1Sq5M/hqdefault.jpg)](https://www.youtube.com/watch?v=KinW4O1Sq5M)
+
 
 # Possible Issues
 
