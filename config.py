@@ -10,7 +10,6 @@ defaulelang = "zh"
 if langcode.split('_')[0].lower() != 'zh':
     defaulelang = "en"
 
-
 translist = {
     "zh": {
         "proxyerrortitle": "代理错误",
@@ -87,6 +86,8 @@ layout = [
                                  tooltip="-10 -- +90,代表减慢或加速"),
                     sg.Text('-10到+90，负数代表降速，正数代表加速', background_color="#e3f2fd",
                             text_color='#777777'),
+                    # sg.Text('降噪处理', background_color="#e3f2fd", text_color='#212121'),
+                    #     sg.Combo(['No','Yes'], default_value="No", readonly=True, key="noise", size=(18, None)),
                 ],
                 [
                     sg.Text('保留字幕文件', background_color="#e3f2fd", text_color='#212121'),
@@ -207,6 +208,8 @@ if defaulelang == "en":
                             '-10 to +90, negative values represent slowing down, positive values represent speeding up',
                             background_color="#e3f2fd",
                             text_color='#777777'),
+                        # sg.Text('Noise reduction', background_color="#e3f2fd", text_color='#212121'),
+                        # sg.Combo(['No','Yes'], default_value="No", readonly=True, key="noise", size=(18, None)),
                     ],
                     [
                         sg.Text('Keep Subtitle Files', background_color="#e3f2fd", text_color='#212121'),

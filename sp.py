@@ -2,7 +2,7 @@ import asyncio
 import re
 import shutil
 import sys
-import webbrowser
+
 import httpx
 import speech_recognition as sr
 import os
@@ -22,6 +22,7 @@ import threading
 from config import qu, rootdir, langlist, videolist, timelist, current_status, ishastart, video_config, task_nums, \
     task_threads, layout, voice_list, transobj
 import edge_tts
+import moviepy.editor as mp
 
 sg.user_settings_filename(path='.')
 
@@ -39,7 +40,11 @@ def get_list_voices():
             voice_list[prefix] = ["None", name]
         else:
             voice_list[prefix].append(name)
+
+
 get_list_voices()
+
+
 # 根据视频完整路径 返回 字幕文件的路径
 def get_thd_min_silence(p):
     thd = 25  # larger more sensitive
@@ -256,8 +261,46 @@ def get_sub_given_path(p, video_ext='mp4'):
         if not os.path.exists(a_name):
             updatebtn(mp4name, f"{mp4name} split audio")
             os.system(f"ffmpeg -i {p} -acodec pcm_s16le -f s16le -ac 1 -ar 16000 -f wav {a_name}")
+    # if window['noise'].get()=='Yes':
+    #     noise(a_name)
     get_large_audio_transcription(a_name, ext="wav", video_ext=video_ext)
     updatebtn(mp4name, f"{mp4name} end")
+
+
+def noise(filename):
+    from noisereduce import reduce_noise
+    import torch
+    # Load the .wav file using pydub
+    audio = AudioSegment.from_wav(filename)
+
+    # Convert the audio to a numpy array
+    audio_array = audio.get_array_of_samples()
+
+    # Perform noise reduction on the audio array
+    reduced_noise = reduce_noise(audio_array, audio.frame_rate)
+
+    # Create a new AudioSegment from the reduced noise array
+    reduced_audio = AudioSegment(
+        reduced_noise.tobytes(),
+        frame_rate=audio.frame_rate,
+        sample_width=audio.sample_width,
+        channels=audio.channels
+    )
+
+    # Export the reduced noise audio as a .wav file
+    reduced_audio.export(filename, format="wav")
+
+
+# def get_sub_given_path(p,video_ext='mp4'):
+#     global current_status
+#     mp4name = os.path.basename(p)
+#     # path = "mrhp011_4_1.mp4"
+#     a_name = p[:-4]+".wav"
+#     if not os.path.exists(a_name):
+#         clip = mp.VideoFileClip(p)
+#         # aud = clip.audio.write_audiofile(a_name, buffersize=20000)
+#     get_large_audio_transcription(a_name, ext="wav",video_ext=video_ext)
+#     updatebtn(mp4name, f"{mp4name} end")
 
 
 # 支持的文件类型
@@ -272,7 +315,7 @@ def get_ps(folder):
 
 def running(p):
     global videolist, task_nums
-    mp4name = os.path.basename(p).lower()
+    mp4name = os.path.basename(p)
     updatebtn(mp4name, f"{mp4name} start")
     _, _, sub_name = get_thd_min_silence(p)
 
@@ -289,7 +332,11 @@ def search_nc(folders_nc):
     global current_status, task_nums, task_threads
     ps = get_ps(folders_nc)
     for p in ps:
-        mp4name = os.path.basename(p).lower()
+        mp4nameraw = os.path.basename(p)
+        mp4name = re.sub(r"\s", '', mp4nameraw, 0, re.I)
+        print(f"{mp4nameraw=},{mp4name}")
+        if mp4nameraw != mp4name:
+            os.rename(p, os.path.join(os.path.dirname(p), mp4name))
         try:
             if isinstance(window.find_element(mp4name, silent_on_error=True), ErrorElement):
                 window.extend_layout(window['add_row'], [createrow(mp4name)])
@@ -300,6 +347,7 @@ def search_nc(folders_nc):
         except:
             window.extend_layout(window['add_row'], [createrow(mp4name)])
 
+    ps = get_ps(folders_nc)
     for p in ps:
         if current_status == 'stop':
             return
@@ -334,6 +382,7 @@ def updatebtn(name, text):
     if name not in timelist:
         timelist[name] = int(time.time())
     dur = int(time.time()) - timelist[name]
+    print(f"[{dur}s]{text}")
     window[name].update(value=f"[{dur}s]{text}")
 
 
@@ -495,7 +544,7 @@ if __name__ == "__main__":
             sg.user_settings_set_entry('source_lang', source_lang)
             sg.user_settings_set_entry('target_lang', target_lang)
             sg.user_settings_set_entry('savesubtitle', video_config['savesubtitle'])
-            sg.user_settings_set_entry('voice_rate', str(rate).replace('%',''))
+            sg.user_settings_set_entry('voice_rate', str(rate).replace('%', ''))
 
             task_nums = list(range(concurrent))
             threading.Thread(target=testproxy).start()
