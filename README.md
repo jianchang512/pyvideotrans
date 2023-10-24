@@ -35,10 +35,10 @@
 ![](./images/3.png)
 
 # 原视频
-![原视频](./images/raw.mp4)
+[原视频](./images/raw.mp4)
 
 # 翻译后的视频
-![原视频](./images/new.mp4)
+[原视频](./images/new.mp4)
 
 # 可能的问题
 
