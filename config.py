@@ -10,7 +10,7 @@ defaulelang = "zh"
 if langcode.split('_')[0].lower() != 'zh':
     defaulelang = "en"
 
-defaulelang="en"
+
 translist = {
     "zh": {
         "proxyerrortitle": "代理错误",
