@@ -55,5 +55,6 @@
 5. httpx
 6. SpeechRecognition
 7. edge-tts
-
+8. Spleeter
+9. openai-whisper
 

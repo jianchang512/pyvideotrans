@@ -42,7 +42,8 @@ You can download   [**dowload model**](https://github.com/jianchang512/pyvideotr
 
 # Possible Issues
 
-> When using httpx and setting up proxies with googletrans, you may encounter an error. In the googletrans package, at around line 57 in client.py, change the `proxies` type to `httpcore.SyncHTTPProxy`.
+> The translation uses requests to request Google API and then extracts it. If it is too frequent, it may be restricted.
+
 
 # Acknowledgements
 
@@ -55,3 +56,5 @@ You can download   [**dowload model**](https://github.com/jianchang512/pyvideotr
 5. httpx
 6. SpeechRecognition
 7. edge-tts
+8. Spleeter
+9. openai-whisper
