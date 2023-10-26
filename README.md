@@ -16,7 +16,7 @@
 9. 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
 10. 默认会在“原始视频目录”下生成同名的字幕文件“视频名.srt”
 11. 对于无法识别的语音将直接复制原语音
-12. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 ** [下载模型包](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip) ** ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
+12. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包  [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
 
 # 源码部署修改
 
@@ -26,7 +26,7 @@
 4. `pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下
 6. `python sp.py`
-7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 ** [下载模型包](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip) ** ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
+7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
 
 # 软件预览截图
 

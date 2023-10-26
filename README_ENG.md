@@ -16,7 +16,7 @@ This is a video translation tool that can translate a video from one language to
 10. By default, a subtitle file with the same name as the video will be generated in the "Original Video Directory" as "video_name.srt".
 11. Unrecognized speech will be directly copied as the original speech.
 12. If the background sound removal function is used, it will be time-consuming to download the model for the first time.
-You can download this compressed package and unzip the files inside to ** [dowload model](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip) **  pre trained_ Under the models/2stems directory
+You can download this compressed package and unzip the files inside to [**dowload model**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)   pre trained_ Under the models/2stems directory
 
 # Deployment and Modification of Source Code
 
@@ -27,7 +27,7 @@ You can download this compressed package and unzip the files inside to ** [dowlo
 5. Unzip ffmpeg.zip into the root directory.
 6. `python sp.py`
 7. If the background sound removal function is used, it will be time-consuming to download the model for the first time.
-You can download ** [dowload model](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip) **  this compressed package and unzip the files inside to  pre trained_ Under the models/2stems directory
+You can download   [**dowload model**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)   this compressed package and unzip the files inside to  pre trained_ Under the models/2stems directory
 
 # Software Preview Screenshots
 
