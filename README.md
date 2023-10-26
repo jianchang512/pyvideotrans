@@ -41,7 +41,7 @@
 
 # 可能的问题
 
-> 在使用httpx和 googletrans 配置代理时可能报错，将 googletrans 包下 client.py 57 行左右改为 `proxies 类型 改为 httpcore.SyncHTTPProxy`
+> 翻译使用 requests 请求 google api，然后提取，过于频繁可能会被限制。
 
 
 # 致谢

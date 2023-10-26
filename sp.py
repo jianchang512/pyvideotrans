@@ -2,13 +2,15 @@ import asyncio
 import re
 import shutil
 import sys
+import urllib.parse
+
 import httpx
+import requests
 import speech_recognition as sr
 import os
 import time
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
-from googletrans import Translator
 import PySimpleGUI as sg
 import srt
 from datetime import timedelta
@@ -18,7 +20,6 @@ from tkinter import messagebox
 import threading
 from config import qu, rootdir, langlist, timelist, current_status, video_config, layout, voice_list, transobj
 import edge_tts
-import moviepy.editor as mp
 
 sg.user_settings_filename(path='.')
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -96,6 +97,35 @@ def merge_audio_segments(segments, start_times, total_duration, mp4name):
     merged_audio.export(f"./tmp/{mp4name}.wav", format="wav")
     return merged_audio
 
+# google 翻译
+def googletrans(text,src,dest):
+    url = f"https://translate.google.com/m?sl={urllib.parse.quote(src)}&tl={urllib.parse.quote(dest)}&hl={urllib.parse.quote(dest)}&q={urllib.parse.quote(text)}"
+    print(f"{url=}")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    proxies=None
+    if "http_proxy" in os.environ:
+        proxies = {
+            'http': os.environ['http_proxy'],
+            'https': os.environ['https_proxy']
+        }
+
+    # proxies = {
+    #     'http': 'http://127.0.0.1:10809',
+    #     'https': 'http://127.0.0.1:10809'
+    # }
+
+    response = requests.get(url, proxies=proxies,headers=headers,timeout=40)
+    if response.status_code!=200:
+        return f"error translation code={response.status_code}"
+    re_result = re.findall(
+        r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
+    return "error on translation" if len(re_result)<1 else re_result[0]
+
+
+# print(googletrans(" ignition services, or asrs, or built on technology that's over 50 years old. yep, even these guys. the old tech is fine for short call and response audio. alexa, what's the weather to you?. ","en","zh-cn"))
+# exit()
 
 # 处理各个音频片段到文字并生成字幕文件
 def get_large_audio_transcription(aud_path, mp4name, sub_name):
@@ -163,8 +193,8 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name):
                 audio_listened = r.record(source)
                 try:
                     # text = r.recognize_google(audio_listened, language=video_config['detect_language'])
-                    text = r.recognize_whisper(audio_listened, language=video_config['detect_language'])
-                    print(f"【get_large_audio_transcription】语音识别为文字:{text=}")
+                    text = r.recognize_whisper(audio_listened, language= "zh" if video_config['detect_language']=="zh-cn" or video_config['detect_language']=="zh-tw" else video_config['detect_language'])
+                    # print(f"【get_large_audio_transcription】语音识别为文字:{text=}")
                 except sr.UnknownValueError as e:
                     print("Recognize Error: ", str(e), end='; ')
                     segments.append(audio_chunk)
@@ -178,9 +208,11 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name):
                 text = f"{text.capitalize()}. "
                 try:
                     # google翻译
-                    transd = translator.translate(text, src=video_config['source_language'],
-                                                  dest=video_config['target_language'])
-                    result = transd.text
+                    # result = translator.translate(text, src=video_config['source_language'],  dest=video_config['target_language'])
+                    result=googletrans(text,video_config['source_language'],video_config['target_language'])
+                    # result = gt.translate(text,video_config['target_language'],video_config['source_language'])
+                    # result = transd.text
+                    print(f"-target_language={video_config['target_language']}---text={result=}")
                 except Exception as e:
                     print("Translate Error:", str(e))
                     segments.append(audio_chunk)
@@ -201,13 +233,16 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name):
                                                        rate=video_config['voice_rate'])
                     tmpname = f"./tmp/{start_time}-{index}.mp3"
                     asyncio.run(communicate.save(tmpname))
-                    audio_data = AudioSegment.from_file(tmpname, format="mp3")
+                    try:
+                        audio_data = AudioSegment.from_file(tmpname, format="mp3")
+                    except:
+                        audio_data=AudioSegment.silent(duration=end_time-start_time)
                     segments.append(audio_data)
                     os.unlink(tmpname)
         merge_audio_segments(segments, start_times, total_length * 1000, mp4name)
         final_srt = srt.compose(subs)
-        with open(sub_name, 'w', encoding="utf-8") as f:
-            f.write(final_srt)
+        with open(sub_name, 'wb') as f:
+            f.write(final_srt.encode())
     else:
         updatebtn(mp4name, "add subtitle")
 
@@ -367,8 +402,9 @@ if __name__ == "__main__":
             # 目标存放地址
             if not target_dir:
                 target_dir = os.path.join(os.path.dirname(source_dir), "_video_out").replace('\\', '/')
-                os.makedirs(target_dir, 0o777, exist_ok=True)
                 window['target_dir'].update(value=target_dir)
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir, 0o777, exist_ok=True)
             # 原语言
             source_lang = window['source_lang'].get()
             target_lang = window['target_lang'].get()
@@ -412,7 +448,8 @@ if __name__ == "__main__":
             current_status = "ing"
             window['startbtn'].update(text=transobj['running'])
 
-            translator = Translator(service_urls=['translate.googleapis.com'])
+            # translator = Translator(service_urls=['translate.googleapis.com'])
+
             r = sr.Recognizer()
             threading.Thread(target=running, args=(window['source_dir'].get(),)).start()
             threading.Thread(target=showsubtitle).start()

@@ -74,10 +74,10 @@ layout = [
                 ],
                 [
                     sg.Text('视频原始语言', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(list(langlist.keys()), default_value=sg.user_settings_get_entry('source_lang', '英语'),
+                    sg.Combo(list(langlist.keys()), default_value='英语',
                              readonly=True, key="source_lang", size=(10, None)),
                     sg.Text('翻译目标语言', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(list(langlist.keys()), default_value=sg.user_settings_get_entry('target_lang', '中文简'),
+                    sg.Combo(list(langlist.keys()), default_value='中文简',
                              readonly=True, key="target_lang", size=(10, None),
                              enable_events=True
                              ),
@@ -187,11 +187,11 @@ if defaulelang == "en":
                     [
                         sg.Text('Source Language', background_color="#e3f2fd", text_color='#212121'),
                         sg.Combo(list(langlist.keys()),
-                                 default_value=sg.user_settings_get_entry('source_lang', 'Simplified_Chinese'),
+                                 default_value='Simplified_Chinese',
                                  readonly=True, key="source_lang", size=(10, None)),
                         sg.Text('Target Language', background_color="#e3f2fd", text_color='#212121'),
                         sg.Combo(list(langlist.keys()),
-                                 default_value=sg.user_settings_get_entry('target_lang', 'English'),
+                                 default_value='English',
                                  readonly=True, key="target_lang", size=(10, None),
                                  enable_events=True
                                  ),
