@@ -2,30 +2,25 @@ import asyncio
 import re
 import shutil
 import sys
-
 import httpx
 import speech_recognition as sr
 import os
 import time
-from PySimpleGUI import ErrorElement
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 from googletrans import Translator
 import PySimpleGUI as sg
 import srt
 from datetime import timedelta
-import glob
 import json
-from tkinter.filedialog import askdirectory
+from tkinter.filedialog import askdirectory, askopenfilename
 from tkinter import messagebox
 import threading
-from config import qu, rootdir, langlist, videolist, timelist, current_status, ishastart, video_config, task_nums, \
-    task_threads, layout, voice_list, transobj
+from config import qu, rootdir, langlist, timelist, current_status, video_config, layout, voice_list, transobj
 import edge_tts
 import moviepy.editor as mp
 
 sg.user_settings_filename(path='.')
-
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
@@ -45,12 +40,10 @@ def get_list_voices():
 get_list_voices()
 
 
-# 根据视频完整路径 返回 字幕文件的路径
 def get_thd_min_silence(p):
     thd = 25  # larger more sensitive
     min_silence_len = 1000
-    sub_name = p[:-3] + "srt"
-    return thd, min_silence_len, sub_name
+    return thd, min_silence_len
 
 
 # 返回切分的音频片段
@@ -73,24 +66,7 @@ def match_target_amplitude(sound, target_dBFS):
     return sound.apply_gain(change_in_dBFS)
 
 
-# 添加字幕，将视频 source_mp4 添加字幕 sub_name 后输出 target_mp4   mp4name=带后缀视频名
-# source_mp4 原始mp4完整路径，target_mp4目标存储mp4完整路径 sub_name字幕文件完整路径，mp4name带mp4后缀的原始名
-def addsubtitle(source_mp4=None, target_mp4=None, sub_name=None, mp4name=None):
-    global videolist
-    # 软字幕
-    ispeiyin = video_config['voice_replace']
-    if ispeiyin != 'None':
-        os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an ./tmp/novoice_{mp4name}")
-        os.system(
-            f"ffmpeg -y -i ./tmp/novoice_{mp4name} -i ./tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 ./tmp/addvoice-{mp4name}")
-        source_mp4 = f"./tmp/addvoice-{mp4name}"
-    os.system(
-        f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={video_config['subtitle_language']}  {target_mp4}")
-    videolist[mp4name] = target_mp4
-    updatebtn(mp4name, f"{mp4name}.mp4 finished")
-
-
-# 拼接配音片段
+# 拼接配音片段 ,合并后的音频名字未  视频名字.wav 比如 1.mp4.wav
 def merge_audio_segments(segments, start_times, total_duration, mp4name):
     # 创建一个空白的音频段作为初始片段
     merged_audio = AudioSegment.empty()
@@ -112,7 +88,6 @@ def merge_audio_segments(segments, start_times, total_duration, mp4name):
             if silence_duration > 0:
                 silence = AudioSegment.silent(duration=silence_duration)
                 merged_audio += silence
-
         # 连接当前片段
         merged_audio += segment
     # 检查总时长是否大于指定的时长，并丢弃多余的部分
@@ -123,20 +98,25 @@ def merge_audio_segments(segments, start_times, total_duration, mp4name):
 
 
 # 处理各个音频片段到文字并生成字幕文件
-def get_large_audio_transcription(aud_path, ext="wav", video_ext='mp4'):
-    global videolist
+def get_large_audio_transcription(aud_path, mp4name, sub_name):
+    # 视频所在路径
     folder_path = '/'.join(aud_path.split('/')[:-1])
+    # 不带后缀的音频名字
     audio_name = aud_path.split('/')[-1][:-4]
-    mp4name = f"{audio_name}.{video_ext}"
-
+    print(f"get_large_audio_transcription----{aud_path}")
+    print(f"get_large_audio_transcription----{folder_path}")
+    print(f"get_large_audio_transcription----{audio_name=}")
+    print(f"get_large_audio_transcription----{sub_name=}")
+    # mp4name = f"{audio_name}.{video_ext}"
+    # 创建保存片段的临时目录
     tmp_path = folder_path + f'/##{audio_name}_tmp'
     updatebtn(mp4name, f"{mp4name} spilt audio")
     if current_status == 'stop':
         return
     if not os.path.isdir(tmp_path):
-        os.mkdir(tmp_path)
+        os.makedirs(tmp_path, 0o777, exist_ok=True)
 
-    thd, min_slien, sub_name = get_thd_min_silence(aud_path)
+    thd, min_slien = get_thd_min_silence(aud_path)
     # 已存在字幕文件则跳过
     if not os.path.exists(sub_name) or os.path.getsize(sub_name) == 0:
         sound = AudioSegment.from_wav(aud_path)
@@ -173,16 +153,17 @@ def get_large_audio_transcription(aud_path, ext="wav", video_ext='mp4'):
             time_covered = start_time / len(normalized_sound) * 100
             # 进度
             updatebtn(mp4name, f"{mp4name} {time_covered:.1f}%")
-            chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}." + ext
+            chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
             add_vol = 10
             audio_chunk = normalized_sound[start_time:end_time] + add_vol
-            audio_chunk.export(chunk_filename, format=ext)
+            audio_chunk.export(chunk_filename, format="wav")
 
             # recognize the chunk
             with sr.AudioFile(chunk_filename) as source:
                 audio_listened = r.record(source)
                 try:
-                    text = r.recognize_google(audio_listened, language=video_config['detect_language'])
+                    # text = r.recognize_google(audio_listened, language=video_config['detect_language'])
+                    text = r.recognize_whisper(audio_listened, language=video_config['detect_language'])
                     print(f"【get_large_audio_transcription】语音识别为文字:{text=}")
                 except sr.UnknownValueError as e:
                     print("Recognize Error: ", str(e), end='; ')
@@ -215,7 +196,7 @@ def get_large_audio_transcription(aud_path, ext="wav", video_ext='mp4'):
                 sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
                 qu.put(f"{start} --> {end} {combo_txt}")
                 subs.append(sub)
-                if video_config['voice_replace'] != 'None':
+                if video_config['voice_replace'] != 'No':
                     communicate = edge_tts.Communicate(result, video_config['voice_replace'],
                                                        rate=video_config['voice_rate'])
                     tmpname = f"./tmp/{start_time}-{index}.mp3"
@@ -234,187 +215,80 @@ def get_large_audio_transcription(aud_path, ext="wav", video_ext='mp4'):
     # 最终生成的视频地址
     target_mp4 = os.path.join(video_config['target_dir'], f"{mp4name}")
     # 原始视频地址
-    source_mp4 = sub_name.replace('.srt', f".{video_ext}")
-    # 如果不是MP4，则先转为mp4，然后再转为原格式
-    tmpsource_name = None
-    if video_ext != 'mp4':
-        # 最终转为mp4格式
-        target_mp4 = target_mp4.replace(f"{video_ext}", f"_{video_ext}ToMp4.mp4")
-        tmpsource_name = os.path.join(rootdir, f"{str(time.time())}.mp4")
-        # 转为mp4格式后再添加字幕
-        os.system(f"ffmpeg -y -i {source_mp4} {tmpsource_name}")
-        source_mp4 = tmpsource_name
-    addsubtitle(source_mp4=source_mp4, target_mp4=target_mp4, sub_name=sub_name, mp4name=mp4name)
-    if tmpsource_name:
-        # 删除临时文件
-        os.unlink(tmpsource_name)
-
-
-# 从视频 p 中提取出 音频 wav 并调用 get_large_audio_transcription 完成操作
-def get_sub_given_path(p, video_ext='mp4'):
-    global current_status
-    mp4name = os.path.basename(p)
-    a_name = p[:-4] + ".wav"
-    sub_name = p[:-4] + ".srt"
-    print(f"{sub_name=}")
-    if (not os.path.exists(sub_name)) or os.path.getsize(sub_name) < 1:
-        if not os.path.exists(a_name):
-            updatebtn(mp4name, f"{mp4name} split audio")
-            os.system(f"ffmpeg -i {p} -acodec pcm_s16le -f s16le -ac 1 -ar 16000 -f wav {a_name}")
-    # if window['noise'].get()=='Yes':
-    #     noise(a_name)
-    get_large_audio_transcription(a_name, ext="wav", video_ext=video_ext)
-    updatebtn(mp4name, f"{mp4name} end")
-
-
-def noise(filename):
-    from noisereduce import reduce_noise
-    import torch
-    # Load the .wav file using pydub
-    audio = AudioSegment.from_wav(filename)
-
-    # Convert the audio to a numpy array
-    audio_array = audio.get_array_of_samples()
-
-    # Perform noise reduction on the audio array
-    reduced_noise = reduce_noise(audio_array, audio.frame_rate)
-
-    # Create a new AudioSegment from the reduced noise array
-    reduced_audio = AudioSegment(
-        reduced_noise.tobytes(),
-        frame_rate=audio.frame_rate,
-        sample_width=audio.sample_width,
-        channels=audio.channels
-    )
-
-    # Export the reduced noise audio as a .wav file
-    reduced_audio.export(filename, format="wav")
-
-
-# def get_sub_given_path(p,video_ext='mp4'):
-#     global current_status
-#     mp4name = os.path.basename(p)
-#     # path = "mrhp011_4_1.mp4"
-#     a_name = p[:-4]+".wav"
-#     if not os.path.exists(a_name):
-#         clip = mp.VideoFileClip(p)
-#         # aud = clip.audio.write_audiofile(a_name, buffersize=20000)
-#     get_large_audio_transcription(a_name, ext="wav",video_ext=video_ext)
-#     updatebtn(mp4name, f"{mp4name} end")
-
-
-# 支持的文件类型
-def get_ps(folder):
-    extens = ["mp4", "avi", "mkv", "mpg"]
-    ps = []
-    for exten in extens:
-        ps += glob.glob(f"{folder}**/*.{exten}", recursive=True)
-    ps = [pps.replace("\\", "/") for pps in ps]
-    return ps
+    source_mp4 = folder_path + f"/{mp4name}"
+    # 合并
+    if video_config['voice_replace'] != 'No':
+        os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an ./tmp/novoice_{mp4name}")
+        os.system(
+            f"ffmpeg -y -i ./tmp/novoice_{mp4name} -i ./tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 ./tmp/addvoice-{mp4name}")
+        source_mp4 = f"./tmp/addvoice-{mp4name}"
+    os.system(
+        f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={video_config['subtitle_language']}  {target_mp4}")
+    updatebtn(mp4name, f"{mp4name}.mp4 finished")
 
 
 def running(p):
-    global videolist, task_nums
-    mp4name = os.path.basename(p)
+    global current_status
+    # 所在目录
+    dirname = os.path.dirname(p)
+    # 去掉名字中的空格
+    mp4nameraw = os.path.basename(p)
+    mp4name = re.sub(r"\s", '', mp4nameraw, 0, re.I)
+    if mp4nameraw != mp4name:
+        os.rename(p, os.path.join(os.path.dirname(p), mp4name))
+    #  整理后的视频名字不带后缀，和后缀，比如 1123  mp4
+    noextname = os.path.splitext(mp4name)[0]
+    # 字幕文件
+    sub_name = f"{dirname}/{noextname}.srt"
+    # 音频文件
+    a_name = f"{dirname}/{noextname}.wav"
     updatebtn(mp4name, f"{mp4name} start")
-    _, _, sub_name = get_thd_min_silence(p)
-
-    if os.path.exists(sub_name) and video_config['savesubtitle'] == 'No':
-        os.unlink(sub_name)
     if os.path.exists(sub_name):
         os.unlink(sub_name)
-    get_sub_given_path(p, video_ext=mp4name.split('.')[-1])
-    task_nums.append(1)
 
-
-# 遍历所有视频并开始处理
-def search_nc(folders_nc):
-    global current_status, task_nums, task_threads
-    ps = get_ps(folders_nc)
-    for p in ps:
-        mp4nameraw = os.path.basename(p)
-        mp4name = re.sub(r"\s", '', mp4nameraw, 0, re.I)
-        print(f"{mp4nameraw=},{mp4name}")
-        if mp4nameraw != mp4name:
-            os.rename(p, os.path.join(os.path.dirname(p), mp4name))
-        try:
-            if isinstance(window.find_element(mp4name, silent_on_error=True), ErrorElement):
-                window.extend_layout(window['add_row'], [createrow(mp4name)])
-            else:
-                window[f"{mp4name}-col"].update(visible=True)
-                if name not in videolist:
-                    videolist[name] = f"{name} waitting start"
-        except:
-            window.extend_layout(window['add_row'], [createrow(mp4name)])
-
-    ps = get_ps(folders_nc)
-    for p in ps:
-        if current_status == 'stop':
-            return
-        while True:
-            try:
-                task_nums.pop()
-            except:
-                time.sleep(10)
-                continue
-            t1 = threading.Thread(target=running, args=(p,))
-            t1.start()
-            task_threads.append(t1)
-            print(f'增减线程 t1={p}')
-            break
-    while True:
-        if current_status == "stop":
-            break
-        time.sleep(1)
-        alive = False
-        for t in task_threads:
-            if t.is_alive():
-                alive = True
-        if not alive and ishastart:
-            current_status = "stop"
-            break
-    window['startbtn'].update(text='All End')
+    if not os.path.exists(a_name):
+        updatebtn(mp4name, f"{mp4name} split audio")
+        os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
+    # 如果选择了去掉背景音，则重新整理为 a_name{voial}.wav
+    if video_config['voice_replace'] != 'No' and video_config['remove_background'] == 'Yes':
+        import warnings
+        warnings.filterwarnings('ignore')
+        from spleeter.separator import Separator
+        separator = Separator('spleeter:2stems', multiprocess=False)
+        separator.separate_to_file(a_name, destination=dirname, filename_format="{filename}{instrument}.{codec}")
+        # 新的名字
+        a_name = f"{dirname}/{noextname}vocals.wav"
+    get_large_audio_transcription(a_name, mp4name, sub_name)
+    updatebtn(mp4name, f"{mp4name} end")
+    current_status = "stop"
+    window['startbtn'].update(text=transobj['end'])
     shutil.rmtree("./tmp")
+    if os.path.exists(f"{dirname}/{noextname}vocals.wav"):
+        os.unlink(f"{dirname}/{noextname}vocals.wav")
+    if os.path.exists(f"{dirname}/##{noextname}vocals_tmp"):
+        shutil.rmtree(f"{dirname}/##{noextname}vocals_tmp")
+    if os.path.exists(f"{dirname}/{noextname}.wav"):
+        os.unlink(f"{dirname}/{noextname}.wav")
+    if os.path.exists(f"{dirname}/##{noextname}_tmp"):
+        shutil.rmtree(f"{dirname}/##{noextname}_tmp")
 
 
-# 更新按钮上文字
+# 显示进度
 def updatebtn(name, text):
     if name not in timelist:
         timelist[name] = int(time.time())
     dur = int(time.time()) - timelist[name]
-    print(f"[{dur}s]{text}")
-    window[name].update(value=f"[{dur}s]{text}")
+    window['jindu'].update(value=f"[{dur}s]{text}\n", autoscroll=True, append=True)
 
 
-# 添加一个按钮
-def createrow(name):
-    global videolist
-    if name not in videolist:
-        videolist[name] = f"{name} waitting"
-    row = [
-        sg.pin(
-            sg.Col(
-                [
-                    [
-                        sg.Text(videolist[name], key=name, expand_x=True)
-                    ]
-                ],
-                key=f"{name}-col"
-            )
-        )
-    ]
-    window['add_row'].contents_changed()
-    return row
-
-
-# 显示日志
-def wrlog():
+# 显示字幕
+def showsubtitle():
     while True:
         if current_status == 'stop':
             return
         if not qu.empty():
             try:
-                window['logs'].update(value=qu.get() + "\n", autoscroll=True, append=True)
+                window['subtitle_area'].update(value=qu.get() + "\n", autoscroll=True, append=True)
             except Exception as e:
                 pass
         else:
@@ -427,7 +301,6 @@ def testproxy():
     proxy = window['proxy'].get().strip()
     if not proxy:
         proxy = None
-    print(f"{proxy=}")
     status = False
     try:
         with httpx.Client(proxies=proxy) as client:
@@ -439,56 +312,49 @@ def testproxy():
         print(str(e))
     if not status:
         current_status = "stop"
-        window['startbtn'].update(text="Stop")
+        window['startbtn'].update(text=transobj["stop"])
         messagebox.showerror(transobj["proxyerrortitle"], transobj["proxyerrorbody"], parent=window.TKroot)
 
 
 # 设置可用的语音角色
 def set_default_voice(t):
-    print(f"设置了目标语言：" + t)
-    # 翻译的目标语言
     try:
         vt = langlist[t][0].split('-')[0]
-        print(f"设置目标语言{t=},{vt=}")
         if vt not in voice_list:
-            window['voice_replace'].update(value="None", values=["None"])
-        window['voice_replace'].update(value="None", values=voice_list[vt])
+            window['voice_replace'].update(value="No", values=["None"])
+        window['voice_replace'].update(value="No", values=voice_list[vt])
     except:
-        window['voice_replace'].update(value="None", values=[it for item in list(voice_list.values()) for it in item])
+        window['voice_replace'].update(value="No", values=[it for item in list(voice_list.values()) for it in item])
 
 
 if __name__ == "__main__":
-    if not os.path.exists(os.path.join(rootdir, "tmp")):
-        os.mkdir(os.path.join(rootdir, 'tmp'))
+
     sg.theme('Material1')
-    window = sg.Window(transobj['softname'], layout, size=(1100, 500), icon=os.path.join(rootdir, "icon.ico"),
+    window = sg.Window(transobj['softname'],
+                       layout,
+                       size=(1100, 500),
+                       icon=os.path.join(rootdir, "icon.ico"),
                        resizable=True)
     while_ready = False
     while True:
         event, values = window.read(timeout=100)
-        # 选择源视频文件夹
-        if event == 'getsource_dir':
-            window['source_dir'].update(askdirectory())
         # 选择目标输出视频文件夹
-        elif event == 'gettarget_dir':
+        if event == 'gettarget_dir':
             window['target_dir'].update(askdirectory())
         elif event == 'target_lang':
             t = window['target_lang'].get()
             set_default_voice(t)
         elif event == 'startbtn':
+            if not os.path.exists(os.path.join(rootdir, "tmp")):
+                os.mkdir(os.path.join(rootdir, 'tmp'))
             # 重置初始化
-            if ishastart:
-                hasvideos = list(videolist.keys())
-                if len(hasvideos) > 0:
-                    for name in hasvideos:
-                        window[f"{name}-col"].update(visible=False)
-                videolist = {}
-                timelist = {}
-            ishastart = True
+            window['jindu'].update(value="")
+            window['subtitle_area'].update(value="")
+            timelist = {}
             # 已在执行中，点击停止
             if current_status == 'ing':
                 current_status = 'stop'
-                window['startbtn'].update(text="Stoped")
+                window['startbtn'].update(text=transobj['stop'])
                 continue
 
             source_dir = window['source_dir'].get()
@@ -503,20 +369,12 @@ if __name__ == "__main__":
                 target_dir = os.path.join(os.path.dirname(source_dir), "_video_out").replace('\\', '/')
                 os.makedirs(target_dir, 0o777, exist_ok=True)
                 window['target_dir'].update(value=target_dir)
-            video_config['source_dir'] = source_dir
-            video_config['target_dir'] = target_dir
             # 原语言
             source_lang = window['source_lang'].get()
             target_lang = window['target_lang'].get()
             if source_lang == target_lang:
                 messagebox.showerror(transobj['anerror'], transobj['sourenotequaltarget'], parent=window.TKroot)
                 continue
-            video_config['source_language'] = langlist[source_lang][0]
-            video_config['detect_language'] = langlist[source_lang][0]
-            video_config['target_language'] = langlist[target_lang][0]
-            video_config['subtitle_language'] = langlist[target_lang][1]
-            video_config['savesubtitle'] = window['savesubtitle'].get()
-            video_config['voice_replace'] = window['voice_replace'].get()
             rate = window['voice_rate'].get().strip()
             rate = int(rate)
             if rate > 0:
@@ -525,6 +383,15 @@ if __name__ == "__main__":
                 video_config['voice_rate'] = f"{rate}%"
             else:
                 video_config['voice_rate'] = f"+0%"
+
+            video_config['source_dir'] = source_dir
+            video_config['target_dir'] = target_dir
+            video_config['source_language'] = langlist[source_lang][0]
+            video_config['detect_language'] = langlist[source_lang][0]
+            video_config['target_language'] = langlist[target_lang][0]
+            video_config['subtitle_language'] = langlist[target_lang][1]
+            video_config['voice_replace'] = window['voice_replace'].get()
+            video_config['remove_background'] = window['remove_background'].get()
 
             # 设置代理
             proxy = window['proxy'].get()
@@ -536,26 +403,19 @@ if __name__ == "__main__":
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
                 sg.user_settings_set_entry('proxy', proxy)
-            try:
-                concurrent = int(window['concurrent'].get())
-            except:
-                concurrent = 1
-            sg.user_settings_set_entry('concurrent', concurrent)
             sg.user_settings_set_entry('source_lang', source_lang)
             sg.user_settings_set_entry('target_lang', target_lang)
-            sg.user_settings_set_entry('savesubtitle', video_config['savesubtitle'])
+            sg.user_settings_set_entry('remove_background', video_config['remove_background'])
             sg.user_settings_set_entry('voice_rate', str(rate).replace('%', ''))
 
-            task_nums = list(range(concurrent))
             threading.Thread(target=testproxy).start()
-
             current_status = "ing"
             window['startbtn'].update(text=transobj['running'])
 
             translator = Translator(service_urls=['translate.googleapis.com'])
             r = sr.Recognizer()
-            threading.Thread(target=search_nc, args=(window['source_dir'].get(),)).start()
-            threading.Thread(target=wrlog).start()
+            threading.Thread(target=running, args=(window['source_dir'].get(),)).start()
+            threading.Thread(target=showsubtitle).start()
         elif event == sg.WIN_CLOSED or event == transobj['exit']:
             current_status = 'stop'
             sys.exit()

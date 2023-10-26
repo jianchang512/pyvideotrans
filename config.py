@@ -19,7 +19,9 @@ translist = {
         "selectvideodir": "必须选择要翻译的视频",
         "sourenotequaltarget": "源语言和目标语言不得相同",
         "running": "执行中",
-        "exit": "退出"
+        "exit": "退出",
+        "end":"已结束",
+        "stop":"已停止"
     },
     "en": {
         "proxyerrortitle": "Proxy Error",
@@ -29,7 +31,9 @@ translist = {
         "selectvideodir": "You must select the video to be translated",
         "sourenotequaltarget": "Source language and target language must not be the same",
         "running": "Running",
-        "exit": "Exit"
+        "exit": "Exit",
+        "end":"Ended",
+        "stop":"Stop"
     }
 }
 transobj = translist['zh']
@@ -53,8 +57,9 @@ layout = [
     [
         sg.Column(
             [
-                [sg.Text('原始视频目录', background_color="#e3f2fd", text_color='#212121'), sg.InputText(key="source_dir"),
-                 sg.Button('选择待翻译视频', key="getsource_dir", enable_events=True, button_color='#018fff', border_width=0)],
+                [sg.Text('原始视频目录', background_color="#e3f2fd", text_color='#212121'),
+                 sg.Input(key="source_dir"), sg.FileBrowse("选择待翻译视频", file_types=(("MP4 Files", "*.mp4"),)),
+                 ],
                 [sg.Text('输出视频位置', background_color="#e3f2fd", text_color='#212121'),
                  sg.InputText(key="target_dir"),
                  sg.Button('选择输出文件夹', key="gettarget_dir", enable_events=True, button_color='#018fff', border_width=0)],
@@ -86,32 +91,23 @@ layout = [
                                  tooltip="-10 -- +90,代表减慢或加速"),
                     sg.Text('-10到+90，负数代表降速，正数代表加速', background_color="#e3f2fd",
                             text_color='#777777'),
-                    # sg.Text('降噪处理', background_color="#e3f2fd", text_color='#212121'),
-                    #     sg.Combo(['No','Yes'], default_value="No", readonly=True, key="noise", size=(18, None)),
+                    sg.Text('去除背景音', background_color="#e3f2fd", text_color='#212121'),
+                    sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
+                             readonly=True, key="remove_background", size=(18, None)),
                 ],
-                [
-                    sg.Text('保留字幕文件', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['Yes', 'No'], tooltip="如果保留，下次同一视频切换字幕语种不生效，需要手动删除",
-                             default_value=sg.user_settings_get_entry('savesubtitle', '保留'), readonly=True,
-                             key="savesubtitle", size=(10, None)),
-                    sg.Text('并发翻译数量', background_color="#e3f2fd", text_color='#212121'),
-                    sg.InputText(sg.user_settings_get_entry('concurrent', 2), key="concurrent",
-                                 tooltip="1-20(cpu的整数倍)", size=(10, 1)),
-                    sg.Text('即同时翻译的视频数量，建议为2-cpu的整数倍', background_color="#e3f2fd",
-                            text_color='#777777'),
-                ],
+
                 [
                     sg.Button('开始执行', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
                 ],
                 [
-                    sg.Multiline('', key="logs", expand_x=True, expand_y=True, size=(50, 8), autoscroll=True,
+                    sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 8), autoscroll=True,
                                  background_color="#f1f1f1", text_color='#212121'),
                 ]
             ],
             background_color="#e3f2fd",
             expand_x=True,
             expand_y=True,
-            size=(640, None)
+            size=(None, None)
         ),
         sg.Column(
             [
@@ -119,22 +115,24 @@ layout = [
                     sg.Text("进度显示区", background_color="#e3f2fd", text_color='#212121'),
                 ],
                 [
-                    sg.Column([[]],
-                              key="add_row",
-                              background_color="#e3f2fd",
-                              size=(None, 400),
-                              expand_y=True,
-                              expand_x=True,
-                              scrollable=True,
-                              # justification="top",
-                              vertical_alignment="top",
-                              vertical_scroll_only=True
-                              )
-                ],
+                    sg.Multiline('', key="jindu",
+                                 write_only=True,
+                                 expand_x=True,
+                                 expand_y=True,
+                                 size=(None, 8),
+                                 autoscroll=True,
+                                 background_color="#e3f2fd",
+                                 text_color='#212121',
+                                 border_width=0,
+                                 sbar_width=1,
+                                 sbar_arrow_width=1,
+                                 sbar_background_color="#e3f2ff",
+                                 disabled=True),
+                ]
             ],
             # key="add_row",
             background_color="#e3f2fd",
-            size=(None, None),
+            # size=(400, None),
             expand_y=True,
             expand_x=True,
             scrollable=False,
@@ -165,11 +163,12 @@ if defaulelang == "en":
         [
             sg.Column(
                 [
-                    [sg.Text('Source Video Directory', background_color="#e3f2fd", text_color='#212121'),
-                     sg.InputText(key="source_dir"),
-                     sg.Button('Select Source Directory', key="getsource_dir", enable_events=True,
-                               button_color='#018fff',
-                               border_width=0)],
+                    [
+                        sg.Text('Source Video Directory', background_color="#e3f2fd", text_color='#212121'),
+                        sg.Input(key="source_dir"),
+                        sg.FileBrowse("Select Source Video", file_types=(("MP4 Files", "*.mp4"),)),
+                    ],
+
                     [sg.Text('Output Video Location', background_color="#e3f2fd", text_color='#212121'),
                      sg.InputText(key="target_dir"),
                      sg.Button('Select Target Directory', key="gettarget_dir", enable_events=True,
@@ -197,7 +196,7 @@ if defaulelang == "en":
                                  enable_events=True
                                  ),
                         sg.Text('Select Voice Replacement', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['None'], default_value="None", readonly=True, key="voice_replace", size=(18, None)),
+                        sg.Combo(['No'], default_value="No", readonly=True, key="voice_replace", size=(18, None)),
                     ],
                     [
                         sg.Text('Voice Speed', tooltip="-50-->+50", background_color="#e3f2fd",
@@ -208,28 +207,28 @@ if defaulelang == "en":
                             '-10 to +90, negative values represent slowing down, positive values represent speeding up',
                             background_color="#e3f2fd",
                             text_color='#777777'),
-                        # sg.Text('Noise reduction', background_color="#e3f2fd", text_color='#212121'),
-                        # sg.Combo(['No','Yes'], default_value="No", readonly=True, key="noise", size=(18, None)),
+                        sg.Text('Remove background sound', background_color="#e3f2fd", text_color='#212121'),
+                        sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
+                                 readonly=True, key="remove_background", size=(18, None)),
                     ],
-                    [
-                        sg.Text('Keep Subtitle Files', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['Yes', 'No'],
-                                 tooltip="If 'Yes', changing subtitle language for the same video will not take effect until manually deleted.",
-                                 default_value=sg.user_settings_get_entry('savesubtitle', 'Yes'), readonly=True,
-                                 key="savesubtitle", size=(10, None)),
-                        sg.Text('Concurrent Translation Count', background_color="#e3f2fd", text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('concurrent', 2), key="concurrent",
-                                     tooltip="1-20 (integer multiple of CPU)", size=(10, 1)),
-                        sg.Text('i.e. Number of Videos Translated Simultaneously, suggest 2 - integer multiple of CPU',
-                                background_color="#e3f2fd",
-                                text_color='#777777'),
-                    ],
+
                     [
                         sg.Button('Start Execution', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
                     ],
                     [
-                        sg.Multiline('', key="logs", expand_x=True, expand_y=True, size=(50, 8), autoscroll=True,
-                                     background_color="#f1f1f1", text_color='#212121'),
+                        sg.Multiline('', key="jindu",
+                                     write_only=True,
+                                     expand_x=True,
+                                     expand_y=True,
+                                     size=(None, 8),
+                                     autoscroll=True,
+                                     background_color="#e3f2fd",
+                                     text_color='#212121',
+                                     border_width=0,
+                                     sbar_width=1,
+                                     sbar_arrow_width=1,
+                                     sbar_background_color="#e3f2ff",
+                                     disabled=True),
                     ]
                 ],
                 background_color="#e3f2fd",
@@ -243,16 +242,8 @@ if defaulelang == "en":
                         sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
                     ],
                     [
-                        sg.Column([[]],
-                                  key="add_row",
-                                  background_color="#e3f2fd",
-                                  size=(None, 400),
-                                  expand_y=True,
-                                  expand_x=True,
-                                  scrollable=True,
-                                  vertical_alignment="top",
-                                  vertical_scroll_only=True
-                                  )
+                        sg.Multiline('', key="jindu", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
+                                     background_color="#e3f2fd", text_color='#212121'),
                     ],
                 ],
                 background_color="#e3f2fd",
@@ -274,18 +265,13 @@ os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 # 日志队列
 qu = queue.Queue(100)
 
-# 存放所有视频名字键值对，值存放按钮上显示文字，完成后存放视频地址
-videolist = {}
 # 存放可使用的语音音色
 voice_list = {}
 # 存放每个视频处理的时间
 timelist = {}
-# 存放线程list
-tc = []
+
 # 开始按钮状态
 current_status = "stop"
-# 是否已执行过
-ishastart = False
 # 配置
 video_config = {
     "target_dir": "",
@@ -294,9 +280,7 @@ video_config = {
     "source_language": "en",
     "target_language": "zh-cn",
     "subtitle_language": "chi",
-    "savesubtitle": "Yes",
-    "voice_replace": "None",
-    "voice_rate": "+10"
+    "voice_replace": "No",
+    "voice_rate": "+10",
+    "remove_background": "No"
 }
-task_nums = [1, 1]
-task_threads = []

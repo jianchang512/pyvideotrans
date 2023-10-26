@@ -6,5 +6,6 @@ venv
 dist
 source
 ffmpeg.exe
+ffprobe.exe
 __pycache__
 build
