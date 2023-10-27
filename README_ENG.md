@@ -5,7 +5,7 @@ This is a video translation tool that can translate a video from one language to
 # Instructions for using the precompiled version
 0. Only available for Windows 10 and Windows 11 systems.
 1. Download the latest version from the release, unzip it, and double-click on sp.exe.
-2. Create a folder and place the mp4 video (mkv, avi, mpg) inside it. Select the folder from the "Original Video Directory" in the software interface. If you don't select the "Output Video Directory", it will be generated in the same directory with the name "_video_out" by default.
+2. Select the mp4 video  from the "Original Video " in the software interface. If you don't select the "Output Video Directory", it will be generated in the same directory with the name "_video_out" by default.
 3. If you are unable to access Google directly in your region, you need to set up a proxy in the "Network Connection Proxy" in the software interface. For example, if you are using v2ray, fill in `http://127.0.0.1:10809`, if using clash, fill in `http://127.0.0.1:7890`. If you have modified the default port or are using other proxy software, fill in accordingly.
 4. Depending on your computer performance, you can modify the "Concurrent Translation Quantity", which refers to the number of video tasks that are translated simultaneously.
 5. "Dubbing Selection": After selecting the target language, you can choose the dubbing role from the dubbing options. "Remove Background Music": Select "Yes" to try removing the background music for more accurate results.
@@ -32,7 +32,6 @@ You can download   [**dowload model**](https://github.com/jianchang512/pyvideotr
 # Software Preview Screenshots
 
 ![](./images/en1.png)
-![](./images/en2.png)
 
 # Original Video and Translated Video
 
