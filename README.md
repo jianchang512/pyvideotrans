@@ -1,36 +1,162 @@
 # [English](./README_ENG.md)
 
 这是一个视频翻译工具，可将一种语言的视频翻译为另一种语言和配音的视频。
-语音识别基于openai-whisper离线模型、文字翻译使用google翻译接口，文字合成语音使用 Microsoft Edge tts，背景音乐去除使用 Spleeter,无需购买任何商业接口，也无需付费
+语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google`翻译接口，文字合成语音使用 `Microsoft Edge tts`，背景音乐去除使用 `Spleeter`,无需购买任何商业接口，也无需付费
 
 # 使用预编译版本方法
 0. 只可用于 win10 win11 系统
 1. 从 release中下载最新版，解压，双击 sp.exe
-2. 从软件界面“待翻译视频”中选择mp4视频；“输出视频目录”如果不选择，则默认生成在同目录下的“_video_out”
-3. 如果你所在地区无法直接访问google，需要在软件界面“网络连接代理”中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
-4. 根据你的电脑性能，可修改“并发翻译数量”，即同时执行翻译的视频任务。
-5. “配音选择”：选择目标语言后，可从配音选项中，选择配音角色；“去掉背景音”：选择 Yes 可尝试删掉背景音乐，以使结果更准确
-6. “配音语速”：同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
-7. 点击“开始执行”，会先检测能否连接google服务，若可以，则正式执行，右侧会显示当前进度，底部白色文本框内显示详细日志
-8. 建议统一使用mp4格式，处理速度快，网络兼容性好
+2. 点击软件按钮 待翻译视频 选择mp4视频；输出视频目录 如果不选择，则默认生成在同目录下的 `_video_out`
+3. 如果你所在地区无法直接访问 google，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
+4. 配音选择：选择目标语言后，可从配音选项中，选择配音角色；
+5. 去掉背景音：选择 Yes 可尝试删掉背景音乐，以使结果更准确
+6. 配音语速：同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
+7. 点击 开始执行，会先检测能否连接google服务，若可以，则正式执行，右侧会显示当前进度，底部白色文本框内显示字幕
+8. 原始视频统一使用mp4格式，处理速度快，网络兼容性好
 9. 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
-10. 默认会在“原始视频目录”下生成同名的字幕文件“视频名.srt”
+10. 默认会在 原始视频目录 下生成同名的字幕文件 视频名.srt
 11. 对于无法识别的语音将直接复制原语音
 12. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包  [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
 
-# 源码部署修改
+# 源码部署
 
-1. 电脑安装好 python 3.9+
+1. 配置好 python 3.9+ 环境
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
 4. `pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下
-6. `python sp.py`
+6. `python sp.py` 打开软件界面
 7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
+
+# cli 方式使用
+
+>
+> 按照上述源码部署方式部署好后，执行 `python cli.py`，可在命令行下执行
+> 
+
+### 支持的参数
+
+**--source_mp4**： 【必填】待翻译视频路径，以.mp4结尾
+**--target_dir**：  翻译后视频存放位置，默认存放源视频目录下的 _video_out 文件夹
+
+**--source_language**：视频语言代码,默认`en` ( zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar )
+**--target_language**：目标语言代码,默认`zh-cn` ( zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar )
+
+**--proxy**：填写 http 代理地址，默认 None,如果所在地区无法访问google，需要填写，例如: `http://127.0.0.1:10809`
+
+**--voice_replace**：根据所选目标语言代码，填写对应的角色名，注意角色名的前2个字母需要和目标语言代码的前2个字母一致，如果不知道该怎么填写，执行`python cli.py show_vioce` 将显示每种语言对应可用的角色名称
+
+    af: af-ZA-AdriNeural, af-ZA-WillemNeural
+    sq: sq-AL-AnilaNeural, sq-AL-IlirNeural
+    am: am-ET-AmehaNeural, am-ET-MekdesNeural
+    ar: ar-DZ-AminaNeural, ar-DZ-IsmaelNeural, ar-BH-AliNeural, ar-BH-LailaNeural, ar-EG-SalmaNeural, ar-EG-ShakirNeural, ar-IQ-BasselNeural, ar-IQ-Ran
+    aNeural, ar-JO-SanaNeural, ar-JO-TaimNeural, ar-KW-FahedNeural, ar-KW-NouraNeural, ar-LB-LaylaNeural, ar-LB-RamiNeural, ar-LY-ImanNeural, ar-LY-Oma
+    rNeural, ar-MA-JamalNeural, ar-MA-MounaNeural, ar-OM-AbdullahNeural, ar-OM-AyshaNeural, ar-QA-AmalNeural, ar-QA-MoazNeural, ar-SA-HamedNeural, ar-S
+    A-ZariyahNeural, ar-SY-AmanyNeural, ar-SY-LaithNeural, ar-TN-HediNeural, ar-TN-ReemNeural, ar-AE-FatimaNeural, ar-AE-HamdanNeural, ar-YE-MaryamNeur
+    al, ar-YE-SalehNeural
+    az: az-AZ-BabekNeural, az-AZ-BanuNeural
+    bn: bn-BD-NabanitaNeural, bn-BD-PradeepNeural, bn-IN-BashkarNeural, bn-IN-TanishaaNeural
+    bs: bs-BA-GoranNeural, bs-BA-VesnaNeural
+    bg: bg-BG-BorislavNeural, bg-BG-KalinaNeural
+    my: my-MM-NilarNeural, my-MM-ThihaNeural
+    ca: ca-ES-EnricNeural, ca-ES-JoanaNeural
+    zh: zh-HK-HiuGaaiNeural, zh-HK-HiuMaanNeural, zh-HK-WanLungNeural, zh-CN-XiaoxiaoNeural, zh-CN-XiaoyiNeural, zh-CN-YunjianNeural, zh-CN-YunxiNeural
+    , zh-CN-YunxiaNeural, zh-CN-YunyangNeural, zh-CN-liaoning-XiaobeiNeural, zh-TW-HsiaoChenNeural, zh-TW-YunJheNeural, zh-TW-HsiaoYuNeural, zh-CN-shaa
+    nxi-XiaoniNeural
+    hr: hr-HR-GabrijelaNeural, hr-HR-SreckoNeural
+    cs: cs-CZ-AntoninNeural, cs-CZ-VlastaNeural
+    da: da-DK-ChristelNeural, da-DK-JeppeNeural
+    nl: nl-BE-ArnaudNeural, nl-BE-DenaNeural, nl-NL-ColetteNeural, nl-NL-FennaNeural, nl-NL-MaartenNeural
+    en: en-AU-NatashaNeural, en-AU-WilliamNeural, en-CA-ClaraNeural, en-CA-LiamNeural, en-HK-SamNeural, en-HK-YanNeural, en-IN-NeerjaExpressiveNeural,
+    en-IN-NeerjaNeural, en-IN-PrabhatNeural, en-IE-ConnorNeural, en-IE-EmilyNeural, en-KE-AsiliaNeural, en-KE-ChilembaNeural, en-NZ-MitchellNeural, en-
+    NZ-MollyNeural, en-NG-AbeoNeural, en-NG-EzinneNeural, en-PH-JamesNeural, en-PH-RosaNeural, en-SG-LunaNeural, en-SG-WayneNeural, en-ZA-LeahNeural, e
+    n-ZA-LukeNeural, en-TZ-ElimuNeural, en-TZ-ImaniNeural, en-GB-LibbyNeural, en-GB-MaisieNeural, en-GB-RyanNeural, en-GB-SoniaNeural, en-GB-ThomasNeur
+    al, en-US-AriaNeural, en-US-AnaNeural, en-US-ChristopherNeural, en-US-EricNeural, en-US-GuyNeural, en-US-JennyNeural, en-US-MichelleNeural, en-US-R
+    ogerNeural, en-US-SteffanNeural
+    et: et-EE-AnuNeural, et-EE-KertNeural
+    fil: fil-PH-AngeloNeural, fil-PH-BlessicaNeural
+    fi: fi-FI-HarriNeural, fi-FI-NooraNeural
+    fr: fr-BE-CharlineNeural, fr-BE-GerardNeural, fr-CA-AntoineNeural, fr-CA-JeanNeural, fr-CA-SylvieNeural, fr-FR-DeniseNeural, fr-FR-EloiseNeural, fr
+    -FR-HenriNeural, fr-CH-ArianeNeural, fr-CH-FabriceNeural
+    gl: gl-ES-RoiNeural, gl-ES-SabelaNeural
+    ka: ka-GE-EkaNeural, ka-GE-GiorgiNeural
+    de: de-AT-IngridNeural, de-AT-JonasNeural, de-DE-AmalaNeural, de-DE-ConradNeural, de-DE-KatjaNeural, de-DE-KillianNeural, de-CH-JanNeural, de-CH-Le
+    niNeural
+    el: el-GR-AthinaNeural, el-GR-NestorasNeural
+    gu: gu-IN-DhwaniNeural, gu-IN-NiranjanNeural
+    he: he-IL-AvriNeural, he-IL-HilaNeural
+    hi: hi-IN-MadhurNeural, hi-IN-SwaraNeural
+    hu: hu-HU-NoemiNeural, hu-HU-TamasNeural
+    is: is-IS-GudrunNeural, is-IS-GunnarNeural
+    id: id-ID-ArdiNeural, id-ID-GadisNeural
+    ga: ga-IE-ColmNeural, ga-IE-OrlaNeural
+    it: it-IT-DiegoNeural, it-IT-ElsaNeural, it-IT-IsabellaNeural
+    ja: ja-JP-KeitaNeural, ja-JP-NanamiNeural
+    jv: jv-ID-DimasNeural, jv-ID-SitiNeural
+    kn: kn-IN-GaganNeural, kn-IN-SapnaNeural
+    kk: kk-KZ-AigulNeural, kk-KZ-DauletNeural
+    km: km-KH-PisethNeural, km-KH-SreymomNeural
+    ko: ko-KR-InJoonNeural, ko-KR-SunHiNeural
+    lo: lo-LA-ChanthavongNeural, lo-LA-KeomanyNeural
+    lv: lv-LV-EveritaNeural, lv-LV-NilsNeural
+    lt: lt-LT-LeonasNeural, lt-LT-OnaNeural
+    mk: mk-MK-AleksandarNeural, mk-MK-MarijaNeural
+    ms: ms-MY-OsmanNeural, ms-MY-YasminNeural
+    ml: ml-IN-MidhunNeural, ml-IN-SobhanaNeural
+    mt: mt-MT-GraceNeural, mt-MT-JosephNeural
+    mr: mr-IN-AarohiNeural, mr-IN-ManoharNeural
+    mn: mn-MN-BataaNeural, mn-MN-YesuiNeural
+    ne: ne-NP-HemkalaNeural, ne-NP-SagarNeural
+    nb: nb-NO-FinnNeural, nb-NO-PernilleNeural
+    ps: ps-AF-GulNawazNeural, ps-AF-LatifaNeural
+    fa: fa-IR-DilaraNeural, fa-IR-FaridNeural
+    pl: pl-PL-MarekNeural, pl-PL-ZofiaNeural
+    pt: pt-BR-AntonioNeural, pt-BR-FranciscaNeural, pt-PT-DuarteNeural, pt-PT-RaquelNeural
+    ro: ro-RO-AlinaNeural, ro-RO-EmilNeural
+    ru: ru-RU-DmitryNeural, ru-RU-SvetlanaNeural
+    sr: sr-RS-NicholasNeural, sr-RS-SophieNeural
+    si: si-LK-SameeraNeural, si-LK-ThiliniNeural
+    sk: sk-SK-LukasNeural, sk-SK-ViktoriaNeural
+    sl: sl-SI-PetraNeural, sl-SI-RokNeural
+    so: so-SO-MuuseNeural, so-SO-UbaxNeural
+    es: es-AR-ElenaNeural, es-AR-TomasNeural, es-BO-MarceloNeural, es-BO-SofiaNeural, es-CL-CatalinaNeural, es-CL-LorenzoNeural, es-CO-GonzaloNeural, e
+    s-CO-SalomeNeural, es-CR-JuanNeural, es-CR-MariaNeural, es-CU-BelkysNeural, es-CU-ManuelNeural, es-DO-EmilioNeural, es-DO-RamonaNeural, es-EC-Andre
+    aNeural, es-EC-LuisNeural, es-SV-LorenaNeural, es-SV-RodrigoNeural, es-GQ-JavierNeural, es-GQ-TeresaNeural, es-GT-AndresNeural, es-GT-MartaNeural,
+    es-HN-CarlosNeural, es-HN-KarlaNeural, es-MX-DaliaNeural, es-MX-JorgeNeural, es-NI-FedericoNeural, es-NI-YolandaNeural, es-PA-MargaritaNeural, es-P
+    A-RobertoNeural, es-PY-MarioNeural, es-PY-TaniaNeural, es-PE-AlexNeural, es-PE-CamilaNeural, es-PR-KarinaNeural, es-PR-VictorNeural, es-ES-AlvaroNe
+    ural, es-ES-ElviraNeural, es-US-AlonsoNeural, es-US-PalomaNeural, es-UY-MateoNeural, es-UY-ValentinaNeural, es-VE-PaolaNeural, es-VE-SebastianNeura
+    l
+    su: su-ID-JajangNeural, su-ID-TutiNeural
+    sw: sw-KE-RafikiNeural, sw-KE-ZuriNeural, sw-TZ-DaudiNeural, sw-TZ-RehemaNeural
+    sv: sv-SE-MattiasNeural, sv-SE-SofieNeural
+    ta: ta-IN-PallaviNeural, ta-IN-ValluvarNeural, ta-MY-KaniNeural, ta-MY-SuryaNeural, ta-SG-AnbuNeural, ta-SG-VenbaNeural, ta-LK-KumarNeural, ta-LK-S
+    aranyaNeural
+    te: te-IN-MohanNeural, te-IN-ShrutiNeural
+    th: th-TH-NiwatNeural, th-TH-PremwadeeNeural
+    tr: tr-TR-AhmetNeural, tr-TR-EmelNeural
+    uk: uk-UA-OstapNeural, uk-UA-PolinaNeural
+    ur: ur-IN-GulNeural, ur-IN-SalmanNeural, ur-PK-AsadNeural, ur-PK-UzmaNeural
+    uz: uz-UZ-MadinaNeural, uz-UZ-SardorNeural
+    vi: vi-VN-HoaiMyNeural, vi-VN-NamMinhNeural
+    cy: cy-GB-AledNeural, cy-GB-NiaNeural
+    zu: zu-ZA-ThandoNeural, zu-ZA-ThembaNeural
+
+**--voice_rate**：负数降低配音语速，正数加快配音语速，默认`10`,即加快
+**--remove_background**：是否移除背景音，如果传入该参数即代表去除背景音
+
+**cli示例**
+
+`python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_replace zh-CN-XiaoxiaoNeural`
+
+上述意思是，将源语言位英文的 D:/video/ex.mp4 视频，翻译为中文视频，设置代理 http://127.0.0.1:10809 使用配音橘色为 zh-CN-XiaoxiaoNeural
+
+
 
 # 软件预览截图
 
 ![](./images/1.png)
+![](./images/cli.png)
+
 
 # 视频前后对比
 [原视频](https://www.wonyes.org/images/raw.mp4)
@@ -55,4 +181,3 @@
 7. edge-tts
 8. Spleeter
 9. openai-whisper
-

@@ -20,8 +20,8 @@ translist = {
         "sourenotequaltarget": "源语言和目标语言不得相同",
         "running": "执行中",
         "exit": "退出",
-        "end":"已结束",
-        "stop":"已停止"
+        "end": "已结束",
+        "stop": "已停止"
     },
     "en": {
         "proxyerrortitle": "Proxy Error",
@@ -32,8 +32,8 @@ translist = {
         "sourenotequaltarget": "Source language and target language must not be the same",
         "running": "Running",
         "exit": "Exit",
-        "end":"Ended",
-        "stop":"Stop"
+        "end": "Ended",
+        "stop": "Stop"
     }
 }
 transobj = translist['zh']
@@ -58,7 +58,7 @@ layout = [
         sg.Column(
             [
                 [sg.Text('原始视频目录', background_color="#e3f2fd", text_color='#212121'),
-                 sg.Input(key="source_dir"), sg.FileBrowse("选择待翻译视频", file_types=(("MP4 Files", "*.mp4"),)),
+                 sg.Input(key="source_mp4"), sg.FileBrowse("选择待翻译视频", file_types=(("MP4 Files", "*.mp4"),)),
                  ],
                 [sg.Text('输出视频位置', background_color="#e3f2fd", text_color='#212121'),
                  sg.InputText(key="target_dir"),
@@ -115,7 +115,7 @@ layout = [
                     sg.Text("进度显示区", background_color="#e3f2fd", text_color='#212121'),
                 ],
                 [
-                    sg.Multiline('', key="jindu",
+                    sg.Multiline('', key="process",
                                  write_only=True,
                                  expand_x=True,
                                  expand_y=True,
@@ -165,7 +165,7 @@ if defaulelang == "en":
                 [
                     [
                         sg.Text('Source Video Directory', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Input(key="source_dir"),
+                        sg.Input(key="source_mp4"),
                         sg.FileBrowse("Select Source Video", file_types=(("MP4 Files", "*.mp4"),)),
                     ],
 
@@ -216,7 +216,7 @@ if defaulelang == "en":
                         sg.Button('Start Execution', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
                     ],
                     [
-                        sg.Multiline('', key="jindu",
+                        sg.Multiline('', key="process",
                                      write_only=True,
                                      expand_x=True,
                                      expand_y=True,
@@ -242,7 +242,7 @@ if defaulelang == "en":
                         sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
                     ],
                     [
-                        sg.Multiline('', key="jindu", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
+                        sg.Multiline('', key="process", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
                                      background_color="#e3f2fd", text_color='#212121'),
                     ],
                 ],
@@ -265,8 +265,6 @@ os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 # 日志队列
 qu = queue.Queue(100)
 
-# 存放可使用的语音音色
-voice_list = {}
 # 存放每个视频处理的时间
 timelist = {}
 
@@ -274,12 +272,15 @@ timelist = {}
 current_status = "stop"
 # 配置
 video_config = {
+    "source_mp4": "",
     "target_dir": "",
-    "source_dir": "",
-    "detect_language": "en",
+
     "source_language": "en",
+    "detect_language": "en",
+
     "target_language": "zh-cn",
     "subtitle_language": "chi",
+
     "voice_replace": "No",
     "voice_rate": "+10",
     "remove_background": "No"

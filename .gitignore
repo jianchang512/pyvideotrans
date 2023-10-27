@@ -9,3 +9,6 @@ ffmpeg.exe
 ffprobe.exe
 __pycache__
 build
+sp.spec
+sp.json
+*.mp4
