@@ -181,9 +181,8 @@
 
 
 # 视频前后对比
-[原视频](https://www.wonyes.org/images/raw.mp4)
 
-[翻译后的视频](https://www.wonyes.org/images/new.mp4)
+[demo / Original Video and Translated Video](https://www.wonyes.org/demo.html)
 
 # 可能的问题
 
