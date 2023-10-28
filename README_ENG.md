@@ -169,6 +169,12 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 In the above example, it translates the video located at "D:/video/ex.mp4" from English to Chinese, sets the proxy to "http://127.0.0.1:10809", and uses the voice replacement of "zh-CN-XiaoxiaoNeural".
 
+`python cli.py --source_mp4 "D:/video/ex.mp4" --source_language zh-cn --target_language en  --proxy "http://127.0.0.1"1080
+9"  --voice_replace en-US-AriaNeural --voice_autorate  --whisper_model small`
+
+The above means to translate the video D:/video/ex.mp4 with the source language as Chinese to the target language as English. Set the proxy as http://127.0.0.1:10809 and use the voiceover role en-US-AriaNeural. If the translated audio duration is longer than the original audio, it will automatically be accelerated. The text recognition model for speech recognition is set to use the small model.
+
+
 # Software Preview Screenshots
 
 ![](./images/en1.png)
@@ -176,9 +182,7 @@ In the above example, it translates the video located at "D:/video/ex.mp4" from 
 
 # Video Comparison Before and After Translation
 
-[Original Video](https://www.wonyes.org/images/raw.mp4)
-
-[Translated Video](https://www.wonyes.org/images/new.mp4)
+[demo / Original Video and Translated Video](https://www.wonyes.org/demo.html)
 
 # Potential Issues
 
