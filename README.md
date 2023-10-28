@@ -53,6 +53,22 @@
 
 **--target_language**：目标语言代码,默认`zh-cn` ( zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar )
 
+    zh-cn: Simplified_Chinese
+    zh-tw: Traditional_Chinese
+    en: English
+    fr: French
+    de: German
+    ja: Japanese
+    ko: Korean
+    ru: Russian
+    es: Spanish
+    th: Thai
+    it: Italian
+    pt: Portuguese
+    vi: Vietnamese
+    ar: Arabic
+
+
 **--proxy**：填写 http 代理地址，默认 None,如果所在地区无法访问google，需要填写，例如: `http://127.0.0.1:10809`
 
 **--voice_replace**：根据所选目标语言代码，填写对应的角色名，注意角色名的前2个字母需要和目标语言代码的前2个字母一致，如果不知道该怎么填写，执行`python cli.py show_vioce` 将显示每种语言对应可用的角色名称
