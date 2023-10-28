@@ -6,19 +6,25 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 # Instructions for using the precompiled version:
 
-0. This version is only compatible with Windows 10 and Windows 11 systems.
-1. Download the latest version from the release section, unzip it, and double-click on "sp.exe".
-2. Click on the "Wait Video" button to select an MP4 video for translation. If you don't choose an output directory, the video will be generated in the default directory "_video_out".
-3. If you are unable to access Google directly in your region, you need to set up a proxy in the "Proxy" (network proxy) section of the software interface. For example, if you are using v2ray, enter "http://127.0.0.1:10809"; if you are using Clash, enter "http://127.0.0.1:7890". If you have modified the default port or are using other proxy software, fill in the appropriate information.
-4. Dubbing selection: After selecting the target language, you can choose a dubbing character from the dubbing options.
-5. Remove background music: Select "Yes" to attempt removing the background music and make the results more accurate.
-6. Dubbing speed: The time required for the same sentence in different languages may vary, so the subtitles may not be synchronized after dubbing. You can adjust the speed here. Negative numbers represent slowdown, while positive numbers represent accelerated playback.
-7. Click on "Start" (Start Execution). It will first check if it can connect to Google services. If it is successful, it will start the execution. The progress will be displayed on the right side, and the subtitles will be shown in the white text box at the bottom.
-8. The original videos should be in MP4 format, as it is fast to process and has good network compatibility.
-9. Soft-encoded subtitles are used, which are embedded as separate files in the video and can be extracted again. If supported by the video player, you can enable or disable subtitles in the player's subtitle management.
-10. By default, a subtitle file with the same name as the original video will be generated in the original video directory (video_name.srt).
-11. Unrecognized speech will be directly copied from the original audio.
-12. If you use the background music removal function for the first time, you will need to download the model, which may take some time. You can download the compressed file "2stems.zip" and extract the files to the directory "pretrained_models/2stems". [**Download Model Package**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)
+0. Can only be used on win10 win11 systems.
+1. Download the latest version from the release, extract it, and double-click on sp.exe.
+2. Original video directory: Select the mp4 video.
+3. Output video directory: If not selected, it will default to generating in the same directory as `_video_out`.
+4. Network proxy address: If you are unable to access Google directly in your region, you need to set up a proxy in the software interface under Network Proxy. For example, if you are using v2ray, enter `http://127.0.0.1:10809`. If using Clash, enter `http://127.0.0.1:7890`. If you have modified the default port or are using other proxy software, please fill in accordingly.
+5. Original video language: Select the language of the video to be translated.
+6. Target translation language: Select the desired language for translation.
+7. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
+8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the reading recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
+9. Dubbing speed: Enter a number between -10 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
+10. Auto acceleration: Select Yes or No. If the duration of the translated speech is longer than the original duration and you select "Yes" here, the segment will be forced to be accelerated to reduce the length.
+11. Remove background music: Select Yes to attempt to remove background music for more accurate results.
+12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 300, which means segments with silences equal to or longer than 300ms will be used as the basis for splitting the speech.
+13. Click "Start Execution", it will first check if it can connect to Google services. If successful, the execution will proceed, and the current progress will be displayed on the right. The subtitles will be displayed in the white text box at the bottom.
+
+> The original video should be in mp4 format for fast processing and good network compatibility.
+> Soft-coded subtitles are used – subtitles are embedded as separate files in the video and can be extracted again. If supported by the player, you can enable or disable subtitles in the player's subtitle management.
+> By default, a subtitle file with the same name as the original video will be generated in the original video directory as "video_name.srt".
+> Unrecognized speech will be directly copied from the original audio.
 
 # Source Code Deployment
 
@@ -149,6 +155,12 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 **--voice_rate**: Adjust the speed of the voice dubbing. Use negative numbers to decrease the speed and positive numbers to increase it. The default value is `10`, which represents an increase in speed.
 
 **--remove_background**: Specify this parameter to remove the background music.
+
+**--voice_silence**: Enter a number between 100 and 2000, indicating the minimum duration of a silent section in milliseconds. The default is 300.
+
+**--voice_autorate**: If the translated audio is longer than the original duration, can it be automatically accelerated to align with the original duration?
+
+**--whisper_model**: The default is base. Choose from base, small, medium, or large. As the model size increases, the translation effect improves but the speed slows down.
 
 
 **CLI Example**

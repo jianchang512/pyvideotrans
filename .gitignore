@@ -5,6 +5,7 @@ dev
 venv
 dist
 source
+test.py
 ffmpeg.exe
 ffprobe.exe
 __pycache__

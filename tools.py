@@ -8,7 +8,7 @@ import requests
 import speech_recognition as sr
 import os
 from pydub import AudioSegment
-from pydub.silence import detect_nonsilent
+from pydub.silence import detect_nonsilent, detect_silence
 import srt
 from datetime import timedelta
 import json
@@ -121,7 +121,7 @@ def googletrans(text, src, dest):
 
 
 # 处理各个音频片段到文字并生成字幕文件
-def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
+def get_large_audio_transcription1028(aud_path, mp4name, sub_name, showprocess):
     # 视频所在路径
     folder_path = '/'.join(aud_path.split('/')[:-1])
     # 不带后缀的音频名字
@@ -225,6 +225,164 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                     asyncio.run(communicate.save(tmpname))
                     try:
                         audio_data = AudioSegment.from_file(tmpname, format="mp3")
+                    except:
+                        audio_data = AudioSegment.silent(duration=end_time - start_time)
+                    segments.append(audio_data)
+                    os.unlink(tmpname)
+        merge_audio_segments(segments, start_times, total_length * 1000, mp4name)
+        final_srt = srt.compose(subs)
+        with open(sub_name, 'w', encoding="utf-8") as f:
+            f.write(final_srt)
+    else:
+        showprocess(mp4name, "add subtitle")
+    showprocess(mp4name, f"{mp4name} add subtitle")
+    # 最终生成的视频地址
+    target_mp4 = os.path.join(config.video_config['target_dir'], f"{mp4name}")
+    # 原始视频地址
+    source_mp4 = folder_path + f"/{mp4name}"
+    logger.info(f"{target_mp4=}\n{source_mp4=}")
+    # 合并
+    if config.video_config['voice_replace'] != 'No':
+        os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an ./tmp/novoice_{mp4name}")
+        os.system(
+            f"ffmpeg -y -i ./tmp/novoice_{mp4name} -i ./tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 ./tmp/addvoice-{mp4name}")
+        source_mp4 = f"./tmp/addvoice-{mp4name}"
+    os.system(
+        f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video_config['subtitle_language']}  {target_mp4}")
+    showprocess(mp4name, f"{mp4name}.mp4 finished")
+
+
+# 修改速率
+def speed_change(sound, speed=1.0):
+    # Manually override the frame_rate. This tells the computer how many
+    # samples to play per second
+    sound_with_altered_frame_rate = sound._spawn(sound.raw_data, overrides={
+        "frame_rate": int(sound.frame_rate * speed)
+    })
+    # convert the sound with altered frame rate to a standard frame rate
+    # so that regular playback programs will work right. They often only
+    # know how to play audio at standard frame rate (like 44.1k)
+    return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
+
+
+def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
+    # 视频所在路径
+    folder_path = '/'.join(aud_path.split('/')[:-1])
+    # 不带后缀的音频名字
+    audio_name = aud_path.split('/')[-1][:-4]
+    logger.info(f"[get_large_audio_transcription] {aud_path=}\n{folder_path=}\n{audio_name=}\n{sub_name=}")
+    # 创建保存片段的临时目录
+    tmp_path = folder_path + f'/##{audio_name}_tmp'
+    showprocess(mp4name, f"{mp4name} spilt audio")
+    if config.current_status == 'stop':
+        return
+    if not os.path.isdir(tmp_path):
+        os.makedirs(tmp_path, 0o777, exist_ok=True)
+    r = sr.Recognizer()
+    # thd, min_slien = get_thd_min_silence(aud_path)
+    # 已存在字幕文件则跳过
+    if not os.path.exists(sub_name) or os.path.getsize(sub_name) == 0:
+        # sound = AudioSegment.from_wav(aud_path)
+        normalized_sound = AudioSegment.from_wav(aud_path)  # -20.0
+        total_length = len(normalized_sound) / 1000
+        nonslient_file = f'{tmp_path}/detected_voice.json'
+        showprocess(mp4name, f"{mp4name} create json")
+
+        if os.path.exists(nonslient_file):
+            with open(nonslient_file, 'r') as infile:
+                nonsilent_data = json.load(infile)
+        else:
+            showprocess(mp4name, f"{mp4name} create json")
+
+            if config.current_status == 'stop':
+                return
+            nonsilent_data = []
+            audio_chunks = detect_silence(normalized_sound, min_silence_len=int(config.video_config['voice_silence']))
+            for i, chunk in enumerate(audio_chunks):
+                print(chunk)
+                start, end = chunk
+                nonsilent_data.append([start, end, False])
+            showprocess(mp4name, f"{mp4name} split voice")
+            with open(nonslient_file, 'w') as outfile:
+                json.dump(nonsilent_data, outfile)
+
+        subs = []
+        showprocess(mp4name, f"{mp4name} translate")
+        segments = []
+        start_times = []
+        for i, duration in enumerate(nonsilent_data):
+            if config.current_status == 'stop':
+                return
+            start_time, end_time, buffered = duration
+            start_times.append(start_time)
+            logger.info(f"开始时间：{start_time=},结束时间:{end_time=},{duration=}")
+            time_covered = start_time / len(normalized_sound) * 100
+            # 进度
+            showprocess(mp4name, f"{mp4name} {time_covered:.1f}%")
+            chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
+            add_vol = 0
+            audio_chunk = normalized_sound[start_time:end_time] + add_vol
+            audio_chunk.export(chunk_filename, format="wav")
+
+            # recognize the chunk
+            with sr.AudioFile(chunk_filename) as source:
+                audio_listened = r.record(source)
+                try:
+                    text = r.recognize_whisper(audio_listened,
+                                               language="zh" if config.video_config['detect_language'] == "zh-cn" or
+                                                                config.video_config['detect_language'] == "zh-tw" else
+                                               config.video_config['detect_language'], model=config.video_config['whisper_model'])
+                except sr.UnknownValueError as e:
+                    logger.error("Recognize Error: ", str(e), end='; ')
+                    segments.append(audio_chunk)
+                    continue
+                except Exception as e:
+                    logger.error("Recognize Error:", str(e), end='; ')
+                    segments.append(audio_chunk)
+                    continue
+                if config.current_status == 'stop':
+                    return
+                text = f"{text.capitalize()}. "
+                try:
+                    # google翻译
+                    # result = translator.translate(text, src=video_config['source_language'],  dest=video_config['target_language'])
+                    result = googletrans(text, config.video_config['source_language'],
+                                         config.video_config['target_language'])
+                    logger.info(f"target_language={config.video_config['target_language']}\n---text={result=}")
+                except Exception as e:
+                    logger.error("Translate Error:", str(e))
+                    segments.append(audio_chunk)
+                    continue
+
+                combo_txt = result + '\n\n'
+                if buffered:
+                    end_time -= 2000
+                start = timedelta(milliseconds=start_time)
+                end = timedelta(milliseconds=end_time)
+
+                index = len(subs) + 1
+                sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
+                qu.put(f"{start} --> {end} {combo_txt}")
+                subs.append(sub)
+                if config.video_config['voice_replace'] != 'No':
+                    communicate = edge_tts.Communicate(result,
+                                                       config.video_config['voice_replace'],
+                                                       rate=config.video_config['voice_rate'])
+                    tmpname = f"./tmp/{start_time}-{index}.mp3"
+                    asyncio.run(communicate.save(tmpname))
+                    try:
+                        audio_data = AudioSegment.from_file(tmpname, format="mp3")
+                        wavlen = end_time - start_time
+                        mp3len = len(audio_data)
+                        print(f"原wav长度是:{wavlen=},当前mp3长度是:{mp3len=}")
+                        if config.video_config['voice_autorate'] and (mp3len - wavlen > 500) and (
+                                config.video_config['voice_autorate'] != 'No'):
+                            # 最大加速2倍
+                            speed = mp3len / wavlen
+                            speed = 2 if speed > 2 else speed
+                            print(f"新mp3len 大于 wavlen 500，需要加速 {speed} 倍")
+                            audio_data = speed_change(audio_data, speed)
+                            print(f"加速后的新长度为:{len(audio_data)}")
                     except:
                         audio_data = AudioSegment.silent(duration=end_time - start_time)
                     segments.append(audio_data)
