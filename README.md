@@ -37,9 +37,11 @@
 ### 支持的参数
 
 **--source_mp4**： 【必填】待翻译视频路径，以.mp4结尾
+
 **--target_dir**：  翻译后视频存放位置，默认存放源视频目录下的 _video_out 文件夹
 
 **--source_language**：视频语言代码,默认`en` ( zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar )
+
 **--target_language**：目标语言代码,默认`zh-cn` ( zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar )
 
 **--proxy**：填写 http 代理地址，默认 None,如果所在地区无法访问google，需要填写，例如: `http://127.0.0.1:10809`
@@ -142,6 +144,7 @@
     zu: zu-ZA-ThandoNeural, zu-ZA-ThembaNeural
 
 **--voice_rate**：负数降低配音语速，正数加快配音语速，默认`10`,即加快
+
 **--remove_background**：是否移除背景音，如果传入该参数即代表去除背景音
 
 **cli示例**
