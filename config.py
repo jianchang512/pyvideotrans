@@ -85,29 +85,47 @@ layout = [
                     sg.Combo(['None'], default_value="None", readonly=True, key="voice_replace", size=(18, None)),
                 ],
                 [
+                    sg.Text('文字识别模型', background_color="#e3f2fd", text_color='#212121',tooltip="越大效果越好，识别速度越慢"),
+                    sg.Combo(["base","small","medium","large"], default_value='base',
+                             readonly=True, key="whisper_model", size=(10, None)),
                     sg.Text('配音语速', tooltip="-50-->+50", background_color="#e3f2fd",
                             text_color='#212121'),
-                    sg.InputText(sg.user_settings_get_entry('voice_rate', '+10'), key="voice_rate", size=(8, None),
+                    sg.InputText(sg.user_settings_get_entry('voice_rate', '0'), key="voice_rate", size=(8, None),
                                  tooltip="-10 -- +90,代表减慢或加速"),
                     sg.Text('-10到+90，负数代表降速，正数代表加速', background_color="#e3f2fd",
                             text_color='#777777'),
-                    sg.Text('去除背景音', background_color="#e3f2fd", text_color='#212121'),
+                ],
+
+                [
+                    sg.Text('自动加速?', background_color="#e3f2fd", text_color='#212121'),
+                    sg.Combo(['No', 'Yes'], tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
+                             readonly=True, key="voice_autorate", size=(18, None)),
+                    sg.Text('去除背景音?', background_color="#e3f2fd", text_color='#212121'),
                     sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
                              readonly=True, key="remove_background", size=(18, None)),
+                ],
+                [
+                        sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
+                                text_color='#212121'),
+                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence", size=(8, None)),
+                        sg.Text(
+                            '默认300，即在大于300ms的静音区分割语音',
+                            background_color="#e3f2fd",
+                            text_color='#777777'),
                 ],
 
                 [
                     sg.Button('开始执行', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
                 ],
                 [
-                    sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 8), autoscroll=True,
+                    sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 14), autoscroll=True,
                                  background_color="#f1f1f1", text_color='#212121'),
                 ]
             ],
+
             background_color="#e3f2fd",
             expand_x=True,
             expand_y=True,
-            size=(None, None)
         ),
         sg.Column(
             [
@@ -130,13 +148,11 @@ layout = [
                                  disabled=True),
                 ]
             ],
-            # key="add_row",
             background_color="#e3f2fd",
-            # size=(400, None),
-            expand_y=True,
-            expand_x=True,
-            scrollable=False,
-            vertical_scroll_only=True
+                expand_y=True,
+                expand_x=True,
+                scrollable=False,
+                vertical_scroll_only=True
         )
     ]
 ]
@@ -199,17 +215,36 @@ if defaulelang == "en":
                         sg.Combo(['No'], default_value="No", readonly=True, key="voice_replace", size=(18, None)),
                     ],
                     [
+                        sg.Text('Whisper Model', background_color="#e3f2fd", text_color='#212121',tooltip="From base to large, the effect gets better and the speed slows down."),
+                    sg.Combo(["base","small","medium","large"], default_value='base',
+                             readonly=True, key="whisper_model", size=(10, None)),
                         sg.Text('Voice Speed', tooltip="-50-->+50", background_color="#e3f2fd",
                                 text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_rate', '+10'), key="voice_rate", size=(8, None),
+                        sg.InputText(sg.user_settings_get_entry('voice_rate', '0'), key="voice_rate", size=(8, None),
                                      tooltip="-10 -- +90, represents slowing down or speeding up"),
                         sg.Text(
                             '-10 to +90, negative values represent slowing down, positive values represent speeding up',
                             background_color="#e3f2fd",
                             text_color='#777777'),
-                        sg.Text('Remove background sound', background_color="#e3f2fd", text_color='#212121'),
+                    ],
+
+                    [
+                        sg.Text('Automatic acceleration?', background_color="#e3f2fd", text_color='#212121'),
+                        sg.Combo(['No', 'Yes'], tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
+                                 default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
+                                 readonly=True, key="voice_autorate", size=(18, None)),
+                        sg.Text('Remove background sound?', background_color="#e3f2fd", text_color='#212121'),
                         sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
                                  readonly=True, key="remove_background", size=(18, None)),
+                    ],
+                    [
+                        sg.Text('minimum silent section', tooltip="split audio by this value /ms", background_color="#e3f2fd",
+                                text_color='#212121'),
+                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence", size=(8, None)),
+                        sg.Text(
+                            'the minimum ms length for any silent section',
+                            background_color="#e3f2fd",
+                            text_color='#777777'),
                     ],
 
                     [
@@ -234,7 +269,7 @@ if defaulelang == "en":
                 background_color="#e3f2fd",
                 expand_x=True,
                 expand_y=True,
-                size=(640, None)
+                # size=(700, None)
             ),
             sg.Column(
                 [
@@ -242,12 +277,11 @@ if defaulelang == "en":
                         sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
                     ],
                     [
-                        sg.Multiline('', key="process", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
+                        sg.Multiline('adsgg', key="process", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
                                      background_color="#e3f2fd", text_color='#212121'),
                     ],
                 ],
                 background_color="#e3f2fd",
-                size=(None, None),
                 expand_y=True,
                 expand_x=True,
                 scrollable=False,
@@ -282,6 +316,11 @@ video_config = {
     "subtitle_language": "chi",
 
     "voice_replace": "No",
-    "voice_rate": "+10",
+    "voice_rate": "0",
+
+    "voice_autorate": "No",
+    "voice_silence": "300",
+    "whisper_model": "base",
+
     "remove_background": "No"
 }

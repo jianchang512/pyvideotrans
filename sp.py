@@ -108,7 +108,7 @@ if __name__ == "__main__":
     sg.theme('Material1')
     window = sg.Window(transobj['softname'],
                        layout,
-                       size=(1100, 500),
+                       size=(1100, 560),
                        icon=os.path.join(rootdir, "icon.ico"),
                        resizable=True)
     while_ready = False
@@ -171,6 +171,8 @@ if __name__ == "__main__":
             video_config['subtitle_language'] = langlist[target_lang][1]
             video_config['voice_replace'] = window['voice_replace'].get()
             video_config['remove_background'] = window['remove_background'].get()
+            video_config['voice_autorate'] = window['voice_autorate'].get()
+            video_config['voice_silence'] = window['voice_silence'].get()
 
             # 设置代理
             proxy = window['proxy'].get()
@@ -185,6 +187,8 @@ if __name__ == "__main__":
             sg.user_settings_set_entry('source_lang', source_lang)
             sg.user_settings_set_entry('target_lang', target_lang)
             sg.user_settings_set_entry('remove_background', video_config['remove_background'])
+            sg.user_settings_set_entry('voice_autorate', video_config['voice_autorate'])
+            sg.user_settings_set_entry('voice_silence', video_config['voice_silence'])
             sg.user_settings_set_entry('voice_rate', str(rate).replace('%', ''))
 
             threading.Thread(target=testgoogle, ).start()

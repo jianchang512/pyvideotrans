@@ -4,14 +4,16 @@ import re
 import shutil
 import argparse
 import os
-from tools import get_list_voices, get_large_audio_transcription,logger
+from tools import get_list_voices, get_large_audio_transcription, logger
 import config
+
 
 # 小写 并修改反斜线为正斜线
 def lower(string):
     return re.sub(r'\\{1,}', '/', string.lower())
 
-#支持的所有配音角色
+
+# 支持的所有配音角色
 voice_list = get_list_voices()
 # 所选语言下可用角色
 voice_role_lower = []
@@ -57,27 +59,37 @@ def error(text):
 
 
 def init_args():
+    print(sys.argv)
     parser = argparse.ArgumentParser(prog='video_translate',
                                      description='Seamlessly translate mangas into a chosen language')
 
-    parser.add_argument('--source_mp4', required=True, default=None, type=lower,
-                        help='The path of the MP4 video to be translated.')
+    parser.add_argument('--source_mp4', required=False, default=None, type=str, help='The path of the MP4 video to '
+                                                                                     'be translated.')
     parser.add_argument('--target_dir', default='', type=lower, help='Translated Video Save Directory')
 
     parser.add_argument('--source_language', default='en', type=lower, help='Original Language of the Video')
     parser.add_argument('--target_language', default='zh-cn', type=lower,
                         help='Target Language of the Video Translation')
 
-    parser.add_argument('--proxy', type=lower, default=None,
-                        help='Internet Proxy Address like http://127.0.0.1:10809')
+    parser.add_argument('--proxy', type=lower, default=None, help='Internet Proxy Address like http://127.0.0.1:10809')
+
+    parser.add_argument('--voice_silence', default='300', type=int, help='the minimum length for any silent section')
+    parser.add_argument('--voice_autorate', action='store_true', help='If the translated audio is longer, can it be '
+                                                                      'automatically accelerated to align with the '
+                                                                      'original duration?')
+    parser.add_argument('--whisper_model', default='base', help='From base to large, the effect gets better and the '
+                                                                'speed slows down.')
 
     parser.add_argument('--voice_replace', default='No', type=str, help='Select Voiceover Character Name')
-    parser.add_argument('--voice_rate', default='10', type=str,
-                        help='Specify Voiceover Speed, positive number for acceleration, negative number for deceleration')
 
-    parser.add_argument('-rb', '--remove_background', action='store_true', help='Remove Background Music')
+    parser.add_argument('--voice_rate', default='0', type=str,
+                        help='Specify Voiceover Speed, positive number for acceleration, negative number for '
+                             'deceleration')
+
+    parser.add_argument('--remove_background', action='store_true', help='Remove Background Music')
 
     args = vars(parser.parse_args())
+
     if not args['source_mp4'] or not os.path.exists(args['source_mp4']) or not args['source_mp4'].lower().endswith(
             ".mp4"):
         error(
@@ -108,6 +120,10 @@ def init_args():
         os.environ['http_proxy'] = args['proxy'] if args['proxy'].startswith('http://') else f"http://{args['proxy']}"
         os.environ['https_proxy'] = os.environ['http_proxy']
 
+    if args['whisper_model'] not in ["base", "small", "medium", "large"]:
+        error(
+            'It seems that the model input is incorrect. Please only select from "base", "small", "medium", or "large".')
+
     args['detect_language'] = lang_code[args['source_language']][0]
     args['source_language'] = lang_code[args['source_language']][0]
 
@@ -115,6 +131,7 @@ def init_args():
     args['target_language'] = lang_code[args['target_language']][0]
 
     return args
+
 
 #
 def showprocess(name, text):
@@ -162,7 +179,7 @@ def running(p):
 
 
 if __name__ == '__main__':
-    if len(sys.argv)==2 and sys.argv[1][-10:]=='show_voice':
+    if len(sys.argv) == 2 and sys.argv[1][-10:] == 'show_voice':
         for it in voice_list:
             print(f"{it}: {', '.join(voice_list[it][1:])}")
         exit(0)
@@ -170,5 +187,4 @@ if __name__ == '__main__':
     config.current_status = "ing"
     if not os.path.exists(os.path.join(config.rootdir, "tmp")):
         os.mkdir(os.path.join(config.rootdir, 'tmp'))
-
     running(config.video_config['source_mp4'])
