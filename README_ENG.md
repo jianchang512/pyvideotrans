@@ -38,9 +38,11 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 ### Supported Parameters
 
 **--source_mp4**: [Required] Path of the video to be translated, must end with .mp4.
+
 **--target_dir**: Directory to store the translated video. By default, it is stored in the "_video_out" folder in the source video directory.
 
 **--source_language**: Language code of the video. Default is `en` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar)
+
 **--target_language**: Language code of the target language. Default is `zh-cn` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar)
 
 **--proxy**: Specify an HTTP proxy address. Default is None. If you are unable to access Google from your location, you need to provide a proxy address. For example: `http://127.0.0.1:10809`
@@ -145,6 +147,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 
 **--voice_rate**: Adjust the speed of the voice dubbing. Use negative numbers to decrease the speed and positive numbers to increase it. The default value is `10`, which represents an increase in speed.
+
 **--remove_background**: Specify this parameter to remove the background music.
 
 
