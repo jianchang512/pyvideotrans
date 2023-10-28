@@ -51,6 +51,21 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 **--target_language**: Language code of the target language. Default is `zh-cn` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar)
 
+    zh-cn: Simplified_Chinese
+    zh-tw: Traditional_Chinese
+    en: English
+    fr: French
+    de: German
+    ja: Japanese
+    ko: Korean
+    ru: Russian
+    es: Spanish
+    th: Thai
+    it: Italian
+    pt: Portuguese
+    vi: Vietnamese
+    ar: Arabic
+
 **--proxy**: Specify an HTTP proxy address. Default is None. If you are unable to access Google from your location, you need to provide a proxy address. For example: `http://127.0.0.1:10809`
 
 **--voice_replace**: Provide the corresponding character name based on the target language code. Make sure the first two letters of the character name match the first two letters of the target language code. If you are unsure how to fill in this parameter, run `python cli.py show_voice` to display the available character names for each language.
