@@ -10,6 +10,7 @@ defaulelang = "zh"
 if langcode.split('_')[0].lower() != 'zh':
     defaulelang = "en"
 
+defaulelang = "en"
 translist = {
     "zh": {
         "proxyerrortitle": "代理错误",
@@ -85,8 +86,8 @@ layout = [
                     sg.Combo(['None'], default_value="None", readonly=True, key="voice_replace", size=(18, None)),
                 ],
                 [
-                    sg.Text('文字识别模型', background_color="#e3f2fd", text_color='#212121',tooltip="越大效果越好，识别速度越慢"),
-                    sg.Combo(["base","small","medium","large"], default_value='base',
+                    sg.Text('文字识别模型', background_color="#e3f2fd", text_color='#212121', tooltip="越大效果越好，识别速度越慢"),
+                    sg.Combo(["base", "small", "medium", "large"], default_value='base',
                              readonly=True, key="whisper_model", size=(10, None)),
                     sg.Text('配音语速', tooltip="-50-->+50", background_color="#e3f2fd",
                             text_color='#212121'),
@@ -98,20 +99,22 @@ layout = [
 
                 [
                     sg.Text('自动加速?', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['No', 'Yes'], tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
+                    sg.Combo(['No', 'Yes'], tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",
+                             default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
                              readonly=True, key="voice_autorate", size=(18, None)),
                     sg.Text('去除背景音?', background_color="#e3f2fd", text_color='#212121'),
                     sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
                              readonly=True, key="remove_background", size=(18, None)),
                 ],
                 [
-                        sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
-                                text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence", size=(8, None)),
-                        sg.Text(
-                            '默认300，即在大于300ms的静音区分割语音',
-                            background_color="#e3f2fd",
-                            text_color='#777777'),
+                    sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
+                            text_color='#212121'),
+                    sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence",
+                                 size=(8, None)),
+                    sg.Text(
+                        '默认300，即在大于300ms的静音区分割语音',
+                        background_color="#e3f2fd",
+                        text_color='#777777'),
                 ],
 
                 [
@@ -149,10 +152,10 @@ layout = [
                 ]
             ],
             background_color="#e3f2fd",
-                expand_y=True,
-                expand_x=True,
-                scrollable=False,
-                vertical_scroll_only=True
+            expand_y=True,
+            expand_x=True,
+            scrollable=False,
+            vertical_scroll_only=True
         )
     ]
 ]
@@ -215,9 +218,10 @@ if defaulelang == "en":
                         sg.Combo(['No'], default_value="No", readonly=True, key="voice_replace", size=(18, None)),
                     ],
                     [
-                        sg.Text('Whisper Model', background_color="#e3f2fd", text_color='#212121',tooltip="From base to large, the effect gets better and the speed slows down."),
-                    sg.Combo(["base","small","medium","large"], default_value='base',
-                             readonly=True, key="whisper_model", size=(10, None)),
+                        sg.Text('Whisper Model', background_color="#e3f2fd", text_color='#212121',
+                                tooltip="From base to large, the effect gets better and the speed slows down."),
+                        sg.Combo(["base", "small", "medium", "large"], default_value='base',
+                                 readonly=True, key="whisper_model", size=(10, None)),
                         sg.Text('Voice Speed', tooltip="-50-->+50", background_color="#e3f2fd",
                                 text_color='#212121'),
                         sg.InputText(sg.user_settings_get_entry('voice_rate', '0'), key="voice_rate", size=(8, None),
@@ -230,7 +234,8 @@ if defaulelang == "en":
 
                     [
                         sg.Text('Automatic acceleration?', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['No', 'Yes'], tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
+                        sg.Combo(['No', 'Yes'],
+                                 tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
                                  default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
                                  readonly=True, key="voice_autorate", size=(18, None)),
                         sg.Text('Remove background sound?', background_color="#e3f2fd", text_color='#212121'),
@@ -238,9 +243,11 @@ if defaulelang == "en":
                                  readonly=True, key="remove_background", size=(18, None)),
                     ],
                     [
-                        sg.Text('minimum silent section', tooltip="split audio by this value /ms", background_color="#e3f2fd",
+                        sg.Text('minimum silent section', tooltip="split audio by this value /ms",
+                                background_color="#e3f2fd",
                                 text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence", size=(8, None)),
+                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence",
+                                     size=(8, None)),
                         sg.Text(
                             'the minimum ms length for any silent section',
                             background_color="#e3f2fd",
@@ -249,6 +256,21 @@ if defaulelang == "en":
 
                     [
                         sg.Button('Start Execution', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
+                    ],
+                    [
+                        sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 14),
+                                     autoscroll=True,
+                                     background_color="#f1f1f1", text_color='#212121'),
+                    ]
+                ],
+                background_color="#e3f2fd",
+                expand_x=True,
+                expand_y=True,
+            ),
+            sg.Column(
+                [
+                    [
+                        sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
                     ],
                     [
                         sg.Multiline('', key="process",
@@ -265,21 +287,6 @@ if defaulelang == "en":
                                      sbar_background_color="#e3f2ff",
                                      disabled=True),
                     ]
-                ],
-                background_color="#e3f2fd",
-                expand_x=True,
-                expand_y=True,
-                # size=(700, None)
-            ),
-            sg.Column(
-                [
-                    [
-                        sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
-                    ],
-                    [
-                        sg.Multiline('adsgg', key="process", expand_x=True, expand_y=True, size=(None, 8), autoscroll=True,
-                                     background_color="#e3f2fd", text_color='#212121'),
-                    ],
                 ],
                 background_color="#e3f2fd",
                 expand_y=True,

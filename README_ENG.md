@@ -33,7 +33,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 3. Navigate to the cloned repository: `cd pyvideotrans`
 4. Install the required packages: `pip install -r requirements.txt`
 5. Unzip `ffmpeg.zip` in the root directory.
-6. Run `python sp.py` to open the software interface.
+6. Run `python sp.py` to open the software interface. Run `python cli.py` cli mode 
 7. If you plan to use the background music removal feature, you will need to download the model, which may take some time. You can download the compressed file "2stems.zip" and extract the files to the directory "\pretrained_models/2stems". [**Download Model Package**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)
 
 # CLI Usage
