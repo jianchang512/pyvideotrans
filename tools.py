@@ -298,6 +298,17 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                 return
             nonsilent_data = []
             audio_chunks = detect_silence(normalized_sound, min_silence_len=int(config.video_config['voice_silence']))
+            if len(audio_chunks)==1 and (audio_chunks[0][1]-audio_chunks[0][0]>60000):
+                # 一个，强制分割
+                new_audio_chunks=[]
+                pos=0
+                while pos<audio_chunks[0][1]:
+                    end=pos+60000
+                    end = audio_chunks[0][1] if end>audio_chunks[0][1] else end
+                    new_audio_chunks.append([pos,end])
+                    pos=end
+                audio_chunks=new_audio_chunks
+
             for i, chunk in enumerate(audio_chunks):
                 print(chunk)
                 start, end = chunk
