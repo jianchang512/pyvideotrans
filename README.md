@@ -34,7 +34,7 @@
 3. `cd pyvideotrans`
 4. `pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下
-6. `python sp.py` 打开软件界面
+6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
 7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
 
 # cli 方式使用
