@@ -110,10 +110,10 @@ layout = [
                 [
                     sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
                             text_color='#212121'),
-                    sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence",
+                    sg.InputText(sg.user_settings_get_entry('voice_silence', '500'), key="voice_silence",
                                  size=(8, None)),
                     sg.Text(
-                        '默认300，即在大于300ms的静音区分割语音',
+                        '默认500，即在大于500ms的静音区分割语音',
                         background_color="#e3f2fd",
                         text_color='#777777'),
                 ],
@@ -252,7 +252,7 @@ if defaulelang == "en":
                         sg.Text('minimum silent section', tooltip="split audio by this value /ms",
                                 background_color="#e3f2fd",
                                 text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_silence', '300'), key="voice_silence",
+                        sg.InputText(sg.user_settings_get_entry('voice_silence', '500'), key="voice_silence",
                                      size=(8, None)),
                         sg.Text(
                             'the minimum ms length for any silent section',
@@ -331,7 +331,7 @@ video_config = {
     "voice_role": "No",
     "voice_rate": "0",
 
-    "voice_silence": "300",
+    "voice_silence": "500",
     "whisper_model": "base",
     "insert_subtitle":True,
     "voice_autorate": False,

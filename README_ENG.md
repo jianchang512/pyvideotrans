@@ -19,7 +19,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 9. Dubbing speed: Enter a number between -10 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
 10. Auto acceleration: Select Yes or No. If the duration of the translated speech is longer than the original duration and you select "Yes" here, the segment will be forced to be accelerated to reduce the length.
 11. Remove background music: Select Yes to attempt to remove background music for more accurate results.
-12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 300, which means segments with silences equal to or longer than 300ms will be used as the basis for splitting the speech.
+12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, which means segments with silences equal to or longer than 500ms will be used as the basis for splitting the speech.
 13. Click "Start Execution", it will first check if it can connect to Google services. If successful, the execution will proceed, and the current progress will be displayed on the right. The subtitles will be displayed in the white text box at the bottom.
 
 > The original video should be in mp4 format for fast processing and good network compatibility.
@@ -174,7 +174,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 **--remove_background**: Specify this parameter to remove the background music.
 
-**--voice_silence**: Enter a number between 100 and 2000, indicating the minimum duration of a silent section in milliseconds. The default is 300.
+**--voice_silence**: Enter a number between 100 and 2000, indicating the minimum duration of a silent section in milliseconds. The default is 500.
 
 **--voice_autorate**: If the translated audio is longer than the original duration, can it be automatically accelerated to align with the original duration?
 

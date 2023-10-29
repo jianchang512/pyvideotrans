@@ -95,9 +95,11 @@ def showprocess(name, text):
 # 设置可用的语音角色
 def set_default_voice(t):
     try:
+        print(f"{t=}")
         vt = langlist[t][0].split('-')[0]
         if vt not in voice_list:
             window['voice_role'].update(value="No", values=["No"])
+        print(f"{vt=}")
         window['voice_role'].update(value="No", values=voice_list[vt])
     except:
         window['voice_role'].update(value="No", values=[it for item in list(voice_list.values()) for it in item])
@@ -210,6 +212,7 @@ if __name__ == "__main__":
             sys.exit()
 
         if not while_ready:
+            print(window['target_lang'].get())
             while_ready = True
-            set_default_voice(sg.user_settings_get_entry('target_lang', window['target_lang'].get()))
+            set_default_voice(window['target_lang'].get())
     window.close()
