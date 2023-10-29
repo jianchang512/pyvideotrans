@@ -13,3 +13,4 @@ build
 sp.spec
 sp.json
 *.mp4
+tmp
