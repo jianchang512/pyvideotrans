@@ -59,36 +59,38 @@ def error(text):
 
 
 def init_args():
-    print(sys.argv)
     parser = argparse.ArgumentParser(prog='video_translate',
                                      description='Seamlessly translate mangas into a chosen language')
 
-    parser.add_argument('--source_mp4', required=False, default=None, type=str, help='The path of the MP4 video to '
+    parser.add_argument('-mp4','--source_mp4', required=False, default=None, type=str, help='The path of the MP4 video to '
                                                                                      'be translated.')
-    parser.add_argument('--target_dir', default='', type=lower, help='Translated Video Save Directory')
+    parser.add_argument('-td','--target_dir', default='', type=lower, help='Translated Video Save Directory')
 
-    parser.add_argument('--source_language', default='en', type=lower, help='Original Language of the Video')
-    parser.add_argument('--target_language', default='zh-cn', type=lower,
+    parser.add_argument('-sl','--source_language', default='en', type=lower, help='Original Language of the Video')
+    parser.add_argument('-tl','--target_language', default='zh-cn', type=lower,
                         help='Target Language of the Video Translation')
 
-    parser.add_argument('--proxy', type=lower, default=None, help='Internet Proxy Address like http://127.0.0.1:10809')
+    parser.add_argument('-p','--proxy', type=lower, default=None, help='Internet Proxy Address like http://127.0.0.1:10809')
 
-    parser.add_argument('--voice_silence', default='300', type=int, help='the minimum length for any silent section')
-    parser.add_argument('--voice_autorate', action='store_true', help='If the translated audio is longer, can it be '
+    parser.add_argument('-vs','--voice_silence', default='300', type=int, help='the minimum length for any silent section')
+    parser.add_argument('-va','--voice_autorate', default=False, action='store_true', help='If the translated audio is longer, can it be '
                                                                       'automatically accelerated to align with the '
                                                                       'original duration?')
-    parser.add_argument('--whisper_model', default='base', help='From base to large, the effect gets better and the '
+    parser.add_argument('-wm','--whisper_model', default='base', help='From base to large, the effect gets better and the '
                                                                 'speed slows down.')
 
-    parser.add_argument('--voice_replace', default='No', type=str, help='Select Voiceover Character Name')
+    parser.add_argument('-vro','--voice_role', default='No', type=str, help='Select Voiceover Character Name')
 
-    parser.add_argument('--voice_rate', default='0', type=str,
+    parser.add_argument('-vr','--voice_rate', default='0', type=str,
                         help='Specify Voiceover Speed, positive number for acceleration, negative number for '
                              'deceleration')
 
-    parser.add_argument('--remove_background', action='store_true', help='Remove Background Music')
+    parser.add_argument('-rb','--remove_background', action='store_true', help='Remove Background Music')
+    parser.add_argument('-is','--insert_subtitle', action='store_true', help='Insert subtitle to video')
 
     args = vars(parser.parse_args())
+    # print(args)
+    # exit()
 
     if not args['source_mp4'] or not os.path.exists(args['source_mp4']) or not args['source_mp4'].lower().endswith(
             ".mp4"):
@@ -99,12 +101,16 @@ def init_args():
             f"The original language and target language for the video must be selected from the following options: {','.join(lang_code.keys())}")
 
     voice_role = set_default_voice(args['target_language'])
-    if args['voice_replace'] != 'No' and (args['voice_replace'].lower() not in voice_role_lower):
+    if args['voice_role'] != 'No' and (args['voice_role'].lower() not in voice_role_lower):
         rolestr = "\n".join(voice_role[1:])
         error(
             f"The voice role does not exist..\nList of available voice roles\n{rolestr}")
-    elif args['voice_replace'].lower() in voice_role_lower:
-        args['voice_replace'] = voice_role[voice_role_lower.index(args['voice_replace'].lower())]
+    elif args['voice_role'].lower() in voice_role_lower:
+        args['voice_role'] = voice_role[voice_role_lower.index(args['voice_role'].lower())]
+
+    if not args['insert_subtitle'] and args['voice_role']=='No':
+        error("The --insert_subtitle and --voice_role parameters need to be set at least one of them. \nChoose either embedding subtitles or voiceover characters, at least one of them needs to be selected.")
+
     rate = int(args['voice_rate'])
     if rate >= 0:
         args['voice_rate'] = f"+{args['voice_rate']}%"
@@ -158,7 +164,7 @@ def running(p):
     if not os.path.exists(a_name):
         os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
     # 如果选择了去掉背景音，则重新整理为 a_name{voial}.wav
-    if config.video_config['voice_replace'] != 'No' and config.video_config['remove_background'] == 'Yes':
+    if config.video_config['voice_role'] != 'No' and config.video_config['remove_background']:
         import warnings
         warnings.filterwarnings('ignore')
         from spleeter.separator import Separator
