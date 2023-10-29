@@ -72,7 +72,7 @@ def init_args():
 
     parser.add_argument('-p','--proxy', type=lower, default=None, help='Internet Proxy Address like http://127.0.0.1:10809')
 
-    parser.add_argument('-vs','--voice_silence', default='300', type=int, help='the minimum length for any silent section')
+    parser.add_argument('-vs','--voice_silence', default='500', type=int, help='the minimum length for any silent section')
     parser.add_argument('-va','--voice_autorate', default=False, action='store_true', help='If the translated audio is longer, can it be '
                                                                       'automatically accelerated to align with the '
                                                                       'original duration?')
