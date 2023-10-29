@@ -37,7 +37,7 @@ def running(p):
         showprocess(mp4name, f"{mp4name} split audio")
         os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
     # 如果选择了去掉背景音，则重新整理为 a_name{voial}.wav
-    if video_config['voice_replace'] != 'No' and video_config['remove_background'] == 'Yes':
+    if video_config['voice_role'] != 'No' and video_config['remove_background']:
         import warnings
         warnings.filterwarnings('ignore')
         from spleeter.separator import Separator
@@ -97,10 +97,10 @@ def set_default_voice(t):
     try:
         vt = langlist[t][0].split('-')[0]
         if vt not in voice_list:
-            window['voice_replace'].update(value="No", values=["No"])
-        window['voice_replace'].update(value="No", values=voice_list[vt])
+            window['voice_role'].update(value="No", values=["No"])
+        window['voice_role'].update(value="No", values=voice_list[vt])
     except:
-        window['voice_replace'].update(value="No", values=[it for item in list(voice_list.values()) for it in item])
+        window['voice_role'].update(value="No", values=[it for item in list(voice_list.values()) for it in item])
 
 
 if __name__ == "__main__":
@@ -152,6 +152,7 @@ if __name__ == "__main__":
             target_lang = window['target_lang'].get()
             if source_lang == target_lang:
                 messagebox.showerror(transobj['anerror'], transobj['sourenotequaltarget'], parent=window.TKroot)
+                config.current_status = "stop"
                 continue
             rate = window['voice_rate'].get().strip()
             rate = int(rate)
@@ -162,6 +163,7 @@ if __name__ == "__main__":
             else:
                 video_config['voice_rate'] = f"+0%"
 
+
             video_config['source_mp4'] = source_mp4
             video_config['target_dir'] = target_dir
             video_config['source_language'] = langlist[source_lang][0]
@@ -169,16 +171,22 @@ if __name__ == "__main__":
 
             video_config['target_language'] = langlist[target_lang][0]
             video_config['subtitle_language'] = langlist[target_lang][1]
-            video_config['voice_replace'] = window['voice_replace'].get()
+            video_config['voice_role'] = window['voice_role'].get()
             video_config['remove_background'] = window['remove_background'].get()
             video_config['voice_autorate'] = window['voice_autorate'].get()
             video_config['voice_silence'] = window['voice_silence'].get()
 
+            video_config['insert_subtitle']=window['insert_subtitle'].get()
+            if not video_config['insert_subtitle'] and video_config['voice_role']=='No':
+                config.current_status = "stop"
+                messagebox.showerror(title=transobj['anerror'], message=transobj['subtitleandvoice_role'], parent=window.TKroot)
+                continue
+
+
             # 设置代理
             proxy = window['proxy'].get()
             if len(proxy) > 0 and not re.match(r'^(https?)|(sock5?)://', proxy, re.I):
-                messagebox.showerror(title=transobj['proxyerrortitle'], message=transobj['proxyerrorbody'],
-                                     parent=window.TKroot)
+                messagebox.showerror(title=transobj['proxyerrortitle'], message=transobj['proxyerrorbody'], parent=window.TKroot)
                 continue
             elif len(proxy) > 0:
                 os.environ['http_proxy'] = proxy
@@ -186,8 +194,8 @@ if __name__ == "__main__":
                 sg.user_settings_set_entry('proxy', proxy)
             sg.user_settings_set_entry('source_lang', source_lang)
             sg.user_settings_set_entry('target_lang', target_lang)
-            sg.user_settings_set_entry('remove_background', video_config['remove_background'])
-            sg.user_settings_set_entry('voice_autorate', video_config['voice_autorate'])
+            # sg.user_settings_set_entry('remove_background', video_config['remove_background'])
+            # sg.user_settings_set_entry('voice_autorate', video_config['voice_autorate'])
             sg.user_settings_set_entry('voice_silence', video_config['voice_silence'])
             sg.user_settings_set_entry('voice_rate', str(rate).replace('%', ''))
 

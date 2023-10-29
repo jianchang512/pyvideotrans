@@ -2,6 +2,7 @@
 
 import asyncio
 import re
+import shutil
 import urllib.parse
 import httpx
 import requests
@@ -29,7 +30,7 @@ def get_list_voices():
         name = it['ShortName']
         prefix = name.split('-')[0].lower()
         if prefix not in voice_list:
-            voice_list[prefix] = ["None", name]
+            voice_list[prefix] = ["No", name]
         else:
             voice_list[prefix].append(name)
     return voice_list
@@ -217,9 +218,9 @@ def get_large_audio_transcription1028(aud_path, mp4name, sub_name, showprocess):
                 sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
                 qu.put(f"{start} --> {end} {combo_txt}")
                 subs.append(sub)
-                if config.video_config['voice_replace'] != 'No':
+                if config.video_config['voice_role'] != 'No':
                     communicate = edge_tts.Communicate(result,
-                                                       config.video_config['voice_replace'],
+                                                       config.video_config['voice_role'],
                                                        rate=config.video_config['voice_rate'])
                     tmpname = f"./tmp/{start_time}-{index}.mp3"
                     asyncio.run(communicate.save(tmpname))
@@ -242,7 +243,7 @@ def get_large_audio_transcription1028(aud_path, mp4name, sub_name, showprocess):
     source_mp4 = folder_path + f"/{mp4name}"
     logger.info(f"{target_mp4=}\n{source_mp4=}")
     # 合并
-    if config.video_config['voice_replace'] != 'No':
+    if config.video_config['voice_role'] != 'No':
         os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an ./tmp/novoice_{mp4name}")
         os.system(
             f"ffmpeg -y -i ./tmp/novoice_{mp4name} -i ./tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 ./tmp/addvoice-{mp4name}")
@@ -375,9 +376,9 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                 sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
                 qu.put(f"{start} --> {end} {combo_txt}")
                 subs.append(sub)
-                if config.video_config['voice_replace'] != 'No':
+                if config.video_config['voice_role'] != 'No':
                     communicate = edge_tts.Communicate(result,
-                                                       config.video_config['voice_replace'],
+                                                       config.video_config['voice_role'],
                                                        rate=config.video_config['voice_rate'])
                     tmpname = f"./tmp/{start_time}-{index}.mp3"
                     asyncio.run(communicate.save(tmpname))
@@ -386,8 +387,7 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                         wavlen = end_time - start_time
                         mp3len = len(audio_data)
                         print(f"原wav长度是:{wavlen=},当前mp3长度是:{mp3len=}")
-                        if config.video_config['voice_autorate'] and (mp3len - wavlen > 500) and (
-                                config.video_config['voice_autorate'] != 'No'):
+                        if config.video_config['voice_autorate'] and (mp3len - wavlen > 500):
                             # 最大加速2倍
                             speed = mp3len / wavlen
                             speed = 2 if speed > 2 else speed
@@ -406,18 +406,21 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
         showprocess(mp4name, "add subtitle")
     showprocess(mp4name, f"{mp4name} add subtitle")
     # 最终生成的视频地址
-    target_mp4 = os.path.join(config.video_config['target_dir'], f"{mp4name}")
+    target_mp4 = config.video_config['target_dir']+f"/{mp4name}"
     # 原始视频地址
     source_mp4 = folder_path + f"/{mp4name}"
     logger.info(f"{target_mp4=}\n{source_mp4=}")
     # 合并
-    if config.video_config['voice_replace'] != 'No':
+    if config.video_config['voice_role'] != 'No':
         os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an ./tmp/novoice_{mp4name}")
         os.system(
             f"ffmpeg -y -i ./tmp/novoice_{mp4name} -i ./tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 ./tmp/addvoice-{mp4name}")
         source_mp4 = f"./tmp/addvoice-{mp4name}"
-    os.system(
-        f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video_config['subtitle_language']}  {target_mp4}")
+        if not config.video_config['insert_subtitle']:
+            shutil.move(source_mp4,target_mp4)
+    if config.video_config['insert_subtitle']:
+        os.system(
+            f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video_config['subtitle_language']}  {target_mp4}")
     showprocess(mp4name, f"{mp4name}.mp4 finished")
 
 

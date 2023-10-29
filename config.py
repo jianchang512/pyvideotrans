@@ -22,9 +22,11 @@ translist = {
         "running": "执行中",
         "exit": "退出",
         "end": "已结束",
-        "stop": "已停止"
+        "stop": "已停止",
+        "subtitleandvoice_role":"不能既不嵌入字幕又不选择配音角色，二者至少选一"
     },
     "en": {
+        "subtitleandvoice_role":"embedding subtitles or selecting voiceover characters must be set, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed.",
         "proxyerrortitle": "Proxy Error",
         "proxyerrorbody": "Failed to access Google services. Please set up the proxy correctly.",
         "softname": "Video Subtitle Translation and Dubbing",
@@ -83,7 +85,7 @@ layout = [
                              enable_events=True
                              ),
                     sg.Text('选择配音', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['None'], default_value="None", readonly=True, key="voice_replace", size=(18, None)),
+                    sg.Combo(['No'], default_value="No", readonly=True, key="voice_role", size=(18, None)),
                 ],
                 [
                     sg.Text('文字识别模型', background_color="#e3f2fd", text_color='#212121', tooltip="越大效果越好，识别速度越慢"),
@@ -98,13 +100,12 @@ layout = [
                 ],
 
                 [
-                    sg.Text('自动加速?', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['No', 'Yes'], tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",
-                             default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
-                             readonly=True, key="voice_autorate", size=(18, None)),
-                    sg.Text('去除背景音?', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
-                             readonly=True, key="remove_background", size=(18, None)),
+                    # sg.Text('', background_color="#e3f2fd", text_color='#212121'),
+                    sg.Checkbox('自动加速?', background_color="#e3f2fd",text_color='#212121',tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",
+                             default=False, key="voice_autorate", size=(18, None)),
+                    # sg.Text('去除背景音?', background_color="#e3f2fd", text_color='#212121'),
+                    sg.Checkbox('去除背景音?', background_color="#e3f2fd",text_color='#212121',default=False, key="remove_background", size=(18, None)),
+                    sg.Checkbox('嵌入字幕到视频?', text_color='#212121',background_color="#e3f2fd",default=True, key="insert_subtitle", size=(18, None)),
                 ],
                 [
                     sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
@@ -215,7 +216,7 @@ if defaulelang == "en":
                                  enable_events=True
                                  ),
                         sg.Text('Select Voice Replacement', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['No'], default_value="No", readonly=True, key="voice_replace", size=(18, None)),
+                        sg.Combo(['No'], default_value="No", readonly=True, key="voice_role", size=(18, None)),
                     ],
                     [
                         sg.Text('Whisper Model', background_color="#e3f2fd", text_color='#212121',
@@ -233,14 +234,19 @@ if defaulelang == "en":
                     ],
 
                     [
-                        sg.Text('Automatic acceleration?', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['No', 'Yes'],
-                                 tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
-                                 default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
-                                 readonly=True, key="voice_autorate", size=(18, None)),
-                        sg.Text('Remove background sound?', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
-                                 readonly=True, key="remove_background", size=(18, None)),
+                        # sg.Text('Automatic acceleration?', background_color="#e3f2fd", text_color='#212121'),
+                        # sg.Combo(['No', 'Yes'],
+                        #          tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
+                        #          default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
+                        #          readonly=True, key="voice_autorate", size=(18, None)),
+                        # sg.Text('Remove background sound?', background_color="#e3f2fd", text_color='#212121'),
+                        # sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
+                        #          readonly=True, key="remove_background", size=(18, None)),
+
+                        sg.Checkbox('Automatic acceleration?', text_color='#212121',background_color="#e3f2fd",tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration",
+                             default=False, key="voice_autorate", size=(18, None)),
+                        sg.Checkbox('Remove background sound?', text_color='#212121',background_color="#e3f2fd",default=False, key="remove_background", size=(18, None)),
+                        sg.Checkbox('Embedding Subtitle?', text_color='#212121',background_color="#e3f2fd",default=True, key="insert_subtitle", size=(18, None)),
                     ],
                     [
                         sg.Text('minimum silent section', tooltip="split audio by this value /ms",
@@ -322,12 +328,12 @@ video_config = {
     "target_language": "zh-cn",
     "subtitle_language": "chi",
 
-    "voice_replace": "No",
+    "voice_role": "No",
     "voice_rate": "0",
 
-    "voice_autorate": "No",
     "voice_silence": "300",
     "whisper_model": "base",
-
-    "remove_background": "No"
+    "insert_subtitle":True,
+    "voice_autorate": False,
+    "remove_background": False
 }
