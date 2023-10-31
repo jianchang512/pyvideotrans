@@ -3,6 +3,12 @@
 这是一个视频翻译工具，可将一种语言的视频翻译为另一种语言和配音的视频。
 语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google`翻译接口，文字合成语音使用 `Microsoft Edge tts`，背景音乐去除使用 `Spleeter`,无需购买任何商业接口，也无需付费
 
+
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/dd9c0039-0ab2-4f85-bc23-acd57c89e5a1
+
+
+
 # 使用预编译版本方法
 0. 只可用于 win10 win11 系统 (编译版非最新，建议源码部署)
 1. 从 release 中下载最新版，解压，双击 sp.exe
