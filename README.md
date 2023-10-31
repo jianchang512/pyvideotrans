@@ -199,7 +199,7 @@
 
 # 软件预览截图
 
-![](./images/1.png?a)
+![](./images/p1.png?a)
 ![](./images/cli.png?b)
 
 
