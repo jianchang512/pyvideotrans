@@ -5,7 +5,10 @@
 
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/dd9c0039-0ab2-4f85-bc23-acd57c89e5a1
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9853-6d4b1d3ecdf4
+
+
 
 
 
