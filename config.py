@@ -1,33 +1,40 @@
 import os
-import queue
-import PySimpleGUI as sg
 import locale
+import logging
 
-sg.user_settings_filename(path='.')
+# 当前执行目录
+rootdir = os.getcwd().replace('\\', '/')
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename=f'{rootdir}/video.log',
+    encoding="utf-8",
+    filemode="a")
+logger = logging.getLogger('video_translate')
 
-langcode, _ = locale.getdefaultlocale()
 defaulelang = "zh"
-if langcode.split('_')[0].lower() != 'zh':
-    defaulelang = "en"
-
-# defaulelang = "en"
 translist = {
     "zh": {
+        "selectmp4": "选择mp4视频",
+        "selectsavedir": "选择翻译后存储目录",
         "proxyerrortitle": "代理错误",
         "proxyerrorbody": "无法访问google服务，请正确设置代理",
         "softname": "视频字幕翻译和配音",
         "anerror": "出错了",
         "selectvideodir": "必须选择要翻译的视频",
         "sourenotequaltarget": "源语言和目标语言不得相同",
+        "shoundselecttargetlanguage": "必须选择一个目标语言",
         "running": "执行中",
         "exit": "退出",
-        "end": "已结束",
-        "stop": "已停止",
-        "subtitleandvoice_role":"不能既不嵌入字幕又不选择配音角色，二者至少选一"
+        "end": "已结束(点击重新开始)",
+        "stop": "已停止(点击开始)",
+        "subtitleandvoice_role": "不能既不嵌入字幕又不选择配音角色，二者至少选一"
     },
     "en": {
-        "subtitleandvoice_role":"embedding subtitles or selecting voiceover characters must be set, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed.",
+        "selectsavedir": "select an dir for output",
+        "selectmp4": "select an mp4 video",
+        "subtitleandvoice_role": "embedding subtitles or selecting voiceover characters must be set, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed.",
         "proxyerrortitle": "Proxy Error",
+        "shoundselecttargetlanguage": "Must select a target language ",
         "proxyerrorbody": "Failed to access Google services. Please set up the proxy correctly.",
         "softname": "Video Subtitle Translation and Dubbing",
         "anerror": "An error occurred",
@@ -35,132 +42,13 @@ translist = {
         "sourenotequaltarget": "Source language and target language must not be the same",
         "running": "Running",
         "exit": "Exit",
-        "end": "Ended",
-        "stop": "Stop"
+        "end": "Ended(click reststart)",
+        "stop": "Stop(click start)"
     }
 }
-transobj = translist['zh']
-langlist = {
-    "中文简": ['zh-cn', 'chi'],
-    "中文繁": ['zh-tw', 'chi'],
-    "英语": ['en', 'eng'],
-    "法语": ['fr', 'fre'],
-    "德语": ['de', 'ger'],
-    "日语": ['ja', 'jpn'],
-    "韩语": ['ko', 'kor'],
-    "俄语": ['ru', 'rus'],
-    "西班牙语": ['es', 'spa'],
-    "泰国语": ['th', 'tha'],
-    "意大利语": ['it', 'ita'],
-    "葡萄牙语": ['pt', 'por'],
-    "越南语": ['vi', 'vie'],
-    "阿拉伯语": ['ar', 'are']
-}
-layout = [
-    [
-        sg.Column(
-            [
-                [sg.Text('原始视频目录', background_color="#e3f2fd", text_color='#212121'),
-                 sg.Input(key="source_mp4"), sg.FileBrowse("选择待翻译视频", file_types=(("MP4 Files", "*.mp4"),)),
-                 ],
-                [sg.Text('输出视频位置', background_color="#e3f2fd", text_color='#212121'),
-                 sg.InputText(key="target_dir"),
-                 sg.Button('选择输出文件夹', key="gettarget_dir", enable_events=True, button_color='#018fff', border_width=0)],
-                [sg.Text('网络代理地址', tooltip="类似 http://127.0.0.1:10809", background_color="#e3f2fd",
-                         text_color='#212121'),
-                 sg.InputText(sg.user_settings_get_entry('proxy', ''), key="proxy",
-                              tooltip="类似 http://127.0.0.1:10809 的形式")
-                 ],
-                [
-                    sg.Text('如果你不能直接打开google，需在上方填写代理地址', background_color="#e3f2fd",
-                            text_color='#777777'),
-                ],
-                [
-                    sg.Text('视频原始语言', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(list(langlist.keys()), default_value='英语',
-                             readonly=True, key="source_lang", size=(10, None)),
-                    sg.Text('翻译目标语言', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(list(langlist.keys()), default_value='中文简',
-                             readonly=True, key="target_lang", size=(10, None),
-                             enable_events=True
-                             ),
-                    sg.Text('选择配音', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Combo(['No'], default_value="No", readonly=True, key="voice_role", size=(18, None)),
-                ],
-                [
-                    sg.Text('文字识别模型', background_color="#e3f2fd", text_color='#212121', tooltip="越大效果越好，识别速度越慢"),
-                    sg.Combo(["base", "small", "medium", "large"], default_value='base',
-                             readonly=True, key="whisper_model", size=(10, None)),
-                    sg.Text('配音语速', tooltip="-50-->+50", background_color="#e3f2fd",
-                            text_color='#212121'),
-                    sg.InputText(sg.user_settings_get_entry('voice_rate', '0'), key="voice_rate", size=(8, None),
-                                 tooltip="-10 -- +90,代表减慢或加速"),
-                    sg.Text('-10到+90，负数代表降速，正数代表加速', background_color="#e3f2fd",
-                            text_color='#777777'),
-                ],
-
-                [
-                    # sg.Text('', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Checkbox('自动加速?', background_color="#e3f2fd",text_color='#212121',tooltip="如果翻译后语音播放时长大于原时长，是否自动加速播放强制时间对齐",
-                             default=False, key="voice_autorate", size=(18, None)),
-                    # sg.Text('去除背景音?', background_color="#e3f2fd", text_color='#212121'),
-                    sg.Checkbox('去除背景音?', background_color="#e3f2fd",text_color='#212121',default=False, key="remove_background", size=(18, None)),
-                    sg.Checkbox('嵌入字幕到视频?', text_color='#212121',background_color="#e3f2fd",default=True, key="insert_subtitle", size=(18, None)),
-                ],
-                [
-                    sg.Text('静音片段', tooltip="用于分割语音的静音片段时长，单位ms", background_color="#e3f2fd",
-                            text_color='#212121'),
-                    sg.InputText(sg.user_settings_get_entry('voice_silence', '500'), key="voice_silence",
-                                 size=(8, None)),
-                    sg.Text(
-                        '默认500，即在大于500ms的静音区分割语音',
-                        background_color="#e3f2fd",
-                        text_color='#777777'),
-                ],
-
-                [
-                    sg.Button('开始执行', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
-                ],
-                [
-                    sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 14), autoscroll=True,
-                                 background_color="#f1f1f1", text_color='#212121'),
-                ]
-            ],
-
-            background_color="#e3f2fd",
-            expand_x=True,
-            expand_y=True,
-        ),
-        sg.Column(
-            [
-                [
-                    sg.Text("进度显示区", background_color="#e3f2fd", text_color='#212121'),
-                ],
-                [
-                    sg.Multiline('', key="process",
-                                 write_only=True,
-                                 expand_x=True,
-                                 expand_y=True,
-                                 size=(None, 8),
-                                 autoscroll=True,
-                                 background_color="#e3f2fd",
-                                 text_color='#212121',
-                                 border_width=0,
-                                 sbar_width=1,
-                                 sbar_arrow_width=1,
-                                 sbar_background_color="#e3f2ff",
-                                 disabled=True),
-                ]
-            ],
-            background_color="#e3f2fd",
-            expand_y=True,
-            expand_x=True,
-            scrollable=False,
-            vertical_scroll_only=True
-        )
-    ]
-]
-if defaulelang == "en":
+langcode = locale.getdefaultlocale()[0]
+if langcode.split('_')[0].lower() != 'zh':
+    defaulelang = "en"
     transobj = translist['en']
     langlist = {
         "Simplified_Chinese": ['zh-cn', 'chi'],
@@ -178,139 +66,44 @@ if defaulelang == "en":
         "Vietnamese": ['vi', 'vie'],
         "Arabic": ['ar', 'are']
     }
+else:
+    transobj = translist['zh']
+    langlist = {
+        "中文简": ['zh-cn', 'chi'],
+        "中文繁": ['zh-tw', 'chi'],
+        "英语": ['en', 'eng'],
+        "法语": ['fr', 'fre'],
+        "德语": ['de', 'ger'],
+        "日语": ['ja', 'jpn'],
+        "韩语": ['ko', 'kor'],
+        "俄语": ['ru', 'rus'],
+        "西班牙语": ['es', 'spa'],
+        "泰国语": ['th', 'tha'],
+        "意大利语": ['it', 'ita'],
+        "葡萄牙语": ['pt', 'por'],
+        "越南语": ['vi', 'vie'],
+        "阿拉伯语": ['ar', 'are']
+    }
 
-    layout = [
-        [
-            sg.Column(
-                [
-                    [
-                        sg.Text('Source Video Directory', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Input(key="source_mp4"),
-                        sg.FileBrowse("Select Source Video", file_types=(("MP4 Files", "*.mp4"),)),
-                    ],
+clilanglist = {
+    "zh-cn": ['zh-cn', 'chi'],
+    "zh-tw": ['zh-tw', 'chi'],
+    "en": ['en', 'eng'],
+    "fr": ['fr', 'fre'],
+    "de": ['de', 'ger'],
+    "ja": ['ja', 'jpn'],
+    "ko": ['ko', 'kor'],
+    "ru": ['ru', 'rus'],
+    "es": ['es', 'spa'],
+    "th": ['th', 'tha'],
+    "it": ['it', 'ita'],
+    "pt": ['pt', 'por'],
+    "vi": ['vi', 'vie'],
+    "ar": ['ar', 'are']
+}
 
-                    [sg.Text('Output Video Location', background_color="#e3f2fd", text_color='#212121'),
-                     sg.InputText(key="target_dir"),
-                     sg.Button('Select Target Directory', key="gettarget_dir", enable_events=True,
-                               button_color='#018fff',
-                               border_width=0)],
-                    [sg.Text('Network Proxy', tooltip="e.g. http://127.0.0.1:10809", background_color="#e3f2fd",
-                             text_color='#212121'),
-                     sg.InputText(sg.user_settings_get_entry('proxy', ''), key="proxy",
-                                  tooltip="e.g. http://127.0.0.1:10809")
-                     ],
-                    [
-                        sg.Text('If you cannot access google directly, fill in the proxy address above.',
-                                background_color="#e3f2fd",
-                                text_color='#777777'),
-                    ],
-                    [
-                        sg.Text('Source Language', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(list(langlist.keys()),
-                                 default_value='Simplified_Chinese',
-                                 readonly=True, key="source_lang", size=(10, None)),
-                        sg.Text('Target Language', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(list(langlist.keys()),
-                                 default_value='English',
-                                 readonly=True, key="target_lang", size=(10, None),
-                                 enable_events=True
-                                 ),
-                        sg.Text('Select Voice Replacement', background_color="#e3f2fd", text_color='#212121'),
-                        sg.Combo(['No'], default_value="No", readonly=True, key="voice_role", size=(18, None)),
-                    ],
-                    [
-                        sg.Text('Whisper Model', background_color="#e3f2fd", text_color='#212121',
-                                tooltip="From base to large, the effect gets better and the speed slows down."),
-                        sg.Combo(["base", "small", "medium", "large"], default_value='base',
-                                 readonly=True, key="whisper_model", size=(10, None)),
-                        sg.Text('Voice Speed', tooltip="-50-->+50", background_color="#e3f2fd",
-                                text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_rate', '0'), key="voice_rate", size=(8, None),
-                                     tooltip="-10 -- +90, represents slowing down or speeding up"),
-                        sg.Text(
-                            '-10 to +90, negative values represent slowing down, positive values represent speeding up',
-                            background_color="#e3f2fd",
-                            text_color='#777777'),
-                    ],
-
-                    [
-                        # sg.Text('Automatic acceleration?', background_color="#e3f2fd", text_color='#212121'),
-                        # sg.Combo(['No', 'Yes'],
-                        #          tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration?",
-                        #          default_value=sg.user_settings_get_entry('voice_autorate', 'No'),
-                        #          readonly=True, key="voice_autorate", size=(18, None)),
-                        # sg.Text('Remove background sound?', background_color="#e3f2fd", text_color='#212121'),
-                        # sg.Combo(['No', 'Yes'], default_value=sg.user_settings_get_entry('remove_background', 'No'),
-                        #          readonly=True, key="remove_background", size=(18, None)),
-
-                        sg.Checkbox('Automatic acceleration?', text_color='#212121',background_color="#e3f2fd",tooltip="If the translated audio is longer, can it be automatically accelerated to align with the original duration",
-                             default=False, key="voice_autorate", size=(18, None)),
-                        sg.Checkbox('Remove background sound?', text_color='#212121',background_color="#e3f2fd",default=False, key="remove_background", size=(18, None)),
-                        sg.Checkbox('Embedding Subtitle?', text_color='#212121',background_color="#e3f2fd",default=True, key="insert_subtitle", size=(18, None)),
-                    ],
-                    [
-                        sg.Text('minimum silent section', tooltip="split audio by this value /ms",
-                                background_color="#e3f2fd",
-                                text_color='#212121'),
-                        sg.InputText(sg.user_settings_get_entry('voice_silence', '500'), key="voice_silence",
-                                     size=(8, None)),
-                        sg.Text(
-                            'the minimum ms length for any silent section',
-                            background_color="#e3f2fd",
-                            text_color='#777777'),
-                    ],
-
-                    [
-                        sg.Button('Start Execution', key="startbtn", button_color='#2196f3', size=(16, 2), font=16),
-                    ],
-                    [
-                        sg.Multiline('', key="subtitle_area", expand_x=True, expand_y=True, size=(50, 14),
-                                     autoscroll=True,
-                                     background_color="#f1f1f1", text_color='#212121'),
-                    ]
-                ],
-                background_color="#e3f2fd",
-                expand_x=True,
-                expand_y=True,
-            ),
-            sg.Column(
-                [
-                    [
-                        sg.Text("Progress Display Area", background_color="#e3f2fd", text_color='#212121'),
-                    ],
-                    [
-                        sg.Multiline('', key="process",
-                                     write_only=True,
-                                     expand_x=True,
-                                     expand_y=True,
-                                     size=(None, 8),
-                                     autoscroll=True,
-                                     background_color="#e3f2fd",
-                                     text_color='#212121',
-                                     border_width=0,
-                                     sbar_width=1,
-                                     sbar_arrow_width=1,
-                                     sbar_background_color="#e3f2ff",
-                                     disabled=True),
-                    ]
-                ],
-                background_color="#e3f2fd",
-                expand_y=True,
-                expand_x=True,
-                scrollable=False,
-                vertical_scroll_only=True
-            )
-        ]
-    ]
-
-# 语言 三字母语言用于软嵌入字幕时 language=
-
-# 当前执行目录
-rootdir = os.getcwd()
 # 添加环境变量 ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
-# 日志队列
-qu = queue.Queue(100)
 
 # 存放每个视频处理的时间
 timelist = {}
@@ -318,7 +111,7 @@ timelist = {}
 # 开始按钮状态
 current_status = "stop"
 # 配置
-video_config = {
+video = {
     "source_mp4": "",
     "target_dir": "",
 
@@ -333,7 +126,8 @@ video_config = {
 
     "voice_silence": "500",
     "whisper_model": "base",
-    "insert_subtitle":True,
+    "insert_subtitle": True,
     "voice_autorate": False,
     "remove_background": False
 }
+voice_list = None
