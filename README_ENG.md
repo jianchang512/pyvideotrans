@@ -4,7 +4,10 @@ This is a video translation tool that can translate videos from one language to 
 
 The speech recognition is based on the offline model 'openai-whisper', the text translation uses the 'Google Translate' interface, and the text-to-speech synthesis uses 'Microsoft Edge TTS'. In addition, the background music removal is done using 'Spleeter'. It does not require purchasing any commercial interfaces or any fees.
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/dd9c0039-0ab2-4f85-bc23-acd57c89e5a1
+
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8989-c58acccf7923
+
 
 
 # Instructions for using the precompiled version:
