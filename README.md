@@ -5,7 +5,7 @@
 
 # 使用预编译版本方法
 0. 只可用于 win10 win11 系统 (编译版非最新，建议源码部署)
-1. 从 release中下载最新版，解压，双击 sp.exe
+1. 从 release 中下载最新版，解压，双击 sp.exe
 2. 原始视频目录：选择mp4视频；
 3. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`
 3. 网络代理地址：如果你所在地区无法直接访问 google，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
@@ -35,9 +35,10 @@
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
 4. `pip install -r requirements.txt`
-5. 解压 ffmpeg.zip 到根目录下
+5. 解压 ffmpeg.zip 到根目录下(ffmpeg.exe文件)
+6. 解压 pretrained_models.zip 在根目录下(Spleeter模型文件)   
 6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
-7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以去下载这个压缩包 [**下载模型包**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)  ，然后将里面的文件解压到 \pretrained_models/2stems 目录下
+7. 如果使用去除背景音功能，第一次需要下载模型，会比较耗时。你可以解压pretrained_models.zip 到当前项目根下
 
 # cli 方式使用
 
@@ -217,10 +218,8 @@
 
 1. pydub
 2. ffmpeg
-3. pysimpleGUI
-4. googletrans
-5. httpx
-6. SpeechRecognition
-7. edge-tts
-8. Spleeter
-9. openai-whisper
+3. PyQt5
+4. SpeechRecognition
+5. edge-tts
+6. Spleeter
+7. openai-whisper

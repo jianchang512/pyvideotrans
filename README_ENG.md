@@ -14,6 +14,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 5. Original video language: Select the language of the video to be translated.
 6. Target translation language: Select the desired language for translation.
 7. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
+   
    Embedding Subtitle: embedding subtitles to video, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed
 8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the reading recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
 9. Dubbing speed: Enter a number between -10 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
@@ -33,14 +34,14 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 2. Clone the repository: `git clone https://github.com/jianchang512/pyvideotrans`
 3. Navigate to the cloned repository: `cd pyvideotrans`
 4. Install the required packages: `pip install -r requirements.txt`
-5. Unzip `ffmpeg.zip` in the root directory.
+5. Unzip `ffmpeg.zip` in the root directory.Unzip `pretrained_models.zip` in the root directory.
 6. Run `python sp.py` to open the software interface. Run `python cli.py` cli mode 
-7. If you plan to use the background music removal feature, you will need to download the model, which may take some time. You can download the compressed file "2stems.zip" and extract the files to the directory "\pretrained_models/2stems". [**Download Model Package**](https://github.com/jianchang512/pyvideotrans/releases/download/v0.3/2stems.zip)
+7. If you plan to use the background music removal feature, you can extract the files `pretrained_models.zip` to the directory 
 
 # CLI Usage
 
 > After deploying the source code as mentioned above, execute `python cli.py` to use it in the command line.
->
+
 
 ### Supported Parameters
 
@@ -185,12 +186,12 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 `python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_role zh-CN-XiaoxiaoNeural`
 
-In the above example, it translates the video located at "D:/video/ex.mp4" from English to Chinese, sets the proxy to "http://127.0.0.1:10809", and uses the voice replacement of "zh-CN-XiaoxiaoNeural".
+> In the above example, it translates the video located at "D:/video/ex.mp4" from English to Chinese, sets the proxy to "http://127.0.0.1:10809", and uses the voice replacement of "zh-CN-XiaoxiaoNeural".
 
 `python cli.py --source_mp4 "D:/video/ex.mp4" --source_language zh-cn --target_language en  --proxy "http://127.0.0.1"1080
 9"  --voice_role en-US-AriaNeural --voice_autorate  --whisper_model small`
 
-The above means to translate the video D:/video/ex.mp4 with the source language as Chinese to the target language as English. Set the proxy as http://127.0.0.1:10809 and use the voiceover role en-US-AriaNeural. If the translated audio duration is longer than the original audio, it will automatically be accelerated. The text recognition model for speech recognition is set to use the small model.
+> The above means to translate the video D:/video/ex.mp4 with the source language as Chinese to the target language as English. Set the proxy as http://127.0.0.1:10809 and use the voiceover role en-US-AriaNeural. If the translated audio duration is longer than the original audio, it will automatically be accelerated. The text recognition model for speech recognition is set to use the small model.
 
 
 # Software Preview Screenshots
@@ -212,10 +213,8 @@ This program relies on the following open-source projects.
 
 1. pydub
 2. ffmpeg
-3. pysimpleGUI
-4. googletrans
-5. httpx
-6. SpeechRecognition
-7. edge-tts
-8. Spleeter
-9. openai-whisper
+3. PyQt5
+4. SpeechRecognition
+5. edge-tts
+6. Spleeter
+7. openai-whisper
