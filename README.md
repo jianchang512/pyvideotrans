@@ -199,8 +199,8 @@
 
 # 软件预览截图
 
-![](./images/1.png)
-![](./images/cli.png)
+![](./images/1.png?a)
+![](./images/cli.png?b)
 
 
 # 视频前后对比
