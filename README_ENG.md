@@ -196,7 +196,7 @@ The speech recognition is based on the offline model 'openai-whisper', the text 
 
 # Software Preview Screenshots
 
-![](./images/en1.png?a)
+![](./images/pen1.png?a)
 ![](./images/cli.png?a)
 
 # Video Comparison Before and After Translation
