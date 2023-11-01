@@ -4,9 +4,12 @@
 语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google`翻译接口，文字合成语音使用 `Microsoft Edge tts`，背景音乐去除使用 `Spleeter`,无需购买任何商业接口，也无需付费
 
 
-
-
 https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9853-6d4b1d3ecdf4
+
+
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/00eb77e0-011b-4621-823a-477f3733e02a
+
 
 
 
