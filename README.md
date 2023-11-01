@@ -8,7 +8,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9
 
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/00eb77e0-011b-4621-823a-477f3733e02a
+
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9b53-477986aea5e6
+
 
 
 
