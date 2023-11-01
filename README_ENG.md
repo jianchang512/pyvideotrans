@@ -148,7 +148,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 
 [demo / Original Video and Translated Video](https://www.wonyes.org/demo.html)
 
-[![Youtube demo](https://i9.ytimg.com/vi/F0U8JTBkCYA/mqdefault.jpg?sqp=CIDWiKoG-oaymwEmCMACELQB8quKqQMa8AEB-AHUCYAC0AWKAgwIABABGEIgWyhyMA8=&rs=AOn4CLAnwMb1pksoOD5eYOIyBF_WWUAlTQ)]([https://youtu.be/F0U8JTBkCYA](https://youtu.be/F0U8JTBkCYA))
+[![Youtube demo](https://i9.ytimg.com/vi/F0U8JTBkCYA/mqdefault.jpg?sqp=CIDWiKoG-oaymwEmCMACELQB8quKqQMa8AEB-AHUCYAC0AWKAgwIABABGEIgWyhyMA8=&rs=AOn4CLAnwMb1pksoOD5eYOIyBF_WWUAlTQ)](https://youtu.be/F0U8JTBkCYA)
 
 
 # Potential Issues
