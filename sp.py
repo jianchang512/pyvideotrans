@@ -77,13 +77,19 @@ class Worker(QThread):
             a_name = f"{dirname}/{noextname}vocals.wav"
 
         # main
-        get_large_audio_transcription(a_name, mp4name, sub_name, self.postmessage)
+        try:
+            get_large_audio_transcription(a_name, mp4name, sub_name, self.postmessage)
+        except Exception as e:
+            logger.error(str(e))
+            exit(1)
         self.postmessage(f"{mp4name} end", "end")
         # del temp files
         shutil.rmtree(os.path.join(config.rootdir, "tmp"))
 
         if os.path.exists(f"{dirname}/{noextname}vocals.wav"):
             os.unlink(f"{dirname}/{noextname}vocals.wav")
+        if os.path.exists(f"{dirname}/{noextname}accompaniment.wav"):
+            os.unlink(f"{dirname}/{noextname}accompaniment.wav")
         if os.path.exists(f"{dirname}/##{noextname}vocals_tmp"):
             shutil.rmtree(f"{dirname}/##{noextname}vocals_tmp")
         if os.path.exists(f"{dirname}/{noextname}.wav"):
