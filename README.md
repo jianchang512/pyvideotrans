@@ -179,7 +179,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
-[![Youtube demo](https://i9.ytimg.com/vi/-WAyWjJPSEk/mqdefault.jpg?sqp=CIDWiKoG-oaymwEmCMACELQB8quKqQMa8AEB-AHUCYAC0AWKAgwIABABGBMgSCh_MA8=&rs=AOn4CLBeqGDbSLhM30qJVnpHFY3fdMUZ2w)](https://youtu.be/-WAyWjJPSEk)
+[Youtube demo](https://youtu.be/-WAyWjJPSEk)
 
 # 可能的问题
 
