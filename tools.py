@@ -3,6 +3,7 @@
 import asyncio
 import re
 import shutil
+import subprocess
 import urllib.parse
 import httpx
 import requests
@@ -130,6 +131,9 @@ def speed_change(sound, speed=1.0):
     # so that regular playback programs will work right. They often only
     # know how to play audio at standard frame rate (like 44.1k)
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
+
+def runffmpeg(*arg):
+    subprocess.run(["ffmpeg"]+list(arg))
 
 #
 def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
@@ -270,9 +274,8 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     logger.info(f"{target_mp4=}\n{source_mp4=}")
     # add voice role audio
     if config.video['voice_role'] != 'No':
-        os.system(f"ffmpeg -y -i {source_mp4} -c:v copy -an {config.rootdir}/tmp/novoice_{mp4name}")
-        os.system(
-            f"ffmpeg -y -i {config.rootdir}/tmp/novoice_{mp4name} -i {config.rootdir}/tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 {config.rootdir}/tmp/addvoice-{mp4name}")
+        runffmpeg("-y","-i",f"{source_mp4}","-c:v","copy","-an",f"{config.rootdir}/tmp/novoice_{mp4name}")
+        runffmpeg("-y","-i",f"{config.rootdir}/tmp/novoice_{mp4name}","-i",f"{config.rootdir}/tmp/{mp4name}.wav","-c","copy","-map","0:v:0","-map","1:a:0",f"{config.rootdir}/tmp/addvoice-{mp4name}")
         source_mp4 = f"{config.rootdir}/tmp/addvoice-{mp4name}"
         if not config.video['insert_subtitle']:
             shutil.move(source_mp4,target_mp4)
@@ -280,8 +283,7 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
 
     # inert subtitle
     if config.video['insert_subtitle']:
-        os.system(
-            f"ffmpeg -y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']}  {target_mp4}")
+        runffmpeg("-y","-i",f"{source_mp4}","-i",f"{sub_name}","-c","copy","-c:s","mov_text","-metadata:s:s:0",f"language={config.video['subtitle_language']}",f"{target_mp4}")
     showprocess(f"{mp4name}.mp4 ended",'logs')
 
 

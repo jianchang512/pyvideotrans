@@ -3,8 +3,9 @@ import sys
 import shutil
 import argparse
 import os
-from tools import get_list_voices, get_large_audio_transcription, logger
+from tools import get_list_voices, get_large_audio_transcription, logger, runffmpeg
 import warnings
+
 warnings.filterwarnings('ignore')
 import config
 
@@ -36,11 +37,13 @@ def set_default_voice(target_language):
         pass
     return ["No"]
 
+
 # exit
 def error(text):
     logger.error(f"\n[error]: {text}\n")
     print(f"\n[error]: {text}\n")
     exit(1)
+
 
 # process args by sys.args
 def init_args():
@@ -150,7 +153,8 @@ def running(p):
         os.unlink(sub_name)
 
     if not os.path.exists(a_name):
-        os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
+        runffmpeg("-i", f"{dirname}/{mp4name}", "-acodec", "pcm_s16le", "-f", "s16le", "-ac", "1", "-f", "wav",
+                  f"{a_name}")
     # remove background music a_name{voial}.wav
     if config.video['voice_role'] != 'No' and config.video['remove_background']:
         from spleeter.separator import Separator

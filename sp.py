@@ -1,21 +1,22 @@
 import json
 import re
 import shutil
+import subprocess
 import sys
 import os
 import threading
 from PyQt5.QtGui import QTextCursor, QIcon
 from config import langlist, transobj, logger
 import config
-from tools import get_list_voices, get_large_audio_transcription
+from tools import get_list_voices, get_large_audio_transcription, runffmpeg
 
 from PyQt5.QtCore import pyqtSignal, QThread, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 import qdarkstyle
 import pywinstyles
 import warnings
-warnings.filterwarnings('ignore')
 
+warnings.filterwarnings('ignore')
 
 if config.defaulelang == "zh":
     from cn import Ui_MainWindow
@@ -63,7 +64,9 @@ class Worker(QThread):
 
         if not os.path.exists(a_name):
             self.postmessage(f"{mp4name} split audio", "logs")
-            os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
+            # os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
+            runffmpeg("-i", f"{dirname}/{mp4name}", "-acodec", "pcm_s16le", "-f", "s16le", "-ac", "1", "-f", "wav",
+                      f"{a_name}")
         # remove background music ouput a_name{voial}.wav
         if config.video['voice_role'] != 'No' and config.video['remove_background']:
             if self.isInterruptionRequested():
@@ -78,7 +81,7 @@ class Worker(QThread):
         self.postmessage(f"{mp4name} end", "end")
         # del temp files
         shutil.rmtree(os.path.join(config.rootdir, "tmp"))
-        
+
         if os.path.exists(f"{dirname}/{noextname}vocals.wav"):
             os.unlink(f"{dirname}/{noextname}vocals.wav")
         if os.path.exists(f"{dirname}/##{noextname}vocals_tmp"):
@@ -87,7 +90,7 @@ class Worker(QThread):
             os.unlink(f"{dirname}/{noextname}.wav")
         if os.path.exists(f"{dirname}/##{noextname}_tmp"):
             shutil.rmtree(f"{dirname}/##{noextname}_tmp")
-        
+
 
 # UI
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -138,7 +141,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def update_start(self, type):
         config.current_status = type
         self.startbtn.setText(transobj[type])
-        if (type == 'stop' or type=='end') and self.task:
+        if (type == 'stop' or type == 'end') and self.task:
             self.task.requestInterruption()
             self.task.quit()
             self.task.wait()
@@ -202,7 +205,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['proxy'] = self.proxy.text().strip()
 
         config.video['source_language'] = langlist[self.source_language.currentText()][0]
-        target_language=self.target_language.currentText()
+        target_language = self.target_language.currentText()
         if '-' == target_language:
             self.update_start("stop")
             QMessageBox.critical(self, transobj['anerror'], transobj['shoundselecttargetlanguage'])
@@ -224,8 +227,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['voice_autorate'] = self.voice_autorate.isChecked()
         config.video['remove_background'] = self.remove_background.isChecked()
         config.video['insert_subtitle'] = self.insert_subtitle.isChecked()
-
-
 
         if not config.video['insert_subtitle'] and (config.video['voice_role'] == 'No'):
             self.update_start("stop")
@@ -266,8 +267,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif d['type'] == "logs":
             self.process.moveCursor(QTextCursor.Start)
             self.process.insertPlainText(d['text'])
-        elif d['type'] == 'stop' or d['type']=='end':
-            self.update_start( d['type'])
+        elif d['type'] == 'stop' or d['type'] == 'end':
+            self.update_start(d['type'])
 
 
 if __name__ == "__main__":
@@ -278,7 +279,6 @@ if __name__ == "__main__":
     main = MainWindow()
 
     pywinstyles.apply_style(main, "win7")
-
 
     main.show()
     sys.exit(app.exec())
