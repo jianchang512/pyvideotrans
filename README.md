@@ -4,9 +4,15 @@
 语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google`翻译接口，文字合成语音使用 `Microsoft Edge tts`，背景音乐去除使用 `Spleeter`,无需购买任何商业接口，也无需付费
 
 
-
-
 https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9853-6d4b1d3ecdf4
+
+
+
+
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9b53-477986aea5e6
+
+
 
 
 
@@ -170,9 +176,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9
 
 # 视频前后对比
 
-[demo / Original Video and Translated Video](https://www.wonyes.org/demo.html)
+[Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
-[![Youtube demo](https://i9.ytimg.com/vi_webp/F0U8JTBkCYA/mq1.webp?sqp=CKjEhKoG-oaymwEmCMACELQB8quKqQMa8AEB-AHUCYAC0AWKAgwIABABGBMgSCh_MA8=&rs=AOn4CLCCC4UjoQWuX0_LcCHUb17D9CLjfA)](https://youtu.be/F0U8JTBkCYA)
+[![Youtube demo](https://i9.ytimg.com/vi/-WAyWjJPSEk/mqdefault.jpg?sqp=CIDWiKoG-oaymwEmCMACELQB8quKqQMa8AEB-AHUCYAC0AWKAgwIABABGBMgSCh_MA8=&rs=AOn4CLBeqGDbSLhM30qJVnpHFY3fdMUZ2w)](https://youtu.be/-WAyWjJPSEk)
 
 # 可能的问题
 
