@@ -22,7 +22,26 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9
 6. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
    
    嵌入字幕：是否翻译后将字幕嵌入视频 （该参数和“选择配音”必须至少设置其中一个,也就是不能“既不嵌入字幕又不选择配音角色”）
-7. 文字识别模型: 选择 base/small/medium/large, 识别效果越来越好，但识别速度越来越慢，第一次将需要下载模型，默认 base   
+7. 文字识别模型: 选择 base/small/medium/large, 识别效果越来越好，但识别速度越来越慢，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `C:/Users/你的用户名/.cache/whisper`目录下，如果 `.cache`下不存在`whisper`目录，先创建该目录。
+   
+   **模型单独下载地址**
+
+   
+    [tiny模型](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
+    
+    [base模型](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
+
+    [small模型](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
+
+    [medium模型](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
+
+    [large模型](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
+   
+   ![正确的存放目录](./images/download.png)
+
+    
+
+
 8. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 9. 自动加速: 如果翻译后的语音时长大于原时长，并且这里确认选中，那么将强制加速播放该片段，以缩小时长
 10. 去除背景音：若选中可尝试删掉背景音乐，以使结果更准确

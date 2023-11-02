@@ -23,6 +23,26 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
    
    Embedding Subtitle: embedding subtitles to video, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed
 8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
+
+   If you need, download models before running it, save to `C:/Users/Your username/.cache/whisper`, if not exists `whisper` at `.cache`, create it.
+   
+   **download models link**
+
+   
+    [tiny](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
+    
+    [base](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
+
+    [small](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
+
+    [medium](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
+
+    [large](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
+   
+   ![Right Save Postition](./images/download.png)
+
+       
+
 9. Dubbing speed: Enter a number between -90 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
 10. Auto acceleration: If the duration of the translated speech is longer than the original duration and you checked here, the segment will be forced to be accelerated to reduce the length.
 11. Remove background music: if checked to attempt to remove background music for more accurate results.
