@@ -5,11 +5,11 @@ import logging
 # 当前执行目录
 rootdir = os.getcwd().replace('\\', '/')
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     filename=f'{rootdir}/video.log',
     encoding="utf-8",
     filemode="a")
-logger = logging.getLogger('video_translate')
+logger = logging.getLogger('VideoTrans')
 
 defaulelang = "zh"
 translist = {

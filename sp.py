@@ -1,7 +1,5 @@
 import json
-import re
 import shutil
-import subprocess
 import sys
 import os
 import threading
@@ -65,8 +63,7 @@ class Worker(QThread):
         if not os.path.exists(a_name):
             self.postmessage(f"{mp4name} split audio", "logs")
             # os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
-            runffmpeg("-i", f"{dirname}/{mp4name}", "-acodec", "pcm_s16le", "-f", "s16le", "-ac", "1", "-f", "wav",
-                      f"{a_name}")
+            runffmpeg(f"-i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
         # remove background music ouput a_name{voial}.wav
         if config.video['voice_role'] != 'No' and config.video['remove_background']:
             if self.isInterruptionRequested():
@@ -80,8 +77,8 @@ class Worker(QThread):
         try:
             get_large_audio_transcription(a_name, mp4name, sub_name, self.postmessage)
         except Exception as e:
-            logger.error(str(e))
-            exit(1)
+            logger.error("Get_large_audio_transcription error:"+str(e))
+            sys.exit()
         self.postmessage(f"{mp4name} end", "end")
         # del temp files
         shutil.rmtree(os.path.join(config.rootdir, "tmp"))
@@ -136,8 +133,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.voice_autorate.setChecked(
             self.settings.value('voice_autorate', config.video['voice_autorate'], bool))
-        self.remove_background.setChecked(
-            self.settings.value('remove_background', config.video['remove_background'], bool))
+
+        if not os.path.exists(config.rootdir+"/pretrained_models/2stems/model.data-00000-of-00001"):
+            self.remove_background.hide()
+        else:
+            self.remove_background.setChecked(self.settings.value('remove_background', config.video['remove_background'], bool))
         self.insert_subtitle.setChecked(
             self.settings.value('insert_subtitle', config.video['insert_subtitle'], bool))
         self.source_language.setCurrentIndex(2)

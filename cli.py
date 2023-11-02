@@ -153,8 +153,7 @@ def running(p):
         os.unlink(sub_name)
 
     if not os.path.exists(a_name):
-        runffmpeg("-i", f"{dirname}/{mp4name}", "-acodec", "pcm_s16le", "-f", "s16le", "-ac", "1", "-f", "wav",
-                  f"{a_name}")
+        runffmpeg(f"-i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
     # remove background music a_name{voial}.wav
     if config.video['voice_role'] != 'No' and config.video['remove_background']:
         from spleeter.separator import Separator

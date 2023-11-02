@@ -17,7 +17,9 @@ import json
 import edge_tts
 import config
 from config import logger
+
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 #  get role by edge tts
 def get_list_voices():
@@ -32,21 +34,23 @@ def get_list_voices():
             voice_list[prefix].append(name)
     return voice_list
 
+
 # split audio by silence
 def shorten_voice(normalized_sound):
-    normalized_sound=match_target_amplitude(normalized_sound,-20.0)
-    max_interval=10000
-    buffer=500
+    normalized_sound = match_target_amplitude(normalized_sound, -20.0)
+    max_interval = 10000
+    buffer = 500
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.video['voice_silence']),silence_thresh=-20-25)
-    #print(audio_chunks)
+    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.video['voice_silence']),
+                                    silence_thresh=-20 - 25)
+    # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
-        start_time, end_time = chunk  
-        n=0
+        start_time, end_time = chunk
+        n = 0
         while end_time - start_time >= max_interval:
-            n+=1
+            n += 1
             # new_end = start_time + max_interval+buffer
-            new_end = start_time + max_interval+buffer
+            new_end = start_time + max_interval + buffer
             new_start = start_time
             nonsilent_data.append((new_start, new_end, True))
             start_time += max_interval
@@ -118,8 +122,6 @@ def googletrans(text, src, dest):
     return "error on translation" if len(re_result) < 1 else re_result[0]
 
 
-
-
 # speed change
 def speed_change(sound, speed=1.0):
     # Manually override the frame_rate. This tells the computer how many
@@ -132,8 +134,14 @@ def speed_change(sound, speed=1.0):
     # know how to play audio at standard frame rate (like 44.1k)
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
+
 def runffmpeg(*arg):
-    subprocess.run(["ffmpeg"]+list(arg))
+    logger.info("Will execute: ffmpeg " + " ".join(arg))
+    try:
+        subprocess.run("ffmpeg " + " ".join(arg), check=True, shell=True)
+    except Exception as e:
+        logger.error("FFmepg exec error:" + str(e))
+
 
 #
 def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
@@ -144,7 +152,7 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     logger.info(f"[get_large_audio_transcription] {aud_path=}\n{folder_path=}\n{audio_name=}\n{sub_name=}")
     # temp dir
     tmp_path = folder_path + f'/##{audio_name}_tmp'
-    showprocess(f"{mp4name} spilt audio","logs")
+    showprocess(f"{mp4name} spilt audio", "logs")
     if config.current_status == 'stop':
         return
     if not os.path.isdir(tmp_path):
@@ -161,17 +169,17 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
-        showprocess(f"{mp4name} create json",'logs')
+        showprocess(f"{mp4name} create json", 'logs')
 
         if config.current_status == 'stop':
             return
-        nonsilent_data =  shorten_voice(normalized_sound)
-        showprocess(f"{mp4name} split voice",'logs')
+        nonsilent_data = shorten_voice(normalized_sound)
+        showprocess(f"{mp4name} split voice", 'logs')
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
 
     subs = []
-    showprocess(f"{mp4name} translate",'logs')
+    showprocess(f"{mp4name} translate", 'logs')
     segments = []
     start_times = []
     for i, duration in enumerate(nonsilent_data):
@@ -179,10 +187,10 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
             return
         start_time, end_time, buffered = duration
         start_times.append(start_time)
-        logger.info(f"开始时间：{start_time=},结束时间:{end_time=},{duration=}")
+        logger.info(f"{start_time=},{end_time=},{duration=}")
         time_covered = start_time / len(normalized_sound) * 100
         # 进度
-        showprocess(f"{mp4name} {time_covered:.1f}%",'logs')
+        showprocess(f"{mp4name} {time_covered:.1f}%", 'logs')
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         add_vol = 0
         audio_chunk = normalized_sound[start_time:end_time] + add_vol
@@ -210,14 +218,14 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
             try:
                 result = googletrans(text, config.video['source_language'],
                                      config.video['target_language'])
-                logger.info(f"target_language={config.video['target_language']}\n---text={result=}")
+                logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
             except Exception as e:
                 logger.error("Translate Error:", str(e))
                 segments.append(audio_chunk)
                 continue
-            isemtpy=True
-            if not re.fullmatch(r'^[./\\。，/\s]*$',result.strip(),re.I):
-                isemtpy=False
+            isemtpy = True
+            if not re.fullmatch(r'^[./\\。，/\s]*$', result.strip(), re.I):
+                isemtpy = False
                 combo_txt = result + '\n\n'
                 if buffered:
                     end_time -= 500
@@ -226,7 +234,7 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
 
                 index = len(subs) + 1
                 sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
-                showprocess(f"{start} --> {end} {combo_txt}",'subtitle')
+                showprocess(f"{start} --> {end} {combo_txt}", 'subtitle')
                 subs.append(sub)
 
             if config.video['voice_role'] != 'No':
@@ -234,11 +242,11 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                     segments.append(AudioSegment.silent(duration=end_time - start_time))
                     continue
                 try:
-                    rate=int(str(config.video['voice_rate']).replace('%',''))
-                    if rate>=0:
-                        rate=f"+{rate}%"
+                    rate = int(str(config.video['voice_rate']).replace('%', ''))
+                    if rate >= 0:
+                        rate = f"+{rate}%"
                     else:
-                        rate=f"{rate}%"
+                        rate = f"{rate}%"
                     communicate = edge_tts.Communicate(result,
                                                        config.video['voice_role'],
                                                        rate=rate)
@@ -252,13 +260,14 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                         # 最大加速2倍
                         speed = mp3len / wavlen
                         speed = 2 if speed > 2 else speed
-                        showprocess(f"new mp3 length biger than wav  500ms，speed up {speed} ",'logs')
+                        showprocess(f"new mp3 length bigger than wav ,speed up {speed} ", 'logs')
                         audio_data = speed_change(audio_data, speed)
-                        showprocess(f"change after:{len(audio_data)}",'logs')
+                        showprocess(f"change after:{len(audio_data)}", 'logs')
                 except Exception as e:
-                    print("##########################\n#####################")
+                    logger.error("Create voice role error:" + str(e))
                     print(e)
-                    audio_data = AudioSegment.silent(duration=end_time - start_time)
+                    # audio_data = AudioSegment.silent(duration=end_time - start_time)
+                    segments.append(audio_chunk)
                 segments.append(audio_data)
 
     merge_audio_segments(segments, start_times, total_length * 1000, mp4name)
@@ -266,25 +275,28 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(final_srt)
 
-    showprocess(f"{mp4name} add subtitle",'logs')
+    showprocess(f"{mp4name} add subtitle", 'logs')
     # target  output mp4 filepath
-    target_mp4 = config.video['target_dir']+f"/{mp4name}"
+    target_mp4 = config.video['target_dir'] + f"/{mp4name}"
     # raw mp4 filepath
     source_mp4 = folder_path + f"/{mp4name}"
     logger.info(f"{target_mp4=}\n{source_mp4=}")
     # add voice role audio
     if config.video['voice_role'] != 'No':
-        runffmpeg("-y","-i",f"{source_mp4}","-c:v","copy","-an",f"{config.rootdir}/tmp/novoice_{mp4name}")
-        runffmpeg("-y","-i",f"{config.rootdir}/tmp/novoice_{mp4name}","-i",f"{config.rootdir}/tmp/{mp4name}.wav","-c","copy","-map","0:v:0","-map","1:a:0",f"{config.rootdir}/tmp/addvoice-{mp4name}")
-        source_mp4 = f"{config.rootdir}/tmp/addvoice-{mp4name}"
-        if not config.video['insert_subtitle']:
-            shutil.move(source_mp4,target_mp4)
+        runffmpeg(f"-y -i {source_mp4} -c:v copy -an {config.rootdir}/tmp/novoice_{mp4name}")
+        try:
+            runffmpeg(f"-y -i {config.rootdir}/tmp/novoice_{mp4name} -i {config.rootdir}/tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 {config.rootdir}/tmp/addvoice-{mp4name}")
+            source_mp4 = f"{config.rootdir}/tmp/addvoice-{mp4name}"
+            if not config.video['insert_subtitle']:
+                shutil.move(source_mp4, target_mp4)
+        except Exception as e:
+            logger.error("Add voice role audio error:"+str(e))
     # else:
 
     # inert subtitle
     if config.video['insert_subtitle']:
-        runffmpeg("-y","-i",f"{source_mp4}","-i",f"{sub_name}","-c","copy","-c:s","mov_text","-metadata:s:s:0",f"language={config.video['subtitle_language']}",f"{target_mp4}")
-    showprocess(f"{mp4name}.mp4 ended",'logs')
+        runffmpeg(f"-y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
+    showprocess(f"{mp4name}.mp4 ended", 'logs')
 
 
 # 测试 google
