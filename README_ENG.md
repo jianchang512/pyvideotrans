@@ -66,6 +66,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 5. Unzip `ffmpeg.zip` in the root directory.Unzip `pretrained_models.zip` in the root directory.
 6. Run `python sp.py` to open the software interface. Run `python cli.py` cli mode 
 7. If you plan to use the background music removal feature, you can extract the files `pretrained_models.zip` to the directory 
+8. If packing, execute `pyinstaller sp.py`, don't add `-w -F` param else will exit (because tensorflow)  
 
 # CLI Usage
 

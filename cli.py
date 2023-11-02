@@ -166,6 +166,8 @@ def running(p):
     shutil.rmtree(f"{config.rootdir}/tmp")
     if os.path.exists(f"{dirname}/{noextname}vocals.wav"):
         os.unlink(f"{dirname}/{noextname}vocals.wav")
+    if os.path.exists(f"{dirname}/{noextname}accompaniment.wav"):
+        os.unlink(f"{dirname}/{noextname}accompaniment.wav")
     if os.path.exists(f"{dirname}/##{noextname}vocals_tmp"):
         shutil.rmtree(f"{dirname}/##{noextname}vocals_tmp")
     if os.path.exists(f"{dirname}/{noextname}.wav"):
