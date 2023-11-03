@@ -239,13 +239,20 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
             isemtpy = True
             if not re.fullmatch(r'^[./\\。，/\s]*$', result.strip(), re.I):
                 isemtpy = False
+
                 combo_txt = result + '\n\n'
+                if len(result)>30:
+                    result_tmp = ""
+                    for tmp_i in range(1 + len(result) // 30):
+                        result_tmp += result[tmp_i * 30:tmp_i * 30 + 30] + "\n"
+                    combo_txt = result_tmp.strip()+ '\n\n'
                 if buffered:
                     end_time -= 500
                 start = timedelta(milliseconds=start_time)
                 end = timedelta(milliseconds=end_time)
 
                 index = len(subs) + 1
+
                 sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
                 showprocess(f"{start} --> {end} {combo_txt}", 'subtitle')
                 subs.append(sub)
@@ -294,23 +301,30 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     # raw mp4 filepath
     source_mp4 = folder_path + f"/{mp4name}"
     logger.info(f"{target_mp4=}\n{source_mp4=}")
-    # add voice role audio
-    if config.video['voice_role'] != 'No':
+    # add voice dubbing and subtitle
+    if config.video['voice_role'] != 'No' and config.video['subtitle_type']>0:
+        # get no voice mp4
         runffmpeg(f"-y -i {source_mp4} -c:v copy -an {config.rootdir}/tmp/novoice_{mp4name}")
-        try:
-            runffmpeg(
-                f"-y -i {config.rootdir}/tmp/novoice_{mp4name} -i {config.rootdir}/tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 {config.rootdir}/tmp/addvoice-{mp4name}")
-            source_mp4 = f"{config.rootdir}/tmp/addvoice-{mp4name}"
-            if not config.video['insert_subtitle']:
-                shutil.move(source_mp4, target_mp4)
-        except Exception as e:
-            logger.error("Add voice role audio error:" + str(e))
-    # else:
-
+        # embed subtitle
+        if config.video['subtitle_type']==1:
+            shutil.copy(sub_name,f"{config.rootdir}/1.srt")
+            runffmpeg(f"-y -i {config.rootdir}/tmp/novoice_{mp4name}  -i {config.rootdir}/tmp/{mp4name}.wav  -c:v libx264 -c:a aac -vf subtitles=1.srt {target_mp4}")
+        else:
+            # soft subtitle
+            runffmpeg(f"-y -i {config.rootdir}/tmp/novoice_{mp4name}  -i {config.rootdir}/tmp/{mp4name}.wav -sub_charenc UTF-8 -f srt  -i {sub_name} -c:v libx264 -c:a aac -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
+    elif config.video['voice_role'] != 'No':
+        # only voice dubbing no subtitle
+        runffmpeg(f"-y -i {config.rootdir}/tmp/novoice_{mp4name}  -i {config.rootdir}/tmp/{mp4name}.wav  -c:v libx264 -c:a aac  {target_mp4}")
     # inert subtitle
-    if config.video['insert_subtitle']:
+    elif config.video['subtitle_type']==1:
+        # no voice dubble only  embed subtitle
+        shutil.copy(sub_name,f"{config.rootdir}/1.srt")
         runffmpeg(
-            f"-y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
+            f"-y -i {source_mp4}  -c:v libx264 -c:a aac -vf subtitles=1.srt {target_mp4}")
+    elif config.video['subtitle_type']==2:
+        # no voice dubble only soft subtitle
+        runffmpeg(
+            f"-y -i {source_mp4} -sub_charenc UTF-8 -f srt -i {sub_name} -c:v libx264  -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
     showprocess(f"{mp4name}.mp4 ended", 'logs')
 
 

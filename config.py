@@ -31,9 +31,15 @@ translist = {
         "waitrole":"正在获取可用配音角色，请稍等重新选择",
         "downloadmodel":"模型不存在将自动下载，你也可以手动下载，具体请查看文档说明。当前模型存放路径:",
         "modelpathis":"当前模型路径是:",
-        "modellost":"模型下载出错或者下载不完整，请重新下载后存放到 models目录下"
+        "modellost":"模型下载出错或者下载不完整，请重新下载后存放到 models目录下",
+        "embedsubtitle":"硬字幕嵌入",
+        "softsubtitle":"软字幕",
+        "nosubtitle":"不添加字幕"
     },
     "en": {
+        "nosubtitle":"No Subtitle",
+        "embedsubtitle":"Embed subtitle",
+        "softsubtitle":"Soft subtitle",
         "modellost":"There is an error in the model download or the download is incomplete. Please re-download and store it in the models directory.",
         "modelpathis":"Model storage path:",
         "downloadmodel":"Model does not exist, will be downloaded automatically.you can manual download it manually. after read the documentation. model storage path:",
@@ -134,7 +140,8 @@ video = {
 
     "voice_silence": "500",
     "whisper_model": "base",
-    "insert_subtitle": True,
+    # "insert_subtitle": True,
+    "subtitle_type":0, # embed soft
     "voice_autorate": False,
     "remove_background": False
 }
