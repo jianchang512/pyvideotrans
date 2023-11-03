@@ -16,3 +16,4 @@ sp.json
 tmp
 *.log
 models/*.pt
+voice_list.json
