@@ -223,6 +223,9 @@ class Ui_MainWindow(object):
         self.subtitle_area.setObjectName("subtitle_area")
         self.horizontalLayout_4.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
+        self.statusBar = QtWidgets.QStatusBar(MainWindow)
+        self.statusBar.setObjectName("statusBar")
+        MainWindow.setStatusBar(self.statusBar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -242,7 +245,7 @@ class Ui_MainWindow(object):
         self.target_language.setToolTip(_translate("MainWindow", "你希望翻译为哪种语言"))
         self.label_4.setText(_translate("MainWindow", "配音角色"))
         self.voice_role.setToolTip(_translate("MainWindow", "选No代表不进行配音"))
-        self.label_5.setText(_translate("MainWindow", "文字识别模型"))
+        self.label_5.setText(_translate("MainWindow", "语音识别模型"))
         self.whisper_model.setToolTip(_translate("MainWindow", "base到large，效果越来越好，但速度也越来越慢"))
         self.label_6.setText(_translate("MainWindow", "配音语速"))
         self.voice_rate.setToolTip(_translate("MainWindow", "是否加速或减速播放配音"))
