@@ -63,7 +63,7 @@ class Worker(QThread):
         if not os.path.exists(a_name):
             self.postmessage(f"{mp4name} split audio", "logs")
             # os.system(f"ffmpeg -i {dirname}/{mp4name} -acodec pcm_s16le -f s16le -ac 1  -f wav {a_name}")
-            runffmpeg(f"-i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
+            runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
         # remove background music ouput a_name{voial}.wav
         if config.video['voice_role'] != 'No' and config.video['remove_background']:
             if self.isInterruptionRequested():
@@ -122,10 +122,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.voice_role.addItems(['No'])
         self.whisper_model.addItems(['base', 'small', 'medium', 'large'])
-        self.whisper_model.setCurrentText(
-            self.settings.value("whisper_model", config.video['whisper_model'], str))
+        self.whisper_model.setCurrentText(self.settings.value("whisper_model", config.video['whisper_model'], str))
         self.statusBar.showMessage(transobj['modelpathis']+config.rootdir+"/models")
         self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
+
+
 
         self.proxy.setText(self.settings.value("target_dir", "", str))
         self.proxy.setText(self.settings.value("proxy", "", str))
@@ -140,9 +141,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.remove_background.hide()
         else:
             self.remove_background.setChecked(self.settings.value('remove_background', config.video['remove_background'], bool))
-        self.insert_subtitle.setChecked(
-            self.settings.value('insert_subtitle', config.video['insert_subtitle'], bool))
+
         self.source_language.setCurrentIndex(2)
+
+        # subtitle 0 no 1=embed subtitle 2=softsubtitle
+        self.subtitle_type.addItems([transobj['nosubtitle'],transobj['embedsubtitle'], transobj['softsubtitle']])
+        self.subtitle_type.setCurrentIndex(self.settings.value("subtitle_type", config.video['subtitle_type'], int))
+
         self.setWindowIcon(QIcon("./icon.ico"))
 
     def check_whisper_model(self,name):
@@ -223,6 +228,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.video['target_dir'] = target_dir
         config.video['proxy'] = self.proxy.text().strip()
+        if config.video['proxy']:
+            os.environ['http_proxy']=config.video['proxy']
+            os.environ['https_proxy']=config.video['proxy']
 
         config.video['source_language'] = langlist[self.source_language.currentText()][0]
         target_language = self.target_language.currentText()
@@ -257,9 +265,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.video['voice_autorate'] = self.voice_autorate.isChecked()
         config.video['remove_background'] = self.remove_background.isChecked()
-        config.video['insert_subtitle'] = self.insert_subtitle.isChecked()
+        config.video['subtitle_type']=int(self.subtitle_type.currentIndex())
 
-        if not config.video['insert_subtitle'] and (config.video['voice_role'] == 'No'):
+        if config.video['subtitle_type']<1 and (config.video['voice_role'] == 'No'):
             self.update_start("stop")
             QMessageBox.critical(self, transobj['anerror'], transobj['subtitleandvoice_role'])
             return
@@ -282,7 +290,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("voice_silence", config.video['voice_silence'])
         self.settings.setValue("voice_autorate", config.video['voice_autorate'])
         self.settings.setValue("remove_background", config.video['remove_background'])
-        self.settings.setValue("insert_subtitle", config.video['insert_subtitle'])
+        self.settings.setValue("subtitle_type", config.video['subtitle_type'])
         if not os.path.exists(os.path.join(config.rootdir, "tmp")):
             os.mkdir(os.path.join(config.rootdir, "tmp"))
         self.task = Worker()

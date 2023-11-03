@@ -68,4 +68,10 @@ def nosilen(filename):
 def ceshi(*arg):
     subprocess.run(["ffmpeg"]+list(arg))
 
-ceshi("-i","C:/Users/c1/Videos/cn.mp4","C:/Users/c1/Videos/cn-2.avi")
+result="如今，语音体验在商业领域已成为一件大事。为了获得良好的体验，您需要实时、准确的转录基础。但大多数自动语音识别服务。"
+
+result_tmp=""
+for tmp_i in range(1+len(result)//30):
+    result_tmp+=result[tmp_i*30:tmp_i*30+30]+"\n"
+result=result_tmp.strip()
+print(result)

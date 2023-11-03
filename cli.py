@@ -79,7 +79,8 @@ def init_args():
                              'deceleration')
 
     parser.add_argument('-rb', '--remove_background', action='store_true', help='Remove Background Music')
-    parser.add_argument('-is', '--insert_subtitle', action='store_true', help='Insert subtitle to video')
+    # parser.add_argument('-is', '--insert_subtitle', action='store_true', help='Insert subtitle to video')
+    parser.add_argument('-st', '--subtitle_type', default=0, type=int, help='Embedded subtitles display regardless , doesnot hide them.Softsubtitles:If player supports it, you can control display or hiding of .To display subtitles  when playing in website,  choose embeded subtitles option.')
 
     args = vars(parser.parse_args())
 
@@ -99,9 +100,9 @@ def init_args():
     elif args['voice_role'].lower() in voice_role_lower:
         args['voice_role'] = voice_role[voice_role_lower.index(args['voice_role'].lower())]
 
-    if not args['insert_subtitle'] and args['voice_role'] == 'No':
+    if args['subtitle_type']<1 and args['voice_role'] == 'No':
         error(
-            "The --insert_subtitle and --voice_role parameters need to be set at least one of them. \nChoose either embedding subtitles or voiceover characters, at least one of them needs to be selected.")
+            "The --subtitle_type and --voice_role parameters need to be set at least one of them. \nChoose either embedding subtitles or voiceover characters, at least one of them needs to be selected.")
 
     rate = int(args['voice_rate'])
     if rate >= 0:
@@ -153,7 +154,7 @@ def running(p):
         os.unlink(sub_name)
 
     if not os.path.exists(a_name):
-        runffmpeg(f"-i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
+        runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
     # remove background music a_name{voial}.wav
     if config.video['voice_role'] != 'No' and config.video['remove_background']:
         from spleeter.separator import Separator

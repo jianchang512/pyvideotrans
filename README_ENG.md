@@ -21,7 +21,12 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 6. Target translation language: Select the desired language for translation.
 7. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
    
-   Embedding Subtitle: embedding subtitles to video, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed
+   Embedded subtitles:display regardless,doesnot hide them.
+
+    Soft subtitles: If player supports it, you can control display or hiding of .To display subtitles when playing in website,choose embeded subtitles option.
+   
+   **‘neither embedding subtitles nor selecting voiceover characters’ is not allowed**
+   
 8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
 
    If you need, download models before running it, save to `This soft dir/models`
@@ -99,7 +104,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 
 **--proxy**: Specify an HTTP proxy address. Default is None. If you are unable to access Google from your location, you need to provide a proxy address. For example: `http://127.0.0.1:10809`
 
-**--insert_subtitle**：Whether to embed subtitles in the video after translation (either this parameter or --voice_role must be set, meaning "neither embedding subtitles nor selecting voiceover characters" is not allowed).
+**--subtitle_type**:  1 Embed subtitle, 2 soft subtitle.
+
+Embedded subtitles: display regardless,doesnot hide them.
+
+Soft subtitles: If player supports it, you can control display or hiding of .
+To display subtitles when playing in website,choose embeded subtitles option.
+
+   **neither embedding subtitles nor selecting voiceover characters is not allowed**.
 
 **--voice_role**: Provide the corresponding character name based on the target language code. Make sure the first two letters of the character name match the first two letters of the target language code. If you are unsure how to fill in this parameter, run `python cli.py show_voice` to display the available character names for each language.
 
