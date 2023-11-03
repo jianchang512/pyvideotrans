@@ -24,6 +24,13 @@ asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 #  get role by edge tts
 def get_list_voices():
     voice_list = {}
+    if os.path.exists(config.rootdir + "/voice_list.json"):
+        try:
+            voice_list = json.load(open(config.rootdir + "/voice_list.json", "r", encoding="utf-8"))
+            if len(voice_list) > 0:
+                return voice_list
+        except:
+            pass
     v = asyncio.run(edge_tts.list_voices())
     for it in v:
         name = it['ShortName']
@@ -32,6 +39,7 @@ def get_list_voices():
             voice_list[prefix] = ["No", name]
         else:
             voice_list[prefix].append(name)
+    json.dump(voice_list, open(config.rootdir + "/voice_list.json", "w"))
     return voice_list
 
 
@@ -199,11 +207,16 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
         # recognize the chunk
         with sr.AudioFile(chunk_filename) as source:
             audio_listened = r.record(source)
+            logger.info(f"sr.AudioFile:{chunk_filename=}")
             try:
+                options={"download_root":config.rootdir + "/models"}
                 text = r.recognize_whisper(audio_listened,
                                            language="zh" if config.video['detect_language'] == "zh-cn" or
                                                             config.video['detect_language'] == "zh-tw" else
-                                           config.video['detect_language'], model=config.video['whisper_model'])
+                                           config.video['detect_language'],
+                                           model=config.video['whisper_model'],
+                                           load_options=options)
+                logger.info(f"Recongize Okay")
             except sr.UnknownValueError as e:
                 logger.error("Recognize Error: ", str(e))
                 segments.append(audio_chunk)
@@ -285,17 +298,19 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     if config.video['voice_role'] != 'No':
         runffmpeg(f"-y -i {source_mp4} -c:v copy -an {config.rootdir}/tmp/novoice_{mp4name}")
         try:
-            runffmpeg(f"-y -i {config.rootdir}/tmp/novoice_{mp4name} -i {config.rootdir}/tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 {config.rootdir}/tmp/addvoice-{mp4name}")
+            runffmpeg(
+                f"-y -i {config.rootdir}/tmp/novoice_{mp4name} -i {config.rootdir}/tmp/{mp4name}.wav -c copy -map 0:v:0 -map 1:a:0 {config.rootdir}/tmp/addvoice-{mp4name}")
             source_mp4 = f"{config.rootdir}/tmp/addvoice-{mp4name}"
             if not config.video['insert_subtitle']:
                 shutil.move(source_mp4, target_mp4)
         except Exception as e:
-            logger.error("Add voice role audio error:"+str(e))
+            logger.error("Add voice role audio error:" + str(e))
     # else:
 
     # inert subtitle
     if config.video['insert_subtitle']:
-        runffmpeg(f"-y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
+        runffmpeg(
+            f"-y -i {source_mp4} -i {sub_name} -c copy -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
     showprocess(f"{mp4name}.mp4 ended", 'logs')
 
 

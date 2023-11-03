@@ -271,7 +271,7 @@
                    </size>
                   </property>
                   <property name="text">
-                   <string>文字识别模型</string>
+                   <string>语音识别模型</string>
                   </property>
                  </widget>
                 </item>
@@ -510,6 +510,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections/>

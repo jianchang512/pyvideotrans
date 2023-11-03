@@ -24,7 +24,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
    Embedding Subtitle: embedding subtitles to video, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed
 8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
 
-   If you need, download models before running it, save to `C:/Users/Your username/.cache/whisper`, if not exists `whisper` at `.cache`, create it.
+   If you need, download models before running it, save to `This soft dir/models`
    
    **download models link**
 
@@ -39,7 +39,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 
     [large](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
    
-   ![Right Save Postition](./images/download.png)
 
        
 

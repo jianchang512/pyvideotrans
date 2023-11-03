@@ -27,9 +27,17 @@ translist = {
         "exit": "退出",
         "end": "已结束(点击重新开始)",
         "stop": "已停止(点击开始)",
-        "subtitleandvoice_role": "不能既不嵌入字幕又不选择配音角色，二者至少选一"
+        "subtitleandvoice_role": "不能既不嵌入字幕又不选择配音角色，二者至少选一",
+        "waitrole":"正在获取可用配音角色，请稍等重新选择",
+        "downloadmodel":"模型不存在将自动下载，你也可以手动下载，具体请查看文档说明。当前模型存放路径:",
+        "modelpathis":"当前模型路径是:",
+        "modellost":"模型下载出错或者下载不完整，请重新下载后存放到 models目录下"
     },
     "en": {
+        "modellost":"There is an error in the model download or the download is incomplete. Please re-download and store it in the models directory.",
+        "modelpathis":"Model storage path:",
+        "downloadmodel":"Model does not exist, will be downloaded automatically.you can manual download it manually. after read the documentation. model storage path:",
+        "waitrole":"getting voice role list,hold on",
         "selectsavedir": "select an dir for output",
         "selectmp4": "select an mp4 video",
         "subtitleandvoice_role": "embedding subtitles or selecting voiceover characters must be set, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed.",

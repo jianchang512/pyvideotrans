@@ -124,6 +124,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_model.addItems(['base', 'small', 'medium', 'large'])
         self.whisper_model.setCurrentText(
             self.settings.value("whisper_model", config.video['whisper_model'], str))
+        self.statusBar.showMessage(transobj['modelpathis']+config.rootdir+"/models")
+        self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
 
         self.proxy.setText(self.settings.value("target_dir", "", str))
         self.proxy.setText(self.settings.value("proxy", "", str))
@@ -143,6 +145,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_language.setCurrentIndex(2)
         self.setWindowIcon(QIcon("./icon.ico"))
 
+    def check_whisper_model(self,name):
+        if not os.path.exists(config.rootdir+f"/models/{name}.pt"):
+            self.statusBar.showMessage(transobj['downloadmodel']+config.rootdir+"/models")
+        else:
+            self.statusBar.showMessage(transobj['modelpathis']+config.rootdir+f"/models/{name}.pt")
+
     # start or stop ,update start button text and stop worker thread
     def update_start(self, type):
         config.current_status = type
@@ -159,12 +167,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'])
             return
         if not config.voice_list:
+            self.target_language.setCurrentText('-')
+            QMessageBox.critical(self, transobj['anerror'], transobj['waitrole'])
             return
         try:
             vt = langlist[t][0].split('-')[0]
             print(f"{t=},{vt=}")
             if vt not in config.voice_list:
                 self.voice_role.addItems(['No'])
+                return
+            if len(config.voice_list[vt])<2:
+                self.target_language.setCurrentText('-')
+                QMessageBox.critical(self, transobj['anerror'], transobj['waitrole'])
                 return
             self.voice_role.addItems(config.voice_list[vt])
         except:
@@ -230,6 +244,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['voice_role'] = self.voice_role.currentText()
         config.video['whisper_model'] = self.whisper_model.currentText()
 
+        model=config.rootdir+f"/models/{config.video['whisper_model']}.pt"
+        if not os.path.exists(model):
+            self.statusBar.showMessage(transobj['downloadmodel']+config.rootdir+"/models")
+        if os.path.exists(model) and os.path.getsize(model)<100:
+            self.update_start("stop")
+            QMessageBox.critical(self, transobj['anerror'], transobj['modellost'])
+            return
+
+
+
+
         config.video['voice_autorate'] = self.voice_autorate.isChecked()
         config.video['remove_background'] = self.remove_background.isChecked()
         config.video['insert_subtitle'] = self.insert_subtitle.isChecked()
@@ -275,11 +300,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.process.insertPlainText(d['text'])
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_start(d['type'])
+            self.statusBar.showMessage(d['type'])
 
 
 if __name__ == "__main__":
     # Edge TTS support voice role
     threading.Thread(target=set_voice_list).start()
+    if not os.path.exists(os.path.join(config.rootdir, "models")):
+        os.mkdir(os.path.join(config.rootdir, "models"))
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main = MainWindow()
@@ -287,4 +315,5 @@ if __name__ == "__main__":
     pywinstyles.apply_style(main, "win7")
 
     main.show()
+
     sys.exit(app.exec())
