@@ -1,4 +1,4 @@
-# [简体中文](./README_ENG.md)
+# [简体中文](./README.md)
 
 This is a video translation tool that can translate videos from one language to another language and provide dubbed videos. 
 
