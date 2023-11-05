@@ -177,10 +177,10 @@ class Ui_MainWindow(object):
         self.remove_background.setMinimumSize(QtCore.QSize(0, 30))
         self.remove_background.setObjectName("remove_background")
         self.horizontalLayout_4.addWidget(self.remove_background)
-        self.subttile_type = QtWidgets.QComboBox(self.widget)
-        self.subttile_type.setMinimumSize(QtCore.QSize(0, 30))
-        self.subttile_type.setObjectName("subttile_type")
-        self.horizontalLayout_4.addWidget(self.subttile_type)
+        self.subtitle_type = QtWidgets.QComboBox(self.widget)
+        self.subtitle_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.subtitle_type.setObjectName("subtitle_type")
+        self.horizontalLayout_4.addWidget(self.subtitle_type)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
         self.line = QtWidgets.QFrame(self.widget)
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
@@ -265,7 +265,7 @@ class Ui_MainWindow(object):
         self.voice_autorate.setText(_translate("MainWindow", "Automatically accelerate playback?"))
         self.remove_background.setToolTip(_translate("MainWindow", "Remove background music noise and more."))
         self.remove_background.setText(_translate("MainWindow", "Eliminate background?"))
-        self.subttile_type.setToolTip(_translate("MainWindow", "Embedded subtitles display regardless,doesnot hide them.\n"
+        self.subtitle_type.setToolTip(_translate("MainWindow", "Embedded subtitles display regardless,doesnot hide them.\n"
 "Softsubtitles:If player supports it, you can control display or hiding of .\n"
 "To display subtitles when playing in website,choose embeded subtitles option."))
         self.startbtn.setText(_translate("MainWindow", "Start"))

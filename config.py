@@ -60,7 +60,7 @@ translist = {
         "stop": "Stop(click start)"
     }
 }
-langcode = locale.getdefaultlocale()[0]
+langcode = 'en' # locale.getdefaultlocale()[0]
 if langcode.split('_')[0].lower() != 'zh':
     defaulelang = "en"
     transobj = translist['en']
