@@ -100,15 +100,8 @@ sniffio==1.3.0
 soundfile==0.12.1
 soxr==0.3.7
 SpeechRecognition==3.10.0
-spleeter==2.4.0
 srt==3.5.2
 sympy==1.12
-tensorboard==2.9.1
-tensorboard-data-server==0.6.1
-tensorboard-plugin-wit==1.8.1
-tensorflow==2.9.3
-tensorflow-estimator==2.9.0
-tensorflow-io-gcs-filesystem==0.31.0
 termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.3.3

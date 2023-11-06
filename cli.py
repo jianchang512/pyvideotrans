@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import sys
-import shutil
 import argparse
 import os
-from tools import get_list_voices, get_large_audio_transcription, logger, runffmpeg
 import warnings
 
 warnings.filterwarnings('ignore')
-import config
+from configure.tools import get_list_voices, get_large_audio_transcription, logger, runffmpeg,delete_temp
+from configure import config
+from configure.language import clilanglist
 
 
 # lower and replace \\
@@ -25,7 +25,7 @@ voice_role_lower = []
 def set_default_voice(target_language):
     global voice_role_lower
     try:
-        vt = config.clilanglist[target_language][0].split('-')[0]
+        vt = clilanglist[target_language][0].split('-')[0]
         if vt not in config.voice_list:
             logger.error("The selected voice role does not exist. Please choose again.")
             return ["No"]
@@ -78,8 +78,6 @@ def init_args():
                         help='Specify Voiceover Speed, positive number for acceleration, negative number for '
                              'deceleration')
 
-    parser.add_argument('-rb', '--remove_background', action='store_true', help='Remove Background Music')
-    # parser.add_argument('-is', '--insert_subtitle', action='store_true', help='Insert subtitle to video')
     parser.add_argument('-st', '--subtitle_type', default=0, type=int, help='Embedded subtitles display regardless , doesnot hide them.Softsubtitles:If player supports it, you can control display or hiding of .To display subtitles  when playing in website,  choose embeded subtitles option.')
 
     args = vars(parser.parse_args())
@@ -88,9 +86,9 @@ def init_args():
             ".mp4"):
         error(
             f"The --source_mp4 parameter must be provided with the local file address of an mp4 file, ending with .mp4.{args['source_mp4']}")
-    if args['source_language'] not in config.clilanglist or args['target_language'] not in config.clilanglist:
+    if args['source_language'] not in clilanglist or args['target_language'] not in clilanglist:
         error(
-            f"The original language and target language for the video must be selected from the following options: {','.join(config.clilanglist.keys())}")
+            f"The original language and target language for the video must be selected from the following options: {','.join(clilanglist.keys())}")
 
     voice_role = set_default_voice(args['target_language'])
     if args['voice_role'] != 'No' and (args['voice_role'].lower() not in voice_role_lower):
@@ -121,13 +119,13 @@ def init_args():
 
     if args['whisper_model'] not in ["base", "small", "medium", "large"]:
         error(
-            'It seems that the model input is incorrect. Please only select from "base", "small", "medium", or "large".')
+            'It seems that the model input is incorrect. Please only select from "base", "small", "medium", or "large-v1", "large-v2".')
 
-    args['detect_language'] = config.clilanglist[args['source_language']][0]
-    args['source_language'] = config.clilanglist[args['source_language']][0]
+    args['detect_language'] = clilanglist[args['source_language']][0]
+    args['source_language'] = clilanglist[args['source_language']][0]
 
-    args['subtitle_language'] = config.clilanglist[args['target_language']][1]
-    args['target_language'] = config.clilanglist[args['target_language']][0]
+    args['subtitle_language'] = clilanglist[args['target_language']][1]
+    args['target_language'] = clilanglist[args['target_language']][0]
 
     return args
 
@@ -155,25 +153,10 @@ def running(p):
 
     if not os.path.exists(a_name):
         runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
-    # remove background music a_name{voial}.wav
-    if config.video['voice_role'] != 'No' and config.video['remove_background']:
-        from spleeter.separator import Separator
-        separator = Separator('spleeter:2stems', multiprocess=False)
-        separator.separate_to_file(a_name, destination=dirname, filename_format="{filename}{instrument}.{codec}")
-        a_name = f"{dirname}/{noextname}vocals.wav"
+
     get_large_audio_transcription(a_name, mp4name, sub_name, showprocess)
     # del temp files
-    shutil.rmtree(f"{config.rootdir}/tmp")
-    if os.path.exists(f"{dirname}/{noextname}vocals.wav"):
-        os.unlink(f"{dirname}/{noextname}vocals.wav")
-    if os.path.exists(f"{dirname}/{noextname}accompaniment.wav"):
-        os.unlink(f"{dirname}/{noextname}accompaniment.wav")
-    if os.path.exists(f"{dirname}/##{noextname}vocals_tmp"):
-        shutil.rmtree(f"{dirname}/##{noextname}vocals_tmp")
-    if os.path.exists(f"{dirname}/{noextname}.wav"):
-        os.unlink(f"{dirname}/{noextname}.wav")
-    if os.path.exists(f"{dirname}/##{noextname}_tmp"):
-        shutil.rmtree(f"{dirname}/##{noextname}_tmp")
+    delete_temp(dirname,noextname)
 
 
 if __name__ == '__main__':
