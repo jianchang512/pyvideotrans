@@ -2,7 +2,7 @@
 
 This is a video translation tool that can translate videos from one language to another language and provide dubbed videos. 
 
-The speech recognition is based on the offline model 'openai-whisper', the text translation uses the 'Google Translate' interface, and the text-to-speech synthesis uses 'Microsoft Edge TTS'. In addition, the background music removal is done using 'Spleeter'. It does not require purchasing any commercial interfaces or any fees.
+The speech recognition is based on the offline model 'openai-whisper', the text translation uses the 'Google Translate|Baidu|ChatGPT' interface, and the text-to-speech synthesis uses 'Microsoft Edge TTS'. In addition
 
 
 
@@ -16,10 +16,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 1. Download the latest version from the release, extract it, and double-click on sp.exe.
 2. Original video directory: Select the mp4 video.
 3. Output video directory: If not selected, it will default to generating in the same directory as `_video_out`.
-4. Network proxy address: If you are unable to access Google directly in your region, you need to set up a proxy in the software interface under Network Proxy. For example, if you are using v2ray, enter `http://127.0.0.1:10809`. If using Clash, enter `http://127.0.0.1:7890`. If you have modified the default port or are using other proxy software, please fill in accordingly.
-5. Original video language: Select the language of the video to be translated.
-6. Target translation language: Select the desired language for translation.
-7. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
+4. Choose translation: Google, Baidu, ChatGPT can be selected, and the latter two need to click on "Set Translation Key" to set corresponding information
+5. Network proxy address: If you are unable to access Google directly in your region, you need to set up a proxy in the software interface under Network Proxy. For example, if you are using v2ray, enter `http://127.0.0.1:10809`. If using Clash, enter `http://127.0.0.1:7890`. If you have modified the default port or are using other proxy software, please fill in accordingly.
+6. Original video language: Select the language of the video to be translated.
+7. Target translation language: Select the desired language for translation.
+8. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
    
    Embedded subtitles:display regardless,doesnot hide them.
 
@@ -27,7 +28,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
    
    **‘neither embedding subtitles nor selecting voiceover characters’ is not allowed**
    
-8. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
+9. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
 
    If you need, download models before running it, save to `This soft dir/models`
    
@@ -47,9 +48,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 
        
 
-9. Dubbing speed: Enter a number between -90 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
-10. Auto acceleration: If the duration of the translated speech is longer than the original duration and you checked here, the segment will be forced to be accelerated to reduce the length.
-11. Remove background music: if checked to attempt to remove background music for more accurate results.
+10. Dubbing speed: Enter a number between -90 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
+11. Auto acceleration: If the duration of the translated speech is longer than the original duration and you checked here, the segment will be forced to be accelerated to reduce the length.
 12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, which means segments with silences equal to or longer than 500ms will be used as the basis for splitting the speech.
 13. Click "Start", he execution will proceed, and the current progress will be displayed on the right. The subtitles will be displayed in the white text box at the bottom.
 
@@ -69,8 +69,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 4. Install the required packages: `pip install -r requirements.txt`
 5. Unzip `ffmpeg.zip` in the root directory.Unzip `pretrained_models.zip` in the root directory.
 6. Run `python sp.py` to open the software interface. Run `python cli.py` cli mode 
-7. If you plan to use the background music removal feature, you can extract the files `pretrained_models.zip` to the directory 
-8. If packing, execute `pyinstaller sp.py`, don't add `-w -F` param else will exit (because tensorflow)  
+7. If packing, execute `pyinstaller sp.py`, don't add `-w -F` param else will exit (because tensorflow)
 
 # CLI Usage
 
@@ -150,7 +149,6 @@ To display subtitles when playing in website,choose embeded subtitles option.
 
 **--voice_rate**: Adjust the speed of the voice dubbing. Use negative numbers to decrease the speed and positive numbers to increase it. The default value is `0`
 
-**--remove_background**: Specify this parameter to remove the background music.
 
 **--voice_silence**: Enter a number between 100 and 2000, indicating the minimum duration of a silent section in milliseconds. The default is 500.
 

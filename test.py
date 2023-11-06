@@ -1,6 +1,8 @@
+import io
 import json
 import os
 import subprocess
+import time
 
 import pydub
 import speech_recognition as sr
@@ -64,14 +66,31 @@ def nosilen(filename):
 # subprocess.run(["php","C:/Users/c1/Videos/1.php","ar1"])
 # print("end")
 
-
-def ceshi(*arg):
-    subprocess.run(["ffmpeg"]+list(arg))
-
-result="如今，语音体验在商业领域已成为一件大事。为了获得良好的体验，您需要实时、准确的转录基础。但大多数自动语音识别服务。"
-
-result_tmp=""
-for tmp_i in range(1+len(result)//30):
-    result_tmp+=result[tmp_i*30:tmp_i*30+30]+"\n"
-result=result_tmp.strip()
-print(result)
+#
+# def ceshi(*arg):
+#     subprocess.run(["ffmpeg"]+list(arg))
+# import numpy as np
+# import soundfile as sf
+# import torch
+# import whisper
+# model=whisper.load_model("large", download_root="./models")
+# r = sr.Recognizer()
+# t=time.time()
+# with sr.AudioFile("./tmp/1.wav") as source:
+#     audio_data = r.record(source)
+#
+#     wav_bytes = audio_data.get_wav_data(convert_rate=16000)
+#     wav_stream = io.BytesIO(wav_bytes)
+#     audio_array, sampling_rate = sf.read(wav_stream)
+#     audio_array = audio_array.astype(np.float32)
+#     result=model.transcribe(
+#         audio_array,
+#         language="zh",
+#         task=None,
+#         fp16=False
+#     )
+#     # print(result)
+#     for it in result['segments']:
+#         print(f"[{it['start']} -> {it['end']}] {it['text']}")
+#
+# print(f"time==={time.time()-t}")
