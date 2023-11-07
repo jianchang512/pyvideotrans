@@ -9,7 +9,6 @@ from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtCore import pyqtSignal, QThread, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QInputDialog, QWidget, QDialog
 import qdarkstyle
-import pywinstyles
 import warnings
 
 from configure.chatgpt import Ui_chatgptform
@@ -389,6 +388,12 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main = MainWindow()
-    pywinstyles.apply_style(main, "win7")
+    if sys.platform == 'win32':
+        import pywinstyles
+        pywinstyles.apply_style(main, "win7")
+
+        main.show()
+        sys.exit(app.exec())
+
     main.show()
     sys.exit(app.exec())
