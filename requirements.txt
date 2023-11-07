@@ -7,6 +7,7 @@ astunparse==1.6.3
 async-timeout==4.0.3
 attrs==23.1.0
 audioread==3.0.1
+av==10.0.0
 cachetools==5.3.2
 certifi==2023.7.22
 cffi==1.16.0
@@ -14,7 +15,9 @@ chardet==3.0.4
 charset-normalizer==3.2.0
 click==7.1.2
 colorama==0.4.6
+coloredlogs==15.0.1
 contourpy==1.1.1
+ctranslate2==3.20.0
 cycler==0.12.1
 decorator==4.4.2
 edge-tts==6.1.8
@@ -38,6 +41,8 @@ hpack==3.0.0
 hstspreload==2023.1.1
 httpcore==0.13.7
 httpx==0.19.0
+huggingface-hub==0.17.3
+humanfriendly==10.0
 hyperframe==5.2.0
 idna==2.10
 imageio==2.31.4
@@ -62,6 +67,8 @@ norbert==0.2.1
 numba==0.58.1
 numpy==1.26.0
 oauthlib==3.2.2
+onnxruntime==1.16.1
+openai==0.28.1
 openai-whisper @ git+https://github.com/openai/whisper.git@b38a1f20f4b23f3f3099af2c3e0ca95627276ddf
 opt-einsum==3.3.0
 packaging==23.1
@@ -82,10 +89,12 @@ pyparsing==3.1.1
 PyQt5==5.15.10
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.13.0
+pyreadline3==3.4.1
 python-dateutil==2.8.2
 pytz==2023.3.post1
 pywin32-ctypes==0.2.2
 pywinstyles==1.4
+PyYAML==6.0.1
 QDarkStyle==3.2
 QtPy==2.4.1
 regex==2023.10.3
@@ -105,6 +114,7 @@ sympy==1.12
 termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.3.3
+tokenizers==0.14.1
 torch==2.1.0
 tqdm==4.66.1
 typer==0.3.2
