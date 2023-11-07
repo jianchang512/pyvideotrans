@@ -52,6 +52,14 @@ video = {
 
     "baidu_appid":"",
     "baidu_miyue":"",
+    "chatgpt_api":"",
     "chatgpt_key":"",
+    "chatgpt_model":"gpt-3.5-turbo",
+    "chatgpt_template":"""You have been sent a subtitle srt file. Please translate the text inside into natural and fluent {lang}, without any translation tone. Make sure to maintain the original format and line breaks after translation. Do not translate or delete the number and time formats, keep them as they are. For example:
+    
+1
+00:00:01,123 --> 00:00:10,345
+
+Keep lines like this as they are, without translation or deletion,it is very important for my job. Do not reply to this message.""",
 }
 voice_list = None

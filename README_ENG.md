@@ -28,7 +28,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
    
    **‘neither embedding subtitles nor selecting voiceover characters’ is not allowed**
    
-9. Text recognition model: Choose base/small/medium/large. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
+9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
 
    If you need, download models before running it, save to `This soft dir/models`
    
@@ -44,7 +44,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
     [medium](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
 
     [large](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
-   
+
+    [large-v3](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
 
        
 
@@ -174,6 +175,10 @@ To display subtitles when playing in website,choose embeded subtitles option.
 # Software Preview Screenshots
 
 ![](./images/pen1.png?a)
+![](./images/pen2.png?a)
+![](./images/pen3.png?a)
+![](./images/pen4.png?a)
+![](./images/pen5.png?a)
 ![](./images/cli.png?a)
 
 # Video Comparison Before and After Translation

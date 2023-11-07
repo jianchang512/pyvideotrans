@@ -11,6 +11,8 @@ import httpx
 import requests
 import speech_recognition as sr
 import os
+
+from PyQt5.QtWidgets import QMessageBox
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 import srt
@@ -20,8 +22,8 @@ import edge_tts
 import openai
 import textwrap
 
-from . import config
-from .config import logger
+from . import config, baidu_translate_spider_api
+from .config import logger, transobj
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -138,11 +140,6 @@ def googletrans(text, src, dest):
             'http': config.video['proxy'],
             'https': config.video['proxy']
         }
-    # example
-    # proxies = {
-    #     'http': 'http://127.0.0.1:10809',
-    #     'https': 'http://127.0.0.1:10809'
-    # }
     try:
         response = requests.get(url, proxies=proxies, headers=headers, timeout=40)
         print(f"code==={response.status_code}")
@@ -151,70 +148,71 @@ def googletrans(text, src, dest):
         re_result = re.findall(
             r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
     except Exception as e:
-        print(e)
+        logger.error(f"google translate error:"+str(e))
         return "[error google api] Please check the connectivity of the proxy or consider changing the IP address."
     return "error on translation" if len(re_result) < 1 else re_result[0]
 
+
 # baidu translate
-def baidutrans(text,src,dest):
+def baidutrans(text, src, dest):
     # 拼接appid = 2015063000000001 + q = apple + salt = 1435660288 + 密钥 = 12345678
-    salt=int(time.time())
-    strtext=f"{config.video['baidu_appid']}{text}{salt}{config.video['baidu_miyue']}"
-    print(f"====baidu api translate")
+    salt = int(time.time())
+    strtext = f"{config.video['baidu_appid']}{text}{salt}{config.video['baidu_miyue']}"
     md5 = hashlib.md5()
     md5.update(strtext.encode('utf-8'))
     sign = md5.hexdigest()
     try:
-        res=requests.get(f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={dest}&appid={config.video['baidu_appid']}&salt={salt}&sign={sign}")
-        res=res.json()
+        res = requests.get(
+            f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={dest}&appid={config.video['baidu_appid']}&salt={salt}&sign={sign}")
+        res = res.json()
         if "error_code" in res:
-            return "baidu api error:"+res['error_msg']
-        comb=""
+            return "baidu api error:" + res['error_msg']
+        comb = ""
         for it in res['trans_result']:
-            comb+=it['dst']
+            comb += it['dst']
         return comb
     except Exception as e:
-        return "baidu api error:"+str(e)
+        return "baidu api error:" + str(e)
+
 
 # by chatGPT
 def chatgpttrans(text):
-    if re.match(r'^[.,=_?!@#$%^&*()+\s -]+$',text):
+    if re.match(r'^[.,=_?!@#$%^&*()+\s -]+$', text):
         return text
     if config.video['proxy']:
         proxies = {
-            'http': 'http://%s' % config.video['proxy'].replace("http://",''),
-            'https': 'http://%s' % config.video['proxy'].replace("http://",'')
+            'http': 'http://%s' % config.video['proxy'].replace("http://", ''),
+            'https': 'http://%s' % config.video['proxy'].replace("http://", '')
         }
-        # openai.proxy = proxies
+        openai.proxy = proxies
     if config.video['chatgpt_api']:
-        openai.api_base=config.video['chatgpt_api']
-    openai.api_key=config.video['chatgpt_key']
+        openai.api_base = config.video['chatgpt_api']
+    openai.api_key = config.video['chatgpt_key']
 
-    print(f"openai.base=={openai.api_base}")
 
+    lang = config.video['target_language_chatgpt']
     messages = [
         {'role': 'system',
-         'content':f"  You are a professional translation engine, please translate the text into a concise,  elegant and fluent content, without referencing machine translations.   You must only translate the text, never interpret it. Translate to {config.video['target_language_chatgpt']}, If translation is not possible or there are errors in the translation, do not i am sorry, do not prompt for errors, and directly force the translation" },
-        {'role': 'user', 'content': f"{text}\n"},
+         'content': config.video['chatgpt_template'].replace('{lang}', lang)},
+        {'role': 'user', 'content': f"{text}"},
     ]
-    print(messages)
     try:
         response = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
+            model=config.video['chatgpt_model'],
             messages=messages,
             max_tokens=2048
         )
     except Exception as e:
-        return f"chatgpt translate error:"+str(e)
-    if response['code']!=0 and response['message']:
+        logger.error(f"chatGPT request error:"+str(e))
+        return f"chatgpt translate error:" + str(e)
+    if response['code'] != 0 and response['message']:
         return response['message']
-    data=response.data
-    print(data)
+    data = response.data
     for choice in data.choices:
         if 'text' in choice:
             return choice.text
-    result= data.choices[0].message.content.strip()
-    if re.match(r"Sorry, but I'm unable to translate the content",result,re.I):
+    result = data.choices[0].message.content.strip()
+    if re.match(r"Sorry, but I'm unable to translate the content", result, re.I):
         return "no translate"
     return result
 
@@ -280,7 +278,7 @@ def get_large_audio_transcriptioncli(aud_path, mp4name, sub_name, showprocess):
     start_times = []
 
     # max words every line
-    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja","jp", "ko"] else 80
+    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
     for i, duration in enumerate(nonsilent_data):
         if config.current_status == 'stop':
             return
@@ -321,13 +319,13 @@ def get_large_audio_transcriptioncli(aud_path, mp4name, sub_name, showprocess):
             text = f"{text.capitalize()}. "
             try:
                 print(f"translate_type============={config.video['translate_type']}")
-                if config.video['translate_type']=='google':
+                if config.video['translate_type'] == 'google':
                     result = googletrans(text, config.video['source_language'],
                                          config.video['target_language'])
                     print(f"{result=}")
-                elif config.video['translate_type']=='baidu':
+                elif config.video['translate_type'] == 'baidu':
                     result = baidutrans(text, 'auto', config.video['target_language'])
-                elif config.video['translate_type']=='chatGPT':
+                elif config.video['translate_type'] == 'chatGPT':
                     result = chatgpttrans(text)
 
                 logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
@@ -341,15 +339,15 @@ def get_large_audio_transcriptioncli(aud_path, mp4name, sub_name, showprocess):
                 isemtpy = False
                 combo_txt = result + '\n\n'
                 if len(result) > maxlen:
-                    if maxlen==36:
-                        #zh ja ko
+                    if maxlen == 36:
+                        # zh ja ko
                         result_tmp = ""
                         for tmp_i in range(1 + len(result) // maxlen):
                             result_tmp += result[tmp_i * maxlen:tmp_i * maxlen + maxlen] + "\n"
                         combo_txt = result_tmp.strip() + '\n\n'
                     else:
-                        #en
-                        combo_txt=textwrap.fill(result,maxlen)+"\n\n"
+                        # en
+                        combo_txt = textwrap.fill(result, maxlen) + "\n\n"
                 if buffered:
                     end_time -= 500
                 start = timedelta(milliseconds=start_time)
@@ -435,6 +433,13 @@ def get_large_audio_transcriptioncli(aud_path, mp4name, sub_name, showprocess):
             f"-y -i {source_mp4} -sub_charenc UTF-8 -f srt -i {sub_name} -c:v libx264  -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
     showprocess(f"{mp4name}.mp4 ended", 'logs')
 
+def  show_popup(title,text):
+    msg = QMessageBox()
+    msg.setWindowTitle(title)
+    msg.setText(text)
+    msg.setIcon(QMessageBox.Information)
+    msg.setStandardButtons(QMessageBox.Ok)
+    x = msg.exec_()  # 显示消息框
 
 #
 def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
@@ -448,8 +453,12 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
     showprocess(f"{mp4name} spilt audio", "logs")
     if config.current_status == 'stop':
         return
+
     if not os.path.isdir(tmp_path):
-        os.makedirs(tmp_path, 0o777, exist_ok=True)
+        try:
+            os.makedirs(tmp_path, 0o777, exist_ok=True)
+        except:
+            show_popup(transobj["anerror"],transobj["createdirerror"])
     r = sr.Recognizer()
 
     if os.path.exists(sub_name):
@@ -471,8 +480,6 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
 
     # subtitle
     subs = []
-    # max words every line
-    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja","jp", "ko"] else 80
     for i, duration in enumerate(nonsilent_data):
         if config.current_status == 'stop':
             return
@@ -508,69 +515,87 @@ def get_large_audio_transcription(aud_path, mp4name, sub_name, showprocess):
                 return
             text = f"{text.capitalize()}. "
             try:
-                if config.video['translate_type']=='google':
+                index = len(subs) + 1
+                if buffered:
+                    end_time -= 500
+                start = timedelta(milliseconds=start_time)
+                end = timedelta(milliseconds=end_time)
+                if config.video['translate_type'] == 'google':
                     result = googletrans(text, config.video['source_language'],
                                          config.video['target_language'])
-                elif config.video['translate_type']=='baidu':
+                elif config.video['translate_type'] == 'baidu':
                     result = baidutrans(text, 'auto', config.video['target_language'])
-                elif config.video['translate_type']=='chatGPT':
-                    result = chatgpttrans(text)
+                elif config.video['translate_type'] == 'baidu(noKey)':
+                    result = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language'])
+                elif config.video['translate_type'] == 'chatGPT':
+                    logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
+                    sub = srt.Subtitle(index=index, start=start, end=end, content=text)
+                    subs.append(sub)
+                    continue
+
                 logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
             except Exception as e:
                 logger.error("Translate Error:", str(e))
                 continue
-            combo_txt = result.strip() + '\n\n'
-            if len(result) > maxlen:
-                if maxlen==36:
-                    #zh ja ko
-                    result_tmp = ""
-                    for tmp_i in range(1 + len(result) // maxlen):
-                        result_tmp += result[tmp_i * maxlen:tmp_i * maxlen + maxlen] + "\n"
-                    combo_txt = result_tmp.strip() + '\n\n'
-                else:
-                    #en
-                    combo_txt=textwrap.fill(result,maxlen)+"\n\n"
-            if buffered:
-                end_time -= 500
-            start = timedelta(milliseconds=start_time)
-            end = timedelta(milliseconds=end_time)
-            index = len(subs) + 1
+            combo_txt = result.strip() + "\n\n"
             sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
             subs.append(sub)
-            showprocess(srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)],reindex=False), 'subtitle')
+            showprocess(
+                srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False),
+                'subtitle')
     final_srt = srt.compose(subs)
+    if config.video['translate_type'] == 'chatGPT':
+        final_srt = chatgpttrans(final_srt)
+        newsubtitle = []
+        maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+        number = 0
+        for it in final_srt.strip().split("\n\n"):
+            c = it.strip().split("\n")
+            start, end = c[1].strip().split(" --> ")
+            if len(c) < 3:
+                continue
+            text = "".join(c[2:]).strip()
+            if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
+                continue
+            number += 1
+            newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
+        final_srt = "".join(newsubtitle)
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(final_srt)
+        #     重新填写字幕文本框
+        showprocess(final_srt, 'replace_subtitle')
     showprocess(f"{mp4name}.mp4 wait edit subtitle", 'logs')
 
+
 # 合并
-def dubbing(aud_path,mp4name,sub_name,showprocess):
+def dubbing(aud_path, mp4name, sub_name, showprocess):
     normalized_sound = AudioSegment.from_wav(aud_path)
-    total_length=len(normalized_sound)/1000
+    total_length = len(normalized_sound) / 1000
     folder_path = '/'.join(aud_path.split('/')[:-1])
     # all audio chunk
     segments = []
     # every start time
     start_times = []
+
     if config.video['voice_role'] != 'No':
-        with open(sub_name,"r",encoding="utf-8") as f:
-            tx=re.split(r"\n\n",f.read().strip(),re.I|re.S)
+        with open(sub_name, "r", encoding="utf-8") as f:
+            tx = re.split(r"\n\n", f.read().strip(), re.I | re.S)
+
             for it in tx:
-                if config.current_status=='stop':
+                if config.current_status == 'stop':
                     return
-                c=it.strip().split("\n")
-                start, end=c[1].strip().split("-->")
-                text="".join(c[2:]).strip()
-                if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$',text):
+                c = it.strip().split("\n")
+                start, end = c[1].strip().split(" --> ")
+                text = "".join(c[2:]).strip()
+                if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
                     continue
-                start=start.replace(',','.').split(":")
-                start_time=int(int(start[0])*3600000 + int(start[1])*60000 + float(start[2])*1000)
 
-                end=end.replace(',','.').split(":")
-                end_time=int(int(end[0])*3600000+int(end[1])*60000+float(end[2])*1000)
+                start = start.replace(',', '.').split(":")
+                start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
+
+                end = end.replace(',', '.').split(":")
+                end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
                 start_times.append(start_time)
-
-                print(f"{start_time=},{end_time=}")
 
                 try:
                     rate = int(str(config.video['voice_rate']).replace('%', ''))
@@ -585,7 +610,7 @@ def dubbing(aud_path,mp4name,sub_name,showprocess):
                     tmpname = f"{config.rootdir}/tmp/{mp4name}-{start_time}.mp3"
                     asyncio.run(communicate.save(tmpname))
 
-                    if not os.path.exists(tmpname) or os.path.getsize(tmpname)==0:
+                    if not os.path.exists(tmpname) or os.path.getsize(tmpname) == 0:
                         segments.append(AudioSegment.silent(duration=end_time - start_time))
                         continue
                     audio_data = AudioSegment.from_file(tmpname, format="mp3")
@@ -601,7 +626,6 @@ def dubbing(aud_path,mp4name,sub_name,showprocess):
                     segments.append(audio_data)
                 except Exception as e:
                     logger.error("Create voice role error:" + str(e))
-                    print(e)
                     segments.append(AudioSegment.silent(duration=end_time - start_time))
     # merge translate audo
     merge_audio_segments(segments, start_times, total_length * 1000, mp4name)
@@ -638,9 +662,6 @@ def dubbing(aud_path,mp4name,sub_name,showprocess):
         # no voice dubble only soft subtitle
         runffmpeg(
             f"-y -i {source_mp4} -sub_charenc UTF-8 -f srt -i {sub_name} -c:v libx264  -c:s mov_text -metadata:s:s:0 language={config.video['subtitle_language']} {target_mp4}")
-
-
-
 
 
 # 测试 google

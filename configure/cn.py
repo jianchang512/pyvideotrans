@@ -280,7 +280,7 @@ class Ui_MainWindow(object):
 "如果你想网页中播放时显示字幕，请选择嵌入式字幕。\n"
 ""))
         self.startbtn.setText(_translate("MainWindow", "开始"))
-        self.subtitle_area.setPlaceholderText(_translate("MainWindow", "这里显示字幕信息"))
+        self.subtitle_area.setPlaceholderText(_translate("MainWindow", "这里可编辑字幕信息"))
         self.menu_Key.setTitle(_translate("MainWindow", "设置翻译Key"))
         self.actionbaidu_key.setText(_translate("MainWindow", "百度Key"))
         self.actionchatgpt_key.setText(_translate("MainWindow", "OpenAI Key"))

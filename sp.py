@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog,
 
 import warnings
 
+import configure.tools
 from configure.chatgpt import Ui_chatgptform
 
 warnings.filterwarnings('ignore')
@@ -41,7 +42,7 @@ class Worker(QThread):
 
     def run(self):
         if not config.video['source_mp4']:
-            self.postmessage(transobj['selectvideodir'],"stop")
+            self.postmessage(transobj['selectvideodir'], "stop")
             return
         self.running(config.video['source_mp4'])
         self.postmessage(f"{self.mp4name} wait subtitle edit :", "wait_subtitle")
@@ -61,7 +62,7 @@ class Worker(QThread):
                     continue
             try:
                 # timeout auto
-                config.wait_subtitle_edit=True
+                config.wait_subtitle_edit = True
                 self.postmessage(f"{self.mp4name}", "update_subtitle")
                 dubbing(self.a_name, self.mp4name, self.sub_name, self.postmessage)
                 self.postmessage(f"{self.mp4name} end", "end")
@@ -71,7 +72,7 @@ class Worker(QThread):
                 sys.exit()
 
         self.postmessage(f"{self.mp4name} end", "end")
-        delete_temp(self.dirname,self.noextname)
+        delete_temp(self.dirname, self.noextname)
 
     # post message to main thread
     def postmessage(self, text, type):
@@ -119,63 +120,79 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings = QSettings("Jameson", "VideoTranslate")
         # 获取最后一次选择的目录
         self.last_dir = self.settings.value("last_dir", ".", str)
-        self.task = None
-
-        self.splitter.setSizes([830, 350])
+        # language code
         self.languagename = list(langlist.keys())
-
-        self.startbtn.clicked.connect(self.start)
-
-        self.nextbtn.hide()
-
-        self.btn_get_video.clicked.connect(self.get_mp4)
-        self.btn_save_dir.clicked.connect(self.get_save_dir)
-
-        self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename)
-        self.target_language.currentTextChanged.connect(self.set_voice_role)
-
-        #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT"])
-        self.translate_type.currentTextChanged.connect(self.set_translate_type)
-        self.translate_type.setCurrentText(self.settings.value("translate_type", config.video['translate_type'], str))
-
-        self.voice_role.addItems(['No'])
-        self.whisper_model.addItems(['base', 'small', 'medium', 'large'])
-        self.whisper_model.setCurrentText(self.settings.value("whisper_model", config.video['whisper_model'], str))
-
-        self.statusBar.showMessage(transobj['modelpathis'] + config.rootdir + "/models")
-        self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
-
-        self.proxy.setText(self.settings.value("target_dir", "", str))
-        self.proxy.setText(self.settings.value("proxy", "", str))
-
-        self.voice_rate.setText(self.settings.value("voice_rate", config.video['voice_rate'], str))
-        self.voice_silence.setText(self.settings.value("voice_silence", config.video['voice_silence'], str))
-
-        self.voice_autorate.setChecked(
-            self.settings.value('voice_autorate', config.video['voice_autorate'], bool))
-
-        self.source_language.setCurrentIndex(2)
-
-        # subtitle 0 no 1=embed subtitle 2=softsubtitle
-        self.subtitle_type.addItems([transobj['nosubtitle'], transobj['embedsubtitle'], transobj['softsubtitle']])
-        self.subtitle_type.setCurrentIndex(self.settings.value("subtitle_type", config.video['subtitle_type'], int))
-
-        self.actionbaidu_key.triggered.connect(self.set_baidu_key)
-        self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
-
-        # baidu chatgpt
+        # task thread
+        self.task = None
+        # init storage value
         config.video['baidu_appid'] = self.settings.value("baidu_appid", "")
         config.video['baidu_miyue'] = self.settings.value("baidu_miyue", "")
         config.video['chatgpt_api'] = self.settings.value("chatgpt_api", "")
         config.video['chatgpt_key'] = self.settings.value("chatgpt_key", "")
+        config.video['chatgpt_model'] = self.settings.value("chatgpt_model", config.video['chatgpt_model'])
+        config.video['chatgpt_template'] = self.settings.value("chatgpt_template", config.video['chatgpt_template'])
+        config.video['translate_type'] = self.settings.value("translate_type", config.video['translate_type'])
+        config.video['subtitle_type'] = self.settings.value("subtitle_type", config.video['subtitle_type'], int)
+        config.video['proxy'] = self.settings.value("proxy", "", str)
+        config.video['target_dir'] = self.settings.value("target_dir", "", str)
+        config.video['voice_rate'] = self.settings.value("voice_rate", config.video['voice_rate'], str)
+        config.video['voice_silence'] = self.settings.value("voice_silence", config.video['voice_silence'], str)
+        config.video['voice_autorate'] = self.settings.value("voice_autorate", config.video['voice_autorate'], bool)
+        config.video['whisper_model'] = self.settings.value("whisper_model", config.video['whisper_model'], str)
+
+        self.splitter.setSizes([830, 350])
+
+        # start
+        self.startbtn.clicked.connect(self.start)
+        # subtitle btn
+        self.nextbtn.hide()
+
+        # select and save
+        self.btn_get_video.clicked.connect(self.get_mp4)
+        self.btn_save_dir.clicked.connect(self.get_save_dir)
+        self.target_dir.setText(config.video['target_dir'])
+        self.proxy.setText(config.video['proxy'])
+
+        # language
+        self.source_language.addItems(self.languagename)
+        self.source_language.setCurrentIndex(2)
+        self.target_language.addItems(["-"] + self.languagename)
+        self.target_language.currentTextChanged.connect(self.set_voice_role)
+
+        #  translation type
+        self.translate_type.addItems(["google", "baidu", "chatGPT", "baidu(noKey)"])
+        self.translate_type.setCurrentText(config.video['translate_type'])
+        self.translate_type.currentTextChanged.connect(self.set_translate_type)
+
+        #         model
+        self.whisper_model.addItems(['base', 'small', 'medium', 'large', 'large-v3'])
+        self.whisper_model.setCurrentText(config.video['whisper_model'])
+        self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
+
+        #
+        self.voice_rate.setText(config.video['voice_rate'])
+        self.voice_silence.setText(config.video['voice_silence'])
+        self.voice_autorate.setChecked(config.video['voice_autorate'])
+        self.voice_role.addItems(['No'])
+
+        # subtitle 0 no 1=embed subtitle 2=softsubtitle
+        self.subtitle_type.addItems([transobj['nosubtitle'], transobj['embedsubtitle'], transobj['softsubtitle']])
+        self.subtitle_type.setCurrentIndex(config.video['subtitle_type'])
+
+        # menubar
+        self.actionbaidu_key.triggered.connect(self.set_baidu_key)
+        self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
+
+        # status
+        self.statusBar.showMessage(transobj['modelpathis'] + config.rootdir + "/models")
 
         self.setWindowIcon(QIcon("./icon.ico"))
 
+    # stop auto comping video
     def reset_timeid(self):
         self.task.timeid = None
 
+    # set baidu
     def set_baidu_key(self):
         def save_baidu():
             appid = self.w.baidu_appid.text()
@@ -194,14 +211,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.w.set_badiu.clicked.connect(save_baidu)
         self.w.show()
 
+    # set chatgpt
     def set_chatgpt_key(self):
         def save_chatgpt():
             key = self.w.chatgpt_key.text()
             api = self.w.chatgpt_api.text()
+            model = self.w.chatgpt_model.currentText()
+            template = self.w.chatgpt_template.toPlainText()
             self.settings.setValue("chatgpt_key", key)
             self.settings.setValue("chatgpt_api", api)
+            self.settings.setValue("chatgpt_model", model)
+            self.settings.setValue("chatgpt_template", template)
             config.video['chatgpt_key'] = key
             config.video['chatgpt_api'] = api
+            config.video['chatgpt_model'] = model
+            config.video['chatgpt_template'] = template
             self.w.close()
 
         self.w = ChatgptForm()
@@ -209,19 +233,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.w.chatgpt_key.setText(config.video['chatgpt_key'])
         if config.video['chatgpt_api']:
             self.w.chatgpt_api.setText(config.video['chatgpt_api'])
+        if config.video['chatgpt_model']:
+            self.w.chatgpt_model.setCurrentText(config.video['chatgpt_model'])
+        if config.video['chatgpt_template']:
+            self.w.chatgpt_template.setPlainText(config.video['chatgpt_template'])
         self.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.w.show()
 
-    # whether key is set
+    # watching translate_type toggle
     def set_translate_type(self, name):
-        if name == "baidu" and not self.settings.value("baidu_key", ""):
-            QMessageBox.information(self, transobj['anerror'], transobj['baidukeymust'])
-            return
-        if name == "chatGPT" and not self.settings.value("chatgpt_key", ""):
-            QMessageBox.information(self, transobj['anerror'], transobj['chatgptkeymust'])
-            return
-        config.video['translate_type'] = name
+        try:
+            if name == "baidu" and not config.video['baidu_appid']:
+                QMessageBox.information(self, transobj['anerror'], transobj['baidukeymust'])
+                return
+            if name == "chatGPT" and not config.video["chatgpt_key"]:
+                QMessageBox.information(self, transobj['anerror'], transobj['chatgptkeymust'])
+                return
+            config.video['translate_type'] = name
+        except Exception as e:
+            QMessageBox.information(self, transobj['anerror'], str(e))
 
+    # check model is exits
     def check_whisper_model(self, name):
         if not os.path.exists(config.rootdir + f"/models/{name}.pt"):
             self.statusBar.showMessage(transobj['downloadmodel'] + f" ./models/{name}.pt")
@@ -234,7 +266,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.current_status = type
         self.startbtn.setText(transobj[type])
         if type == 'stop' or type == 'end':
-            config.wait_subtitle_edit=False
+            config.wait_subtitle_edit = False
             if self.task:
                 self.task.requestInterruption()
                 self.task.quit()
@@ -281,9 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         self.process.clear()
         self.subtitle_area.clear()
-
         self.startbtn.setText(transobj['running'])
-
         config.video['source_mp4'] = self.source_mp4.text().replace('\\', '/')
         # 检测参数
         if not config.video['source_mp4'] or not os.path.exists(config.video['source_mp4']):
@@ -376,13 +406,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(os.path.join(config.rootdir, "tmp")):
             os.mkdir(os.path.join(config.rootdir, "tmp"))
         config.current_status = 'ing'
-        config.wait_subtitle_edit=False
+        config.wait_subtitle_edit = False
         print(config.video)
         self.task = Worker()
         self.task.update_ui.connect(self.update_data)
         self.task.start()
 
-    # update UI
+    # receiver  update UI
     def update_data(self, json_data):
         d = json.loads(json_data)
         if d['type'] == "subtitle":
@@ -401,9 +431,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.nextbtn.setDisabled(False)
             self.nextbtn.setText(transobj['waitsubtitle'])
             self.subtitle_area.textChanged.connect(self.reset_timeid)
-        elif d['type']=='update_subtitle':
+        elif d['type'] == 'update_subtitle':
             self.update_subtitle()
+        elif d['type'] == 'replace_subtitle':
+            self.subtitle_area.clear()
+            self.subtitle_area.insertPlainText(d['text'])
 
+    # update subtitle
     def update_subtitle(self):
         with open(self.task.sub_name, "w", encoding="utf-8") as f:
             f.write(self.subtitle_area.toPlainText())
@@ -411,6 +445,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.nextbtn.setDisabled(True)
         self.nextbtn.setText(transobj['waitforend'])
 
+    # nextbtn action
     def nextstart(self):
         self.update_subtitle()
 
@@ -429,26 +464,26 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
     def __init__(self, parent=None):
         super(ChatgptForm, self).__init__(parent)
         self.setupUi(self)
+        self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4v"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 
 
-def ceshi(t, n):
-    pass
-
-
 if __name__ == "__main__":
     threading.Thread(target=set_voice_list).start()
-
-    if not os.path.exists(os.path.join(config.rootdir, "models")):
-        os.mkdir(os.path.join(config.rootdir, "models"))
-    if not os.path.exists(os.path.join(config.rootdir, "tmp")):
-        os.mkdir(os.path.join(config.rootdir, "tmp"))
     app = QApplication(sys.argv)
     main = MainWindow()
+    try:
+        if not os.path.exists(os.path.join(config.rootdir, "models")):
+            os.mkdir(os.path.join(config.rootdir, "models"))
+        if not os.path.exists(os.path.join(config.rootdir, "tmp")):
+            os.mkdir(os.path.join(config.rootdir, "tmp"))
+    except Exception as e:
+        QMessageBox.critical(main, transobj['anerror'], transobj['createdirerror'])
     if sys.platform == 'win32':
         import qdarkstyle
         import pywinstyles
+
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
         pywinstyles.apply_style(main, "win7")
     main.show()
