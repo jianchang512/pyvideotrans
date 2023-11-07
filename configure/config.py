@@ -29,6 +29,7 @@ os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 
 # 开始按钮状态
 current_status = "stop"
+wait_subtitle_edit=False
 # 配置
 video = {
     "source_mp4": "",

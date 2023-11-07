@@ -3,13 +3,13 @@ import json
 import sys
 import os
 import threading
+import time
 
 from PyQt5 import QtCore
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtCore import pyqtSignal, QThread, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QInputDialog, QWidget, QDialog
-import qdarkstyle
-import pywinstyles
+
 import warnings
 
 from configure.chatgpt import Ui_chatgptform
@@ -18,7 +18,7 @@ warnings.filterwarnings('ignore')
 
 from configure.config import langlist, transobj, logger
 from configure.language import english_code_bygpt
-from configure.tools import get_list_voices, get_large_audio_transcription, runffmpeg, delete_temp
+from configure.tools import get_list_voices, get_large_audio_transcription, runffmpeg, delete_temp, dubbing
 from configure import config
 from configure.baidu import Ui_baiduform
 
@@ -36,12 +36,42 @@ def set_voice_list():
 # task process thread
 class Worker(QThread):
     update_ui = pyqtSignal(str)
+    # None wait manual ,nums wait
+    timeid = 0
 
     def run(self):
         if not config.video['source_mp4']:
-            self.update_ui.emit(json.dumps({"text": transobj['selectvideodir'] + "\n", "type": "stop"}))
+            self.postmessage(transobj['selectvideodir'],"stop")
             return
-        return self.running(config.video['source_mp4'])
+        self.running(config.video['source_mp4'])
+        self.postmessage(f"{self.mp4name} wait subtitle edit :", "wait_subtitle")
+        self.wait_subtitle()
+
+    def wait_subtitle(self):
+        self.timeid = 0
+        while True:
+            if not config.wait_subtitle_edit:
+                time.sleep(1)
+                if self.timeid is not None:
+                    self.postmessage(f"{self.mp4name} after {60 - self.timeid}s auto Composing video:", "logs")
+                    self.timeid += 1
+                if self.timeid is None or self.timeid < 60:
+                    if self.timeid is None:
+                        self.postmessage(f"{self.mp4name} wait manual Composing video:", "logs")
+                    continue
+            try:
+                # timeout auto
+                config.wait_subtitle_edit=True
+                self.postmessage(f"{self.mp4name}", "update_subtitle")
+                dubbing(self.a_name, self.mp4name, self.sub_name, self.postmessage)
+                self.postmessage(f"{self.mp4name} end", "end")
+                break
+            except Exception as e:
+                logger.error("Get_large_audio_transcription error:" + str(e))
+                sys.exit()
+
+        self.postmessage(f"{self.mp4name} end", "end")
+        delete_temp(self.dirname,self.noextname)
 
     # post message to main thread
     def postmessage(self, text, type):
@@ -50,35 +80,32 @@ class Worker(QThread):
     # running fun
     def running(self, p):
         # p is full source mp4 filepath
-        dirname = os.path.dirname(p)
+        self.dirname = os.path.dirname(p)
         # remove whitespace
         mp4nameraw = os.path.basename(p)
-        mp4name = mp4nameraw.replace(" ", '')
-        if mp4nameraw != mp4name:
-            os.rename(p, os.path.join(os.path.dirname(p), mp4name))
+        self.mp4name = mp4nameraw.replace(" ", '')
+        if mp4nameraw != self.mp4name:
+            os.rename(p, os.path.join(os.path.dirname(p), self.mp4name))
         #  no ext video name,eg. 1123.mp4 to convert 1123
-        noextname = os.path.splitext(mp4name)[0]
+        self.noextname = os.path.splitext(self.mp4name)[0]
         # subtitle filepath
-        sub_name = f"{dirname}/{noextname}.srt"
+        self.sub_name = f"{self.dirname}/{self.noextname}.srt"
         # split audio wav
-        a_name = f"{dirname}/{noextname}.wav"
-        self.postmessage(f"{mp4name} start", "logs")
-        if os.path.exists(sub_name):
-            os.unlink(sub_name)
+        self.a_name = f"{self.dirname}/{self.noextname}.wav"
+        self.postmessage(f"{self.mp4name} start", "logs")
+        if os.path.exists(self.sub_name):
+            os.unlink(self.sub_name)
 
-        if not os.path.exists(a_name):
-            self.postmessage(f"{mp4name} split audio", "logs")
-            runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
+        if not os.path.exists(self.a_name):
+            self.postmessage(f"{self.mp4name} split audio", "logs")
+            runffmpeg(f"-y -i {self.dirname}/{self.mp4name} -acodec pcm_s16le -ac 1 -f wav {self.a_name}")
 
         # main
         try:
-            get_large_audio_transcription(a_name, mp4name, sub_name, self.postmessage)
+            get_large_audio_transcription(self.a_name, self.mp4name, self.sub_name, self.postmessage)
         except Exception as e:
             logger.error("Get_large_audio_transcription error:" + str(e))
             sys.exit()
-        self.postmessage(f"{mp4name} end :", "end")
-        # del temp files
-        delete_temp(dirname, noextname)
 
 
 # primary ui
@@ -98,6 +125,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.languagename = list(langlist.keys())
 
         self.startbtn.clicked.connect(self.start)
+
+        self.nextbtn.hide()
 
         self.btn_get_video.clicked.connect(self.get_mp4)
         self.btn_save_dir.clicked.connect(self.get_save_dir)
@@ -143,6 +172,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['chatgpt_key'] = self.settings.value("chatgpt_key", "")
 
         self.setWindowIcon(QIcon("./icon.ico"))
+
+    def reset_timeid(self):
+        self.task.timeid = None
 
     def set_baidu_key(self):
         def save_baidu():
@@ -201,10 +233,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def update_start(self, type):
         config.current_status = type
         self.startbtn.setText(transobj[type])
-        if (type == 'stop' or type == 'end') and self.task:
-            self.task.requestInterruption()
-            self.task.quit()
-            self.task.wait()
+        if type == 'stop' or type == 'end':
+            config.wait_subtitle_edit=False
+            if self.task:
+                self.task.requestInterruption()
+                self.task.quit()
+                self.task.wait()
 
     # change voice role when target_language changed
     def set_voice_role(self, t):
@@ -247,7 +281,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         self.process.clear()
         self.subtitle_area.clear()
-        config.current_status = 'ing'
+
         self.startbtn.setText(transobj['running'])
 
         config.video['source_mp4'] = self.source_mp4.text().replace('\\', '/')
@@ -341,6 +375,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("translate_type", config.video['translate_type'])
         if not os.path.exists(os.path.join(config.rootdir, "tmp")):
             os.mkdir(os.path.join(config.rootdir, "tmp"))
+        config.current_status = 'ing'
+        config.wait_subtitle_edit=False
         print(config.video)
         self.task = Worker()
         self.task.update_ui.connect(self.update_data)
@@ -358,6 +394,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_start(d['type'])
             self.statusBar.showMessage(d['type'])
+            self.nextbtn.hide()
+        elif d['type'] == 'wait_subtitle':
+            self.nextbtn.show()
+            self.nextbtn.clicked.connect(self.nextstart)
+            self.nextbtn.setDisabled(False)
+            self.nextbtn.setText(transobj['waitsubtitle'])
+            self.subtitle_area.textChanged.connect(self.reset_timeid)
+        elif d['type']=='update_subtitle':
+            self.update_subtitle()
+
+    def update_subtitle(self):
+        with open(self.task.sub_name, "w", encoding="utf-8") as f:
+            f.write(self.subtitle_area.toPlainText())
+        config.wait_subtitle_edit = True
+        self.nextbtn.setDisabled(True)
+        self.nextbtn.setText(transobj['waitforend'])
+
+    def nextstart(self):
+        self.update_subtitle()
 
 
 # set baidu appid and secrot
@@ -378,8 +433,11 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.setWindowIcon(QIcon("./icon.ico"))
 
 
+def ceshi(t, n):
+    pass
+
+
 if __name__ == "__main__":
-    # Edge TTS support voice role
     threading.Thread(target=set_voice_list).start()
 
     if not os.path.exists(os.path.join(config.rootdir, "models")):
@@ -387,8 +445,11 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(config.rootdir, "tmp")):
         os.mkdir(os.path.join(config.rootdir, "tmp"))
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main = MainWindow()
-    pywinstyles.apply_style(main, "win7")
+    if sys.platform == 'win32':
+        import qdarkstyle
+        import pywinstyles
+        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+        pywinstyles.apply_style(main, "win7")
     main.show()
     sys.exit(app.exec())
