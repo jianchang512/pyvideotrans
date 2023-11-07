@@ -17,4 +17,4 @@ tmp
 *.log
 models/*.pt
 voice_list.json
-1.srt
+*.srt
