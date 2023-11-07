@@ -25,8 +25,10 @@ translate_language = {
         "chatgptkeymust":"你必须填写chatGPT key",
         "waitsubtitle":"等待编辑字幕(点击继续合成)",
         "waitforend":"正在合成视频",
+        "createdirerror":"创建目录失败"
     },
     "en": {
+        "createdirerror":"create dir error",
         "waitforend":"Composing video",
         "waitsubtitle":"Wait edit subtitle(click for continue)",
         "baikeymust":"input your baidu key",

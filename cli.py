@@ -117,9 +117,9 @@ def init_args():
         os.environ['http_proxy'] = args['proxy'] if args['proxy'].startswith('http://') else f"http://{args['proxy']}"
         os.environ['https_proxy'] = os.environ['http_proxy']
 
-    if args['whisper_model'] not in ["base", "small", "medium", "large"]:
+    if args['whisper_model'] not in ["base", "small", "medium", "large","large-v3"]:
         error(
-            'It seems that the model input is incorrect. Please only select from "base", "small", "medium", or "large-v1", "large-v2".')
+            'It seems that the model input is incorrect. Please only select from "base", "small", "medium","large-v3".')
 
     args['detect_language'] = clilanglist[args['source_language']][0]
     args['source_language'] = clilanglist[args['source_language']][0]

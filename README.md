@@ -34,7 +34,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 
    **不能“既不嵌入字幕又不选择配音角色”**
 
-9. 文字识别模型: 选择 base/small/medium/large, 识别效果越来越好，但识别速度越来越慢，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
+9. 文字识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
    
    **模型单独下载地址**
 
@@ -47,16 +47,18 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
     [medium模型](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
 
     [large模型](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
-   
-   
 
-    
+    [large-v3模型](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
+
+
+
 10. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 11. 自动加速: 如果翻译后的语音时长大于原时长，并且这里确认选中，那么将强制加速播放该片段，以缩小时长
 12. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
 13. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
-14. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
-    
+14. **字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成**
+
+>
 > 原始视频统一使用mp4格式，处理速度快，网络兼容性好
 > 
 > 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
@@ -178,6 +180,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 # 软件预览截图
 
 ![](./images/p1.png?b)
+![](./images/p2.png?b)
+![](./images/p3.png?b)
+![](./images/p4.png?b)
 ![](./images/cli.png?c)
 
 
