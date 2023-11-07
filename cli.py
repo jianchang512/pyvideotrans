@@ -5,7 +5,7 @@ import os
 import warnings
 
 warnings.filterwarnings('ignore')
-from configure.tools import get_list_voices, get_large_audio_transcription, logger, runffmpeg,delete_temp
+from configure.tools import get_list_voices, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
 from configure import config
 from configure.language import clilanglist
 
@@ -154,7 +154,7 @@ def running(p):
     if not os.path.exists(a_name):
         runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
 
-    get_large_audio_transcription(a_name, mp4name, sub_name, showprocess)
+    get_large_audio_transcriptioncli(a_name, mp4name, sub_name, showprocess)
     # del temp files
     delete_temp(dirname,noextname)
 

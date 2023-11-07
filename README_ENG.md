@@ -52,6 +52,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8
 11. Auto acceleration: If the duration of the translated speech is longer than the original duration and you checked here, the segment will be forced to be accelerated to reduce the length.
 12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, which means segments with silences equal to or longer than 500ms will be used as the basis for splitting the speech.
 13. Click "Start", he execution will proceed, and the current progress will be displayed on the right. The subtitles will be displayed in the white text box at the bottom.
+14. After the subtitle parsing is completed, it will pause and wait for the subtitle to be modified. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the subtitle area on the right, and then manually click to continue synthesizing
+
 
 > The original video should be in mp4 format for fast processing and good network compatibility.
 > 

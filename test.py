@@ -94,3 +94,56 @@ def nosilen(filename):
 #         print(f"[{it['start']} -> {it['end']}] {it['text']}")
 #
 # print(f"time==={time.time()-t}")
+import re
+from datetime import datetime,timedelta
+sub_name="C:/Users/c1/Videos/1.srt"
+def dubbing(sub_name):
+    content=[]
+    # all audio chunk
+    segments = []
+    # every start time
+    start_times = []
+    with open(sub_name,"r",encoding="utf-8") as f:
+        tx=re.split(r"\n\n",f.read().strip(),re.I|re.S)
+        for it in tx:
+            c=it.strip().split("\n")
+            start, end=c[1].strip().split("-->")
+            text="".join(c[2:]).strip()
+            start=start.replace(',',':').split(":")
+            start_time=int(timedelta(hours=int(start[0]),minutes=int(start[1]),seconds=int(start[2]),milliseconds=int(start[3])).total_seconds()*1000)
+            end=end.replace(',',':').split(":")
+            end_time=int(timedelta(hours=int(end[0]),minutes=int(end[1]),seconds=int(end[2]),milliseconds=int(end[3])).total_seconds()*1000)
+
+            start_times.append(start_time)
+            content.append({"start_time":start,"end_time":end,"text":text})
+            try:
+                rate = int(str(config.video['voice_rate']).replace('%', ''))
+                if rate >= 0:
+                    rate = f"+{rate}%"
+                else:
+                    rate = f"{rate}%"
+                communicate = edge_tts.Communicate(text,
+                                                   config.video['voice_role'],
+                                                   rate=rate)
+                tmpname = f"{config.rootdir}/tmp/{start_time}-{index}.mp3"
+                asyncio.run(communicate.save(tmpname))
+
+                audio_data = AudioSegment.from_file(tmpname, format="mp3")
+                wavlen = end_time - start_time
+                mp3len = len(audio_data)
+                if config.video['voice_autorate'] and (mp3len - wavlen > 1000):
+                    # 最大加速2倍
+                    speed = mp3len / wavlen
+                    speed = 2 if speed > 2 else speed
+                    showprocess(f"new mp3 length bigger than wav ,speed up {speed} ", 'logs')
+                    audio_data = speed_change(audio_data, speed)
+                    showprocess(f"change after:{len(audio_data)}", 'logs')
+                segments.append(audio_data)
+            except Exception as e:
+                logger.error("Create voice role error:" + str(e))
+                print(e)
+                segments.append(AudioSegment.silent(duration=end_time - start_time))
+    # merge translate audo
+    merge_audio_segments(segments, start_times, total_length * 1000, mp4name)
+
+

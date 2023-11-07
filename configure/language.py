@@ -23,8 +23,12 @@ translate_language = {
         "nosubtitle":"不添加字幕",
         "baikeymust":"你必须填写百度key",
         "chatgptkeymust":"你必须填写chatGPT key",
+        "waitsubtitle":"等待编辑字幕(点击继续合成)",
+        "waitforend":"正在合成视频",
     },
     "en": {
+        "waitforend":"Composing video",
+        "waitsubtitle":"Wait edit subtitle(click for continue)",
         "baikeymust":"input your baidu key",
         "chatgptkeymust":"input your chatgpt key",
         "nosubtitle":"No Subtitle",

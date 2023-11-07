@@ -11,10 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Video-Translation</string>
+   <string>Video translation and dubbing</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_5">
+   <layout class="QHBoxLayout" name="horizontalLayout_6">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -24,61 +27,34 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QFormLayout" name="formLayout">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
-          </property>
-          <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-          </property>
           <item row="0" column="0">
            <widget class="QPushButton" name="btn_get_video">
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>35</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>黑体</family>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Translation Pending</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="source_mp4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>0</width>
+              <width>120</width>
               <height>35</height>
              </size>
             </property>
-            <property name="sizeIncrement">
-             <size>
-              <width>0</width>
-              <height>8</height>
-             </size>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
-            <property name="baseSize">
+            <property name="text">
+             <string>Select MP4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="source_mp4">
+            <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>100</height>
+              <height>35</height>
              </size>
             </property>
             <property name="inputMask">
@@ -88,7 +64,7 @@
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Select the mp4 video for translation.</string>
+             <string>Select MP4 what want you translation</string>
             </property>
            </widget>
           </item>
@@ -98,38 +74,17 @@
          <layout class="QFormLayout" name="formLayout_2">
           <item row="0" column="0">
            <widget class="QPushButton" name="btn_save_dir">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
             <property name="minimumSize">
              <size>
               <width>120</width>
               <height>35</height>
              </size>
             </property>
-            <property name="sizeIncrement">
-             <size>
-              <width>0</width>
-              <height>10</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>10</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>黑体</family>
-              <pointsize>10</pointsize>
-             </font>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
             <property name="text">
-             <string>Save to..</string>
+             <string>Save to</string>
             </property>
            </widget>
           </item>
@@ -148,44 +103,75 @@
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Select the location to save the translated video, with the default being &quot;_video_out&quot; folder in the original directory.</string>
+             <string>Select the location to save the translated video to, which defaults to the original directory _video_out</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>35</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Network Proxy</string>
-            </property>
-           </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <layout class="QFormLayout" name="formLayout_3">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Select Translation</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="translate_type">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="proxy">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>35</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string>eg. http://127.0.0.1:10809,For users in mainland China, please provide the required information</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QFormLayout" name="formLayout_10">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Network proxy</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="proxy">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+              <property name="placeholderText">
+               <string>example. http://127.0.0.1:10809 </string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <layout class="QFormLayout" name="formLayout_4">
             <property name="formAlignment">
@@ -200,7 +186,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Original language</string>
+               <string>Original voice language</string>
               </property>
              </widget>
             </item>
@@ -213,7 +199,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>The original language of the video.</string>
+               <string>The language used for the original voice of the video</string>
               </property>
              </widget>
             </item>
@@ -246,7 +232,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>The target language for translation.</string>
+               <string>What language do you want to translate into</string>
               </property>
              </widget>
             </item>
@@ -266,7 +252,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Character Voice</string>
+               <string>Dubbing role</string>
               </property>
              </widget>
             </item>
@@ -279,7 +265,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Selecting &quot;No&quot; means that no voice dubbing will be done.</string>
+               <string>Selecting No means not dubbing</string>
               </property>
              </widget>
             </item>
@@ -288,7 +274,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <layout class="QFormLayout" name="formLayout_7">
             <property name="formAlignment">
@@ -303,7 +289,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Whisper Model</string>
+               <string>Whisper model</string>
               </property>
              </widget>
             </item>
@@ -316,7 +302,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>As the size increases from 'base' to 'large', the performance improves but the speed decreases.</string>
+               <string>Base to large, the effect is getting better and better, but the speed is also getting slower and slower</string>
               </property>
              </widget>
             </item>
@@ -336,7 +322,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Speed Voice</string>
+               <string>Dubbing speed</string>
               </property>
              </widget>
             </item>
@@ -349,10 +335,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Whether to speed up or slow down the playback of voice dubbing.</string>
+               <string>Do you want to accelerate or decelerate the playback of dubbing</string>
               </property>
               <property name="placeholderText">
-               <string>Positive values indicate speeding up the playback, while negative values indicate slowing down. The range is from -90 to +90.</string>
+               <string>Positive numbers accelerate, negative numbers decelerate, -90 to+90</string>
               </property>
              </widget>
             </item>
@@ -372,7 +358,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Silent segments</string>
+               <string>silence</string>
               </property>
              </widget>
             </item>
@@ -385,10 +371,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>The default duration for silent segments is 500ms. The smaller the duration, the more segments will be split.</string>
+               <string>Default 500ms, with smaller segments resulting in more segments</string>
               </property>
               <property name="placeholderText">
-               <string>The duration of silent segments for speech segmentation, measured in milliseconds (ms).</string>
+               <string>Mute duration of segmented speech, in ms</string>
               </property>
              </widget>
             </item>
@@ -407,10 +393,10 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Should the playback be forced to accelerate if the duration after dubbing is longer than the original duration?</string>
+             <string>If the duration after dubbing is greater than the original duration, do you want to force acceleration for playback</string>
             </property>
             <property name="text">
-             <string>Automatically accelerate playback?</string>
+             <string>automatic acceleration?</string>
             </property>
            </widget>
           </item>
@@ -423,9 +409,13 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Embedded subtitles display regardless,doesnot hide them.
-Softsubtitles:If player supports it, you can control display or hiding of .
-To display subtitles when playing in website,choose embeded subtitles option.</string>
+             <string>Embedded subtitles:display regardless,doesnot hide them.
+    Soft subtitles: If player supports it, you can control display or hiding of.
+    To display subtitles when playing in website,choose embeded subtitles option.
+</string>
+            </property>
+            <property name="currentText">
+             <string/>
             </property>
            </widget>
           </item>
@@ -439,65 +429,76 @@ To display subtitles when playing in website,choose embeded subtitles option.</s
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QPushButton" name="startbtn">
-              <property name="minimumSize">
-               <size>
-                <width>200</width>
-                <height>50</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Start</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTextEdit" name="process">
+           <widget class="QPushButton" name="startbtn">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>0</width>
-              <height>100</height>
+              <width>200</width>
+              <height>50</height>
              </size>
             </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
+            <property name="text">
+             <string>Start</string>
             </property>
-            <property name="styleSheet">
-             <string notr="true">border:0;
-selection-background-color: rgba(255, 255, 255, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="readOnly">
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="nextbtn">
+            <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>260</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="process">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border:0;
+selection-background-color: rgba(255, 255, 255, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -515,10 +516,10 @@ background-color: rgba(255, 255, 255, 0);</string>
         </size>
        </property>
        <property name="readOnly">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="placeholderText">
-        <string>Show subtitle information here</string>
+        <string>Edit subtitle here</string>
        </property>
       </widget>
      </widget>
@@ -526,6 +527,34 @@ background-color: rgba(255, 255, 255, 0);</string>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_Key">
+    <property name="title">
+     <string>Set translate Key</string>
+    </property>
+    <addaction name="actionbaidu_key"/>
+    <addaction name="actionchatgpt_key"/>
+   </widget>
+   <addaction name="menu_Key"/>
+  </widget>
+  <action name="actionbaidu_key">
+   <property name="text">
+    <string>Baidu Key</string>
+   </property>
+  </action>
+  <action name="actionchatgpt_key">
+   <property name="text">
+    <string>OpenAI Key</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
