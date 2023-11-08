@@ -75,7 +75,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 3. `cd pyvideotrans`
 4. `pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)
-6. 解压 pretrained_models.zip 在根目录下(Spleeter模型文件)   
 6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
 7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 `-w -F` 参数，否则可能闪退(tensorflow缘故)
 

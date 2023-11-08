@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Video translation and dubbing</string>
+   <string>视频翻译和配音</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -41,11 +41,14 @@
               <height>35</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>可选择多个mp4视频，自动排队处理</string>
+            </property>
             <property name="styleSheet">
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>Select MP4</string>
+             <string>待翻译视频</string>
             </property>
            </widget>
           </item>
@@ -64,7 +67,7 @@
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Select MP4 what want you translation</string>
+             <string>选择待翻译的mp4视频，可多个，排队处理</string>
             </property>
            </widget>
           </item>
@@ -84,7 +87,7 @@
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>Save to</string>
+             <string>保存目录</string>
             </property>
            </widget>
           </item>
@@ -103,7 +106,7 @@
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Select the location to save the translated video to, which defaults to the original directory _video_out</string>
+             <string>选择翻译后的视频保存到的位置，默认原目录下_video_out中</string>
             </property>
            </widget>
           </item>
@@ -122,7 +125,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Select Translation</string>
+               <string>选择翻译</string>
               </property>
              </widget>
             </item>
@@ -149,7 +152,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Network proxy</string>
+               <string>代理地址</string>
               </property>
              </widget>
             </item>
@@ -162,7 +165,7 @@
                </size>
               </property>
               <property name="placeholderText">
-               <string>example. http://127.0.0.1:10809 </string>
+               <string>比如 http://127.0.0.1:10809 大陆地区必须填写</string>
               </property>
              </widget>
             </item>
@@ -186,7 +189,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Original voice language</string>
+               <string>视频原语言</string>
               </property>
              </widget>
             </item>
@@ -199,7 +202,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>The language used for the original voice of the video</string>
+               <string>视频原始语音所用语言</string>
               </property>
              </widget>
             </item>
@@ -219,7 +222,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Target language</string>
+               <string>翻译目标语言</string>
               </property>
              </widget>
             </item>
@@ -232,7 +235,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>What language do you want to translate into</string>
+               <string>你希望翻译为哪种语言</string>
               </property>
              </widget>
             </item>
@@ -252,7 +255,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Dubbing role</string>
+               <string>配音角色</string>
               </property>
              </widget>
             </item>
@@ -265,7 +268,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Selecting No means not dubbing</string>
+               <string>选No代表不进行配音</string>
               </property>
              </widget>
             </item>
@@ -289,7 +292,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Whisper model</string>
+               <string>语音识别模型</string>
               </property>
              </widget>
             </item>
@@ -302,7 +305,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Base to large, the effect is getting better and better, but the speed is also getting slower and slower</string>
+               <string>base到large，效果越来越好，但速度也越来越慢</string>
               </property>
              </widget>
             </item>
@@ -322,7 +325,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Dubbing speed</string>
+               <string>配音语速</string>
               </property>
              </widget>
             </item>
@@ -335,10 +338,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Do you want to accelerate or decelerate the playback of dubbing</string>
+               <string>是否加速或减速播放配音</string>
               </property>
               <property name="placeholderText">
-               <string>Positive numbers accelerate, negative numbers decelerate, -90 to+90</string>
+               <string>正数则加速，负数则减速，-90到+90</string>
               </property>
              </widget>
             </item>
@@ -358,7 +361,7 @@
                </size>
               </property>
               <property name="text">
-               <string>silence</string>
+               <string>静音片段</string>
               </property>
              </widget>
             </item>
@@ -371,10 +374,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Default 500ms, with smaller segments resulting in more segments</string>
+               <string>默认500ms，越小切分的片段越多</string>
               </property>
               <property name="placeholderText">
-               <string>Mute duration of segmented speech, in ms</string>
+               <string>分割语音的静音时长，单位ms</string>
               </property>
              </widget>
             </item>
@@ -393,10 +396,10 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>If the duration after dubbing is greater than the original duration, do you want to force acceleration for playback</string>
+             <string>如果配音后时长大于原时长，是否强制加速播放</string>
             </property>
             <property name="text">
-             <string>automatic acceleration?</string>
+             <string>配音自动加速?</string>
             </property>
            </widget>
           </item>
@@ -409,9 +412,9 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Embedded subtitles:display regardless,doesnot hide them.
-    Soft subtitles: If player supports it, you can control display or hiding of.
-    To display subtitles when playing in website,choose embeded subtitles option.
+             <string>嵌入式字幕无论哪里播放始终显示字幕，不可隐藏。
+软字幕如果播放器支持，可在播放器中控制显示或隐藏。
+如果你想网页中播放时显示字幕，请选择嵌入式字幕。
 </string>
             </property>
             <property name="currentText">
@@ -445,12 +448,12 @@
              </size>
             </property>
             <property name="text">
-             <string>Start</string>
+             <string>开始</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="nextbtn">
+           <widget class="QPushButton" name="continue_compos">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -519,7 +522,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         <bool>false</bool>
        </property>
        <property name="placeholderText">
-        <string>Edit subtitle here</string>
+        <string>这里可编辑字幕信息</string>
        </property>
       </widget>
      </widget>
@@ -538,21 +541,27 @@ background-color: rgba(255, 255, 255, 0);</string>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>Set translate Key</string>
+     <string>设置翻译Key</string>
     </property>
     <addaction name="actionbaidu_key"/>
     <addaction name="actionchatgpt_key"/>
+    <addaction name="actiondeepL_key"/>
    </widget>
    <addaction name="menu_Key"/>
   </widget>
   <action name="actionbaidu_key">
    <property name="text">
-    <string>Baidu Key</string>
+    <string>百度Key</string>
    </property>
   </action>
   <action name="actionchatgpt_key">
    <property name="text">
     <string>OpenAI Key</string>
+   </property>
+  </action>
+  <action name="actiondeepL_key">
+   <property name="text">
+    <string>DeepL Key</string>
    </property>
   </action>
  </widget>

@@ -20,6 +20,7 @@ contourpy==1.1.1
 ctranslate2==3.20.0
 cycler==0.12.1
 decorator==4.4.2
+deepl==1.16.1
 edge-tts==6.1.8
 exceptiongroup==1.1.3
 ffmpeg-python==0.2.0
@@ -69,7 +70,7 @@ numpy==1.26.0
 oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==0.28.1
-openai-whisper @ git+https://github.com/openai/whisper.git@b38a1f20f4b23f3f3099af2c3e0ca95627276ddf
+openai-whisper==20231106
 opt-einsum==3.3.0
 packaging==23.1
 pandas==1.5.3
