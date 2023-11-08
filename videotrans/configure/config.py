@@ -50,8 +50,11 @@ video = {
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
 
+    "deepl_authkey":"",
+
     "baidu_appid":"",
     "baidu_miyue":"",
+
     "chatgpt_api":"",
     "chatgpt_key":"",
     "chatgpt_model":"gpt-3.5-turbo",
@@ -63,3 +66,5 @@ video = {
 Keep lines like this as they are, without translation or deletion,it is very important for my job. Do not reply to this message.""",
 }
 voice_list = None
+
+queue=[]

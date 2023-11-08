@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 translate_language = {
     "zh": {
         "selectmp4": "选择mp4视频",
@@ -25,9 +26,25 @@ translate_language = {
         "chatgptkeymust":"你必须填写chatGPT key",
         "waitsubtitle":"等待编辑字幕(点击继续合成)",
         "waitforend":"正在合成视频",
-        "createdirerror":"创建目录失败"
+        "createdirerror":"创建目录失败",
+        "processingstatusbar":"正在处理视频:[{var1}],还有[{var2}]个在等待处理",
+        "confirmstop":"确认停止执行?如果字幕生成一半，再次启动可能不完整，可以手动删掉tmp目录",
+        "deepl_authkey":"你必须填写DeepL的授权key",
+        "deepl_nosupport":"DeepL不支持翻译为该语言",
+        "wait_edit_subtitle":"等待修改字幕",
+        "autocomposing":"秒倒计时后将自动合成视频，修改字幕编辑区任意内容后将停止倒计时",
+        "queding":"确定",
+        "hechengchucuo":"合成出错，缺少文件:"
     },
     "en": {
+        "hechengchucuo":"Composing video error，lost file:",
+        "queding":"Confirm",
+        "wait_edit_subtitle":"Wait for edit subtitle",
+        "autocomposing":" seconds After the countdown, the video will be automatically synthesized. After modifying any content in the subtitle editing area, the countdown will stop",
+        "deepl_nosupport":"DeepL don't support translation to the language",
+        "deepl_authkey":"You need an DeepL authentication key",
+        "confirmstop":"Stop this task?",
+        "prcoessingstatusbar":"Processing video: [{var1}], with [{var2}] waiting to be processed",
         "createdirerror":"create dir error",
         "waitforend":"Composing video",
         "waitsubtitle":"Wait edit subtitle(click for continue)",
@@ -58,39 +75,39 @@ translate_language = {
 }
 
 
-#  名称:google翻译，字幕语言，百度翻译
+#  名称:google翻译代码，字幕语言代码，百度翻译代码，deep代码
 language_code_list={
     "zh":{
-        "中文简": ['zh-cn', 'chi','zh'],
-        "中文繁": ['zh-tw', 'chi','zh'],
-        "英语": ['en', 'eng','en'],
-        "法语": ['fr', 'fre','fra'],
-        "德语": ['de', 'ger','de'],
-        "日语": ['ja', 'jpn','jp'],
-        "韩语": ['ko', 'kor','kor'],
-        "俄语": ['ru', 'rus','ru'],
-        "西班牙语": ['es', 'spa','spa'],
-        "泰国语": ['th', 'tha','th'],
-        "意大利语": ['it', 'ita','it'],
-        "葡萄牙语": ['pt', 'por','pt'],
-        "越南语": ['vi', 'vie','vie'],
-        "阿拉伯语": ['ar', 'are','ara']
+        "中文简": ['zh-cn', 'chi','zh','ZH'],
+        "中文繁": ['zh-tw', 'chi','cht','ZH'],
+        "英语": ['en', 'eng','en','EN-US'],
+        "法语": ['fr', 'fre','fra','FR'],
+        "德语": ['de', 'ger','de','DE'],
+        "日语": ['ja', 'jpn','jp','JA'],
+        "韩语": ['ko', 'kor','kor','KO'],
+        "俄语": ['ru', 'rus','ru','RU'],
+        "西班牙语": ['es', 'spa','spa','ES'],
+        "泰国语": ['th', 'tha','th','No'],
+        "意大利语": ['it', 'ita','it','IT'],
+        "葡萄牙语": ['pt', 'por','pt','PT'],
+        "越南语": ['vi', 'vie','vie','No'],
+        "阿拉伯语": ['ar', 'are','ara','No']
     },
     "en":{
-        "Simplified_Chinese": ['zh-cn', 'chi','zh'],
-        "Traditional_Chinese": ['zh-tw', 'chi','zh'],
-        "English": ['en', 'eng','en'],
-        "French": ['fr', 'fre','fra'],
-        "German": ['de', 'ger','de'],
-        "Japanese": ['ja', 'jpn','jp'],
-        "Korean": ['ko', 'kor','kor'],
-        "Russian": ['ru', 'rus','ru'],
-        "Spanish": ['es', 'spa','spa'],
-        "Thai": ['th', 'tha','th'],
-        "Italian": ['it', 'ita','it'],
-        "Portuguese": ['pt', 'por','pt'],
-        "Vietnamese": ['vi', 'vie','vie'],
-        "Arabic": ['ar', 'are','ara']
+        "Simplified_Chinese": ['zh-cn', 'chi','zh','ZH'],
+        "Traditional_Chinese": ['zh-tw', 'chi','cht','ZH'],
+        "English": ['en', 'eng','en','EN-US'],
+        "French": ['fr', 'fre','fra','FR'],
+        "German": ['de', 'ger','de','DE'],
+        "Japanese": ['ja', 'jpn','jp','JA'],
+        "Korean": ['ko', 'kor','kor','KO'],
+        "Russian": ['ru', 'rus','ru','RU'],
+        "Spanish": ['es', 'spa','spa','ES'],
+        "Thai": ['th', 'tha','th','No'],
+        "Italian": ['it', 'ita','it','IT'],
+        "Portuguese": ['pt', 'por','pt','PT'],
+        "Vietnamese": ['vi', 'vie','vie','No'],
+        "Arabic": ['ar', 'are','ara','No']
     }
 }
 

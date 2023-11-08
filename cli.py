@@ -5,9 +5,9 @@ import os
 import warnings
 
 warnings.filterwarnings('ignore')
-from configure.tools import get_list_voices, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
-from configure import config
-from configure.language import clilanglist
+from videotrans.configure.tools import get_list_voices, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
+from videotrans.configure import config
+from videotrans.configure.language import clilanglist
 
 
 # lower and replace \\
@@ -86,6 +86,7 @@ def init_args():
             ".mp4"):
         error(
             f"The --source_mp4 parameter must be provided with the local file address of an mp4 file, ending with .mp4.{args['source_mp4']}")
+    args['source_mp4']=args['source_mp4'].replace('\\','/')
     if args['source_language'] not in clilanglist or args['target_language'] not in clilanglist:
         error(
             f"The original language and target language for the video must be selected from the following options: {','.join(clilanglist.keys())}")
@@ -112,7 +113,7 @@ def init_args():
         args['target_dir'] = os.path.join(os.path.dirname(args['source_mp4']), '_video_out').replace('\\', '/')
     if not os.path.exists(args['target_dir']):
         os.makedirs(args['target_dir'], exist_ok=True)
-
+    args['target_dir']=args['target_dir'].replace('\\','/')
     if args['proxy']:
         os.environ['http_proxy'] = args['proxy'] if args['proxy'].startswith('http://') else f"http://{args['proxy']}"
         os.environ['https_proxy'] = os.environ['http_proxy']
@@ -164,7 +165,7 @@ if __name__ == '__main__':
         for it in config.voice_list:
             print(f"[Error]: {it}: {', '.join(config.voice_list[it][1:])}")
         exit(1)
-    config.video = init_args()
+    config.video.update(init_args())
     config.current_status = "ing"
     if not os.path.exists(os.path.join(config.rootdir, "tmp")):
         os.mkdir(os.path.join(config.rootdir, 'tmp'))
