@@ -5,6 +5,7 @@ import time
 import requests
 
 from ..configure import config
+from ..configure.config import logger
 
 
 def baidutrans(text, src, dest):
@@ -20,10 +21,13 @@ def baidutrans(text, src, dest):
         res = res.json()
         if "error_code" in res:
             return "baidu api error:" + res['error_msg']
-        comb = ""
-        for it in res['trans_result']:
-            comb += it['dst']
+        comb = "baidu translate error"
+        if "trans_result" in res:
+            comb=""
+            for it in res['trans_result']:
+                comb += it['dst']
         return comb
     except Exception as e:
+        logger.error("baidu api error:" + str(e))
         return "baidu api error:" + str(e)
 

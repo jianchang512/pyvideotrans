@@ -34,9 +34,16 @@ translate_language = {
         "wait_edit_subtitle":"等待修改字幕",
         "autocomposing":"秒倒计时后将自动合成视频，修改字幕编辑区任意内容后将停止倒计时",
         "queding":"确定",
-        "hechengchucuo":"合成出错，缺少文件:"
+        "hechengchucuo":"合成出错，缺少文件:",
+        "installffmpeg":"未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量",
+        "yinsekelong":"音色克隆将使用  coqui.ai  所提供的 Api 服务，上传一段音频用于提取音色特征，然后用此特征作为配音角色，从而实现自定义的音色配音",
+        "yinsekaifazhong":"音色克隆开发中",
     },
     "en": {
+        "processingstatusbar":"Process video:[{var1}] total, [{var2}] waitting",
+        "yinsekelong": "Timbre cloning will use the API service provided by [coqui.ai], which can extract timbre features from a piece of audio. These features will then be used as the voice for dubbing characters, achieving custom dubbing with any desired timbre.",
+        "yinsekaifazhong": "Timbre cloning is under development.",
+        "installffmpeg":"ffmpeg not found, the software is not available. Please download it from ffmpeg.org and add it to the system's environment variables.",
         "hechengchucuo":"Composing video error，lost file:",
         "queding":"Confirm",
         "wait_edit_subtitle":"Wait for edit subtitle",
@@ -75,7 +82,7 @@ translate_language = {
 }
 
 
-#  名称:google翻译代码，字幕语言代码，百度翻译代码，deep代码
+#  名称: google翻译代码and语音识别代码，字幕语言代码，百度翻译代码，deep代码
 language_code_list={
     "zh":{
         "中文简": ['zh-cn', 'chi','zh','ZH'],

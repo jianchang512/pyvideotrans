@@ -137,27 +137,23 @@ def showprocess(text, type="logs"):
 
 
 def running(p):
-    dirname = os.path.dirname(p)
     # remove whitespace
-    mp4nameraw = os.path.basename(p)
-    mp4name = mp4nameraw.replace(" ", '')
-    if mp4nameraw != mp4name:
-        os.rename(p, os.path.join(os.path.dirname(p), mp4name))
+    mp4name = os.path.basename(p)
     #  no ext eg. 1123  mp4
-    noextname = os.path.splitext(mp4name)[0]
+    noextname,mp4ext = os.path.splitext(mp4name)
     # subtitle filepath
-    sub_name = f"{dirname}/{noextname}.srt"
-    # split audio wav
-    a_name = f"{dirname}/{noextname}.wav"
-    if os.path.exists(sub_name):
-        os.unlink(sub_name)
+    a_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.wav"
+    if not os.path.exists(a_name) or os.path.getsize(a_name)==0:
+        runffmpeg([
+                   "-y",
+                   "-i",
+                   f'"{p}"',
+                   f'"{a_name}"'
+    ])
 
-    if not os.path.exists(a_name):
-        runffmpeg(f"-y -i {dirname}/{mp4name} -acodec pcm_s16le -ac 1 -f wav {a_name}")
-
-    get_large_audio_transcriptioncli(a_name, mp4name, sub_name, showprocess)
+    get_large_audio_transcriptioncli(noextname, mp4ext, showprocess)
     # del temp files
-    delete_temp(dirname,noextname)
+    delete_temp(noextname)
 
 
 if __name__ == '__main__':

@@ -1,29 +1,21 @@
 # [English](./README_ENG.md)
 
 这是一个视频翻译工具，可将一种语言的视频翻译为另一种语言和配音的视频。
-语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google|baidu|chatGPT`翻译接口，文字合成语音使用 `Microsoft Edge tts`.
+语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google|baidu|chatGPT|DeepL`翻译接口，文字合成语音使用 `Microsoft Edge tts`.
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/27af2313-1717-43c2-9853-6d4b1d3ecdf4
-
-
-
-
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9b53-477986aea5e6
-
-
+https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
 
 
 # 使用预编译版本方法
 
-0. 只可用于 win10 win11 系统 (编译版非最新，建议源码部署)
+0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
 1. 从 release 中下载最新版，解压，双击 sp.exe
 2. 原始视频目录：选择mp4视频；
 3. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`
-4. 选择翻译：可选google、百度、chatGPT，后两者需要点击“设置翻译key”，设置相应信息
-5. 网络代理地址：如果你所在地区无法直接访问 google，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
+4. 选择翻译：可选 google、baidu、chatGPT、DeepL， baidu/chatGPT/DeepL需点击“设置key”，设置相应信息
+5. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 6. 视频原始语言：选择待翻译视频里的语言种类
 7. 翻译目标语言：选择希望翻译到的语言种类
 8. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
@@ -34,7 +26,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 
    **不能“既不嵌入字幕又不选择配音角色”**
 
-9. 文字识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
+9. 文字识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
    
    **模型单独下载地址**
 
@@ -50,20 +42,24 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 
     [large-v3模型](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
 
+    [VLC解码器下载](https://www.videolan.org/vlc/)
 
+    [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
 
 10. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 11. 自动加速: 如果翻译后的语音时长大于原时长，并且这里确认选中，那么将强制加速播放该片段，以缩小时长
 12. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
-13. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
-14. **字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成**
+13. CUDA加速：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升
+14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
+15. **字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成**
 
 >
 > 原始视频统一使用mp4格式，处理速度快，网络兼容性好
 > 
 > 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
+> 注意很多国内播放器必须将srt字幕文件和视频放在同一目录下且名字相同，才能加载软字幕，并且可能需要将srt文件转为GBK编码，否则显示乱码，
 > 
-> 默认会在 原始视频目录 下生成同名的字幕文件 视频名.srt
+> 默认会在 目标输出视频目录 下的srt文件夹中生成视频同名的字幕文件 视频名.srt
 > 
 > 对于无法识别的语音将直接复制原语音
 
@@ -182,6 +178,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 ![](./images/p2.png?b)
 ![](./images/p3.png?b)
 ![](./images/p4.png?b)
+![](./images/p5.png?b)
+![](./images/p6.png?b)
+![](./images/p7.png?b)
 ![](./images/cli.png?c)
 
 
@@ -189,11 +188,16 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/753d76c0-e9b9-44fd-9
 
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
-[Youtube demo](https://youtu.be/-WAyWjJPSEk)
+[Youtube demo](https://youtu.be/skLtE1XnO6Q)
 
-# 可能的问题
 
-> 翻译使用 requests 请求 google api，然后提取，过于频繁可能会被限制。
+# CUDA 加速支持
+
+1. 预编译版部分功能支持使用CUDA：如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 [CUDA Toolkit] (https://developer.nvidia.com/cuda-downloads),建议预先将显卡驱动升级到最新版，再去安装，编译版绑定的CUDA11.8，太旧的无法支持。要完整支持CUDA，需要使用源码版在自己电脑部署
+
+2. 源码版使用CUDA：需要安装 `pip install -r requirements-gpu.txt` 而不是 `requirements.txt`
+
+3. CUDA 环境配置相对复杂，遇到问题多搜索
 
 
 # 致谢

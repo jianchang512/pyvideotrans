@@ -71,6 +71,7 @@ oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==0.28.1
 openai-whisper==20231106
+opencv-python==4.8.1.78
 opt-einsum==3.3.0
 packaging==23.1
 pandas==1.5.3
@@ -82,6 +83,7 @@ proglog==0.1.10
 protobuf==3.19.6
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
+PyAudio==0.2.14
 pycparser==2.21
 pydub==0.25.1
 pyinstaller==6.0.0
@@ -92,6 +94,7 @@ PyQt5-Qt5==5.15.2
 PyQt5-sip==12.13.0
 pyreadline3==3.4.1
 python-dateutil==2.8.2
+python-vlc==3.0.20123
 pytz==2023.3.post1
 pywin32-ctypes==0.2.2
 pywinstyles==1.4

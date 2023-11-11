@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>视频翻译和配音</string>
+   <string>SP视频翻译配音</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -388,6 +388,16 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
+           <widget class="QCheckBox" name="enable_cuda">
+            <property name="toolTip">
+             <string>必须确定有N卡且正确配置了CUDA环境，否则勿选</string>
+            </property>
+            <property name="text">
+             <string>CUDA加速</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="voice_autorate">
             <property name="minimumSize">
              <size>
@@ -541,13 +551,38 @@ background-color: rgba(255, 255, 255, 0);</string>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>设置翻译Key</string>
+     <string>&amp;S设置Key</string>
     </property>
     <addaction name="actionbaidu_key"/>
+    <addaction name="separator"/>
     <addaction name="actionchatgpt_key"/>
+    <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>&amp;T工具</string>
+    </property>
+    <addaction name="action_tool"/>
+    <addaction name="separator"/>
+    <addaction name="action_clone"/>
+   </widget>
+   <widget class="QMenu" name="menu_H">
+    <property name="title">
+     <string>&amp;H帮助</string>
+    </property>
+    <addaction name="action_git"/>
+    <addaction name="separator"/>
+    <addaction name="action_issue"/>
+    <addaction name="separator"/>
+    <addaction name="action_vlc"/>
+    <addaction name="separator"/>
+    <addaction name="action_ffmpeg"/>
    </widget>
    <addaction name="menu_Key"/>
+   <addaction name="menu"/>
+   <addaction name="menu_H"/>
   </widget>
   <action name="actionbaidu_key">
    <property name="text">
@@ -562,6 +597,45 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="actiondeepL_key">
    <property name="text">
     <string>DeepL Key</string>
+   </property>
+  </action>
+  <action name="action_tool">
+   <property name="text">
+    <string>视频工具箱</string>
+   </property>
+   <property name="toolTip">
+    <string>一个简单的视频处理工具箱</string>
+   </property>
+  </action>
+  <action name="action_vlc">
+   <property name="text">
+    <string>VLC解码器</string>
+   </property>
+   <property name="toolTip">
+    <string>去VLC官网</string>
+   </property>
+  </action>
+  <action name="action_ffmpeg">
+   <property name="text">
+    <string>FFmpeg</string>
+   </property>
+   <property name="toolTip">
+    <string>去FFmpeg官网</string>
+   </property>
+  </action>
+  <action name="action_git">
+   <property name="text">
+    <string>代码仓库</string>
+   </property>
+  </action>
+  <action name="action_issue">
+   <property name="text">
+    <string>发个issue</string>
+   </property>
+  </action>
+  <action name="action_clone">
+   <property name="text">
+    <string>音色克隆</string>
    </property>
   </action>
  </widget>
