@@ -5,6 +5,9 @@ This is a video translation tool that can translate videos from one language to 
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
+*youtube*
+
+[![在youtube上观看](https://img.youtube.com/vi/skLtE1XnO6Q/hqdefault.jpg)](https://www.youtube.com/watch?v=skLtE1XnO6Q)
 
 # Instructions for Using Precompiled Versions
 
