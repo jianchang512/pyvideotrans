@@ -2,6 +2,7 @@
 import os
 import locale
 import logging
+
 from .language import translate_language, language_code_list
 
 # 当前执行目录
@@ -27,9 +28,15 @@ else:
 # ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 
+
+
+
 # 开始按钮状态
 current_status = "stop"
-wait_subtitle_edit=False
+# True=已发射合并请求，开始执行配音合并
+exec_compos=False
+# 当前的视频是否已创建完毕，只有完毕后才能发射上面的 wait_subtitle_edit事件
+subtitle_end=False
 # 配置
 video = {
     "source_mp4": "",
@@ -40,6 +47,8 @@ video = {
 
     "target_language": "zh-cn",
     "subtitle_language": "chi",
+
+    "enable_cuda":False,
 
     "voice_role": "No",
     "voice_rate": "0",

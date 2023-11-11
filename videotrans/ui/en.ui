@@ -388,6 +388,16 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
+           <widget class="QCheckBox" name="enable_cuda">
+            <property name="toolTip">
+             <string>There is an N card and the CUDA environment has been configured, otherwise do not select it</string>
+            </property>
+            <property name="text">
+             <string>Enable CUDA</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="voice_autorate">
             <property name="minimumSize">
              <size>
@@ -541,13 +551,37 @@ background-color: rgba(255, 255, 255, 0);</string>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>Set translate Key</string>
+     <string>&amp;Set translate Key</string>
     </property>
     <addaction name="actionbaidu_key"/>
+    <addaction name="separator"/>
     <addaction name="actionchatgpt_key"/>
+    <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
    </widget>
+   <widget class="QMenu" name="menuTool">
+    <property name="title">
+     <string>&amp;Tool</string>
+    </property>
+    <addaction name="action_tool"/>
+    <addaction name="separator"/>
+    <addaction name="action_clone"/>
+   </widget>
+   <widget class="QMenu" name="menu_H_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="action_git"/>
+    <addaction name="separator"/>
+    <addaction name="action_issue"/>
+    <addaction name="separator"/>
+    <addaction name="action_vlc"/>
+    <addaction name="separator"/>
+    <addaction name="action_ffmpeg"/>
+   </widget>
    <addaction name="menu_Key"/>
+   <addaction name="menuTool"/>
+   <addaction name="menu_H_Help"/>
   </widget>
   <action name="actionbaidu_key">
    <property name="text">
@@ -562,6 +596,36 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="actiondeepL_key">
    <property name="text">
     <string>DeepL Key</string>
+   </property>
+  </action>
+  <action name="action_tool">
+   <property name="text">
+    <string>ToolBox</string>
+   </property>
+  </action>
+  <action name="action_vlc">
+   <property name="text">
+    <string>VLC Site</string>
+   </property>
+  </action>
+  <action name="action_ffmpeg">
+   <property name="text">
+    <string>FFmpeg</string>
+   </property>
+  </action>
+  <action name="action_git">
+   <property name="text">
+    <string>Github Rep</string>
+   </property>
+  </action>
+  <action name="action_issue">
+   <property name="text">
+    <string>Post Issue</string>
+   </property>
+  </action>
+  <action name="action_clone">
+   <property name="text">
+    <string>Timbre clone</string>
    </property>
   </action>
  </widget>

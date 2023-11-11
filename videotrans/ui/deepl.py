@@ -65,6 +65,6 @@ class Ui_deeplform(object):
 
     def retranslateUi(self, deeplform):
         _translate = QtCore.QCoreApplication.translate
-        deeplform.setWindowTitle(_translate("deeplform", "Baidu"))
+        deeplform.setWindowTitle(_translate("deeplform", "DeepL"))
         self.label.setText(_translate("deeplform", "DEEPL_AUTH_KEY"))
         self.set_deepl.setText(_translate("deeplform", "OK"))

@@ -1,99 +1,56 @@
 import io
 import json
 import os
+import re
 import subprocess
-import time
 
-import pydub
-import speech_recognition as sr
-from pydub import AudioSegment
-from pydub.silence import split_on_silence, detect_silence, detect_nonsilent
-
-
-
-def silen(filename):
-    max_interval=10000
-    buffer_time=2000
-    print("silen===")
-    nonsilent_data = []
-    normalized_sound = AudioSegment.from_wav(filename)
-    audio_chunks = detect_silence(normalized_sound, min_silence_len=300,silence_thresh=-20)
-    print(audio_chunks)
-    for i, chunk in enumerate(audio_chunks):
-        start_time, end_time = chunk  
-        n=0
-        while end_time - start_time >= max_interval:
-            n+=1
-            new_end = start_time + max_interval + buffer_time
-            new_start = start_time
-            nonsilent_data.append((new_start, new_end, True))    
-            normalized_sound[new_start:new_end].export(f"./tmp/raw-i{i}-n{n}.wav",format="wav")
-            start_time += max_interval
-        nonsilent_data.append((start_time, end_time, False))        
-        print(chunk)
-        normalized_sound[start_time:end_time].export(f"./tmp/raw-i{i}.wav",format="wav")       
-        
-    return nonsilent_data
-
-
-def nosilen(filename):
-    print("\nnosilen")
-    nonsilent_data = []
-    normalized_sound = AudioSegment.from_wav(filename)
-    audio_chunks=detect_nonsilent(normalized_sound, min_silence_len=300, seek_step=1,silence_thresh=-25 )
-    #print(audio_chunks)
-    if len(audio_chunks)==1 and (audio_chunks[0][1]-audio_chunks[0][0]>60000):
-        # 一个，强制分割
-        new_audio_chunks=[]
-        pos=0
-        while pos<audio_chunks[0][1]:
-            print(f">60s,强制分割 {pos=}")
-            end=pos+60000
-            end = audio_chunks[0][1] if end>audio_chunks[0][1] else end
-            new_audio_chunks.append([pos,end])
-            pos=end
-        audio_chunks=new_audio_chunks
-
-    for i, chunk in enumerate(audio_chunks):
-        #print(chunk)
-        start, end = chunk
-        nonsilent_data.append([start, end, False])
-    print(nonsilent_data)
-
-
-# print("start")
-# subprocess.run(["ffmpeg","-i","C:/Users/c1/Videos/cn.mp4","C:/Users/c1/Videos/cn-2.mp4"])
-# subprocess.run(["php","C:/Users/c1/Videos/1.php","ar1"])
-# print("end")
-
+# cmd=f"ffmpeg -y -i \"C:/Users/c1/Videos/kx.mp4\" -c:v libx264 -c:a pcm_s16le ceshi.mp4"
 #
-# def ceshi(*arg):
-#     subprocess.run(["ffmpeg"]+list(arg))
-# import numpy as np
-# import soundfile as sf
-# import torch
-# import whisper
-# model=whisper.load_model("large", download_root="./models")
-# r = sr.Recognizer()
-# t=time.time()
-# with sr.AudioFile("./tmp/1.wav") as source:
-#     audio_data = r.record(source)
+# p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
 #
-#     wav_bytes = audio_data.get_wav_data(convert_rate=16000)
-#     wav_stream = io.BytesIO(wav_bytes)
-#     audio_array, sampling_rate = sf.read(wav_stream)
-#     audio_array = audio_array.astype(np.float32)
-#     result=model.transcribe(
-#         audio_array,
-#         language="zh",
-#         task=None,
-#         fp16=False
-#     )
-#     # print(result)
-#     for it in result['segments']:
-#         print(f"[{it['start']} -> {it['end']}] {it['text']}")
+# while True:
+#     try:
+#         print(f"是否结束={p.poll()}")
 #
-# print(f"time==={time.time()-t}")
-import whisper
+#
+#         rs=p.wait(5)
+#         print("rs后边有没有来到")
+#         print(f"{rs=},returncode={p.returncode=}")
+#         print(f"out={p.stdout}")
+#         break
+#     except Exception as e:
+#         print("异常"+str(e))
 
-model = whisper.load_model("large-v3")
+
+# with open(r'C:\Users\c1\Videos\_video_out\srt\earth.srt', "r", encoding="utf-8") as f:
+#     tx = re.split(r"\n\s*?\n", f.read().strip())
+#     for (idx, it) in enumerate(tx):
+#         c = it.strip().split("\n")
+#         start, end = c[1].strip().split(" --> ")
+#         text = "".join(c[2:]).strip()
+#         print(f"{text=}")
+
+import os
+import winreg
+
+def get_windows_proxy():
+    try:
+        # 打开 Windows 注册表
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Internet Settings') as key:
+            # 读取代理设置
+            proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
+            proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
+
+            if proxy_enable == 1 and proxy_server:
+                return proxy_server
+
+    except Exception as e:
+        print(f"Error accessing Windows registry: {e}")
+
+    return None
+
+# 获取Windows系统代理信息
+windows_proxy = get_windows_proxy()
+
+# 打印代理信息
+print(f"Windows Proxy: {windows_proxy}")

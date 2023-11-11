@@ -19,5 +19,4 @@ sp.spec
 sp.json
 tmp
 voice_list.json
-videotrans/ui/toolbox.ui
-videotrans/ui/toolbox.py
+*.ui

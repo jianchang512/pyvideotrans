@@ -1,200 +1,136 @@
 # [简体中文](./README.md)
 
-This is a video translation tool that can translate videos from one language to another language and provide dubbed videos. 
-
-The speech recognition is based on the offline model 'openai-whisper', the text translation uses the 'Google Translate|Baidu|ChatGPT' interface, and the text-to-speech synthesis uses 'Microsoft Edge TTS'. In addition
+This is a video translation tool that can translate videos from one language to another and create dubbed videos in another language. Speech recognition is based on the `openai-whisper` offline model, text translation uses `google|baidu|chatGPT|DeepL` translation interfaces, and text-to-speech synthesis uses `Microsoft Edge tts`.
 
 
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/98ab5ef9-64ee-4e77-8989-c58acccf7923
-
+https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
 
-# Instructions for using the precompiled version:
+# Instructions for Using Precompiled Versions
 
-0. Can only be used on win10 win11 systems.
-1. Download the latest version from the release, extract it, and double-click on sp.exe.
+0. Only available for Windows 10 and Windows 11 systems. Compilation from source is required for macOS.
+1. Download the latest release from the releases page, unzip it, and double-click on `sp.exe`.
 2. Original video directory: Select the mp4 video.
-3. Output video directory: If not selected, it will default to generating in the same directory as `_video_out`.
-4. Choose translation: Google, Baidu, ChatGPT can be selected, and the latter two need to click on "Set Translation Key" to set corresponding information
-5. Network proxy address: If you are unable to access Google directly in your region, you need to set up a proxy in the software interface under Network Proxy. For example, if you are using v2ray, enter `http://127.0.0.1:10809`. If using Clash, enter `http://127.0.0.1:7890`. If you have modified the default port or are using other proxy software, please fill in accordingly.
-6. Original video language: Select the language of the video to be translated.
-7. Target translation language: Select the desired language for translation.
-8. Select dubbing: After selecting the target translation language, you can choose a dubbing role from the dubbing options.
-   
-   Embedded subtitles:display regardless,doesnot hide them.
+3. Output video directory: If not selected, it will default to generating in the same directory under `_video_out`.
+4. Translation selection: Choose Google, Baidu, ChatGPT, or DeepL. For Baidu/ChatGPT/DeepL, click "Set key" to input the corresponding information.
+5. Network proxy address: If you cannot directly access Google/ChatGPT in your region, set the proxy in the software interface under "Network Proxy." For example, if using V2Ray, enter `http://127.0.0.1:10809`, or for Clash, enter `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, enter accordingly.
+6. Video original language: Choose the language of the video to be translated.
+7. Target translation language: Choose the language to translate into.
+8. Dubbing selection: After choosing the target translation language, select a dubbing role.
 
-    Soft subtitles: If player supports it, you can control display or hiding of .To display subtitles when playing in website,choose embeded subtitles option.
-   
-   **‘neither embedding subtitles nor selecting voiceover characters’ is not allowed**
-   
-9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves as the model size increases, but the recognition speed slows down. The base model is the default and needs to be downloaded for the first time.
+   Hard subtitles: These are subtitles that are always displayed and cannot be hidden. If you want subtitles to be visible when playing on a webpage, select hard subtitles embedding.
 
-   If you need, download models before running it, save to `This soft dir/models`
-   
-   **download models link**
+   Soft subtitles: If the player supports subtitle management, you can show or hide subtitles. Soft subtitles will not be displayed when playing on a webpage, and some domestic players may not support them. To display soft subtitles, the generated video and the subtitle file should have the same name and be placed in the same directory.
 
-   
-    [tiny](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
-    
-    [base](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
+   **Cannot choose "neither embed subtitles nor select a dubbing role."**
 
-    [small](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
+9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves with larger models, but recognition speed becomes slower, and more memory is required. The model will need to be downloaded the first time; by default, use base. You can pre-download the model and place it in the `current software directory/models` directory.
 
-    [medium](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
+   **Model download links:**
 
-    [large](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
+   [Tiny model](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
 
-    [large-v3](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
+   [Base model](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
 
-       
+   [Small model](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
 
-10. Dubbing speed: Enter a number between -90 and +90. The length of the same sentence varies under different language synthesizations. Therefore, the dubbing may not be synchronized with the subtitles. Adjust the speed here, where negative numbers indicate slowing down and positive numbers indicate speeding up.
-11. Auto acceleration: If the duration of the translated speech is longer than the original duration and you checked here, the segment will be forced to be accelerated to reduce the length.
-12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, which means segments with silences equal to or longer than 500ms will be used as the basis for splitting the speech.
-13. Click "Start", he execution will proceed, and the current progress will be displayed on the right. The subtitles will be displayed in the white text box at the bottom.
-14. After the subtitle parsing is completed, it will pause and wait for the subtitle to be modified. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the subtitle area on the right, and then manually click to continue synthesizing
+   [Medium model](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
 
+   [Large model](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
 
-> The original video should be in mp4 format for fast processing and good network compatibility.
-> 
-> Soft-coded subtitles are used – subtitles are embedded as separate files in the video and can be extracted again. If supported by the player, you can enable or disable subtitles in the player's subtitle management.
-> 
-> By default, a subtitle file with the same name as the original video will be generated in the original video directory as "video_name.srt".
-> 
-> Unrecognized speech will be directly copied from the original audio.
+   [Large-v3 model](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
+
+   [VLC decoder download](https://www.videolan.org/vlc/)
+
+   [FFmpeg download (included in the compiled version)](https://www.ffmpeg.org/)
+
+10. Dubbing speed: Enter a number between -90 and +90. The time required for a sentence may vary with different language voices, causing the audio and subtitles to be out of sync. You can adjust the speed here. A negative number slows down the speed, while a positive number speeds it up.
+
+11. Auto speed up: If the translated audio duration is longer than the original, and this option is selected, the software will forcefully accelerate playback to shorten the duration.
+
+12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, indicating the minimum duration of a silent segment for segmenting speech.
+
+13. CUDA acceleration: If your computer's graphics card is an Nvidia card and CUDA environment and driver are configured, enabling this option will significantly improve speed.
+
+14. Click the "Start" button. The bottom will display the current progress and log, and the right text box will show the subtitles.
+15. **After the subtitles are parsed, pause and wait to modify the subtitles. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the right subtitle area and manually click "Continue to Synthesize."**
+
+> All original videos are uniformly in mp4 format for fast processing and good network compatibility.
+>
+> Soft subtitle embedding: Subtitles are embedded as separate files in the video, which can be extracted again. If the player supports it, you can enable or disable subtitles in the player's subtitle management. Note that many domestic players require the srt subtitle file and video to be in the same directory and have the same name to display soft subtitles. Additionally, the srt file may need to be converted to GBK encoding to avoid displaying garbled text.
+
+By default, a subtitle file with the same name as the video will be generated in the "srt" folder under the target output video directory.
+
+For speech that cannot be recognized, the original audio will be copied directly.
 
 # Source Code Deployment
 
 1. Set up a Python 3.9+ environment.
 2. Clone the repository: `git clone https://github.com/jianchang512/pyvideotrans`
-3. Navigate to the cloned repository: `cd pyvideotrans`
-4. Install the required packages: `pip install -r requirements.txt`
-5. Unzip `ffmpeg.zip` in the root directory.Unzip `pretrained_models.zip` in the root directory.
-6. Run `python sp.py` to open the software interface. Run `python cli.py` cli mode 
-7. If packing, execute `pyinstaller sp.py`, don't add `-w -F` param else will exit (because tensorflow)
+3. Navigate to the project directory: `cd pyvideotrans`
+4. Install the required dependencies: `pip install -r requirements.txt`
+5. Unzip `ffmpeg.zip` to the root directory (contains `ffmpeg.exe`).
+6. Run the software interface: `python sp.py`. For command line execution: `python cli.py`.
+7. If you want to package it as an exe, use the command `pyinstaller sp.py`. Do not add `-w -F` parameters; otherwise, it may crash (due to TensorFlow).
 
-# CLI Usage
+# CLI (Command Line Interface) Usage
 
-> After deploying the source code as mentioned above, execute `python cli.py` to use it in the command line.
-
+After deploying the source code, execute `python cli.py` from the command line.
 
 ### Supported Parameters
 
-**--source_mp4**: [Required] Path of the video to be translated, must end with .mp4.
+- **--source_mp4**: [Required] Path to the video to be translated, ending in .mp4.
+- **--target_dir**: Location where the translated video will be saved. Defaults to the `_video_out` folder in the source video directory.
+- **--source_language**: Video language code. Defaults to `en` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar).
+- **--target_language**: Target language code. Defaults to `zh-cn` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar).
+- **--proxy**: HTTP proxy address. Defaults to None. If unable to access Google, fill in the proxy, e.g., `http://127.0.0.1:10809`.
+- **--subtitle_type**: 1 for embedding hard subtitles, 2 for embedding soft subtitles.
+- **--voice_role**: Depending on the selected target language code, enter the corresponding role name. Use `python cli.py show_voice` to display available role names for each language.
+- **--voice_rate**: Negative number to decrease dubbing speed, positive number to increase it. Defaults to `0`.
+- **--voice_silence**: Enter a number between 100 and 2000, representing the minimum milliseconds of silent segments. Defaults to `500`.
+- **--voice_autorate**: If the translated audio duration exceeds the original, force speeding up the translated audio for alignment.
+- **--whisper_model**: Defaults to `base`. Options are `base`, `small`, `medium`, `large`. The larger the model, the better the effect, but the slower the speed.
 
-**--target_dir**: Directory to store the translated video. By default, it is stored in the "_video_out" folder in the source video directory.
+### CLI Example
 
-**--source_language**: Language code of the video. Default is `en` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar)
+```bash
+python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_replace zh-CN-XiaoxiaoNeural
+```
 
-**--target_language**: Language code of the target language. Default is `zh-cn` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar)
+This example translates the video located at `D:/video/ex.mp4` from English to Chinese, sets the proxy to `http://127.0.0.1:10809`, and uses the dubbing role `zh-CN-XiaoxiaoNeural`.
 
-    zh-cn: Simplified_Chinese
-    zh-tw: Traditional_Chinese
-    en: English
-    fr: French
-    de: German
-    ja: Japanese
-    ko: Korean
-    ru: Russian
-    es: Spanish
-    th: Thai
-    it: Italian
-    pt: Portuguese
-    vi: Vietnamese
-    ar: Arabic
+```bash
+python cli.py --source_mp4 "D:/video/ex.mp4" --source_language zh-cn --target_language en --proxy "http://127.0.0.1:10809" --voice_replace en-US-AriaNeural --voice_autorate --whisper_model small
+```
 
-**--proxy**: Specify an HTTP proxy address. Default is None. If you are unable to access Google from your location, you need to provide a proxy address. For example: `http://127.0.0.1:10809`
-
-**--subtitle_type**:  1 Embed subtitle, 2 soft subtitle.
-
-Embedded subtitles: display regardless,doesnot hide them.
-
-Soft subtitles: If player supports it, you can control display or hiding of .
-To display subtitles when playing in website,choose embeded subtitles option.
-
-   **neither embedding subtitles nor selecting voiceover characters is not allowed**.
-
-**--voice_role**: Provide the corresponding character name based on the target language code. Make sure the first two letters of the character name match the first two letters of the target language code. If you are unsure how to fill in this parameter, run `python cli.py show_voice` to display the available character names for each language.
-
-	zh: zh-HK-HiuGaaiNeural, zh-HK-HiuMaanNeural, zh-HK-WanLungNeural, zh-CN-XiaoxiaoNeural, zh-CN-XiaoyiNeural, zh-CN-YunjianNeural, zh-CN-YunxiNeural
-    , zh-CN-YunxiaNeural, zh-CN-YunyangNeural, zh-CN-liaoning-XiaobeiNeural, zh-TW-HsiaoChenNeural, zh-TW-YunJheNeural, zh-TW-HsiaoYuNeural, zh-CN-shaa
-    nxi-XiaoniNeural
-    en: en-AU-NatashaNeural, en-AU-WilliamNeural, en-CA-ClaraNeural, en-CA-LiamNeural, en-HK-SamNeural, en-HK-YanNeural, en-IN-NeerjaExpressiveNeural,
-    en-IN-NeerjaNeural, en-IN-PrabhatNeural, en-IE-ConnorNeural, en-IE-EmilyNeural, en-KE-AsiliaNeural, en-KE-ChilembaNeural, en-NZ-MitchellNeural, en-
-    NZ-MollyNeural, en-NG-AbeoNeural, en-NG-EzinneNeural, en-PH-JamesNeural, en-PH-RosaNeural, en-SG-LunaNeural, en-SG-WayneNeural, en-ZA-LeahNeural, e
-    n-ZA-LukeNeural, en-TZ-ElimuNeural, en-TZ-ImaniNeural, en-GB-LibbyNeural, en-GB-MaisieNeural, en-GB-RyanNeural, en-GB-SoniaNeural, en-GB-ThomasNeur
-    al, en-US-AriaNeural, en-US-AnaNeural, en-US-ChristopherNeural, en-US-EricNeural, en-US-GuyNeural, en-US-JennyNeural, en-US-MichelleNeural, en-US-R
-    ogerNeural, en-US-SteffanNeural
-    fr: fr-BE-CharlineNeural, fr-BE-GerardNeural, fr-CA-AntoineNeural, fr-CA-JeanNeural, fr-CA-SylvieNeural, fr-FR-DeniseNeural, fr-FR-EloiseNeural, fr
-    -FR-HenriNeural, fr-CH-ArianeNeural, fr-CH-FabriceNeural
-    de: de-AT-IngridNeural, de-AT-JonasNeural, de-DE-AmalaNeural, de-DE-ConradNeural, de-DE-KatjaNeural, de-DE-KillianNeural, de-CH-JanNeural, de-CH-Le
-    niNeural    
-    ja: ja-JP-KeitaNeural, ja-JP-NanamiNeural
-    ko: ko-KR-InJoonNeural, ko-KR-SunHiNeural    
-    ru: ru-RU-DmitryNeural, ru-RU-SvetlanaNeural
-    es: es-AR-ElenaNeural, es-AR-TomasNeural, es-BO-MarceloNeural, es-BO-SofiaNeural, es-CL-CatalinaNeural, es-CL-LorenzoNeural, es-CO-GonzaloNeural, e
-    s-CO-SalomeNeural, es-CR-JuanNeural, es-CR-MariaNeural, es-CU-BelkysNeural, es-CU-ManuelNeural, es-DO-EmilioNeural, es-DO-RamonaNeural, es-EC-Andre
-    aNeural, es-EC-LuisNeural, es-SV-LorenaNeural, es-SV-RodrigoNeural, es-GQ-JavierNeural, es-GQ-TeresaNeural, es-GT-AndresNeural, es-GT-MartaNeural,
-    es-HN-CarlosNeural, es-HN-KarlaNeural, es-MX-DaliaNeural, es-MX-JorgeNeural, es-NI-FedericoNeural, es-NI-YolandaNeural, es-PA-MargaritaNeural, es-P
-    A-RobertoNeural, es-PY-MarioNeural, es-PY-TaniaNeural, es-PE-AlexNeural, es-PE-CamilaNeural, es-PR-KarinaNeural, es-PR-VictorNeural, es-ES-AlvaroNe
-    ural, es-ES-ElviraNeural, es-US-AlonsoNeural, es-US-PalomaNeural, es-UY-MateoNeural, es-UY-ValentinaNeural, es-VE-PaolaNeural, es-VE-SebastianNeura
-    l
-	th: th-TH-NiwatNeural, th-TH-PremwadeeNeural
-	it: it-IT-DiegoNeural, it-IT-ElsaNeural, it-IT-IsabellaNeural
-	pt: pt-BR-AntonioNeural, pt-BR-FranciscaNeural, pt-PT-DuarteNeural, pt-PT-RaquelNeural
-    vi: vi-VN-HoaiMyNeural, vi-VN-NamMinhNeural
-	ar: ar-DZ-AminaNeural, ar-DZ-IsmaelNeural, ar-BH-AliNeural, ar-BH-LailaNeural, ar-EG-SalmaNeural, ar-EG-ShakirNeural, ar-IQ-BasselNeural, ar-IQ-Ran
-    aNeural, ar-JO-SanaNeural, ar-JO-TaimNeural, ar-KW-FahedNeural, ar-KW-NouraNeural, ar-LB-LaylaNeural, ar-LB-RamiNeural, ar-LY-ImanNeural, ar-LY-Oma
-    rNeural, ar-MA-JamalNeural, ar-MA-MounaNeural, ar-OM-AbdullahNeural, ar-OM-AyshaNeural, ar-QA-AmalNeural, ar-QA-MoazNeural, ar-SA-HamedNeural, ar-S
-    A-ZariyahNeural, ar-SY-AmanyNeural, ar-SY-LaithNeural, ar-TN-HediNeural, ar-TN-ReemNeural, ar-AE-FatimaNeural, ar-AE-HamdanNeural, ar-YE-MaryamNeural, ar-YE-SalehNeural
-
-
-**--voice_rate**: Adjust the speed of the voice dubbing. Use negative numbers to decrease the speed and positive numbers to increase it. The default value is `0`
-
-
-**--voice_silence**: Enter a number between 100 and 2000, indicating the minimum duration of a silent section in milliseconds. The default is 500.
-
-**--voice_autorate**: If the translated audio is longer than the original duration, can it be automatically accelerated to align with the original duration
-
-**--whisper_model**: The default is base. Choose from base, small, medium, or large. As the model size increases, the translation effect improves but the speed slows down.
-
-
-**CLI Example**
-
-`python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_role zh-CN-XiaoxiaoNeural`
-
-> In the above example, it translates the video located at "D:/video/ex.mp4" from English to Chinese, sets the proxy to "http://127.0.0.1:10809", and uses the voice replacement of "zh-CN-XiaoxiaoNeural".
-
-`python cli.py --source_mp4 "D:/video/ex.mp4" --source_language zh-cn --target_language en  --proxy "http://127.0.0.1"1080
-9"  --voice_role en-US-AriaNeural --voice_autorate  --whisper_model small`
-
-> The above means to translate the video D:/video/ex.mp4 with the source language as Chinese to the target language as English. Set the proxy as http://127.0.0.1:10809 and use the voiceover role en-US-AriaNeural. If the translated audio duration is longer than the original audio, it will automatically be accelerated. The text recognition model for speech recognition is set to use the small model.
-
+This example translates the video located at `D:/video/ex.mp4` from Chinese to English, sets the proxy to `http://127.0.0.1:10809`, uses the dubbing role `en-US-AriaNeural`, and if the translated audio duration is longer than the original, it will automatically accelerate playback. The text recognition model used is `small`.
 
 # Software Preview Screenshots
 
-![](./images/pen1.png?a)
-![](./images/pen2.png?a)
-![](./images/pen3.png?a)
-![](./images/pen4.png?a)
-![](./images/pen5.png?a)
-![](./images/cli.png?a)
+![Screenshot 1](./images/pen1.png?b)
+![Screenshot 2](./images/pen2.png?b)
+![Screenshot 3](./images/pen3.png?b)
+![Screenshot 4](./images/pen4.png?b)
+![Screenshot 5](./images/pen5.png?b)
+![CLI Screenshot](./images/cli.png?c)
 
-# Video Comparison Before and After Translation
+# Video Before and After Comparison
 
-[demo / Original Video and Translated Video](https://www.wonyes.org/demo.html)
+[Demo Original Video and Translated Video](https://www.wonyes.org/demo.html)
 
-[Youtube demo](https://youtu.be/-WAyWjJPSEk)
+[Youtube Demo](https://youtu.be/skLtE1XnO6Q)
 
+# CUDA Acceleration Support
 
-# Potential Issues
+1. Precompiled versions partially support CUDA, especially if your GPU is an Nvidia card. You can install the corresponding [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) based on your graphics card driver version and operating system. It's recommended to upgrade your graphics card driver to the latest version before installing. The precompiled version is bound to CUDA 11.8, so very old versions may not be supported. For full CUDA support, you need to use the source code version and deploy it on your computer.
 
-The translation process uses requests to make calls to the Google API, and frequent calls may trigger rate limits.
+2. Using CUDA in the source code version: You need to install the dependencies for GPU support using `pip install -r requirements-gpu.txt` instead of `requirements.txt`.
+
+3. Configuring the CUDA environment can be relatively complex, and you may encounter various issues, so be prepared to search for solutions.
 
 # Acknowledgments
 
-This program relies on the following open-source projects.
+This program relies on several open-source projects:
 
 1. pydub
 2. ffmpeg
@@ -203,3 +139,4 @@ This program relies on the following open-source projects.
 5. edge-tts
 6. Spleeter
 7. openai-whisper
+
