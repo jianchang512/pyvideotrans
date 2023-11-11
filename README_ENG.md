@@ -122,7 +122,7 @@ This example translates the video located at `D:/video/ex.mp4` from Chinese to E
 
 # CUDA Acceleration Support
 
-1. Precompiled versions partially support CUDA, especially if your GPU is an Nvidia card. You can install the corresponding [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) based on your graphics card driver version and operating system. It's recommended to upgrade your graphics card driver to the latest version before installing. The precompiled version is bound to CUDA 11.8, so very old versions may not be supported. For full CUDA support, you need to use the source code version and deploy it on your computer.
+1. Precompiled versions partially support CUDA, especially if your GPU is an Nvidia card. You can install the corresponding [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) based on your graphics card driver version and operating system. It's recommended to upgrade your graphics card driver to the latest version before installing. For full CUDA support, you need to use the source code version and deploy it on your computer.
 
 2. Using CUDA in the source code version: You need to install the dependencies for GPU support using `pip install -r requirements-gpu.txt` instead of `requirements.txt`.
 

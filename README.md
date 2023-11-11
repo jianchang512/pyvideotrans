@@ -193,7 +193,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
 # CUDA 加速支持
 
-1. 预编译版部分功能支持使用CUDA：如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 [CUDA Toolkit] (https://developer.nvidia.com/cuda-downloads),建议预先将显卡驱动升级到最新版，再去安装，编译版绑定的CUDA11.8，太旧的无法支持。要完整支持CUDA，需要使用源码版在自己电脑部署
+1. 预编译版部分功能支持使用CUDA：如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
+   [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
 
 2. 源码版使用CUDA：需要安装 `pip install -r requirements-gpu.txt` 而不是 `requirements.txt`
 
