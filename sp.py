@@ -631,7 +631,7 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
     def __init__(self, parent=None):
         super(ChatgptForm, self).__init__(parent)
         self.setupUi(self)
-        self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4v"])
+        self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 
