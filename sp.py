@@ -16,7 +16,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-import box
+
 from videotrans.ui.deepl import Ui_deeplform
 
 from videotrans.configure.config import langlist, transobj, logger
@@ -258,8 +258,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/issues")
 
     def open_toolbox(self):
-        toolbox_main = box.MainWindow()
-        toolbox_main.show()
+        try:
+            import box
+            toolbox_main = box.MainWindow()
+            toolbox_main.show()
+        except Exception as e:
+            QMessageBox.critical(self,"出错了","需要安装VLC解码器"+str(e))
+            logger.error("vlc"+str(e))
 
     # 停止自动合并倒计时
     def reset_timeid(self):
