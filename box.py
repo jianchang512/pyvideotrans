@@ -23,16 +23,16 @@ from videotrans.configure import config as spcfg
 from videotrans.configure.boxcfg import logger, rootdir, homedir, lang_code, cfg
 from videotrans.ui.toolbox import Ui_MainWindow
 from videotrans.util.tools import transcribe_audio, get_list_voices, get_camera_list, find_lib
-from videotrans.configure.tools import runffmpeg, text_to_speech
+from videotrans.configure.tools import runffmpeg, text_to_speech, set_proxy
 import pyaudio, wave
 
-HAS_VLS = None
-try:
-    HAS_VLC = find_lib()
-    if HAS_VLC is not None:
+if spcfg.is_vlc:
+    try:
         import vlc
-except:
-    HAS_VLC = None
+    except:
+        spcfg.is_vlc = False
+        class vlc():
+            pass
 
 
 # 录制
@@ -249,7 +249,7 @@ class Player(QtWidgets.QWidget):
         self.filepath = None
 
         super(Player, self).__init__(parent)
-        if HAS_VLC:
+        if spcfg.is_vlc:
             self.instance = vlc.Instance()
             self.mediaplayer = self.instance.media_player_new()
         else:
@@ -267,7 +267,7 @@ class Player(QtWidgets.QWidget):
         self.setLayout(layout)
 
         self.videoframe = QtWidgets.QFrame()
-        self.videoframe.setToolTip("拖动视频到此或者双击选择视频" + (",安装VLC解码器后可预览播放" if not HAS_VLC else ""))
+        self.videoframe.setToolTip("拖动视频到此或者双击选择视频" + (",安装VLC解码器后可预览播放" if not spcfg.is_vlc else ""))
         self.palette = self.videoframe.palette()
         self.palette.setColor(QtGui.QPalette.Window,
                               QtGui.QColor(0, 0, 0))
@@ -279,7 +279,7 @@ class Player(QtWidgets.QWidget):
         self.positionslider.setMaximum(1000)
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
-        self.playbutton = QtWidgets.QPushButton("点击播放" if HAS_VLC else "安装VLC解码器后可预览播放")
+        self.playbutton = QtWidgets.QPushButton("点击播放" if spcfg.is_vlc else "安装VLC解码器后可预览播放")
         self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
         self.hbuttonbox.addWidget(self.playbutton)
 
@@ -288,7 +288,7 @@ class Player(QtWidgets.QWidget):
         self.hbuttonbox.addWidget(self.selectbutton)
         self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
 
-        if HAS_VLC:
+        if spcfg.is_vlc:
             self.positionslider.sliderMoved.connect(self.setPosition)
             self.playbutton.clicked.connect(self.PlayPause)
         else:
@@ -301,7 +301,7 @@ class Player(QtWidgets.QWidget):
         self.volumeslider.setMaximum(100)
         self.volumeslider.setToolTip("调节音量")
         self.hbuttonbox.addWidget(self.volumeslider)
-        if HAS_VLC:
+        if spcfg.is_vlc:
             self.volumeslider.valueChanged.connect(self.setVolume)
             self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
 
@@ -311,7 +311,7 @@ class Player(QtWidgets.QWidget):
         self.vboxlayout.addLayout(self.hbuttonbox)
 
         self.widget.setLayout(self.vboxlayout)
-        if HAS_VLC:
+        if spcfg.is_vlc:
             self.timer = QtCore.QTimer(self)
             self.timer.setInterval(200)
             self.timer.timeout.connect(self.updateUI)
@@ -523,6 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # tab-1
         self.yspfl_video_wrap = Player(self)
+        # self.yspfl_video_wrap = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -619,6 +620,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
         self.tabWidget.tabBarClicked.connect(self.tabchange_fun)
+        # self.check_task=Checkvlc()
+        # self.check_task.check_res.connect(self.render_play)
+        # self.check_task.start()
+
+    def render_play(self, t):
+        print(t)
+        if t != 'ok':
+            return
+        import vlc
+        self.yspfl_video_wrap.close()
+        self.yspfl_video_wrap = None
+        self.yspfl_video_wrap = Player(self)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.yspfl_video_wrap.sizePolicy().hasHeightForWidth())
+        self.yspfl_video_wrap.setSizePolicy(sizePolicy)
+        self.yspfl_widget.insertWidget(0, self.yspfl_video_wrap)
+        self.yspfl_video_wrap.setStyleSheet("""background-color:rgb(10,10,10)""")
+        self.yspfl_video_wrap.setAcceptDrops(True)
 
     def tabchange_fun(self, index):
         print(f"{index=}")
@@ -988,7 +1009,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.luzhi_tips.setText("正在录制音频...")
             boxcfg.luzhicfg['audio_thread'] = threading.Thread(target=listen, args=(self.thefilename,))
             boxcfg.luzhicfg['audio_thread'].start()
-        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio,  self)
+        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio,
+                                      self)
         self.luzhi_task.update_ui.connect(self.receiver)
         self.luzhi_task.start()
 
@@ -1049,8 +1071,7 @@ if __name__ == "__main__":
 
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main.show()
-    # threading.Thread(target=get_camera_list).start()
-    set_proxy()
+    threading.Thread(target=set_proxy).start()
     if shutil.which('ffmpeg') is None:
         QMessageBox.critical(main, "温馨提示", "未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量")
 

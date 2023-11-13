@@ -81,3 +81,5 @@ Keep lines like this as they are, without translation or deletion,it is very imp
 voice_list = None
 # 存放一次性多选的视频
 queue = []
+
+is_vlc=False
