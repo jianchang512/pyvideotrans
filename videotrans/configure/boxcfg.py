@@ -51,3 +51,5 @@ luzhicfg['audio_thread']=None
 
 check_camera_ing=False
 enable_cuda=False
+
+

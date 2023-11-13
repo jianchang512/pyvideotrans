@@ -69,7 +69,7 @@ numba==0.58.1
 numpy==1.26.0
 oauthlib==3.2.2
 onnxruntime==1.16.1
-openai==0.28.1
+openai
 openai-whisper==20231106
 opencv-python==4.8.1.78
 opt-einsum==3.3.0

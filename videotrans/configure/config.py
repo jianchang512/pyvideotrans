@@ -2,6 +2,7 @@
 import os
 import locale
 import logging
+from queue import Queue
 
 from .language import translate_language, language_code_list
 
@@ -23,20 +24,15 @@ else:
     transobj = translate_language['zh']
     langlist = language_code_list['zh']
 
-
-
 # ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
-
-
-
-
+queue_logs = Queue(200)
 # 开始按钮状态
 current_status = "stop"
 # True=已发射合并请求，开始执行配音合并
-exec_compos=False
+exec_compos = False
 # 当前的视频是否已创建完毕，只有完毕后才能发射上面的 wait_subtitle_edit事件
-subtitle_end=False
+subtitle_end = False
 # 配置
 video = {
     "source_mp4": "",
@@ -48,10 +44,13 @@ video = {
     "target_language": "zh-cn",
     "subtitle_language": "chi",
 
-    "enable_cuda":False,
+    "enable_cuda": False,
 
     "voice_role": "No",
     "voice_rate": "0",
+
+    "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS
+    "tts_type_list": ["edgeTTS", "openaiTTS"],
 
     "voice_silence": 500,
     "whisper_model": "base",
@@ -59,21 +58,26 @@ video = {
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
 
-    "deepl_authkey":"",
+    "deepl_authkey": "",
 
-    "baidu_appid":"",
-    "baidu_miyue":"",
+    "baidu_appid": "",
+    "baidu_miyue": "",
 
-    "chatgpt_api":"",
-    "chatgpt_key":"",
-    "chatgpt_model":"gpt-3.5-turbo",
-    "chatgpt_template":"""You have been sent a subtitle srt file. Please translate the text inside into natural and fluent {lang}, without any translation tone. Make sure to maintain the original format and line breaks after translation. Do not translate or delete the number and time formats, keep them as they are. For example:
+    "coquitts_role": "",
+    "coquitts_key": "",
+
+    "chatgpt_api": "",
+    "chatgpt_key": "",
+    "openaitts_role": "alloy,echo,fable,onyx,nova,shimmer",
+    "chatgpt_model": "gpt-3.5-turbo",
+    "chatgpt_template": """You have been sent a subtitle srt file. Please translate the text inside into natural and fluent {lang}, without any translation tone. Make sure to maintain the original format and line breaks after translation. Do not translate or delete the number and time formats, keep them as they are. For example:
     
 1
 00:00:01,123 --> 00:00:10,345
 
 Keep lines like this as they are, without translation or deletion,it is very important for my job. Do not reply to this message.""",
 }
+# 存放 edget-tts 角色列表
 voice_list = None
-
-queue=[]
+# 存放一次性多选的视频
+queue = []

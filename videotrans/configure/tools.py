@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import copy
 import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
 
 import speech_recognition as sr
@@ -25,14 +27,16 @@ from ..translator.deepl import deepltrans
 from ..translator.google import googletrans
 
 from . import config
-from .config import logger, transobj
+from .config import logger, transobj, queue_logs
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-def get_proxy(set_env=False):
+from ..tts.openaitts import get_voice
+
+
+def set_proxy():
     http_proxy = os.environ.get('http_proxy') or os.environ.get('HTTP_PROXY')
     if http_proxy:
         return http_proxy
-
     if sys.platform != 'win32':
         return None
     try:
@@ -43,17 +47,13 @@ def get_proxy(set_env=False):
             # 读取代理设置
             proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
             proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
-
             if proxy_enable == 1 and proxy_server:
                 # 是否需要设置代理
-                if set_env:
-                    os.environ['http_proxy'] = 'http://%s' % proxy_server.replace("http://", '')
-                    os.environ['https_proxy'] = 'http://%s' % proxy_server.replace("http://", '')
+                os.environ['http_proxy'] = 'http://%s' % proxy_server.replace("http://", '')
+                os.environ['https_proxy'] = 'http://%s' % proxy_server.replace("http://", '')
                 return proxy_server
-
     except Exception as e:
         print(f"Error accessing Windows registry: {e}")
-
     return None
 
 
@@ -163,15 +163,26 @@ def speed_change(sound, speed=1.0):
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
 
-def runffmpeg(arg):
+def runffmpeg(arg, *, asy=False):
     logger.info("Will execute: ffmpeg " + " ".join(arg))
-    cmd = "ffmpeg "
+    # arg是list并且需异步
+    if asy:
+        newcmd = "ffmpeg -hide_banner " + (" ".join(arg) if isinstance(arg, list) else arg)
+        if config.video['enable_cuda']:
+            newcmd += "-hwaccel cuda"
+        logger.info(f"执行 异步ffmpeg命令：{newcmd}")
+        try:
+            subprocess.run(newcmd, stdout=subprocess.PIPE)
+        except Exception as e:
+            logger.error(f"执行异步ffmpeg失败，命令是:{newcmd=}")
+        return
+
+    cmd = "ffmpeg -hide_banner "
     if config.video['enable_cuda']:
         cmd += " -hwaccel cuda "
     if isinstance(arg, list):
-        cmd += " ".join(arg)
-    else:
-        cmd += arg
+        arg = " ".join(arg)
+    cmd += arg
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
     while True:
@@ -180,8 +191,7 @@ def runffmpeg(arg):
                 p.kill()
                 return
             print(f"ffmpeg执行状态:{'执行中' if p.poll() is None else '已结束'}")
-            print(f"out={p.stdout}")
-            rs = p.wait(3)
+            rs = p.wait(1)
             print(f"执行结果:{'成功' if rs == 0 else '失败'}")
             if p.returncode != 0:
                 logger.error(f"FFmepg exec error:{rs=},{p.returncode=}")
@@ -190,6 +200,25 @@ def runffmpeg(arg):
         except Exception as e:
             print("ffmpeg 等待中:" + str(e))
     raise Exception("ffmpeg exec error")
+
+
+# 文字合成
+def text_to_speech(*, text="", role="", rate=None, filename=None, tts_type=None):
+    try:
+        if tts_type == "edgeTTS":
+            communicate = edge_tts.Communicate(text, role, rate=rate)
+            asyncio.run(communicate.save(filename))
+            if os.path.exists(filename) and os.path.getsize(filename) > 0:
+                return True
+            return None
+        elif tts_type == "openaiTTS":
+            if not get_voice(text, role, rate, filename):
+                logger.error(f"使用openaiTTS合成语音失败")
+                open(filename, "w").close()
+                return None
+    except Exception as e:
+        logger.error(f"文字合成出错:{filename=},{tts_type=}," + str(e))
+        open(filename, "w").close()
 
 
 def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
@@ -320,11 +349,17 @@ def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
                             rate = f"+{rate}%"
                         else:
                             rate = f"{rate}%"
-                        communicate = edge_tts.Communicate(result,
-                                                           config.video['voice_role'],
-                                                           rate=rate)
                         tmpname = f"{folder_path}/tts-{start_time}-{index}.mp3"
-                        asyncio.run(communicate.save(tmpname))
+                        tts_result = text_to_speech(
+                            text=result,
+                            role=config.video['voice_role'],
+                            rate=rate,
+                            filename=tmpname,
+                            tts_type=config.video['tts_type'])
+                        if not tts_result:
+                            showprocess(f"tts合成出错:{result=}", 'logs')
+                            segments.append(audio_chunk)
+                            continue
 
                         audio_data = AudioSegment.from_file(tmpname, format="mp3")
                         wavlen = end_time - start_time
@@ -336,6 +371,7 @@ def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
                             showprocess(f"new mp3 length bigger than wav ,speed up {speed} ", 'logs')
                             audio_data = speed_change(audio_data, speed)
                             showprocess(f"change after:{len(audio_data)}", 'logs')
+
                         segments.append(audio_data)
                     except Exception as e:
                         logger.error("Create voice role error:" + str(e))
@@ -347,7 +383,7 @@ def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
         with open(sub_name, 'w', encoding="utf-8") as f:
             f.write(final_srt)
     showprocess(f"{mp4name} add subtitle", 'logs')
-    compos_video(config.video['source_mp4'], noextname, showprocess)
+    compos_video(config.video['source_mp4'], noextname)
 
 
 def show_popup(title, text):
@@ -366,12 +402,14 @@ def show_popup(title, text):
 
 # noextname 是去掉 后缀mp4的视频文件名字
 # 所有临时文件保存在 /tmp/noextname文件夹下
-def get_large_audio_transcription(noextname, showprocess):
+
+def get_large_audio_transcription(noextname):
+
+
     folder_path = config.rootdir + f'/tmp/{noextname}'
     aud_path = folder_path + f"/{noextname}.wav"
     sub_name = folder_path + f"/{noextname}.srt"
     logger.info(f"{folder_path=}\n{aud_path=}\n{sub_name=}")
-    showprocess(f"{noextname} spilt audio", "logs")
     if config.current_status == 'stop':
         raise Exception("You stop it.")
     # create
@@ -385,7 +423,7 @@ def get_large_audio_transcription(noextname, showprocess):
 
     # 已存在字幕文件
     if os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
-        showprocess(f"{noextname} subtitle has exits, wait edit subtitle", 'logs')
+        set_process(f"{noextname} 字幕文件已存在，直接使用", 'logs')
         return
 
     normalized_sound = AudioSegment.from_wav(aud_path)  # -20.0
@@ -397,7 +435,7 @@ def get_large_audio_transcription(noextname, showprocess):
         if config.current_status == 'stop':
             raise Exception("You stop it.")
         nonsilent_data = shorten_voice(normalized_sound)
-        showprocess(f"{noextname} split voice", 'logs')
+        set_process(f"{noextname} 对音频文件按静音片段分割处理", 'logs')
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
 
@@ -413,7 +451,7 @@ def get_large_audio_transcription(noextname, showprocess):
         logger.info(f"{start_time=},{end_time=},{duration=}")
         time_covered = start_time / len(normalized_sound) * 100
         # 进度
-        showprocess(f"{noextname} {time_covered:.1f}%", 'logs')
+        set_process(f"{noextname} 音频处理进度{time_covered:.1f}%", 'logs')
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         add_vol = 0
         audio_chunk = normalized_sound[start_time:end_time] + add_vol
@@ -435,10 +473,11 @@ def get_large_audio_transcription(noextname, showprocess):
                                            load_options=options)
             except sr.UnknownValueError as e:
                 logger.error("Recognize Error: ", str(e))
-                showprocess("whisper error:" + str(e))
+                set_process("[error]:语音识别出错了:" + str(e))
                 continue
             except Exception as e:
                 logger.error("Recognize Error:", str(e))
+                set_process("[error]:语音识别出错了:" + str(e))
                 continue
             if config.current_status == 'stop':
                 raise Exception("You stop it.")
@@ -473,19 +512,20 @@ def get_large_audio_transcription(noextname, showprocess):
             combo_txt = textwrap.fill(result.strip(), maxlen) + "\n\n"
             sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
             subs.append(sub)
-            showprocess(
+            set_process(
                 srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False),
                 'subtitle')
     final_srt = srt.compose(subs)
     if config.video['translate_type'] == 'chatGPT':
-        showprocess(f"{noextname} wait chatGPT response", 'logs')
+        set_process(f"{noextname} 等待 chatGPT 返回响应", 'logs')
         final_srt = chatgpttrans(final_srt)
         if final_srt.startswith('[error]'):
-            showprocess(f"{noextname} ChatGPT error:{final_srt}", 'logs')
-            logger.error(f"{noextname} ChatGPT error:{final_srt}")
-            # show_popup("ChatGPT error", final_srt)
+            config.current_status = "stop"
+            config.subtitle_end = False
+            set_process(f"[error]:{noextname} ChatGPT 翻译出错:{final_srt}", 'logs')
+            logger.error(f"[error]:{noextname} ChatGPT 翻译出错:{final_srt}")
             return
-        showprocess(f"{noextname} chatGPT OK", 'logs')
+        set_process(f"{noextname} chatGPT OK", 'logs')
         newsubtitle = []
 
         number = 0
@@ -503,33 +543,37 @@ def get_large_audio_transcription(noextname, showprocess):
             number += 1
             newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
         final_srt = "".join(newsubtitle)
+    if not final_srt.strip():
+        set_process(f"[error]{noextname} 字幕创建失败", 'logs')
+        config.current_status = "stop"
+        config.subtitle_end = False
+        return
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(final_srt)
         #     重新填写字幕文本框
-        showprocess(final_srt, 'replace_subtitle')
+        set_process(final_srt, 'replace_subtitle')
 
-    showprocess(f"{noextname} wait edit subtitle", 'logs')
+    set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
 
 
 # 合并
 # source_mp4 原始MP4地址，具体到 后缀
 # noextname，无后缀的mp4文件名字
 # mp4ext .mp4后缀，可能存在大小写问题
-def dubbing(noextname, showprocess):
+# 配音预处理，去掉无效字符，整理开始时间
+def dubbing(noextname):
     # 所有临时文件均产生在 tmp/无后缀mp4名文件夹
     folder_path = config.rootdir + f'/tmp/{noextname}'
     normalized_sound = AudioSegment.from_wav(f"{folder_path}/{noextname}.wav")
     total_length = len(normalized_sound) / 1000
     sub_name = f"{folder_path}/{noextname}.srt"
     tts_wav = f"{folder_path}/tts-{noextname}.wav"
-    # all audio chunk
-    segments = []
-    # every start time
-    start_times = []
     logger.info(f"准备合成语音 {folder_path=}")
+    # 整合一个队列到 exec_tts 执行
+    queue_tts = []
     if (config.video['voice_role'] != 'No') and (not os.path.exists(tts_wav) or os.path.getsize(tts_wav) == 0):
         with open(sub_name, "r", encoding="utf-8") as f:
-            showprocess(f"Creating TTS wav {tts_wav}", 'logs')
+
             tx = re.split(r"\n\s*?\n", f.read().strip())
             logger.info(f"Creating TTS wav {tts_wav}")
             for idx, it in enumerate(tx):
@@ -539,101 +583,138 @@ def dubbing(noextname, showprocess):
 
                 # 0=行号，1=时间信息，2=内容
                 c = it.strip().split("\n")
-                start, end = c[1].strip().split(" --> ")
-                showprocess(f"subtitle:{start} --> {end}", "logs")
+                startraw, endraw = c[1].strip().split(" --> ")
                 text = "".join(c[2:]).strip()
-                print(f"text====={text}")
                 # 无有效内容，跳过
                 if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
                     continue
                 # 转为毫秒
-                start = start.replace(',', '.').split(":")
+                start = startraw.replace(',', '.').split(":")
                 start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
 
-                end = end.replace(',', '.').split(":")
+                end = endraw.replace(',', '.').split(":")
                 end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
-                start_times.append(start_time)
-                # 不是最后一个，则取出下一个的开始时间
-                try:
-                    rate = int(str(config.video['voice_rate']).replace('%', ''))
-                    if rate >= 0:
-                        rate = f"+{rate}%"
-                    else:
-                        rate = f"{rate}%"
-                    print(f"start->edge_tts->{idx}")
-                    communicate = edge_tts.Communicate(text,
-                                                       config.video['voice_role'],
-                                                       rate=rate
-                                                       )
-                    tmpname = f"{folder_path}/tts-{start_time}.mp3"
-                    asyncio.run(communicate.save(tmpname))
-                    print(f"end=>edge_tts->{idx}")
 
-                    if not os.path.exists(tmpname) or os.path.getsize(tmpname) == 0:
-                        segments.append(AudioSegment.silent(duration=end_time - start_time))
-                        continue
-                    audio_data = AudioSegment.from_file(tmpname, format="mp3")
-                    wavlen = end_time - start_time
-                    mp3len = len(audio_data)
-                    if config.video['voice_autorate'] and (mp3len - wavlen > 1000):
-                        # 最大加速2倍
-                        speed = mp3len / wavlen
-                        speed = 2 if speed > 2 else speed
-                        showprocess(f"new mp3 length bigger than wav ,speed up {speed} ", 'logs')
-                        audio_data = speed_change(audio_data, speed)
-                        showprocess(f"change after:{len(audio_data)}", 'logs')
-                    segments.append(audio_data)
-                except Exception as e:
-                    logger.error("Create voice role error:" + str(e))
-                    segments.append(AudioSegment.silent(duration=end_time - start_time))
-        # merge translate audo
+                rate = int(str(config.video['voice_rate']).replace('%', ''))
+                if rate >= 0:
+                    rate = f"+{rate}%"
+                else:
+                    rate = f"{rate}%"
+                queue_tts.append({
+                    "text": text,
+                    "role": config.video['voice_role'],
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "rate": rate,
+                    "startraw": startraw,
+                    "endraw": endraw,
+                    "filename": f"{folder_path}/tts-{start_time}.mp3"})
+        exec_tts(queue_tts, total_length, noextname)
+
+
+# 执行tts并行
+def exec_tts(queue_tts, total_length, noextname):
+    queue_copy = copy.deepcopy(queue_tts)
+    set_process(f"准备进行 {config.video['tts_type']} 语音合成，角色:{config.video['voice_role']}", 'logs')
+
+    def get_item(q):
+        return {"text": q['text'], "role": q['role'], "rate": q['rate'], "filename": q["filename"],
+                "tts_type": config.video['tts_type']}
+
+    # 需要并行的数量3
+    while len(queue_tts) > 0:
+        tolist = [threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0)))]
+        if len(queue_tts) > 0:
+            tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
+        if len(queue_tts) > 0:
+            tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
+
+        for t in tolist:
+            t.start()
+        for t in tolist:
+            t.join()
+    segments = []
+    start_times = []
+    try:
+        novoice_mp4 = config.rootdir + f'/tmp/{noextname}/novoice.mp4'
+        for it in queue_copy:
+            start_times.append(it['start_time'])
+            if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
+                segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
+                set_process(f"[error]: 此 {it['startraw']} - {it['endraw']} 时间段内字幕合成语音失败", 'logs')
+                continue
+            audio_data = AudioSegment.from_file(it['filename'], format="mp3")
+            wavlen = it['end_time'] - it['start_time']
+            mp3len = len(audio_data)
+            if mp3len - wavlen:
+                speed = mp3len / wavlen
+                speed = 2 if speed >2 else speed
+                # 音频加速 最大加速2倍
+                if config.video['voice_autorate']:
+                    logger.info(f"new mp3 length bigger than wav ,speed up {speed} ")
+                    audio_data = speed_change(audio_data, speed)
+                    logger.info(f"change after:{len(audio_data)}")
+
+            segments.append(audio_data)
         merge_audio_segments(segments, start_times, total_length * 1000, noextname)
+    except Exception as e:
+        logger.error("exec_tts 出错了？？？" + str(e))
+        set_process(f"[error]合成语音有出错:"+str(e))
 
 
 # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
-def compos_video(source_mp4, noextname, showprocess):
+def compos_video(source_mp4, noextname):
     folder_path = config.rootdir + f'/tmp/{noextname}'
     sub_name = f"{folder_path}/{noextname}.srt"
     tts_wav = f"{folder_path}/tts-{noextname}.wav"
+    source_wav = f"{folder_path}/{noextname}.wav"
     # target  output mp4 filepath
     target_mp4 = f"{config.video['target_dir']}/{noextname}.mp4"
     if not os.path.exists(f"{config.video['target_dir']}/srt"):
         os.makedirs(f"{config.video['target_dir']}/srt", exist_ok=True)
     shutil.copy(sub_name, f"{config.video['target_dir']}/srt/{noextname}.srt")
     logger.info("准备完毕，开始合成视频，" + target_mp4 + "  " + source_mp4)
-    novoice_mp4 = None
     embed_srt = None
+    # 预先创建好的
     novoice_mp4 = f"{folder_path}/novoice.mp4"
+    pause_time = 0
+    # 判断是否 novice_mp4创建完毕，否则等待10分钟
+    if os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4) == 0:
+        while True:
+            if os.path.getsize(novoice_mp4) > 0:
+                break
+            time.sleep(10)
+            pause_time += 10
+            if pause_time > 500:
+                config.current_status = "stop"
+                config.exec_compos = False
+                set_process(f'[error]:执行失败了，未能预先创建无声视频 {novoice_mp4}', 'logs')
+                return
+
+
     # 需要配音
     if config.video['voice_role'] != 'No':
         if not os.path.exists(tts_wav) or os.path.getsize(tts_wav) == 0:
             print(f"判断tts wav是否存在{tts_wav=}")
-            showprocess(f"{transobj['hechengchucuo']} {tts_wav}", 'logs')
+            set_process(f"[error] 配音文件创建失败: {tts_wav}", 'logs')
             logger.error(f"{transobj['hechengchucuo']} {tts_wav=},size={os.path.getsize(tts_wav)}")
             return
-        runffmpeg([
-            "-y",
-            "-i",
-            f'"{source_mp4}"',
-            "-c:v",
-            # "libx264",
-            "copy",
-            "-an",
-            f'"{novoice_mp4}"'
-        ])
-
+    # 需要字幕
     if config.video['subtitle_type'] > 0 and (not os.path.exists(sub_name) or os.path.getsize(sub_name) == 0):
-        showprocess(f"{transobj['hechengchucuo']} {sub_name}", 'logs')
+        set_process(f"[error]未创建成功有效的字幕文件 {sub_name}", 'logs')
         logger.error(f"{transobj['hechengchucuo']} {sub_name=}")
         return
     if config.video['subtitle_type'] == 1:
         # 硬字幕
         embed_srt = f"{config.rootdir}/{noextname}.srt"
         shutil.copy(sub_name, embed_srt)
-    print(f"开始合成，voice_role={config.video['voice_role']},subtitle_type={config.video['subtitle_type']}")
+
+
+    # 有字幕有配音
     if config.video['voice_role'] != 'No' and config.video['subtitle_type'] > 0:
         if config.video['subtitle_type'] == 1:
             logger.info(f"合成配音+硬字幕")
+            set_process(f"合成配音+硬字幕")
             # 需要配音+硬字幕
             runffmpeg([
                 "-y",
@@ -653,6 +734,7 @@ def compos_video(source_mp4, noextname, showprocess):
             ])
         else:
             logger.info(f"合成配音+软字幕")
+            set_process(f"合成配音+软字幕")
             # 配音+软字幕
             runffmpeg([
                 "-y",
@@ -680,6 +762,7 @@ def compos_video(source_mp4, noextname, showprocess):
     elif config.video['voice_role'] != 'No':
         # 配音无字幕
         logger.info(f"合成配音+无字幕")
+        set_process(f"合成配音，无字幕")
         runffmpeg([
             "-y",
             "-i",
@@ -694,14 +777,17 @@ def compos_video(source_mp4, noextname, showprocess):
             # "pcm_s16le",
             f'"{target_mp4}"'
         ])
-    # 无配音
+    # 无配音 使用 novice.mp4 和 原始 wav合并
     elif config.video['subtitle_type'] == 1:
         # 硬字幕无配音 将原始mp4复制到当前文件夹下
         logger.info(f"合成硬字幕无配音")
+        set_process(f"合成硬字幕，无配音")
         runffmpeg([
             "-y",
             "-i",
-            f'"{source_mp4}"',
+            f'"{novoice_mp4}"',
+            "-i",
+            f'"{source_wav}"',
             "-c:v",
             "libx264",
             # "libx264",
@@ -715,10 +801,13 @@ def compos_video(source_mp4, noextname, showprocess):
     elif config.video['subtitle_type'] == 2:
         # 软字幕无配音
         logger.info(f"合成软字幕")
+        set_process(f"合成软字幕，无配音")
         runffmpeg([
             "-y",
             "-i",
-            f'"{source_mp4}"',
+            f'"{novoice_mp4}"',
+            "-i",
+            f'"{source_wav}"',
             "-sub_charenc",
             "UTF-8",
             "-f",
@@ -727,6 +816,8 @@ def compos_video(source_mp4, noextname, showprocess):
             f'"{sub_name}"',
             "-c:v",
             "libx264",
+            "-c:a",
+            "aac",
             # "libx264",
             "-c:s",
             "mov_text",
@@ -736,3 +827,12 @@ def compos_video(source_mp4, noextname, showprocess):
         ])
     if embed_srt and os.path.exists(embed_srt):
         os.unlink(embed_srt)
+    set_process("视频合成完毕")
+
+
+# 写入日志队列
+def set_process(text, type="logs"):
+    try:
+        queue_logs.put_nowait({"text": text, "type": type})
+    except:
+        pass

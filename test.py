@@ -1,3 +1,4 @@
+import ctypes
 import io
 import json
 import os
@@ -31,7 +32,10 @@ import subprocess
 #         print(f"{text=}")
 
 import os
+import sys
 import winreg
+from ctypes.util import find_library
+
 
 def get_windows_proxy():
     try:
@@ -49,8 +53,5 @@ def get_windows_proxy():
 
     return None
 
-# 获取Windows系统代理信息
-windows_proxy = get_windows_proxy()
 
-# 打印代理信息
-print(f"Windows Proxy: {windows_proxy}")
+print(find_lib)

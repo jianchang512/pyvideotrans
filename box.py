@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 # primary ui
 import datetime
 import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import threading
 import time
@@ -18,13 +18,21 @@ from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog, QMessageBox, QPushButton, \
     QPlainTextEdit, QLabel
 
-import box
 from videotrans.configure import boxcfg
+from videotrans.configure import config as spcfg
 from videotrans.configure.boxcfg import logger, rootdir, homedir, lang_code, cfg
 from videotrans.ui.toolbox import Ui_MainWindow
-from videotrans.util.tools import runffmpeg, transcribe_audio, get_list_voices, create_voice, get_camera_list, get_proxy
+from videotrans.util.tools import transcribe_audio, get_list_voices, get_camera_list, find_lib
+from videotrans.configure.tools import runffmpeg, text_to_speech
 import pyaudio, wave
-import numpy as np
+
+HAS_VLS = None
+try:
+    HAS_VLC = find_lib()
+    if HAS_VLC is not None:
+        import vlc
+except:
+    HAS_VLC = None
 
 
 # 录制
@@ -83,7 +91,7 @@ def grab(queue, filename):
                 start = time.time()
             numFramesCnt += 1
         if printFlag == 1:
-            cv2.putText(img, f" {int(time.time()-start_time)}s, Frame Rate:{int(fps)}", (1, 20), 2, .8, (0, 255, 0))
+            cv2.putText(img, f" {int(time.time() - start_time)}s, Frame Rate:{int(fps)}", (1, 20), 2, .8, (0, 255, 0))
         else:
             cv2.putText(img, "Frame Rate = " + "Acquiring ... ", (1, 20), 2, .8, (0, 255, 0))
 
@@ -230,220 +238,170 @@ class TextGetdir(QPlainTextEdit):
                     result.append(f)
         self.setPlainText("\n".join(result))
 
-try:
-    import vlc
 
+# VLC播放器
+class Player(QtWidgets.QWidget):
+    """A simple Media Player using VLC and Qt
+    """
 
-    # VLC播放器
-    class Player(QtWidgets.QWidget):
-        """A simple Media Player using VLC and Qt
-        """
+    def __init__(self, parent=None):
+        self.first = True
+        self.filepath = None
 
-        def __init__(self, parent=None):
-            self.first = True
-            self.filepath = None
-            super(Player, self).__init__(parent)
+        super(Player, self).__init__(parent)
+        if HAS_VLC:
             self.instance = vlc.Instance()
             self.mediaplayer = self.instance.media_player_new()
-            self.isPaused = False
-            self.setAcceptDrops(True)
+        else:
+            self.instance = None
+            self.mediaplayer = None
+        self.isPaused = False
+        self.setAcceptDrops(True)
 
-            self.createUI()
+        self.createUI()
 
-        def createUI(self):
-            layout = QVBoxLayout()
-            self.widget = QtWidgets.QWidget(self)
-            layout.addWidget(self.widget)
-            self.setLayout(layout)
+    def createUI(self):
+        layout = QVBoxLayout()
+        self.widget = QtWidgets.QWidget(self)
+        layout.addWidget(self.widget)
+        self.setLayout(layout)
 
-            self.videoframe = QtWidgets.QFrame()
-            self.videoframe.setToolTip("拖动视频到此播放或者双击选择视频")
-            self.palette = self.videoframe.palette()
-            self.palette.setColor(QtGui.QPalette.Window,
-                                  QtGui.QColor(0, 0, 0))
-            self.videoframe.setPalette(self.palette)
-            self.videoframe.setAutoFillBackground(True)
+        self.videoframe = QtWidgets.QFrame()
+        self.videoframe.setToolTip("拖动视频到此或者双击选择视频" + (",安装VLC解码器后可预览播放" if not HAS_VLC else ""))
+        self.palette = self.videoframe.palette()
+        self.palette.setColor(QtGui.QPalette.Window,
+                              QtGui.QColor(0, 0, 0))
+        self.videoframe.setPalette(self.palette)
+        self.videoframe.setAutoFillBackground(True)
 
-            self.positionslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-            self.positionslider.setToolTip("进度")
-            self.positionslider.setMaximum(1000)
+        self.positionslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
+        self.positionslider.setToolTip("进度")
+        self.positionslider.setMaximum(1000)
+
+        self.hbuttonbox = QtWidgets.QHBoxLayout()
+        self.playbutton = QtWidgets.QPushButton("点击播放" if HAS_VLC else "安装VLC解码器后可预览播放")
+        self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
+        self.hbuttonbox.addWidget(self.playbutton)
+
+        self.selectbutton = QtWidgets.QPushButton("选择一个视频")
+        self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
+        self.hbuttonbox.addWidget(self.selectbutton)
+        self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
+
+        if HAS_VLC:
             self.positionslider.sliderMoved.connect(self.setPosition)
-
-            self.hbuttonbox = QtWidgets.QHBoxLayout()
-            self.playbutton = QtWidgets.QPushButton("点击播放")
-            self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
-            self.hbuttonbox.addWidget(self.playbutton)
-            self.selectbutton = QtWidgets.QPushButton("选择一个视频")
-            self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
-            self.hbuttonbox.addWidget(self.selectbutton)
             self.playbutton.clicked.connect(self.PlayPause)
-            self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
+        else:
+            self.novlcshowvideo = QtWidgets.QLabel()
+            self.novlcshowvideo.setStyleSheet("""color:rgb(255,255,255)""")
+            self.hbuttonbox.addWidget(self.novlcshowvideo)
 
-            self.hbuttonbox.addStretch(1)
-            self.volumeslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-            self.volumeslider.setMaximum(100)
-            self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-            self.volumeslider.setToolTip("调节音量")
-            self.hbuttonbox.addWidget(self.volumeslider)
+        self.hbuttonbox.addStretch(1)
+        self.volumeslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
+        self.volumeslider.setMaximum(100)
+        self.volumeslider.setToolTip("调节音量")
+        self.hbuttonbox.addWidget(self.volumeslider)
+        if HAS_VLC:
             self.volumeslider.valueChanged.connect(self.setVolume)
+            self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
 
-            self.vboxlayout = QtWidgets.QVBoxLayout()
-            self.vboxlayout.addWidget(self.videoframe)
-            self.vboxlayout.addWidget(self.positionslider)
-            self.vboxlayout.addLayout(self.hbuttonbox)
+        self.vboxlayout = QtWidgets.QVBoxLayout()
+        self.vboxlayout.addWidget(self.videoframe)
+        self.vboxlayout.addWidget(self.positionslider)
+        self.vboxlayout.addLayout(self.hbuttonbox)
 
-            self.widget.setLayout(self.vboxlayout)
-
+        self.widget.setLayout(self.vboxlayout)
+        if HAS_VLC:
             self.timer = QtCore.QTimer(self)
-
             self.timer.setInterval(200)
             self.timer.timeout.connect(self.updateUI)
 
-        def mouseDoubleClickEvent(self, e=None):
-            fname, _ = QFileDialog.getOpenFileName(self, "打开视频文件", os.path.expanduser('~') + "\\Videos",
-                                                   "Video files(*.mp4 *.avi *.mov)")
-            if fname:
-                self.OpenFile(fname)
+    def mouseDoubleClickEvent(self, e=None):
+        fname, _ = QFileDialog.getOpenFileName(self, "打开视频文件", os.path.expanduser('~') + "\\Videos",
+                                               "Video files(*.mp4 *.avi *.mov)")
+        if fname:
+            self.OpenFile(fname)
 
-        def dragEnterEvent(self, event):
-            print(event.mimeData().text())
-            ext = event.mimeData().text().lower().split('.')[1]
-            print(f"{ext=}")
-            if ext in ["mp4", "avi", "mov"]:
-                event.accept()
-            else:
-                event.ignore()
+    def dragEnterEvent(self, event):
+        print(event.mimeData().text())
+        ext = event.mimeData().text().lower().split('.')[1]
+        print(f"{ext=}")
+        if ext in ["mp4", "avi", "mov"]:
+            event.accept()
+        else:
+            event.ignore()
 
-        def dropEvent(self, event):
-            filepath = event.mimeData().text()
-            self.OpenFile(filepath.replace('file:///', ''))
+    def dropEvent(self, event):
+        filepath = event.mimeData().text()
+        self.OpenFile(filepath.replace('file:///', ''))
 
-        def PlayPause(self):
-            if self.filepath is None:
-                return self.mouseDoubleClickEvent()
-            if self.mediaplayer.get_state() == vlc.State.Playing:
-                self.mediaplayer.pause()
-                self.playbutton.setText("播放")
-            else:
-                if self.mediaplayer.play() == -1:
-                    time.sleep(0.2)
-                    # self.OpenFile()
-                    return
-
-                self.timer.start()
-                self.mediaplayer.play()
-                self.playbutton.setText("暂停")
-
-        def OpenFile(self, filepath=None):
-            if filepath is not None:
-                self.filepath = filepath
-            elif self.filepath is None:
+    def PlayPause(self):
+        if not self.mediaplayer:
+            return
+        if self.filepath is None:
+            return self.mouseDoubleClickEvent()
+        if self.mediaplayer.get_state() == vlc.State.Playing:
+            self.mediaplayer.pause()
+            self.playbutton.setText("播放")
+        else:
+            if self.mediaplayer.play() == -1:
+                time.sleep(0.2)
                 return
-            self.media = self.instance.media_new(self.filepath)
-            self.mediaplayer.set_media(self.media)
 
-            self.media.parse()
-            # self.setWindowTitle(self.media.get_meta(0))
+            self.timer.start()
+            self.mediaplayer.play()
+            self.playbutton.setText("暂停")
 
-            if sys.platform.startswith('linux'):  # for Linux using the X Server
-                self.mediaplayer.set_xwindow(self.videoframe.winId())
-            elif sys.platform == "win32":  # for Windows
-                self.mediaplayer.set_hwnd(self.videoframe.winId())
-            elif sys.platform == "darwin":  # for MacOS
-                self.mediaplayer.set_nsobject(int(self.videoframe.winId()))
-            self.PlayPause()
+    def OpenFile(self, filepath=None):
+        if filepath is not None:
+            self.filepath = filepath
+        elif self.filepath is None:
+            return
+        if not self.mediaplayer:
+            print(self.filepath)
+            self.novlcshowvideo.setText(self.filepath)
+            return
 
-        def setVolume(self, Volume):
-            self.mediaplayer.audio_set_volume(Volume)
+        self.media = self.instance.media_new(self.filepath)
+        self.mediaplayer.set_media(self.media)
+        self.media.parse()
+        if sys.platform.startswith('linux'):  # for Linux using the X Server
+            self.mediaplayer.set_xwindow(self.videoframe.winId())
+        elif sys.platform == "win32":  # for Windows
+            self.mediaplayer.set_hwnd(self.videoframe.winId())
+        elif sys.platform == "darwin":  # for MacOS
+            self.mediaplayer.set_nsobject(int(self.videoframe.winId()))
+        self.PlayPause()
 
-        def setPosition(self, position):
-            print(f"{position=}")
-            self.mediaplayer.set_position(position / 1000.0)
+    def setVolume(self, Volume):
+        self.mediaplayer.audio_set_volume(Volume)
 
-        def updateUI(self):
-            percent = int(self.mediaplayer.get_position() * 1000)
-            self.positionslider.setValue(percent)
-            # 打开时先暂停
-            # if self.first and self.mediaplayer.get_state() == vlc.State.Playing:
-            #     self.first = False
-            #     self.mediaplayer.pause()
-            #     self.playbutton.setText("播放")
+    def setPosition(self, position):
+        print(f"{position=}")
+        self.mediaplayer.set_position(position / 1000.0)
 
-            # 结束重放
-            if self.mediaplayer.get_state() == vlc.State.Ended:
-                self.setPosition(0.0)
-                self.positionslider.setValue(0)
-                self.playbutton.setText("播放")
-                print("播放完毕停止了")
-                self.timer.stop()
-                self.mediaplayer.stop()
-                self.OpenFile()
-
-except Exception as e:
-    logger.error("VLC:"+str(e))
-    class Player(QtWidgets.QWidget):
-        """A simple Media Player using VLC and Qt
-        """
-
-        def __init__(self, parent=None):
-            self.first = True
-            self.filepath = None
-            super(Player, self).__init__(parent)
-            self.isPaused = False
-            self.setAcceptDrops(True)
-            self.createUI()
-
-        def createUI(self):
-            layout = QVBoxLayout()
-            self.widget = QtWidgets.QWidget(self)
-            layout.addWidget(self.widget)
-            self.setLayout(layout)
-
-            self.videoframe = QtWidgets.QFrame()
-            self.videoframe.setToolTip("需要安装VLC解码器")
-            self.palette = self.videoframe.palette()
-            self.palette.setColor(QtGui.QPalette.Window,
-                                  QtGui.QColor(0, 0, 0))
-            self.videoframe.setPalette(self.palette)
-            self.videoframe.setAutoFillBackground(True)
-
-            self.positionslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-            self.positionslider.setToolTip("进度")
-            self.positionslider.setMaximum(1000)
-
-            self.hbuttonbox = QtWidgets.QHBoxLayout()
-            self.playbutton = QtWidgets.QPushButton("请安装VLC解码器")
-            self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
-            self.hbuttonbox.addWidget(self.playbutton)
-            self.selectbutton = QtWidgets.QPushButton("请安装VLC解码器")
-            self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
-            self.hbuttonbox.addWidget(self.selectbutton)
-
-            self.hbuttonbox.addStretch(1)
-            self.volumeslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-            self.volumeslider.setMaximum(100)
-            # self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-            self.volumeslider.setToolTip("调节音量")
-            self.hbuttonbox.addWidget(self.volumeslider)
-
-            self.vboxlayout = QtWidgets.QVBoxLayout()
-            self.vboxlayout.addWidget(self.videoframe)
-            self.vboxlayout.addWidget(self.positionslider)
-            self.vboxlayout.addLayout(self.hbuttonbox)
-
-            self.widget.setLayout(self.vboxlayout)
+    def updateUI(self):
+        percent = int(self.mediaplayer.get_position() * 1000)
+        self.positionslider.setValue(percent)
+        # 结束重放
+        if self.mediaplayer.get_state() == vlc.State.Ended:
+            self.setPosition(0.0)
+            self.positionslider.setValue(0)
+            self.playbutton.setText("播放")
+            print("播放完毕停止了")
+            self.timer.stop()
+            self.mediaplayer.stop()
+            self.OpenFile()
 
 
 # 执行 ffmpeg 线程
 class Worker(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, cmd_list, func_name="",parent=None):
+    def __init__(self, cmd_list, func_name="", parent=None):
         super(Worker, self).__init__(parent)
         self.cmd_list = cmd_list
         self.func_name = func_name
-
-
 
     def run(self):
         print(self.cmd_list)
@@ -464,7 +422,7 @@ class Worker(QThread):
 class WorkerWhisper(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, audio_path, model, language, func_name,parent=None):
+    def __init__(self, audio_path, model, language, func_name, parent=None):
         super(WorkerWhisper, self).__init__(parent)
         self.func_name = func_name
         self.audio_path = audio_path
@@ -483,16 +441,18 @@ class WorkerWhisper(QThread):
 class WorkerTTS(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, text, role, rate, filename, func_name,parent=None):
+    def __init__(self, text, role, rate, filename, tts_type, func_name, parent=None):
         super(WorkerTTS, self).__init__(parent)
         self.func_name = func_name
         self.text = text
         self.role = role
         self.rate = rate
         self.filename = filename
+        self.tts_type = tts_type
 
     def run(self):
-        text = create_voice(self.text, self.role, self.rate, self.filename)
+        text = text_to_speech(text=self.text, role=self.role, rate=self.rate, filename=self.filename,
+                              tts_type=self.tts_type)
         self.post_message("end", text)
 
     def post_message(self, type, text):
@@ -503,7 +463,7 @@ class WorkerTTS(QThread):
 class WorkerVideo(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, filename, func_name, is_video, is_audio,parent=None):
+    def __init__(self, filename, func_name, is_video, is_audio, parent=None):
         super(WorkerVideo, self).__init__(parent)
         self.func_name = func_name
         self.filename = filename
@@ -555,16 +515,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
-        self.setWindowTitle("视频工具箱 V0.9.0 - wonyes.org")
+        self.setWindowTitle("视频工具箱 V0.9.1 wonyes.org")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
         boxcfg.enable_cuda = self.settings.value("enable_cuda", False, bool)
 
-
         # tab-1
         self.yspfl_video_wrap = Player(self)
-            
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -584,7 +542,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ysphb_selectwav.clicked.connect(lambda: self.ysphb_select_fun("wav"))
         self.ysphb_selectsrt.clicked.connect(lambda: self.ysphb_select_fun("srt"))
         self.ysphb_startbtn.clicked.connect(self.ysphb_start_fun)
-        self.ysphb_opendir.clicked.connect(lambda :self.opendir_fn(os.path.dirname(self.ysphb_out.text())))
+        self.ysphb_opendir.clicked.connect(lambda: self.opendir_fn(os.path.dirname(self.ysphb_out.text())))
 
         # tab-3 语音识别 先添加按钮
         self.shibie_dropbtn = DropButton("点击选择或拖拽音视频文件到此处")
@@ -616,6 +574,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_language.currentTextChanged.connect(self.hecheng_language_fun)
         self.hecheng_startbtn.clicked.connect(self.hecheng_start_fun)
         self.hecheng_opendir.clicked.connect(lambda: self.opendir_fn(self.hecheng_out.text().strip()))
+        # 设置 tts_type
+        self.tts_type.addItems(spcfg.video['tts_type_list'])
+        # tts_type 改变时，重设角色
+        self.tts_type.currentTextChanged.connect(self.tts_type_change)
 
         # tab-5 格式转换
         self.geshi_input = TextGetdir()
@@ -656,6 +618,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
+        self.tabWidget.tabBarClicked.connect(self.tabchange_fun)
+
+    def tabchange_fun(self, index):
+        print(f"{index=}")
+        if index == 5:
+            threading.Thread(target=get_camera_list).start()
 
     def opendir_fn(self, dirname=None):
         if not dirname:
@@ -716,7 +684,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         video_out = f"{homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
-        self.yspfl_task = Worker([f' -y -i "{file}" -an "{video_out}/{basename}.mp4" "{video_out}/{basename}.wav"'],"yspfl_end",self)
+        self.yspfl_task = Worker([f' -y -i "{file}" -an "{video_out}/{basename}.mp4" "{video_out}/{basename}.wav"'],
+                                 "yspfl_end", self)
         self.yspfl_task.update_ui.connect(self.receiver)
         self.yspfl_task.start()
         self.yspfl_startbtn.setText("执行中...")
@@ -787,15 +756,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
         cmd += f" {savedir}/{basename}.mp4"
-        self.ysphb_task = Worker([cmd], "ysphb_end",self)
+        self.ysphb_task = Worker([cmd], "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
         self.ysphb_startbtn.setText("执行中...")
         self.ysphb_startbtn.setDisabled(True)
         self.ysphb_out.setText(f" {savedir}/{basename}.mp4")
         self.ysphb_opendir.setDisabled(True)
-
-
 
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
@@ -815,7 +782,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 self.shibie_dropbtn.setText(out_file)
                 self.shibie_ffmpeg_task = Worker([f' -y -i "{file}" -vn -c:a aac "{out_file}"'],
-                                                 "shibie_next",self)
+                                                 "shibie_next", self)
                 self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
             except Exception as e:
@@ -832,7 +799,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file = self.shibie_dropbtn.text()
         model = self.shibie_model.currentText()
         print(f"{file=}")
-        self.shibie_task = WorkerWhisper(file, model, lang_code[self.shibie_language.currentText()][0], "shibie_end",self)
+        self.shibie_task = WorkerWhisper(file, model, lang_code[self.shibie_language.currentText()][0], "shibie_end",
+                                         self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
@@ -868,11 +836,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         language = self.hecheng_language.currentText()
         role = self.hecheng_role.currentText()
         rate = int(self.hecheng_rate.value())
+        tts_type = self.tts_type.currentText()
 
         if not txt:
             return QMessageBox.critical(self, "出错了", "内容不能为空")
         if language == '-' or role == 'No':
             return QMessageBox.critical(self, "出错了", "语言和角色必须选择")
+        if tts_type == 'openaiTTS' and not spcfg.video['chatgpt_key']:
+            return QMessageBox.critical(self, "出错了", "必须设置chatGPT key")
+        elif tts_type == 'coquiTTS' and not spcfg.video['coquitts_key']:
+            return QMessageBox.critical(self, "出错了", "必须设置 coquiTTS key")
 
         if not os.path.exists(f"{homedir}/tts"):
             os.makedirs(f"{homedir}/tts", exist_ok=True)
@@ -881,15 +854,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rate = f"+{rate}%"
         else:
             rate = f"-{rate}%"
-        self.hecheng_task = WorkerTTS(txt, role, rate, wavname, "hecheng_end",self)
+        self.hecheng_task = WorkerTTS(txt, role, rate, wavname, self.tts_type, "hecheng_end", self)
         self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText("执行中...")
         self.hecheng_startbtn.setDisabled(True)
         self.hecheng_out.setText(wavname + ".wav")
 
+    # tts类型改变
+    def tts_type_change(self, type):
+        if type == "openaiTTS":
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(spcfg.video['openaitts_role'].split(","))
+        elif type == 'coquiTTS':
+            self.hecheng_role.addItems(spcfg.video['coquitts_role'].split(","))
+        elif type == 'edgeTTS':
+            self.hecheng_language_fun(self.hecheng_language.currentText())
+
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(self, t):
+        if self.tts_type.currentText() != "edgeTTS":
+            return
         self.hecheng_role.clear()
         print(f"{t=}")
         if t == '-':
@@ -949,7 +934,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.geshi_result.insertPlainText("全部转换完成")
             self.disabled_geshi(False)
             return
-        self.geshi_task = Worker(cmdlist, "geshi_end",self)
+        self.geshi_task = Worker(cmdlist, "geshi_end", self)
         self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
 
@@ -997,15 +982,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.cnt == 0:
                 self.cnt = 1
             self.luzhi_tips.setText("正在录制视频和音频...")
-            # boxcfg.luzhicfg['capture_thread'] = threading.Thread(target=grab, args=(boxcfg.luzhicfg['queue'],self.thefilename,start_audio,))
-            # boxcfg.luzhicfg['capture_thread'].start()
         elif boxcfg.luzhicfg['camindex'] >= 0:
             self.luzhi_tips.setText("正在录制视频...")
         elif start_audio:
             self.luzhi_tips.setText("正在录制音频...")
             boxcfg.luzhicfg['audio_thread'] = threading.Thread(target=listen, args=(self.thefilename,))
             boxcfg.luzhicfg['audio_thread'].start()
-        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio,self)
+        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio,  self)
         self.luzhi_task.update_ui.connect(self.receiver)
         self.luzhi_task.start()
 
@@ -1063,10 +1046,11 @@ if __name__ == "__main__":
     main = MainWindow()
     if sys.platform == 'win32':
         import qdarkstyle
+
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main.show()
     # threading.Thread(target=get_camera_list).start()
-    get_proxy(True)
+    set_proxy()
     if shutil.which('ffmpeg') is None:
         QMessageBox.critical(main, "温馨提示", "未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量")
 
