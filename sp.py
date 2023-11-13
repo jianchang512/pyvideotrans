@@ -22,6 +22,7 @@ from videotrans.configure import config
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.baidu import Ui_baiduform
 
+from videotrans.util.tools import find_lib
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
 else:
@@ -696,9 +697,19 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 
+def is_vlc():
+    try:
+        if find_lib() is None:
+            config.is_vlc=False
+        else:
+            config.is_vlc=True
+    except:
+        config.is_vlc=False
+
 
 if __name__ == "__main__":
     threading.Thread(target=set_voice_list).start()
+    threading.Thread(target=is_vlc).start()
     app = QApplication(sys.argv)
     main = MainWindow()
     try:
