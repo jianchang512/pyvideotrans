@@ -36,6 +36,10 @@ import sys
 import winreg
 from ctypes.util import find_library
 
+import requests
+from PyQt5.QtCore import QUrl, QThread
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+
 
 def get_windows_proxy():
     try:
@@ -53,5 +57,15 @@ def get_windows_proxy():
 
     return None
 
+class W1(QThread):
+    def __init__(self):
+        super(W1, self).__init__()
+    def run(self) -> None:
+        mediaPlayer = QMediaPlayer()
+        url = QUrl.fromLocalFile(r'C:\Users\c1\Videos\_video_out\1.mp3')
+        content = QMediaContent(url)
+        mediaPlayer.setMedia(content)
+        mediaPlayer.play()
 
-print(find_lib)
+w=W1()
+w.start()

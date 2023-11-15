@@ -177,6 +177,20 @@
               </item>
              </layout>
             </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QPushButton" name="listen_btn">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>listen voice</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
            </layout>
           </item>
           <item>
@@ -620,6 +634,8 @@ background-color: rgba(255, 255, 255, 0);</string>
     <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
     <addaction name="separator"/>
+    <addaction name="actiondeepLX_address"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -697,6 +713,11 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="action_clone">
    <property name="text">
     <string>Voice Clone</string>
+   </property>
+  </action>
+  <action name="actiondeepLX_address">
+   <property name="text">
+    <string>DeepLX address</string>
    </property>
   </action>
  </widget>
