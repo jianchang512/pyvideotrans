@@ -5,7 +5,7 @@ import os
 import warnings
 
 warnings.filterwarnings('ignore')
-from videotrans.configure.tools import get_list_voices, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
+from videotrans.configure.tools import get_edge_rolelist, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
 from videotrans.configure import config
 from videotrans.configure.language import clilanglist
 
@@ -16,7 +16,7 @@ def lower(string):
 
 
 # voice role list
-config.voice_list = get_list_voices()
+config.voice_list = get_edge_rolelist()
 # voice role by current language
 voice_role_lower = []
 

@@ -20,10 +20,12 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog,
 
 from videotrans.configure import boxcfg
 from videotrans.configure import config as spcfg
-from videotrans.configure.boxcfg import logger, rootdir, homedir, lang_code, cfg
+from videotrans.configure.language import language_code_list
+from videotrans.configure.config import logger, rootdir, homedir
 from videotrans.ui.toolbox import Ui_MainWindow
-from videotrans.util.tools import transcribe_audio, get_list_voices, get_camera_list, find_lib
-from videotrans.configure.tools import runffmpeg, text_to_speech, set_proxy
+from videotrans.util.tools import transcribe_audio, get_camera_list
+from videotrans.configure.tools import text_to_speech, set_proxy, runffmpeg, get_edge_rolelist
+
 import pyaudio, wave
 
 if spcfg.is_vlc:
@@ -31,6 +33,8 @@ if spcfg.is_vlc:
         import vlc
     except:
         spcfg.is_vlc = False
+
+
         class vlc():
             pass
 
@@ -408,7 +412,9 @@ class Worker(QThread):
         for cmd in self.cmd_list:
             logger.info(f"Will execute: ffmpeg {cmd}")
             try:
+                print('============')
                 runffmpeg(cmd)
+                print('@@@@@@@@@@@@@@')
                 m = re.search(r"-i\s\"?(.*?)\"?\s", cmd, re.I | re.S)
                 self.post_message("end", f"{'' if not m or not m.group(1) else m.group(1)}完成\n")
             except Exception as e:
@@ -451,8 +457,15 @@ class WorkerTTS(QThread):
         self.tts_type = tts_type
 
     def run(self):
-        text = text_to_speech(text=self.text, role=self.role, rate=self.rate, filename=self.filename,
-                              tts_type=self.tts_type)
+        print(f"start hecheng {self.tts_type=},{self.role=},{self.rate=},{self.filename=}")
+        text = text_to_speech(
+            text=self.text,
+            role=self.role,
+            rate=self.rate,
+            filename=self.filename,
+            tts_type=self.tts_type
+        )
+        print(f"text={text}")
         self.post_message("end", text)
 
     def post_message(self, type, text):
@@ -509,13 +522,33 @@ class WorkerVideo(QThread):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 
+# 检测摄像头
+class WorkerCamera(QThread):
+    upui = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super(WorkerCamera, self).__init__(parent)
+
+    def run(self):
+        while True:
+            try:
+                get_camera_list()
+                if len(boxcfg.camera_list) > 0:
+                    self.upui.connect(json.dumps({"func_name": "check_camera", "type": "end", "text": "检测完毕"}))
+                else:
+                    self.upui.connect(json.dumps({"func_name": "check_camera", "type": "no", "text": "检测完毕,无可用摄像头"}))
+                break
+            except:
+                time.sleep(30)
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
-        self.setWindowTitle("视频工具箱 V0.9.1 wonyes.org")
+        self.setWindowTitle("视频工具箱 V0.9.2 wonyes.org")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -555,7 +588,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-        self.langauge_name = list(lang_code.keys())
+        self.langauge_name = list(language_code_list["zh"].keys())
         self.shibie_language.addItems(self.langauge_name)
         self.shibie_model.addItems(["base", "small", "medium", "large", "large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
@@ -625,10 +658,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.check_task.start()
 
     def render_play(self, t):
-        print(t)
         if t != 'ok':
             return
-        import vlc
         self.yspfl_video_wrap.close()
         self.yspfl_video_wrap = None
         self.yspfl_video_wrap = Player(self)
@@ -641,8 +672,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.yspfl_video_wrap.setStyleSheet("""background-color:rgb(10,10,10)""")
         self.yspfl_video_wrap.setAcceptDrops(True)
 
+    # 获取摄像头
     def tabchange_fun(self, index):
-        print(f"{index=}")
         if index == 5:
             threading.Thread(target=get_camera_list).start()
 
@@ -684,9 +715,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_startbtn.setText("执行完成" if data['type'] == 'end' else "执行出错")
             self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
-            cfg['geshi_num'] -= 1
+            boxcfg.geshi_num -= 1
             self.geshi_result.insertPlainText(data['text'])
-            if cfg['geshi_num'] <= 0:
+            if boxcfg.geshi_num <= 0:
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText("全部转换完成")
         elif data['func_name'] == 'luzhi_end':
@@ -695,6 +726,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.luzhi_opendir.setText("打开输出目录")
             self.luzhi_out.setText(data['text'])
             self.luzhi_tips.setText("本次录制完成")
+        elif data['func_name'] == 'check_camer':
+            self.luzhi_camera.clear()
+            if boxcfg.camera_list > 0:
+                self.luzhi_camera.addItems(["不使用摄像头"] + [f"{i}号摄像头" for i in boxcfg.camera_list])
+                self.luzhi_camera.setDisabled(False)
+            else:
+                self.luzhi_camera.addItems(["未检测到可用摄像头"])
+                self.luzhi_camera.setDisabled(True)
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -802,7 +841,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out_file = f"{homedir}/tmp/{basename}.wav"
             try:
                 self.shibie_dropbtn.setText(out_file)
-                self.shibie_ffmpeg_task = Worker([f' -y -i "{file}" -vn -c:a aac "{out_file}"'],
+                self.shibie_ffmpeg_task = Worker([f' -y -i "{file}" -ar 8000  "{out_file}"'],
                                                  "shibie_next", self)
                 self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
@@ -820,8 +859,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file = self.shibie_dropbtn.text()
         model = self.shibie_model.currentText()
         print(f"{file=}")
-        self.shibie_task = WorkerWhisper(file, model, lang_code[self.shibie_language.currentText()][0], "shibie_end",
-                                         self)
+        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0],
+                                         "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
@@ -870,17 +909,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if not os.path.exists(f"{homedir}/tts"):
             os.makedirs(f"{homedir}/tts", exist_ok=True)
-        wavname = f"{homedir}/tts/tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        wavname = f"{homedir}/tts/tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"-{rate}%"
-        self.hecheng_task = WorkerTTS(txt, role, rate, wavname, self.tts_type, "hecheng_end", self)
+        if self.tts_issrt.isChecked():
+            newtxt = []
+            for it in txt.strip().split("\n"):
+                it = it.strip()
+                if re.match(r'^\d+$', it):
+                    continue
+                if re.match(r'^\d[\d,:>\s-]+\d$', it):
+                    continue
+                newtxt.append(it)
+            txt = "\n".join(newtxt)
+        print(txt)
+        self.hecheng_task = WorkerTTS(txt, role, rate, wavname, self.tts_type.currentText(), "hecheng_end", self)
         self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText("执行中...")
         self.hecheng_startbtn.setDisabled(True)
-        self.hecheng_out.setText(wavname + ".wav")
+        self.hecheng_out.setText(wavname)
 
     # tts类型改变
     def tts_type_change(self, type):
@@ -901,13 +951,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        voice_list = get_list_voices()
+        voice_list = get_edge_rolelist()
         if not voice_list:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, "出错了", '未获取到角色列表')
             return
         try:
-            vt = lang_code[t][0].split('-')[0]
+            vt = language_code_list['zh'][t][0].split('-')[0]
             print(f"{vt=}")
             if vt not in voice_list:
                 self.hecheng_role.addItems(['No'])
@@ -933,7 +983,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, "出错了", "不存在有效文件")
         self.geshi_input.setPlainText("\n".join(filelist_vail))
         self.disabled_geshi(True)
-        cfg['geshi_num'] = len(filelist_vail)
+        boxcfg.geshi_num = len(filelist_vail)
         cmdlist = []
         savedir = f"{homedir}/conver"
         if not os.path.exists(savedir):
@@ -942,12 +992,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             basename = os.path.basename(it)
             ext_this = basename.split('.')[-1].lower()
             if ext == ext_this:
-                cfg['geshi_num'] -= 1
+                boxcfg.geshi_num -= 1
                 self.geshi_result.insertPlainText(f"{it} 无需转为 {ext}")
                 continue
             if ext_this in ["wav", "mp3"] and ext in ["mp4", "mov", "avi"]:
                 self.geshi_result.insertPlainText(f"{it} 音频不可转为 {ext}视频")
-                cfg['geshi_num'] -= 1
+                boxcfg.geshi_num -= 1
                 continue
             cmdlist.append(f'-y -i "{it}" "{savedir}/{basename}.{ext}"')
 
@@ -969,13 +1019,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tab-6 设置可用摄像头
     def luzhi_set_caplist(self):
-        print("set 高亮进入@@@@@@@@@@@@@@@@@@@@")
-        print("set 重新获取")
-        get_camera_list()
-        self.luzhi_camera.clear()
-        print(boxcfg.camera_list)
-        self.luzhi_camera.addItems(["不使用摄像头"] + [f"{i}号摄像头" for i in boxcfg.camera_list])
-        self.luzhi_camera.setDisabled(False)
+        self.check_camera_task = WorkerCamera(self)
+        self.check_camera_task.upui.connect(self.receiver)
+        self.check_camera_task.start()
 
     # 选择摄像头变化
     def luzhi_toggle_camera_fun(self, index):
@@ -1057,7 +1103,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
-    threading.Thread(target=get_list_voices)
+    threading.Thread(target=get_edge_rolelist)
 
     if not os.path.exists(homedir):
         os.makedirs(homedir, exist_ok=True)

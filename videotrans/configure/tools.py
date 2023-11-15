@@ -11,6 +11,8 @@ import time
 
 import speech_recognition as sr
 import os
+
+import whisper
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 from pydub import AudioSegment
@@ -70,12 +72,13 @@ def delete_temp(noextname=""):
 
 
 #  get role by edge tts
-def get_list_voices():
+def get_edge_rolelist():
     voice_list = {}
     if os.path.exists(config.rootdir + "/voice_list.json"):
         try:
             voice_list = json.load(open(config.rootdir + "/voice_list.json", "r", encoding="utf-8"))
             if len(voice_list) > 0:
+                config.edgeTTS_rolelist = voice_list
                 return voice_list
         except:
             pass
@@ -88,6 +91,7 @@ def get_list_voices():
         else:
             voice_list[prefix].append(name)
     json.dump(voice_list, open(config.rootdir + "/voice_list.json", "w"))
+    config.edgeTTS_rolelist = voice_list
     return voice_list
 
 
@@ -163,43 +167,54 @@ def speed_change(sound, speed=1.0):
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
 
-def runffmpeg(arg, *, asy=False):
-    logger.info("Will execute: ffmpeg " + " ".join(arg))
-    # arg是list并且需异步
-    if asy:
-        newcmd = "ffmpeg -hide_banner " + (" ".join(arg) if isinstance(arg, list) else arg)
-        if config.video['enable_cuda']:
-            newcmd += "-hwaccel cuda"
-        logger.info(f"执行 异步ffmpeg命令：{newcmd}")
-        try:
-            subprocess.run(newcmd, stdout=subprocess.PIPE)
-        except Exception as e:
-            logger.error(f"执行异步ffmpeg失败，命令是:{newcmd=}")
-        return
+def runffmpeg(arg, *, noextname=None):
+    # 不需要返回结果，是通过新开 thread 调用
+    # if asy:
+    #     newcmd = "ffmpeg -hide_banner " + (" ".join(arg) if isinstance(arg, list) else arg)
+    #     if config.video['enable_cuda']:
+    #         newcmd += "-hwaccel cuda"
+    #     logger.info(f"【{noextname}】执行 异步ffmpeg命令：{newcmd}")
+    #     res = "ing"
+    #     if noextname:
+    #         config.queue_novice[noextname] = res
+    #     try:
+    #         subprocess.run(newcmd, stdout=subprocess.PIPE)
+    #         res = "end"
+    #         logger.info(f"异步ffmpeg执行成功")
+    #     except Exception as e:
+    #         res = "error"
+    #         logger.error(f"执行异步ffmpeg失败，命令是:{newcmd=}")
+    #     if noextname:
+    #         config.queue_novice[noextname] = res
+    #         logger.info(f"异步ffmpeg 执行外币，设置noextname={noextname}, {config.queue_novice[noextname]=}")
+    #     return
 
+    # 需要返回结果： 异步执行 ffmpeg，但同步阻塞等待，直到成功或失败返回
     cmd = "ffmpeg -hide_banner "
     if config.video['enable_cuda']:
         cmd += " -hwaccel cuda "
     if isinstance(arg, list):
         arg = " ".join(arg)
     cmd += arg
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    logger.info(f"runffmpeg Will execute: {cmd=}")
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+    if noextname:
+        config.queue_novice[noextname] = 'ing'
 
     while True:
         try:
-            if config.current_status == 'stop':
+            if config.ffmpeg_status == 'stop':
+                print("========需要停止")
+                set_process(f"ffmpeg停止了")
                 p.kill()
-                return
-            print(f"ffmpeg执行状态:{'执行中' if p.poll() is None else '已结束'}")
             rs = p.wait(1)
-            print(f"执行结果:{'成功' if rs == 0 else '失败'}")
-            if p.returncode != 0:
-                logger.error(f"FFmepg exec error:{rs=},{p.returncode=}")
-                break
+            if noextname:
+                config.queue_novice[noextname] = "end" if rs==0 else 'error'
+            if rs !=0:
+                set_process(f"[error]ffmpeg执行结果:失败")
             return True
         except Exception as e:
             print("ffmpeg 等待中:" + str(e))
-    raise Exception("ffmpeg exec error")
 
 
 # 文字合成
@@ -234,7 +249,7 @@ def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
         os.makedirs(tmp_path, 0o777, exist_ok=True)
     r = sr.Recognizer()
 
-    if os.path.exists(sub_name) or os.path.getsize(sub_name) == 0:
+    if not os.path.exists(sub_name) or os.path.getsize(sub_name) == 0:
         normalized_sound = AudioSegment.from_wav(aud_path)  # -20.0
         total_length = len(normalized_sound) / 1000
         nonslient_file = f'{tmp_path}/detected_voice.json'
@@ -402,10 +417,9 @@ def show_popup(title, text):
 
 # noextname 是去掉 后缀mp4的视频文件名字
 # 所有临时文件保存在 /tmp/noextname文件夹下
-
-def get_large_audio_transcription(noextname):
-
-
+# 分批次读取
+def recognition_translation_split(noextname):
+    set_process("准备分割数据后进行语音识别")
     folder_path = config.rootdir + f'/tmp/{noextname}'
     aud_path = folder_path + f"/{noextname}.wav"
     sub_name = folder_path + f"/{noextname}.srt"
@@ -439,7 +453,7 @@ def get_large_audio_transcription(noextname):
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
 
-    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+
     # subtitle
     subs = []
     r = sr.Recognizer()
@@ -499,6 +513,7 @@ def get_large_audio_transcription(noextname):
                 elif config.video['translate_type'] == 'DeepL':
                     result = deepltrans(text, config.video['target_language_deepl'])
                 elif config.video['translate_type'] == 'chatGPT':
+                    result = chatgpttrans(text)
                     logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
                     sub = srt.Subtitle(index=index, start=start, end=end, content=text)
                     subs.append(sub)
@@ -509,12 +524,10 @@ def get_large_audio_transcription(noextname):
                 logger.error("Translate Error:", str(e))
                 continue
 
-            combo_txt = textwrap.fill(result.strip(), maxlen) + "\n\n"
+            combo_txt = result.strip() + "\n\n"
             sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
             subs.append(sub)
-            set_process(
-                srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False),
-                'subtitle')
+            set_process( srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False), 'subtitle')
     final_srt = srt.compose(subs)
     if config.video['translate_type'] == 'chatGPT':
         set_process(f"{noextname} 等待 chatGPT 返回响应", 'logs')
@@ -526,34 +539,120 @@ def get_large_audio_transcription(noextname):
             logger.error(f"[error]:{noextname} ChatGPT 翻译出错:{final_srt}")
             return
         set_process(f"{noextname} chatGPT OK", 'logs')
-        newsubtitle = []
 
-        number = 0
-        for it in re.split(r"\n\s*?\n", final_srt.strip()):
-            c = it.strip().split("\n")
-            if len(c) < 2:
-                logger.error(f"no vail subtitle:{it=}")
-                continue
-            start, end = c[1].strip().split(" --> ")
-            if len(c) < 3:
-                continue
-            text = "".join(c[2:]).strip()
-            if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
-                continue
-            number += 1
-            newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
-        final_srt = "".join(newsubtitle)
+    #    对字幕进行单行截断操作
+
+    final_srt=subtitle_wrap(final_srt)
     if not final_srt.strip():
         set_process(f"[error]{noextname} 字幕创建失败", 'logs')
         config.current_status = "stop"
         config.subtitle_end = False
         return
     with open(sub_name, 'w', encoding="utf-8") as f:
-        f.write(final_srt)
+        f.write(final_srt.strip())
         #     重新填写字幕文本框
-        set_process(final_srt, 'replace_subtitle')
+        set_process(final_srt.strip(), 'replace_subtitle')
 
     set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
+
+def subtitle_wrap(final_srt):
+    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+    newsubtitle = []
+    number = 0
+    for it in re.split(r"\n\s*?\n", final_srt.strip()):
+        c = it.strip().split("\n")
+        if len(c) < 2:
+            logger.error(f"no vail subtitle:{it=}")
+            continue
+        start, end = c[1].strip().split(" --> ")
+        if len(c) < 3:
+            continue
+        text = "".join(c[2:]).strip()
+        if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
+            continue
+        number += 1
+        newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
+    final_srt = "".join(newsubtitle).strip()
+    return final_srt
+
+# 一次性读取
+def recognition_translation_all(noextname):
+    folder_path = config.rootdir + f'/tmp/{noextname}'
+    audio_path = folder_path + f"/{noextname}.wav"
+    sub_name = folder_path + f"/{noextname}.srt"
+    model=config.video['whisper_model']
+    language=config.video['detect_language']
+    set_process(f"准备进行整体语音识别,可能耗时较久，请等待:{model}模型")
+    model = whisper.load_model(model, download_root=config.rootdir + "/models")  # Change this to your desired model
+    transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language,)
+    segments = transcribe['segments']
+    subtitles=""
+    for segment in segments:
+        startTime = str(0) + str(timedelta(seconds=int(segment['start']))) + ',000'
+        endTime = str(0) + str(timedelta(seconds=int(segment['end']))) + ',000'
+        text=segment['text'].strip()
+        logger.info(f"识别结果:{segment['id'] + 1}\n{startTime} --> {endTime}\n{text}\n")
+        set_process(f"识别到字幕：{startTime} --> {endTime}")
+        # 无有效字符
+        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$',text) or len(text)<=1:
+            continue
+        if config.video['translate_type'] == 'chatGPT':
+            # 如果是 chatGPT，直接组装字幕
+            subtitles += f"{segment['id'] + 1}\n{startTime} --> {endTime}\n{text}\n\n"
+            continue
+        # 开始翻译
+        new_text=text
+        if config.video['translate_type'] == 'google':
+            new_text = googletrans(text, config.video['source_language'],
+                                 config.video['target_language'])
+            if new_text.startswith('[error]'):
+                time.sleep(3)
+                new_text = googletrans(text, config.video['source_language'],config.video['target_language'])
+        elif config.video['translate_type'] == 'baidu':
+            new_text = baidutrans(text, 'auto', config.video['target_language_baidu'])
+        elif config.video['translate_type'] == 'baidu(noKey)':
+            new_text = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language_baidu'])
+        elif config.video['translate_type'] == 'DeepL':
+            new_text = deepltrans(text, config.video['target_language_deepl'])
+        current_sub= f"{segment['id'] + 1}\n{startTime} --> {endTime}\n{new_text}\n\n"
+        subtitles += current_sub
+
+        set_process(current_sub,'subtitle')
+
+    if config.video['translate_type'] == 'chatGPT':
+        set_process(f"等待 chatGPT 返回响应", 'logs')
+        subtitles = chatgpttrans(subtitles)
+        if subtitles.startswith('[error]'):
+            config.current_status = "stop"
+            config.subtitle_end = False
+            set_process(f"[error]:ChatGPT 翻译出错:{subtitles}", 'logs')
+            logger.error(f"[error]:ChatGPT 翻译出错:{subtitles}")
+            return
+        set_process(f"chatGPT OK", 'logs')
+
+        # newsubtitle = []
+        # number = 0
+        # for it in re.split(r"\n\s*?\n", subtitles.strip()):
+        #     c = it.strip().split("\n")
+        #     if len(c) < 2:
+        #         logger.error(f"no vail subtitle:{it=}")
+        #         continue
+        #     start, end = c[1].strip().split(" --> ")
+        #     if len(c) < 3:
+        #         continue
+        #     text = "".join(c[2:]).strip()
+        #     if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
+        #         continue
+        #     number += 1
+        #     newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
+        # subtitles = "".join(newsubtitle)
+    #对字幕单独截断处理
+    subtitles=subtitle_wrap(subtitles.strip())
+    with open(sub_name, 'w', encoding="utf-8") as f:
+        f.write(subtitles.strip())
+        set_process(subtitles.strip(), 'replace_subtitle')
+    set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
+    return True
 
 
 # 合并
@@ -586,7 +685,7 @@ def dubbing(noextname):
                 startraw, endraw = c[1].strip().split(" --> ")
                 text = "".join(c[2:]).strip()
                 # 无有效内容，跳过
-                if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
+                if not text or len(text)<=1 or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                     continue
                 # 转为毫秒
                 start = startraw.replace(',', '.').split(":")
@@ -636,7 +735,6 @@ def exec_tts(queue_tts, total_length, noextname):
     segments = []
     start_times = []
     try:
-        novoice_mp4 = config.rootdir + f'/tmp/{noextname}/novoice.mp4'
         for it in queue_copy:
             start_times.append(it['start_time'])
             if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
@@ -646,9 +744,9 @@ def exec_tts(queue_tts, total_length, noextname):
             audio_data = AudioSegment.from_file(it['filename'], format="mp3")
             wavlen = it['end_time'] - it['start_time']
             mp3len = len(audio_data)
-            if mp3len - wavlen:
+            if wavlen>0 and  mp3len - wavlen:
                 speed = mp3len / wavlen
-                speed = 2 if speed >2 else speed
+                speed = 2 if speed > 2 else speed
                 # 音频加速 最大加速2倍
                 if config.video['voice_autorate']:
                     logger.info(f"new mp3 length bigger than wav ,speed up {speed} ")
@@ -659,7 +757,7 @@ def exec_tts(queue_tts, total_length, noextname):
         merge_audio_segments(segments, start_times, total_length * 1000, noextname)
     except Exception as e:
         logger.error("exec_tts 出错了？？？" + str(e))
-        set_process(f"[error]合成语音有出错:"+str(e))
+        set_process(f"[error]合成语音有出错:" + str(e))
 
 
 # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
@@ -670,6 +768,7 @@ def compos_video(source_mp4, noextname):
     source_wav = f"{folder_path}/{noextname}.wav"
     # target  output mp4 filepath
     target_mp4 = f"{config.video['target_dir']}/{noextname}.mp4"
+    set_process(f"合并后将创建到 {target_mp4}")
     if not os.path.exists(f"{config.video['target_dir']}/srt"):
         os.makedirs(f"{config.video['target_dir']}/srt", exist_ok=True)
     shutil.copy(sub_name, f"{config.video['target_dir']}/srt/{noextname}.srt")
@@ -677,25 +776,27 @@ def compos_video(source_mp4, noextname):
     embed_srt = None
     # 预先创建好的
     novoice_mp4 = f"{folder_path}/novoice.mp4"
-    pause_time = 0
-    # 判断是否 novice_mp4创建完毕，否则等待10分钟
-    if os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4) == 0:
-        while True:
-            if os.path.getsize(novoice_mp4) > 0:
-                break
-            time.sleep(10)
-            pause_time += 10
-            if pause_time > 500:
-                config.current_status = "stop"
-                config.exec_compos = False
-                set_process(f'[error]:执行失败了，未能预先创建无声视频 {novoice_mp4}', 'logs')
-                return
+    # 判断novoice_mp4是否完成
+    while True:
+        if noextname not in config.queue_novice:
+            msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试"
+            set_process(msg)
+            raise Exception(msg)
+        if config.queue_novice[noextname] == 'error':
+            msg = f"抱歉，视频{noextname} 预处理 novoice 失败"
+            set_process(msg)
+            raise Exception(msg)
 
+        if config.queue_novice[noextname] == 'ing':
+            set_process(f"{noextname} 所需资源未准备完毕，请稍等..{config.queue_novice[noextname]=}")
+            logger.info(f"{noextname} 所需资源未准备完毕，请稍等..")
+            time.sleep(3)
+            continue
+        break
 
     # 需要配音
     if config.video['voice_role'] != 'No':
         if not os.path.exists(tts_wav) or os.path.getsize(tts_wav) == 0:
-            print(f"判断tts wav是否存在{tts_wav=}")
             set_process(f"[error] 配音文件创建失败: {tts_wav}", 'logs')
             logger.error(f"{transobj['hechengchucuo']} {tts_wav=},size={os.path.getsize(tts_wav)}")
             return
@@ -709,12 +810,11 @@ def compos_video(source_mp4, noextname):
         embed_srt = f"{config.rootdir}/{noextname}.srt"
         shutil.copy(sub_name, embed_srt)
 
-
     # 有字幕有配音
     if config.video['voice_role'] != 'No' and config.video['subtitle_type'] > 0:
         if config.video['subtitle_type'] == 1:
             logger.info(f"合成配音+硬字幕")
-            set_process(f"合成配音+硬字幕")
+            set_process(f"{noextname} 合成配音+硬字幕")
             # 需要配音+硬字幕
             runffmpeg([
                 "-y",
@@ -734,7 +834,7 @@ def compos_video(source_mp4, noextname):
             ])
         else:
             logger.info(f"合成配音+软字幕")
-            set_process(f"合成配音+软字幕")
+            set_process(f"{noextname} 合成配音+软字幕")
             # 配音+软字幕
             runffmpeg([
                 "-y",
@@ -762,7 +862,7 @@ def compos_video(source_mp4, noextname):
     elif config.video['voice_role'] != 'No':
         # 配音无字幕
         logger.info(f"合成配音+无字幕")
-        set_process(f"合成配音，无字幕")
+        set_process(f"{noextname} 合成配音，无字幕")
         runffmpeg([
             "-y",
             "-i",
@@ -781,7 +881,7 @@ def compos_video(source_mp4, noextname):
     elif config.video['subtitle_type'] == 1:
         # 硬字幕无配音 将原始mp4复制到当前文件夹下
         logger.info(f"合成硬字幕无配音")
-        set_process(f"合成硬字幕，无配音")
+        set_process(f"{noextname} 合成硬字幕，无配音")
         runffmpeg([
             "-y",
             "-i",
@@ -801,7 +901,7 @@ def compos_video(source_mp4, noextname):
     elif config.video['subtitle_type'] == 2:
         # 软字幕无配音
         logger.info(f"合成软字幕")
-        set_process(f"合成软字幕，无配音")
+        set_process(f"{noextname} 合成软字幕，无配音")
         runffmpeg([
             "-y",
             "-i",
@@ -827,12 +927,13 @@ def compos_video(source_mp4, noextname):
         ])
     if embed_srt and os.path.exists(embed_srt):
         os.unlink(embed_srt)
-    set_process("视频合成完毕")
+    set_process(f"{noextname} 视频合成完毕")
 
 
 # 写入日志队列
 def set_process(text, type="logs"):
     try:
+        text = text.replace('[error]','<span style="color:#f00">出错:</span>')+"<br>" if type == "logs" else text
         queue_logs.put_nowait({"text": text, "type": type})
     except:
         pass

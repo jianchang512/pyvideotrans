@@ -13,7 +13,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
 0. Only available for Windows 10 and Windows 11 systems. Compilation from source is required for macOS.
 1. Download the latest release from the releases page, unzip it, and double-click on `sp.exe`.
-2. Original video directory: Select the mp4 video.
+2. Original video directory: Select the mp4/avi/mov/mpg/mkv video,one or most.
 3. Output video directory: If not selected, it will default to generating in the same directory under `_video_out`.
 4. Translation selection: Choose Google, Baidu, ChatGPT, or DeepL. For Baidu/ChatGPT/DeepL, click "Set key" to input the corresponding information.
 5. Network proxy address: If you cannot directly access Google/ChatGPT in your region, set the proxy in the software interface under "Network Proxy." For example, if using V2Ray, enter `http://127.0.0.1:10809`, or for Clash, enter `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, enter accordingly.
@@ -28,6 +28,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
    **Cannot choose "neither embed subtitles nor select a dubbing role."**
 
 9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves with larger models, but recognition speed becomes slower, and more memory is required. The model will need to be downloaded the first time; by default, use base. You can pre-download the model and place it in the `current software directory/models` directory.
+
+   **whole all**: not split audio before send to model
+
+   **split**: split 10s secs audio before send to model
 
    **Model download links:**
 
@@ -55,8 +59,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
 13. CUDA acceleration: If your computer's graphics card is an Nvidia card and CUDA environment and driver are configured, enabling this option will significantly improve speed.
 
-14. Click the "Start" button. The bottom will display the current progress and log, and the right text box will show the subtitles.
-15. **After the subtitles are parsed, pause and wait to modify the subtitles. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the right subtitle area and manually click "Continue to Synthesize."**
+14. TTS:  edgeTTS & openai TTS select role use dubbing
+
+15. Click the "Start" button. The bottom will display the current progress and log, and the right text box will show the subtitles.
+
+16. **After the subtitles are parsed, pause and wait to modify the subtitles. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the right subtitle area and manually click "Continue to Synthesize."**
 
 > All original videos are uniformly in mp4 format for fast processing and good network compatibility.
 >
