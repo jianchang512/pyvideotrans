@@ -1,27 +1,25 @@
-import asyncio
+# -*- coding: utf-8 -*-
 import ctypes
-import json
 import sys
 
 import cv2
-import edge_tts
 
 from ..configure import boxcfg
-from ..configure.boxcfg import logger, rootdir, cfg
+from ..configure.config import rootdir
 from datetime import timedelta
 import os
 import whisper
 from ctypes.util import find_library
 
-
 def transcribe_audio(audio_path, model, language):
     model = whisper.load_model(model, download_root=rootdir + "/models")  # Change this to your desired model
-    print("Whisper model loaded." + language)
+    print(f"Whisper model loaded.{language},{audio_path=}")
     transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language)
     segments = transcribe['segments']
     print(f"{segments=}")
     result = ""
     for segment in segments:
+        print(segment)
         startTime = str(0) + str(timedelta(seconds=int(segment['start']))) + ',000'
         endTime = str(0) + str(timedelta(seconds=int(segment['end']))) + ',000'
         text = segment['text']
@@ -29,29 +27,7 @@ def transcribe_audio(audio_path, model, language):
         result += f"{segmentId}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
     return result
 
-
-#  get role by edge tts
-def get_list_voices():
-    voice_list = {}
-    if os.path.exists(rootdir + "/voice_list.json"):
-        try:
-            voice_list = json.load(open(rootdir + "/voice_list.json", "r", encoding="utf-8"))
-            if len(voice_list) > 0:
-                return voice_list
-        except:
-            pass
-    v = asyncio.run(edge_tts.list_voices())
-    for it in v:
-        name = it['ShortName']
-        prefix = name.split('-')[0].lower()
-        if prefix not in voice_list:
-            voice_list[prefix] = [name]
-        else:
-            voice_list[prefix].append(name)
-    json.dump(voice_list, open(rootdir + "/voice_list.json", "w"))
-    return voice_list
-
-
+# 获取摄像头
 def get_camera_list():
     if boxcfg.check_camera_ing:
         return

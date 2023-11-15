@@ -348,6 +348,20 @@
              </layout>
             </item>
             <item>
+             <layout class="QFormLayout" name="formLayout_13">
+              <item row="0" column="0">
+               <widget class="QComboBox" name="whisper_type">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
              <layout class="QFormLayout" name="formLayout_8">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -551,7 +565,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextEdit" name="process">
+         <widget class="QTextBrowser" name="process">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -579,25 +593,8 @@ background-color: rgba(255, 255, 255, 0);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QPlainTextEdit" name="subtitle_area">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
-         <horstretch>100</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="placeholderText">
-        <string>这里可编辑字幕信息</string>
-       </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="subtitle_layout"/>
       </widget>
      </widget>
     </item>
