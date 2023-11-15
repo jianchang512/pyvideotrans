@@ -40,10 +40,16 @@ translate_language = {
         "yinsekaifazhong":"音色克隆开发中",
         "whisper_type_all":"整体识别",
         "whisper_type_split":"预先分割",
-        "waitclear":"正在关闭处理进程",
+        "waitclear":"正在关闭后台进程",
         "subtitle_tips":" 在此可编辑字幕信息，或拖动已有srt文件到此处松开 ",
+        "setdeepl_authkey":"必须设置DeepL 授权token",
+        "setdeeplx_address":"必须设置你的 DeepLX 地址和端口，比如 127.0.0.1:1188",
+        "mustberole":"必须选择一个配音角色"
     },
     "en": {
+        "mustberole":"must be selet role for listen",
+        "setdeepl_authkey":"must be set DeepL token",
+        "setdeeplx_address":"must be set DeepLX address and port",
         "subtitle_tips":" Edit subtitle here or drap srt file to here ",
         "waitclear":"closing process",
         "whisper_type_all":"whole",

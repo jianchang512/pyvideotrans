@@ -26,6 +26,7 @@ from ..translator import baidu_translate_spider_api
 from ..translator.chatgpt import chatgpttrans
 from ..translator.baidu import baidutrans
 from ..translator.deepl import deepltrans
+from ..translator.deeplx import deeplxtrans
 from ..translator.google import googletrans
 
 from . import config
@@ -207,7 +208,8 @@ def runffmpeg(arg, *, noextname=None):
                 print("========需要停止")
                 set_process(f"ffmpeg停止了")
                 p.kill()
-            rs = p.wait(1)
+                return
+            rs = p.wait(0.3)
             if noextname:
                 config.queue_novice[noextname] = "end" if rs==0 else 'error'
             if rs !=0:
@@ -218,7 +220,7 @@ def runffmpeg(arg, *, noextname=None):
 
 
 # 文字合成
-def text_to_speech(*, text="", role="", rate=None, filename=None, tts_type=None):
+def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None):
     try:
         if tts_type == "edgeTTS":
             communicate = edge_tts.Communicate(text, role, rate=rate)
@@ -512,6 +514,8 @@ def recognition_translation_split(noextname):
                     result = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language_baidu'])
                 elif config.video['translate_type'] == 'DeepL':
                     result = deepltrans(text, config.video['target_language_deepl'])
+                elif config.video['translate_type']=='DeepLX':
+                    result = deeplxtrans(text, config.video['target_language_deepl'])
                 elif config.video['translate_type'] == 'chatGPT':
                     result = chatgpttrans(text)
                     logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
@@ -614,6 +618,8 @@ def recognition_translation_all(noextname):
             new_text = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language_baidu'])
         elif config.video['translate_type'] == 'DeepL':
             new_text = deepltrans(text, config.video['target_language_deepl'])
+        elif config.video['translate_type'] == 'DeepLX':
+            new_text = deeplxtrans(text, config.video['target_language_deepl'])
         current_sub= f"{segment['id'] + 1}\n{startTime} --> {endTime}\n{new_text}\n\n"
         subtitles += current_sub
 

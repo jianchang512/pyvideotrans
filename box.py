@@ -548,7 +548,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
-        self.setWindowTitle("视频工具箱 V0.9.2 wonyes.org")
+        self.setWindowTitle("视频工具箱 V0.9.3 wonyes.org")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")

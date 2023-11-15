@@ -58,6 +58,9 @@ video = {
     "voice_role": "No",
     "voice_rate": "0",
 
+    "listen_text_cn":"你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
+    "listen_text_en":"Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
+
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS
     "tts_type_list": ["edgeTTS", "openaiTTS"],
 
@@ -69,6 +72,7 @@ video = {
     "voice_autorate": False,
 
     "deepl_authkey": "",
+    "deeplx_address": "",
 
     "baidu_appid": "",
     "baidu_miyue": "",

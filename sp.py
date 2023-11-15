@@ -9,26 +9,33 @@ import webbrowser
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon
-from PyQt5.QtCore import pyqtSignal, QThread, QSettings, QProcess
+from PyQt5.QtCore import pyqtSignal, QThread, QSettings, QProcess, QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QInputDialog, QWidget, QDialog, QLabel, \
     QPlainTextEdit
 import warnings
+
+from videotrans.ui.deeplx import Ui_deeplxform
+
 warnings.filterwarnings('ignore')
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.configure.config import langlist, transobj, logger, queue_logs
 from videotrans.configure.language import english_code_bygpt
-from videotrans.configure.tools import recognition_translation_all,recognition_translation_split, runffmpeg, delete_temp, dubbing, \
-    show_popup, compos_video, set_proxy, set_process, get_edge_rolelist
+from videotrans.configure.tools import recognition_translation_all, recognition_translation_split, runffmpeg, \
+    delete_temp, dubbing, \
+    show_popup, compos_video, set_proxy, set_process, get_edge_rolelist, text_to_speech
 from videotrans.configure import config
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.baidu import Ui_baiduform
 
 from videotrans.util.tools import find_lib
+import pygame
+
+
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
 else:
     from videotrans.ui.en import Ui_MainWindow
-
 
 
 # 从日志队列获取日志
@@ -49,10 +56,39 @@ class LogsWorker(QThread):
                 pass
 
 
+
+
+class PlayMp3(QThread):
+    mp3_ui=pyqtSignal(str)
+    def __init__(self,obj,parent=None):
+        super(PlayMp3, self).__init__(parent)
+        self.obj=obj
+    def run(self):
+        if not os.path.exists(self.obj['voice_file']) or os.path.getsize(self.obj['voice_file'])==0:
+            text_to_speech(text=self.obj['text'],role=self.obj['role'],tts_type=self.obj['tts_type'],filename=self.obj['voice_file'])
+        self.play_mp3()
+    def play_mp3(self):
+        try:
+            print(f"{self.obj['voice_file']=}")
+            pygame.init()
+            pygame.mixer.init()
+            pygame.mixer.music.load(self.obj['voice_file'])
+            pygame.mixer.music.play()
+
+            while pygame.mixer.music.get_busy():
+                # 等待音乐播放完成
+                pygame.time.Clock().tick(1)
+
+        except pygame.error as e:
+            print("Error: ", e)
+        pygame.quit()
+
+
 # task process thread
 class Worker(QThread):
     update_ui = pyqtSignal(str)
     timeid = 0
+
     def __init__(self, mp4path, parent=None):
         super().__init__(parent=parent)
         self.mp4path = mp4path.replace('\\', '/')
@@ -91,7 +127,7 @@ class Worker(QThread):
                 "-an",
                 f'"{config.rootdir}/tmp/{self.noextname}/novoice.mp4"'
             ]
-            threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname":self.noextname}).start()
+            threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
             try:
                 # 识别、创建字幕文件、翻译
                 if os.path.exists(self.sub_name) and os.path.getsize(self.sub_name) > 1:
@@ -100,7 +136,7 @@ class Worker(QThread):
                 else:
                     if os.path.exists(self.sub_name):
                         os.unlink(self.sub_name)
-                    if config.video['whisper_type']=='all':
+                    if config.video['whisper_type'] == 'all':
                         recognition_translation_all(self.noextname)
                     else:
                         recognition_translation_split(self.noextname)
@@ -109,7 +145,7 @@ class Worker(QThread):
                         config.subtitle_end = True
             except Exception as e:
                 logger.error("error:" + str(e))
-                set_process(f"文字识别和翻译出错:"+str(e))
+                set_process(f"文字识别和翻译出错:" + str(e))
 
             # 生成字幕后等待倒计时
             self.timeid = 0
@@ -158,23 +194,24 @@ class Worker(QThread):
             logger.error("error:" + str(e))
             set_process(f"[error]:配音合并时出错:" + str(e), "logs")
 
+
 class TextGetdir(QPlainTextEdit):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         super(TextGetdir, self).__init__(parent)
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
         file = event.mimeData().text()
-        ext=file.split(".")[-1]
+        ext = file.split(".")[-1]
         if ext not in ["srt"]:
             event.ignore()
         event.accept()
 
     def dropEvent(self, event):
-        file = event.mimeData().text().replace('file:///','')
+        file = event.mimeData().text().replace('file:///', '')
         print(file)
         if file.endswith(".srt") and os.path.exists(file):
-            with open(file,"r",encoding="utf-8") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 self.setPlainText(f.read().strip())
 
 
@@ -186,7 +223,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
         self.setWindowTitle(
-            f"SP{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} V0.9.2 wonyes.org")
+            f"SP{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} V0.9.3 wonyes.org")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -220,8 +257,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.target_language.addItems(["-"] + self.languagename)
         self.target_language.currentTextChanged.connect(self.set_voice_role)
 
+        self.listen_btn.hide()
+        self.listen_btn.clicked.connect(self.listen_voice_fun)
+
         #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT", "DeepL", "baidu(noKey)"])
+        self.translate_type.addItems(["google", "baidu", "chatGPT", "DeepL", "DeepLX", "baidu(noKey)"])
         self.translate_type.setCurrentText(config.video['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
@@ -229,7 +269,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_type.addItems([transobj['whisper_type_all'], transobj['whisper_type_split']])
         self.whisper_type.currentIndexChanged.connect(self.check_whisper_type)
         if config.video['whisper_type']:
-            self.whisper_type.setCurrentIndex(0 if config.video['whisper_type']=='all' else 1)
+            self.whisper_type.setCurrentIndex(0 if config.video['whisper_type'] == 'all' else 1)
         self.whisper_model.addItems(['base', 'small', 'medium', 'large', 'large-v3'])
         self.whisper_model.setCurrentText(config.video['whisper_model'])
         self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
@@ -257,9 +297,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_type.setCurrentIndex(config.video['subtitle_type'])
 
 
-        # self.subtitle_area=TextGetdir(self)
-        # self.subtitle_area.textChanged.connect(self.reset_timeid)
 
+        # 字幕编辑
         self.subtitle_area = TextGetdir(self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -275,6 +314,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
         self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
+        self.actiondeepLX_address.triggered.connect(self.set_deepLX_address)
         self.action_vlc.triggered.connect(lambda: self.open_url('vlc'))
         self.action_ffmpeg.triggered.connect(lambda: self.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.open_url('git'))
@@ -292,11 +332,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs = LogsWorker()
         self.task_logs.post_logs.connect(self.update_data)
         self.task_logs.start()
+
+
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
-        if config.ffmpeg_status=='ing':
-            config.ffmpeg_status="stop"
-            reply = QMessageBox.question(self, transobj['exit'], transobj['waitclear'], QMessageBox.Yes, QMessageBox.Yes)
+        if config.ffmpeg_status == 'ing':
+            config.ffmpeg_status = "stop"
+            # reply = QMessageBox.question(self, transobj['exit'], transobj['waitclear'], QMessageBox.Yes,
+            #                              QMessageBox.Yes)
+            msg = QMessageBox()
+            msg.setWindowTitle(transobj['exit'])
+            msg.setWindowIcon(QIcon(config.rootdir + "/icon.ico"))
+            msg.setText(transobj['waitclear'])
+            msg.addButton(transobj['queding'], QMessageBox.AcceptRole)
+            msg.setIcon(QMessageBox.Information)
+            # msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()  # 显示消息框
 
             event.accept()
         else:
@@ -307,6 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['baidu_appid'] = self.settings.value("baidu_appid", "")
         config.video['baidu_miyue'] = self.settings.value("baidu_miyue", "")
         config.video['deepl_authkey'] = self.settings.value("deepl_authkey", "")
+        config.video['deeplx_address'] = self.settings.value("deeplx_address", "")
         config.video['chatgpt_api'] = self.settings.value("chatgpt_api", "")
         config.video['chatgpt_key'] = self.settings.value("chatgpt_key", "")
         os.environ['OPENAI_API_KEY'] = config.video['chatgpt_key']
@@ -364,6 +416,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.video['deepl_authkey']:
             self.w.deepl_authkey.setText(config.video['deepl_authkey'])
         self.w.set_deepl.clicked.connect(save)
+        self.w.show()
+
+    def set_deepLX_address(self):
+        def save():
+            key = self.w.deeplx_address.text()
+            self.settings.setValue("deeplx_address", key)
+            config.video['deeplx_address'] = key
+            self.w.close()
+
+        self.w = DeepLXForm()
+        if config.video['deeplx_address']:
+            self.w.deeplx_address.setText(config.video['deeplx_address'])
+        self.w.set_deeplx.clicked.connect(save)
         self.w.show()
 
     # set baidu
@@ -426,16 +491,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if name == "chatGPT" and not config.video["chatgpt_key"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
+            if name == "DeepL" and not config.video["deepl_authkey"]:
+                QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
+                return
+            if name == "DeepLX" and not config.video["deeplx_address"]:
+                QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
+                return
             config.video['translate_type'] = name
         except Exception as e:
             QMessageBox.critical(self, transobj['anerror'], str(e))
 
-    def check_whisper_type(self,index):
+    def check_whisper_type(self, index):
         print(f"whisper_type={index=}")
-        if index==0:
-            config.video['whisper_type']='all'
+        if index == 0:
+            config.video['whisper_type'] = 'all'
         else:
-            config.video['whisper_type']='split'
+            config.video['whisper_type'] = 'split'
+
     # check model is exits
     def check_whisper_model(self, name):
         if not os.path.exists(config.rootdir + f"/models/{name}.pt"):
@@ -451,10 +523,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if type == 'stop' or type == 'end':
             config.exec_compos = False
             config.subtitle_end = False
-            config.ffmpeg_status='stop'
+            config.ffmpeg_status = 'stop'
             self.continue_compos.hide()
             self.btn_get_video.setDisabled(False)
-            if type=='end':
+            if type == 'end':
                 # 清理字幕
                 self.subtitle_area.clear()
             if self.task:
@@ -472,9 +544,55 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(config.video['coquitts_role'].split(','))
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())
+    # 试听配音
+    def listen_voice_fun(self):
+        # play_mp3('C:/Users/c1/Videos/_video_out/1.mp3')
+        # return
+        currentlang=self.target_language.currentText()
+        print(f"{currentlang=}")
+
+        if currentlang in ["English","英语"]:
+            text=config.video['listen_text_en']
+            lang="en"
+        elif currentlang in ["中文简","中文繁","Simplified_Chinese","Traditional_Chinese"]:
+            text=config.video['listen_text_cn']
+            lang="zh"
+        else:
+            return
+        print(f"{text}")
+        role=self.voice_role.currentText()
+        if not role or role=='No':
+            return QMessageBox.critical(self,transobj['anerror'],transobj['mustberole'])
+        voice_dir=os.environ.get('APPDATA') or os.environ.get('appdata')
+        if not voice_dir or not os.path.exists(voice_dir):
+            voice_dir=config.rootdir+"/tmp/voice_tmp"
+        else:
+            voice_dir=voice_dir.replace('\\','/')+"/pyvideotrans"
+        if not os.path.exists(voice_dir):
+            os.makedirs(voice_dir)
+        voice_file=f"{voice_dir}/{config.video['tts_type']}-{lang}-{role}.mp3"
+        print(f"{voice_file=}")
+        obj={
+            "text":text,
+            "rate":"+0%",
+            "role":role,
+            "voice_file":voice_file,
+            "tts_type":config.video['tts_type'],
+        }
+
+        t=PlayMp3(obj,self)
+        t.start()
+
 
     # set edge-ttss change voice role when target_language changed
     def set_voice_role(self, t):
+        # t in  中文简 中文繁 英语 Simplified_Chinese Traditional_Chinese English 显示试听按钮
+        if t in ["中文简","中文繁","英语","Simplified_Chinese","Traditional_Chinese","English"]:
+            self.listen_btn.show()
+            self.listen_btn.setDisabled(False)
+        else:
+            self.listen_btn.hide()
+            self.listen_btn.setDisabled(True)
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
         if config.video['tts_type'] != 'edgeTTS':
@@ -584,11 +702,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not config.video['chatgpt_key']:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
-        elif config.video['translate_type'] == 'DeepL':
+        elif config.video['translate_type'] == 'DeepL' or config.video['translate_type']=='DeepLX':
             # DeepL翻译
-            if not config.video['deepl_authkey']:
+            if config.video['translate_type'] == 'DeepL' and not config.video['deepl_authkey']:
                 QMessageBox.critical(self, transobj['anerror'], transobj['deepl_authkey'])
                 return
+            if config.video['translate_type'] == 'DeepLX' and not config.video['deeplx_address']:
+                QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
+                return
+
             config.video['target_language_deepl'] = langlist[target_language][3]
             if config.video['target_language_deepl'] == 'No':
                 QMessageBox.critical(self, transobj['anerror'], transobj['deepl_nosupport'])
@@ -640,13 +762,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.current_status = 'ing'
         config.exec_compos = False
         # 如果已有字幕，则使用
-        txt=self.subtitle_area.toPlainText().strip()
+        txt = self.subtitle_area.toPlainText().strip()
         if txt:
             set_process(f"从字幕编辑区直接读入字幕")
-            noextname=os.path.splitext(os.path.basename(config.video['source_mp4']))[0]
-            subname=f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
-            os.makedirs(os.path.dirname(subname),exist_ok=True)
-            with open(subname,'w',encoding="utf-8") as f:
+            noextname = os.path.splitext(os.path.basename(config.video['source_mp4']))[0]
+            subname = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
+            os.makedirs(os.path.dirname(subname), exist_ok=True)
+            with open(subname, 'w', encoding="utf-8") as f:
                 f.write(txt)
         self.start(config.video['source_mp4'])
 
@@ -666,13 +788,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 被调起或者从worker线程调用
     def start(self, mp4):
-        config.ffmpeg_status='ing'
+        config.ffmpeg_status = 'ing'
         self.btn_get_video.setDisabled(True)
         self.task = Worker(mp4.replace('\\', '/'), self)
         self.task.start()
         self.statusLabel.setText(
             transobj['processingstatusbar'].replace('{var1}', os.path.basename(mp4)).replace('{var2}',
-                                                                                             str(len(config.queue_mp4))))
+                                                                                             str(len(
+                                                                                                 config.queue_mp4))))
 
     # receiver  update UI
     def update_data(self, json_data):
@@ -724,12 +847,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # update subtitle
     def update_subtitle(self):
-        sub_name=f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt"
+        sub_name = f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt"
         set_process(f"写入字幕：" + f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt")
         try:
             c = self.subtitle_area.toPlainText().strip()
             if not c and os.path.exists(sub_name):
-                with open(sub_name,'r',encoding="utf-8") as f:
+                with open(sub_name, 'r', encoding="utf-8") as f:
                     self.subtitle_area.setPlainText(f.read())
                     config.subtitle_end = True
                     config.exec_compos = True
@@ -743,7 +866,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.continue_compos.setText('')
                 set_process("[error]出错了，不存在有效字幕")
                 return
-            with open(sub_name, "w",encoding="utf-8") as f:
+            with open(sub_name, "w", encoding="utf-8") as f:
                 f.write(self.subtitle_area.toPlainText().strip())
                 config.subtitle_end = True
                 config.exec_compos = True
@@ -771,6 +894,14 @@ class DeepLForm(QDialog, Ui_deeplform):  # <===
         self.setWindowIcon(QIcon("./icon.ico"))
 
 
+class DeepLXForm(QDialog, Ui_deeplxform):  # <===
+    def __init__(self, parent=None):
+        super(DeepLXForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
+
+
 # set chatgpt api and key
 class ChatgptForm(QDialog, Ui_chatgptform):  # <===
     def __init__(self, parent=None):
@@ -780,14 +911,17 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 
+
 def is_vlc():
     try:
         if find_lib() is None:
-            config.is_vlc=False
+            config.is_vlc = False
         else:
-            config.is_vlc=True
+            config.is_vlc = True
     except:
-        config.is_vlc=False
+        config.is_vlc = False
+
+
 
 
 if __name__ == "__main__":
@@ -808,5 +942,6 @@ if __name__ == "__main__":
     if sys.platform == 'win32':
         import qdarkstyle
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+
     main.show()
     sys.exit(app.exec())

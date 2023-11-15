@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1472</width>
     <height>771</height>
    </rect>
   </property>
@@ -172,6 +172,25 @@
                 </property>
                 <property name="placeholderText">
                  <string>比如 http://127.0.0.1:10809 大陆地区必须填写</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="listen_layout">
+              <item>
+               <widget class="QPushButton" name="listen_btn">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>点击试听当前配音角色的发音
+生成配音可能需要数秒，请耐心等待
+</string>
+                </property>
+                <property name="text">
+                 <string>试听配音</string>
                 </property>
                </widget>
               </item>
@@ -606,7 +625,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1472</width>
      <height>26</height>
     </rect>
    </property>
@@ -619,6 +638,8 @@ background-color: rgba(255, 255, 255, 0);</string>
     <addaction name="actionchatgpt_key"/>
     <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
+    <addaction name="separator"/>
+    <addaction name="actiondeepLX_address"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menu">
@@ -697,6 +718,11 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="action_clone">
    <property name="text">
     <string>音色克隆</string>
+   </property>
+  </action>
+  <action name="actiondeepLX_address">
+   <property name="text">
+    <string>DeepLX address</string>
    </property>
   </action>
  </widget>
