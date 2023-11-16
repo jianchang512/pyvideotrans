@@ -46,6 +46,7 @@ def get_camera_list():
                 boxcfg.camera_list.append(index)
                 index += 1
         camera.release()
+        print(f"{boxcfg.camera_list=}")
     except Exception as e:
         print("获取摄像头出错")
     boxcfg.check_camera_ing = False

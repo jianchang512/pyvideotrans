@@ -11,6 +11,7 @@ translate_language = {
         "sourenotequaltarget": "源语言和目标语言不得相同",
         "shoundselecttargetlanguage": "必须选择一个目标语言",
         "running": "执行中",
+        "ing": "执行中",
         "exit": "退出",
         "end": "已结束(点击重新开始)",
         "stop": "已停止(点击开始)",
@@ -89,6 +90,7 @@ translate_language = {
         "selectvideodir": "You must select the video to be translated",
         "sourenotequaltarget": "Source language and target language must not be the same",
         "running": "Running",
+        "ing": "Running",
         "exit": "Exit",
         "end": "Ended(click reststart)",
         "stop": "Stop(click start)"

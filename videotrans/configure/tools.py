@@ -169,27 +169,6 @@ def speed_change(sound, speed=1.0):
 
 
 def runffmpeg(arg, *, noextname=None):
-    # 不需要返回结果，是通过新开 thread 调用
-    # if asy:
-    #     newcmd = "ffmpeg -hide_banner " + (" ".join(arg) if isinstance(arg, list) else arg)
-    #     if config.video['enable_cuda']:
-    #         newcmd += "-hwaccel cuda"
-    #     logger.info(f"【{noextname}】执行 异步ffmpeg命令：{newcmd}")
-    #     res = "ing"
-    #     if noextname:
-    #         config.queue_novice[noextname] = res
-    #     try:
-    #         subprocess.run(newcmd, stdout=subprocess.PIPE)
-    #         res = "end"
-    #         logger.info(f"异步ffmpeg执行成功")
-    #     except Exception as e:
-    #         res = "error"
-    #         logger.error(f"执行异步ffmpeg失败，命令是:{newcmd=}")
-    #     if noextname:
-    #         config.queue_novice[noextname] = res
-    #         logger.info(f"异步ffmpeg 执行外币，设置noextname={noextname}, {config.queue_novice[noextname]=}")
-    #     return
-
     # 需要返回结果： 异步执行 ffmpeg，但同步阻塞等待，直到成功或失败返回
     cmd = "ffmpeg -hide_banner "
     if config.video['enable_cuda']:
@@ -207,6 +186,7 @@ def runffmpeg(arg, *, noextname=None):
             if config.ffmpeg_status == 'stop':
                 print("========需要停止")
                 set_process(f"ffmpeg停止了")
+                p.terminate()
                 p.kill()
                 return
             rs = p.wait(0.3)
@@ -216,6 +196,10 @@ def runffmpeg(arg, *, noextname=None):
                 set_process(f"[error]ffmpeg执行结果:失败")
             return True
         except Exception as e:
+            if config.ffmpeg_status == 'stop':
+                p.terminate()
+                p.kill()
+                return
             print("ffmpeg 等待中:" + str(e))
 
 
@@ -545,8 +529,7 @@ def recognition_translation_split(noextname):
         set_process(f"{noextname} chatGPT OK", 'logs')
 
     #    对字幕进行单行截断操作
-
-    final_srt=subtitle_wrap(final_srt)
+    # final_srt=subtitle_wrap(final_srt)
     if not final_srt.strip():
         set_process(f"[error]{noextname} 字幕创建失败", 'logs')
         config.current_status = "stop"
@@ -559,25 +542,25 @@ def recognition_translation_split(noextname):
 
     set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
 
-def subtitle_wrap(final_srt):
-    maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
-    newsubtitle = []
-    number = 0
-    for it in re.split(r"\n\s*?\n", final_srt.strip()):
-        c = it.strip().split("\n")
-        if len(c) < 2:
-            logger.error(f"no vail subtitle:{it=}")
-            continue
-        start, end = c[1].strip().split(" --> ")
-        if len(c) < 3:
-            continue
-        text = "".join(c[2:]).strip()
-        if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
-            continue
-        number += 1
-        newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
-    final_srt = "".join(newsubtitle).strip()
-    return final_srt
+# def subtitle_wrap(final_srt):
+#     maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+#     newsubtitle = []
+#     number = 0
+#     for it in re.split(r"\n\s*?\n", final_srt.strip()):
+#         c = it.strip().split("\n")
+#         if len(c) < 2:
+#             logger.error(f"no vail subtitle:{it=}")
+#             continue
+#         start, end = c[1].strip().split(" --> ")
+#         if len(c) < 3:
+#             continue
+#         text = "".join(c[2:]).strip()
+#         if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
+#             continue
+#         number += 1
+#         newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
+#     final_srt = "".join(newsubtitle).strip()
+#     return final_srt
 
 # 一次性读取
 def recognition_translation_all(noextname):
@@ -592,6 +575,8 @@ def recognition_translation_all(noextname):
     segments = transcribe['segments']
     subtitles=""
     for segment in segments:
+        if config.current_status=='stop' or config.current_status=='end':
+            return
         startTime = str(0) + str(timedelta(seconds=int(segment['start']))) + ',000'
         endTime = str(0) + str(timedelta(seconds=int(segment['end']))) + ',000'
         text=segment['text'].strip()
@@ -635,31 +620,68 @@ def recognition_translation_all(noextname):
             logger.error(f"[error]:ChatGPT 翻译出错:{subtitles}")
             return
         set_process(f"chatGPT OK", 'logs')
-
-        # newsubtitle = []
-        # number = 0
-        # for it in re.split(r"\n\s*?\n", subtitles.strip()):
-        #     c = it.strip().split("\n")
-        #     if len(c) < 2:
-        #         logger.error(f"no vail subtitle:{it=}")
-        #         continue
-        #     start, end = c[1].strip().split(" --> ")
-        #     if len(c) < 3:
-        #         continue
-        #     text = "".join(c[2:]).strip()
-        #     if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
-        #         continue
-        #     number += 1
-        #     newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
-        # subtitles = "".join(newsubtitle)
     #对字幕单独截断处理
-    subtitles=subtitle_wrap(subtitles.strip())
+    # subtitles=subtitle_wrap(subtitles.strip())
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(subtitles.strip())
         set_process(subtitles.strip(), 'replace_subtitle')
     set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
     return True
 
+
+# 从字幕文件获取格式化后的字幕信息
+'''
+[
+{'line': 13, 'time': '00:01:56,423 --> 00:02:06,423', 'text': '因此，如果您准备好停止沉迷于不太理想的解决方案并开始构建下一个
+出色的语音产品，我们已准备好帮助您实现这一目标。深度图。没有妥协。唯一的机会..', 'startraw': '00:01:56,423', 'endraw': '00:02:06,423', 'start_time'
+: 116423, 'end_time': 126423}, 
+{'line': 14, 'time': '00:02:06,423 --> 00:02:07,429', 'text': '机会..', 'startraw': '00:02:06,423', 'endraw': '00:02
+:07,429', 'start_time': 126423, 'end_time': 127429}
+]
+'''
+def get_subtitle_from_srt(srtfile):
+    with open(srtfile,'r',encoding="utf-8") as f:
+        txt=f.read().strip().split("\n")
+    # 行号
+    line=0
+    maxline=len(txt)
+    # 行格式
+    linepat=r'^\s*?\d+\s*?$'
+    # 时间格式
+    timepat=r'^\s*?\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*?$'
+    result=[]
+    for i,t in enumerate(txt):
+        # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
+        if i < maxline-2 and re.match(linepat,t) and re.match(timepat,txt[i+1]):
+            #   是行
+            line+=1
+            obj={"line":line,"time":"","text":""}
+            result.append(obj)
+        elif re.match(timepat,t):
+            # 是时间行
+            result[line-1]['time']=t
+        elif len(t.strip())>0:
+            # 是内容
+            print(f"{line=},{next=}")
+            result[line-1]['text']+=t.strip()
+    # 再次遍历，删掉美元text的行
+    new_result=[]
+    line=1
+    for it in result:
+        if "text" in it and len(it['text'].strip())>0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',it['text']):
+            it['line']=line
+            startraw, endraw = it['time'].strip().split(" --> ")
+            start = startraw.replace(',', '.').split(":")
+            start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
+            end = endraw.replace(',', '.').split(":")
+            end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
+            it['startraw']=startraw
+            it['endraw']=endraw
+            it['start_time']=start_time
+            it['end_time']=end_time
+            new_result.append(it)
+            line+=1
+    return new_result
 
 # 合并
 # source_mp4 原始MP4地址，具体到 后缀
@@ -677,43 +699,28 @@ def dubbing(noextname):
     # 整合一个队列到 exec_tts 执行
     queue_tts = []
     if (config.video['voice_role'] != 'No') and (not os.path.exists(tts_wav) or os.path.getsize(tts_wav) == 0):
-        with open(sub_name, "r", encoding="utf-8") as f:
-
-            tx = re.split(r"\n\s*?\n", f.read().strip())
-            logger.info(f"Creating TTS wav {tts_wav}")
-            for idx, it in enumerate(tx):
-                # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
-                if config.current_status == 'stop':
-                    raise Exception("You stop it.")
-
-                # 0=行号，1=时间信息，2=内容
-                c = it.strip().split("\n")
-                startraw, endraw = c[1].strip().split(" --> ")
-                text = "".join(c[2:]).strip()
-                # 无有效内容，跳过
-                if not text or len(text)<=1 or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-                    continue
-                # 转为毫秒
-                start = startraw.replace(',', '.').split(":")
-                start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
-
-                end = endraw.replace(',', '.').split(":")
-                end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
-
-                rate = int(str(config.video['voice_rate']).replace('%', ''))
-                if rate >= 0:
-                    rate = f"+{rate}%"
-                else:
-                    rate = f"{rate}%"
-                queue_tts.append({
-                    "text": text,
-                    "role": config.video['voice_role'],
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "rate": rate,
-                    "startraw": startraw,
-                    "endraw": endraw,
-                    "filename": f"{folder_path}/tts-{start_time}.mp3"})
+        # 获取字幕
+        subs=get_subtitle_from_srt(sub_name)
+        # with open(sub_name, "r", encoding="utf-8") as f:
+        logger.info(f"Creating TTS wav {tts_wav}")
+        rate = int(str(config.video['voice_rate']).replace('%', ''))
+        if rate >= 0:
+            rate = f"+{rate}%"
+        else:
+            rate = f"{rate}%"
+        # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
+        for it in subs:
+            if config.current_status == 'stop' or config.current_status=='end':
+                raise Exception("You stop it.")
+            queue_tts.append({
+                "text": it['text'],
+                "role": config.video['voice_role'],
+                "start_time": it['start_time'],
+                "end_time": it['end_time'],
+                "rate": rate,
+                "startraw": it['startraw'],
+                "endraw": it['endraw'],
+                "filename": f"{folder_path}/tts-{it['start_time']}.mp3"})
         exec_tts(queue_tts, total_length, noextname)
 
 
@@ -728,6 +735,8 @@ def exec_tts(queue_tts, total_length, noextname):
 
     # 需要并行的数量3
     while len(queue_tts) > 0:
+        if config.current_status!='ing':
+            return
         tolist = [threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0)))]
         if len(queue_tts) > 0:
             tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
@@ -784,6 +793,8 @@ def compos_video(source_mp4, noextname):
     novoice_mp4 = f"{folder_path}/novoice.mp4"
     # 判断novoice_mp4是否完成
     while True:
+        if config.current_status!='ing':
+            return
         if noextname not in config.queue_novice:
             msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试"
             set_process(msg)
@@ -814,8 +825,16 @@ def compos_video(source_mp4, noextname):
     if config.video['subtitle_type'] == 1:
         # 硬字幕
         embed_srt = f"{config.rootdir}/{noextname}.srt"
-        shutil.copy(sub_name, embed_srt)
-
+        # shutil.copy(sub_name, embed_srt)
+        # 重新整理字幕，换行
+        subs=get_subtitle_from_srt(sub_name)
+        maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+        subtitles=""
+        for it in subs:
+            it['text']=textwrap.fill(it['text'],maxlen)
+            subtitles+=f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+        with open(embed_srt,'w',encoding="utf-8") as f:
+            f.write(subtitles.strip())
     # 有字幕有配音
     if config.video['voice_role'] != 'No' and config.video['subtitle_type'] > 0:
         if config.video['subtitle_type'] == 1:

@@ -150,9 +150,14 @@ class Worker(QThread):
             # 生成字幕后等待倒计时
             self.timeid = 0
             while True:
+                # 检查中断请求
+                if self.isInterruptionRequested():
+                    set_process("已停止", 'stop')
+                    print("Interruption requested. Stopping thread.")
+                    return
                 if config.current_status == 'stop' or config.current_status == 'end':
                     set_process("已停止", 'stop')
-                    raise Exception("You stop it")
+                    raise Exception("你停止任务")
                 # 字幕未处理完
                 if not config.subtitle_end:
                     time.sleep(1)
@@ -169,7 +174,7 @@ class Worker(QThread):
                 # 字幕处理完毕，未超时
                 time.sleep(1)
                 # 暂停，等待手动处理
-                set_process(f"等待修改字幕")
+                # set_process(f"等待修改字幕")
                 # 倒计时中
                 if self.timeid is not None:
                     self.timeid += 1
@@ -318,6 +323,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_vlc.triggered.connect(lambda: self.open_url('vlc'))
         self.action_ffmpeg.triggered.connect(lambda: self.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.open_url('git'))
+        self.action_discord.triggered.connect(lambda: self.open_url('discord'))
+        self.action_website.triggered.connect(lambda: self.open_url('website'))
         self.action_issue.triggered.connect(lambda: self.open_url('issue'))
         self.action_tool.triggered.connect(self.open_toolbox)
         self.action_clone.triggered.connect(lambda: show_popup(transobj['yinsekaifazhong'], transobj['yinsekelong']))
@@ -328,11 +335,52 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusBar.addWidget(self.statusLabel)
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
 
+
+        # 隐藏高级设置
+        self.gaoji_show=True
+        self.hide_layout_recursive()
+        self.gaoji_btn.clicked.connect(self.hide_layout_recursive)
         #     日志
         self.task_logs = LogsWorker()
         self.task_logs.post_logs.connect(self.update_data)
         self.task_logs.start()
 
+    # 隐藏或显示高级设置
+    def hide_layout_recursive(self):
+        # 递归隐藏布局及其下的所有元素
+        def hide_recursive(layout,show):
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item.widget():
+                    if show:
+                        item.widget().hide()
+                    else:
+                        item.widget().show()
+                elif item.layout():
+                    hide_recursive(item.layout(),show)
+
+        hide_recursive(self.gaoji_layout_wrap,self.gaoji_show)
+        self.gaoji_show=not self.gaoji_show
+
+    # 开启执行后，禁用按钮，停止或结束后，启用按钮
+    def disabled_widget(self,type):
+        self.btn_get_video.setDisabled(type)
+        self.source_mp4.setDisabled(type)
+        self.btn_save_dir.setDisabled(type)
+        self.target_dir.setDisabled(type)
+        self.translate_type.setDisabled(type)
+        self.proxy.setDisabled(type)
+        self.source_language.setDisabled(type)
+        self.target_language.setDisabled(type)
+        self.tts_type.setDisabled(type)
+        self.voice_role.setDisabled(type)
+        self.whisper_model.setDisabled(type)
+        self.whisper_type.setDisabled(type)
+        self.subtitle_type.setDisabled(type)
+        self.voice_rate.setDisabled(type)
+        self.voice_silence.setDisabled(type)
+        self.voice_autorate.setDisabled(type)
+        self.enable_cuda.setDisabled(type)
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -387,6 +435,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans")
         elif title == 'issue':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/issues")
+        elif title == 'discord':
+            webbrowser.open_new_tab("https://discord.com/channels/1174626422044766258/1174626425702207562")
+        elif title == 'website':
+            webbrowser.open_new_tab("https://v.wonyes.org")
 
     def open_toolbox(self):
         try:
@@ -400,9 +452,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 停止自动合并倒计时
     def reset_timeid(self):
         if not config.exec_compos and config.subtitle_end and self.task is not None:
+            if self.task.timeid is None:
+                return
             self.task.timeid = None if self.task.timeid is None or self.task.timeid > 0 else 0
             self.process.moveCursor(QTextCursor.Start)
-            self.process.insertPlainText(transobj['waitsubtitle'])
+            self.process.insertPlainText("停止倒计时，请修改字幕后点击合并按钮\n")
 
     # set deepl key
     def set_deepL_key(self):
@@ -526,13 +580,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.ffmpeg_status = 'stop'
             self.continue_compos.hide()
             self.btn_get_video.setDisabled(False)
+            # 启用
+            self.disabled_widget(False)
             if type == 'end':
                 # 清理字幕
                 self.subtitle_area.clear()
             if self.task:
                 self.task.requestInterruption()
                 self.task.quit()
-                self.task.wait()
+        else:
+            self.disabled_widget(True)
+            config.ffmpeg_status = 'ing'
 
     # tts类型改变
     def tts_type_change(self, type):
@@ -786,16 +844,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("enable_cuda", config.video['enable_cuda'])
         self.settings.setValue("tts_type", config.video['tts_type'])
 
+    # 判断是否存在字幕文件，如果存在，则读出填充字幕区
+    def get_sub_toarea(self,noextname):
+        #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
+        # noextname = os.path.basename(mp4).split('.')[0]
+        sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
+        c = self.subtitle_area.toPlainText().strip()
+        if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
+            with open(sub_name, 'r', encoding="utf-8") as f:
+                self.subtitle_area.setPlainText(f.read().strip())
+                return True
+        return False
     # 被调起或者从worker线程调用
     def start(self, mp4):
-        config.ffmpeg_status = 'ing'
+        self.update_start("ing")
+        noextname=os.path.basename(mp4).split('.')[0]
+        self.get_sub_toarea(noextname)
         self.btn_get_video.setDisabled(True)
         self.task = Worker(mp4.replace('\\', '/'), self)
         self.task.start()
         self.statusLabel.setText(
-            transobj['processingstatusbar'].replace('{var1}', os.path.basename(mp4)).replace('{var2}',
-                                                                                             str(len(
-                                                                                                 config.queue_mp4))))
+            transobj['processingstatusbar'].replace('{var1}', f"视频{noextname}").replace('{var2}',str(len(config.queue_mp4))))
 
     # receiver  update UI
     def update_data(self, json_data):
@@ -847,25 +916,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # update subtitle
     def update_subtitle(self):
-        sub_name = f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt"
-        set_process(f"写入字幕：" + f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt")
+        sub_name = self.task.sub_name
+        # set_process(f"写入字幕：" + f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt")
         try:
-            c = self.subtitle_area.toPlainText().strip()
-            if not c and os.path.exists(sub_name):
-                with open(sub_name, 'r', encoding="utf-8") as f:
-                    self.subtitle_area.setPlainText(f.read())
-                    config.subtitle_end = True
-                    config.exec_compos = True
-                    self.continue_compos.setDisabled(True)
-                    self.continue_compos.setText(transobj['waitforend'])
+            # c = self.subtitle_area.toPlainText().strip()
+            # if not c and os.path.exists(sub_name) and os.path.getsize(sub_name)>0:
+            if self.get_sub_toarea(self.task.noextname):
+                config.subtitle_end = True
+                config.exec_compos = True
+                self.continue_compos.setDisabled(True)
+                self.continue_compos.setText(transobj['waitforend'])
+                # with open(sub_name, 'r', encoding="utf-8") as f:
+                #     self.subtitle_area.setPlainText(f.read())
+                #     config.subtitle_end = True
+                #     config.exec_compos = True
+                #     self.continue_compos.setDisabled(True)
+                #     self.continue_compos.setText(transobj['waitforend'])
                 return
-            elif not c and not os.path.exists(sub_name):
+            if not self.subtitle_area.toPlainText().strip() and not os.path.exists(sub_name):
                 config.subtitle_end = False
                 config.exec_compos = False
                 self.continue_compos.setDisabled(True)
                 self.continue_compos.setText('')
                 set_process("[error]出错了，不存在有效字幕")
                 return
+
             with open(sub_name, "w", encoding="utf-8") as f:
                 f.write(self.subtitle_area.toPlainText().strip())
                 config.subtitle_end = True

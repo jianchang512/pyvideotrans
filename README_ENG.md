@@ -2,6 +2,7 @@
 
 This is a video translation tool that can translate videos from one language to another and create dubbed videos in another language. Speech recognition is based on the `openai-whisper` offline model, text translation uses `google|baidu|chatGPT|DeepL` translation interfaces, and text-to-speech synthesis uses `Microsoft Edge tts`.
 
+[Discord](https://discord.gg/evkPeKJddD)
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
