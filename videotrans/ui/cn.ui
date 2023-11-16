@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1472</width>
+    <width>1292</width>
     <height>771</height>
    </rect>
   </property>
@@ -23,10 +23,10 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
@@ -120,10 +120,19 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
             <item>
              <layout class="QFormLayout" name="formLayout_3">
               <item row="0" column="0">
                <widget class="QLabel" name="label_9">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -137,6 +146,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="translate_type">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -151,6 +166,12 @@
              <layout class="QFormLayout" name="formLayout_10">
               <item row="0" column="0">
                <widget class="QLabel" name="label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -164,6 +185,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QLineEdit" name="proxy">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -184,6 +211,12 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="toolTip">
                  <string>点击试听当前配音角色的发音
 生成配音可能需要数秒，请耐心等待
@@ -200,6 +233,9 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
             <item>
              <layout class="QFormLayout" name="formLayout_4">
               <property name="formAlignment">
@@ -207,6 +243,12 @@
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -220,6 +262,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="source_language">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -240,6 +288,12 @@
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_3">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -253,6 +307,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="target_language">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -273,6 +333,12 @@
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="tts_text">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -286,6 +352,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="tts_type">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -303,6 +375,12 @@
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_4">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -316,6 +394,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="voice_role">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -332,14 +416,17 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <layout class="QFormLayout" name="formLayout_7">
-              <property name="formAlignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
+             <layout class="QGridLayout" name="gridLayout">
               <item row="0" column="0">
                <widget class="QLabel" name="label_5">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -353,6 +440,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="whisper_model">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -364,11 +457,7 @@
                 </property>
                </widget>
               </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QFormLayout" name="formLayout_13">
-              <item row="0" column="0">
+              <item row="0" column="2">
                <widget class="QComboBox" name="whisper_type">
                 <property name="minimumSize">
                  <size>
@@ -381,88 +470,18 @@
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_8">
-              <property name="formAlignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>35</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>配音语速</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="voice_rate">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>35</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>是否加速或减速播放配音</string>
-                </property>
-                <property name="placeholderText">
-                 <string>正数则加速，负数则减速，-90到+90</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QFormLayout" name="formLayout_9">
-              <property name="formAlignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_7">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>35</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>静音片段</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="voice_silence">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>35</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>默认500ms，越小切分的片段越多</string>
-                </property>
-                <property name="placeholderText">
-                 <string>分割语音的静音时长，单位ms</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
              <layout class="QFormLayout" name="formLayout_12">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_8">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -476,6 +495,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="subtitle_type">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -491,95 +516,213 @@
                 <property name="currentText">
                  <string/>
                 </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+                </property>
                </widget>
               </item>
              </layout>
             </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QCheckBox" name="voice_autorate">
+             <widget class="QToolButton" name="gaoji_btn">
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>35</height>
+                <height>30</height>
                </size>
               </property>
-              <property name="toolTip">
-               <string>如果配音后时长大于原时长，是否强制加速播放</string>
-              </property>
               <property name="text">
-               <string>配音自动加速?</string>
+               <string>高级设置</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="enable_cuda">
+             <widget class="Line" name="line">
               <property name="minimumSize">
                <size>
-                <width>0</width>
-                <height>35</height>
+                <width>300</width>
+                <height>1</height>
                </size>
               </property>
-              <property name="toolTip">
-               <string>必须确定有N卡且正确配置了CUDA环境，否则勿选</string>
-              </property>
-              <property name="text">
-               <string>使用CUDA加速</string>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
            </layout>
           </item>
           <item>
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <layout class="QVBoxLayout" name="gaoji_layout_wrap">
+            <item>
+             <layout class="QHBoxLayout" name="gaoji_layout_inner">
+              <item>
+               <layout class="QFormLayout" name="formLayout_8">
+                <property name="formAlignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_6">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>配音语速</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="voice_rate">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>100</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>是否加速或减速播放配音</string>
+                  </property>
+                  <property name="placeholderText">
+                   <string>正数则加速，负数则减速，-90到+90</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="formLayout_9">
+                <property name="formAlignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_7">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>静音片段</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="voice_silence">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>100</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>默认500ms，越小切分的片段越多</string>
+                  </property>
+                  <property name="placeholderText">
+                   <string>分割语音的静音时长，单位ms</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="voice_autorate">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>如果配音后时长大于原时长，是否强制加速播放</string>
+                </property>
+                <property name="text">
+                 <string>配音自动加速?</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="enable_cuda">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>必须确定有N卡且正确配置了CUDA环境，否则勿选</string>
+                </property>
+                <property name="text">
+                 <string>使用CUDA加速</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="startbtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>开始</string>
             </property>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QPushButton" name="startbtn">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>200</width>
-                <height>50</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>开始</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="continue_compos">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>260</width>
-                <height>35</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QPushButton" name="continue_compos">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>260</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -625,7 +768,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1472</width>
+     <width>1292</width>
      <height>26</height>
     </rect>
    </property>
@@ -654,6 +797,11 @@ background-color: rgba(255, 255, 255, 0);</string>
     <property name="title">
      <string>&amp;H帮助</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="action_website"/>
+    <addaction name="separator"/>
+    <addaction name="action_discord"/>
+    <addaction name="separator"/>
     <addaction name="action_git"/>
     <addaction name="separator"/>
     <addaction name="action_issue"/>
@@ -661,6 +809,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <addaction name="action_vlc"/>
     <addaction name="separator"/>
     <addaction name="action_ffmpeg"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_Key"/>
    <addaction name="menu"/>
@@ -723,6 +872,16 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="actiondeepLX_address">
    <property name="text">
     <string>DeepLX address</string>
+   </property>
+  </action>
+  <action name="action_website">
+   <property name="text">
+    <string>官网</string>
+   </property>
+  </action>
+  <action name="action_discord">
+   <property name="text">
+    <string>Discord</string>
    </property>
   </action>
  </widget>

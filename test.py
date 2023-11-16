@@ -66,6 +66,49 @@ class W1(QThread):
         content = QMediaContent(url)
         mediaPlayer.setMedia(content)
         mediaPlayer.play()
+def get_subtitle_from_srt(srtfile):
+    with open(srtfile,'r',encoding="utf-8") as f:
+        txt=f.read().strip().split("\n")
+    # 行号
+    line=0
+    maxline=len(txt)
+    # 行格式
+    linepat=r'^\s*?\d+\s*?$'
+    # 时间格式
+    timepat=r'^\s*?\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*?$'
+    result=[]
+    for i,t in enumerate(txt):
+        # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
+        if i < maxline-2 and re.match(linepat,t) and re.match(timepat,txt[i+1]):
+            #   是行
+            line+=1
+            obj={"line":line,"time":"","text":""}
+            result.append(obj)
+        elif re.match(timepat,t):
+            # 是时间行
+            result[line-1]['time']=t
+        elif len(t.strip())>0:
+            # 是内容
+            print(f"{line=},{next=}")
+            result[line-1]['text']+=t.strip()
+    # 再次遍历，删掉美元text的行
+    new_result=[]
+    line=1
+    for it in result:
+        if "text" in it and len(it['text'].strip())>0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',it['text']):
+            it['line']=line
+            startraw, endraw = it['time'].strip().split(" --> ")
+            start = startraw.replace(',', '.').split(":")
+            start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
+            end = endraw.replace(',', '.').split(":")
+            end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
+            # start_time end_time startraw endraw
+            it['startraw']=startraw
+            it['endraw']=endraw
+            it['start_time']=start_time
+            it['end_time']=end_time
+            new_result.append(it)
+            line+=1
+    return new_result
 
-w=W1()
-w.start()
+print(get_subtitle_from_srt(r'C:\Users\c1\Videos\ceshi2.srt'))

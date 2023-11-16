@@ -128,10 +128,13 @@ class OrangeImageWidget(QtWidgets.QWidget):
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
-        qp.begin(self)
-        if self.image:
-            qp.drawImage(QtCore.QPoint(0, 0), self.image)
-        qp.end()
+        try:
+            qp.begin(self)
+            if self.image:
+                qp.drawImage(QtCore.QPoint(0, 0), self.image)
+            qp.end()
+        except:
+            pass
 
 
 # 录音
@@ -530,13 +533,15 @@ class WorkerCamera(QThread):
         super(WorkerCamera, self).__init__(parent)
 
     def run(self):
+        print("run=")
         while True:
             try:
-                get_camera_list()
+                print(f"{boxcfg.camera_list=}")
                 if len(boxcfg.camera_list) > 0:
-                    self.upui.connect(json.dumps({"func_name": "check_camera", "type": "end", "text": "检测完毕"}))
+                    self.upui.emit(json.dumps({"func_name": "check_camera", "type": "end", "text": "检测完毕"}))
                 else:
-                    self.upui.connect(json.dumps({"func_name": "check_camera", "type": "no", "text": "检测完毕,无可用摄像头"}))
+                    get_camera_list()
+                    self.upui.emit(json.dumps({"func_name": "check_camera", "type": "no", "text": "检测完毕,无可用摄像头"}))
                 break
             except:
                 time.sleep(30)
@@ -675,7 +680,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 获取摄像头
     def tabchange_fun(self, index):
         if index == 5:
-            threading.Thread(target=get_camera_list).start()
+            try:
+                threading.Thread(target=get_camera_list).start()
+            except:
+                pass
 
     def opendir_fn(self, dirname=None):
         if not dirname:
@@ -726,9 +734,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.luzhi_opendir.setText("打开输出目录")
             self.luzhi_out.setText(data['text'])
             self.luzhi_tips.setText("本次录制完成")
-        elif data['func_name'] == 'check_camer':
+        elif data['func_name'] == 'check_camera':
             self.luzhi_camera.clear()
-            if boxcfg.camera_list > 0:
+            print(f"---{boxcfg.camera_list=}")
+            if len(boxcfg.camera_list) > 0:
                 self.luzhi_camera.addItems(["不使用摄像头"] + [f"{i}号摄像头" for i in boxcfg.camera_list])
                 self.luzhi_camera.setDisabled(False)
             else:
@@ -1019,6 +1028,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tab-6 设置可用摄像头
     def luzhi_set_caplist(self):
+        print("luzhi_set_caplist")
         self.check_camera_task = WorkerCamera(self)
         self.check_camera_task.upui.connect(self.receiver)
         self.check_camera_task.start()

@@ -3,6 +3,7 @@
 这是一个视频翻译工具，可将一种语言的视频翻译为另一种语言和配音的视频。
 语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google|baidu|chatGPT|DeepL`翻译接口，文字合成语音使用 `Microsoft Edge tts`.
 
+[Discord](https://discord.gg/evkPeKJddD)
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
