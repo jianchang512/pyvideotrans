@@ -26,7 +26,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
    Soft subtitles: If the player supports subtitle management, you can show or hide subtitles. Soft subtitles will not be displayed when playing on a webpage, and some domestic players may not support them. To display soft subtitles, the generated video and the subtitle file should have the same name and be placed in the same directory.
 
-   **Cannot choose "neither embed subtitles nor select a dubbing role."**
+   **if "neither embed subtitles nor select a dubbing role."** will create srt files
 
 9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves with larger models, but recognition speed becomes slower, and more memory is required. The model will need to be downloaded the first time; by default, use base. You can pre-download the model and place it in the `current software directory/models` directory.
 
