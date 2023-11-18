@@ -10,11 +10,9 @@ def deepltrans(text,to_lang):
     if deepltranslator is None:
         deepltranslator = deepl.Translator(config.video['deepl_authkey'])
     try:
-        result=deepltranslator.translate_text(text, target_lang=to_lang).text.strip()
-        return result.text
+        result=deepltranslator.translate_text(text, target_lang=to_lang)
+        return result.text.strip()
     except Exception as e:
         res=f"[error]DeepL翻译出错:"+str(e)
         sptools.set_process(res)
         return res
-
-

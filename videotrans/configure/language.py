@@ -45,9 +45,13 @@ translate_language = {
         "subtitle_tips":" 在此可编辑字幕信息，或拖动已有srt文件到此处松开 ",
         "setdeepl_authkey":"必须设置DeepL 授权token",
         "setdeeplx_address":"必须设置你的 DeepLX 地址和端口，比如 127.0.0.1:1188",
-        "mustberole":"必须选择一个配音角色"
+        "mustberole":"必须选择一个配音角色",
+        "qingqueren":"请确认",
+        "only_srt":"既未选择嵌入字幕也未选择配音角色，将仅创建字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",
     },
     "en": {
+        "qingqueren":"Please confirm",
+        "only_srt":"Not select subtitle and not select dubbing role，will only create srt file，click Yes to continue,else cancel",
         "mustberole":"must be selet role for listen",
         "setdeepl_authkey":"must be set DeepL token",
         "setdeeplx_address":"must be set DeepLX address and port",

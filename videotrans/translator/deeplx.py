@@ -16,9 +16,17 @@ def deeplxtrans(text, to_lang):
     }
     logger.info(f"deeplx:{data=}")
     try:
-        url='http://' + config.video['deeplx_address'].replace("http://", '').replace('/translate','')+'/translate'
+        url=config.video['deeplx_address'].replace('/translate','')+'/translate'
+        if not url.startswith('http'):
+            url=f"http://{url}"
         response = httpx.post(url=url,data=json.dumps(data))
-        result = response.json()
+        try:
+            result = response.json()
+        except Exception as e:
+            msg=f"[error]deeplx翻译出错:返回内容 "+response.text
+            logger.error(msg)
+            sptools.set_process(msg)
+            return msg
         if response.status_code != 200 or result['code'] != 200:
             logger.error(f"[error]deeplx translate:{result=}")
             return f"[error]deeplx translate:{response.status_code=},{result['code']=}"
