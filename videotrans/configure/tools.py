@@ -574,6 +574,8 @@ def recognition_translation_all(noextname):
     transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language,)
     segments = transcribe['segments']
     subtitles=""
+    # 保留原始语言的字幕
+    raw_subtitles=""
     for segment in segments:
         if config.current_status=='stop' or config.current_status=='end':
             return
@@ -585,9 +587,10 @@ def recognition_translation_all(noextname):
         # 无有效字符
         if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$',text) or len(text)<=1:
             continue
+        # 原语言字幕
+        raw_subtitles += f"{segment['id'] + 1}\n{startTime} --> {endTime}\n{text}\n\n"
         if config.video['translate_type'] == 'chatGPT':
             # 如果是 chatGPT，直接组装字幕
-            subtitles += f"{segment['id'] + 1}\n{startTime} --> {endTime}\n{text}\n\n"
             continue
         # 开始翻译
         new_text=text
@@ -610,24 +613,36 @@ def recognition_translation_all(noextname):
 
         set_process(current_sub,'subtitle')
 
-    if config.video['translate_type'] == 'chatGPT':
+    # 写入原语言字幕
+    save_raw_subtitle(raw_subtitles,noextname,config.video['source_language'])
+    if config.video['translate_type'] != 'chatGPT':
+        #目标语言字幕
+        save_raw_subtitle(subtitles,noextname,config.video['target_language'])
+    else:
         set_process(f"等待 chatGPT 返回响应", 'logs')
-        subtitles = chatgpttrans(subtitles)
+        subtitles = chatgpttrans(raw_subtitles)
         if subtitles.startswith('[error]'):
             config.current_status = "stop"
             config.subtitle_end = False
             set_process(f"[error]:ChatGPT 翻译出错:{subtitles}", 'logs')
             logger.error(f"[error]:ChatGPT 翻译出错:{subtitles}")
             return
+        save_raw_subtitle(subtitles,noextname,config.video['target_language'])
         set_process(f"chatGPT OK", 'logs')
     #对字幕单独截断处理
-    # subtitles=subtitle_wrap(subtitles.strip())
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(subtitles.strip())
         set_process(subtitles.strip(), 'replace_subtitle')
     set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
     return True
 
+# 保存字幕文件
+def save_raw_subtitle(srtstr,noextname,language):
+    file=f"{config.video['target_dir']}/srt/{noextname}-{language}.srt"
+    if not os.path.exists(os.path.dirname(file)):
+        os.makedirs(os.path.dirname(file),exist_ok=True)
+    with open(file,'w' ,encoding="utf-8") as f:
+        f.write(srtstr.strip())
 
 # 从字幕文件获取格式化后的字幕信息
 '''
@@ -662,7 +677,6 @@ def get_subtitle_from_srt(srtfile):
             result[line-1]['time']=t
         elif len(t.strip())>0:
             # 是内容
-            print(f"{line=},{next=}")
             result[line-1]['text']+=t.strip()
     # 再次遍历，删掉美元text的行
     new_result=[]
@@ -786,7 +800,6 @@ def compos_video(source_mp4, noextname):
     set_process(f"合并后将创建到 {target_mp4}")
     if not os.path.exists(f"{config.video['target_dir']}/srt"):
         os.makedirs(f"{config.video['target_dir']}/srt", exist_ok=True)
-    shutil.copy(sub_name, f"{config.video['target_dir']}/srt/{noextname}.srt")
     logger.info("准备完毕，开始合成视频，" + target_mp4 + "  " + source_mp4)
     embed_srt = None
     # 预先创建好的

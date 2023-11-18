@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 import re
 
@@ -28,8 +29,11 @@ def chatgpttrans(text):
             }
     if proxies:
         openai.proxies = proxies
+    api_url="https://api.openai.com/v1"
     if config.video['chatgpt_api']:
-        openai.base_url = config.video['chatgpt_api']
+        api_url=config.video['chatgpt_api']
+
+    openai.base_url=api_url
 
     lang = config.video['target_language_chatgpt']
 
@@ -49,16 +53,22 @@ def chatgpttrans(text):
         # 处理每个字幕信息
         for n in m:
             n_1 = n.split("\n")
+            if len(n_1)<3:
+                continue
+            # 纯粹文本信息
+            txt_tmp=("".join(n_1[2:])).replace("\n", ".").replace("\r",'').strip()
+            if not txt_tmp:
+                continue
+            trans.append(txt_tmp)
             # 行数和时间信息
             origin.append({"line": n_1[0], "time": n_1[1], "text": ""})
-            # 纯粹文本信息
-            trans.append("".join(n_1[2:]).replace("\n", "."))
         len_sub = len(origin)
 
+        logger.info(f"\n[chatGPT start]待翻译文本:"+"\n".join(trans))
         messages = [
             {'role': 'system',
              'content': config.video['chatgpt_template'].replace('{lang}', lang)},
-            {'role': 'user', 'content': "####".join(trans)},
+            {'role': 'user', 'content': "\n".join(trans)},
         ]
         # continue
         try:
@@ -67,18 +77,29 @@ def chatgpttrans(text):
                 model=config.video['chatgpt_model'],
                 messages=messages
             )
+
             if response.code != 0 and response.message:
                 sptools.set_process(f"[error]chatGPT翻译请求失败error:" + response.message)
+                logger.error(f"[chatGPT error-1]翻译失败r:" + response.message)
                 trans_text = ["[error]" + response.message] * len_sub
             else:
                 result = response.data['choices'][0]['message']['content'].strip()
-                if result[:4] == '####':
-                    result = result[4:]
-                sptools.set_process(f"chatGPT翻译成功")
-                trans_text = result.split('####')
+                # 如果返回的是合法js字符串，则解析为json，否则以\n解析
+                if result.startswith('[') and result.endswith(']'):
+                    try:
+                        trans_text=json.loads(result)
+                    except:
+                        trans_text=result.split("\n")
+                else:
+                    trans_text=result.split("\n")
+                logger.info(f"\n[chatGPT OK]翻译成功:{result}")
+                sptools.set_process(f"chatGPT 翻译成功")
         except Exception as e:
-            logger.error(f"chatGPT response:" + str(e))
-            sptools.set_process(f"[error]chatGPT 请求失败:" + str(e))
+            logger.error(f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :" + str(e))
+            if not api_url.startswith("https://api.openai.com"):
+                sptools.set_process(f"[error]chatGPT,当前请求api={api_url}是第三方接口，请尝试接口地址末尾增加或去掉 /v1 后再试:" + str(e))
+            else:
+                sptools.set_process(f"[error]chatGPT,当前请求api={api_url} 请求失败:" + str(e))
             trans_text = [f"[error]chatGPT 请求失败:" + str(e)] * len_sub
         # 处理
         for index, it in enumerate(origin):

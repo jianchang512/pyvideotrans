@@ -24,7 +24,7 @@ from videotrans.configure.language import english_code_bygpt
 from videotrans.configure.tools import recognition_translation_all, recognition_translation_split, runffmpeg, \
     delete_temp, dubbing, \
     show_popup, compos_video, set_proxy, set_process, get_edge_rolelist, text_to_speech
-from videotrans.configure import config
+from videotrans.configure import config, version
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.baidu import Ui_baiduform
 
@@ -92,34 +92,37 @@ class Worker(QThread):
     def __init__(self, mp4path, parent=None):
         super().__init__(parent=parent)
         self.mp4path = mp4path.replace('\\', '/')
+        # 是否仅仅创建字幕，既不嵌入字幕也不配音
+        self.only_srt=config.video['subtitle_type']<1 and config.video['voice_role']=='No'
 
     # 执行入口
     def run(self):
         if not self.mp4path:
             set_process(transobj['selectvideodir'], "stop")
             return
-        try:
-            # 无扩展视频名，视频后缀(mp4,MP4)
-            self.noextname = os.path.splitext(os.path.basename(self.mp4path))[0]
-            # 创建临时文件目录
-            if not os.path.exists(f"{config.rootdir}/tmp/{self.noextname}"):
-                os.makedirs(f"{config.rootdir}/tmp/{self.noextname}", exist_ok=True)
-            # 分离出的音频文件
-            self.a_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.wav"
-            # 字幕文件
-            self.sub_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.srt"
-            # 如果不存在音频，则分离出音频
-            if not os.path.exists(self.a_name) or os.path.getsize(self.a_name) == 0:
-                set_process(f"{self.noextname} 分析视频数据", "logs")
-                runffmpeg([
-                    "-y",
-                    "-i",
-                    f'"{self.mp4path}"',
-                    "-ac",
-                    "1",
-                    f'"{self.a_name}"'
-                ])
-            # 单独提前分离出 novice.mp4
+        # 无扩展视频名，视频后缀(mp4,MP4)
+        self.noextname = os.path.splitext(os.path.basename(self.mp4path))[0]
+        # 创建临时文件目录
+        if not os.path.exists(f"{config.rootdir}/tmp/{self.noextname}"):
+            os.makedirs(f"{config.rootdir}/tmp/{self.noextname}", exist_ok=True)
+        # 分离出的音频文件
+        self.a_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.wav"
+        # 字幕文件
+        self.sub_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.srt"
+        # 如果不存在音频，则分离出音频
+        if not os.path.exists(self.a_name) or os.path.getsize(self.a_name) == 0:
+            set_process(f"{self.noextname} 分析视频数据", "logs")
+            runffmpeg([
+                "-y",
+                "-i",
+                f'"{self.mp4path}"',
+                "-ac",
+                "1",
+                f'"{self.a_name}"'
+            ])
+        # 单独提前分离出 novice.mp4
+        # 并非仅仅创建字幕，才需要分离
+        if not self.only_srt:
             ffmpegars = [
                 "-y",
                 "-i",
@@ -128,61 +131,66 @@ class Worker(QThread):
                 f'"{config.rootdir}/tmp/{self.noextname}/novoice.mp4"'
             ]
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
-            try:
-                # 识别、创建字幕文件、翻译
-                if os.path.exists(self.sub_name) and os.path.getsize(self.sub_name) > 1:
-                    set_process(f"{self.noextname} 等待编辑字幕", "wait_subtitle")
-                    config.subtitle_end = True
+        try:
+            # 识别、创建字幕文件、翻译
+            if os.path.exists(self.sub_name) and os.path.getsize(self.sub_name) > 1:
+                set_process(f"{self.noextname} 等待编辑字幕", "wait_subtitle")
+                config.subtitle_end = True
+            else:
+                if os.path.exists(self.sub_name):
+                    os.unlink(self.sub_name)
+                if config.video['whisper_type'] == 'all':
+                    recognition_translation_all(self.noextname)
                 else:
-                    if os.path.exists(self.sub_name):
-                        os.unlink(self.sub_name)
-                    if config.video['whisper_type'] == 'all':
-                        recognition_translation_all(self.noextname)
-                    else:
-                        recognition_translation_split(self.noextname)
-                    if config.current_status == 'ing':
-                        set_process(f"{self.noextname} wait subtitle edit", "wait_subtitle")
-                        config.subtitle_end = True
-            except Exception as e:
-                logger.error("error:" + str(e))
-                set_process(f"文字识别和翻译出错:" + str(e))
-
-            # 生成字幕后等待倒计时
-            self.timeid = 0
-            while True:
-                # 检查中断请求
-                if self.isInterruptionRequested():
-                    set_process("已停止", 'stop')
-                    print("Interruption requested. Stopping thread.")
-                    return
-                if config.current_status == 'stop' or config.current_status == 'end':
-                    set_process("已停止", 'stop')
-                    raise Exception("你停止任务")
-                # 字幕未处理完
-                if not config.subtitle_end:
-                    time.sleep(1)
-                    continue
-                # 点击了合成按钮 开始合成
-                if config.exec_compos:
-                    self.wait_subtitle()
-                    break
-                #  没有进行合成指令， 自动超时，先去更新字幕文件，然后设置 config.exec_compos=True,等下下轮循环
-                if self.timeid is not None and self.timeid >= 60:
-                    config.exec_compos = True
-                    set_process("超时未修改字母，自动合成视频", 'update_subtitle')
-                    continue
-                # 字幕处理完毕，未超时
-                time.sleep(1)
-                # 暂停，等待手动处理
-                # set_process(f"等待修改字幕")
-                # 倒计时中
-                if self.timeid is not None:
-                    self.timeid += 1
-                    set_process(f"{60 - self.timeid}秒后自动合并")
-                    continue
+                    recognition_translation_split(self.noextname)
+                if config.current_status == 'ing':
+                    set_process(f"{self.noextname} wait subtitle edit", "wait_subtitle")
+                    config.subtitle_end = True
         except Exception as e:
-            logger.error(f"sp.py :" + str(e))
-            set_process(f"[error]:{str(e)}")
+            logger.error("error:" + str(e))
+            set_process(f"文字识别和翻译出错:" + str(e))
+            if self.only_srt:
+                set_process("已停止", 'stop')
+                return
+        # 仅仅创建字幕，到此返回
+        if self.only_srt:
+            delete_temp(self.noextname)
+            # 检测是否还有
+            set_process("检测是否存在写一个任务", "check_queue")
+            return
+        # 生成字幕后等待倒计时
+        self.timeid = 0
+        while True:
+            # 检查中断请求
+            if self.isInterruptionRequested():
+                set_process("已停止", 'stop')
+                print("Interruption requested. Stopping thread.")
+                return
+            # 任务已停止
+            if config.current_status == 'stop' or config.current_status == 'end':
+                set_process("已停止", 'stop')
+                raise Exception("你停止任务")
+            # 字幕未处理完
+            if not config.subtitle_end:
+                time.sleep(1)
+                continue
+            # 点击了合成按钮 开始合成
+            if config.exec_compos:
+                self.wait_subtitle()
+                break
+            #  没有进行合成指令， 自动超时，先去更新字幕文件，然后设置 config.exec_compos=True,等下下轮循环
+            if self.timeid is not None and self.timeid >= 60:
+                config.exec_compos = True
+                set_process("超时未修改字母，自动合成视频", 'update_subtitle')
+                continue
+            # 字幕处理完毕，未超时
+            time.sleep(1)
+            # 暂停，等待手动处理
+            # 倒计时中
+            if self.timeid is not None:
+                self.timeid += 1
+                set_process(f"{60 - self.timeid}秒后自动合并")
+                continue
 
     # 执行配音、合成
     def wait_subtitle(self):
@@ -228,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
         self.setWindowTitle(
-            f"SP{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} V0.9.3 wonyes.org")
+            f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {version.VERSION}")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -260,6 +268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 目标语言改变时，如果当前tts是 edgeTTS，则根据目标语言去修改显示的角色
         self.target_language.addItems(["-"] + self.languagename)
+        # 目标语言改变
         self.target_language.currentTextChanged.connect(self.set_voice_role)
 
         self.listen_btn.hide()
@@ -604,11 +613,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.set_voice_role(self.target_language.currentText())
     # 试听配音
     def listen_voice_fun(self):
-        # play_mp3('C:/Users/c1/Videos/_video_out/1.mp3')
-        # return
         currentlang=self.target_language.currentText()
-        print(f"{currentlang=}")
-
         if currentlang in ["English","英语"]:
             text=config.video['listen_text_en']
             lang="en"
@@ -705,8 +710,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # clear
         self.process.clear()
-        # self.subtitle_area.clear()
-        self.startbtn.setText(transobj['running'])
+
         config.video['source_mp4'] = self.source_mp4.text().replace('\\', '/')
         # 检测参数
         if not config.video['source_mp4'] or not os.path.exists(config.video['source_mp4']):
@@ -719,13 +723,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not target_dir or mp4dirname == target_dir:
             target_dir = mp4dirname + "/_video_out"
             self.target_dir.setText(target_dir)
-
         if not os.path.exists(target_dir):
-            try:
-                os.makedirs(target_dir)
-            except Exception as e:
-                QMessageBox.critical(self, transobj['anerror'], transobj['createdirerror'] + " -> " + target_dir)
-                return
+            os.makedirs(target_dir,exist_ok=True)
+        if not os.path.exists(target_dir+"/srt"):
+            os.makedirs(target_dir+"/srt",exist_ok=True)
 
         config.video['target_dir'] = target_dir
         config.video['proxy'] = self.proxy.text().strip()
@@ -799,10 +800,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['voice_autorate'] = self.voice_autorate.isChecked()
         config.video['subtitle_type'] = int(self.subtitle_type.currentIndex())
 
+        # 如果既没有选择字幕也没有选择配音，将仅生成字幕文件
         if config.video['subtitle_type'] < 1 and (config.video['voice_role'] == 'No'):
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['anerror'], transobj['subtitleandvoice_role'])
-            return
+            reply = QMessageBox.question(self, transobj['qingqueren'], transobj['only_srt'], QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            # 确定仅创建字幕
+            if reply != QMessageBox.Yes:
+                self.update_start("stop")
+                return
 
         try:
             voice_rate = int(self.voice_rate.text().strip())
@@ -828,6 +832,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(os.path.dirname(subname), exist_ok=True)
             with open(subname, 'w', encoding="utf-8") as f:
                 f.write(txt)
+        self.startbtn.setText(transobj['running'])
         self.start(config.video['source_mp4'])
 
     # 存储本地数据
@@ -847,7 +852,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 判断是否存在字幕文件，如果存在，则读出填充字幕区
     def get_sub_toarea(self,noextname):
         #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
-        # noextname = os.path.basename(mp4).split('.')[0]
         sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
         c = self.subtitle_area.toPlainText().strip()
         if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
@@ -860,6 +864,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_start("ing")
         noextname=os.path.basename(mp4).split('.')[0]
         self.get_sub_toarea(noextname)
+
         self.btn_get_video.setDisabled(True)
         self.task = Worker(mp4.replace('\\', '/'), self)
         self.task.start()
@@ -874,7 +879,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == "logs":
             self.process.moveCursor(QTextCursor.Start)
-            # self.process.insertPlainText(d['text'].strip()+"\n")
             self.process.insertHtml(d['text'])
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_start(d['type'])
@@ -917,21 +921,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # update subtitle
     def update_subtitle(self):
         sub_name = self.task.sub_name
-        # set_process(f"写入字幕：" + f"{config.rootdir}/tmp/{self.task.noextname}/{self.task.noextname}.srt")
         try:
-            # c = self.subtitle_area.toPlainText().strip()
-            # if not c and os.path.exists(sub_name) and os.path.getsize(sub_name)>0:
             if self.get_sub_toarea(self.task.noextname):
                 config.subtitle_end = True
                 config.exec_compos = True
                 self.continue_compos.setDisabled(True)
                 self.continue_compos.setText(transobj['waitforend'])
-                # with open(sub_name, 'r', encoding="utf-8") as f:
-                #     self.subtitle_area.setPlainText(f.read())
-                #     config.subtitle_end = True
-                #     config.exec_compos = True
-                #     self.continue_compos.setDisabled(True)
-                #     self.continue_compos.setText(transobj['waitforend'])
                 return
             if not self.subtitle_area.toPlainText().strip() and not os.path.exists(sub_name):
                 config.subtitle_end = False
