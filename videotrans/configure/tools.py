@@ -33,6 +33,7 @@ from . import config
 from .config import logger, transobj, queue_logs
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
+from ..translator.tencent import tencenttrans
 from ..tts.openaitts import get_voice
 
 
@@ -152,6 +153,7 @@ def merge_audio_segments(segments, start_times, total_duration, noextname):
     if len(merged_audio) > total_duration:
         merged_audio = merged_audio[:total_duration]
     merged_audio.export(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav", format="wav")
+    shutil.copy(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav",f"{config.video['target_dir']}/{noextname}/tts.wav")
     return merged_audio
 
 
@@ -299,15 +301,32 @@ def get_large_audio_transcriptioncli(noextname, mp4ext, showprocess):
                 text = f"{text.capitalize()}. "
                 try:
                     print(f"translate_type============={config.video['translate_type']}")
-                    if config.video['translate_type'] == 'google':
+                    # if config.video['translate_type'] == 'google':
+                    #     result = googletrans(text, config.video['source_language'],
+                    #                          config.video['target_language'])
+                    #     print(f"{result=}")
+                    # elif config.video['translate_type'] == 'baidu':
+                    #     result = baidutrans(text, 'auto', config.video['target_language'])
+                    # elif config.video['translate_type'] == 'tencent':
+                    #     result = baidutrans(text, 'auto', config.video['target_language'])
+                    # elif config.video['translate_type'] == 'chatGPT':
+                    #     result = chatgpttrans(text)
+
+
+                    if config.video['translate_type'] == 'baidu':
+                        result = baidutrans(text, 'auto', config.video['target_language_baidu'])
+                    elif config.video['translate_type'] == 'tencent':
+                        result = tencenttrans(text, 'auto', config.video['target_language_tencent'])
+                    elif config.video['translate_type'] == 'baidu(noKey)':
+                        result = baidu_translate_spider_api.baidutrans(text, 'auto',
+                                                                       config.video['target_language_baidu'])
+                    elif config.video['translate_type'] == 'DeepL':
+                        result = deepltrans(text, config.video['target_language_deepl'])
+                    elif config.video['translate_type'] == 'DeepLX':
+                        result = deeplxtrans(text, config.video['target_language_deepl'])
+                    else:
                         result = googletrans(text, config.video['source_language'],
                                              config.video['target_language'])
-                        print(f"{result=}")
-                    elif config.video['translate_type'] == 'baidu':
-                        result = baidutrans(text, 'auto', config.video['target_language'])
-                    elif config.video['translate_type'] == 'chatGPT':
-                        result = chatgpttrans(text)
-
                     logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
                 except Exception as e:
                     logger.error("Translate Error:", str(e))
@@ -494,6 +513,8 @@ def recognition_translation_split(noextname):
                                          config.video['target_language'])
                 elif config.video['translate_type'] == 'baidu':
                     result = baidutrans(text, 'auto', config.video['target_language_baidu'])
+                elif config.video['translate_type'] == 'tencent':
+                    result = tencenttrans(text, 'auto', config.video['target_language_tencent'])
                 elif config.video['translate_type'] == 'baidu(noKey)':
                     result = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language_baidu'])
                 elif config.video['translate_type'] == 'DeepL':
@@ -542,27 +563,7 @@ def recognition_translation_split(noextname):
 
     set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
 
-# def subtitle_wrap(final_srt):
-#     maxlen = 36 if config.video['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
-#     newsubtitle = []
-#     number = 0
-#     for it in re.split(r"\n\s*?\n", final_srt.strip()):
-#         c = it.strip().split("\n")
-#         if len(c) < 2:
-#             logger.error(f"no vail subtitle:{it=}")
-#             continue
-#         start, end = c[1].strip().split(" --> ")
-#         if len(c) < 3:
-#             continue
-#         text = "".join(c[2:]).strip()
-#         if re.match(r'^[.,/\\_@#!$%^&*()?？+=\s，。·、！（【】） -]+$', text):
-#             continue
-#         number += 1
-#         newsubtitle.append(f"{number}\n{start} --> {end}\n{textwrap.fill(text, maxlen)}\n\n")
-#     final_srt = "".join(newsubtitle).strip()
-#     return final_srt
 
-# 一次性读取
 def recognition_translation_all(noextname):
     folder_path = config.rootdir + f'/tmp/{noextname}'
     audio_path = folder_path + f"/{noextname}.wav"
@@ -602,6 +603,8 @@ def recognition_translation_all(noextname):
                 new_text = googletrans(text, config.video['source_language'],config.video['target_language'])
         elif config.video['translate_type'] == 'baidu':
             new_text = baidutrans(text, 'auto', config.video['target_language_baidu'])
+        elif config.video['translate_type'] == 'tencent':
+            new_text = tencenttrans(text, 'auto', config.video['target_language_tencent'])
         elif config.video['translate_type'] == 'baidu(noKey)':
             new_text = baidu_translate_spider_api.baidutrans(text, 'auto', config.video['target_language_baidu'])
         elif config.video['translate_type'] == 'DeepL':
@@ -638,7 +641,7 @@ def recognition_translation_all(noextname):
 
 # 保存字幕文件
 def save_raw_subtitle(srtstr,noextname,language):
-    file=f"{config.video['target_dir']}/srt/{noextname}-{language}.srt"
+    file=f"{config.video['target_dir']}/{noextname}/{language}.srt"
     if not os.path.exists(os.path.dirname(file)):
         os.makedirs(os.path.dirname(file),exist_ok=True)
     with open(file,'w' ,encoding="utf-8") as f:
@@ -798,8 +801,6 @@ def compos_video(source_mp4, noextname):
     # target  output mp4 filepath
     target_mp4 = f"{config.video['target_dir']}/{noextname}.mp4"
     set_process(f"合并后将创建到 {target_mp4}")
-    if not os.path.exists(f"{config.video['target_dir']}/srt"):
-        os.makedirs(f"{config.video['target_dir']}/srt", exist_ok=True)
     logger.info("准备完毕，开始合成视频，" + target_mp4 + "  " + source_mp4)
     embed_srt = None
     # 预先创建好的

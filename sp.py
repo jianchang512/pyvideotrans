@@ -9,13 +9,14 @@ import webbrowser
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon
-from PyQt5.QtCore import pyqtSignal, QThread, QSettings, QProcess, QUrl
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QInputDialog, QWidget, QDialog, QLabel, \
+from PyQt5.QtCore import pyqtSignal, QThread, QSettings
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QDialog, QLabel, \
     QPlainTextEdit
 import warnings
 
+from videotrans import VERSION
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.tencent import Ui_tencentform
 
 warnings.filterwarnings('ignore')
 from videotrans.ui.deepl import Ui_deeplform
@@ -24,7 +25,7 @@ from videotrans.configure.language import english_code_bygpt
 from videotrans.configure.tools import recognition_translation_all, recognition_translation_split, runffmpeg, \
     delete_temp, dubbing, \
     show_popup, compos_video, set_proxy, set_process, get_edge_rolelist, text_to_speech
-from videotrans.configure import config, version
+from videotrans.configure import config
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.baidu import Ui_baiduform
 
@@ -236,7 +237,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
         self.setWindowTitle(
-            f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {version.VERSION}")
+            f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {VERSION}")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -259,7 +260,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # select and save
         self.btn_get_video.clicked.connect(self.get_mp4)
+        self.source_mp4.setAcceptDrops(True)
         self.btn_save_dir.clicked.connect(self.get_save_dir)
+        self.target_dir.setAcceptDrops(True)
         self.proxy.setText(config.video['proxy'])
 
         # language
@@ -275,7 +278,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.clicked.connect(self.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.translate_type.addItems(["google", "baidu", "chatGPT","tencent", "DeepL", "DeepLX", "baidu(noKey)"])
         self.translate_type.setCurrentText(config.video['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
@@ -326,6 +329,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
+        self.actiontencent_key.triggered.connect(self.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
         self.actiondeepLX_address.triggered.connect(self.set_deepLX_address)
@@ -418,6 +422,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['deeplx_address'] = self.settings.value("deeplx_address", "")
         config.video['chatgpt_api'] = self.settings.value("chatgpt_api", "")
         config.video['chatgpt_key'] = self.settings.value("chatgpt_key", "")
+        config.video['tencent_SecretId'] = self.settings.value("tencent_SecretId", "")
+        config.video['tencent_SecretKey'] = self.settings.value("tencent_SecretKey", "")
         os.environ['OPENAI_API_KEY'] = config.video['chatgpt_key']
         config.video['chatgpt_model'] = self.settings.value("chatgpt_model", config.video['chatgpt_model'])
         config.video['chatgpt_template'] = config.video['chatgpt_template']
@@ -511,6 +517,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.video['baidu_miyue']:
             self.w.baidu_miyue.setText(config.video['baidu_miyue'])
         self.w.set_badiu.clicked.connect(save_baidu)
+        self.w.show()
+    def set_tencent_key(self):
+        def save():
+            SecretId = self.w.tencent_SecretId.text()
+            SecretKey = self.w.tencent_SecretKey.text()
+            self.settings.setValue("tencent_SecretId", SecretId)
+            self.settings.setValue("tencent_SecretKey", SecretKey)
+            config.video['tencent_SecretId'] = SecretId
+            config.video['tencent_SecretKey'] = SecretKey
+            self.w.close()
+
+        self.w = TencentForm()
+        if config.video['tencent_SecretId']:
+            self.w.tencent_SecretId.setText(config.video['tencent_SecretId'])
+        if config.video['tencent_SecretKey']:
+            self.w.tencent_SecretKey.setText(config.video['tencent_SecretKey'])
+        self.w.set_tencent.clicked.connect(save)
         self.w.show()
 
     # set chatgpt
@@ -717,7 +740,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.update_start("stop")
             QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
             return
-
+        noextname = os.path.splitext(os.path.basename(config.video['source_mp4']))[0]
         mp4dirname = os.path.dirname(config.video['source_mp4']).lower()
         target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
         if not target_dir or mp4dirname == target_dir:
@@ -725,8 +748,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.target_dir.setText(target_dir)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir,exist_ok=True)
-        if not os.path.exists(target_dir+"/srt"):
-            os.makedirs(target_dir+"/srt",exist_ok=True)
+        if not os.path.exists(target_dir+f"/{noextname}"):
+            os.makedirs(target_dir+f"/{noextname}",exist_ok=True)
 
         config.video['target_dir'] = target_dir
         config.video['proxy'] = self.proxy.text().strip()
@@ -754,6 +777,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.video['target_language_baidu'] = langlist[target_language][2]
             if not config.video['baidu_appid'] or not config.video['baidu_miyue']:
                 QMessageBox.critical(self, transobj['anerror'], transobj['baikeymust'])
+                return
+        elif config.video['translate_type']=='tencent':
+            #     腾讯翻译
+            config.video['target_language_tencent'] = langlist[target_language][4]
+            if not config.video['tencent_SecretId'] or not config.video['tencent_SecretKey']:
+                QMessageBox.critical(self, transobj['anerror'], transobj['tencent_key'])
                 return
         elif config.video['translate_type'] == 'chatGPT':
             # chatGPT 翻译
@@ -827,7 +856,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         txt = self.subtitle_area.toPlainText().strip()
         if txt:
             set_process(f"从字幕编辑区直接读入字幕")
-            noextname = os.path.splitext(os.path.basename(config.video['source_mp4']))[0]
+
             subname = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
             os.makedirs(os.path.dirname(subname), exist_ok=True)
             with open(subname, 'w', encoding="utf-8") as f:
@@ -848,15 +877,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("translate_type", config.video['translate_type'])
         self.settings.setValue("enable_cuda", config.video['enable_cuda'])
         self.settings.setValue("tts_type", config.video['tts_type'])
+        self.settings.setValue("tencent_SecretKey", config.video['tencent_SecretKey'])
+        self.settings.setValue("tencent_SecretId", config.video['tencent_SecretId'])
 
     # 判断是否存在字幕文件，如果存在，则读出填充字幕区
     def get_sub_toarea(self,noextname):
-        #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
         sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
         c = self.subtitle_area.toPlainText().strip()
+        #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
         if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
             with open(sub_name, 'r', encoding="utf-8") as f:
                 self.subtitle_area.setPlainText(f.read().strip())
+                return True
+        # 右侧存在，则创建字幕
+        if c:
+            with open(sub_name, 'w', encoding="utf-8") as f:
+                f.write(self.subtitle_area.toPlainText().strip())
                 return True
         return False
     # 被调起或者从worker线程调用
@@ -935,13 +971,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.continue_compos.setText('')
                 set_process("[error]出错了，不存在有效字幕")
                 return
-
-            with open(sub_name, "w", encoding="utf-8") as f:
-                f.write(self.subtitle_area.toPlainText().strip())
-                config.subtitle_end = True
-                config.exec_compos = True
-                self.continue_compos.setDisabled(True)
-                self.continue_compos.setText(transobj['waitforend'])
+            # with open(sub_name, "w", encoding="utf-8") as f:
+            #     f.write(self.subtitle_area.toPlainText().strip())
+            #     config.subtitle_end = True
+            #     config.exec_compos = True
+            #     self.continue_compos.setDisabled(True)
+            #     self.continue_compos.setText(transobj['waitforend'])
         except Exception as e:
             set_process("[error]:写入字幕出错了：" + str(e))
             logger.error("[error]:写入字幕出错了：" + str(e))
@@ -951,6 +986,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 class BaiduForm(QDialog, Ui_baiduform):  # <===
     def __init__(self, parent=None):
         super(BaiduForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
+
+class TencentForm(QDialog, Ui_tencentform):  # <===
+    def __init__(self, parent=None):
+        super(TencentForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))

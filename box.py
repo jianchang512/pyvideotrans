@@ -18,7 +18,8 @@ from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog, QMessageBox, QPushButton, \
     QPlainTextEdit, QLabel
 
-from videotrans.configure import boxcfg, version
+from videotrans import VERSION
+from videotrans.configure import boxcfg
 from videotrans.configure import config as spcfg
 from videotrans.configure.language import language_code_list
 from videotrans.configure.config import logger, rootdir, homedir
@@ -553,7 +554,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
-        self.setWindowTitle(f"视频工具箱 {version.VERSION}")
+        self.setWindowTitle(f"视频工具箱 {VERSION}")
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")

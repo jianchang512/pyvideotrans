@@ -48,8 +48,10 @@ translate_language = {
         "mustberole":"必须选择一个配音角色",
         "qingqueren":"请确认",
         "only_srt":"既未选择嵌入字幕也未选择配音角色，将仅创建字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",
+        "tencent_key":"必须填写腾讯 SecretId 和 SecretKey"
     },
     "en": {
+        "tencent_key":"must be input tencent's SecretId and SecretKey",
         "qingqueren":"Please confirm",
         "only_srt":"Not select subtitle and not select dubbing role，will only create srt file，click Yes to continue,else cancel",
         "mustberole":"must be selet role for listen",
@@ -102,39 +104,39 @@ translate_language = {
 }
 
 
-#  名称: google翻译代码and语音识别代码，字幕语言代码，百度翻译代码，deep代码
+#  名称: google翻译代码and语音识别代码，字幕语言代码，百度翻译代码，deep代码,腾讯代码
 language_code_list={
     "zh":{
-        "中文简": ['zh-cn', 'chi','zh','ZH'],
-        "中文繁": ['zh-tw', 'chi','cht','ZH'],
-        "英语": ['en', 'eng','en','EN-US'],
-        "法语": ['fr', 'fre','fra','FR'],
-        "德语": ['de', 'ger','de','DE'],
-        "日语": ['ja', 'jpn','jp','JA'],
-        "韩语": ['ko', 'kor','kor','KO'],
-        "俄语": ['ru', 'rus','ru','RU'],
-        "西班牙语": ['es', 'spa','spa','ES'],
-        "泰国语": ['th', 'tha','th','No'],
-        "意大利语": ['it', 'ita','it','IT'],
-        "葡萄牙语": ['pt', 'por','pt','PT'],
-        "越南语": ['vi', 'vie','vie','No'],
-        "阿拉伯语": ['ar', 'are','ara','No']
+        "中文简": ['zh-cn', 'chi','zh','ZH','zh'],
+        "中文繁": ['zh-tw', 'chi','cht','ZH','zh-TW'],
+        "英语": ['en', 'eng','en','EN-US','en'],
+        "法语": ['fr', 'fre','fra','FR','fr'],
+        "德语": ['de', 'ger','de','DE','de'],
+        "日语": ['ja', 'jpn','jp','JA','ja'],
+        "韩语": ['ko', 'kor','kor','KO','ko'],
+        "俄语": ['ru', 'rus','ru','RU','ru'],
+        "西班牙语": ['es', 'spa','spa','ES','es'],
+        "泰国语": ['th', 'tha','th','No','th'],
+        "意大利语": ['it', 'ita','it','IT','it'],
+        "葡萄牙语": ['pt', 'por','pt','PT','pt'],
+        "越南语": ['vi', 'vie','vie','No','vi'],
+        "阿拉伯语": ['ar', 'are','ara','No','ar']
     },
     "en":{
-        "Simplified_Chinese": ['zh-cn', 'chi','zh','ZH'],
-        "Traditional_Chinese": ['zh-tw', 'chi','cht','ZH'],
-        "English": ['en', 'eng','en','EN-US'],
-        "French": ['fr', 'fre','fra','FR'],
-        "German": ['de', 'ger','de','DE'],
-        "Japanese": ['ja', 'jpn','jp','JA'],
-        "Korean": ['ko', 'kor','kor','KO'],
-        "Russian": ['ru', 'rus','ru','RU'],
-        "Spanish": ['es', 'spa','spa','ES'],
-        "Thai": ['th', 'tha','th','No'],
-        "Italian": ['it', 'ita','it','IT'],
-        "Portuguese": ['pt', 'por','pt','PT'],
-        "Vietnamese": ['vi', 'vie','vie','No'],
-        "Arabic": ['ar', 'are','ara','No']
+        "Simplified_Chinese": ['zh-cn', 'chi','zh','ZH','zh'],
+        "Traditional_Chinese": ['zh-tw', 'chi','cht','ZH','zh-TW'],
+        "English": ['en', 'eng','en','EN-US','en'],
+        "French": ['fr', 'fre','fra','FR','fr'],
+        "German": ['de', 'ger','de','DE','de'],
+        "Japanese": ['ja', 'jpn','jp','JA','ja'],
+        "Korean": ['ko', 'kor','kor','KO','ko'],
+        "Russian": ['ru', 'rus','ru','RU','ru'],
+        "Spanish": ['es', 'spa','spa','ES','es'],
+        "Thai": ['th', 'tha','th','No','th'],
+        "Italian": ['it', 'ita','it','IT','it'],
+        "Portuguese": ['pt', 'por','pt','PT','pt'],
+        "Vietnamese": ['vi', 'vie','vie','No','vi'],
+        "Arabic": ['ar', 'are','ara','No','ar']
     }
 }
 

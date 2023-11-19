@@ -77,12 +77,22 @@ def chatgpttrans(text):
                 model=config.video['chatgpt_model'],
                 messages=messages
             )
+            # 是否在 code 判断时就已出错
+            occur_error=False
+            try:
+                if response.code != 0 and response.message:
+                    sptools.set_process(f"[error]chatGPT翻译请求失败error:" + response.message)
+                    logger.error(f"[chatGPT error-1]翻译失败r:" + response.message)
+                    trans_text = ["[error]" + response.message] * len_sub
+                    occur_error=True
+            except Exception as e:
+                msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
+                logger.error(msg)
+                sptools.set_process(msg)
+                trans_text = ["[error]" +str(e)] * len_sub
+                occur_error=True
 
-            if response.code != 0 and response.message:
-                sptools.set_process(f"[error]chatGPT翻译请求失败error:" + response.message)
-                logger.error(f"[chatGPT error-1]翻译失败r:" + response.message)
-                trans_text = ["[error]" + response.message] * len_sub
-            else:
+            if not occur_error:
                 result = response.data['choices'][0]['message']['content'].strip()
                 # 如果返回的是合法js字符串，则解析为json，否则以\n解析
                 if result.startswith('[') and result.endswith(']'):

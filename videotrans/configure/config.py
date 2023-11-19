@@ -74,6 +74,9 @@ video = {
     "deepl_authkey": "",
     "deeplx_address": "",
 
+    "tencent_SecretId":"",
+    "tencent_SecretKey":"",
+
     "baidu_appid": "",
     "baidu_miyue": "",
 

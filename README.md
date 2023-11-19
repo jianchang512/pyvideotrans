@@ -1,13 +1,31 @@
-# [English](./README_ENG.md)
+[English](./README_ENG.md)  [文档 document](https://v.wonyes.org)
 
-这是一个视频翻译工具，可将一种语言的视频翻译为另一种语言和配音的视频。
-语音识别基于 `openai-whisper` 离线模型、文字翻译使用`google|baidu|chatGPT|DeepL`翻译接口，文字合成语音使用 `Microsoft Edge tts`.
+# 视频翻译和配音工具
 
-[Discord](https://discord.gg/evkPeKJddD)
+>
+> 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
+>
+> 语音识别基于 `openai-whisper` 离线模型.
+>
+> 文字翻译支持 `google|baidu|tencent|chatGPT|DeepL|DeepLX` ，
+>
+> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1`.
+>
+
+## 主要用途
+
+- A语言的视频处理后，转变为B语言配音的视频，并显示B语言字幕
+- 将本地已有的字幕文件进行配音，和已有的视频素材合并，组成有配音和字幕的视频(拖拽已有字幕到右侧编辑区)
+- 从无字幕的视频中提取出字幕文件(选择视频，然后选择“不嵌入字幕”，配音角色为“No”)
+- 经过处理后，将在目标文件夹中创建视频同名子目录，输出“原语言srt字幕”、“目标语言srt字幕”、“配音后的wav音频文件”，以便于进一步进行其他处理
+- 附带一个简单的视频工具箱，可进行音视频分离、音视频字幕合并、语音识别、语音合成、格式转化、摄像头麦克风录制
+
+
+[Discord群组](https://discord.gg/evkPeKJddD)
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
 
-*Youtube*
+*Youtube演示*
 
 [![在youtube上观看](https://img.youtube.com/vi/skLtE1XnO6Q/hqdefault.jpg)](https://www.youtube.com/watch?v=skLtE1XnO6Q)
 
