@@ -23,7 +23,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -774,9 +774,11 @@ background-color: rgba(255, 255, 255, 0);</string>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>&amp;S设置Key</string>
+     <string>设置(&amp;S)</string>
     </property>
     <addaction name="actionbaidu_key"/>
+    <addaction name="separator"/>
+    <addaction name="actiontencent_key"/>
     <addaction name="separator"/>
     <addaction name="actionchatgpt_key"/>
     <addaction name="separator"/>
@@ -787,7 +789,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>&amp;T工具</string>
+     <string>工具(&amp;T)</string>
     </property>
     <addaction name="action_tool"/>
     <addaction name="separator"/>
@@ -795,7 +797,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
-     <string>&amp;H帮助</string>
+     <string>帮助(&amp;H)</string>
     </property>
     <addaction name="separator"/>
     <addaction name="action_website"/>
@@ -822,7 +824,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="actionchatgpt_key">
    <property name="text">
-    <string>OpenAI Key</string>
+    <string>ChatGPT Key</string>
    </property>
   </action>
   <action name="actiondeepL_key">
@@ -856,7 +858,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_git">
    <property name="text">
-    <string>代码仓库</string>
+    <string>github 代码</string>
    </property>
   </action>
   <action name="action_issue">
@@ -876,12 +878,17 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_website">
    <property name="text">
-    <string>官网</string>
+    <string>文档</string>
    </property>
   </action>
   <action name="action_discord">
    <property name="text">
     <string>Discord</string>
+   </property>
+  </action>
+  <action name="actiontencent_key">
+   <property name="text">
+    <string>腾讯 Key</string>
    </property>
   </action>
  </widget>
