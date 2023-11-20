@@ -1,4 +1,4 @@
-[English](./README_ENG.md)  [文档 document](https://v.wonyes.org)
+[English](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) / [clone-voice 声音克隆](https://github.com/jianchang512/clone-voice)
 
 # 视频翻译和配音工具
 
