@@ -153,7 +153,7 @@ def merge_audio_segments(segments, start_times, total_duration, noextname):
     if len(merged_audio) > total_duration:
         merged_audio = merged_audio[:total_duration]
     merged_audio.export(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav", format="wav")
-    shutil.copy(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav",f"{config.video['target_dir']}/{noextname}/tts.wav")
+    shutil.copy(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav",f"{config.video['target_dir']}/{noextname}/{config.video['target_language']}.wav")
     return merged_audio
 
 

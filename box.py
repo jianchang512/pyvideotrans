@@ -462,13 +462,22 @@ class WorkerTTS(QThread):
 
     def run(self):
         print(f"start hecheng {self.tts_type=},{self.role=},{self.rate=},{self.filename=}")
+        mp3=self.filename.replace('.wav', '.mp3')
         text = text_to_speech(
             text=self.text,
             role=self.role,
             rate=self.rate,
-            filename=self.filename,
+            filename=mp3,
             tts_type=self.tts_type
         )
+        runffmpeg([
+                '-y',
+                '-i',
+                f'"{mp3}"',                
+                "-c:a",
+                "pcm_s16le",
+                f'"{self.filename}"',
+        ])
         print(f"text={text}")
         self.post_message("end", text)
 

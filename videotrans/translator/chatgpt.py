@@ -2,7 +2,7 @@
 import json
 import os
 import re
-
+import httpx
 import openai
 from openai import OpenAI
 
@@ -17,18 +17,18 @@ def chatgpttrans(text):
     proxies = None
     if config.video['proxy']:
         proxies = {
-            'http': 'http://%s' % config.video['proxy'].replace("http://", ''),
-            'https': 'http://%s' % config.video['proxy'].replace("http://", '')
+            'http://': 'http://%s' % config.video['proxy'].replace("http://", ''),
+            'https://': 'http://%s' % config.video['proxy'].replace("http://", '')
         }
     else:
         serv = os.environ.get('http_proxy') or os.environ.get('HTTP_PROXY')
         if serv:
             proxies = {
-                'http': 'http://%s' % serv.replace("http://", ''),
-                'https': 'http://%s' % serv.replace("http://", '')
+                'http://': 'http://%s' % serv.replace("http://", ''),
+                'https://': 'http://%s' % serv.replace("http://", '')
             }
-    if proxies:
-        openai.proxies = proxies
+    #if proxies:
+    #    openai.proxies = proxies
     api_url="https://api.openai.com/v1"
     if config.video['chatgpt_api']:
         api_url=config.video['chatgpt_api']
@@ -72,28 +72,36 @@ def chatgpttrans(text):
         ]
         # continue
         try:
-            client = OpenAI(base_url=None if not config.video['chatgpt_api'] else config.video['chatgpt_api'])
+            client = OpenAI(base_url=None if not config.video['chatgpt_api'] else config.video['chatgpt_api'], http_client=httpx.Client(proxies=proxies))
             response = client.chat.completions.create(
                 model=config.video['chatgpt_model'],
                 messages=messages
             )
             # 是否在 code 判断时就已出错
             occur_error=False
+            vail_data=None
             try:
-                if response.code != 0 and response.message:
-                    sptools.set_process(f"[error]chatGPT翻译请求失败error:" + response.message)
-                    logger.error(f"[chatGPT error-1]翻译失败r:" + response.message)
-                    trans_text = ["[error]" + response.message] * len_sub
+                if "data" in response:
+                    vail_data=response['data']                              
+                elif "code" in response and response['code'] != 0:
+                    sptools.set_process(f"[error]chatGPT翻译请求失败error:" + str(response))
+                    logger.error(f"[chatGPT error-1]翻译失败r:" + str(response))
+                    trans_text = ["[error]" + str(response)] * len_sub
                     occur_error=True
+                elif response.data:
+                    vail_data=response.data                
             except Exception as e:
-                msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
-                logger.error(msg)
-                sptools.set_process(msg)
-                trans_text = ["[error]" +str(e)] * len_sub
-                occur_error=True
+                if "choices" not in response:                    
+                    msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
+                    logger.error(msg)
+                    sptools.set_process(msg)
+                    trans_text = ["[error]" +str(e)] * len_sub
+                    occur_error=True
+            if "choices" in response:
+                vail_data=response
 
-            if not occur_error:
-                result = response.data['choices'][0]['message']['content'].strip()
+            if vail_data and "choices" in vail_data:
+                result = vail_data['choices'][0]['message']['content'].strip()
                 # 如果返回的是合法js字符串，则解析为json，否则以\n解析
                 if result.startswith('[') and result.endswith(']'):
                     try:
