@@ -121,6 +121,7 @@ class Worker(QThread):
                 "1",
                 f'"{self.a_name}"'
             ])
+            shutil.copy(self.a_name,f"{config.video['target_dir']}/{self.noextname}/{config.video['source_language']}.wav")
         # 单独提前分离出 novice.mp4
         # 并非仅仅创建字幕，才需要分离
         if not self.only_srt:
