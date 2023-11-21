@@ -1,1 +1,0 @@
-VERSION="V0.9.3.2 wonyes.org"

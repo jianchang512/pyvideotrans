@@ -24,8 +24,7 @@ from videotrans.configure import config as spcfg
 from videotrans.configure.language import language_code_list
 from videotrans.configure.config import logger, rootdir, homedir
 from videotrans.ui.toolbox import Ui_MainWindow
-from videotrans.util.tools import transcribe_audio, get_camera_list
-from videotrans.configure.tools import text_to_speech, set_proxy, runffmpeg, get_edge_rolelist
+from videotrans.util.tools import transcribe_audio, get_camera_list,text_to_speech, set_proxy, runffmpeg, get_edge_rolelist
 
 import pyaudio, wave
 

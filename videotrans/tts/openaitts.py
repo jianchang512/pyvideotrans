@@ -1,11 +1,10 @@
 import os
 import httpx
 
-import openai
 from openai import OpenAI
 from videotrans.configure import config
 from videotrans.configure.config import logger
-import videotrans.configure.tools as sptools
+from videotrans.util import tools
 
 
 def get_voice(text, role, rate, filename):
@@ -37,5 +36,5 @@ def get_voice(text, role, rate, filename):
         return True
     except Exception as e:
         logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        sptools.set_process(f"openaiTTS 合成失败：request error:" + str(e))
+        tools.set_process(f"openaiTTS 合成失败：request error:" + str(e))
     return False

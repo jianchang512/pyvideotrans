@@ -15,7 +15,7 @@ translate_language = {
         "exit": "退出",
         "end": "已结束(点击重新开始)",
         "stop": "已停止(点击开始)",
-        "subtitleandvoice_role": "不能既不嵌入字幕又不选择配音角色，二者至少选一",
+        "subtitleandvoice_role": "你没有选择视频，只输入了字幕，将仅仅创建配音wav文件，请确认继续？",
         "waitrole":"正在获取可用配音角色，请稍等重新选择",
         "downloadmodel":"模型不存在，请去下载后存放到:",
         "modelpathis":"当前模型路径是:",
@@ -48,9 +48,11 @@ translate_language = {
         "mustberole":"必须选择一个配音角色",
         "qingqueren":"请确认",
         "only_srt":"既未选择嵌入字幕也未选择配音角色，将仅创建字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",
-        "tencent_key":"必须填写腾讯 SecretId 和 SecretKey"
+        "tencent_key":"必须填写腾讯 SecretId 和 SecretKey",
+        "xuanzejuese":"必须选择配音角色，请先根据字幕语言选择目标语言，然后选择配音角色"
     },
     "en": {
+        "xuanzejuese":"must to be select dubbing role, frist select subtitle language and select dubbing role",
         "tencent_key":"must be input tencent's SecretId and SecretKey",
         "qingqueren":"Please confirm",
         "only_srt":"Not select subtitle and not select dubbing role，will only create srt file，click Yes to continue,else cancel",
@@ -87,7 +89,7 @@ translate_language = {
         "waitrole":"getting voice role list,hold on",
         "selectsavedir": "select an dir for output",
         "selectmp4": "select an mp4 video",
-        "subtitleandvoice_role": "embedding subtitles or selecting voiceover characters must be set, meaning ‘neither embedding subtitles nor selecting voiceover characters’ is not allowed.",
+        "subtitleandvoice_role": "no video and has subtitle at edit area,will create dubbing audio wav files,confirm for continue?",
         "proxyerrortitle": "Proxy Error",
         "shoundselecttargetlanguage": "Must select a target language ",
         "proxyerrorbody": "Failed to access Google services. Please set up the proxy correctly.",

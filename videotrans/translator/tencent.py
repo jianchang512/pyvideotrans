@@ -6,7 +6,7 @@ from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentClo
 from tencentcloud.tmt.v20180321 import tmt_client, models
 from ..configure import config
 from ..configure.config import logger
-from ..configure  import tools as sptools
+from ..util  import tools
 
 def tencenttrans(text, src, dest):
     try:
@@ -39,5 +39,5 @@ def tencenttrans(text, src, dest):
         return resp.TargetText
     except Exception as e:
         logger.error("tencent api error:" + str(e))
-        sptools.set_process("[error]腾讯翻译失败:" + str(e))
+        tools.set_process("[error]腾讯翻译失败:" + str(e))
         return "tencent api error:" + str(e)
