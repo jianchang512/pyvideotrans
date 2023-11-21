@@ -5,7 +5,7 @@ import os
 import warnings
 
 warnings.filterwarnings('ignore')
-from videotrans.configure.tools import get_edge_rolelist, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
+from videotrans.util.tools import get_edge_rolelist, get_large_audio_transcriptioncli, logger, runffmpeg,delete_temp
 from videotrans.configure import config
 from videotrans.configure.language import clilanglist
 
