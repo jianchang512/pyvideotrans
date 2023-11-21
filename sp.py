@@ -698,7 +698,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pass
         self.save_setting()
         if not os.path.exists(config.rootdir+"/tmp"):
-            os.mkdir(config.rootdir+"/tmp")
+            os.makedirs(config.rootdir+"/tmp")
         config.current_status = 'ing'
         config.exec_compos = False
         # 如果已有字幕，则使用
@@ -836,7 +836,7 @@ if __name__ == "__main__":
         if not os.path.exists(config.rootdir+ "/models"):
             os.mkdir(config.rootdir+ "/models")
         if not os.path.exists(config.rootdir+"/tmp"):
-            os.mkdir(config.rootdir+"tmp")
+            os.makedirs(config.rootdir+"/tmp")
         if shutil.which('ffmpeg') is None:
             QMessageBox.critical(main, transobj['anerror'], transobj["installffmpeg"])
     except Exception as e:

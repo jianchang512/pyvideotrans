@@ -602,6 +602,7 @@ def recognition_translation_split(noextname):
     subs = []
     r = sr.Recognizer()
     logger.info("for i in nonsilent_data")
+    raw_subtitles = ""
     for i, duration in enumerate(nonsilent_data):
         if config.current_status == 'stop':
             raise Exception("You stop it.")
@@ -647,6 +648,7 @@ def recognition_translation_split(noextname):
                     end_time -= 500
                 start = timedelta(milliseconds=start_time)
                 end = timedelta(milliseconds=end_time)
+                raw_subtitles += f"{index}\n{start} --> {end}\n{text}\n\n"
                 if config.video['translate_type'] == 'google':
                     result = googletrans(text, config.video['source_language'],
                                          config.video['target_language'])
@@ -678,6 +680,7 @@ def recognition_translation_split(noextname):
             set_process(
                 srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False),
                 'subtitle')
+    save_raw_subtitle(raw_subtitles, noextname, config.video['source_language'])
     final_srt = srt.compose(subs)
     if config.video['translate_type'] == 'chatGPT':
         set_process(f"{noextname} 等待 chatGPT 返回响应", 'logs')
@@ -697,6 +700,7 @@ def recognition_translation_split(noextname):
         config.current_status = "stop"
         config.subtitle_end = False
         return
+    save_raw_subtitle(final_srt, noextname, config.video['target_language'])
     with open(sub_name, 'w', encoding="utf-8") as f:
         f.write(final_srt.strip())
         #     重新填写字幕文本框
