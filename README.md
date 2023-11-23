@@ -73,7 +73,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
 
 
-# 使用预编译版本方法
+## 使用预编译版本方法
 
 0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
 
@@ -169,7 +169,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 
 
 
-# 源码部署
+## 源码部署
 
 1. 配置好 python 3.9+ 环境
 2. `git clone https://github.com/jianchang512/pyvideotrans`
@@ -290,14 +290,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 ![](./images/cli.png?c)
 
 
-# 视频前后对比
+## 视频前后对比
 
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
 [Youtube demo](https://youtu.be/skLtE1XnO6Q)
 
 
-# CUDA 加速支持
+## CUDA 加速支持
 
 1. 预编译版部分功能支持使用CUDA：如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
    [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
@@ -307,7 +307,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 3. CUDA 环境配置相对复杂，遇到问题多搜索
 
 
-# 致谢
+## 致谢
 
 > 本程序依赖这些开源项目
 
