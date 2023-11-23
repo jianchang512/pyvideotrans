@@ -14,7 +14,7 @@
 
 ## 主要用途和使用方式
 <details>
-<summary>【翻译和配音:】 A语言的视频处理后，转变为B语言配音的视频，并显示B语言字幕</summary>
+<summary>【翻译和配音】 A语言的视频处理后，转变为B语言配音的视频，并显示B语言字幕</summary>
 <p></p>
 <blockquote>
 点击选择待翻译的视频文件，然后依次选定源视频语言、目标语言、配音类型和角色、字幕嵌入类型，开始执行
@@ -24,7 +24,7 @@
 
 
 <details>
-<summary>【已有字幕配音并嵌入视频:】 将本地已有的字幕文件进行配音，和已有的视频素材合并，组成有配音和字幕的视频(拖拽已有字幕到右侧编辑区)</summary>
+<summary>【已有字幕配音并嵌入视频】 将本地已有的字幕文件进行配音，和已有的视频素材合并，组成有配音和字幕的视频(拖拽已有字幕到右侧编辑区)</summary>
 <p></p>
 <blockquote>
 选择本地打算添加字幕或配音的视频，然后将已有的字幕文件拖拽到右侧字幕区，选定源语言和目标语言、配音类型和角色，开始执行
@@ -33,7 +33,7 @@
 </details>
 
 <details>
-<summary>【对已有字幕进行配音:】 仅仅对已有的本地字幕配音，然后生成配音后的wav音频文件(不要选择视频，仅拖拽已有字幕到右侧编辑区，然后选择目标语言和配音角色)</summary>
+<summary>【对已有字幕进行配音】 仅仅对已有的本地字幕配音，然后生成配音后的wav音频文件(不要选择视频，仅拖拽已有字幕到右侧编辑区，然后选择目标语言和配音角色)</summary>
 <p></p>
 <blockquote>
 将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，开始执行
@@ -43,21 +43,21 @@
 
 <details>
 
-<summary>【从视频提取字幕:】 选择视频，然后选择“不嵌入字幕”，配音角色为“No”</summary>
+<summary>【从视频提取字幕】 选择视频，然后选择“不嵌入字幕”，配音角色为“No”</summary>
 <p></p>
 <blockquote>选择视频文件，选择视频源语言，其他无需选择，开始执行</blockquote>
 
 </details>
 
 <details>
-<summary>【输出的资源:】 经过处理后，将在目标文件夹中创建视频同名子目录，输出“原语言srt字幕”、“目标语言srt字幕”、“配音后的wav音频文件”，以便于进一步进行其他处理</summary>
+<summary>【输出资源】 经过处理后，将在目标文件夹中创建视频同名子目录，输出“原语言srt字幕”、“目标语言srt字幕”、“配音后的wav音频文件”，以便于进一步进行其他处理</summary>
 <p></p>
 <blockquote>根据你的选择情况， 在目标文件夹下会生成 源语言字幕.srt、目标语言字幕.srt、源声音.wav、配音后.wav、未截断配音-nocut.wav，以便进行其他处理</blockquote>
 
 </details>
 
 <details>
-<summary>【视频工具箱:】 附带一个简单的视频工具箱，可进行音视频分离、音视频字幕合并、语音识别、语音合成、格式转化、摄像头麦克风录制</summary>
+<summary>【视频工具箱】 附带一个简单的视频工具箱，可进行音视频分离、音视频字幕合并、语音识别、语音合成、格式转化、摄像头麦克风录制</summary>
 <p></p>
 <blockquote>点击菜单栏-工具-视频工具箱，如图![](./images/p6.png)</blockquote>
 
@@ -71,10 +71,6 @@
 [加入Discord群组](https://discord.gg/evkPeKJddD)
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
-
-*Youtube演示*
-
-[![在youtube上观看](https://img.youtube.com/vi/skLtE1XnO6Q/hqdefault.jpg)](https://www.youtube.com/watch?v=skLtE1XnO6Q)
 
 
 # 使用预编译版本方法
