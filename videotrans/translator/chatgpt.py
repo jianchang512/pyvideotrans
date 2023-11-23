@@ -81,24 +81,21 @@ def chatgpttrans(text):
             occur_error=False
             vail_data=None
             try:
-                if "data" in response:
-                    vail_data=response['data']                              
+                if "choices" in response:
+                    vail_data=response
                 elif "code" in response and response['code'] != 0:
                     tools.set_process(f"[error]chatGPT翻译请求失败error:" + str(response))
                     logger.error(f"[chatGPT error-1]翻译失败r:" + str(response))
                     trans_text = ["[error]" + str(response)] * len_sub
                     occur_error=True
-                elif response.data:
-                    vail_data=response.data                
+                elif "data" in response:
+                    vail_data=response['data']                              
             except Exception as e:
-                if "choices" not in response:                    
-                    msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
-                    logger.error(msg)
-                    tools.set_process(msg)
-                    trans_text = ["[error]" +str(e)] * len_sub
-                    occur_error=True
-            if "choices" in response:
-                vail_data=response
+                msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
+                logger.error(msg)
+                tools.set_process(msg)
+                trans_text = ["[error]" +str(e)] * len_sub
+                occur_error=True
 
             if vail_data and "choices" in vail_data:
                 result = vail_data['choices'][0]['message']['content'].strip()

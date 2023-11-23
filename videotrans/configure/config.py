@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import os
 import locale
 import logging
@@ -9,9 +10,11 @@ from .language import translate_language, language_code_list
 # 当前执行目录
 rootdir = os.getcwd().replace('\\', '/')
 homedir=os.path.join(os.path.expanduser('~'),'Videos/pyvideotrans').replace('\\','/')
+if not os.path.exists(f"{rootdir}/logs"):
+    os.makedirs(f"{rootdir}/logs",exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
-    filename=f'{rootdir}/video.log',
+    filename=f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',
     encoding="utf-8",
     filemode="a")
 logger = logging.getLogger('VideoTrans')
@@ -70,6 +73,7 @@ video = {
     "translate_type": "google",
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
+    "video_autorate": False,
 
     "deepl_authkey": "",
     "deeplx_address": "",

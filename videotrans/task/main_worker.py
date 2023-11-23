@@ -10,7 +10,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger
 from videotrans.util.tools import set_process, runffmpeg, recognition_translation_all, recognition_translation_split, \
-    delete_temp, dubbing, compos_video
+    delete_temp, dubbing, compos_video, delete_files
 
 
 class Worker(QThread):
@@ -32,12 +32,14 @@ class Worker(QThread):
         # 无扩展视频名，视频后缀(mp4,MP4)
         self.noextname = os.path.splitext(os.path.basename(self.mp4path))[0]
         # 创建临时文件目录
-        if not os.path.exists(f"{config.rootdir}/tmp/{self.noextname}"):
-            os.makedirs(f"{config.rootdir}/tmp/{self.noextname}", exist_ok=True)
+        self.folder=f"{config.rootdir}/tmp/{self.noextname}"
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder, exist_ok=True)
         # 分离出的音频文件
-        self.a_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.wav"
+        self.a_name = f"{self.folder}/{self.noextname}.wav"
+        self.tts_wav = f"{self.folder}/tts-{self.noextname}.wav"
         # 字幕文件
-        self.sub_name = f"{config.rootdir}/tmp/{self.noextname}/{self.noextname}.srt"
+        self.sub_name = f"{self.folder}/{self.noextname}.srt"
         # 如果不存在音频，则分离出音频
         if not os.path.exists(self.a_name) or os.path.getsize(self.a_name) == 0:
             set_process(f"{self.noextname} 分析视频数据", "logs")
@@ -58,7 +60,7 @@ class Worker(QThread):
                 "-i",
                 f'"{self.mp4path}"',
                 "-an",
-                f'"{config.rootdir}/tmp/{self.noextname}/novoice.mp4"'
+                f'"{self.folder}/novoice.mp4"'
             ]
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
         try:
@@ -127,15 +129,32 @@ class Worker(QThread):
         try:
             set_process(f"开始配音操作:{config.video['tts_type']}", 'logs')
             dubbing(self.noextname)
+        except Exception as e:
+            logger.error("error:" + str(e))
+            config.current_status='stop'
+            config.exec_compos = False
+            set_process("[error]配音操作时出错:"+str(e), "stop")
+            if os.path.exists(self.tts_wav):
+                os.unlink(self.tts_wav)
+            delete_files(self.folder,'.mp3')
+            delete_files(self.folder,'.mp4')
+            return
+        try:
             set_process(f"配音完毕，开始将视频、音频、字幕合并", 'logs')
             compos_video(self.mp4path, self.noextname)
-            set_process(f"合并完毕，任务处理结束,清理临时文件", 'logs')
             delete_temp(self.noextname)
+            set_process(f"<strong style='color:#00a67d;font-size:16px'>[{self.noextname}]合并结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等</strong>", 'logs')
             # 检测是否还有
             set_process("检测是否存在写一个任务", "check_queue")
         except Exception as e:
             logger.error("error:" + str(e))
-            set_process(f"[error]:配音合并时出错:" + str(e), "logs")
+            set_process(f"[error]:最终合并时出错:" + str(e), "logs")
+            delete_files(self.folder,'.mp3')
+            delete_files(self.folder,'.mp4')
+            delete_files(self.folder,'.png')
+            set_process("[error]最终合并时出错了", "stop")
+
+
 
 # 仅有字幕输入进行配音，没有视频输入
 class WorkerOnlyDubbing(QThread):

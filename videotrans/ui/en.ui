@@ -663,6 +663,20 @@
                </layout>
               </item>
               <item>
+               <widget class="QCheckBox" name="video_autorate">
+                <property name="toolTip">
+                 <string>After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.
+2 solutions:
+1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment
+2. Force the video to play slowly in order to extend the video duration and align with the dubbing.
+Choose only one of the two options</string>
+                </property>
+                <property name="text">
+                 <string>VideoAutoRate</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QCheckBox" name="voice_autorate">
                 <property name="minimumSize">
                  <size>
@@ -671,10 +685,14 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>if dubbing after time duration greater than before ,auto speed up ?</string>
+                 <string>After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.
+2 solutions:
+1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment
+2. Force the video to play slowly in order to extend the video duration and align with the dubbing.
+Choose only one of the two options</string>
                 </property>
                 <property name="text">
-                 <string>Auto speed up?</string>
+                 <string>DubbAutoRate</string>
                 </property>
                </widget>
               </item>

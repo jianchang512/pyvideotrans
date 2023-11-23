@@ -329,6 +329,9 @@ class Ui_MainWindow(object):
         self.voice_silence.setObjectName("voice_silence")
         self.formLayout_9.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_silence)
         self.gaoji_layout_inner.addLayout(self.formLayout_9)
+        self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
+        self.video_autorate.setObjectName("video_autorate")
+        self.gaoji_layout_inner.addWidget(self.video_autorate)
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setMinimumSize(QtCore.QSize(0, 35))
         self.voice_autorate.setObjectName("voice_autorate")
@@ -490,8 +493,18 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Silence duration"))
         self.voice_silence.setToolTip(_translate("MainWindow", "default 500ms"))
         self.voice_silence.setPlaceholderText(_translate("MainWindow", "time unit is ms"))
-        self.voice_autorate.setToolTip(_translate("MainWindow", "if dubbing after time duration greater than before ,auto speed up ?"))
-        self.voice_autorate.setText(_translate("MainWindow", "Auto speed up?"))
+        self.video_autorate.setToolTip(_translate("MainWindow", "After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.\n"
+"2 solutions:\n"
+"1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment\n"
+"2. Force the video to play slowly in order to extend the video duration and align with the dubbing.\n"
+"Choose only one of the two options"))
+        self.video_autorate.setText(_translate("MainWindow", "VideoAutoRate"))
+        self.voice_autorate.setToolTip(_translate("MainWindow", "After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.\n"
+"2 solutions:\n"
+"1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment\n"
+"2. Force the video to play slowly in order to extend the video duration and align with the dubbing.\n"
+"Choose only one of the two options"))
+        self.voice_autorate.setText(_translate("MainWindow", "DubbAutoRate"))
         self.enable_cuda.setToolTip(_translate("MainWindow", "check if CUDA environ is right"))
         self.enable_cuda.setText(_translate("MainWindow", "Enable CUDA"))
         self.startbtn.setText(_translate("MainWindow", "Start"))

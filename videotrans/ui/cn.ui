@@ -666,6 +666,20 @@
                </layout>
               </item>
               <item>
+               <widget class="QCheckBox" name="video_autorate">
+                <property name="toolTip">
+                 <string>翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
+2种解决方式:
+1. 强制配音加速播放，以便缩短配音时长和视频对齐
+2. 强制视频慢速播放，以便延长视频时长和配音对齐。
+两者只可选其一</string>
+                </property>
+                <property name="text">
+                 <string>视频自动慢速</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QCheckBox" name="voice_autorate">
                 <property name="minimumSize">
                  <size>
@@ -674,7 +688,11 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>如果配音后时长大于原时长，是否强制加速播放</string>
+                 <string>翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
+2种解决方式:
+1. 强制配音加速播放，以便缩短配音时长和视频对齐
+2. 强制视频慢速播放，以便延长视频时长和配音对齐。
+两者只可选其一</string>
                 </property>
                 <property name="text">
                  <string>配音自动加速?</string>
