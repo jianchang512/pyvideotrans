@@ -829,11 +829,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             cmd += f" -c:v libx264 "
         if srtfile and os.path.exists(srtfile):
-            shutil.copy(srtfile, rootdir + f"/{basename}.srt")
-            cmd += f" -vf subtitles={basename}.srt"
+            srtfile.replace('\\','/').replace(':','\\:')
+            cmd += f" -vf \"subtitles='{srtfile}'\""
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
-        cmd += f" {savedir}/{basename}.mp4"
+        cmd += f' "{savedir}/{basename}.mp4"'
         self.ysphb_task = Worker([cmd], "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()

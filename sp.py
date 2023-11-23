@@ -8,7 +8,7 @@ import threading
 import time
 import webbrowser
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
 from PyQt5.QtCore import pyqtSignal, QThread, QSettings, QUrl
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel
@@ -103,7 +103,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #
         self.voice_rate.setText(config.video['voice_rate'])
         self.voice_silence.setText(config.video['voice_silence'])
-        self.voice_autorate.setChecked(config.video['voice_autorate'])
+
+        self.voice_autorate.stateChanged.connect(lambda: self.autorate_changed(self.voice_autorate.isChecked(),"voice"))
+        self.video_autorate.stateChanged.connect(lambda: self.autorate_changed(self.video_autorate.isChecked(),"video"))
+
+        # self.voice_autorate.setChecked(config.video['voice_autorate'])
+        # self.video_autorate.setChecked(config.video['video_autorate'])
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
         if config.video['tts_type'] == 'edgeTTS':
             self.voice_role.addItems(['No'])
@@ -163,6 +168,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs = LogsWorker()
         self.task_logs.post_logs.connect(self.update_data)
         self.task_logs.start()
+
+    # voice_autorate video_autorate 变化
+    def autorate_changed(self,state,name):
+        if state:
+            if name=='voice':
+                self.video_autorate.setChecked(False)
+            else:
+                self.voice_autorate.setChecked(False)
+
     def open_dir(self, dirname=None):
         if not dirname:
             return
@@ -205,6 +219,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_rate.setDisabled(type)
         self.voice_silence.setDisabled(type)
         self.voice_autorate.setDisabled(type)
+        self.video_autorate.setDisabled(type)
         self.enable_cuda.setDisabled(type)
 
     def closeEvent(self, event):
@@ -242,7 +257,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['proxy'] = self.settings.value("proxy", "", str)
         config.video['voice_rate'] = self.settings.value("voice_rate", config.video['voice_rate'], str)
         config.video['voice_silence'] = self.settings.value("voice_silence", config.video['voice_silence'], str)
-        config.video['voice_autorate'] = self.settings.value("voice_autorate", config.video['voice_autorate'], bool)
+        # config.video['voice_autorate'] = self.settings.value("voice_autorate", config.video['voice_autorate'], bool)
+        # config.video['video_autorate'] = self.settings.value("video_autorate", config.video['video_autorate'], bool)
         config.video['enable_cuda'] = self.settings.value("enable_cuda", config.video['enable_cuda'], bool)
         config.video['whisper_model'] = self.settings.value("whisper_model", config.video['whisper_model'], str)
         config.video['whisper_type'] = self.settings.value("whisper_type", config.video['whisper_type'], str)
@@ -279,8 +295,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.task.timeid is None:
                 return
             self.task.timeid = None if self.task.timeid is None or self.task.timeid > 0 else 0
-            self.process.moveCursor(QTextCursor.Start)
-            self.process.insertPlainText("停止倒计时，请修改字幕后点击合并按钮\n")
+            self.process.moveCursor(QTextCursor.End)
+            self.process.insertHtml("<strong>停止倒计时，请修改字幕后点击合并按钮</strong><br>")
 
     # set deepl key
     def set_deepL_key(self):
@@ -675,6 +691,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         config.video['voice_autorate'] = self.voice_autorate.isChecked()
+        config.video['video_autorate'] = self.video_autorate.isChecked()
         config.video['subtitle_type'] = int(self.subtitle_type.currentIndex())
 
         # 如果既没有选择字幕也没有选择配音，将仅生成字幕文件
@@ -721,6 +738,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("voice_rate", config.video['voice_rate'])
         self.settings.setValue("voice_silence", config.video['voice_silence'])
         self.settings.setValue("voice_autorate", config.video['voice_autorate'])
+        self.settings.setValue("video_autorate", config.video['video_autorate'])
         self.settings.setValue("subtitle_type", config.video['subtitle_type'])
         self.settings.setValue("translate_type", config.video['translate_type'])
         self.settings.setValue("enable_cuda", config.video['enable_cuda'])
@@ -765,7 +783,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.moveCursor(QTextCursor.End)
             self.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == "logs":
-            self.process.moveCursor(QTextCursor.Start)
+            self.process.moveCursor(QTextCursor.End)
             self.process.insertHtml(d['text'])
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_start(d['type'])

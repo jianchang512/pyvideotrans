@@ -329,6 +329,9 @@ class Ui_MainWindow(object):
         self.voice_silence.setObjectName("voice_silence")
         self.formLayout_9.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_silence)
         self.gaoji_layout_inner.addLayout(self.formLayout_9)
+        self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
+        self.video_autorate.setObjectName("video_autorate")
+        self.gaoji_layout_inner.addWidget(self.video_autorate)
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setMinimumSize(QtCore.QSize(0, 35))
         self.voice_autorate.setObjectName("voice_autorate")
@@ -493,7 +496,17 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "静音片段"))
         self.voice_silence.setToolTip(_translate("MainWindow", "默认500ms，越小切分的片段越多"))
         self.voice_silence.setPlaceholderText(_translate("MainWindow", "分割语音的静音时长，单位ms"))
-        self.voice_autorate.setToolTip(_translate("MainWindow", "如果配音后时长大于原时长，是否强制加速播放"))
+        self.video_autorate.setToolTip(_translate("MainWindow", "翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。\n"
+"2种解决方式:\n"
+"1. 强制配音加速播放，以便缩短配音时长和视频对齐\n"
+"2. 强制视频慢速播放，以便延长视频时长和配音对齐。\n"
+"两者只可选其一"))
+        self.video_autorate.setText(_translate("MainWindow", "视频自动慢速"))
+        self.voice_autorate.setToolTip(_translate("MainWindow", "翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。\n"
+"2种解决方式:\n"
+"1. 强制配音加速播放，以便缩短配音时长和视频对齐\n"
+"2. 强制视频慢速播放，以便延长视频时长和配音对齐。\n"
+"两者只可选其一"))
         self.voice_autorate.setText(_translate("MainWindow", "配音自动加速?"))
         self.enable_cuda.setToolTip(_translate("MainWindow", "必须确定有N卡且正确配置了CUDA环境，否则勿选"))
         self.enable_cuda.setText(_translate("MainWindow", "使用CUDA加速"))

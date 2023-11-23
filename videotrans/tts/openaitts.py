@@ -26,11 +26,16 @@ def get_voice(text, role, rate, filename):
     # if config.video['chatgpt_api']:
     #     openai.base_url = config.video['chatgpt_api']
     try:
+        speed=1.0
+        if rate:
+            rate=float(rate.replace('%',''))/100
+            speed+=rate
         client = OpenAI(base_url=None if not config.video['chatgpt_api'] else config.video['chatgpt_api'], http_client=httpx.Client(proxies=proxies))
         response = client.audio.speech.create(
             model="tts-1",
             voice=role,
             input=text,
+            speed=speed
         )
         response.stream_to_file(filename)
         return True
