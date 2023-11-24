@@ -265,7 +265,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 **--whisper_model**: 默认为base，可选 base / small / medium / large，效果越来好，速度越来越慢。
 
 
-
 **cli示例**
 
 `python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_replace zh-CN-XiaoxiaoNeural`
@@ -278,7 +277,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 上述意思是，将源语言为中文的 D:/video/ex.mp4 视频，翻译为英文视频，设置代理 http://127.0.0.1:10809 使用配音角色为 en-US-AriaNeural，如果翻译后的语音时长大于原语音，则自动加速，文字识别模型采用 small 模型
 
 </details>
-# 软件预览截图
+
+
+## 软件预览截图
 
 ![](./images/p1.png?b)
 ![](./images/p2.png?b)
