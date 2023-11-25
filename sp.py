@@ -12,6 +12,7 @@ from PyQt5.QtCore import QSettings, QUrl, QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton
 import warnings
 
+from videotrans.component.set_form import InfoForm
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, WorkerOnlyDubbing
@@ -137,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area.setMinimumSize(300, 0)
         self.subtitle_area.setPlaceholderText(transobj['subtitle_tips'])
         self.subtitle_layout.insertWidget(0, self.subtitle_area)
-        self.subtitle_area.textChanged.connect(self.reset_timeid)
+        # self.subtitle_area.textChanged.connect(self.reset_timeid)
 
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
@@ -152,11 +153,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_website.triggered.connect(lambda: self.open_url('website'))
         self.action_issue.triggered.connect(lambda: self.open_url('issue'))
         self.action_tool.triggered.connect(self.open_toolbox)
+        self.action_about.triggered.connect(self.about)
         self.action_clone.triggered.connect(lambda: show_popup(transobj['yinsekaifazhong'], transobj['yinsekelong']))
 
         # status
         self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
-        self.statusLabel.setStyleSheet("color:#2196f3")
+        self.statusLabel.setStyleSheet("color:#00a67d")
         self.statusBar.addWidget(self.statusLabel)
         # rightbottom=QLabel("github.com/jianchang512/pyvideotrans")
         rightbottom=QPushButton(" 帮助该软件做的更好 ")
@@ -179,7 +181,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.check_update.start()
 
     def about(self):
-        self.open_url("about")
+        self.infofrom=InfoForm()
+        self.infofrom.show()
 
     # voice_autorate video_autorate 变化
     def autorate_changed(self,state,name):
@@ -306,10 +309,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 停止自动合并倒计时
     def reset_timeid(self):
-        if not config.subtitle_end:
+        if not config.subtitle_end or config.exec_compos:
             return
         self.stop_djs.hide()
-        if not config.exec_compos and self.task is not None:
+        if self.task is not None:
             if self.task.timeid is None:
                 return
             self.task.timeid = None
@@ -432,7 +435,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, transobj['anerror'], str(e))
 
     def check_whisper_type(self, index):
-        print(f"whisper_type={index=}")
         if index == 0:
             config.video['whisper_type'] = 'all'
         else:
@@ -814,9 +816,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
             self.continue_compos.show()
-            self.stop_djs.show()
             self.continue_compos.setDisabled(False)
             self.continue_compos.setText(transobj['waitsubtitle'])
+            self.stop_djs.show()
         elif d['type'] == 'update_subtitle':
             # 字幕编辑后启动合成
             self.update_subtitle()

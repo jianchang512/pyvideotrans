@@ -862,6 +862,8 @@ background-color: rgba(255, 255, 255, 0);</string>
     <addaction name="separator"/>
     <addaction name="action_ffmpeg"/>
     <addaction name="separator"/>
+    <addaction name="action_about"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_Key"/>
    <addaction name="menu"/>
@@ -939,6 +941,11 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="actiontencent_key">
    <property name="text">
     <string>Tencent Key</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>Support US</string>
    </property>
   </action>
  </widget>

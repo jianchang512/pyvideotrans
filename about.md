@@ -5,22 +5,20 @@
 有不少朋友问到这个问题，简单说下。 本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。
 不用担心收费问题。如果你遇到需要付费购买的，请果断拒绝然后来此使用免费开源的正版。
 
-至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。
-当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助。如果你手头紧，那么也无需捐助，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。
+至于维护呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。
+当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助。如果你不愿捐助，那也无妨，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。
 
 ## 捐助回馈
 在 [github仓库页面](https://github.com/jianchang512/pyvideotrans/blob/main/about.md) 、[作品推荐页](https://github.com/jianchang512/pyvideotrans/blob/main/contr.md), 以及 [文档网站](http://v.wonyes.org/contr) 可添加显示捐助者的推广信息，比如 b站频道、油管频道、公众号、某个视频播放地址、个人博客、新产品推荐页等等任意合法的有网址的东东。虽然流量不大，但聊胜于无嘛，多多少少也算是点回报。
 
 
-## [捐助者列表及作品推荐](./contr.md)
+## 捐助者列表及作品推荐
 
 -  wonyes  / 2023-11-20 捐助100元 / [6年心血有情感的原创画作/www.wonyes.org](http://www.wonyes.org)
 -  莫烦Python  / 2023-11-20 捐助200元 / [莫烦python，专注深度学习，自然语言处理](https://www.youtube.com/@MorvanZhou)
 - 吉田製作所Y  / 2023-11-21 捐助100元 / [吉田製作所Y](https://www.youtube.com/@yoshidaaaaaaaaaaaaaaaaaaaaaaaa)
 - han yiri  / 2023-11-21 捐助100元 / [精彩手工](https://www.youtube.com/@hanyiri6544)
 - DIY show Crochet  / 2023-11-21 捐助100元 / [Diy 作品](https://www.youtube.com/@DIYshoww)
-
-
 
 ## 如何捐助
 

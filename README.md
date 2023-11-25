@@ -1,4 +1,4 @@
-[EnglishVersion](./README_ENG.md) / [文档docs](https://v.wonyes.org/preview.html) /  [👑关于商业计划和捐助](./about.md)
+[EnglishVersion](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑有你帮助将更好](./about.md) / [捐助者列表](./contr.md)
 
 ## 视频翻译和配音工具
 

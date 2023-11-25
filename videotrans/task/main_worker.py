@@ -9,8 +9,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger
-from videotrans.util.tools import set_process, runffmpeg, recognition_translation_all, recognition_translation_split, \
-    delete_temp, dubbing, compos_video, delete_files, srt_trans_srt
+from videotrans.util.tools import set_process, runffmpeg, recognition_all, recognition_split, \
+    delete_temp, dubbing, compos_video, delete_files, srt_translation_srt
 
 
 class Worker(QThread):
@@ -20,7 +20,7 @@ class Worker(QThread):
     def __init__(self, mp4path, parent=None):
         super().__init__(parent=parent)
         self.mp4path = mp4path.replace('\\', '/')
-        # 是否仅仅创建字幕，既不嵌入字幕也不配音
+        # 是否仅仅创建字幕，既不嵌入字幕也不配音，仅仅将字幕提取出来，并翻译
         self.only_srt=config.video['subtitle_type']<1 and config.video['voice_role']=='No'
 
     # 执行入口
@@ -74,17 +74,23 @@ class Worker(QThread):
                     os.unlink(self.sub_name)
                 # 识别为字幕
                 if config.video['whisper_type'] == 'all':
-                    recognition_translation_all(self.noextname)
+                    recognition_all(self.noextname)
                 else:
-                    recognition_translation_split(self.noextname)
+                    recognition_split(self.noextname)
         except Exception as e:
-            set_process(f"文字识别出错:" + str(e),'error')
+            set_process(f"语音识别出错:" + str(e),'error')
             set_process("已停止", 'stop')
             return
         try:
-            # 翻译字幕
-            srt_trans_srt(self.noextname)
+            # 翻译字幕，如果存在目标语言，则翻译字幕，否则结束
+            if config.video['target_language'] in ['-','No','no']:
+                config.current_status='end'
+                return
+            set_process("开始翻译字幕文件")
+            srt_translation_srt(self.noextname)
+
             if config.current_status == 'ing':
+                time.sleep(1)
                 set_process(f"{self.noextname} wait subtitle edit", "edit_subtitle")
                 config.subtitle_end = True
             else:
@@ -110,8 +116,7 @@ class Worker(QThread):
                 return
             # 点击了合成按钮，已触发合成命令， 已核对无误，开始合成
             if config.exec_compos:
-                self.wait_subtitle()
-                return
+                return self.dubbing_compos()
             # 是None 说明已修改了字幕或者点击了停止倒计时
             # 或字幕没有完成
             if self.timeid is None or not config.subtitle_end:
@@ -120,12 +125,16 @@ class Worker(QThread):
 
             #  self.timeid >60,超时自动合并 没有进行合成指令
             if self.timeid is not None and self.timeid >= 60:
-                config.exec_compos = True
-                #  自动超时，先去更新字幕文件，检测条件，符合后然后设置 config.exec_compos=True,等下下轮循环
-                set_process("超时未修改字母，先去检测字幕条件，符合后，自动合成视频", 'update_subtitle')
+                # 字幕已完成，则自动执行，否则重置倒计时
+                if config.subtitle_end:
+                    config.exec_compos = True
+                    #  自动超时，先去更新字幕文件，检测条件，符合后然后设置 config.exec_compos=True,等下下轮循环
+                    set_process("超时未修改字母，先去检测字幕条件，符合后，自动合成视频", 'update_subtitle')
+                else:
+                    self.timeid=0
                 continue
 
-            # 字幕处理完毕，未超时，等待1s，继续倒计时
+            # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
             time.sleep(1)
             # 倒计时中
             if self.timeid is not None and self.timeid<60:
@@ -133,7 +142,7 @@ class Worker(QThread):
                 set_process(f"{60 - self.timeid}秒后自动合并")
 
     # 执行配音、合成
-    def wait_subtitle(self):
+    def dubbing_compos(self):
         try:
             set_process(f"开始配音操作:{config.video['tts_type']}", 'logs')
             dubbing(self.noextname)
@@ -145,17 +154,18 @@ class Worker(QThread):
                 os.unlink(self.tts_wav)
             delete_files(self.folder,'.mp3')
             delete_files(self.folder,'.mp4')
+            delete_files(self.folder,'.png')
             return
         # 最后一步合成
         try:
             set_process(f"配音完毕，开始将视频、音频、字幕合并", 'logs')
-            compos_video(self.mp4path, self.noextname)
-            set_process(f"<strong style='color:#00a67d;font-size:16px'>[{self.noextname}]合并结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等</strong>", 'logs')
+            compos_video(self.noextname)
             # 检测是否还有
             set_process("检测是否存在写一个任务", "check_queue")
             delete_temp(self.noextname)
+            set_process(f"<strong style='color:#00a67d;font-size:16px'>[{self.noextname}]合并结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等</strong>", 'logs')
         except Exception as e:
-            set_process(f"[error]:最终合并时出错:" + str(e), "error")
+            set_process(f"[error]:进行最终合并时出错:" + str(e), "error")
             delete_files(self.folder,'.mp3')
             delete_files(self.folder,'.mp4')
             delete_files(self.folder,'.png')
