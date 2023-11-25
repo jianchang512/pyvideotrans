@@ -329,12 +329,11 @@ def runffmpeg(arg, *, noextname=None):
                 p.terminate()
                 p.kill()
                 return
-            rs = p.wait(0.3)
+            rs = p.wait(1)
             if noextname:
                 config.queue_novice[noextname] = "end" if rs == 0 else 'error'
             if rs != 0:
-                set_process(f"[error]ffmpeg执行结果:失败 {cmd=}")
-                config.current_status = "stop"
+                set_process(f"[error]ffmpeg执行结果:失败 {cmd=},{p.stderr=}")
             return True
         except Exception as e:
             if config.ffmpeg_status == 'stop':
@@ -843,11 +842,12 @@ def save_raw_subtitle(srtstr, noextname, language):
 :07,429', 'start_time': 126423, 'end_time': 127429}
 ]
 '''
-
-
-def get_subtitle_from_srt(srtfile):
-    with open(srtfile, 'r', encoding="utf-8") as f:
-        txt = f.read().strip().split("\n")
+def get_subtitle_from_srt(srtfile,*,is_file=True):
+    if is_file:
+        with open(srtfile, 'r', encoding="utf-8") as f:
+            txt = f.read().strip().split("\n")
+    else:
+        txt=srtfile.strip()
     # 行号
     line = 0
     maxline = len(txt)
@@ -934,7 +934,7 @@ def dubbing(noextname, only_dubbing=False):
                 "filename": f"{folder_path}/tts-{it['start_time']}.mp3"})
         exec_tts(queue_tts, total_length, noextname)
 
-
+# 获取某个视频的时长
 def get_video_duration(file_path):
     command = [
         "ffprobe",
@@ -956,9 +956,12 @@ def get_video_duration(file_path):
 def is_novoice_mp4(novoice_mp4,noextname):
     # 预先创建好的
     # 判断novoice_mp4是否完成
+    t=0
     while True:
         if config.current_status != 'ing':
             return False
+        if t>18 and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4)>0:
+            return True
         if noextname not in config.queue_novice:
             msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试"
             set_process(msg)
@@ -971,6 +974,7 @@ def is_novoice_mp4(novoice_mp4,noextname):
         if config.queue_novice[noextname] == 'ing':
             set_process(f"{noextname} 所需资源未准备完毕，请稍等..{config.queue_novice[noextname]=}")
             time.sleep(3)
+            t+=3
             continue
         return True
 
@@ -1324,8 +1328,39 @@ def add_clip_to_last(noextname,duration_ms):
     # 连接源视频和该片段
     runffmpeg(
         f'-y -i "{novoice_mp4}" -i "{clip_video}" -filter_complex "[0:v]setsar=1[v0];[1:v]setsar=1[v1];[v0][v1]concat=n=2:v=1:a=0[outv]" -map "[outv]" -c:v libx264 -y "{novoice_mp4}-tmp.mp4"')
-    os.rename(novoice_mp4,novoice_mp4+'.raw.mp4')
-    os.rename(novoice_mp4+"-tmp.mp4",novoice_mp4)
+    # os.rename(novoice_mp4,novoice_mp4+'.raw.mp4')
+    # os.rename(novoice_mp4+"-tmp.mp4",novoice_mp4)
+
+def add_clip_to_last_ff(noextname,duration_ms):
+    folder_path = config.rootdir + f'/tmp/{noextname}'
+    novoice_mp4 = f"{folder_path}/novoice.mp4"
+    # 生成 设定时间的片段mp4
+    clip_video = f"{folder_path}/{time.time()}.mp4"
+    tmp_video = f"{folder_path}/{time.time()}-tmp.mp4"
+    total_length = get_video_duration(novoice_mp4)
+    runffmpeg([
+        "-y",
+        "-i",
+        f'"{novoice_mp4}"',
+        "-ss",
+        ms_to_time_string(ms=total_length-1000).replace(',','.'),
+        "-t",
+        "1",
+        f'{clip_video}'
+    ])
+    if duration_ms<=1000:
+        tmp_video=clip_video
+    else:
+        pts=duration_ms/1000
+        runffmpeg(
+            f'-y  -i "{clip_video}" -vf "setpts={pts}*PTS" -c:v libx264  -an "{tmp_video}"'
+        )
+
+    runffmpeg(
+        f'-y -i "{novoice_mp4}" -i "{tmp_video}" -filter_complex "[0:v]setsar=1[v0];[1:v]setsar=1[v1];[v0][v1]concat=n=2:v=1:a=0[outv]" -map "[outv]" -c:v libx264 -y "{novoice_mp4}-tmp.mp4"')
+    return
+
+
 
 # 执行tts并行
 def exec_tts(queue_tts, total_length, noextname):
@@ -1416,13 +1451,25 @@ def exec_tts(queue_tts, total_length, noextname):
         sub_name = config.rootdir + f"/tmp/{noextname}/{noextname}.srt"
         with open(sub_name, 'w', encoding="utf-8") as f:
             f.write(srt.strip())
-        merge_audio_segments(segments, start_times, total_length + offset, noextname)
         if offset > 0:
             set_process(f"{offset=}>0，需要末尾添加延长视频帧 {offset}秒")
             try:
                 add_clip_to_last(noextname,offset)
-            except:
-                pass
+                folder_path = config.rootdir + f'/tmp/{noextname}'
+                novoice_mp4 = f"{folder_path}/novoice.mp4"
+                if os.path.exists(novoice_mp4 + "-tmp.mp4") and os.path.getsize(novoice_mp4 + "-tmp.mp4")>0:
+                    os.rename(novoice_mp4, novoice_mp4 + '.raw.mp4')
+                    os.rename(novoice_mp4 + "-tmp.mp4", novoice_mp4)
+                    t=get_video_duration(novoice_mp4)
+                    if t is not None and t > total_length:
+                        offset=t-total_length
+                else:
+                    offset=0
+            except Exception as e:
+                set_process(f"[error]末尾添加延长视频帧失败，将保持原样，截断音频:{str(e)}")
+                offset=0
+        merge_audio_segments(segments, start_times, total_length + offset, noextname)
+
     except Exception as e:
         set_process(f"[error] exec_tts 合成语音有出错:" + str(e))
 

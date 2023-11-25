@@ -764,6 +764,22 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="stop_djs">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>停止倒计时</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>

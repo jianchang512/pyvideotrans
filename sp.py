@@ -5,12 +5,11 @@ import shutil
 import sys
 import os
 import threading
-import time
 import webbrowser
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import pyqtSignal, QThread, QSettings, QUrl
+from PyQt5.QtCore import QSettings, QUrl
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel
 import warnings
 
@@ -23,13 +22,10 @@ warnings.filterwarnings('ignore')
 from videotrans import VERSION
 from videotrans.component import DeepLForm, DeepLXForm, BaiduForm, TencentForm, ChatgptForm
 from videotrans.component.controlobj import TextGetdir
-from videotrans.configure.config import langlist, transobj, logger, queue_logs, homedir
+from videotrans.configure.config import langlist, transobj, logger, homedir
 from videotrans.configure.language import english_code_bygpt
-from videotrans.util.tools import recognition_translation_all, recognition_translation_split, runffmpeg, \
-    delete_temp, dubbing, \
-    show_popup, compos_video, set_proxy, set_process, get_edge_rolelist, text_to_speech, is_vlc
+from videotrans.util.tools import  show_popup,  set_proxy, set_process, get_edge_rolelist, is_vlc
 from videotrans.configure import config
-import pygame
 
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
@@ -60,8 +56,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.splitter.setSizes([830, 350])
 
+
         # start
         self.startbtn.clicked.connect(self.check_start)
+        # 隐藏倒计时
+        self.stop_djs.clicked.connect(self.reset_timeid)
+        self.stop_djs.hide()
         # subtitle btn
         self.continue_compos.hide()
         self.continue_compos.clicked.connect(self.update_subtitle)
@@ -291,7 +291,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 停止自动合并倒计时
     def reset_timeid(self):
-        if not config.exec_compos and config.subtitle_end and self.task is not None:
+        if not config.subtitle_end:
+            return
+        self.stop_djs.hide()
+        if not config.exec_compos and self.task is not None:
             if self.task.timeid is None:
                 return
             self.task.timeid = None if self.task.timeid is None or self.task.timeid > 0 else 0
@@ -767,10 +770,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_start("ing")
         noextname = os.path.basename(mp4).split('.')[0]
         self.get_sub_toarea(noextname)
-
         self.btn_get_video.setDisabled(True)
         self.task = Worker(mp4.replace('\\', '/'), self)
-        # self.task.update_ui.connect(self.update_data)
         self.task.start()
         self.statusLabel.setText(
             transobj['processingstatusbar'].replace('{var1}', f"视频{noextname}").replace('{var2}',
@@ -789,9 +790,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.update_start(d['type'])
             self.statusLabel.setText(d['type'])
             self.continue_compos.hide()
-        elif d['type'] == 'wait_subtitle':
-            # 显示出合成按钮
+        elif d['type']=='error':
+            # 出错停止
+            self.update_start('stop')
+            self.process.moveCursor(QTextCursor.End)
+            self.process.insertHtml(d['text'])
+            self.continue_compos.hide()
+        elif d['type'] == 'edit_subtitle':
+            # 显示出合成按钮,等待编辑字幕
             self.continue_compos.show()
+            self.stop_djs.show()
             self.continue_compos.setDisabled(False)
             self.continue_compos.setText(transobj['waitsubtitle'])
         elif d['type'] == 'update_subtitle':
@@ -823,9 +831,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.task:
                     self.task.timeid = 0
 
-    # update subtitle
+    # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
         sub_name = self.task.sub_name
+        self.stop_djs.hide()
         try:
             if self.get_sub_toarea(self.task.noextname):
                 config.subtitle_end = True
@@ -838,7 +847,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.exec_compos = False
                 self.continue_compos.setDisabled(True)
                 self.continue_compos.setText('')
-                set_process("[error]出错了，不存在有效字幕")
+                set_process("[error]出错了，不存在有效字幕",'error')
                 return
         except Exception as e:
             set_process("[error]:写入字幕出错了：" + str(e))
