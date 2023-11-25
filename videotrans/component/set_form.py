@@ -7,6 +7,7 @@ from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.info import Ui_infoform
 from videotrans.ui.tencent import Ui_tencentform
 
 
@@ -28,6 +29,14 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
 class DeepLForm(QDialog, Ui_deeplform):  # <===
     def __init__(self, parent=None):
         super(DeepLForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
+
+
+class InfoForm(QDialog, Ui_infoform):  # <===
+    def __init__(self, parent=None):
+        super(InfoForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))

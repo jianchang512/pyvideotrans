@@ -124,9 +124,10 @@ def chatgpttrans(text_list):
             trans_text = [f"[error]chatGPT 请求失败"] * len_sub
         # 处理
         for index, it in enumerate(origin):
-            it["text"] = "-" if index >= len(trans_text) else trans_text[index]
-            origin[index]=it
-            # 更新字幕
-            tools.set_process(f"{it['line']}\n{it['time']}\n{it['text']}\n\n",'subtitle')
+            if index < len(trans_text):
+                it["text"]=trans_text[index]
+                origin[index]=it
+                # 更新字幕
+                tools.set_process(f"{it['line']}\n{it['time']}\n{it['text']}\n\n",'subtitle')
         total_result.extend(origin)
     return total_result
