@@ -761,6 +761,19 @@ Choose only one of the two options</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="stop_djs">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Stop countdown</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
