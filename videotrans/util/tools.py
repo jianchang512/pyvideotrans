@@ -318,7 +318,7 @@ def runffmpeg(arg, *, noextname=None):
         arg = " ".join(arg)
     cmd += arg
     logger.info(f"runffmpeg Will execute: {cmd=}")
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, creationflags= 0 if sys.platform !='win32' else subprocess.CREATE_NO_WINDOW)
     if noextname:
         config.queue_novice[noextname] = 'ing'
 
