@@ -51,6 +51,8 @@ from datetime import timedelta
 # print(start)
 from pydub import AudioSegment
 
+import videotrans
+from videotrans.configure import config
 from videotrans.util.tools import is_novoice_mp4, runffmpeg
 
 
@@ -86,53 +88,17 @@ def ms_to_time_string(*,ms=0,seconds=None):
 
     return time_string
 
-import cv2
-import numpy as np
-import os
+config.video['proxy']=''
+os.environ['OPENAI_API_KEY']='15027-F6E1F655EC13A3353E56B1F6B5689D9146E2DE97'
+config.video['chatgpt_api']='https://chat.swoole.com/v1'
+config.video['chatgpt_model']='gpt-3.5-turbo'
+config.video['target_language_chatgpt']="en"
+config.video['chatgpt_template']='我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,仅返回翻译结果,不要包含原文本内容,不要道歉,不要重复述说,即使是问句，你也不要回答，只翻译即可。请严格按照要求的格式返回,这对我的工作非常重要'
 
-def add_clip_to_last(novoice_mp4,duration_ms):
-    folder="c:/users/c1/videos"
-    # 提取 1.mp4 的最后一帧为 1.png
-    output_image = f"{folder}/{time.time()}.png"
+t="""
+我是中国人,你是哪里人
+"""
+t2="""我身一头猪"""
 
-    cap = cv2.VideoCapture(novoice_mp4)
-    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    # 设置最后一帧为输出帧
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_count - 1)
-    ret, frame = cap.read()
-    if ret:
-        cv2.imwrite(output_image, frame)
-        print(f"Successfully saved the last frame as {output_image}")
-    else:
-        print("Error reading the last frame")
-    cap.release()
-    # 读取 源视频的帧率
-    cap = cv2.VideoCapture(novoice_mp4)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    cap.release()
-
-    # 生成 设定时间的片段mp4
-    clip_video = f"{folder}/{time.time()}.mp4"
-    # 计算生成视频的帧数
-    frame_count_new = int(fps * duration_ms / 1000)
-    # 用相同的帧生成 output_video
-    image = cv2.imread(output_image)
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    video_writer = cv2.VideoWriter(clip_video, fourcc, fps, (width, height))
-    for _ in range(frame_count_new):
-        video_writer.write(image)
-    video_writer.release()
-    # 连接源视频和该片段
-    runffmpeg(
-        f'-y -i "{novoice_mp4}" -i "{clip_video}" -filter_complex "[0:v]setsar=1[v0];[1:v]setsar=1[v1];[v0][v1]concat=n=2:v=1:a=0[outv]" -map "[outv]" -c:v libx264 -y "{novoice_mp4}-tmp.mp4"')
-    os.rename(novoice_mp4,novoice_mp4+'.raw.mp4')
-    os.rename(novoice_mp4+"-tmp.mp4",novoice_mp4)
-
-# 连接 1.mp4 和 2.mp4
-# output_final = "out.mp4"
-# os.system(f"ffmpeg -i 1.mp4 -i 2.mp4 -filter_complex '[0:v][1:v]concat=n=2:v=1:a=0[v]' -map '[v]' -c:v libx264 -y {output_final}")
-# print(f"Successfully concatenated 1.mp4 and 2.mp4 to {output_final}")
-
-add_clip_to_last('c:/users/c1/videos/ceshi.mp4',8500)
+res=videotrans.translator.chatgpttrans([{"line":1,"time":"aaa","text":t},{"line":2,"time":"bbb","text":t2}])
+print(res)

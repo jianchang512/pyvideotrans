@@ -10,7 +10,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger
 from videotrans.util.tools import set_process, runffmpeg, recognition_translation_all, recognition_translation_split, \
-    delete_temp, dubbing, compos_video, delete_files
+    delete_temp, dubbing, compos_video, delete_files, srt_trans_srt
 
 
 class Worker(QThread):
@@ -65,23 +65,33 @@ class Worker(QThread):
             ]
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
         try:
-            # 识别、创建字幕文件、翻译
+            # 识别、创建字幕文件
             if os.path.exists(self.sub_name) and os.path.getsize(self.sub_name) > 1:
                 set_process(f"{self.noextname} 等待编辑字幕", "edit_subtitle")
                 config.subtitle_end = True
             else:
                 if os.path.exists(self.sub_name):
                     os.unlink(self.sub_name)
+                # 识别为字幕
                 if config.video['whisper_type'] == 'all':
                     recognition_translation_all(self.noextname)
                 else:
                     recognition_translation_split(self.noextname)
-                if config.current_status == 'ing':
-                    set_process(f"{self.noextname} wait subtitle edit", "edit_subtitle")
-                    config.subtitle_end = True
         except Exception as e:
-            logger.error("error:" + str(e))
-            set_process(f"文字识别和翻译出错:" + str(e),'error')
+            set_process(f"文字识别出错:" + str(e),'error')
+            set_process("已停止", 'stop')
+            return
+        try:
+            # 翻译字幕
+            srt_trans_srt(self.noextname)
+            if config.current_status == 'ing':
+                set_process(f"{self.noextname} wait subtitle edit", "edit_subtitle")
+                config.subtitle_end = True
+            else:
+                set_process("已停止", 'stop')
+                return
+        except Exception as e:
+            set_process(f"文字翻译出错:" + str(e),'error')
             set_process("已停止", 'stop')
             return
         # 仅仅创建字幕，到此返回
@@ -121,7 +131,6 @@ class Worker(QThread):
             if self.timeid is not None and self.timeid<60:
                 self.timeid += 1
                 set_process(f"{60 - self.timeid}秒后自动合并")
-                continue
 
     # 执行配音、合成
     def wait_subtitle(self):

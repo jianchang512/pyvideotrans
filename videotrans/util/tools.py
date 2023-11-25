@@ -27,13 +27,13 @@ import json
 import edge_tts
 import textwrap
 
-from ..translator import baidutrans, googletrans, tencenttrans, chatgpttrans, deepltrans, deeplxtrans, baidutrans_spider
+from videotrans.translator import baidutrans, googletrans, tencenttrans, chatgpttrans, deepltrans, deeplxtrans, baidutrans_spider
 
 from videotrans.configure import config
 from videotrans.configure.config import logger, transobj, queue_logs
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-from ..tts import get_voice_openaitts, get_voice_edgetts
+from videotrans.tts import get_voice_openaitts, get_voice_edgetts
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -619,12 +619,11 @@ def recognition_translation_split(noextname):
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
 
-    # subtitle
-    subs = []
     r = sr.Recognizer()
     logger.info("for i in nonsilent_data")
-    raw_subtitles = ""
+    raw_subtitles = []
     offset=0
+    index=0
     for i, duration in enumerate(nonsilent_data):
         if config.current_status == 'stop':
             raise Exception("You stop it.")
@@ -668,78 +667,19 @@ def recognition_translation_split(noextname):
                 raise Exception("You stop it.")
             text = f"{text.capitalize()}. ".replace('&#39;',"'")
             text=re.sub(r'&#\d+;','',text)
-            # 翻译
-            try:
-                index = len(subs) + 1
-                if buffered:
-                    end_time -= 500
-                start = timedelta(milliseconds=start_time)
-                end = timedelta(milliseconds=end_time)
-                raw_subtitles += f"{index}\n{start} --> {end}\n{text}\n\n"
-                if config.video['translate_type'] == 'google':
-                    result = googletrans(text, config.video['source_language'],
-                                         config.video['target_language'])
-                elif config.video['translate_type'] == 'baidu':
-                    result = baidutrans(text, 'auto', config.video['target_language_baidu'])
-                elif config.video['translate_type'] == 'tencent':
-                    result = tencenttrans(text, 'auto', config.video['target_language_tencent'])
-                elif config.video['translate_type'] == 'baidu(noKey)':
-                    result = baidutrans_spider.baidutrans(text, 'auto', config.video['target_language_baidu'])
-                elif config.video['translate_type'] == 'DeepL':
-                    result = deepltrans(text, config.video['target_language_deepl'])
-                elif config.video['translate_type'] == 'DeepLX':
-                    result = deeplxtrans(text, config.video['target_language_deepl'])
-                elif config.video['translate_type'] == 'chatGPT':
-                    result = chatgpttrans(text)
-                    logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
-                    sub = srt.Subtitle(index=index, start=start, end=end, content=text)
-                    subs.append(sub)
-                    continue
+            index+=1
+            start = timedelta(milliseconds=start_time)
+            end = timedelta(milliseconds=end_time)
+            raw_subtitles.append({"line":index,"time":f"{start} --> {end}","text":text})
 
-                logger.info(f"target_language={config.video['target_language']},[translate ok]\n")
-            except Exception as e:
-                logger.error("Translate Error:", str(e))
-                continue
+    set_process(f"字幕识别完成，等待翻译，共{len(raw_subtitles)}条字幕", 'logs')
+    # 写入原语言字幕到目标文件夹
+    save_srt_target(raw_subtitles, noextname, config.video['source_language'])
 
-            combo_txt = result.strip().replace('&#39;',"'") + "\n\n"
-            combo_txt=re.sub(r'&#\d+;','',combo_txt)
-            sub = srt.Subtitle(index=index, start=start, end=end, content=combo_txt)
-            subs.append(sub)
-            set_process(
-                srt.compose([srt.Subtitle(index=index, start=start, end=end, content=combo_txt)], reindex=False),
-                'subtitle')
-    save_raw_subtitle(raw_subtitles, noextname, config.video['source_language'])
-    final_srt = srt.compose(subs)
-    if config.video['translate_type'] == 'chatGPT':
-        set_process(f"{noextname} 等待 chatGPT 返回响应", 'logs')
-        final_srt = chatgpttrans(final_srt)
-        if final_srt.startswith('[error]'):
-            config.current_status = "stop"
-            config.subtitle_end = False
-            set_process(f"[error]:{noextname} ChatGPT 翻译出错:{final_srt}", 'logs')
-            return
-        set_process(f"{noextname} chatGPT OK", 'logs')
-
-    #    对字幕进行单行截断操作
-    if not final_srt.strip():
-        set_process(f"[error]{noextname} 字幕创建失败", 'logs')
-        config.current_status = "stop"
-        config.subtitle_end = False
-        return
-    # 保存字幕到临时tmp
-    with open(sub_name, 'w', encoding="utf-8") as f:
-        final_srt = final_srt.replace('&#39;', "'")
-        final_srt = re.sub(r'&#\d+;', '', final_srt)
-        f.write(final_srt.strip())
-        set_process(final_srt.strip(), 'replace_subtitle')
-
-    set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
-
-
+# 整体识别，全部传给模型
 def recognition_translation_all(noextname):
     folder_path = config.rootdir + f'/tmp/{noextname}'
     audio_path = folder_path + f"/{noextname}.wav"
-    sub_name = folder_path + f"/{noextname}.srt"
     model = config.video['whisper_model']
     language = config.video['detect_language']
     set_process(f"准备进行整体语音识别,可能耗时较久，请等待:{model}模型")
@@ -747,9 +687,8 @@ def recognition_translation_all(noextname):
         model = whisper.load_model(model, download_root=config.rootdir + "/models")  # Change this to your desired model
         transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language, )
         segments = transcribe['segments']
-        subtitles = ""
         # 保留原始语言的字幕
-        raw_subtitles = ""
+        raw_subtitles = []
         line_num = 0
         offset=0
         for (sidx,segment) in enumerate(segments):
@@ -771,50 +710,10 @@ def recognition_translation_all(noextname):
                 continue
             line_num += 1
             # 原语言字幕
-            raw_subtitles += f"{line_num}\n{startTime} --> {endTime}\n{text}\n\n"
-            if config.video['translate_type'] == 'chatGPT':
-                # 如果是 chatGPT，直接组装字幕
-                continue
-            # 开始翻译
-            new_text = text
-            if config.video['translate_type'] == 'google':
-                new_text = googletrans(text, config.video['source_language'],
-                                       config.video['target_language'])
-
-            elif config.video['translate_type'] == 'baidu':
-                new_text = baidutrans(text, 'auto', config.video['target_language_baidu'])
-            elif config.video['translate_type'] == 'tencent':
-                new_text = tencenttrans(text, 'auto', config.video['target_language_tencent'])
-            elif config.video['translate_type'] == 'baidu(noKey)':
-                new_text = baidutrans_spider.baidutrans(text, 'auto', config.video['target_language_baidu'])
-            elif config.video['translate_type'] == 'DeepL':
-                new_text = deepltrans(text, config.video['target_language_deepl'])
-            elif config.video['translate_type'] == 'DeepLX':
-                new_text = deeplxtrans(text, config.video['target_language_deepl'])
-            new_text = new_text.replace('&#39;', "'")
-            new_text = re.sub(r'&#\d+;', '', new_text)
-            current_sub = f"{line_num}\n{startTime} --> {endTime}\n{new_text}\n\n"
-            subtitles += current_sub
-            set_process(current_sub, 'subtitle')
-
-        # 写入原语言字幕
-        save_raw_subtitle(raw_subtitles, noextname, config.video['source_language'])
-        if config.video['translate_type'] == 'chatGPT':
-            set_process(f"等待 chatGPT 返回响应", 'logs')
-            subtitles = chatgpttrans(raw_subtitles)
-            if subtitles.startswith('[error]'):
-                config.current_status = "stop"
-                config.subtitle_end = False
-                set_process(f"[error]:ChatGPT 翻译出错:{subtitles}", 'logs')
-                return
-            set_process(f"chatGPT OK", 'logs')
-        # 保存字幕到tmp待处理
-        with open(sub_name, 'w', encoding="utf-8") as f:
-            subtitles = subtitles.replace('&#39;', "'")
-            subtitles = re.sub(r'&#\d+;', '', subtitles)
-            f.write(subtitles.strip())
-            set_process(subtitles.strip(), 'replace_subtitle')
-        set_process(f"{noextname} 字幕处理完成，等待修改", 'logs')
+            raw_subtitles.append({"line":line_num,"time":f"{startTime} --> {endTime}","text":text})
+        set_process(f"字幕识别完成，等待翻译，共{len(raw_subtitles)}条字幕", 'logs')
+        # 写入原语言字幕到目标文件夹
+        save_srt_target(raw_subtitles, noextname, config.video['source_language'])
         return True
     except Exception as e:
         set_process(f"{model}模型整体识别出错了:{str(e)}")
@@ -823,13 +722,77 @@ def recognition_translation_all(noextname):
         return
 
 
+# 单独处理翻译,完整字幕由 src翻译为 target
+def srt_trans_srt(noextname):
+    # 开始翻译,从目标文件夹读取原始字幕
+    rawsrt=get_subtitle_from_srt(f'{config.video["target_dir"]}/{noextname}/{config.video["source_language"]}.srt',is_file=True)
+    if config.video['translate_type'] == 'chatGPT':
+        set_process(f"等待 chatGPT 返回响应", 'logs')
+        rawsrt = chatgpttrans(rawsrt)
+    else:
+        # 其他翻译，逐行翻译
+        for (i,it) in enumerate(rawsrt):
+            if config.current_status!='ing':
+                return
+            new_text=it['text']
+            if config.video['translate_type'] == 'google':
+                new_text = googletrans(it['text'],
+                                       config.video['source_language'],
+                                       config.video['target_language'])
+            elif config.video['translate_type'] == 'baidu':
+                new_text = baidutrans(it['text'], 'auto', config.video['target_language_baidu'])
+            elif config.video['translate_type'] == 'tencent':
+                new_text = tencenttrans(it['text'], 'auto', config.video['target_language_tencent'])
+            elif config.video['translate_type'] == 'baidu(noKey)':
+                new_text = baidutrans_spider.baidutrans(it['text'], 'auto', config.video['target_language_baidu'])
+            elif config.video['translate_type'] == 'DeepL':
+                new_text = deepltrans(it['text'], config.video['target_language_deepl'])
+            elif config.video['translate_type'] == 'DeepLX':
+                new_text = deeplxtrans(it['text'], config.video['target_language_deepl'])
+            new_text = new_text.replace('&#39;', "'")
+            new_text = re.sub(r'&#\d+;', '', new_text)
+            # 更新字幕区域
+            set_process(f"{it['line']}\n{it['time']}\n{new_text}\n\n","subtitle")
+            it['text']=new_text
+            rawsrt[i]=it
+    set_process(f"翻译完成")
+    # 保存到tmp临时模板和目标文件夹下
+    save_srt_tmp(rawsrt,noextname)
+    # 保存字幕到tmp待处理
+    save_srt_target(rawsrt,noextname,config.video['target_language'])
+
+
+# 保存字幕到 tmp 临时文件
+def save_srt_tmp(srt,noextname):
+    sub_name = config.rootdir + f'/tmp/{noextname}/{noextname}.srt'
+    # 是字幕列表形式，重新组装
+    if isinstance(srt, list):
+        txt = ""
+        for it in srt:
+            txt += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+        with open(sub_name, 'w', encoding="utf-8") as f:
+            f.write(txt.strip())
+    elif isinstance(srt,str):
+        with open(sub_name, 'w', encoding="utf-8") as f:
+            f.write(srt.strip())
+
 # 保存字幕文件 到目标文件夹
-def save_raw_subtitle(srtstr, noextname, language):
+def save_srt_target(srtstr, noextname, language):
     file = f"{config.video['target_dir']}/{noextname}/{language}.srt"
     if not os.path.exists(os.path.dirname(file)):
         os.makedirs(os.path.dirname(file), exist_ok=True)
-    with open(file, 'w', encoding="utf-8") as f:
-        f.write(srtstr.strip())
+    # 是组装好的字幕形式
+    if isinstance(srtstr,str):
+        with open(file, 'w', encoding="utf-8") as f:
+            f.write(srtstr.strip())
+            return
+    # 是字幕列表形式，重新组装
+    if isinstance(srtstr,list):
+        txt=""
+        for it in srtstr:
+            txt+=f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+        with open(file, 'w', encoding="utf-8") as f:
+            f.write(txt.strip())
 
 
 # 从字幕文件获取格式化后的字幕信息

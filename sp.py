@@ -6,13 +6,13 @@ import sys
 import os
 import threading
 import webbrowser
-
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import QSettings, QUrl
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel
+from PyQt5.QtCore import QSettings, QUrl, QThread
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton
 import warnings
 
+from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, WorkerOnlyDubbing
 from videotrans.task.play_audio import PlayMp3
@@ -156,18 +156,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # status
         self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
-        self.statusLabel.setStyleSheet("color:#e8bf46")
+        self.statusLabel.setStyleSheet("color:#2196f3")
         self.statusBar.addWidget(self.statusLabel)
-        self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
+        # rightbottom=QLabel("github.com/jianchang512/pyvideotrans")
+        rightbottom=QPushButton(" 帮助该软件做的更好 ")
+        rightbottom.setToolTip("如果有你的帮助，该软件会做的更好，点击查看")
+        rightbottom.clicked.connect(self.about)
+
+        # rightbottom.setStyleSheet("""color:rgb()""")
+        self.statusBar.addPermanentWidget(rightbottom)
 
         # 隐藏高级设置
         self.gaoji_show = True
         self.hide_layout_recursive()
         self.gaoji_btn.clicked.connect(self.hide_layout_recursive)
         #     日志
-        self.task_logs = LogsWorker()
+        self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.update_data)
         self.task_logs.start()
+
+        self.check_update=CheckUpdateWorker(self)
+        self.check_update.start()
+
+    def about(self):
+        self.open_url("about")
 
     # voice_autorate video_autorate 变化
     def autorate_changed(self,state,name):
@@ -279,6 +291,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://discord.com/channels/1174626422044766258/1174626425702207562")
         elif title == 'website':
             webbrowser.open_new_tab("https://v.wonyes.org")
+        elif title=="about":
+            webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
+
 
     def open_toolbox(self):
         try:
@@ -297,7 +312,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not config.exec_compos and self.task is not None:
             if self.task.timeid is None:
                 return
-            self.task.timeid = None if self.task.timeid is None or self.task.timeid > 0 else 0
+            self.task.timeid = None
             self.process.moveCursor(QTextCursor.End)
             self.process.insertHtml("<strong>停止倒计时，请修改字幕后点击合并按钮</strong><br>")
 
@@ -830,6 +845,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.update_start('end')
                 if self.task:
                     self.task.timeid = 0
+        elif d['type']=='check_soft_update':
+            self.setWindowTitle(d['text'])
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
@@ -854,6 +871,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.error("[error]:写入字幕出错了：" + str(e))
 
 
+
+
 if __name__ == "__main__":
     threading.Thread(target=get_edge_rolelist).start()
     threading.Thread(target=is_vlc).start()
@@ -871,7 +890,6 @@ if __name__ == "__main__":
 
     if sys.platform == 'win32':
         import qdarkstyle
-
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
     main.show()
