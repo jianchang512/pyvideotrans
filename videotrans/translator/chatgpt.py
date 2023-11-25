@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 import os
-import re
 import httpx
 import openai
 from openai import OpenAI
@@ -10,10 +9,16 @@ from ..configure import config
 from ..configure.config import logger
 from ..util import tools
 
+'''
+输入
+[{'line': 1, 'time': 'aaa', 'text': '\n我是中国人,你是哪里人\n'}, {'line': 2, 'time': 'bbb', 'text': '我身一头猪'}]
 
-def chatgpttrans(text):
-    if re.match(r'^[.,=_?!@#$%^&*()+\s -]+$', text):
-        return text
+输出
+[{'line': 1, 'time': 'aaa', 'text': 'I am Chinese, where are you from?'}, {'line': 2, 'time': 'bbb', 'text': 'I am a pig'}]
+
+'''
+
+def chatgpttrans(text_list):
     proxies = None
     if config.video['proxy']:
         proxies = {
@@ -27,78 +32,76 @@ def chatgpttrans(text):
                 'http://': 'http://%s' % serv.replace("http://", ''),
                 'https://': 'http://%s' % serv.replace("http://", '')
             }
-    #if proxies:
-    #    openai.proxies = proxies
     api_url="https://api.openai.com/v1"
     if config.video['chatgpt_api']:
         api_url=config.video['chatgpt_api']
 
     openai.base_url=api_url
-
     lang = config.video['target_language_chatgpt']
-
     total_result = []
-    # 字幕整理成字幕信息list
-    split_text = text.strip().split("\n\n")
     split_size = 10
-    # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕的list，二维是每个字幕list
-    msg_q = [split_text[i:i + split_size] for i in range(0, len(split_text), split_size)]
-
-    # 分别按组翻译，每组翻译 split_size个字幕
-    for m in msg_q:
+    # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
+    srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
+    logger.info(f"\n==={srt_lists}\n=======\n")
+    # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
+    for srt_list in srt_lists:
+        trans_text=[]
         # 存放时间和行数
         origin = []
         # 存放待翻译文本
         trans = []
-        # 处理每个字幕信息
-        for n in m:
-            n_1 = n.split("\n")
-            if len(n_1)<3:
-                continue
-            # 纯粹文本信息
-            txt_tmp=("".join(n_1[2:])).replace("\n", ".").replace("\r",'').strip()
-            if not txt_tmp:
-                continue
-            trans.append(txt_tmp)
+        # 处理每个字幕信息，it是字幕dict
+        print(f"{srt_list=}")
+        for it in srt_list:
+            # 纯粹文本信息， 第一行是 行号，第二行是 时间，第三行和以后都是文字
+            trans.append(it['text'].strip())
             # 行数和时间信息
-            origin.append({"line": n_1[0], "time": n_1[1], "text": ""})
-        len_sub = len(origin)
+            origin.append({"line": it["line"], "time": it["time"], "text": ""})
 
+        len_sub = len(origin)
         logger.info(f"\n[chatGPT start]待翻译文本:"+"\n".join(trans))
         messages = [
             {'role': 'system',
              'content': config.video['chatgpt_template'].replace('{lang}', lang)},
             {'role': 'user', 'content': "\n".join(trans)},
         ]
-        # continue
+        logger.info(f"发送消息{messages=}")
         try:
             client = OpenAI(base_url=None if not config.video['chatgpt_api'] else config.video['chatgpt_api'], http_client=httpx.Client(proxies=proxies))
             response = client.chat.completions.create(
                 model=config.video['chatgpt_model'],
                 messages=messages
             )
+            logger.info(f"返回响应:{response=}")
+
             # 是否在 code 判断时就已出错
-            occur_error=False
             vail_data=None
+            error=""
+            # 返回可能多种形式，openai和第三方
+            try:
+                if response.data and response.data['choices']:
+                    vail_data=response.data['choices']
+            except Exception as e:
+                error+=str(e)
             try:
                 if "choices" in response:
-                    vail_data=response
-                elif "code" in response and response['code'] != 0:
+                    vail_data=response['choices']
+            except Exception as e:
+                error+=str(e)
+            try:
+                if response.choices:
+                    vail_data=response.choices
+            except Exception as e:
+                error+=str(e)
+
+            try:
+                if ("code" in response) and response['code'] != 0:
                     tools.set_process(f"[error]chatGPT翻译请求失败error:" + str(response))
                     logger.error(f"[chatGPT error-1]翻译失败r:" + str(response))
-                    trans_text = ["[error]" + str(response)] * len_sub
-                    occur_error=True
-                elif "data" in response:
-                    vail_data=response['data']                              
-            except Exception as e:
-                msg=f"【chatGPT Error-0】翻译失败:openaiAPI={api_url}:{str(e)}:{str(response)}"
-                logger.error(msg)
-                tools.set_process(msg)
-                trans_text = ["[error]" +str(e)] * len_sub
-                occur_error=True
-
-            if vail_data and "choices" in vail_data:
-                result = vail_data['choices'][0]['message']['content'].strip()
+            except:
+                pass
+            if vail_data:
+                result = vail_data[0]['message']['content'].strip()
                 # 如果返回的是合法js字符串，则解析为json，否则以\n解析
                 if result.startswith('[') and result.endswith(']'):
                     try:
@@ -109,19 +112,21 @@ def chatgpttrans(text):
                     trans_text=result.split("\n")
                 logger.info(f"\n[chatGPT OK]翻译成功:{result}")
                 tools.set_process(f"chatGPT 翻译成功")
+            else:
+                trans_text = ["[error]chatGPT翻译失败"] * len_sub
+                tools.set_process(f"[error]chatGPT出错:{error}")
         except Exception as e:
             logger.error(f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :" + str(e))
             if not api_url.startswith("https://api.openai.com"):
                 tools.set_process(f"[error]chatGPT,当前请求api={api_url}是第三方接口，请尝试接口地址末尾增加或去掉 /v1 后再试:" + str(e))
             else:
                 tools.set_process(f"[error]chatGPT,当前请求api={api_url} 请求失败:" + str(e))
-            trans_text = [f"[error]chatGPT 请求失败:" + str(e)] * len_sub
+            trans_text = [f"[error]chatGPT 请求失败"] * len_sub
         # 处理
         for index, it in enumerate(origin):
-            origin[index]["text"] = "-" if index >= len(trans_text) else trans_text[index]
+            it["text"] = "-" if index >= len(trans_text) else trans_text[index]
+            origin[index]=it
+            # 更新字幕
+            tools.set_process(f"{it['line']}\n{it['time']}\n{it['text']}\n\n",'subtitle')
         total_result.extend(origin)
-
-    subtitles = ""
-    for it in total_result:
-        subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-    return subtitles.strip()
+    return total_result

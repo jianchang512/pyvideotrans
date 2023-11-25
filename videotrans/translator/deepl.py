@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import deepl
 
-from ..configure import config
-from ..util  import tools
+from videotrans.configure import config
+from videotrans.util  import tools
 deepltranslator=None
 
 def deepltrans(text,to_lang):
