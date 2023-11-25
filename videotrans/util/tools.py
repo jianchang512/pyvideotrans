@@ -1451,7 +1451,9 @@ def exec_tts(queue_tts, total_length, noextname):
         sub_name = config.rootdir + f"/tmp/{noextname}/{noextname}.srt"
         with open(sub_name, 'w', encoding="utf-8") as f:
             f.write(srt.strip())
-        if offset > 0:
+        if offset > 0 and queue_copy[-1]['end_time']>total_length:
+            # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
+            offset=queue_copy[-1]['end_time']-total_length
             set_process(f"{offset=}>0，需要末尾添加延长视频帧 {offset}秒")
             try:
                 add_clip_to_last(noextname,offset)
@@ -1462,6 +1464,7 @@ def exec_tts(queue_tts, total_length, noextname):
                     os.rename(novoice_mp4 + "-tmp.mp4", novoice_mp4)
                     t=get_video_duration(novoice_mp4)
                     if t is not None and t > total_length:
+                        # 如果新的视频长度大于音频长度，则差为新的偏移，更新offset
                         offset=t-total_length
                 else:
                     offset=0
