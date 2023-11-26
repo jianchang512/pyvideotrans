@@ -47,7 +47,7 @@ translate_language = {
         "setdeeplx_address":"必须设置你的 DeepLX 地址和端口，比如 127.0.0.1:1188",
         "mustberole":"必须选择一个配音角色",
         "qingqueren":"请确认",
-        "only_srt":"既未选择嵌入字幕也未选择配音角色，将仅创建字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",
+        "only_srt":"没有选择目标语言，不会进行翻译和配音，仅从视频中提取字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",
         "tencent_key":"必须填写腾讯 SecretId 和 SecretKey",
         "xuanzejuese":"必须选择配音角色，请先根据字幕语言选择目标语言，然后选择配音角色"
     },
@@ -55,7 +55,7 @@ translate_language = {
         "xuanzejuese":"must to be select dubbing role, frist select subtitle language and select dubbing role",
         "tencent_key":"must be input tencent's SecretId and SecretKey",
         "qingqueren":"Please confirm",
-        "only_srt":"Not select subtitle and not select dubbing role，will only create srt file，click Yes to continue,else cancel",
+        "only_srt":"Not select target language，will only create srt file，click Yes to continue,else cancel",
         "mustberole":"must be selet role for listen",
         "setdeepl_authkey":"must be set DeepL token",
         "setdeeplx_address":"must be set DeepLX address and port",

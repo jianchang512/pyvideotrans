@@ -8,8 +8,9 @@ import threading
 import webbrowser
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import QSettings, QUrl, QThread
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton
+from PyQt5.QtCore import QSettings, QUrl
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QWidget, \
+    QHBoxLayout, QToolBar
 import warnings
 
 from videotrans.component.set_form import InfoForm
@@ -27,6 +28,7 @@ from videotrans.configure.config import langlist, transobj, logger, homedir
 from videotrans.configure.language import english_code_bygpt
 from videotrans.util.tools import  show_popup,  set_proxy, set_process, get_edge_rolelist, is_vlc
 from videotrans.configure import config
+
 
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
@@ -161,12 +163,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.setStyleSheet("color:#00a67d")
         self.statusBar.addWidget(self.statusLabel)
         # rightbottom=QLabel("github.com/jianchang512/pyvideotrans")
+
+        self.horizontalLayout_rb = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_rb.setObjectName("horizontalLayout_rb")
+
+
         rightbottom=QPushButton(" 帮助该软件做的更好 ")
         rightbottom.setToolTip("如果有你的帮助，该软件会做的更好，点击查看")
         rightbottom.clicked.connect(self.about)
 
-        # rightbottom.setStyleSheet("""color:rgb()""")
-        self.statusBar.addPermanentWidget(rightbottom)
+        usetype=QPushButton(" 快速使用技巧 ")
+        usetype.setToolTip("查看常见使用技巧")
+        usetype.clicked.connect(self.usetype)
+        container = QToolBar()
+        container.addWidget(rightbottom)
+        container.addWidget(usetype)
+        self.statusBar.addPermanentWidget(container)
 
         # 隐藏高级设置
         self.gaoji_show = True
@@ -179,6 +191,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update=CheckUpdateWorker(self)
         self.check_update.start()
+
+    def usetype(self):
+        string="""
+【视频翻译并配音】 
+选择待翻译的视频文件，然后依次选定源视频语言、目标语言、配音类型和角色、字幕嵌入类型，开始执行
+
+【本地已有字幕配音后嵌入视频】 
+选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
+
+【本地已有字幕不配音直接嵌入视频】 
+选择视频，然后将已有的字幕文件拖拽到右侧字幕区，目标语言选择 - 、配音色选择 No，开始执行
+
+【本地已有字幕只配音输出配音后音频文件】 
+将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，开始执行
+
+【从视频提取出字幕文件】 
+选择视频文件，选择视频源语言，如果选择目标语言，则会输出翻译后的字幕文件，其他无需选择，开始执行
+        """
+        QMessageBox.information(self,"常见使用方式",string)
 
     def about(self):
         self.infofrom=InfoForm()
@@ -453,6 +484,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.current_status = type
         self.startbtn.setText(transobj[type])
         if type == 'stop' or type == 'end':
+            print(f"update============{type=}")
             config.exec_compos = False
             config.subtitle_end = False
             config.ffmpeg_status = 'stop'
@@ -569,7 +601,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dirname = dirname.replace('\\', '/')
         self.target_dir.setText(dirname)
 
-    # 仅配音
+    # 仅配音，无视频输入，只输入已有字幕和源语言目标语言
     def only_dubbing(self):
         reply = QMessageBox.question(self, transobj['qingqueren'], transobj['subtitleandvoice_role'],
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -583,6 +615,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.update_start("stop")
             QMessageBox.critical(self, transobj['anerror'], transobj['xuanzejuese'])
             return
+        # 配音加速值
+        try:
+            voice_rate = int(self.voice_rate.text().strip())
+            config.video['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
+        except:
+            pass
         #  创建字幕文件
         noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tmp_dir = f"{config.rootdir}/tmp/{noextname}"
@@ -620,18 +658,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.video['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
         txt = self.subtitle_area.toPlainText().strip()
+        # 创建tmp缓存
+        if not os.path.exists(config.rootdir + "/tmp"):
+            os.makedirs(config.rootdir + "/tmp")
         # 如果无输入视频，但字幕区有内容，则仅创建配音
         if not config.video['source_mp4'] and txt:
             self.only_dubbing()
             return
-        # 检测参数
+        # 检测参数 没有选择mp4，也不是仅配音，出错
         if not config.video['source_mp4'] or not os.path.exists(config.video['source_mp4']):
             self.update_start("stop")
             QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
             return
+        # 无扩展名的mp4名称
         noextname = os.path.splitext(os.path.basename(config.video['source_mp4']))[0]
         mp4dirname = os.path.dirname(config.video['source_mp4']).lower()
         target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
+        # 创建目标文件夹
         if not target_dir or mp4dirname == target_dir:
             target_dir = mp4dirname + "/_video_out"
             self.target_dir.setText(target_dir)
@@ -644,98 +687,111 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.video['proxy'] = self.proxy.text().strip()
 
         target_language = self.target_language.currentText()
+        # 源语言
         config.video['source_language'] = langlist[self.source_language.currentText()][0]
-        if '-' == target_language:
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['anerror'], transobj['shoundselecttargetlanguage'])
-            return
-        config.video['target_language'] = langlist[target_language][0]
+        config.video['target_language']=target_language
 
-        # google language code
-        if config.video['translate_type'] == 'google':
+        # 目标语言不是 - ，进行翻译、配音，否则不配音
+        if '-' != target_language:
+            # self.update_start("stop")
+            # QMessageBox.critical(self, transobj['anerror'], transobj['shoundselecttargetlanguage'])
+            # return
             config.video['target_language'] = langlist[target_language][0]
-        elif config.video['translate_type'] == 'baidu(noKey)':
-            config.video['target_language_baidu'] = langlist[target_language][2]
-        elif config.video['translate_type'] == 'baidu':
-            # baidu language code
-            config.video['target_language_baidu'] = langlist[target_language][2]
-            if not config.video['baidu_appid'] or not config.video['baidu_miyue']:
-                QMessageBox.critical(self, transobj['anerror'], transobj['baikeymust'])
-                return
-        elif config.video['translate_type'] == 'tencent':
-            #     腾讯翻译
-            config.video['target_language_tencent'] = langlist[target_language][4]
-            if not config.video['tencent_SecretId'] or not config.video['tencent_SecretKey']:
-                QMessageBox.critical(self, transobj['anerror'], transobj['tencent_key'])
-                return
-        elif config.video['translate_type'] == 'chatGPT':
-            # chatGPT 翻译
-            config.video['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
-            if not config.video['chatgpt_key']:
+            # 不能相同
+            if config.video['source_language'] == config.video['target_language']:
+                reply = QMessageBox.question(self,
+                                             transobj['qingqueren'],
+                                             "源语言和目标语言相同，将不进行翻译，请确认是否继续",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply != QMessageBox.Yes:
+                    self.update_start("stop")
+                    return
+            # google language code
+            if config.video['translate_type'] == 'google':
+                config.video['target_language'] = langlist[target_language][0]
+            elif config.video['translate_type'] == 'baidu(noKey)':
+                config.video['target_language_baidu'] = langlist[target_language][2]
+            elif config.video['translate_type'] == 'baidu':
+                # baidu language code
+                config.video['target_language_baidu'] = langlist[target_language][2]
+                if not config.video['baidu_appid'] or not config.video['baidu_miyue']:
+                    QMessageBox.critical(self, transobj['anerror'], transobj['baikeymust'])
+                    return
+            elif config.video['translate_type'] == 'tencent':
+                #     腾讯翻译
+                config.video['target_language_tencent'] = langlist[target_language][4]
+                if not config.video['tencent_SecretId'] or not config.video['tencent_SecretKey']:
+                    QMessageBox.critical(self, transobj['anerror'], transobj['tencent_key'])
+                    return
+            elif config.video['translate_type'] == 'chatGPT':
+                # chatGPT 翻译
+                config.video['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.video['chatgpt_key']:
+                    QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
+                    return
+            elif config.video['translate_type'] == 'DeepL' or config.video['translate_type'] == 'DeepLX':
+                # DeepL翻译
+                if config.video['translate_type'] == 'DeepL' and not config.video['deepl_authkey']:
+                    QMessageBox.critical(self, transobj['anerror'], transobj['deepl_authkey'])
+                    return
+                if config.video['translate_type'] == 'DeepLX' and not config.video['deeplx_address']:
+                    QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
+                    return
+
+                config.video['target_language_deepl'] = langlist[target_language][3]
+                if config.video['target_language_deepl'] == 'No':
+                    QMessageBox.critical(self, transobj['anerror'], transobj['deepl_nosupport'])
+                    return
+
+            # tts类型
+            if config.video['tts_type'] == 'openaiTTS' and not config.video['chatgpt_key']:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
-        elif config.video['translate_type'] == 'DeepL' or config.video['translate_type'] == 'DeepLX':
-            # DeepL翻译
-            if config.video['translate_type'] == 'DeepL' and not config.video['deepl_authkey']:
-                QMessageBox.critical(self, transobj['anerror'], transobj['deepl_authkey'])
+
+
+            config.video['detect_language'] = langlist[self.source_language.currentText()][0]
+            config.video['subtitle_language'] = langlist[self.target_language.currentText()][1]
+            config.video['voice_role'] = self.voice_role.currentText()
+            config.video['whisper_model'] = self.whisper_model.currentText()
+            model = config.rootdir + f"/models/{config.video['whisper_model']}.pt"
+            if not os.path.exists(model) or os.path.getsize(model) < 100:
+                self.update_start("stop")
+                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{config.video['whisper_model']}.pt")
+                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{config.video['whisper_model']}.pt")
                 return
-            if config.video['translate_type'] == 'DeepLX' and not config.video['deeplx_address']:
-                QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
-                return
+            # 没有目标语言，则不翻译不配音，相关参数无效
+            config.video['voice_autorate'] = self.voice_autorate.isChecked()
+            config.video['video_autorate'] = self.video_autorate.isChecked()
+            try:
+                voice_rate = int(self.voice_rate.text().strip())
+                config.video['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
+            except:
+                pass
+            try:
+                voice_silence = int(self.voice_silence.text().strip())
+                config.video['voice_silence'] = voice_silence
+            except:
+                pass
+        else:
+            # todo 未选择目标语言，则不翻译，不配音。
+            pass
 
-            config.video['target_language_deepl'] = langlist[target_language][3]
-            if config.video['target_language_deepl'] == 'No':
-                QMessageBox.critical(self, transobj['anerror'], transobj['deepl_nosupport'])
-                return
 
-        if config.video['source_language'] == config.video['target_language']:
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['anerror'], transobj['sourenotequaltarget'])
-            return
-        # tts类型
-        if config.video['tts_type'] == 'openaiTTS' and not config.video['chatgpt_key']:
-            QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
-            return
-
-        config.video['detect_language'] = langlist[self.source_language.currentText()][0]
-        config.video['subtitle_language'] = langlist[self.target_language.currentText()][1]
-
-        config.video['voice_role'] = self.voice_role.currentText()
-        config.video['whisper_model'] = self.whisper_model.currentText()
-
-        model = config.rootdir + f"/models/{config.video['whisper_model']}.pt"
-        if not os.path.exists(model) or os.path.getsize(model) < 100:
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{config.video['whisper_model']}.pt")
-            self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{config.video['whisper_model']}.pt")
-            return
-
-        config.video['voice_autorate'] = self.voice_autorate.isChecked()
-        config.video['video_autorate'] = self.video_autorate.isChecked()
         config.video['subtitle_type'] = int(self.subtitle_type.currentIndex())
-
-        # 如果既没有选择字幕也没有选择配音，将仅生成字幕文件
-        if config.video['subtitle_type'] < 1 and (config.video['voice_role'] == 'No'):
-            reply = QMessageBox.question(self, transobj['qingqueren'], transobj['only_srt'],
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        # 如果没有目标语言，将紧紧导出配音文件
+        if config.video['subtitle_type']<1 and config.video['voice_role'] in ['No','no','-','']:
+            reply = QMessageBox.question(self,
+                transobj['qingqueren'],
+                transobj['only_srt'],
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             # 确定仅创建字幕
             if reply != QMessageBox.Yes:
                 self.update_start("stop")
                 return
 
-        try:
-            voice_rate = int(self.voice_rate.text().strip())
-            config.video['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
-        except:
-            pass
-        try:
-            voice_silence = int(self.voice_silence.text().strip())
-            config.video['voice_silence'] = voice_silence
-        except:
-            pass
+        # 保存设置
         self.save_setting()
-        if not os.path.exists(config.rootdir+"/tmp"):
-            os.makedirs(config.rootdir+"/tmp")
+
         config.current_status = 'ing'
         config.exec_compos = False
         # 如果已有字幕，则使用
