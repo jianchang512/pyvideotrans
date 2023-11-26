@@ -1,4 +1,4 @@
-[EnglishVersion](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑有你帮助将更好](./about.md) / [捐助者列表](./contr.md)
+[EnglishVersion](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑帮助软件做的更好](./about.md) / [捐助者列表](./contr.md)
 
 ## 视频翻译和配音工具
 
@@ -16,42 +16,49 @@
 
 ## 主要用途和使用方式
 <details>
-<summary>【翻译和配音】 A语言的视频处理后，转变为B语言配音的视频，并显示B语言字幕</summary>
+<summary>【视频翻译并配音】 A语言的视频处理后，转变为B语言配音的视频，并显示B语言字幕</summary>
 <p></p>
 <blockquote>
-点击选择待翻译的视频文件，然后依次选定源视频语言、目标语言、配音类型和角色、字幕嵌入类型，开始执行
+选择待翻译的视频文件，然后依次选定源视频语言、目标语言、配音类型和角色、字幕嵌入类型，开始执行
 </blockquote>
 
 </details>
 
 <details>
-<summary>【已有字幕配音并嵌入视频】 将本地已有的字幕文件进行配音，和已有的视频素材合并，组成有配音和字幕的视频(拖拽已有字幕到右侧编辑区)</summary>
+<summary>【已有字幕配音后嵌入视频】 将本地已有的字幕文件进行配音，和已有的视频素材合并，组成有配音和字幕的视频</summary>
 <p></p>
 <blockquote>
-选择本地打算添加字幕或配音的视频，然后将已有的字幕文件拖拽到右侧字幕区，选定源语言和目标语言、配音类型和角色，开始执行
+选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕同语言、选择配音类型和角色、字幕嵌入类型，开始执行
+</blockquote>
+</details>
+
+<details>
+<summary>【已有字幕不配音直接嵌入视频】 将本地已有的字幕文件和已有的视频素材合并，组成带字幕的视频</summary>
+<p></p>
+<blockquote>
+选择视频，然后将已有的字幕文件拖拽到右侧字幕区，选择嵌入字幕类型，目标语言设为 ‘-’、配音角色设为 No，开始执行
+</blockquote>
+</details>
+
+<details>
+<summary>【已有字幕只配音获取wav配音文件】 仅仅对已有的本地字幕配音，然后生成配音后的wav音频文件</summary>
+<p></p>
+<blockquote>
+不要选择视频文件，将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，开始执行
 </blockquote>
 
 </details>
 
 <details>
-<summary>【对已有字幕进行配音】 仅仅对已有的本地字幕配音，然后生成配音后的wav音频文件(不要选择视频，仅拖拽已有字幕到右侧编辑区，然后选择目标语言和配音角色)</summary>
+
+<summary>【从视频提取出字幕文件】 选择视频，“不嵌入字幕”，配音角色为“No”</summary>
 <p></p>
-<blockquote>
-将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，开始执行
-</blockquote>
+<blockquote>选择视频文件，设置视频源语言，如果选择目标语言，则会输出翻译后的字幕文件，其他无需选择，开始执行</blockquote>
 
 </details>
 
 <details>
-
-<summary>【从视频提取字幕】 选择视频，然后选择“不嵌入字幕”，配音角色为“No”</summary>
-<p></p>
-<blockquote>选择视频文件，选择视频源语言，其他无需选择，开始执行</blockquote>
-
-</details>
-
-<details>
-<summary>【输出资源】 经过处理后，将在目标文件夹中创建视频同名子目录，输出“原语言srt字幕”、“目标语言srt字幕”、“配音后的wav音频文件”，以便于进一步进行其他处理</summary>
+<summary>【输出的资源】 经过处理后，将在目标文件夹中创建视频同名子目录，输出“原语言srt字幕”、“目标语言srt字幕”、“配音后的wav音频文件”，以便于进一步进行其他处理</summary>
 <p></p>
 <blockquote>根据你的选择情况， 在目标文件夹下会生成 源语言字幕.srt、目标语言字幕.srt、源声音.wav、配音后.wav、未截断配音-nocut.wav，以便进行其他处理</blockquote>
 
@@ -282,6 +289,23 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 </details>
 
 
+## CUDA 加速支持
+
+0. 如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
+   [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
+
+1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
+   
+2. 安装 `pip install -r requirements-gpu.txt` 而不是 `requirements.txt`
+
+3. 到此应该可以使用了，如果有问题，那么执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,如下图
+![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
+   然后将 `pip3` 改为 `pip`，再复制命令去执行。
+   
+4. 的环境配置相对复杂，遇到问题多搜索或发个issue
+
+
+
 ## 软件预览截图
 
 ![](./images/p1.png?b)
@@ -299,22 +323,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-a
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
 [Youtube demo](https://youtu.be/skLtE1XnO6Q)
-
-
-## CUDA 加速支持
-
-0. 如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
-   [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
-
-1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
-   
-2. 安装 `pip install -r requirements-gpu.txt` 而不是 `requirements.txt`
-
-3. 到此应该可以使用了，如果有问题，那么执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,如下图
-![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
-   然后将 `pip3` 改为 `pip`，再复制命令去执行。
-   
-4. 的环境配置相对复杂，遇到问题多搜索或发个issue
 
 
 ## 致谢

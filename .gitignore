@@ -17,5 +17,5 @@ ffprobe.exe
 ffplay.exe
 __pycache__
 *.spec
-*.json
+voice_list.json
 *.ui
