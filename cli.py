@@ -147,8 +147,8 @@ def running(p):
         runffmpeg([
                    "-y",
                    "-i",
-                   f'"{p}"',
-                   f'"{a_name}"'
+                   f'{p}',
+                   f'{a_name}'
     ])
 
     get_large_audio_transcriptioncli(noextname, mp4ext, showprocess)

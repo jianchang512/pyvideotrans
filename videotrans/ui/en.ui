@@ -70,6 +70,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
                 <property name="placeholderText">
                  <string>Select multiple MP4 videos to be translated and queue up for processing</string>
                 </property>
@@ -109,6 +112,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
                 <property name="placeholderText">
                  <string>Select the location to save the translated video to, which defaults to the original directory_ Video_ Out</string>
                 </property>
@@ -119,7 +125,7 @@
             <item>
              <widget class="QPushButton" name="open_targetdir">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">

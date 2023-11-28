@@ -70,6 +70,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
                 <property name="placeholderText">
                  <string>选择待翻译的mp4视频，可多个，排队处理</string>
                 </property>
@@ -109,6 +112,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
                 <property name="placeholderText">
                  <string>选择翻译后的视频保存到的位置，默认原目录下_video_out中</string>
                 </property>
@@ -119,7 +125,7 @@
             <item>
              <widget class="QPushButton" name="open_targetdir">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">

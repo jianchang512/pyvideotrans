@@ -33,6 +33,7 @@ translate_language = {
         "deepl_authkey":"你必须填写DeepL的授权key",
         "deepl_nosupport":"DeepL不支持翻译为该语言",
         "wait_edit_subtitle":"等待修改字幕",
+        "continue_action":"继续下一步",
         "autocomposing":"秒倒计时后将自动合成视频，修改字幕编辑区任意内容后将停止倒计时",
         "queding":"确定",
         "hechengchucuo":"合成出错，缺少文件:",
@@ -52,6 +53,7 @@ translate_language = {
         "xuanzejuese":"必须选择配音角色，请先根据字幕语言选择目标语言，然后选择配音角色"
     },
     "en": {
+        "continue_action":"继续下一步",
         "xuanzejuese":"must to be select dubbing role, frist select subtitle language and select dubbing role",
         "tencent_key":"must be input tencent's SecretId and SecretKey",
         "qingqueren":"Please confirm",
