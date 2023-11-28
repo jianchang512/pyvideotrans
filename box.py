@@ -413,7 +413,7 @@ class Worker(QThread):
     def run(self):
         print(self.cmd_list)
         for cmd in self.cmd_list:
-            logger.info(f"Will execute: ffmpeg {cmd}")
+            logger.info(f"Will execute: ffmpeg {cmd=}")
             try:
                 print('============')
                 runffmpeg(cmd)
@@ -823,17 +823,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         savedir = f"{homedir}/hebing-{basename}"
 
-        cmd = f' -y -i "{videofile}" '
+        cmd = ['-y','-i',f'{videofile}']
         if wavfile and os.path.exists(wavfile):
-            cmd += f' -i "{wavfile}" -c:v libx264 -c:a aac'
+            cmd += ['-i',f'{wavfile}','-c:v','libx264','-c:a','aac']
         else:
-            cmd += f" -c:v libx264 "
+            cmd += ["-c:v","libx264"]
         if srtfile and os.path.exists(srtfile):
             srtfile.replace('\\','/').replace(':','\\:')
-            cmd += f" -vf \"subtitles='{srtfile}'\""
+            cmd += ["-vf", "\"subtitles='{srtfile}'\""]
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
-        cmd += f' "{savedir}/{basename}.mp4"'
+        cmd += [f'{savedir}/{basename}.mp4']
         self.ysphb_task = Worker([cmd], "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
@@ -859,7 +859,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out_file = f"{homedir}/tmp/{basename}.wav"
             try:
                 self.shibie_dropbtn.setText(out_file)
-                self.shibie_ffmpeg_task = Worker([f' -y -i "{file}" -ar 8000  "{out_file}"'],
+                self.shibie_ffmpeg_task = Worker([f' -y -i "{file}"  "{out_file}"'],
                                                  "shibie_next", self)
                 self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
@@ -1017,7 +1017,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.geshi_result.insertPlainText(f"{it} 音频不可转为 {ext}视频")
                 boxcfg.geshi_num -= 1
                 continue
-            cmdlist.append(f'-y -i "{it}" "{savedir}/{basename}.{ext}"')
+            cmdlist.append(['-y','-i',f'{it}',f'{savedir}/{basename}.{ext}'])
 
         if len(cmdlist) < 1:
             self.geshi_result.insertPlainText("全部转换完成")
@@ -1074,8 +1074,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.luzhi_tips.setText("正在录制音频...")
             boxcfg.luzhicfg['audio_thread'] = threading.Thread(target=listen, args=(self.thefilename,))
             boxcfg.luzhicfg['audio_thread'].start()
-        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio,
-                                      self)
+        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio, self)
         self.luzhi_task.update_ui.connect(self.receiver)
         self.luzhi_task.start()
 

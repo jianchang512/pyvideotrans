@@ -101,3 +101,8 @@ queue_mp4 = []
 is_vlc=False
 # 存放视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice={}
+
+# 任务队列
+queue_task=[]
+
+task_countdown=60
