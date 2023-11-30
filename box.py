@@ -282,6 +282,7 @@ class Worker(QThread):
                 self.post_message("end", "完成\n")
             except Exception as e:
                 logger.error("FFmepg exec error:" + str(e))
+                return f'[error]{str(e)}'
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
@@ -789,12 +790,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_startbtn.setText("执行中...")
         self.disabled_shibie(True)
         self.shibie_text.clear()
+
         if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov"]:
             out_file = f"{homedir}/tmp/{basename}.wav"
+            if not os.path.exists(f"{homedir}/tmp"):
+                os.makedirs(f"{homedir}/tmp")
             try:
+                print(f'{file=}')
                 self.shibie_dropbtn.setText(out_file)
                 self.shibie_ffmpeg_task = Worker([
-                    ['-y', '-i', file, f'{out_file}']
+                    ['-y', '-i', file, out_file]
                 ], "shibie_next", self)
                 self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
@@ -810,9 +815,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 最终执行
     def shibie_start_next_fun(self):
         file = self.shibie_dropbtn.text()
+        if not os.path.exists(file):
+            return QMessageBox.critical(self, "出错了", "识别前预处理失败，请确认视频中是否含有音频数据")
         model = self.shibie_model.currentText()
-        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0],
-                                         "shibie_end", self)
+        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0], "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
@@ -996,7 +1002,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     main = MainWindow()
-    with open(f'{config.rootdir}/style1.qss','r',encoding='utf-8') as f:
+    with open(f'{config.rootdir}/videotrans/styles/style.qss','r',encoding='utf-8') as f:
         main.setStyleSheet(f.read())
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 

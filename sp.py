@@ -1337,7 +1337,7 @@ if __name__ == "__main__":
         QMessageBox.critical(main, transobj['anerror'], transobj['createdirerror'])
 
     # or in new API
-    with open(f'{config.rootdir}/style1.qss','r',encoding='utf-8') as f:
+    with open(f'{config.rootdir}/videotrans/styles/style.qss','r',encoding='utf-8') as f:
         main.setStyleSheet(f.read())
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
