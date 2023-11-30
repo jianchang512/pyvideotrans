@@ -4,6 +4,9 @@
 
 [加入Discord讨论](https://discord.gg/evkPeKJddD)
 
+
+
+
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
 >
@@ -76,8 +79,7 @@
 ----
 
 
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/8c934cc4-8963-465c-86a9-835b8fc75454
+https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-ad5b-34b68170147d
 
 
 
