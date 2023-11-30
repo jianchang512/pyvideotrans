@@ -7,13 +7,16 @@ import sys
 import os
 import threading
 import webbrowser
+
+import qdarkstyle
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import QSettings, QUrl
+from PyQt5.QtCore import QSettings, QUrl, Qt, QSize
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QToolBar
+    QHBoxLayout, QToolBar, QAction
 import warnings
 
+import videotrans.configure
 from videotrans.component.set_form import InfoForm
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
@@ -54,10 +57,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.languagename = list(langlist.keys())
         # task thread
         self.task = None
+        self.toolboxobj=None
+        self.app_mode='biaozhun'
 
         self.get_setting()
 
-        self.splitter.setSizes([830, 350])
+        self.splitter.setSizes([1000, 360])
 
         # start
         self.startbtn.clicked.connect(self.check_start)
@@ -84,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.target_language.addItems(["-"] + self.languagename)
         # 目标语言改变
         self.target_language.currentTextChanged.connect(self.set_voice_role)
+        self.voice_role.currentTextChanged.connect(self.show_listen_btn)
 
         self.listen_btn.hide()
         self.listen_btn.clicked.connect(self.listen_voice_fun)
@@ -117,9 +123,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.video['tts_type'] == 'edgeTTS':
             self.voice_role.addItems(['No'])
         elif config.video['tts_type'] == 'openaiTTS':
-            self.voice_role.addItems(config.video['openaitts_role'].split(','))
+            self.voice_role.addItems(['No']+config.video['openaitts_role'].split(','))
         elif config.video['tts_type'] == 'coquiTTS':
-            self.voice_role.addItems(config.video['coquitts_role'].split(','))
+            self.voice_role.addItems(['No']+config.video['coquitts_role'].split(','))
         # 设置 tts_type
         self.tts_type.addItems(config.video['tts_type_list'])
         self.tts_type.setCurrentText(config.video['tts_type'])
@@ -136,12 +142,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setWidthForHeight(self.subtitle_area.sizePolicy().hasWidthForHeight())
         self.subtitle_area.setSizePolicy(sizePolicy)
         self.subtitle_area.setMinimumSize(300, 0)
         self.subtitle_area.setPlaceholderText(transobj['subtitle_tips'])
+
         self.subtitle_layout.insertWidget(0, self.subtitle_area)
-        # self.subtitle_area.textChanged.connect(self.reset_timeid)
+        self.import_sub=QPushButton("导入字幕")
+        self.import_sub.setMinimumSize(80,35)
+        self.import_sub.clicked.connect(self.import_sub_fun)
+        self.subtitle_layout.insertWidget(1, self.import_sub)
+
 
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
@@ -159,14 +169,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.about)
         self.action_clone.triggered.connect(lambda: show_popup(transobj['yinsekaifazhong'], transobj['yinsekelong']))
 
-        # status
+        # 设置QAction的大小
+        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        # 设置QToolBar的大小，影响其中的QAction的大小
+        # self.toolBar.setFixedHeight(40)
+        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
+        self.action_biaozhun.triggered.connect(self.set_biaozhun)
+        self.action_tiquzimu.triggered.connect(self.set_tiquzimu)
+        self.action_tiquzimu_no.triggered.connect(self.set_tiquzimu_no)
+        self.action_zimu_video.triggered.connect(self.set_zimu_video)
+        self.action_zimu_peiyin.triggered.connect(self.set_zimu_peiyin)
+        self.action_yuyinshibie.triggered.connect(lambda: self.open_toolbox(2))
+        self.action_yuyinhecheng.triggered.connect(lambda: self.open_toolbox(3))
+        self.action_yinshipinfenli.triggered.connect(lambda: self.open_toolbox(0))
+        self.action_yingyinhebing.triggered.connect(lambda: self.open_toolbox(1))
+        self.action_geshi.triggered.connect(lambda: self.open_toolbox(4))
+
+        # 底部状态栏
         self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
         self.statusLabel.setStyleSheet("color:#00a67d")
         self.statusBar.addWidget(self.statusLabel)
-        # rightbottom=QLabel("github.com/jianchang512/pyvideotrans")
-
-        self.horizontalLayout_rb = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_rb.setObjectName("horizontalLayout_rb")
 
         rightbottom = QPushButton(" 帮助该软件做的更好 ")
         rightbottom.setToolTip("如果有你的帮助，该软件会做的更好，点击查看")
@@ -179,11 +201,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         container.addWidget(rightbottom)
         container.addWidget(usetype)
         self.statusBar.addPermanentWidget(container)
-
-        # 隐藏高级设置
-        self.gaoji_show = True
-        self.hide_layout_recursive()
-        self.gaoji_btn.clicked.connect(self.hide_layout_recursive)
         #     日志
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.update_data)
@@ -191,6 +208,275 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
+
+    # 启用标准模式
+    def set_biaozhun(self):
+        self.app_mode='biaozhun'
+        self.show_tips.setText("")
+        self.startbtn.setText("开始处理")
+        self.action_tiquzimu_no.setChecked(False)
+        self.action_biaozhun.setChecked(True)
+        self.action_tiquzimu.setChecked(False)
+        self.action_zimu_video.setChecked(False)
+        self.action_zimu_peiyin.setChecked(False)
+
+        # 选择视频
+        self.hide_show_element(self.layout_source_mp4,True)
+        #保存目标
+        self.hide_show_element(self.layout_target_dir,True)
+        self.open_targetdir.show()
+
+        #翻译渠道
+        self.hide_show_element(self.layout_translate_type,True)
+        #代理
+        self.hide_show_element(self.layout_proxy,True)
+        #原始语言
+        self.hide_show_element(self.layout_source_language,True)
+        #目标语言
+        self.hide_show_element(self.layout_target_language,True)
+        #tts类型
+        self.hide_show_element(self.layout_tts_type,True)
+        #配音角色
+        self.hide_show_element(self.layout_voice_role,True)
+        #试听按钮
+        self.hide_show_element(self.listen_layout,False)
+        #语音模型
+        self.hide_show_element(self.layout_whisper_model,True)
+        #字幕类型
+        self.hide_show_element(self.layout_subtitle_type,True)
+
+        #配音语速
+        self.hide_show_element(self.layout_voice_rate,True)
+        #静音片段
+        self.hide_show_element(self.layout_voice_silence,True)
+        #配音自动加速
+        self.voice_autorate.show()
+        #视频自动降速
+        self.video_autorate.show()
+        # cuda
+        self.enable_cuda.show()
+
+    # 视频提取字幕并翻译，无需配音
+    def set_tiquzimu(self):
+        self.app_mode='tiqu'
+        self.show_tips.setText("原始语言设为视频发音语言，目标语言设为想翻译为的语言")
+        self.startbtn.setText("开始提取和翻译")
+        self.action_tiquzimu_no.setChecked(False)
+        self.action_tiquzimu.setChecked(True)
+        self.action_biaozhun.setChecked(False)
+        self.action_zimu_video.setChecked(False)
+        self.action_zimu_peiyin.setChecked(False)
+
+        # 选择视频
+        self.hide_show_element(self.layout_source_mp4, True)
+        # 保存目标
+        self.hide_show_element(self.layout_target_dir, True)
+        self.open_targetdir.show()
+
+        # 翻译渠道
+        self.hide_show_element(self.layout_translate_type, True)
+        # 代理
+        self.hide_show_element(self.layout_proxy, True)
+        # 原始语言
+        self.hide_show_element(self.layout_source_language, True)
+        # 目标语言
+        self.hide_show_element(self.layout_target_language, True)
+        # tts类型
+        self.hide_show_element(self.layout_tts_type, False)
+        # 配音角色
+        self.hide_show_element(self.layout_voice_role, False)
+        # self.voice_role.setCurrentText('No')
+        # 试听按钮
+        self.hide_show_element(self.listen_layout, False)
+        # 语音模型
+        self.hide_show_element(self.layout_whisper_model, True)
+        # 字幕类型
+        self.hide_show_element(self.layout_subtitle_type, False)
+        # self.subtitle_type.setCurrentIndex(0)
+
+        # 配音语速
+        self.hide_show_element(self.layout_voice_rate, False)
+        # self.voice_rate.setText('+0%')
+        # 静音片段
+        self.hide_show_element(self.layout_voice_silence, False)
+        # self.voice_silence.setText('500')
+        # 配音自动加速
+        self.voice_autorate.hide()
+        self.voice_autorate.setChecked(False)
+        # 视频自动降速
+        self.video_autorate.hide()
+        self.video_autorate.setChecked(False)
+        # cuda
+        self.enable_cuda.show()
+
+
+    # 从视频提取字幕，不翻译
+    # 只显示 选择视频、保存目标、原始语言、语音模型，其他不需要
+    def set_tiquzimu_no(self):
+        self.app_mode='tiqu_no'
+        self.show_tips.setText("原始语言设为视频发音语言")
+        self.startbtn.setText("开始提取字幕")
+        self.action_tiquzimu.setChecked(False)
+        self.action_tiquzimu_no.setChecked(True)
+        self.action_biaozhun.setChecked(False)
+        self.action_zimu_video.setChecked(False)
+        self.action_zimu_peiyin.setChecked(False)
+
+        # 选择视频
+        self.hide_show_element(self.layout_source_mp4, True)
+        # 保存目标
+        self.hide_show_element(self.layout_target_dir, True)
+        self.open_targetdir.show()
+
+        # 翻译渠道
+        self.hide_show_element(self.layout_translate_type, False)
+        # 代理
+        self.hide_show_element(self.layout_proxy, False)
+        # self.proxy.setText('')
+        # 原始语言
+        self.hide_show_element(self.layout_source_language, True)
+
+        # 目标语言
+        self.hide_show_element(self.layout_target_language, False)
+        # self.target_language.setCurrentText('-')
+        # tts类型
+        self.hide_show_element(self.layout_tts_type, False)
+
+        # 配音角色
+        self.hide_show_element(self.layout_voice_role, False)
+        # self.voice_role.setCurrentText('No')
+        # 试听按钮
+        self.hide_show_element(self.listen_layout, False)
+        # 语音模型
+        self.hide_show_element(self.layout_whisper_model, True)
+        # 字幕类型
+        self.hide_show_element(self.layout_subtitle_type, False)
+        # self.subtitle_type.setCurrentIndex(0)
+
+        # 配音语速
+        self.hide_show_element(self.layout_voice_rate, False)
+        # self.voice_rate.setText('+0%')
+        # 静音片段
+        self.hide_show_element(self.layout_voice_silence, False)
+        # self.voice_silence.setText('500')
+        # 配音自动加速
+        self.voice_autorate.hide()
+        self.voice_autorate.setChecked(False)
+        # 视频自动降速
+        self.video_autorate.hide()
+        self.video_autorate.setChecked(False)
+        # cuda
+        self.enable_cuda.show()
+
+    # 启用字幕合并模式, 仅显示 选择视频、保存目录、字幕类型、cuda
+    # 不配音、不识别，
+    def set_zimu_video(self):
+        self.app_mode='hebing'
+        self.show_tips.setText("选择要合并的视频，将字幕srt文件拖拽到右侧字幕区")
+        self.startbtn.setText("开始合并")
+        self.action_tiquzimu_no.setChecked(False)
+        self.action_biaozhun.setChecked(False)
+        self.action_tiquzimu.setChecked(False)
+        self.action_zimu_video.setChecked(True)
+        self.action_zimu_peiyin.setChecked(False)
+
+        # 选择视频
+        self.hide_show_element(self.layout_source_mp4,True)
+        #保存目标
+        self.hide_show_element(self.layout_target_dir,True)
+        self.open_targetdir.show()
+
+        #翻译渠道
+        self.hide_show_element(self.layout_translate_type,False)
+        #代理
+        self.hide_show_element(self.layout_proxy,False)
+        # self.proxy.setText('')
+        #原始语言
+        self.hide_show_element(self.layout_source_language,False)
+        #目标语言
+        self.hide_show_element(self.layout_target_language,False)
+        # self.target_language.setCurrentText('-')
+        #tts类型
+        self.hide_show_element(self.layout_tts_type,False)
+        #配音角色
+        self.hide_show_element(self.layout_voice_role,False)
+        # self.voice_role.setCurrentText('No')
+        #试听按钮
+        self.hide_show_element(self.listen_layout,False)
+        #语音模型
+        self.hide_show_element(self.layout_whisper_model,False)
+        #字幕类型
+        self.hide_show_element(self.layout_subtitle_type,True)
+
+        #配音语速
+        self.hide_show_element(self.layout_voice_rate,False)
+        # self.voice_rate.setText('+0%')
+        #静音片段
+        self.hide_show_element(self.layout_voice_silence,False)
+        # self.voice_silence.setText('500')
+
+        #配音自动加速
+        self.voice_autorate.hide()
+        self.voice_autorate.setChecked(False)
+        #视频自动降速
+        self.video_autorate.hide()
+        self.video_autorate.setChecked(False)
+        # cuda
+        self.enable_cuda.show()
+
+
+
+    #仅仅对已有字幕配音，显示目标语言、tts相关，自动加速相关，
+    #不翻译不识别
+    def set_zimu_peiyin(self):
+        self.show_tips.setText("请将目标语言设为字幕所用语言，并选择配音角色")
+        self.startbtn.setText("开始配音")
+        self.action_tiquzimu_no.setChecked(False)
+        self.action_biaozhun.setChecked(False)
+        self.action_tiquzimu.setChecked(False)
+        self.action_zimu_video.setChecked(False)
+        self.action_zimu_peiyin.setChecked(True)
+        self.app_mode='peiyin'
+        # 选择视频
+        self.hide_show_element(self.layout_source_mp4, False)
+        # 保存目标
+        self.hide_show_element(self.layout_target_dir, True)
+        self.open_targetdir.show()
+
+        # 翻译渠道
+        self.hide_show_element(self.layout_translate_type, False)
+        # 代理 openaitts
+        self.hide_show_element(self.layout_proxy, True)
+
+        # 原始语言
+        self.hide_show_element(self.layout_source_language, False)
+        # 目标语言
+        self.hide_show_element(self.layout_target_language, True)
+        # tts类型
+        self.hide_show_element(self.layout_tts_type, True)
+        # 配音角色
+        self.hide_show_element(self.layout_voice_role, True)
+        # 试听按钮
+        self.hide_show_element(self.listen_layout, True)
+        # 语音模型
+        self.hide_show_element(self.layout_whisper_model, False)
+        # 字幕类型
+        self.hide_show_element(self.layout_subtitle_type, False)
+        # self.subtitle_type.setCurrentIndex(0)
+
+        # 配音语速
+        self.hide_show_element(self.layout_voice_rate, True)
+        # 静音片段
+        self.hide_show_element(self.layout_voice_silence, False)
+        # self.voice_silence.setText('500')
+        # 配音自动加速
+        self.voice_autorate.show()
+        # 视频自动降速
+        self.video_autorate.hide()
+        self.video_autorate.setChecked(False)
+        # cuda
+        self.enable_cuda.show()
+
 
     def usetype(self):
         string = """
@@ -216,6 +502,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.infofrom = InfoForm()
         self.infofrom.show()
 
+
     # voice_autorate video_autorate 变化
     def autorate_changed(self, state, name):
         if state:
@@ -231,22 +518,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dirname = os.path.dirname(dirname)
         QDesktopServices.openUrl(QUrl(f"file:{dirname}"))
 
-    # 隐藏或显示高级设置
-    def hide_layout_recursive(self):
-        # 递归隐藏布局及其下的所有元素
-        def hide_recursive(layout, show):
+    # 隐藏布局及其元素
+    def hide_show_element(self,wrap_layout,show_status):
+        def hide_recursive(layout, show_status):
             for i in range(layout.count()):
                 item = layout.itemAt(i)
                 if item.widget():
-                    if show:
+                    if not show_status:
                         item.widget().hide()
                     else:
                         item.widget().show()
                 elif item.layout():
-                    hide_recursive(item.layout(), show)
+                    hide_recursive(item.layout(), show_status)
 
-        hide_recursive(self.gaoji_layout_wrap, self.gaoji_show)
-        self.gaoji_show = not self.gaoji_show
+        hide_recursive(wrap_layout, show_status)
+
 
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
@@ -271,6 +557,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
+        if self.toolboxobj is not None:
+            self.toolboxobj.close()
         if config.current_status == 'ing':
             config.current_status='end'
             msg = QMessageBox()
@@ -328,12 +616,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
 
-    def open_toolbox(self):
+    def open_toolbox(self,index=0):
         try:
             import box
-            toolbox_main = box.MainWindow()
-            toolbox_main.show()
+            if self.toolboxobj is None:
+                self.toolboxobj = box.MainWindow()
+            self.toolboxobj.show()
+            self.toolboxobj.tabWidget.setCurrentIndex(index)
+            self.toolboxobj.raise_()
         except Exception as e:
+            self.toolboxobj=None
             QMessageBox.critical(self, "出错了", "你可能需要先安装VLC解码器，" + str(e))
             logger.error("vlc" + str(e))
 
@@ -349,7 +641,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.hide()
         config.task_countdown=86400
         self.process.moveCursor(QTextCursor.End)
-        self.process.insertHtml("<strong>倒计时停止，修改后请手动点击“继续下一步”按钮</strong><br>")
+        self.process.insertHtml("<br><strong>倒计时停止，修改后请手动点击“继续下一步”按钮</strong><br>")
         self.continue_compos.setText("继续下一步")
     # 自动超时的倒计时，需要隐藏倒计时停止按钮
 
@@ -509,15 +801,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.hide()
         self.startbtn.setText(transobj['running'])
         config.current_status='ing'
+        self.statusLabel.setText("开始处理...")
 
     # tts类型改变
     def tts_type_change(self, type):
         config.video['tts_type'] = type
         if type == "openaiTTS":
             self.voice_role.clear()
-            self.voice_role.addItems(config.video['openaitts_role'].split(','))
+            self.voice_role.addItems(['No']+config.video['openaitts_role'].split(','))
         elif type == 'coquiTTS':
-            self.voice_role.addItems(config.video['coquitts_role'].split(','))
+            self.voice_role.addItems(['No']+config.video['coquitts_role'].split(','))
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())
 
@@ -532,7 +825,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lang = "zh"
         else:
             return
-        print(f"{text}")
         role = self.voice_role.currentText()
         if not role or role == 'No':
             return QMessageBox.critical(self, transobj['anerror'], transobj['mustberole'])
@@ -544,7 +836,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(voice_dir):
             os.makedirs(voice_dir)
         voice_file = f"{voice_dir}/{config.video['tts_type']}-{lang}-{role}.mp3"
-        print(f"{voice_file=}")
         obj = {
             "text": text,
             "rate": "+0%",
@@ -556,19 +847,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         t = PlayMp3(obj, self)
         t.start()
 
-    # set edge-ttss change voice role when target_language changed
-    def set_voice_role(self, t):
-        # t in  中文简 中文繁 英语 Simplified_Chinese Traditional_Chinese English 显示试听按钮
-        if t in ["中文简", "中文繁", "英语", "Simplified_Chinese", "Traditional_Chinese", "English"]:
+    def show_listen_btn(self,role):
+        t=self.target_language.currentText()
+        if role !='No' and t in ["中文简", "中文繁", "英语", "Simplified_Chinese", "Traditional_Chinese", "English"]:
             self.listen_btn.show()
             self.listen_btn.setDisabled(False)
         else:
             self.listen_btn.hide()
             self.listen_btn.setDisabled(True)
+    # set edge-ttss change voice role when target_language changed
+    def set_voice_role(self, t):
+        role=self.voice_role.currentText()
+
+        # t in  中文简 中文繁 英语 Simplified_Chinese Traditional_Chinese English 显示试听按钮
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
         if config.video['tts_type'] != 'edgeTTS':
+            if role != 'No' and t in ["中文简", "中文繁", "英语", "Simplified_Chinese", "Traditional_Chinese", "English"]:
+                self.listen_btn.show()
+                self.listen_btn.setDisabled(False)
+            else:
+                self.listen_btn.hide()
+                self.listen_btn.setDisabled(True)
             return
+        self.listen_btn.hide()
         self.voice_role.clear()
         if t == '-':
             self.voice_role.addItems(['No'])
@@ -605,6 +907,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.queue_mp4 = fnames
             # self.statusLabel.setText(f"添加 {len(fnames)} 个视频 ")
 
+    def import_sub_fun(self):
+        fname, _ = QFileDialog.getOpenFileName(self, transobj['selectmp4'], self.last_dir,
+                                                 "Srt files(*.srt *.txt)")
+        if fname:
+            with open(fname,'r',encoding='utf-8') as f:
+                self.subtitle_area.insertPlainText(f.read().strip())
     # output dir
     def get_save_dir(self):
         dirname = QFileDialog.getExistingDirectory(self, transobj['selectsavedir'], self.last_dir)
@@ -613,18 +921,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 仅配音，无视频输入，只输入已有字幕和源语言目标语言
     def only_dubbing(self):
-        reply = QMessageBox.question(self, transobj['qingqueren'], transobj['subtitleandvoice_role'],
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        # 确定仅创建字幕
-        if reply != QMessageBox.Yes:
-            self.update_start("stop")
-            return
-        # 如果没有配音角色
-        config.video['voice_role'] = self.voice_role.currentText()
-        if not config.video['voice_role'] or config.video['voice_role'] in ['No', '-']:
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['anerror'], transobj['xuanzejuese'])
-            return
         # 配音加速值
         try:
             voice_rate = int(self.voice_rate.text().strip())
@@ -637,9 +933,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.get_sub_toarea(config.video['noextname'])
 
         # 创建目标文件夹
-        config.video['target_dir'] = homedir + f"/only_dubbing"
-        self.target_dir.setText(config.video['target_dir'])
-        # self.open_targetdir.setDisabled(False)
+        config.video['target_dir'] =  f"{homedir}/only_dubbing" if not config.video['target_dir'] else config.video['target_dir']
+        if not os.path.exists(config.video['target_dir']+f"/{config.video['noextname']}"):
+            os.makedirs(config.video['target_dir']+f"/{config.video['noextname']}",exist_ok=True)
+        self.target_dir.setText(config.video['target_dir']+f"/{config.video['noextname']}")
         self.btn_get_video.setDisabled(True)
 
         # 开始线程
@@ -657,44 +954,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.update_start('stop')
                 return
         self.process.clear()
+        # 选择视频
+        config.video['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
+        target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
+        # 目标文件夹
+        if target_dir:
+            config.video['target_dir'] = target_dir
+        elif config.video['source_mp4']:
+            config.video['target_dir'] = os.path.dirname(config.video['source_mp4']) + "/_video_out"
+        self.target_dir.setText(config.video['target_dir'])
+
+        #代理
+        config.video['proxy'] = self.proxy.text().strip()
         if config.video['proxy']:
             os.environ['http_proxy'] = 'http://%s' % config.video['proxy'].replace("http://", '')
             os.environ['https_proxy'] = 'http://%s' % config.video['proxy'].replace("http://", '')
         else:
             set_proxy()
 
-        config.video['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
-        txt = self.subtitle_area.toPlainText().strip()
-
-        # 如果无输入视频，但字幕区有内容，则仅创建配音
-        if len(config.queue_mp4)<1 and txt:
-            self.only_dubbing()
-            return
-        # 检测参数 没有选择mp4，也不是仅配音，出错
-        if len(config.queue_mp4)<1:
-            self.update_start("stop")
-            QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
-            return
-
-        config.video['proxy'] = self.proxy.text().strip()
-
-        target_language = self.target_language.currentText()
-        # 源语言
+        # 原始语言
         config.video['source_language'] = langlist[self.source_language.currentText()][0]
+        #目标语言
+        target_language = self.target_language.currentText()
         config.video['target_language'] = target_language
 
-        # 目标语言不是 - ，进行翻译、配音，否则不配音
+        # 如果选择了目标语言，再去处理相关
         if '-' != target_language:
             config.video['target_language'] = langlist[target_language][0]
-            # 不能相同
-            if config.video['source_language'] == config.video['target_language']:
-                reply = QMessageBox.question(self,
-                                             transobj['qingqueren'],
-                                             "源语言和目标语言相同，将不进行翻译，请确认是否继续",
-                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if reply != QMessageBox.Yes:
-                    self.update_start("stop")
-                    return
             # google language code
             if config.video['translate_type'] == 'google':
                 config.video['target_language'] = langlist[target_language][0]
@@ -731,61 +1017,107 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if config.video['target_language_deepl'] == 'No':
                     QMessageBox.critical(self, transobj['anerror'], transobj['deepl_nosupport'])
                     return
-
-            # tts类型
-            if config.video['tts_type'] == 'openaiTTS' and not config.video['chatgpt_key']:
-                QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
-                return
-
-            config.video['detect_language'] = langlist[self.source_language.currentText()][0]
+            # 目标字幕语言
             config.video['subtitle_language'] = langlist[self.target_language.currentText()][1]
-            config.video['voice_role'] = self.voice_role.currentText()
-            config.video['whisper_model'] = self.whisper_model.currentText()
-            model = config.rootdir + f"/models/{config.video['whisper_model']}.pt"
-            if not os.path.exists(model) or os.path.getsize(model) < 100:
-                self.update_start("stop")
+        #检测字幕原始语言
+        config.video['detect_language'] = langlist[self.source_language.currentText()][0]
+        #配音角色
+        config.video['voice_role'] = self.voice_role.currentText()
+
+        #配音自动加速
+        config.video['voice_autorate'] = self.voice_autorate.isChecked()
+        #视频自动减速
+        config.video['video_autorate'] = self.video_autorate.isChecked()
+        #语音模型
+        config.video['whisper_model'] = self.whisper_model.currentText()
+        model = config.rootdir + f"/models/{config.video['whisper_model']}.pt"
+        #字幕嵌入类型
+        config.video['subtitle_type'] = int(self.subtitle_type.currentIndex())
+
+        try:
+            voice_rate = int(self.voice_rate.text().strip())
+            config.video['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
+        except:
+            config.video['voice_rate']='+0%'
+        try:
+            voice_silence = int(self.voice_silence.text().strip())
+            config.video['voice_silence'] = voice_silence
+        except:
+            config.video['voice_silence']='500'
+        #字幕区文字
+        txt = self.subtitle_area.toPlainText().strip()
+
+        # 如果是 配音模式
+        if self.app_mode=='peiyin':
+            if not txt or config.video['voice_role'] in ['-','no','No']:
+                return QMessageBox.critical(self, transobj['anerror'], '配音模式下必须选择配音角色、目标语言、并将本地srt字幕文件拖拽到右侧字幕区')
+            # 去掉选择视频，去掉原始语言
+            config.video['source_mp4']=''
+            config.video['subtitle_type']=0
+            config.video['voice_silence']='500'
+            config.video['video_autorate']=False
+            config.video['whisper_model']='base'
+            config.video['whisper_type']='all'
+            return self.only_dubbing()
+        # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型
+        elif self.app_mode=='hebing':
+            if not config.video['source_mp4'] or config.video['subtitle_type']<1 or not txt:
+                return QMessageBox.critical(self, transobj['anerror'], '合并模式下，必须选择视频、字幕嵌入类型、并将字幕srt文件拖拽到右侧字幕区')
+            config.video['proxy'] = ''
+            config.video['target_language'] = '-'
+            config.video['voice_silence'] = '500'
+            config.video['voice_role'] = 'No'
+            config.video['voice_rate'] = '+0%'
+            config.video['voice_autorate'] = False
+            config.video['video_autorate'] = False
+            config.video['whisper_model'] = 'base'
+            config.video['whisper_type'] = 'all'
+        elif self.app_mode=='tiqu_no' or self.app_mode=='tiqu':
+            config.video['subtitle_type'] = 0
+            config.video['voice_role'] = 'No'
+            config.video['voice_silence'] = '500'
+            config.video['voice_rate'] = False
+            config.video['voice_autorate'] = False
+            config.video['video_autorate'] = False
+            #提取字幕模式，必须有视频、有原始语言，语音模型
+            if not config.video['source_mp4']:
+                return QMessageBox.critical(self, transobj['anerror'], '必须选择视频')
+            elif not os.path.exists(model) or os.path.getsize(model)<100:
                 QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{config.video['whisper_model']}.pt")
                 self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{config.video['whisper_model']}.pt")
                 return
-            # 没有目标语言，则不翻译不配音，相关参数无效
-            config.video['voice_autorate'] = self.voice_autorate.isChecked()
-            config.video['video_autorate'] = self.video_autorate.isChecked()
-            try:
-                voice_rate = int(self.voice_rate.text().strip())
-                config.video['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
-            except:
-                pass
-            try:
-                voice_silence = int(self.voice_silence.text().strip())
-                config.video['voice_silence'] = voice_silence
-            except:
-                pass
-        else:
-            # todo 未选择目标语言，则不翻译，不配音。
-            pass
+            if self.app_mode=='tiqu' and config.video['target_language'] in ['-','no','No']:
+                # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
+                return QMessageBox.critical(self, transobj['anerror'], '提取字幕并翻译模式下，你必须选择要翻译到的目标语言')
+            if self.app_mode=='tiqu_no':
+                config.video['target_language']='-'
+                config.video['proxy']=''
+        # 综合判断
+        if not config.video['source_mp4'] and not txt:
+            # 标准模式
+            return QMessageBox.critical(self, transobj['anerror'], '视频和字幕不能同时都不存在哦！')
+        elif not config.video['source_mp4']:
+            # 仅配音
+            return self.only_dubbing()
 
-        config.video['subtitle_type'] = int(self.subtitle_type.currentIndex())
-        # 如果没有目标语言，将紧紧导出配音文件
-        if config.video['subtitle_type'] < 1 and config.video['voice_role'] in ['No', 'no', '-', '']:
-            reply = QMessageBox.question(self,
-                                         transobj['qingqueren'],
-                                         transobj['only_srt'],
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            # 确定仅创建字幕
-            if reply != QMessageBox.Yes:
-                self.update_start("stop")
-                return
-        target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
-        config.video['target_dir'] = target_dir if target_dir else os.path.dirname(config.video['source_mp4']) + "/_video_out"
-        self.target_dir.setText(config.video['target_dir'])
+        # tts类型
+        if config.video['tts_type'] == 'openaiTTS' and not config.video['chatgpt_key']:
+            QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
+            return
+        # 如果没有选择目标语言，但是选择了配音角色，无法配音
+        if config.video['target_language'] == '-' and config.video['voice_role']!='No':
+            return QMessageBox.critical(self, transobj['anerror'], '没有选择目标语言，无法进行配音哦，请选择目标语言或取消配音角色')
+
+        if len(config.queue_mp4)<1:
+            return QMessageBox.critical(self, transobj['anerror'], '必须选择视频')
         # 保存设置
-        self.save_setting()
-        # self.start()
+        if self.app_mode=='biaozhun':
+            self.save_setting()
+
         mp4 = config.queue_mp4[0]
         # 更新mp4，以便多个批量时保持正确
         noextname = os.path.splitext(os.path.basename(mp4))[0]
         # 如果已有字幕，则使用
-        txt = self.subtitle_area.toPlainText().strip()
         if txt:
             set_process(f"从字幕编辑区直接读入字幕")
             os.makedirs(f"{config.rootdir}/tmp/{noextname}",exist_ok=True)
@@ -794,32 +1126,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f.write(txt)
         self.get_sub_toarea(noextname)
         self.update_start("ing")
-
-        # msg = transobj['processingstatusbar'].replace('{var1}', f"视频{config.queue_mp4[0]}").replace('{var2}',str(len(config.queue_mp4)-1))
-        # self.statusLabel.setText(msg)
-
         config.queue_task=[]
         while len(config.queue_mp4)>0:
-            config.video['source_mp4']=config.queue_mp4.pop(0)
-            config.queue_task.append(copy.deepcopy(config.video))
+            obj=config.video
+            obj['source_mp4']=config.queue_mp4.pop(0)
+            config.queue_task.append(copy.deepcopy(obj))
 
         self.task = Worker(self)
         self.task.start()
+        '''
+            config.video['source_mp4'] = ''
+            config.video['target_dir'] = ''
+            config.video['translate_type'] = '-'
+            config.video['proxy'] = ''
+            config.video['source_language'] = '-'
+            config.video['target_language'] = '-'
+            config.video['tts_type'] = '-'
+            config.video['voice_role'] = '-'
+            config.video['whisper_model'] = 'base'
+            config.video['whisper_type'] = 'all'
+            config.video['subtitle_type'] = '500'
+            config.video['voice_rate'] = '+0%'
+            config.video['voice_silence'] = '+0%'
+            config.video['video_autorate'] = False
+            config.video['voice_autorate'] = False
+            config.video['enable_cuda'] = False
+        '''
 
 
     # 创建临时和目标文件夹
-    def create_dir(self):
-        if not os.path.exists(config.video['target_dir']):
-            os.makedirs(config.video['target_dir'], exist_ok=True)
-        if not os.path.exists(config.video['target_dir'] + f"/{config.video['noextname']}"):
-            os.makedirs(config.video['target_dir'] + f"/{config.video['noextname']}", exist_ok=True)
-        if not os.path.exists(config.rootdir + f"/tmp/{config.video['noextname']}"):
-            os.makedirs(config.rootdir + f"/tmp/{config.video['noextname']}", exist_ok=True)
+    # def create_dir(self):
+    #     if not os.path.exists(config.video['target_dir']):
+    #         os.makedirs(config.video['target_dir'], exist_ok=True)
+    #     if not os.path.exists(config.video['target_dir'] + f"/{config.video['noextname']}"):
+    #         os.makedirs(config.video['target_dir'] + f"/{config.video['noextname']}", exist_ok=True)
+    #     if not os.path.exists(config.rootdir + f"/tmp/{config.video['noextname']}"):
+    #         os.makedirs(config.rootdir + f"/tmp/{config.video['noextname']}", exist_ok=True)
 
     # 存储本地数据
     def save_setting(self):
         self.settings.setValue("target_dir", config.video['target_dir'])
-        self.settings.setValue("proxy", config.video['proxy'])
+        self.settings.setValue("proxy", self.proxy.text())
         self.settings.setValue("whisper_model", config.video['whisper_model'])
         self.settings.setValue("whisper_type", config.video['whisper_type'])
         self.settings.setValue("voice_rate", config.video['voice_rate'])
@@ -852,24 +1199,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return False
 
     # 被调起或者从worker线程调用
-    def start(self):
-        mp4=config.queue_mp4.pop(0)
-        # 更新mp4，以便多个批量时保持正确
-        config.video['noextname'] = os.path.splitext(os.path.basename(mp4))[0]
-        # 创建目标文件夹和临时文件夹
-        self.create_dir()
-        # 如果已有字幕，则使用
-        txt = self.subtitle_area.toPlainText().strip()
-        if txt:
-            set_process(f"从字幕编辑区直接读入字幕")
-            subname = f"{config.rootdir}/tmp/{config.video['noextname']}/{config.video['noextname']}.srt"
-            with open(subname, 'w', encoding="utf-8") as f:
-                f.write(txt)
-        self.get_sub_toarea(config.video['noextname'])
-
-        self.update_start("ing")
-        self.task = Worker(mp4.replace('\\', '/'), self)
-        self.task.start()
+    # def start(self):
+    #     mp4=config.queue_mp4.pop(0)
+    #     # 更新mp4，以便多个批量时保持正确
+    #     config.video['noextname'] = os.path.splitext(os.path.basename(mp4))[0]
+    #     # 创建目标文件夹和临时文件夹
+    #     self.create_dir()
+    #     # 如果已有字幕，则使用
+    #     txt = self.subtitle_area.toPlainText().strip()
+    #     if txt:
+    #         set_process(f"从字幕编辑区直接读入字幕")
+    #         subname = f"{config.rootdir}/tmp/{config.video['noextname']}/{config.video['noextname']}.srt"
+    #         with open(subname, 'w', encoding="utf-8") as f:
+    #             f.write(txt)
+    #     self.get_sub_toarea(config.video['noextname'])
+    #
+    #     self.update_start("ing")
+    #     self.task = Worker(mp4.replace('\\', '/'), self)
+    #     self.task.start()
         # msg=transobj['processingstatusbar'].replace('{var1}', f"视频{config.video['noextname']}").replace('{var2}',str(len(config.queue_mp4)))
         # self.statusLabel.setText(msg)
 
@@ -889,6 +1236,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if d['text']:
                 self.process.moveCursor(QTextCursor.End)
                 self.process.insertHtml(d['text'])
+            self.source_mp4.setText('')
+            self.statusLabel.setText('本次任务结束')
         elif d['type']=='statusbar':
             self.statusLabel.setText(d['text'])
         elif d['type'] == 'error':
@@ -923,21 +1272,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stop_djs.hide()
             self.continue_compos.hide()
             self.update_subtitle()
-
-        elif d['type'] == 'check_queue':
-            self.subtitle_area.clear()
-            # 判断是否存在下一个mp4，如果存在，则继续执行
-            if len(config.queue_mp4) > 0:
-                # 重置状态
-                self.reset_start_status()
-                set_process(f"存在下一个视频待处理:{config.queue_mp4[0]}")
-                self.start()
-            else:
-                set_process(f"全部执行结束")
-                self.update_start('end')
-                if self.task:
-                    self.task.timeid = 0
-                self.task = None
+        elif d['type']=='show_djs':
+            self.process.clear()
+            self.process.insertHtml(d['text'])
+        # elif d['type'] == 'check_queue':
+        #     self.subtitle_area.clear()
+        #     # 判断是否存在下一个mp4，如果存在，则继续执行
+        #     if len(config.queue_mp4) > 0:
+        #         # 重置状态
+        #         self.reset_start_status()
+        #         set_process(f"存在下一个视频待处理:{config.queue_mp4[0]}")
+        #         self.start()
+        #     else:
+        #         set_process(f"全部执行结束")
+        #         self.update_start('end')
+        #         if self.task:
+        #             self.task.timeid = 0
+        #         self.task = None
         elif d['type'] == 'check_soft_update':
             self.setWindowTitle(self.rawtitle+" -- "+d['text'])
 
@@ -969,6 +1320,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
+    os.environ['QT_API'] = 'pyqt5'
+
     threading.Thread(target=get_edge_rolelist).start()
     threading.Thread(target=is_vlc).start()
     app = QApplication(sys.argv)
@@ -983,10 +1336,10 @@ if __name__ == "__main__":
     except Exception as e:
         QMessageBox.critical(main, transobj['anerror'], transobj['createdirerror'])
 
-    if sys.platform == 'win32':
-        import qdarkstyle
-
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+    # or in new API
+    with open(f'{config.rootdir}/style1.qss','r',encoding='utf-8') as f:
+        main.setStyleSheet(f.read())
+    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
     main.show()
     sys.exit(app.exec())

@@ -19,3 +19,5 @@ __pycache__
 *.spec
 voice_list.json
 *.ui
+*.bak
+style.qss

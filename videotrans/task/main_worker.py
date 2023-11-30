@@ -30,7 +30,6 @@ class Worker(QThread):
             set_process(f"正在处理第{num}个视频(共{task_nums}个):【{it['source_mp4']}】",'statusbar')
             self.video=TransCreate(it)
             self.video.run()
-        set_process(f"本次任务{task_nums}个视频全部结束",'statusbar')
         set_process(f"<br><strong>本次任务全部结束</strong><br>",'end')
 
 # 仅有字幕输入进行配音，没有视频输入
@@ -144,7 +143,13 @@ class WorkerOnlyDubbing(QThread):
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
             logger.info(f'{queue_copy=}')
+            srtmeta=[]
             for (idx, it) in enumerate(queue_copy):
+                srtmeta_item={
+                    'dubbing_time':-1,
+                    'source_time':-1,
+                    'speed_up':-1,
+                }
                 logger.info(f'\n\n{idx=},{it=}')
                 set_process(f"<br>befor: {it['startraw']=},{it['endraw']=}")
                 it['start_time'] += offset
@@ -155,9 +160,7 @@ class WorkerOnlyDubbing(QThread):
                     start_times.append(it['start_time'])
                     segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
                     set_process(f"[error]: 此 {it['startraw']} - {it['endraw']} 时间段内字幕合成语音失败", 'logs')
-                    it['dubbing_time'] = -1
-                    it['source_time'] = -1
-                    it['speed_up'] = -1
+
                     queue_copy[idx] = it
                     continue
                 audio_data = AudioSegment.from_file(it['filename'], format="mp3")
@@ -170,16 +173,16 @@ class WorkerOnlyDubbing(QThread):
                     queue_copy[idx] = it
                     continue
                 # 新配音时长
-                it['dubbing_time'] = mp3len
-                it['source_time'] = wavlen
-                it['speed_up'] = 0
+                srtmeta_item['dubbing_time'] = mp3len
+                srtmeta_item['source_time'] = wavlen
+                srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
                 set_process(f"{diff=},{mp3len=},{wavlen=}")
                 if diff > 0 and self.obj['voice_autorate']:
                     speed = mp3len / wavlen
                     speed = 1.8 if speed > 1.8 else speed
-                    it['speed_up'] = speed
+                    srtmeta_item['speed_up'] = speed
                     # 新的长度
                     mp3len = mp3len / speed
                     diff = mp3len - wavlen
@@ -200,6 +203,7 @@ class WorkerOnlyDubbing(QThread):
                 set_process(f"after: {it['startraw']=},{it['endraw']=}")
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
+                srtmeta.append(srtmeta_item)
 
             # 更新字幕
             srt = ""
@@ -213,7 +217,7 @@ class WorkerOnlyDubbing(QThread):
             # 保存字幕元信息
             with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
                 f.write("dubbing_time=配音时长，source_time=原时长,speed_up=配音加速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
-                    queue_copy))
+                    srtmeta))
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:

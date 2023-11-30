@@ -3,6 +3,7 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog
 
+from videotrans.configure import config
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
@@ -17,6 +18,8 @@ class BaiduForm(QDialog, Ui_baiduform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
 
 class TencentForm(QDialog, Ui_tencentform):  # <===
     def __init__(self, parent=None):
@@ -24,6 +27,8 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
 
 
 class DeepLForm(QDialog, Ui_deeplform):  # <===
@@ -32,6 +37,8 @@ class DeepLForm(QDialog, Ui_deeplform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
 
 
 class InfoForm(QDialog, Ui_infoform):  # <===
@@ -40,6 +47,8 @@ class InfoForm(QDialog, Ui_infoform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
 
 
 class DeepLXForm(QDialog, Ui_deeplxform):  # <===
@@ -48,6 +57,8 @@ class DeepLXForm(QDialog, Ui_deeplxform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
 
 
 # set chatgpt api and key
@@ -58,3 +69,5 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())

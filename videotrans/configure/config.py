@@ -21,7 +21,7 @@ logger = logging.getLogger('VideoTrans')
 
 
 # default language
-defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+defaulelang = "zh" # "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
 if defaulelang == 'en':
     transobj = translate_language['en']
     langlist = language_code_list['en']
