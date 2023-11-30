@@ -4,7 +4,7 @@ This is a video translation tool that can translate videos from one language to 
 
 [Discord](https://discord.gg/evkPeKJddD)
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/f9c463d1-0881-49c0-acaa-b9a4bbad4354
+https://github.com/jianchang512/pyvideotrans/assets/3378335/8c934cc4-8963-465c-86a9-835b8fc75454
 
 *youtube*
 
