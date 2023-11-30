@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # primary ui
+import copy
 import datetime
 import json
 import os
@@ -9,169 +10,30 @@ import sys
 import threading
 import time
 
-import cv2
-import numpy
-
+import qdarkstyle
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QSettings, QUrl, pyqtSignal, QThread
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFileDialog, QMessageBox, QPushButton, \
     QPlainTextEdit, QLabel
+from pydub import AudioSegment
 
 from videotrans import VERSION
-from videotrans.configure import boxcfg
+from videotrans.configure import boxcfg, config
 from videotrans.configure import config as spcfg
 from videotrans.configure.language import language_code_list
 from videotrans.configure.config import logger, rootdir, homedir
 from videotrans.ui.toolbox import Ui_MainWindow
-from videotrans.util.tools import transcribe_audio, get_camera_list,text_to_speech, set_proxy, runffmpeg, get_edge_rolelist
-
-import pyaudio, wave
+from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, runffmpegbox as runffmpeg, \
+    get_edge_rolelist, get_subtitle_from_srt, ms_to_time_string, speed_change
 
 if spcfg.is_vlc:
     try:
         import vlc
     except:
         spcfg.is_vlc = False
-
-
         class vlc():
             pass
-
-
-# 录制
-def grab(queue, filename):
-    print(f"开始录制视频{boxcfg.luzhicfg['videoFlag']=}")
-    fps = 30
-
-    # 尚未开启摄像头cam
-    if boxcfg.luzhicfg['videoFlag'] == False:
-        capture = cv2.VideoCapture(boxcfg.luzhicfg['camindex'])
-        capture.set(cv2.CAP_PROP_FRAME_WIDTH, capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        capture.set(cv2.CAP_PROP_FRAME_HEIGHT, capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        capture.set(cv2.CAP_PROP_FPS, fps)
-
-        fourcc = 0x7634706d
-        video_dir = f'{homedir}/record'
-        if not os.path.exists(video_dir):
-            os.makedirs(video_dir, exist_ok=True)
-        name = f'{video_dir}/{filename}.mp4'
-        out = cv2.VideoWriter(name, fourcc, fps, (640, 480), True)
-        boxcfg.luzhicfg['camera_start'] = True
-
-    numFrames = 10
-    numFramesCnt = 0
-    seconds = 1
-    printFlag = 0
-    start_time = time.time()
-
-    frameCnt = 0
-    frameFlag = 0
-    prevFrame = 0
-
-    # 录制中
-    while boxcfg.luzhicfg['running']:
-        if frameFlag == 2:
-            frameFlag = 0
-
-        frame = {}
-        (grabbed, img) = capture.read()
-        if grabbed == False:
-            boxcfg.luzhicfg['running'] = False
-            break
-
-        if boxcfg.luzhicfg['videoFlag'] == False:
-            out.write(img)
-
-        if numFramesCnt <= numFrames:
-            if numFramesCnt == numFrames:
-                end = time.time()
-                seconds = end - start
-                fps = (numFrames / seconds)
-                numFramesCnt = 0
-
-                printFlag = 1
-            if numFramesCnt == 0:
-                start = time.time()
-            numFramesCnt += 1
-        if printFlag == 1:
-            cv2.putText(img, f" {int(time.time() - start_time)}s, Frame Rate:{int(fps)}", (1, 20), 2, .8, (0, 255, 0))
-        else:
-            cv2.putText(img, "Frame Rate = " + "Acquiring ... ", (1, 20), 2, .8, (0, 255, 0))
-
-        frame["img"] = img
-        (h, w) = img.shape[:2]
-        (B, G, R) = cv2.split(img)
-        if queue.qsize() < 1:
-            queue.put(frame)
-        else:
-            pass
-            # boxcfg.luzhicfg['running'] = False
-
-        if boxcfg.luzhicfg['running'] == False:
-            capture.release()
-            boxcfg.luzhicfg['quitFlag'] = True
-            break
-
-
-# 更新视频画面
-class OrangeImageWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(OrangeImageWidget, self).__init__(parent)
-        self.image = None
-
-    def setImage(self, image):
-        self.image = image
-        sz = image.size()
-        self.setMinimumSize(sz)
-        self.update()
-
-    def paintEvent(self, event):
-        qp = QtGui.QPainter()
-        try:
-            qp.begin(self)
-            if self.image:
-                qp.drawImage(QtCore.QPoint(0, 0), self.image)
-            qp.end()
-        except:
-            pass
-
-
-# 录音
-
-def listen(filename):
-    print(f"开始录制音频，{filename=}")
-    CHUNK = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 16000
-    WAVE_OUTPUT_FILENAME = f'{homedir}/record/{filename}.wav'
-
-    p = pyaudio.PyAudio()
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=CHUNK)
-    print("开始!计时")
-    while not boxcfg.luzhicfg['camera_start']:
-        time.sleep(0.1)
-
-    frames = []
-    while boxcfg.luzhicfg['running']:
-        data = stream.read(CHUNK, exception_on_overflow=False)
-        frames.append(data)
-    print("录音结束")
-
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
 
 
 class DropButton(QPushButton):
@@ -287,11 +149,11 @@ class Player(QtWidgets.QWidget):
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
         self.playbutton = QtWidgets.QPushButton("点击播放" if spcfg.is_vlc else "安装VLC解码器后可预览播放")
-        self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
+        self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);""")
         self.hbuttonbox.addWidget(self.playbutton)
 
         self.selectbutton = QtWidgets.QPushButton("选择一个视频")
-        self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);border-color:rgb(210,210,210)""")
+        self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);""")
         self.hbuttonbox.addWidget(self.selectbutton)
         self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
 
@@ -411,15 +273,13 @@ class Worker(QThread):
         self.func_name = func_name
 
     def run(self):
-        print(self.cmd_list)
         for cmd in self.cmd_list:
             logger.info(f"Will execute: ffmpeg {cmd=}")
             try:
-                print('============')
-                runffmpeg(cmd)
-                print('@@@@@@@@@@@@@@')
-                m = re.search(r"-i\s\"?(.*?)\"?\s", cmd, re.I | re.S)
-                self.post_message("end", f"{'' if not m or not m.group(1) else m.group(1)}完成\n")
+                print(f'{cmd=}')
+                print(runffmpeg(cmd))
+                # m = re.search(r"-i\s\"?(.*?)\"?\s", cmd, re.I | re.S)
+                self.post_message("end", "完成\n")
             except Exception as e:
                 logger.error("FFmepg exec error:" + str(e))
 
@@ -450,7 +310,15 @@ class WorkerWhisper(QThread):
 class WorkerTTS(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, text, role, rate, filename, tts_type, func_name, parent=None):
+    def __init__(self, parent=None,*,
+                 text=None,
+                 role=None,
+                 rate=None,
+                 filename=None,
+                 tts_type=None,
+                 func_name=None,
+                 voice_autorate=False,
+                 tts_issrt=False):
         super(WorkerTTS, self).__init__(parent)
         self.func_name = func_name
         self.text = text
@@ -458,102 +326,201 @@ class WorkerTTS(QThread):
         self.rate = rate
         self.filename = filename
         self.tts_type = tts_type
+        self.tts_issrt=tts_issrt
+        self.voice_autorate=voice_autorate
+        self.tmpdir=f'{homedir}/tmp'
+        if not os.path.exists(self.tmpdir):
+            os.makedirs(self.tmpdir,exist_ok=True)
 
     def run(self):
         print(f"start hecheng {self.tts_type=},{self.role=},{self.rate=},{self.filename=}")
-        mp3=self.filename.replace('.wav', '.mp3')
-        text = text_to_speech(
-            text=self.text,
-            role=self.role,
-            rate=self.rate,
-            filename=mp3,
-            tts_type=self.tts_type
-        )
-        runffmpeg([
-                '-y',
-                '-i',
-                f'"{mp3}"',                
-                "-c:a",
-                "pcm_s16le",
-                f'"{self.filename}"',
-        ])
-        print(f"text={text}")
-        self.post_message("end", text)
 
-    def post_message(self, type, text):
-        self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
-
-
-# 录制线程
-class WorkerVideo(QThread):
-    update_ui = pyqtSignal(str)
-
-    def __init__(self, filename, func_name, is_video, is_audio, parent=None):
-        super(WorkerVideo, self).__init__(parent)
-        self.func_name = func_name
-        self.filename = filename
-        self.is_video = is_video
-        self.is_audio = is_audio
-
-    def run(self):
-        tasklist = []
-        if self.is_video:
-            tasklist.append(threading.Thread(target=grab, args=(boxcfg.luzhicfg['queue'], self.filename,)))
-        if self.is_audio:
-            tasklist.append(threading.Thread(target=listen, args=(self.filename,)))
-        for t in tasklist:
-            t.start()
-        print(f"{self.filename=},{self.is_video=},{self.is_audio=}")
-        for t in tasklist:
-            t.join()
-        mp4 = f"{homedir}/record/{self.filename}.mp4"
-        wav = f"{homedir}/record/{self.filename}.wav"
-        if self.is_video and self.is_audio:
-            out = f"{homedir}/record/{self.filename}-end.mp4"
+        if self.tts_issrt:
+            print(f'tts_issrt')
+            try:
+                q=self.before_tts()
+            except Exception as e:
+                print(e)
+                self.post_message('end',f'字幕配音前处理失败:{str(e)}')
+                return
+            try:
+                self.exec_tts(q)
+            except Exception as e:
+                self.post_message('end',f'字幕配音失败:{str(e)}')
+                return
+        else:
+            mp3 = self.filename.replace('.wav', '.mp3')
+            text_to_speech(
+                text=self.text,
+                role=self.role,
+                rate=self.rate,
+                filename=mp3,
+                tts_type=self.tts_type
+            )
             runffmpeg([
                 '-y',
                 '-i',
-                f'"{mp4}"',
-                '-i',
-                f'"{wav}"',
-                '-c:v',
-                'libx264',
+                f'{mp3}',
                 "-c:a",
-                "aac",
-                f'"{out}"',
+                "pcm_s16le",
+                f'{self.filename}',
             ])
-            os.unlink(mp4)
-            os.unlink(wav)
-        elif self.is_video:
-            out = mp4
-        elif self.is_audio:
-            out = wav
-        self.post_message("end", out)
+            os.unlink(mp3)
+        self.post_message("end", "处理结束")
+    # 配音预处理，去掉无效字符，整理开始时间
+    def before_tts(self):
+        # 所有临时文件均产生在 tmp/无后缀mp4名文件夹
+        # 如果仅仅生成配音，则不限制时长
+        # 整合一个队列到 exec_tts 执行
+        queue_tts = []
+        # 获取字幕
+        print(f'before-tts,{self.text=}')
+        subs = get_subtitle_from_srt(self.text,is_file=False)
+        print(f'{subs=}')
+        rate = int(str(self.rate).replace('%', ''))
+        if rate >= 0:
+            rate = f"+{rate}%"
+        else:
+            rate = f"{rate}%"
+        # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
+        for it in subs:
+            queue_tts.append({
+                "text": it['text'],
+                "role": self.role,
+                "start_time": it['start_time'],
+                "end_time": it['end_time'],
+                "rate": rate,
+                "startraw": it['startraw'],
+                "endraw": it['endraw'],
+                "filename": f"{self.tmpdir}/tts-{it['start_time']}.mp3"})
+        print(queue_tts)
+        return queue_tts
+
+    # 执行 tts配音，配音后根据条件进行视频降速或配音加速处理
+    def exec_tts(self, queue_tts):
+        queue_copy = copy.deepcopy(queue_tts)
+        def get_item(q):
+            return {"text": q['text'], "role": q['role'], "rate": q['rate'], "filename": q["filename"],
+                    "tts_type": self.tts_type}
+
+        # 需要并行的数量3
+        while len(queue_tts) > 0:
+            try:
+                tolist = [threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0)))]
+                if len(queue_tts) > 0:
+                    tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
+                if len(queue_tts) > 0:
+                    tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
+
+                for t in tolist:
+                    t.start()
+                for t in tolist:
+                    t.join()
+            except Exception as e:
+                self.post_message('end',f'[error]语音识别出错了:{str(e)}')
+                return False
+        segments = []
+        start_times = []
+        # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
+        if len(queue_copy) < 1:
+            return self.post_message('end',f'出错了，{queue_copy=}')
+        try:
+            # 偏移时间，用于每个 start_time 增减
+            offset = 0
+            # 将配音和字幕时间对其，修改字幕时间
+            print(f'{queue_copy=}')
+            srtmeta=[]
+            for (idx, it) in enumerate(queue_copy):
+                srtmeta_item={
+                    'dubbing_time':-1,
+                    'source_time':-1,
+                    'speed_up':-1,
+                }
+                logger.info(f'\n\n{idx=},{it=}')
+                it['start_time'] += offset
+                it['end_time'] += offset
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
+                    start_times.append(it['start_time'])
+                    segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
+                    queue_copy[idx] = it
+                    continue
+                audio_data = AudioSegment.from_file(it['filename'], format="mp3")
+                mp3len = len(audio_data)
+
+                # 原字幕发音时间段长度
+                wavlen = it['end_time'] - it['start_time']
+
+                if wavlen == 0:
+                    queue_copy[idx] = it
+                    continue
+                # 新配音时长
+                srtmeta_item['dubbing_time'] = mp3len
+                srtmeta_item['source_time'] = wavlen
+                srtmeta_item['speed_up'] = 0
+                # 新配音大于原字幕里设定时长
+                diff = mp3len - wavlen
+                if diff > 0 and self.voice_autorate:
+                    speed = mp3len / wavlen
+                    speed = 1.8 if speed > 1.8 else speed
+                    srtmeta_item['speed_up'] = speed
+                    # 新的长度
+                    mp3len = mp3len / speed
+                    diff = mp3len - wavlen
+                    if diff < 0:
+                        diff = 0
+                    # 音频加速 最大加速2倍
+                    audio_data = speed_change(audio_data, speed)
+                    # 增加新的偏移
+                    offset += diff
+                elif diff > 0:
+                    offset += diff
+                it['end_time'] = it['start_time'] + mp3len
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                queue_copy[idx] = it
+                start_times.append(it['start_time'])
+                segments.append(audio_data)
+                srtmeta.append(srtmeta_item)
+            # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
+            self.merge_audio_segments(segments, start_times)
+        except Exception as e:
+            self.post_message('end',f"[error] exec_tts 合成语音有出错:" + str(e))
+            return False
+        return True
+
+    # join all short audio to one ,eg name.mp4  name.mp4.wav
+    def merge_audio_segments(self, segments, start_times):
+        print("merge")
+        merged_audio = AudioSegment.empty()
+        # start is not 0
+        if start_times[0] != 0:
+            silence_duration = start_times[0]
+            silence = AudioSegment.silent(duration=silence_duration)
+            merged_audio += silence
+
+        # join
+        for i in range(len(segments)):
+            segment = segments[i]
+            start_time = start_times[i]
+            # add silence
+            if i > 0:
+                previous_end_time = start_times[i - 1] + len(segments[i - 1])
+                silence_duration = start_time - previous_end_time
+                # 前面一个和当前之间存在静音区间
+                if silence_duration > 0:
+                    silence = AudioSegment.silent(duration=silence_duration)
+                    merged_audio += silence
+
+            merged_audio += segment
+        # 创建配音后的文件
+        merged_audio.export(self.filename, format="wav")
+
+        return merged_audio
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
-
-
-# 检测摄像头
-class WorkerCamera(QThread):
-    upui = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super(WorkerCamera, self).__init__(parent)
-
-    def run(self):
-        print("run=")
-        while True:
-            try:
-                print(f"{boxcfg.camera_list=}")
-                if len(boxcfg.camera_list) > 0:
-                    self.upui.emit(json.dumps({"func_name": "check_camera", "type": "end", "text": "检测完毕"}))
-                else:
-                    get_camera_list()
-                    self.upui.emit(json.dumps({"func_name": "check_camera", "type": "no", "text": "检测完毕,无可用摄像头"}))
-                break
-            except:
-                time.sleep(30)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -564,13 +531,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(QIcon("./icon.ico"))
         self.setWindowTitle(f"视频工具箱 {VERSION}")
 
+    def closeEvent(self, event):
+        # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
+        self.hide()
+        event.ignore()
+
+    def hideWindow(self):
+        # 示例按钮点击时调用，隐藏窗口
+        self.hide()
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
         boxcfg.enable_cuda = self.settings.value("enable_cuda", False, bool)
 
         # tab-1
         self.yspfl_video_wrap = Player(self)
-        # self.yspfl_video_wrap = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -593,7 +567,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ysphb_opendir.clicked.connect(lambda: self.opendir_fn(os.path.dirname(self.ysphb_out.text())))
 
         # tab-3 语音识别 先添加按钮
-        self.shibie_dropbtn = DropButton("点击选择或拖拽音视频文件到此处")
+        self.shibie_dropbtn = DropButton("点击选择或拖拽音频、视频文件到此处")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -626,50 +600,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.addItems(spcfg.video['tts_type_list'])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
+        self.tts_issrt.stateChanged.connect(self.tts_issrt_change)
 
         # tab-5 格式转换
         self.geshi_input = TextGetdir()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setWidthForHeight(self.geshi_input.sizePolicy().hasWidthForHeight())
+        sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
         self.geshi_input.setSizePolicy(sizePolicy)
         self.geshi_input.setMinimumSize(300, 0)
+
+
         self.geshi_input.setPlaceholderText("拖动要转换的文件到此处松开")
+        self.geshi_input.setReadOnly(True)
         self.geshi_layout.insertWidget(0, self.geshi_input)
         self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
         self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
         self.geshi_mov.clicked.connect(lambda: self.geshi_start_fun("mov"))
         self.geshi_mp3.clicked.connect(lambda: self.geshi_start_fun("mp3"))
         self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
-
-        # tab-6 录制摄像头
-        self.get_camera_status = False
-
-        self.luzhi_startbtn.clicked.connect(self.luzhi_startCapture_fun)
-        self.luzhi_stopbtn.clicked.connect(self.luzhi_quitCapture_fun)
-        self.luzhi_camera.currentIndexChanged.connect(self.luzhi_toggle_camera_fun)
-        self.luzhi_camera.setDisabled(True)
-
-        w = self.luzhi_video.width()
-        h = self.luzhi_video.height()
-        self.luzhi_video = OrangeImageWidget(self.luzhi_video)
-        self.luzhi_video.resize(w, h)
-        self.luzhi_video.setMouseTracking(True)
-        self.luzhi_video.installEventFilter(self)
-        self.luzhi_check.clicked.connect(self.luzhi_set_caplist)
-        self.cnt = 0
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.luzhi_update_frame_fun)
-        self.timer.start(1)
-        self.luzhi_opendir.clicked.connect(lambda: self.opendir_fn(self.luzhi_out.text()))
+        self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{homedir}/conver'))
+        if not os.path.exists(f'{homedir}/conver'):
+            os.makedirs(f'{homedir}/conver',exist_ok=True)
 
         self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
-        self.tabWidget.tabBarClicked.connect(self.tabchange_fun)
-        # self.check_task=Checkvlc()
-        # self.check_task.check_res.connect(self.render_play)
-        # self.check_task.start()
 
     def render_play(self, t):
         if t != 'ok':
@@ -686,20 +642,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.yspfl_video_wrap.setStyleSheet("""background-color:rgb(10,10,10)""")
         self.yspfl_video_wrap.setAcceptDrops(True)
 
-    # 获取摄像头
-    def tabchange_fun(self, index):
-        if index == 5:
-            try:
-                threading.Thread(target=get_camera_list).start()
-            except:
-                pass
-
     def opendir_fn(self, dirname=None):
         if not dirname:
             return
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
-        QDesktopServices.openUrl(QUrl(f"file:{dirname}"))
+        QDesktopServices.openUrl(QUrl(f"file:{dirname.strip()}"))
 
     # 通知更新ui
     def receiver(self, json_data):
@@ -737,21 +685,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if boxcfg.geshi_num <= 0:
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText("全部转换完成")
-        elif data['func_name'] == 'luzhi_end':
-            self.luzhi_opendir.setDisabled(False)
-            self.luzhi_startbtn.setText("开始录制")
-            self.luzhi_opendir.setText("打开输出目录")
-            self.luzhi_out.setText(data['text'])
-            self.luzhi_tips.setText("本次录制完成")
-        elif data['func_name'] == 'check_camera':
-            self.luzhi_camera.clear()
-            print(f"---{boxcfg.camera_list=}")
-            if len(boxcfg.camera_list) > 0:
-                self.luzhi_camera.addItems(["不使用摄像头"] + [f"{i}号摄像头" for i in boxcfg.camera_list])
-                self.luzhi_camera.setDisabled(False)
-            else:
-                self.luzhi_camera.addItems(["未检测到可用摄像头"])
-                self.luzhi_camera.setDisabled(True)
+                self.geshi_input.clear()
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -762,8 +696,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         video_out = f"{homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
-        self.yspfl_task = Worker([f' -y -i "{file}" -an "{video_out}/{basename}.mp4" "{video_out}/{basename}.wav"'],
-                                 "yspfl_end", self)
+        self.yspfl_task = Worker([['-y','-i',file,'-an',f"{video_out}/{basename}.mp4",f"{video_out}/{basename}.wav"]],"yspfl_end", self)
         self.yspfl_task.update_ui.connect(self.receiver)
         self.yspfl_task.start()
         self.yspfl_startbtn.setText("执行中...")
@@ -776,9 +709,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def yspfl_open_fn(self, name):
         pathdir = homedir
         if name == "video":
-            pathdir = os.path.basename(self.yspfl_videoinput.text())
+            pathdir = os.path.dirname(self.yspfl_videoinput.text())
         elif name == "wav":
-            pathdir = os.path.basename(self.yspfl_wavinput.text())
+            pathdir = os.path.dirname(self.yspfl_wavinput.text())
         QDesktopServices.openUrl(QUrl(f"file:{pathdir}"))
 
     # tab-2音视频合并
@@ -823,23 +756,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         savedir = f"{homedir}/hebing-{basename}"
 
-        cmd = ['-y','-i',f'{videofile}']
+        cmd = ['-y', '-i', f'{videofile}']
         if wavfile and os.path.exists(wavfile):
-            cmd += ['-i',f'{wavfile}','-c:v','libx264','-c:a','aac']
+            cmd += ['-i', f'{wavfile}', '-c:v', 'libx264', '-c:a', 'aac']
         else:
-            cmd += ["-c:v","libx264"]
+            cmd += ["-c:v", "libx264"]
         if srtfile and os.path.exists(srtfile):
-            srtfile.replace('\\','/').replace(':','\\:')
-            cmd += ["-vf", "\"subtitles='{srtfile}'\""]
+            srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')
+
+            cmd += ["-vf", f"subtitles={srtfile}"]
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
         cmd += [f'{savedir}/{basename}.mp4']
+        print(f'--------------{cmd=}')
         self.ysphb_task = Worker([cmd], "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
         self.ysphb_startbtn.setText("执行中...")
         self.ysphb_startbtn.setDisabled(True)
-        self.ysphb_out.setText(f" {savedir}/{basename}.mp4")
+        self.ysphb_out.setText(f"{savedir}/{basename}.mp4")
         self.ysphb_opendir.setDisabled(True)
 
     # tab-3 语音识别 预执行，检查
@@ -851,7 +786,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not file or not os.path.exists(file):
             return QMessageBox.critical(self, "出错了", "必须选择有效的音视频文件")
         basename = os.path.basename(file)
-        print(os.path.splitext(basename)[-1].lower())
         self.shibie_startbtn.setText("执行中...")
         self.disabled_shibie(True)
         self.shibie_text.clear()
@@ -859,8 +793,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out_file = f"{homedir}/tmp/{basename}.wav"
             try:
                 self.shibie_dropbtn.setText(out_file)
-                self.shibie_ffmpeg_task = Worker([f' -y -i "{file}"  "{out_file}"'],
-                                                 "shibie_next", self)
+                self.shibie_ffmpeg_task = Worker([
+                    ['-y', '-i', file, f'{out_file}']
+                ], "shibie_next", self)
                 self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
             except Exception as e:
@@ -876,7 +811,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def shibie_start_next_fun(self):
         file = self.shibie_dropbtn.text()
         model = self.shibie_model.currentText()
-        print(f"{file=}")
         self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0],
                                          "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
@@ -895,9 +829,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         else:
             path_to_file = dialog.selectedFiles()[0]
-
-        # Create that file and work on it, for example:
-
         with open(path_to_file + f"{'' if path_to_file.endswith('.srt') else '.srt'}", "w") as file:
             file.write(srttxt)
 
@@ -916,6 +847,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
 
+
         if not txt:
             return QMessageBox.critical(self, "出错了", "内容不能为空")
         if language == '-' or role == 'No':
@@ -924,32 +856,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, "出错了", "必须设置chatGPT key")
         elif tts_type == 'coquiTTS' and not spcfg.video['coquitts_key']:
             return QMessageBox.critical(self, "出错了", "必须设置 coquiTTS key")
-
+        # 文件名称
+        filename=self.hecheng_out.text()
+        if not filename:
+            filename=f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
+        else:
+            filename=filename.replace('.wav','')+".wav"
         if not os.path.exists(f"{homedir}/tts"):
             os.makedirs(f"{homedir}/tts", exist_ok=True)
-        wavname = f"{homedir}/tts/tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
+        wavname = f"{homedir}/tts/{filename}"
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"-{rate}%"
-        if self.tts_issrt.isChecked():
-            newtxt = []
-            for it in txt.strip().split("\n"):
-                it = it.strip()
-                if re.match(r'^\d+$', it):
-                    continue
-                if re.match(r'^\d[\d,:>\s-]+\d$', it):
-                    continue
-                newtxt.append(it)
-            txt = "\n".join(newtxt)
-        print(txt)
-        self.hecheng_task = WorkerTTS(txt, role, rate, wavname, self.tts_type.currentText(), "hecheng_end", self)
+        # if self.tts_issrt.isChecked():
+        #     newtxt = []
+        #     for it in txt.strip().split("\n"):
+        #         it = it.strip()
+        #         if re.match(r'^\d+$', it):
+        #             continue
+        #         if re.match(r'^\d[\d,:>\s-]+\d$', it):
+        #             continue
+        #         newtxt.append(it)
+        #     txt = "\n".join(newtxt)
+        issrt=self.tts_issrt.isChecked()
+        self.hecheng_task = WorkerTTS(self,
+                                      text=txt,
+                                      role=role,
+                                      rate=rate,
+                                      filename=wavname,
+                                      tts_type=self.tts_type.currentText(),
+                                      func_name="hecheng_end",
+                                      voice_autorate=issrt and self.voice_autorate.isChecked(),
+                                      tts_issrt=issrt)
         self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText("执行中...")
         self.hecheng_startbtn.setDisabled(True)
         self.hecheng_out.setText(wavname)
+        self.hecheng_out.setDisabled(True)
 
+    def tts_issrt_change(self,state):
+        if state:
+            self.voice_autorate.setDisabled(False)
+        else:
+            self.voice_autorate.setDisabled(True)
     # tts类型改变
     def tts_type_change(self, type):
         if type == "openaiTTS":
@@ -965,7 +916,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.tts_type.currentText() != "edgeTTS":
             return
         self.hecheng_role.clear()
-        print(f"{t=}")
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
@@ -1017,7 +967,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.geshi_result.insertPlainText(f"{it} 音频不可转为 {ext}视频")
                 boxcfg.geshi_num -= 1
                 continue
-            cmdlist.append(['-y','-i',f'{it}',f'{savedir}/{basename}.{ext}'])
+            cmdlist.append(['-y', '-i', f'{it}', f'{savedir}/{basename}.{ext}'])
 
         if len(cmdlist) < 1:
             self.geshi_result.insertPlainText("全部转换完成")
@@ -1035,90 +985,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_mp3.setDisabled(type)
         self.geshi_wav.setDisabled(type)
 
-    # tab-6 设置可用摄像头
-    def luzhi_set_caplist(self):
-        print("luzhi_set_caplist")
-        self.check_camera_task = WorkerCamera(self)
-        self.check_camera_task.upui.connect(self.receiver)
-        self.check_camera_task.start()
-
-    # 选择摄像头变化
-    def luzhi_toggle_camera_fun(self, index):
-        print(f"change=={index=}")
-        if len(boxcfg.camera_list) >= 1:
-            boxcfg.luzhicfg['camindex'] = index - 1
-
-    # 开启摄像头
-    def luzhi_startCapture_fun(self):
-        start_audio = self.luzhi_audio.isChecked()
-        if boxcfg.luzhicfg['camindex'] < 0 and not start_audio:
-            return QMessageBox.critical(self, "出错了", "摄像头和录制麦克风至少选择一个")
-        self.luzhi_startbtn.setDisabled(True)
-        self.luzhi_stopbtn.setDisabled(False)
-        self.luzhi_audio.setDisabled(True)
-        self.luzhi_camera.setDisabled(True)
-        self.luzhi_opendir.setDisabled(True)
-        boxcfg.luzhicfg['running'] = True
-        boxcfg.luzhicfg['video_running'] = True
-        self.thefilename = f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
-
-        self.luzhi_video.setStyleSheet("""background-color:rgb(0,0,0)""")
-
-        if boxcfg.luzhicfg['camindex'] >= 0 and start_audio:
-            if self.cnt == 0:
-                self.cnt = 1
-            self.luzhi_tips.setText("正在录制视频和音频...")
-        elif boxcfg.luzhicfg['camindex'] >= 0:
-            self.luzhi_tips.setText("正在录制视频...")
-        elif start_audio:
-            self.luzhi_tips.setText("正在录制音频...")
-            boxcfg.luzhicfg['audio_thread'] = threading.Thread(target=listen, args=(self.thefilename,))
-            boxcfg.luzhicfg['audio_thread'].start()
-        self.luzhi_task = WorkerVideo(self.thefilename, "luzhi_end", boxcfg.luzhicfg['camindex'] >= 0, start_audio, self)
-        self.luzhi_task.update_ui.connect(self.receiver)
-        self.luzhi_task.start()
-
-    # 退出
-    def luzhi_quitCapture_fun(self):
-        boxcfg.luzhicfg['running'] = False
-        self.luzhi_stopbtn.setDisabled(True)
-        self.luzhi_camera.setDisabled(False)
-        self.luzhi_startbtn.setDisabled(False)
-        self.luzhi_startbtn.setText("开始录制")
-        self.luzhi_audio.setDisabled(False)
-        print("quit video !")
-        self.luzhi_opendir.setDisabled(True)
-        self.luzhi_opendir.setText("正在处理录制数据...")
-        self.luzhi_tips.setText("处理录制数据中...")
-
-    # 更新视频画面
-    def luzhi_update_frame_fun(self):
-        if not boxcfg.luzhicfg['queue'].empty():
-            if boxcfg.luzhicfg['video_running'] == True:
-                self.luzhi_startbtn.setText('录制中...')
-
-                frame = boxcfg.luzhicfg['queue'].get()
-                img = frame["img"]
-                img = numpy.array(img)
-
-                img_height, img_width, img_colors = img.shape
-
-                scale_w = float(self.luzhi_video.width()) / float(img_width)
-                scale_h = float(self.luzhi_video.height()) / float(img_height)
-                scale = min([scale_w, scale_h])
-
-                # if scale == 0:
-                scale = 1
-
-                img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                height, width, bpc = img.shape
-                bpl = bpc * width
-                image = QtGui.QImage(img.data, width, height, bpl, QtGui.QImage.Format_RGB888)
-                self.luzhi_video.setImage(image)
-            else:
-                self.luzhi_startbtn.setText('开始录制')
-
 
 if __name__ == "__main__":
     threading.Thread(target=get_edge_rolelist)
@@ -1130,10 +996,10 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     main = MainWindow()
-    if sys.platform == 'win32':
-        import qdarkstyle
+    with open(f'{config.rootdir}/style1.qss','r',encoding='utf-8') as f:
+        main.setStyleSheet(f.read())
+    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     main.show()
     threading.Thread(target=set_proxy).start()
     if shutil.which('ffmpeg') is None:

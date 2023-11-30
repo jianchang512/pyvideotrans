@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import ctypes
+import inspect
+
 import cv2
 from videotrans.configure import boxcfg
 from videotrans.configure.config import rootdir
@@ -312,6 +314,24 @@ def speed_change(sound, speed=1.0):
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
 
+def runffmpegbox(arg):
+    cmd = ["ffmpeg","-hide_banner"]
+    if config.video['enable_cuda']:
+        cmd.append("-hwaccel")
+        cmd.append("cuda")
+    cmd = cmd + arg
+
+    print(f"runffmpeg: {cmd=}")
+    p = subprocess.run(cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    if p.returncode==0:
+        return True
+    print(str(p.stderr))
+    return False
+
+
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner"]
@@ -319,8 +339,6 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         cmd.append("-hwaccel")
         cmd.append("cuda")
     cmd = cmd + arg
-
-    logger.info(f"runffmpeg: {cmd=}")
 
     if noextname:
         config.queue_novice[noextname] = 'ing'
@@ -859,7 +877,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         with open(srtfile, 'r', encoding="utf-8") as f:
             txt = f.read().strip().split("\n")
     else:
-        txt = srtfile.strip()
+        txt = srtfile.strip().strip().split("\n")
     # 行号
     line = 0
     maxline = len(txt)
@@ -868,17 +886,22 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # 时间格式
     timepat = r'^\s*?\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*?$'
     result = []
+    # print(f'{maxline=}')
     for i, t in enumerate(txt):
+        # print(f'{i=},{t=}，i+1={txt[i+1]}')
         # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
         if i < maxline - 2 and re.match(linepat, t) and re.match(timepat, txt[i + 1]):
+            # print('匹配那个1')
             #   是行
             line += 1
             obj = {"line": line, "time": "", "text": ""}
             result.append(obj)
         elif re.match(timepat, t):
+            # print('匹配那个2')
             # 是时间行
             result[line - 1]['time'] = t
         elif len(t.strip()) > 0:
+            # print('匹配那个3')
             # 是内容
             txt_tmp = t.strip().replace('&#39;', "'")
             txt_tmp = re.sub(r'&#\d+;', '', txt_tmp)
@@ -1621,7 +1644,7 @@ def set_process(text, type="logs"):
         if type == 'logs':
             text = text.replace('[error]', '<strong style="color:#f00">出错:</strong>') + '<br>'
         queue_logs.put_nowait({"text": text, "type": type})
-    except:
+    except Exception as e:
         pass
 
 

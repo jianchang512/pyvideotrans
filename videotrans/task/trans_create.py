@@ -109,9 +109,9 @@ class TransCreate():
             return True
 
         # 生成字幕后  等待是否执行后续 配音 合并 操作 等待倒计时
-        set_process(f"等待修改翻译后字幕/点击继续", "edit_subtitle")
         # 如果需要配音，不需要则跳过，配音后的wav缓存和目标文件夹分别存储一份
         if self.obj['voice_role'] not in ['No', 'no', '-']:
+            set_process(f"等待修改配音字幕/点击继续", "edit_subtitle")
             self.step = "dubbing"
             config.task_countdown=60
             while config.task_countdown > 0:
@@ -123,8 +123,8 @@ class TransCreate():
                 # 倒计时中
                 config.task_countdown -= 1
                 if config.task_countdown <= 60 and config.task_countdown>=0:
-                    set_process(f"{config.task_countdown}秒后自动合并，你可以停止倒计时后去修改字幕，以便配音更准确")
-            set_process('倒计时停止,更新目标语言字幕','timeout_djs')
+                    set_process(f"{config.task_countdown}秒后自动合并，你可以停止倒计时后去修改字幕，以便配音更准确",'show_djs')
+            set_process('<br>倒计时停止,更新目标语言字幕','timeout_djs')
             time.sleep(3)
 
             try:
@@ -138,7 +138,7 @@ class TransCreate():
                 if isinstance(res, tuple):
                     self.exec_tts(res[0], res[1])
             except Exception as e:
-                set_process("[error]组装配音所需数据时出错:" + str(e), "error")
+                set_process("[error]配音时出错:" + str(e), "error")
                 if os.path.exists(self.tts_wav):
                     os.unlink(self.tts_wav)
                 delete_files(self.cache_folder, '.mp3')
@@ -149,12 +149,12 @@ class TransCreate():
 
         # 最后一步合成
         try:
-            set_process(f"<br><strong>将视频、音频、字幕合并</strong><br>", 'logs')
+            set_process(f"<br><strong>进行最后一步组装处理</strong><br>", 'logs')
             self.step = 'compos'
             if self.compos_video():
                 # 检测是否还有
                 set_process(
-                    f"<br><strong style='color:#00a67d;font-size:16px'>[{self.noextname}]合并结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等</strong><br>",
+                    f"<br><strong style='color:#00a67d;font-size:16px'>[{self.noextname}] 视频处理结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等</strong><br>",
                     'logs')
                 delete_temp(self.noextname)
         except Exception as e:
@@ -222,11 +222,11 @@ class TransCreate():
             config.task_countdown = 60
             while config.task_countdown > 0:
                 if config.task_countdown <= 60 and config.task_countdown>=0:
-                    set_process(f"{config.task_countdown} 秒后自动翻译，你可以停止倒计时后去修改字幕，以便翻译更准确")
+                    set_process(f"{config.task_countdown} 秒后自动翻译，你可以停止倒计时后去修改字幕，以便翻译更准确",'show_djs')
                 time.sleep(1)
                 config.task_countdown-=1
             set_process("<br><strong>开始翻译字幕文件</strong><br>")
-            set_process('倒计时停止，清空字幕区文字','timeout_djs')
+            set_process('<br>倒计时停止，清空字幕区文字','timeout_djs')
             time.sleep(3)
             self.srt_translation_srt()
             return True
@@ -574,6 +574,7 @@ class TransCreate():
             set_process(f"原mp4长度={source_mp4_total_length=}")
             line_num = 0
             cut_clip = 0
+            srtmeta=[]
             for (idx, it) in enumerate(queue_params):
                 if config.current_status != 'ing':
                     return False
@@ -583,6 +584,13 @@ class TransCreate():
                     # 舍弃
                     continue
                 line_num += 1
+                srtmeta_item={
+                    'dubbing_time': -1,
+                    'source_time': -1,
+                    'speed_down': -1,
+                    "text": it['text'],
+                    "line": line_num
+                }
                 # set_process(f"<br>[{line_num=}]<br>before: {it['startraw']=},{it['endraw']=}")
                 # 该片段配音失败
                 if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
@@ -591,12 +599,11 @@ class TransCreate():
                     it['end_time'] = it['start_time'] + wavlen
                     it['startraw'] = ms_to_time_string(ms=it['start_time'])
                     it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                    it['dubbing_time'] = -1
-                    it['source_time'] = -1
-                    it['speed_down'] = -1
+
                     start_times.append(it['start_time'])
                     segments.append(AudioSegment.silent(duration=wavlen))
                     set_process(f"[error]: 此 {it['startraw']} - {it['endraw']} 时间段内字幕合成语音失败", 'logs')
+                    srtmeta.append(srtmeta_item)
                     queue_params[idx] = it
                     continue
                 audio_data = AudioSegment.from_file(it['filename'], format="mp3")
@@ -604,10 +611,12 @@ class TransCreate():
                 # 新发音长度
                 mp3len = len(audio_data)
                 if mp3len == 0:
+                    srtmeta.append(srtmeta_item)
                     continue
-                it['dubbing_time'] = mp3len
-                it['source_time'] = wavlen
-                it['speed_down'] = 0
+                srtmeta_item['dubbing_time'] = mp3len
+                srtmeta_item['source_time'] = wavlen
+                srtmeta_item['speed_down'] = 0
+
                 # 先判断，如果 新时长大于旧时长，需要处理，这个最好需要加到 offset
                 diff = mp3len - wavlen
                 # 新时长大于旧时长，视频需要降速播放
@@ -616,8 +625,8 @@ class TransCreate():
                     total_length += mp3len
                     # 调整视频，新时长/旧时长
                     pts = round(mp3len / wavlen, 2)
-
-                    it['speed_down'] = round(1 / pts, 2)
+                    if pts !=0:
+                        srtmeta_item['speed_down'] = round(1 / pts, 2)
                     # 第一个命令
                     startmp4 = f"{self.cache_folder}/novice-{idx}-start.mp4"
                     clipmp4 = f"{self.cache_folder}/novice-{idx}-clip.mp4"
@@ -628,12 +637,8 @@ class TransCreate():
                     it['startraw'] = ms_to_time_string(ms=it['start_time'])
                     it['endraw'] = ms_to_time_string(ms=it['end_time'])
 
-                    # set_process(f"after : {it['startraw']=},{it['endraw']=}")
-                    # set_process(f"{diff=},{offset=},{wavlen=},{mp3len=},{pts=}")
-                    # set_process(f"{startmp4=}<br>{clipmp4=}<br>{endmp4=}\n")
-
                     offset += diff
-                    set_process(f"该片段视频降速{it['speed_down']}倍")
+                    set_process(f"该片段视频降速{srtmeta_item['speed_down']}倍")
                     if cut_clip == 0 and it['start_time'] == 0:
                         set_process(f"当前是第一个，并且以0时间值开始，需要 clipmp4和endmp4 2个片段")
                         # 当前是第一个并且从头开始，不需要 startmp4, 共2个片段直接截取 clip 和 end
@@ -793,6 +798,7 @@ class TransCreate():
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
                 set_process(f"[{line_num}] 结束了====mp3.length={total_length=}=====<br>\n\n")
+                srtmeta.append(srtmeta_item)
 
             set_process(f"<br>原长度:{source_mp4_total_length=} + offset = {source_mp4_total_length + offset}")
             total_length = source_mp4_total_length + offset
@@ -807,23 +813,26 @@ class TransCreate():
             set_process(f"新视频实际长度:{total_length=}")
             # 重新修改字幕
             srt = ""
-            for (idx, it) in enumerate(queue_params):
-                srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-            # 修改tmp临时字幕
-            with open(self.sub_name, 'w', encoding='utf-8') as f:
-                f.write(srt.strip())
-            # 修改目标文件夹字幕
-            with open(self.targetdir_target_sub, 'w',
-                      encoding="utf-8") as f:
-                f.write(srt.strip())
-            # 保存srt元信息json
-            with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
-                f.write(
-                    "dubbing_time=配音时长，source_time=原时长,speed_down=视频降速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
-                        queue_params))
+            try:
+                for (idx, it) in enumerate(queue_params):
+                    srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
+                # 修改tmp临时字幕
+                with open(self.sub_name, 'w', encoding='utf-8') as f:
+                    f.write(srt.strip())
+                # 修改目标文件夹字幕
+                with open(self.targetdir_target_sub, 'w',
+                          encoding="utf-8") as f:
+                    f.write(srt.strip())
+                # 保存srt元信息json
+                with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
+                    f.write(
+                        "dubbing_time=配音时长，source_time=原时长,speed_down=视频降速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
+                            srtmeta))
+            except Exception as e:
+                set_process("[error]视频自动降速后更新字幕信息出错了 " + str(e), 'error')
+                return False
         except Exception as e:
             set_process("[error]视频自动降速处理出错了" + str(e), 'error')
-            set_process(f'{queue_copy=}\n\n{queue_params=}')
             return False
         try:
             # 视频降速，肯定存在视频，不需要额外处理
@@ -872,6 +881,7 @@ class TransCreate():
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
             logger.info(f'{queue_copy=}')
+            srtmeta=[]
             for (idx, it) in enumerate(queue_copy):
                 logger.info(f'\n\n{idx=},{it=}')
                 # set_process(f"<br>befor: {it['startraw']=},{it['endraw']=}")
@@ -879,14 +889,20 @@ class TransCreate():
                 it['end_time'] += offset
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                srtmeta_item={
+                    'dubbing_time':-1,
+                    'source_time':-1,
+                    'speed_up':-1,
+                    "text":it['text'],
+                    "line":idx+1
+                }
                 if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
                     start_times.append(it['start_time'])
                     segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
                     set_process(f"[error]: 此 {it['startraw']} - {it['endraw']} 时间段内字幕合成语音失败", 'logs')
-                    it['dubbing_time'] = -1
-                    it['source_time'] = -1
-                    it['speed_up'] = -1
+
                     queue_copy[idx] = it
+                    srtmeta.append(srtmeta_item)
                     continue
                 audio_data = AudioSegment.from_file(it['filename'], format="mp3")
                 mp3len = len(audio_data)
@@ -896,18 +912,19 @@ class TransCreate():
 
                 if wavlen == 0:
                     queue_copy[idx] = it
+                    srtmeta.append(srtmeta_item)
                     continue
                 # 新配音时长
-                it['dubbing_time'] = mp3len
-                it['source_time'] = wavlen
-                it['speed_up'] = 0
+                srtmeta_item['dubbing_time'] = mp3len
+                srtmeta_item['source_time'] = wavlen
+                srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
                 # set_process(f"{diff=},{mp3len=},{wavlen=}")
                 if diff > 0 and self.obj['voice_autorate']:
                     speed = mp3len / wavlen
                     speed = 1.8 if speed > 1.8 else round(speed,2)
-                    it['speed_up'] = speed
+                    srtmeta_item['speed_up'] = speed
                     # 新的长度
                     mp3len = mp3len / speed
                     diff = mp3len - wavlen
@@ -928,7 +945,7 @@ class TransCreate():
                 # set_process(f"after: {it['startraw']=},{it['endraw']=}")
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
-
+                srtmeta.append(srtmeta_item)
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(queue_copy):
@@ -942,7 +959,7 @@ class TransCreate():
             # 保存字幕元信息
             with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
                 f.write("dubbing_time=配音时长，source_time=原时长,speed_up=配音加速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
-                    queue_copy))
+                    srtmeta))
             # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
             if total_length > 0 and offset > 0 and queue_copy[-1]['end_time'] > total_length:
                 # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
@@ -1111,5 +1128,4 @@ class TransCreate():
                 # "-shortest",
                 f'{self.targetdir_mp4}'
             ])
-        set_process(f"{self.noextname} 视频合成完毕")
         return True
