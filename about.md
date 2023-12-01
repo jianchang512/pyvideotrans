@@ -19,7 +19,8 @@
 - 吉田製作所Y  / 2023-11-21 捐助100元 / [吉田製作所Y](https://www.youtube.com/@yoshidaaaaaaaaaaaaaaaaaaaaaaaa)
 - han yiri  / 2023-11-21 捐助100元 / [精彩手工](https://www.youtube.com/@hanyiri6544)
 - DIY show Crochet  / 2023-11-21 捐助100元 / [Diy 作品](https://www.youtube.com/@DIYshoww)
-
+- yuppieszh / 2023-12-01 捐助10元 / [github用户yuppieszh](https://github.com/yuppieszh)
+ 
 ## 如何捐助
 
 你可以向微信或支付宝二维码付款，然后备注你的github名称(如果你想展示推广信息，一定要留哦)，然后到 [推广申请页](https://github.com/jianchang512/pyvideotrans/issues/80) 留下推广信息，如果你没有在备注信息里留下用户名，而是其他内容，比如一串数字，请一并在申请信息里写明，以便核对哦
