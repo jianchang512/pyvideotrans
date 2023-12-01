@@ -374,7 +374,15 @@ class TransCreate():
                 text = f"{text.capitalize()}. ".replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text)
                 start = timedelta(milliseconds=start_time)
+                
+                stmp=str(start).split('.')
+                if len(stmp)==2:
+                    start=f'{stmp[0]},{int(int(stmp[-1])/1000)}'
+                print(f'{str(start)}')
                 end = timedelta(milliseconds=end_time)
+                etmp=str(end).split('.')
+                if len(etmp)==2:
+                    end=f'{etmp[0]},{int(int(etmp[-1])/1000)}'
                 raw_subtitles.append({"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text})
         set_process(f"字幕识别完成，共{len(raw_subtitles)}条字幕", 'logs')
         # 写入原语言字幕到目标文件夹
@@ -428,7 +436,11 @@ class TransCreate():
         if not os.path.exists(self.targetdir_source_sub):
             return True
         # 开始翻译,从目标文件夹读取原始字幕
-        rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
+        try:
+            rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
+        except Exception as e:
+            set_process(f"整理格式化原始字幕信息出错:"+str(e), 'error')
+            return False
         if self.obj['translate_type'] == 'chatGPT':
             set_process(f"等待 chatGPT 返回响应", 'logs')
             rawsrt = chatgpttrans(rawsrt)
@@ -509,7 +521,8 @@ class TransCreate():
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
             for it in subs:
                 if config.current_status != 'ing':
-                    return set_process('停止了', 'stop')
+                    set_process('停止了', 'stop')
+                    return True
                 queue_tts.append({
                     "text": it['text'],
                     "role": self.obj['voice_role'],
