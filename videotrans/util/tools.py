@@ -317,8 +317,7 @@ def speed_change(sound, speed=1.0):
 def runffmpegbox(arg):
     cmd = ["ffmpeg","-hide_banner"]
     if config.video['enable_cuda']:
-        cmd.append("-hwaccel")
-        cmd.append("cuda")
+        cmd.extend(["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"])
     cmd = cmd + arg
 
     print(f"runffmpeg: {cmd=}")
