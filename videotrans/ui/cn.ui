@@ -939,6 +939,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    <addaction name="action_yinshipinfenli"/>
    <addaction name="action_yingyinhebing"/>
    <addaction name="action_geshi"/>
+   <addaction name="action_hun"/>
   </widget>
   <action name="actionbaidu_key">
    <property name="text">
@@ -1027,7 +1028,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>标准全功能模式</string>
+    <string>标准功能模式</string>
    </property>
    <property name="toolTip">
     <string>显示全部选项，进行视频翻译和配音</string>
@@ -1038,7 +1039,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>提取字幕并翻译</string>
+    <string>视频提取字幕</string>
    </property>
    <property name="toolTip">
     <string>从本地视频中提取出原始语言的srt字幕并翻译为指定语言</string>
@@ -1049,7 +1050,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>字幕和视频合并</string>
+    <string>字幕视频合并</string>
    </property>
    <property name="toolTip">
     <string>将本地已有的srt字幕嵌入视频中</string>
@@ -1060,7 +1061,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>为字幕创建配音</string>
+    <string>字幕创建配音</string>
    </property>
    <property name="toolTip">
     <string>本地已有的srt字幕生成配音wav文件</string>
@@ -1068,7 +1069,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yuyinshibie">
    <property name="text">
-    <string>音视频识别文字</string>
+    <string>语音识别文字</string>
    </property>
    <property name="toolTip">
     <string>将音频或视频中的声音识别后输出srt文字</string>
@@ -1076,7 +1077,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yuyinhecheng">
    <property name="text">
-    <string>将文字合成语音</string>
+    <string>文字合成语音</string>
    </property>
    <property name="toolTip">
     <string>将文字或srt字幕文件生成音频wav</string>
@@ -1087,7 +1088,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>提取字幕不翻译</string>
+    <string>提取字幕翻译</string>
    </property>
    <property name="toolTip">
     <string>从本地视频中提取出原始语言的srt字幕文件</string>
@@ -1095,7 +1096,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yinshipinfenli">
    <property name="text">
-    <string>从视频分离音频</string>
+    <string>视频音频分离</string>
    </property>
    <property name="toolTip">
     <string>从视频中分离出音频和无声视频</string>
@@ -1103,7 +1104,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yingyinhebing">
    <property name="text">
-    <string>音视频字幕合并</string>
+    <string>视频字幕合并</string>
    </property>
    <property name="toolTip">
     <string>将音频、视频、字幕合并为一个文件</string>
@@ -1111,10 +1112,18 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_geshi">
    <property name="text">
-    <string>音视频格式转换</string>
+    <string>文件格式转换</string>
    </property>
    <property name="toolTip">
     <string>各种格式互相转换</string>
+   </property>
+  </action>
+  <action name="action_hun">
+   <property name="text">
+    <string>两个音频混流</string>
+   </property>
+   <property name="toolTip">
+    <string>将两个音频文件混流为一个音频文件</string>
    </property>
   </action>
  </widget>

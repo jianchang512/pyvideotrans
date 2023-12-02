@@ -279,13 +279,14 @@ class Worker(QThread):
                 print(f'{cmd=}')
                 print(runffmpeg(cmd))
                 # m = re.search(r"-i\s\"?(.*?)\"?\s", cmd, re.I | re.S)
-                self.post_message("end", "完成\n")
             except Exception as e:
                 logger.error("FFmepg exec error:" + str(e))
                 return f'[error]{str(e)}'
+        self.post_message("end", "完成\n")
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
+
 
 
 # 执行语音识别
@@ -625,8 +626,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(f'{homedir}/conver'):
             os.makedirs(f'{homedir}/conver',exist_ok=True)
 
+        # 混流
+        self.hun_file1btn.clicked.connect(lambda:self.hun_get_file('file1'))
+        self.hun_file2btn.clicked.connect(lambda:self.hun_get_file('file2'))
+        self.hun_startbtn.clicked.connect(self.hun_fun)
+        self.hun_opendir.clicked.connect(lambda: self.opendir_fn(self.hun_out.text()))
+
         self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
+
+    # 获取某格式的文件
+    def hun_get_file(self,name='file1'):
+        fname, _ = QFileDialog.getOpenFileName(self, "选择文件", os.path.expanduser('~'),
+                                                 "Audio files(*.wav)")
+        if fname:
+            if name=='file1':
+                self.hun_file1.setText(fname.replace('file:///','').replace('\\','/'))
+            else:
+                self.hun_file2.setText(fname.replace('file:///','').replace('\\','/'))
+
 
     def render_play(self, t):
         if t != 'ok':
@@ -687,6 +705,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText("全部转换完成")
                 self.geshi_input.clear()
+        elif data['func_name']=='hun_end':
+            self.hun_startbtn.setDisabled(False)
+            self.hun_out.setDisabled(False)
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -756,23 +777,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         savedir = f"{homedir}/hebing-{basename}"
-
-        cmd = ['-y', '-i', f'{videofile}']
-        if wavfile and os.path.exists(wavfile):
-            cmd += ['-i', f'{wavfile}', '-c:v', 'libx264', '-c:a', 'aac']
-        else:
-            cmd += ["-c:v", "libx264"]
-        if srtfile and os.path.exists(srtfile):
-            srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')
-
-            cmd += ["-vf", f"subtitles={srtfile}"]
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
-        cmd += [f'{savedir}/{basename}.mp4']
-        print(f'--------------{cmd=}')
-        self.ysphb_task = Worker([cmd], "ysphb_end", self)
+
+        cmds=[]
+        if wavfile and srtfile:
+            tmpname=f'{config.rootdir}/tmp/{time.time()}.mp4'
+            srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')            
+            cmds=[
+                ['-y', '-i', f'{videofile}','-i', f'{wavfile}','-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map','0:v','-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
+                ['-y', '-i', f'{tmpname}', "-vf", f"subtitles={srtfile}", f'{savedir}/{basename}.mp4']
+            ]
+        else:
+            cmd = ['-y', '-i', f'{videofile}']
+            if wavfile:
+                # 只存在音频，不存在字幕
+                cmd += ['-i', f'{wavfile}','-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map','0:v','-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac']
+            elif srtfile :
+                srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')
+                cmd += ["-vf", f"subtitles={srtfile}"]
+                            
+            cmd += [f'{savedir}/{basename}.mp4']
+            cmds=[cmd]
+        self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
+        
         self.ysphb_startbtn.setText("执行中...")
         self.ysphb_startbtn.setDisabled(True)
         self.ysphb_out.setText(f"{savedir}/{basename}.mp4")
@@ -990,6 +1020,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_mov.setDisabled(type)
         self.geshi_mp3.setDisabled(type)
         self.geshi_wav.setDisabled(type)
+    # 音频混流
+    def hun_fun(self):
+        out=self.hun_out.text().strip()
+        if not out:
+            out=f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.wav'
+        elif not out.endswith('.wav'):
+            out+='.wav'
+            out=out.replace('\\','').replace('/','')
+        dirname=homedir+"/hun_liu"
+        if not os.path.exists(dirname):
+            os.makedirs(dirname,exist_ok=True)
+        savename=f'{dirname}/{out}'
+
+        self.hun_out.setText(savename)
+
+        file1=self.hun_file1.text()
+        file2=self.hun_file2.text()
+
+        cmd=['-y','-i',file1,'-i',file2,'-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac','2', savename]
+        self.geshi_task = Worker([cmd], "hun_end", self)
+        self.geshi_task.update_ui.connect(self.receiver)
+        self.geshi_task.start()
+        self.hun_startbtn.setDisabled(True)
+        self.hun_out.setDisabled(True)
 
 
 if __name__ == "__main__":
