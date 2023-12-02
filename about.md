@@ -19,7 +19,8 @@
 - 吉田製作所Y  / 2023-11-21 捐助100元 / [吉田製作所Y](https://www.youtube.com/@yoshidaaaaaaaaaaaaaaaaaaaaaaaa)
 - han yiri  / 2023-11-21 捐助100元 / [精彩手工](https://www.youtube.com/@hanyiri6544)
 - DIY show Crochet  / 2023-11-21 捐助100元 / [Diy 作品](https://www.youtube.com/@DIYshoww)
-- yuppieszh / 2023-12-01 捐助10元 / [github用户yuppieszh](https://github.com/yuppieszh)
+- yuppieszh / 2023-12-01 捐助10元 / github用户yuppieszh
+- 微信用户9*9 / 2023-12-02 捐助10元
  
 ## 如何捐助
 
