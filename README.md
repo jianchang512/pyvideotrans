@@ -119,7 +119,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
 15. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
-16. **字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成**
+16. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
 
 17. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
 
@@ -129,15 +129,20 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 **字幕显示问题**
 > 
 > 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
+> 
 > 注意很多国内播放器必须将srt字幕文件和视频放在同一目录下且名字相同，才能加载软字幕，并且可能需要将srt文件转为GBK编码，否则显示乱码，
 > 
 
 **字幕语音对齐问题**
 
 > 翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
+> 
 > 2种解决方式:
+> 
 >     1. 强制配音加速播放，以便缩短配音时长和视频对齐
+> 
 >     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
+> 
 > 两者只可选其一
 
 
@@ -147,10 +152,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 1. 配置好 python 3.9+ 环境
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
-4. CPU版`pip install -r requirements.txt`，GPU版 `pip install -r requirements-gpt.txt`
+4. CPU版`pip install -r requirements.txt`
 5. 解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)
 6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
-7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 ` -F` 参数，否则可能闪退(tensorflow缘故)
+7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 ` -F` 参数
+8. 如果需要支持CUDA加速，需要使用 NVIDIA 显卡，升级驱动到最新版并安装 [CUDA11.8](https://developer.nvidia.com/cuda-downloads)
 
 ## CLI 命令行方式使用
 <details>
@@ -255,11 +261,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 ## CUDA 加速支持
 
 0. 如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
-   [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
+   [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
 
 1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
    
-2. 安装 `pip install -r requirements-gpu.txt` 而不是 `requirements.txt`
+2. 安装 `pip install -r requirements.txt` 
 
 3. 到此应该可以使用了，如果有问题，那么执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,如下图
 ![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
@@ -267,7 +273,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
    **安装完毕后，在该虚拟环境里，执行 `python`,等待进入后，再分别执行 `import torch`,`torch.cuda.is_available()`,如果有输出，说明CUDA配置正确，否则请检查配置或者重新配置CUDA**
    
-5. 的环境配置相对复杂，遇到问题多搜索或发个issue
+5. CUDA环境配置相对复杂，遇到问题多搜索或发个issue
 
 
 
