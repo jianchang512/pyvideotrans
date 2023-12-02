@@ -1,4 +1,7 @@
 import os
+import re
+import time
+
 import httpx
 
 from openai import OpenAI
@@ -21,10 +24,6 @@ def get_voice(text, role, rate, filename):
                 'http://': 'http://%s' % serv.replace("http://", ''),
                 'https://': 'http://%s' % serv.replace("http://", '')
             }
-    #if proxies:
-    #    openai.proxies = proxies
-    # if config.video['chatgpt_api']:
-    #     openai.base_url = config.video['chatgpt_api']
     try:
         speed=1.0
         if rate:
@@ -40,6 +39,11 @@ def get_voice(text, role, rate, filename):
         response.stream_to_file(filename)
         return True
     except Exception as e:
+        error=str(e)
+        if error and re.search(r'Rate limit',error,re.I) is not None:
+            tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试')
+            time.sleep(30)
+            return get_voice(text, role, rate, filename)
         logger.error(f"openaiTTS合成失败：request error:" + str(e))
         tools.set_process(f"openaiTTS 合成失败：request error:" + str(e))
     return False

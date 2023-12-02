@@ -200,6 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yinshipinfenli.triggered.connect(lambda: self.open_toolbox(0))
         self.action_yingyinhebing.triggered.connect(lambda: self.open_toolbox(1))
         self.action_geshi.triggered.connect(lambda: self.open_toolbox(4))
+        self.action_hun.triggered.connect(lambda: self.open_toolbox(5))
 
         # 底部状态栏
         self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
@@ -509,9 +510,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 【字幕和视频合并】 
 选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
-
-【本地已有字幕不配音直接嵌入视频】 
-选择视频，然后将已有的字幕文件拖拽到右侧字幕区，目标语言选择 - 、配音色选择 No，开始执行
 
 【为字幕创建配音】 
 将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，将生成配音后的音频文件到目标文件夹
