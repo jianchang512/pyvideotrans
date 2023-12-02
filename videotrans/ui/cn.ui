@@ -67,7 +67,7 @@
                  <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>选择视频..</string>
+                 <string>选择视频...</string>
                 </property>
                </widget>
               </item>
@@ -105,11 +105,14 @@
                   <height>35</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>选择处理后输出的资源保存到哪里</string>
+                </property>
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>保存到..</string>
+                 <string>保存到...</string>
                 </property>
                </widget>
               </item>
@@ -153,6 +156,9 @@
                 <width>50</width>
                 <height>30</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>打开保存后的目录</string>
               </property>
               <property name="text">
                <string>打开</string>
@@ -318,7 +324,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>视频原始语音所用语言</string>
+                 <string>原视频发音所用语言</string>
                 </property>
                </widget>
               </item>
@@ -514,6 +520,9 @@
                   <height>35</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>整体识别适合有无背景音乐，有明显静音的视频。</string>
+                </property>
                </widget>
               </item>
              </layout>
@@ -705,7 +714,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>必须确定有N卡且正确配置了CUDA环境，否则勿选</string>
+                 <string>必须确定有NVIDIA显卡且正确配置了CUDA环境，否则勿选</string>
                 </property>
                 <property name="text">
                  <string>使用CUDA加速</string>

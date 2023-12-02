@@ -1,0 +1,24 @@
+QToolBar QToolButton {
+  background-color: #32414B;
+  height:35px;
+  margin-bottom:5px;
+  margin-top:5px;
+  margin-left:2px;
+  margin-right:2px;
+}
+QToolBar QToolButton:hover {
+  border: 1px solid #148CD2;
+}
+
+QToolBar QToolButton:checked {
+  background-color: #19232D;
+  border: 1px solid #148CD2;
+}
+
+QToolBar QToolButton:checked:hover {
+border: 1px solid #339933;
+}
+
+QLabel#show_tips{
+    color:#999999
+}

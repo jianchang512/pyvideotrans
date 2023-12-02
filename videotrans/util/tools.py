@@ -353,7 +353,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         else:
             config.queue_novice[noextname] = "error"
             set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{errs=}")
-            return None
+            return False
     while True:
         try:
             #等待0.1未结束则异常
@@ -370,17 +370,17 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             # 失败
             if error_exit:
                 set_process(f'执行ffmpeg失败:{errs=}','error')
-            return None
+            return False
         except subprocess.TimeoutExpired as e:
             # 如果前台要求停止
             if config.current_status != 'ing':
                 if p.poll() is None:
                     p.kill()
-                return None
+                return False
         except Exception as e:
             #出错异常
             set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{str(e)}",'error' if error_exit else 'logs')
-            return None
+            return False
 
 
 
@@ -391,18 +391,18 @@ def runffprobe(cmd):
         if result.returncode == 0:
             return result.stdout.strip()
         set_process(f'ffprobe 执行失败:{result.stdout=},{result.stderr=}')
-        return None
+        return False
     except subprocess.CalledProcessError as e:
         set_process(f'ffprobe 执行失败:{str(e)}')
-        return None
+        return False
 
 
 # 获取某个视频的时长 s
 def get_video_duration(file_path):
     duration = runffprobe(
         f' -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{file_path}"')
-    if duration is None:
-        return None
+    if not duration:
+        return False
     return int(float(duration) * 1000)
 
 
@@ -410,8 +410,8 @@ def get_video_duration(file_path):
 def get_video_fps(file_path):
     res = runffprobe(
         f'-v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "{file_path}"')
-    if res is None:
-        return None
+    if not res:
+        return False
     return int(res.split('/')[0])
 
 
@@ -419,8 +419,8 @@ def get_video_fps(file_path):
 def get_video_resolution(file_path):
     width = runffprobe(f'-v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "{file_path}"')
     height = runffprobe(f'-v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "{file_path}"')
-    if width is None or height is None:
-        return None
+    if not width or not height:
+        return False
     return int(width), int(height)
 
 

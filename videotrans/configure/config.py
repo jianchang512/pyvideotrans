@@ -31,6 +31,7 @@ else:
 
 # ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
+os.environ['QT_API'] = 'pyqt5'
 queue_logs = Queue(200)
 
 
