@@ -443,7 +443,11 @@ class TransCreate():
             return False
         if self.obj['translate_type'] == 'chatGPT':
             set_process(f"等待 chatGPT 返回响应", 'logs')
-            rawsrt = chatgpttrans(rawsrt)
+            try:
+                rawsrt = chatgpttrans(rawsrt)
+            except Exception as e:
+                set_process(f'使用chatGPT翻译字幕时出错:{str(e)}','error')
+                return False
         else:
             # 其他翻译，逐行翻译
             for (i, it) in enumerate(rawsrt):
@@ -475,6 +479,7 @@ class TransCreate():
         self.save_srt_tmp(rawsrt)
         # 保存翻译后的字幕到目标文件夹
         self.save_srt_target(rawsrt, self.obj['target_language'])
+        return True
 
     # 保存字幕到 tmp 临时文件
     # srt是字幕的dict list
@@ -486,6 +491,7 @@ class TransCreate():
                 txt += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
             with open(self.sub_name, 'w', encoding="utf-8") as f:
                 f.write(txt.strip())
+        return True
 
     # 保存字幕文件 到目标文件夹
     def save_srt_target(self, srtstr, language):
@@ -497,6 +503,7 @@ class TransCreate():
                 txt += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
             with open(file, 'w', encoding="utf-8") as f:
                 f.write(txt.strip())
+        return True
 
     # 配音预处理，去掉无效字符，整理开始时间
     def before_tts(self):
@@ -504,7 +511,6 @@ class TransCreate():
         # 如果仅仅生成配音，则不限制时长
         normalized_sound = AudioSegment.from_wav(self.source_wav)
         total_length = len(normalized_sound) / 1000
-        logger.info(f"准备合成语音 {self.cache_folder=}")
         if os.path.exists(self.tts_wav) and os.path.getsize(self.tts_wav)>0:
             shutil.copy2(self.tts_wav,self.targetdir_target_wav)
             return True
@@ -512,7 +518,11 @@ class TransCreate():
         if self.obj['voice_role'] != 'No':
             queue_tts = []
             # 获取字幕
-            subs = get_subtitle_from_srt(self.sub_name)
+            try:
+                subs = get_subtitle_from_srt(self.sub_name)
+            except Exception as e:
+                set_process(f'准备配音数据，格式化字幕文件时出错:{str(e)}','error')
+                return False
             rate = int(str(self.obj['voice_rate']).replace('%', ''))
             if rate >= 0:
                 rate = f"+{rate}%"
@@ -546,11 +556,11 @@ class TransCreate():
             return False
         # 取出帧率
         fps = get_video_fps(self.novoice_mp4)
-        if fps is None:
+        if not fps:
             return False
         # 取出分辨率
         scale = get_video_resolution(self.novoice_mp4)
-        if scale is None:
+        if not scale:
             return False
         # 创建 ms 格式
         totime = ms_to_time_string(ms=duration_ms).replace(',', '.')
@@ -558,7 +568,7 @@ class TransCreate():
         rs = runffmpeg([
             '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', 'libx264',
             '-crf', '0', '-to', f'{totime}', '-pix_fmt', f'yuv420p', '-y', f'{last_clip}'])
-        if rs is None:
+        if not rs:
             return False
         # 开始将 novoice_mp4 和 last_clip 合并
         os.rename(self.novoice_mp4, f'{self.novoice_mp4}.raw.mp4')
@@ -604,7 +614,6 @@ class TransCreate():
                     "text": it['text'],
                     "line": line_num
                 }
-                # set_process(f"<br>[{line_num=}]<br>before: {it['startraw']=},{it['endraw']=}")
                 # 该片段配音失败
                 if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
                     total_length += wavlen
@@ -655,8 +664,7 @@ class TransCreate():
                     if cut_clip == 0 and it['start_time'] == 0:
                         set_process(f"当前是第一个，并且以0时间值开始，需要 clipmp4和endmp4 2个片段")
                         # 当前是第一个并且从头开始，不需要 startmp4, 共2个片段直接截取 clip 和 end
-                        cut_from_video(ss="0", to=queue_copy[idx]['endraw'], source=self.novoice_mp4, pts=pts,
-                                       out=clipmp4)
+                        cut_from_video(ss="0", to=queue_copy[idx]['endraw'], source=self.novoice_mp4, pts=pts, out=clipmp4)
                         runffmpeg([
                             "-y",
                             "-ss",
@@ -839,8 +847,7 @@ class TransCreate():
                 # 保存srt元信息json
                 with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
                     f.write(
-                        "dubbing_time=配音时长，source_time=原时长,speed_down=视频降速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
-                            srtmeta))
+                        "dubbing_time=配音时长，source_time=原时长,speed_down=视频降速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(srtmeta))
             except Exception as e:
                 set_process("[error]视频自动降速后更新字幕信息出错了 " + str(e), 'error')
                 return False
@@ -893,11 +900,9 @@ class TransCreate():
             # 偏移时间，用于每个 start_time 增减
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
-            logger.info(f'{queue_copy=}')
             srtmeta=[]
             for (idx, it) in enumerate(queue_copy):
                 logger.info(f'\n\n{idx=},{it=}')
-                # set_process(f"<br>befor: {it['startraw']=},{it['endraw']=}")
                 it['start_time'] += offset
                 it['end_time'] += offset
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
@@ -933,7 +938,6 @@ class TransCreate():
                 srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
-                # set_process(f"{diff=},{mp3len=},{wavlen=}")
                 if diff > 0 and self.obj['voice_autorate']:
                     speed = mp3len / wavlen
                     speed = 1.8 if speed > 1.8 else round(speed,2)
@@ -950,12 +954,10 @@ class TransCreate():
                     offset += diff
                 elif diff > 0:
                     offset += diff
-                # set_process(f"newoffset={offset}")
                 it['end_time'] = it['start_time'] + mp3len
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 queue_copy[idx] = it
-                # set_process(f"after: {it['startraw']=},{it['endraw']=}")
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
                 srtmeta.append(srtmeta_item)
@@ -982,11 +984,11 @@ class TransCreate():
                     # 对视频末尾定格延长
                     if not self.novoicemp4_add_time(offset):
                         offset = 0
-                        set_process(f"[error]末尾添加延长视频帧失败，将保持原样，截断音频")
+                        set_process(f"[error]末尾添加延长视频帧失败，将保持原样，截断音频,不延长视频")
                     elif os.path.exists(self.novoice_mp4 + ".raw.mp4") and os.path.getsize(self.novoice_mp4) > 0:
                         set_process(f'视频延长成功')
                 except Exception as e:
-                    set_process(f"[error]末尾添加延长视频帧失败，将保持原样，截断音频:{str(e)}")
+                    set_process(f"[error]末尾添加延长视频帧失败，将保持原样，截断音频，不延长视频:{str(e)}")
                     offset = 0
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times, 0 if total_length == 0 else total_length + offset)
@@ -1007,7 +1009,7 @@ class TransCreate():
             return False
 
         # 需要配音
-        if self.obj['voice_role'] != 'No':
+        if self.obj['voice_role'] not in ['No','no','-']:
             if not os.path.exists(self.tts_wav) or os.path.getsize(self.tts_wav) == 0:
                 set_process(f"[error] 配音文件创建失败: {self.tts_wav}", 'logs')
                 return False
@@ -1017,7 +1019,11 @@ class TransCreate():
             return False
         if self.obj['subtitle_type'] == 1:
             # 硬字幕 重新整理字幕，换行
-            subs = get_subtitle_from_srt(self.sub_name)
+            try:
+                subs = get_subtitle_from_srt(self.sub_name)
+            except Exception as e:
+                set_process(f'最终合并视频时，格式化硬字幕出错:{str(e)}')
+                return False
             maxlen = 36 if self.obj['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
             subtitles = ""
             for it in subs:

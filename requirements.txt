@@ -97,6 +97,7 @@ pyparsing==3.1.1
 PyQt5==5.15.10
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.13.0
+PyQt5-stubs==5.15.6.0
 pyreadline3==3.4.1
 python-dateutil==2.8.2
 python-vlc==3.0.20123
@@ -126,7 +127,7 @@ termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.3.3
 tokenizers==0.14.1
-torch==2.1.0
+torch==2.1.1+cu118
 tqdm==4.66.1
 typer==0.3.2
 typing_extensions==4.8.0

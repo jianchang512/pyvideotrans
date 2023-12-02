@@ -523,10 +523,12 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "SP视频翻译配音"))
         self.btn_get_video.setToolTip(_translate("MainWindow", "可选择多个mp4视频，自动排队处理"))
-        self.btn_get_video.setText(_translate("MainWindow", "选择视频.."))
+        self.btn_get_video.setText(_translate("MainWindow", "选择视频..."))
         self.source_mp4.setPlaceholderText(_translate("MainWindow", "选择待翻译的mp4视频，可多个，排队处理"))
-        self.btn_save_dir.setText(_translate("MainWindow", "保存到.."))
+        self.btn_save_dir.setToolTip(_translate("MainWindow", "选择处理后输出的资源保存到哪里"))
+        self.btn_save_dir.setText(_translate("MainWindow", "保存到..."))
         self.target_dir.setPlaceholderText(_translate("MainWindow", "选择翻译后的视频保存到的位置，默认原目录下_video_out中"))
+        self.open_targetdir.setToolTip(_translate("MainWindow", "打开保存后的目录"))
         self.open_targetdir.setText(_translate("MainWindow", "打开"))
         self.label_9.setText(_translate("MainWindow", "翻译渠道"))
         self.label.setText(_translate("MainWindow", "代理地址"))
@@ -536,7 +538,7 @@ class Ui_MainWindow(object):
 ""))
         self.listen_btn.setText(_translate("MainWindow", "试听配音"))
         self.label_2.setText(_translate("MainWindow", "原始语言"))
-        self.source_language.setToolTip(_translate("MainWindow", "视频原始语音所用语言"))
+        self.source_language.setToolTip(_translate("MainWindow", "原视频发音所用语言"))
         self.label_3.setText(_translate("MainWindow", "目标语言"))
         self.target_language.setToolTip(_translate("MainWindow", "你希望翻译为哪种语言"))
         self.tts_text.setText(_translate("MainWindow", "TTS"))
@@ -544,6 +546,7 @@ class Ui_MainWindow(object):
         self.voice_role.setToolTip(_translate("MainWindow", "选No代表不进行配音"))
         self.label_5.setText(_translate("MainWindow", "语音模型"))
         self.whisper_model.setToolTip(_translate("MainWindow", "base到large，效果越来越好，但速度也越来越慢"))
+        self.whisper_type.setToolTip(_translate("MainWindow", "整体识别适合有无背景音乐，有明显静音的视频。"))
         self.label_8.setText(_translate("MainWindow", "嵌入字幕"))
         self.subtitle_type.setToolTip(_translate("MainWindow", "嵌入式字幕无论哪里播放始终显示字幕，不可隐藏。\n"
 "软字幕如果播放器支持，可在播放器中控制显示或隐藏。\n"
@@ -567,7 +570,7 @@ class Ui_MainWindow(object):
 "2. 强制视频慢速播放，以便延长视频时长和配音对齐。\n"
 "两者只可选其一"))
         self.voice_autorate.setText(_translate("MainWindow", "配音自动加速?"))
-        self.enable_cuda.setToolTip(_translate("MainWindow", "必须确定有N卡且正确配置了CUDA环境，否则勿选"))
+        self.enable_cuda.setToolTip(_translate("MainWindow", "必须确定有NVIDIA显卡且正确配置了CUDA环境，否则勿选"))
         self.enable_cuda.setText(_translate("MainWindow", "使用CUDA加速"))
         self.startbtn.setText(_translate("MainWindow", "开始"))
         self.stop_djs.setText(_translate("MainWindow", "停止倒计时"))

@@ -39,15 +39,15 @@ class Ui_infoform(object):
 
     def retranslateUi(self, infoform):
         _translate = QtCore.QCoreApplication.translate
-        infoform.setWindowTitle(_translate("infoform", "帮助软件更好发展"))
+        infoform.setWindowTitle(_translate("infoform", "捐助该软件以便做的更好"))
         self.textBrowser.setHtml(_translate("infoform", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; line-height:1.6} a span{color:#00a67d}\n"
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<h1 style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:xx-large; font-weight:600;\">关于商业计划和捐助</span></h1>\n"
+"<h1 style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:xx-large; font-weight:600;\"></span></h1>\n"
 "<hr />\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">有不少朋友问到这个问题，简单说下。 本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。不用担心收费问题。如果你遇到需要付费购买的，请果断拒绝然后来此使用免费开源的正版。</p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助。如果不愿捐助无妨，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">有不少朋友问到这个问题，简单说下。 本项目基于兴趣创建，无商业计划，也就是你可以免费使用，或者fork后自己修改。不用担心收费问题。如果你遇到需要付费购买的，请果断拒绝然后来此使用免费开源的正版。</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助，如果有了一定的捐助，我会投入更多时间精力在这上面，保证软件能更好的满足需求。如果不愿捐助也无妨，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。</p>\n"
 "<hr />\n"
 "<h2 style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:x-large; font-weight:600;\">捐助回馈</span></h2>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">在  <a href=\"https://github.com/jianchang512/pyvideotrans/blob/main/about.md\"><span style=\" text-decoration: underline; color:#00a67d;\">github仓库页面</span></a> 、<a href=\"https://github.com/jianchang512/pyvideotrans/blob/main/contr.md\"><span style=\" text-decoration: underline; color:#00a67d;\">作品推荐页</span></a>, 以及 <a href=\"http://v.wonyes.org/contr\"><span style=\" text-decoration: underline; color:#00a67d;\">文档网站</span></a> 可添加显示捐助者的推广信息，比如 b站频道、油管频道、公众号、某个视频播放地址、个人博客、新产品推荐页等等任意合法的有网址的东东。虽然流量不大，但聊胜于无嘛，多多少少也算是点回报。</p>\n"
