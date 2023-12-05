@@ -12,18 +12,12 @@ from videotrans.util import tools
 
 def get_voice(text, role, rate, filename):
     proxies = None
-    if config.video['proxy']:
+    serv = tools.set_proxy()
+    if serv:
         proxies = {
-            'http://': 'http://%s' % config.video['proxy'].replace("http://", ''),
-            'https://': 'http://%s' % config.video['proxy'].replace("http://", '')
+            'http://': serv,
+            'https://': serv
         }
-    else:
-        serv = os.environ.get('http_proxy') or os.environ.get('HTTP_PROXY')
-        if serv:
-            proxies = {
-                'http://': 'http://%s' % serv.replace("http://", ''),
-                'https://': 'http://%s' % serv.replace("http://", '')
-            }
     try:
         speed=1.0
         if rate:

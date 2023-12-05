@@ -18,7 +18,31 @@ QToolBar QToolButton:checked {
 QToolBar QToolButton:checked:hover {
 border: 1px solid #339933;
 }
-
+QLabel{
+    color: #bbbbbb;
+}
 QLabel#show_tips{
-    color:#999999
+    color:#bbbbbb
+}
+QLineEdit:hover,QComboBox:hover{
+    border-color: #148cd2;
+}
+
+QLineEdit[readOnly="true"],QLineEdit[readOnly="true"]:hover {
+    background-color: transparent;  /* 灰色背景 */
+    border-color: transparent;  /* 灰色背景 */
+}
+QLineEdit,QComboBox{
+    background-color: #161E26;
+    border-color: #32414B;
+}
+
+QLineEdit:disabled {
+    background-color: transparent;  /* 灰色背景 */
+    border-color: transparent;  /* 灰色背景 */
+}
+
+QComboBox:disabled{
+    background-color: transparent;  /* 灰色背景 */
+    border-color: #273442;  /* 灰色背景 */
 }
