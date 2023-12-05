@@ -543,8 +543,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hide()
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
-        boxcfg.enable_cuda = self.settings.value("enable_cuda", False, bool)
-
         # tab-1
         self.yspfl_video_wrap = Player(self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)

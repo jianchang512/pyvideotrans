@@ -1,33 +1,68 @@
-from videotrans.util.tools import get_subtitle_from_srt
-import torch
-t="""
-1\n00:00:13,080 --> 00:00:16,400\n大伙子多本期我们介绍电磁法的公园里哈\n\n2\n00:00:16,400 --> 00:00:19,680\n首先我们拿到的是
-一款电磁法\n\n3\n00:00:19,680 --> 00:00:21,000\n大家看一下啊\n\n4\n00:00:21,000 --> 00:00:22,760\n这上面有这里有三个\n\n5\n00:00:24,040 --> 00:00:2
-5,440\n这里有两个孔\n\n6\n00:00:25,440 --> 00:00:26,600\n这里有个土啊\n\n7\n00:00:26,600 --> 00:00:30,200\n来看一下AB下面是RPS\n\n8\n00:00:32,159 -
--> 00:00:33,092\n来看一下\n\n9\n00:00:33,092 --> 00:00:34,572\n其实这个这个电路\n\n10\n00:00:34,572 --> 00:00:38,076\n他就是通过什么通过这个线圈动
-作\n\n11\n00:00:38,452 --> 00:00:40,132\n就是常开变常必\n\n12\n00:00:40,132 --> 00:00:41,652\n你就不这样认为就可以了\n\n13\n00:00:41,652 --> 00:00:
-42,545\n对不对\n\n14\n00:00:42,545 --> 00:00:43,744\n来看一下\n\n15\n00:00:43,744 --> 00:00:45,265\n这个是AD\n\n16\n00:00:45,265 --> 00:00:46,199\n
-来看一下\n\n17\n00:00:46,199 --> 00:00:47,439\n对不对\n\n18\n00:00:47,439 --> 00:00:49,479\n下面是RPS\n\n19\n00:00:49,479 --> 00:00:50,492\n我们看
-一下\n\n20\n00:00:50,492 --> 00:00:53,211\n有个朋友说这个电磁法怎么接线啊\n\n21\n00:00:53,211 --> 00:00:55,452\n他这个接线非常简单\n\n22\n00:00:55,
-452 --> 00:00:56,532\n非常简单\n\n23\n00:00:56,532 --> 00:00:59,532\n上面那个是我们接好的一个电磁法\n\n24\n00:00:59,532 --> 00:01:01,532\n他这个啊
-是分离式的\n\n25\n00:01:01,532 --> 00:01:02,612\n大家看一下\n\n26\n00:01:02,612 --> 00:01:04,612\n你把线从这个孔看过来之后\n\n27\n00:01:04,612 -->
-00:01:05,919\n这里有个接源柱啊\n\n28\n00:01:05,919 --> 00:01:07,199\n这里有个接源柱\n\n29\n00:01:07,199 --> 00:01:08,359\n有两个接源柱\n\n30\n00:01
-:08,359 --> 00:01:09,572\n你都接上电影了\n\n31\n00:01:09,572 --> 00:01:13,252\n上面有电压AC220F AC220F\n\n32\n00:01:13,252 --> 00:01:14,185\n什么意
-思\n\n33\n00:01:14,185 --> 00:01:16,345\nAC就是交流电220F啊\n\n34\n00:01:16,345 --> 00:01:17,624\n我不是赫兹啊\n\n35\n00:01:17,624 --> 00:01:18,558
-\n对不对啊\n\n36\n00:01:18,558 --> 00:01:19,638\n大家看一下\n\n37\n00:01:19,638 --> 00:01:21,238\n这是60赫兹\n\n38\n00:01:21,238 --> 00:01:23,198\n
-他的电流分别是多少\n\n39\n00:01:23,198 --> 00:01:24,278\n大家看一下\n\n40\n00:01:25,878 --> 00:01:26,918\n一个4.5\n\n41\n00:01:26,918 --> 00:01:28,
-477\n对不对啊\n\n42\n00:01:28,478 --> 00:01:30,078\nAC220F的\n\n43\n00:01:30,078 --> 00:01:31,158\n大家看一下\n\n44\n00:01:32,958 --> 00:01:34,171\
-n其实非常简单\n\n45\n00:01:34,171 --> 00:01:35,398\n你接好线之后\n\n46\n00:01:35,398 --> 00:01:36,718\n你把它装上的时候\n\n47\n00:01:36,718 --> 00:
-01:37,664\n这样装\n\n48\n00:01:37,664 --> 00:01:38,638\n再看一下\n\n49\n00:01:38,638 --> 00:01:39,691\n装上之后\n\n50\n00:01:39,691 --> 00:01:41,17
-1\n你能让这个BOS就可以了\n\n51\n00:01:41,171 --> 00:01:42,411\n电磁法的原理\n\n52\n00:01:42,411 --> 00:01:44,291\n其实非常简单\n\n53\n00:01:44,291
---> 00:01:45,251\n一般的话\n\n54\n00:01:45,251 --> 00:01:46,558\n那个车床上的话\n\n55\n00:01:46,558 --> 00:01:48,398\n用了24V的比较多啊\n\n56\n00:0
-1:48,398 --> 00:01:49,638\n24V的比较多\n\n57\n00:01:49,638 --> 00:01:50,824\n也有110的\n\n58\n00:01:50,824 --> 00:01:52,144\n这个是220的\n\n59\n00:
-01:52,144 --> 00:01:53,038\n对不对\n\n60\n00:01:53,038 --> 00:01:54,958\n他的接线非常简单\n\n61\n00:01:54,958 --> 00:01:56,184\n他的单位是照帕\n\n6
-2\n00:01:56,184 --> 00:01:57,558\n0-1不到0.8\n\n63\n00:01:57,558 --> 00:01:58,691\n这个是照帕\n\n64\n00:01:58,691 --> 00:01:59,771\n大家看一下\n\n6
-5\n00:01:59,771 --> 00:02:00,704\n对不对啊\n\n66\n00:02:00,704 --> 00:02:01,918\n其实非常简单\n\n67\n00:02:01,918 --> 00:02:04,358\n你你你接上这个
-器馆之后啊\n\n68\n00:02:04,398 --> 00:02:06,478\n你就用那个器馆一吹\n\n69\n00:02:06,478 --> 00:02:08,118\n然后看哪个通的\n\n70\n00:02:08,118 --> 00
-:02:09,558\n然后你再通上电\n\n71\n00:02:09,558 --> 00:02:11,158\n再看一下他的变化就可以了\n\n72\n00:02:11,158 --> 00:02:13,438\n其实简单到非常简单\
-n\n73\n00:02:13,438 --> 00:02:14,651\n只不是看大家\n\n74\n00:02:14,651 --> 00:02:16,424\n就是对这个东西怎么理解的\n\n75\n00:02:16,424 --> 00:02:18,
-104\n他就跟这个灯套一样\n\n76\n00:02:18,104 --> 00:02:20,064\n接上一个200电就可以了\n\n77\n00:02:20,064 --> 00:02:21,051\n谢谢大家
-"""
-print(torch.cuda.is_available())
+import os
+import re
+import shutil
+
+from moviepy.editor import VideoFileClip, clips_array,concatenate_videoclips
+from moviepy.video.fx.speedx import speedx
+import numpy as np
+from moviepy.video.VideoClip import ImageClip, TextClip
+
+
+# 视频末尾延长 duration ms
+def novoicemp4_add_time(duration):
+    duration=duration/1000
+    out="C:/Users/c1/Videos/out.mp4"
+    novoice_mp4="C:/Users/c1/Videos/novoice.mp4"
+    last_frame_image = "C:/Users/c1/Videos/last.png"
+    # 提取视频1.mp4的最后一帧为图片1.jpg
+    video_clip = VideoFileClip(novoice_mp4)
+    video_clip.save_frame(last_frame_image, t=video_clip.duration-0.1)
+    # 创建一个静态图像的视频剪辑，确保分辨率与原视频一致
+    # static_clip = ImageClip(last_frame_image, duration=video_clip.duration)
+    static_clip = ImageClip(last_frame_image, duration=video_clip.duration)
+
+
+    # 设置生成的2.mp4时长为10秒
+    video2_clip = clips_array([[static_clip]])
+    video2_clip = video2_clip.set_duration(duration)
+
+    # 将整个视频变为静态图片序列
+    video2_clip = video2_clip.fx(lambda x: x.resize(newsize=(x.w, x.h)))
+
+
+    # 写入视频文件
+    video2_clip.write_videofile(out, codec="libx264", audio=False,fps=video_clip.fps)
+
+def cut_and_composite(*,start=None,clip=None,end=None,pts=1):
+    out="C:/Users/c1/Videos/out-yanchang.mp4"
+    novoice_mp4="C:/Users/c1/Videos/novoice.mp4"
+    # 读取原视频1.mp4
+    video_clip1 = VideoFileClip(novoice_mp4)
+
+    # 剪切第1245毫秒到2455毫秒的部分为2.mp4
+    cut_clip = video_clip1.subclip(clip[0]/1000, clip[1]/1000 if clip[1] else video_clip1.duration)
+
+    # 将2.mp4慢放以调整时长为20秒
+    slow_clip = cut_clip.fx(speedx, round(1/pts,1))
+
+    # 获取1.mp4中除了特定时间段外的部分
+    cms=[]
+    if start:
+        part1 = video_clip1.subclip(start[0]/1000, start[1]/1000)
+        cms.append(part1)
+    cms.append(slow_clip)
+    if end:
+        part2 = video_clip1.subclip(end[0]/1000, end[1]/1000 if end[1] else video_clip1.duration)
+        cms.append(part2)
+
+    # 组合视频
+    final_clip = concatenate_videoclips(cms,method='compose')
+
+    # 将组合后的视频写入为文件，保持原始分辨率和质量
+    final_clip.write_videofile(novoice_mp4, codec="libx264", audio=False, bitrate="5000k", threads=4)
+
+
+video_path = "C:/Users/c1/Videos/11.mp4"
+audio_path = "C:/Users/c1/Videos/22/1.wav"
+subtitles_path = "C:/Users/c1/Videos/22/1.srt"
+shutil.copy2(video_path,"C:/Users/c1/Videos/1111.mp4")

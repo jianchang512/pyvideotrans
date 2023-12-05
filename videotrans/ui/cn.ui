@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1370</width>
+    <width>1488</width>
     <height>771</height>
    </rect>
   </property>
@@ -588,48 +588,6 @@
             <item>
              <layout class="QHBoxLayout" name="gaoji_layout_inner">
               <item>
-               <layout class="QFormLayout" name="layout_voice_rate">
-                <property name="formAlignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_6">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>配音语速</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="voice_rate">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>100</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>是否加速或减速播放配音</string>
-                  </property>
-                  <property name="placeholderText">
-                   <string>正数则加速，负数则减速，-90到+90</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
                <layout class="QFormLayout" name="layout_voice_silence">
                 <property name="formAlignment">
                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -672,18 +630,46 @@
                </layout>
               </item>
               <item>
-               <widget class="QCheckBox" name="video_autorate">
-                <property name="toolTip">
-                 <string>翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
-2种解决方式:
-1. 强制配音加速播放，以便缩短配音时长和视频对齐
-2. 强制视频慢速播放，以便延长视频时长和配音对齐。
-两者只可选其一</string>
+               <layout class="QFormLayout" name="layout_voice_rate">
+                <property name="formAlignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                 </property>
-                <property name="text">
-                 <string>视频自动慢速</string>
-                </property>
-               </widget>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_6">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>配音语速</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="voice_rate">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>100</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>对配音语速整体加速或降速播放</string>
+                  </property>
+                  <property name="placeholderText">
+                   <string>正数则加速，负数则减速，-90到+90</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <widget class="QCheckBox" name="voice_autorate">
@@ -702,6 +688,20 @@
                 </property>
                 <property name="text">
                  <string>配音自动加速?</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="video_autorate">
+                <property name="toolTip">
+                 <string>翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
+2种解决方式:
+1. 强制配音加速播放，以便缩短配音时长和视频对齐
+2. 强制视频慢速播放，以便延长视频时长和配音对齐。
+两者只可选其一</string>
+                </property>
+                <property name="text">
+                 <string>视频自动慢速</string>
                 </property>
                </widget>
               </item>
@@ -835,6 +835,9 @@ background-color: rgba(255, 255, 255, 0);</string>
         <property name="leftMargin">
          <number>3</number>
         </property>
+        <item>
+         <layout class="QHBoxLayout" name="layout_sub_bottom"/>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -847,7 +850,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1370</width>
+     <width>1488</width>
      <height>26</height>
     </rect>
    </property>
@@ -1034,7 +1037,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>显示全部选项，进行视频翻译和配音</string>
    </property>
   </action>
-  <action name="action_tiquzimu">
+  <action name="action_tiquzimu_no">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1042,7 +1045,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>视频提取字幕</string>
    </property>
    <property name="toolTip">
-    <string>从本地视频中提取出原始语言的srt字幕并翻译为指定语言</string>
+    <string>从本地视频中提取出原始语言的srt字幕</string>
    </property>
   </action>
   <action name="action_zimu_video">
@@ -1083,7 +1086,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>将文字或srt字幕文件生成音频wav</string>
    </property>
   </action>
-  <action name="action_tiquzimu_no">
+  <action name="action_tiquzimu">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1091,7 +1094,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>提取字幕翻译</string>
    </property>
    <property name="toolTip">
-    <string>从本地视频中提取出原始语言的srt字幕文件</string>
+    <string>从本地视频中提取出原始语言的srt字幕,并翻译为目标语言的srt字幕文件</string>
    </property>
   </action>
   <action name="action_yinshipinfenli">

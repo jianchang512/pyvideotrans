@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import urllib
@@ -6,6 +7,8 @@ import urllib
 import requests
 
 from videotrans.configure import config
+from videotrans.util  import tools
+
 
 def googletrans(text, src, dest):
     url = f"https://translate.google.com/m?sl={urllib.parse.quote(src)}&tl={urllib.parse.quote(dest)}&hl={urllib.parse.quote(dest)}&q={urllib.parse.quote(text)}"
@@ -13,10 +16,11 @@ def googletrans(text, src, dest):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     proxies = None
-    if config.video['proxy']:
+    serv = tools.set_proxy()
+    if serv:
         proxies = {
-            'http': config.video['proxy'],
-            'https': config.video['proxy']
+            'http://': serv,
+            'https://': serv
         }
     nums=0
     msg=f"[error]google 翻译失败:{text=}"
@@ -38,6 +42,6 @@ def googletrans(text, src, dest):
                 continue
             return re_result[0]
         except Exception as e:
-            msg=f"[error]google 翻译失败:请确认能连接到google" + str(e)
+            msg=f"[error]google 翻译失败{serv=}:请确认能连接到google" + str(e)
             time.sleep(3)
     return msg
