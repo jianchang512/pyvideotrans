@@ -201,6 +201,12 @@ class TransCreate():
 
     # 分离音频 和 novoice.mp4
     def split_wav_novicemp4(self):
+        '''
+            from spleeter.separator import Separator
+            separator = Separator('spleeter:2stems', multiprocess=False)
+            separator.separate_to_file(a_name, destination=dirname, filename_format="{filename}{instrument}.{codec}")
+            a_name = f"{dirname}/{noextname}vocals.wav"
+        '''
         # 单独提前分离出 novice.mp4
         # 要么需要嵌入字幕 要么需要配音，才需要分离
         if not self.only_srt and self.source_mp4 and not os.path.exists(self.novoice_mp4):
