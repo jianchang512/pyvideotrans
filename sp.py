@@ -720,7 +720,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.w.close()
 
         self.w = DeepLForm()
-        if self.cfgself.cfgself.cfgself.cfgself.cfg['deepl_authkey']:
+        if self.cfg['deepl_authkey']:
             self.w.deepl_authkey.setText(self.cfg['deepl_authkey'])
         self.w.set_deepl.clicked.connect(save)
         self.w.show()
@@ -729,11 +729,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         def save():
             key = self.w.deeplx_address.text()
             self.settings.setValue("deeplx_address", key)
-            self.cfgself.cfgself.cfgself.cfg['deeplx_address'] = key
+            self.cfg['deeplx_address'] = key
             self.w.close()
 
         self.w = DeepLXForm()
-        if self.cfgself.cfgself.cfgself.cfg['deeplx_address']:
+        if self.cfg['deeplx_address']:
             self.w.deeplx_address.setText(self.cfg['deeplx_address'])
         self.w.set_deeplx.clicked.connect(save)
         self.w.show()
@@ -745,14 +745,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             miyue = self.w.baidu_miyue.text()
             self.settings.setValue("baidu_appid", appid)
             self.settings.setValue("baidu_miyue", miyue)
-            self.cfgself.cfgself.cfg['baidu_appid'] = appid
-            self.cfgself.cfgself.cfg['baidu_miyue'] = miyue
+            self.cfg['baidu_appid'] = appid
+            self.cfg['baidu_miyue'] = miyue
             self.w.close()
 
         self.w = BaiduForm()
-        if self.cfgself.cfgself.cfg['baidu_appid']:
-            self.w.baidu_appid.setText(self.cfgself.cfgself.cfg['baidu_appid'])
-        if self.cfgself.cfgself.cfg['baidu_miyue']:
+        if self.cfg['baidu_appid']:
+            self.w.baidu_appid.setText(self.cfg['baidu_appid'])
+        if self.cfg['baidu_miyue']:
             self.w.baidu_miyue.setText(self.cfg['baidu_miyue'])
         self.w.set_badiu.clicked.connect(save_baidu)
         self.w.show()
@@ -763,14 +763,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             SecretKey = self.w.tencent_SecretKey.text()
             self.settings.setValue("tencent_SecretId", SecretId)
             self.settings.setValue("tencent_SecretKey", SecretKey)
-            self.cfgself.cfg['tencent_SecretId'] = SecretId
-            self.cfgself.cfg['tencent_SecretKey'] = SecretKey
+            self.cfg['tencent_SecretId'] = SecretId
+            self.cfg['tencent_SecretKey'] = SecretKey
             self.w.close()
 
         self.w = TencentForm()
-        if self.cfgself.cfg['tencent_SecretId']:
-            self.w.tencent_SecretId.setText(self.cfgself.cfg['tencent_SecretId'])
-        if self.cfgself.cfg['tencent_SecretKey']:
+        if self.cfg['tencent_SecretId']:
+            self.w.tencent_SecretId.setText(self.cfg['tencent_SecretId'])
+        if self.cfg['tencent_SecretKey']:
             self.w.tencent_SecretKey.setText(self.cfg['tencent_SecretKey'])
         self.w.set_tencent.clicked.connect(save)
         self.w.show()
