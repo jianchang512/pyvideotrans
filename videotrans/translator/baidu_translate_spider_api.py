@@ -129,7 +129,7 @@ class DESAdapter(HTTPAdapter):
         kwargs['ssl_context'] = context
         return super(DESAdapter, self).proxy_manager_for(*args, **kwargs)
 # 百度翻译 api
-def baidutrans(text, src, dest):
+def baidutrans(text, src, dest,*,set_p=True):
     session = requests.Session()
 
     session.mount('https://fanyi.baidu.com', DESAdapter())

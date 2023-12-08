@@ -48,7 +48,23 @@ voice_role="No"
 voice_rate="+0%"
 voice_autorate=False
 tts_type="edgeTTS"
+
 proxy=None
+baidu_appid=""
+baidu_miyue=""
+deepl_authkey=""
+deeplx_address=""
+chatgpt_api=""
+chatgpt_key=""
+tencent_SecretId=""
+tencent_SecretKey=""
+chatgpt_model="gpt-3.5-turbo"
+chatgpt_template="""我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要"""
+# detect_language="en"
+# subtitle_language="chi"
+# target_language_baidu=""
+# target_language_tencent=""
+# target_language_chatgpt=""
 # 配置
 video = {
     "source_mp4": "",
@@ -94,8 +110,8 @@ video = {
     "chatgpt_api": "",
     "chatgpt_key": "",
     "openaitts_role": openaiTTS_rolelist,
-    "chatgpt_model": "gpt-3.5-turbo",
-    "chatgpt_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要""",
+    "chatgpt_model": chatgpt_model,
+    "chatgpt_template": chatgpt_template,
 }
 
 

@@ -161,4 +161,4 @@ clilanglist = {
     "vi": ['vi', 'vie'],
     "ar": ['ar', 'are']
 }
-english_code_bygpt=list(language_code_list['en'].keys())
+english_code_bygpt=list(language_code_list['zh'].keys())

@@ -82,8 +82,7 @@ class TransCreate():
         # 如果存在字幕，则直接生成
         if "subtitles" in self.obj and self.obj['subtitles']:
             # 如果原语言和目标语言相同，或不存在视频，则不翻译
-            with open(self.targetdir_target_sub if self.obj['source_language'] == self.obj[
-                'target_language'] or not self.source_mp4 else self.targetdir_source_sub, 'w', encoding="utf-8") as f:
+            with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(self.obj['subtitles'].strip())
 
     # 启动执行入口
@@ -132,6 +131,7 @@ class TransCreate():
             time.sleep(2)
             if not self.trans():
                 return set_process("翻译出错.", 'error')
+            set_process('翻译完成')
         self.step = 'translate_end'
 
         # 如果仅仅需要提取字幕（不配音、不嵌入字幕），到此返回
@@ -176,10 +176,12 @@ class TransCreate():
                 set_process("[error]配音时出错:" + str(e), "error")
                 delete_temp(self.noextname)
                 return False
+            set_process('配音结束')
+
         self.step = 'dubbing_end'
         # 如果不需要合成，比如仅配音
         if not self.source_mp4:
-            set_process('配音完毕')
+            set_process('字幕创建配音完毕')
             return True
 
         # 最后一步合成
@@ -473,7 +475,7 @@ class TransCreate():
         if self.obj['translate_type'] == 'chatGPT':
             set_process(f"等待 chatGPT 返回响应", 'logs')
             try:
-                rawsrt = chatgpttrans(rawsrt)
+                rawsrt = chatgpttrans(rawsrt,self.obj['target_language_chatgpt'])
             except Exception as e:
                 set_process(f'使用chatGPT翻译字幕时出错:{str(e)}', 'error')
                 return False
@@ -582,6 +584,7 @@ class TransCreate():
     # 延长 novoice.mp4  duration_ms 毫秒
     def novoicemp4_add_time(self, duration_ms):
         while not is_novoice_mp4(self.novoice_mp4,self.noextname):
+            print('等待novoice_mp4处理完毕')
             time.sleep(1)
         # 截取最后一帧图片
         img = f'{self.cache_folder}/last.jpg'

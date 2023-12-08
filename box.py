@@ -21,8 +21,10 @@ from pydub import AudioSegment
 from videotrans import VERSION
 from videotrans.configure import boxcfg, config
 from videotrans.configure import config as spcfg
-from videotrans.configure.language import language_code_list
-from videotrans.configure.config import logger, rootdir, homedir
+from videotrans.configure.language import language_code_list, english_code_bygpt
+from videotrans.configure.config import logger, rootdir, homedir, langlist
+from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans, baidutrans_spider, \
+    chatgpttrans
 from videotrans.ui.toolbox import Ui_MainWindow
 from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, runffmpegbox as runffmpeg, \
     get_edge_rolelist, get_subtitle_from_srt, ms_to_time_string, speed_change
@@ -630,10 +632,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hun_startbtn.clicked.connect(self.hun_fun)
         self.hun_opendir.clicked.connect(lambda: self.opendir_fn(self.hun_out.text()))
 
+        # 翻译
+        proxy=set_proxy()
+        if proxy:
+            self.fanyi_proxy.setText(proxy)
+        self.languagename = list(langlist.keys())
+        self.fanyi_target.addItems(["-"] + self.languagename)
+        self.fanyi_import.clicked.connect(self.fanyi_import_fun)
+        self.fanyi_start.clicked.connect(self.fanyi_start_fun)
+        self.fanyi_translate_type.addItems(["google", "baidu", "chatGPT", "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+
+        self.fanyi_sourcetext = Textedit()
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
+        self.fanyi_sourcetext.setSizePolicy(sizePolicy)
+        self.fanyi_sourcetext.setMinimumSize(300, 0)
+
+        self.fanyi_sourcetext.setPlaceholderText("拖动要翻译的文本文件或srt文件到此处松开")
+
+        self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
+
+
         self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
 
-    # 获取某格式的文件
+    # 获取wav件
     def hun_get_file(self,name='file1'):
         fname, _ = QFileDialog.getOpenFileName(self, "选择文件", os.path.expanduser('~'),
                                                  "Audio files(*.wav)")
@@ -642,7 +667,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.hun_file1.setText(fname.replace('file:///','').replace('\\','/'))
             else:
                 self.hun_file2.setText(fname.replace('file:///','').replace('\\','/'))
-
+    # 文本翻译，导入文本文件
+    def fanyi_import_fun(self):
+        fname, _ = QFileDialog.getOpenFileName(self, "选择文本或srt文件", os.path.expanduser('~'),
+                                                 "Text files(*.srt *.txt)")
+        if fname:
+            with open(fname.replace('file:///',''),'r',encoding='utf-8') as f:
+                self.fanyi_sourcetext.setPlainText(f.read().strip())
 
     def render_play(self, t):
         if t != 'ok':
@@ -706,6 +737,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif data['func_name']=='hun_end':
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
+        elif data['func_name']=='fanyi_end':
+            self.fanyi_start.setDisabled(False)
+            self.fanyi_start.setText("立即翻译>")
+            self.fanyi_targettext.setPlainText(data['text'])
+
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -1043,6 +1079,136 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hun_startbtn.setDisabled(True)
         self.hun_out.setDisabled(True)
 
+    # 翻译开始
+    def fanyi_start_fun(self):
+        target_language=self.fanyi_target.currentText()
+        translate_type=self.fanyi_translate_type.currentText()
+        if target_language=='-':
+            return QMessageBox.critical(self,"必须选择目标语言","必须选择要翻译到的目标语言")
+        proxy=self.fanyi_proxy.text()
+        if proxy:
+            set_proxy(proxy)
+        issrt=self.fanyi_issrt.isChecked()
+        source_text=self.fanyi_sourcetext.toPlainText().strip()
+        if not source_text:
+            return QMessageBox.critical(self,"待翻译文本不可为空","待翻译文本不可为空")
+        # target_language = langlist[target_language][0]
+        config.baidu_appid = self.settings.value("baidu_appid", "")
+        config.baidu_miyue = self.settings.value("baidu_miyue", "")
+        config.deepl_authkey = self.settings.value("deepl_authkey", "")
+        config.deeplx_address = self.settings.value("deeplx_address", "")
+        config.chatgpt_api = self.settings.value("chatgpt_api", "")
+        config.chatgpt_key = self.settings.value("chatgpt_key", "")
+        config.tencent_SecretId = self.settings.value("tencent_SecretId", "")
+        config.tencent_SecretKey = self.settings.value("tencent_SecretKey", "")
+        # os.environ['OPENAI_API_KEY'] = self.cfg['chatgpt_key']
+        # google language code
+
+        if translate_type == 'google':
+            target_language = langlist[target_language][0]
+        elif translate_type == 'baidu(noKey)':
+            target_language = langlist[target_language][2]
+        elif translate_type == 'baidu':
+            # baidu language code
+            target_language = langlist[target_language][2]
+            if not config.baidu_appid or not config.baidu_miyue:
+                QMessageBox.critical(self, '出错了','必须填写百度key')
+                return
+        elif translate_type == 'tencent':
+            #     腾讯翻译
+            target_language = langlist[target_language][4]
+            if not config.tencent_SecretId or not config.tencent_SecretKey:
+                QMessageBox.critical(self, '出错了','必须填写腾讯key')
+                return
+        elif translate_type == 'chatGPT':
+            # chatGPT 翻译
+            target_language = english_code_bygpt[self.languagename.index(target_language)]
+            if not config.chatgpt_key:
+                QMessageBox.critical(self, '出错了','必须填写ChatGPT key')
+                return
+        elif translate_type == 'DeepL' or translate_type == 'DeepLX':
+            # DeepL翻译
+            if translate_type == 'DeepL' and not config.deepl_authkey:
+                QMessageBox.critical(self, '出错了','必须填写DeepL信息')
+                return
+            if translate_type == 'DeepLX' and not config.deeplx_address:
+                QMessageBox.critical(self, '出错了','必须填写DeepLX地址')
+                return
+            target_language_deepl = langlist[target_language][3]
+            if target_language_deepl == 'No':
+                QMessageBox.critical(self, '出错了','DeepL不支持翻译到该目标语言')
+                return
+        self.fanyi_task=FanyiWorker(translate_type,target_language,source_text,issrt,self)
+        self.fanyi_task.ui.connect(self.receiver)
+        self.fanyi_task.start()
+        self.fanyi_start.setDisabled(True)
+        self.fanyi_start.setText("翻译中...")
+        self.fanyi_targettext.clear()
+
+class FanyiWorker(QThread):
+    ui=pyqtSignal(str)
+    def __init__(self,type,target_language,text,issrt,parent=None):
+        super(FanyiWorker, self).__init__(parent)
+        self.type=type
+        self.target_language=target_language
+        self.text=text
+        self.issrt=issrt
+        self.srts=""
+    def run(self):
+        # 开始翻译,从目标文件夹读取原始字幕
+        if not self.issrt:
+            if self.type=='chatGPT':
+                self.srts= chatgpttrans(self.text,self.target_language,set_p=False)
+            elif self.type=='google':
+                self.srts= googletrans(self.text,'auto',self.target_language,set_p=False)
+            elif self.type=='baidu':
+                self.srts= baidutrans(self.text,'auto',self.target_language,set_p=False)
+            elif self.type=='baidu(noKey)':
+                self.srts= baidutrans_spider(self.text,'auto',self.target_language,set_p=False)
+            elif self.type=='tencent':
+                self.srts= tencenttrans(self.text,'auto',self.target_language,set_p=False)
+            elif self.type=='DeepL':
+                self.srts= deepltrans(self.text,self.target_language,set_p=False)
+            elif self.type=='DeepLX':
+                self.srts= deeplxtrans(self.text,self.target_language,set_p=False)
+        else:
+            try:
+                rawsrt = get_subtitle_from_srt(self.text, is_file=False)
+            except Exception as e:
+                print(f"整理格式化原始字幕信息出错:" + str(e), 'error')
+                return ""
+            if self.type == 'chatGPT':
+                print(f"等待 chatGPT 返回响应", 'logs')
+                try:
+                    rawsrt = chatgpttrans(rawsrt,self.target_language,set_p=False)
+                    for it in rawsrt:
+                        self.srts += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                except Exception as e:
+                    print(f'使用chatGPT翻译字幕时出错:{str(e)}', 'error')
+                    self.srts=str(e)
+            else:
+                # 其他翻译，逐行翻译
+                for (i, it) in enumerate(rawsrt):
+                    new_text = it['text']
+                    if self.type == 'google':
+                        new_text = googletrans(it['text'],
+                                               'auto',
+                                               self.target_language,set_p=False)
+                    elif self.type == 'baidu':
+                        new_text = baidutrans(it['text'], 'auto', self.target_language,set_p=False)
+                    elif self.type == 'tencent':
+                        new_text = tencenttrans(it['text'], 'auto',self.target_language,set_p=False)
+                    elif self.type == 'baidu(noKey)':
+                        new_text = baidutrans_spider(it['text'], 'auto', self.target_language,set_p=False)
+                    elif self.type == 'DeepL':
+                        new_text = deepltrans(it['text'], self.target_language,set_p=False)
+                    elif self.type == 'DeepLX':
+                        new_text = deeplxtrans(it['text'], self.target_language,set_p=False)
+                    new_text = new_text.replace('&#39;', "'")
+                    new_text = re.sub(r'&#\d+;', '', new_text)
+                    # 更新字幕区域
+                    self.srts += f"{it['line']}\n{it['time']}\n{new_text}\n\n"
+        self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
 
 if __name__ == "__main__":
     threading.Thread(target=get_edge_rolelist)

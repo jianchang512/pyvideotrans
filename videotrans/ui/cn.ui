@@ -943,6 +943,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    <addaction name="action_yingyinhebing"/>
    <addaction name="action_geshi"/>
    <addaction name="action_hun"/>
+   <addaction name="action_fanyi"/>
   </widget>
   <action name="actionbaidu_key">
    <property name="text">
@@ -1127,6 +1128,14 @@ background-color: rgba(255, 255, 255, 0);</string>
    </property>
    <property name="toolTip">
     <string>将两个音频文件混流为一个音频文件</string>
+   </property>
+  </action>
+  <action name="action_fanyi">
+   <property name="text">
+    <string>文本字幕翻译</string>
+   </property>
+   <property name="toolTip">
+    <string>将文字或者字幕进行翻译</string>
    </property>
   </action>
  </widget>

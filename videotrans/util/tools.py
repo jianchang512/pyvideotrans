@@ -452,7 +452,19 @@ def get_video_fps(file_path):
         f'-v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "{file_path}"')
     if not res:
         return False
-    return int(res.split('/')[0])
+    f,s=res.split('/')
+    fps=30
+    try:
+        f=int(f)
+        if s:
+            s=str(s).strip()
+        if s and int(s)>0:
+            fps=round(f/int(s),1)
+        else:
+            fps=f
+    except:
+        pass
+    return fps
 
 
 # 获取宽高分辨率
