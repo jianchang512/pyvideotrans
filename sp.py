@@ -1313,6 +1313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 def pygameinit():
     pygame.init()
     pygame.mixer.init()
+    pygame.display.set_allow_screensaver(True)
 
 
 if __name__ == "__main__":
