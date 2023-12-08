@@ -479,6 +479,8 @@ class Ui_MainWindow(object):
         self.action_geshi.setObjectName("action_geshi")
         self.action_hun = QtWidgets.QAction(MainWindow)
         self.action_hun.setObjectName("action_hun")
+        self.action_fanyi = QtWidgets.QAction(MainWindow)
+        self.action_fanyi.setObjectName("action_fanyi")
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontencent_key)
@@ -521,6 +523,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yingyinhebing)
         self.toolBar.addAction(self.action_geshi)
         self.toolBar.addAction(self.action_hun)
+        self.toolBar.addAction(self.action_fanyi)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -623,3 +626,5 @@ class Ui_MainWindow(object):
         self.action_geshi.setToolTip(_translate("MainWindow", "各种格式互相转换"))
         self.action_hun.setText(_translate("MainWindow", "两个音频混流"))
         self.action_hun.setToolTip(_translate("MainWindow", "将两个音频文件混流为一个音频文件"))
+        self.action_fanyi.setText(_translate("MainWindow", "文本字幕翻译"))
+        self.action_fanyi.setToolTip(_translate("MainWindow", "将文字或者字幕进行翻译"))

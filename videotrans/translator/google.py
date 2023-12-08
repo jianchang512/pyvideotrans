@@ -10,7 +10,7 @@ from videotrans.configure import config
 from videotrans.util  import tools
 
 
-def googletrans(text, src, dest):
+def googletrans(text, src, dest,*,set_p=True):
     url = f"https://translate.google.com/m?sl={urllib.parse.quote(src)}&tl={urllib.parse.quote(dest)}&hl={urllib.parse.quote(dest)}&q={urllib.parse.quote(text)}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'

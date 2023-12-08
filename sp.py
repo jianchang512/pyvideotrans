@@ -188,6 +188,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yingyinhebing.triggered.connect(lambda: self.open_toolbox(1))
         self.action_geshi.triggered.connect(lambda: self.open_toolbox(4))
         self.action_hun.triggered.connect(lambda: self.open_toolbox(5))
+        self.action_fanyi.triggered.connect(lambda: self.open_toolbox(6))
 
         # 底部状态栏
         self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
@@ -615,9 +616,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_silence.setDisabled(type)
         self.video_autorate.setDisabled(type)
         self.enable_cuda.setDisabled(type)
-        # self.voice_role.setDisabled(type)
-        # self.voice_rate.setDisabled(type)
-        # self.voice_autorate.setDisabled(type)
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -638,18 +636,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_setting(self):
         # 从缓存获取默认配置
-        self.cfg['baidu_appid'] = self.settings.value("baidu_appid", "")
-        self.cfg['baidu_miyue'] = self.settings.value("baidu_miyue", "")
-        self.cfg['deepl_authkey'] = self.settings.value("deepl_authkey", "")
-        self.cfg['deeplx_address'] = self.settings.value("deeplx_address", "")
-        self.cfg['chatgpt_api'] = self.settings.value("chatgpt_api", "")
-        self.cfg['chatgpt_key'] = self.settings.value("chatgpt_key", "")
-        self.cfg['tencent_SecretId'] = self.settings.value("tencent_SecretId", "")
-        self.cfg['tencent_SecretKey'] = self.settings.value("tencent_SecretKey", "")
-        os.environ['OPENAI_API_KEY'] = self.cfg['chatgpt_key']
+        config.baidu_appid = self.settings.value("baidu_appid", "")
+        config.baidu_miyue = self.settings.value("baidu_miyue", "")
+        config.deepl_authkey = self.settings.value("deepl_authkey", "")
+        config.deeplx_address = self.settings.value("deeplx_address", "")
+        config.chatgpt_api = self.settings.value("chatgpt_api", "")
+        config.chatgpt_key = self.settings.value("chatgpt_key", "")
+        config.tencent_SecretId = self.settings.value("tencent_SecretId", "")
+        config.tencent_SecretKey = self.settings.value("tencent_SecretKey", "")
 
-        self.cfg['chatgpt_model'] = self.settings.value("chatgpt_model", self.cfg['chatgpt_model'])
-        self.cfg['chatgpt_template'] = self.cfg['chatgpt_template']
+        os.environ['OPENAI_API_KEY'] = config.chatgpt_key
+        config.chatgpt_model = self.settings.value("chatgpt_model", self.cfg['chatgpt_model'])
         self.cfg['translate_type'] = self.settings.value("translate_type", self.cfg['translate_type'])
         self.cfg['subtitle_type'] = self.settings.value("subtitle_type", self.cfg['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
@@ -716,12 +713,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         def save():
             key = self.w.deepl_authkey.text()
             self.settings.setValue("deepl_authkey", key)
-            self.cfg['deepl_authkey'] = key
+            config.deepl_authkey = key
             self.w.close()
 
         self.w = DeepLForm()
-        if self.cfg['deepl_authkey']:
-            self.w.deepl_authkey.setText(self.cfg['deepl_authkey'])
+        if config.deepl_authkey:
+            self.w.deepl_authkey.setText(config.deepl_authkey)
         self.w.set_deepl.clicked.connect(save)
         self.w.show()
 
@@ -729,12 +726,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         def save():
             key = self.w.deeplx_address.text()
             self.settings.setValue("deeplx_address", key)
-            self.cfg['deeplx_address'] = key
+            config.deeplx_address = key
             self.w.close()
 
         self.w = DeepLXForm()
-        if self.cfg['deeplx_address']:
-            self.w.deeplx_address.setText(self.cfg['deeplx_address'])
+        if config.deeplx_address:
+            self.w.deeplx_address.setText(config.deeplx_address)
         self.w.set_deeplx.clicked.connect(save)
         self.w.show()
 
@@ -745,15 +742,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             miyue = self.w.baidu_miyue.text()
             self.settings.setValue("baidu_appid", appid)
             self.settings.setValue("baidu_miyue", miyue)
-            self.cfg['baidu_appid'] = appid
-            self.cfg['baidu_miyue'] = miyue
+            config.baidu_appid = appid
+            config.baidu_miyue = miyue
             self.w.close()
 
         self.w = BaiduForm()
-        if self.cfg['baidu_appid']:
-            self.w.baidu_appid.setText(self.cfg['baidu_appid'])
-        if self.cfg['baidu_miyue']:
-            self.w.baidu_miyue.setText(self.cfg['baidu_miyue'])
+        if config.baidu_appid:
+            self.w.baidu_appid.setText(config.baidu_appid)
+        if config.baidu_miyue:
+            self.w.baidu_miyue.setText(config.baidu_miyue)
         self.w.set_badiu.clicked.connect(save_baidu)
         self.w.show()
 
@@ -763,15 +760,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             SecretKey = self.w.tencent_SecretKey.text()
             self.settings.setValue("tencent_SecretId", SecretId)
             self.settings.setValue("tencent_SecretKey", SecretKey)
-            self.cfg['tencent_SecretId'] = SecretId
-            self.cfg['tencent_SecretKey'] = SecretKey
+            config.tencent_SecretId = SecretId
+            config.tencent_SecretKey = SecretKey
             self.w.close()
 
         self.w = TencentForm()
-        if self.cfg['tencent_SecretId']:
-            self.w.tencent_SecretId.setText(self.cfg['tencent_SecretId'])
-        if self.cfg['tencent_SecretKey']:
-            self.w.tencent_SecretKey.setText(self.cfg['tencent_SecretKey'])
+        if config.tencent_SecretId:
+            self.w.tencent_SecretId.setText(config.tencent_SecretId)
+        if config.tencent_SecretKey:
+            self.w.tencent_SecretKey.setText(config.tencent_SecretKey)
         self.w.set_tencent.clicked.connect(save)
         self.w.show()
 
@@ -789,37 +786,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue("chatgpt_template", template)
 
             os.environ['OPENAI_API_KEY'] = key
-            self.cfg['chatgpt_key'] = key
-            self.cfg['chatgpt_api'] = api
-            self.cfg['chatgpt_model'] = model
-            self.cfg['chatgpt_template'] = template
+            config.chatgpt_key = key
+            config.chatgpt_api = api
+            config.chatgpt_model = model
+            config.chatgpt_template = template
             self.w.close()
 
         self.w = ChatgptForm()
-        if self.cfg['chatgpt_key']:
-            self.w.chatgpt_key.setText(self.cfg['chatgpt_key'])
-        if self.cfg['chatgpt_api']:
-            self.w.chatgpt_api.setText(self.cfg['chatgpt_api'])
-        if self.cfg['chatgpt_model']:
-            self.w.chatgpt_model.setCurrentText(self.cfg['chatgpt_model'])
-        if self.cfg['chatgpt_template']:
-            self.w.chatgpt_template.setPlainText(self.cfg['chatgpt_template'])
+        if config.chatgpt_key:
+            self.w.chatgpt_key.setText(config.chatgpt_key)
+        if config.chatgpt_api:
+            self.w.chatgpt_api.setText(config.chatgpt_api)
+        if config.chatgpt_model:
+            self.w.chatgpt_model.setCurrentText(config.chatgpt_model)
+        if config.chatgpt_template:
+            self.w.chatgpt_template.setPlainText(config.chatgpt_template)
         self.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.w.show()
 
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
         try:
-            if name == "baidu" and not self.cfg['baidu_appid']:
+            if name == "baidu" and not config.baidu_appid:
                 QMessageBox.critical(self, transobj['anerror'], transobj['baidukeymust'])
                 return
-            if name == "chatGPT" and not self.cfg["chatgpt_key"]:
+            if name == "chatGPT" and not config.chatgpt_key:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
-            if name == "DeepL" and not self.cfg["deepl_authkey"]:
+            if name == "DeepL" and not config.deepl_authkey:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
                 return
-            if name == "DeepLX" and not self.cfg["deeplx_address"]:
+            if name == "DeepLX" and not config.deeplx_address:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
                 return
             self.cfg['translate_type'] = name
@@ -1010,7 +1007,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 代理
         config.proxy = self.proxy.text().strip()
-        print(f'{config.proxy=}')
         if config.proxy:
             # 设置代理
             set_proxy(config.proxy)
@@ -1035,27 +1031,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif self.cfg['translate_type'] == 'baidu':
                 # baidu language code
                 self.cfg['target_language_baidu'] = langlist[target_language][2]
-                if not self.cfg['baidu_appid'] or not self.cfg['baidu_miyue']:
+                if not config.baidu_appid or not config.baidu_miyue:
                     QMessageBox.critical(self, transobj['anerror'], transobj['baikeymust'])
                     return
             elif self.cfg['translate_type'] == 'tencent':
                 #     腾讯翻译
                 self.cfg['target_language_tencent'] = langlist[target_language][4]
-                if not self.cfg['tencent_SecretId'] or not self.cfg['tencent_SecretKey']:
+                if not config.tencent_SecretId or not config.tencent_SecretKey:
                     QMessageBox.critical(self, transobj['anerror'], transobj['tencent_key'])
                     return
             elif self.cfg['translate_type'] == 'chatGPT':
                 # chatGPT 翻译
                 self.cfg['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
-                if not self.cfg['chatgpt_key']:
+                if not config.chatgpt_key:
                     QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                     return
             elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
                 # DeepL翻译
-                if self.cfg['translate_type'] == 'DeepL' and not self.cfg['deepl_authkey']:
+                if self.cfg['translate_type'] == 'DeepL' and not config.deepl_authkey:
                     QMessageBox.critical(self, transobj['anerror'], transobj['deepl_authkey'])
                     return
-                if self.cfg['translate_type'] == 'DeepLX' and not self.cfg['deeplx_address']:
+                if self.cfg['translate_type'] == 'DeepLX' and not config.deeplx_address:
                     QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
                     return
 
@@ -1151,13 +1147,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.cfg['source_mp4'] and len(config.queue_mp4) < 1:
             config.queue_mp4 = [self.cfg['source_mp4']]
         # 配音模式 无视频
-        # if len(config.queue_mp4) < 1:
-        #     self.cfg['noextname'] = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        #     self.cfg['target_dir'] = f"{homedir}/only_dubbing" if not self.cfg['target_dir'] else self.cfg['target_dir']
-        #     self.target_dir.setText(self.cfg['target_dir'] + f"/{self.cfg['noextname']}")
-        # else:
-        #     # 第一个视频
-        #     self.cfg['noextname'] = os.path.splitext(os.path.basename(config.queue_mp4[0]))[0]
         # 保存设置
         if config.cuda and not torch.cuda.is_available():
             self.cfg['enable_cuda'] = False
@@ -1166,14 +1155,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if os.environ.get('CUDA_OK'):
                 os.environ.pop('CUDA_OK')
         self.save_setting()
-        # 如果已有字幕，则使用
-        # if txt:
-        # set_process(f"从字幕编辑区直接读入字幕")
-            # os.makedirs(f"{config.rootdir}/tmp/{self.cfg['noextname']}", exist_ok=True)
-            # subname = f"{config.rootdir}/tmp/{self.cfg['noextname']}/{self.cfg['noextname']}.srt"
-            # with open(subname, 'w', encoding="utf-8") as f:
-            #     f.write(txt)
-        # self.get_sub_toarea(self.cfg['noextname'])
         self.update_status("ing")
 
         # 已存在字幕
