@@ -156,7 +156,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 5. 解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)
 6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
 7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 ` -F` 参数
-8. 如果需要支持CUDA加速，需要使用 NVIDIA 显卡，升级驱动到最新版并安装 [CUDA11.8](https://developer.nvidia.com/cuda-downloads)
+8. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 "CUDA 加速支持"
 
 ## CLI 命令行方式使用
 <details>
@@ -261,7 +261,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 ## CUDA 加速支持
 
 0. 如果你的显卡是 Nvidia，可以根据显卡驱动版本和操作系统版本，去安装对应的 
-   [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) ,建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
+   [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) 和  [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive), 建议预先将显卡驱动升级到最新版，再去安装。要完整支持CUDA，需要使用源码版在自己电脑部署
 
 1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
    
