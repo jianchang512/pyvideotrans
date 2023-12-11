@@ -1,4 +1,7 @@
 import json
+import re
+import time
+
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
@@ -38,6 +41,12 @@ def tencenttrans(text, src, dest,*,set_p=True):
         resp = client.TextTranslate(req)
         return resp.TargetText
     except Exception as e:
+        err=str(e)
+        if re.search(r'LimitExceeded',err,re.I):
+            if set_p:
+                tools.set_process("超出腾讯翻译频率或配额限制，暂停一秒")
+            time.sleep(1)
+            return tencenttrans(text, src, dest,set_p=set_p)
         logger.error("tencent api error:" + str(e))
         if set_p:
             tools.set_process("[error]腾讯翻译失败:" + str(e))

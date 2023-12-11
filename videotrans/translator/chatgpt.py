@@ -72,7 +72,6 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
     split_size = 10
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
-    logger.info(f"\n==={srt_lists}\n=======\n")
     srts=''
     # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
     for srt_list in srt_lists:
@@ -121,7 +120,7 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                     error+=str(e)
             if not vail_data:
                 try:
-                    if response.data and response.data['choices']:
+                    if response.data  and  'choices' in response.data:
                         vail_data=response.data['choices']
                 except Exception as e:
                     error+=str(e)

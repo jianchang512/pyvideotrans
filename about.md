@@ -10,15 +10,12 @@
 
 ## 如何捐助
 
-你可以向微信或支付宝二维码付款，然后备注你的github名称(如果你想展示推广信息，一定要留哦)，然后到 [推广申请页](https://github.com/jianchang512/pyvideotrans/issues/80) 留下推广信息，如果你没有在备注信息里留下用户名，而是其他内容，比如一串数字，请一并在申请信息里写明，以便核对哦
-![](./images/wx.png)
+你可以向微信或支付宝二维码付款，然后备注你的github名称
+
+<img src="./images/wx.png" width="200">
 
 
-## 捐助回馈
-在 [github仓库页面](https://github.com/jianchang512/pyvideotrans/blob/main/about.md) 、[作品推荐页](https://github.com/jianchang512/pyvideotrans/blob/main/contr.md), 以及 [文档网站](http://v.wonyes.org/contr) 可添加显示捐助者的推广信息，比如 b站频道、油管频道、公众号、某个视频播放地址、个人博客、新产品推荐页等等任意合法的有网址的东东。虽然流量不大，但聊胜于无嘛，多多少少也算是点回报。
-
-
-## 捐助者列表及作品推荐
+## 捐助者列表
 
 -  wonyes  / 2023-11-20 捐助100元 / [6年心血有情感的原创画作/www.wonyes.org](http://www.wonyes.org)
 -  莫烦Python  / 2023-11-20 捐助200元 / [莫烦python，专注深度学习，自然语言处理](https://www.youtube.com/@MorvanZhou)

@@ -96,7 +96,7 @@ class TransCreate():
         #####识别阶段 存在视频，且存在原语言字幕，如果界面无字幕，则填充
         if self.source_mp4 and os.path.exists(self.targetdir_source_sub):
             # 通知前端替换字幕
-            with open(self.targetdir_source_sub, 'r', encoding='utf-8') as f:
+            with open(self.targetdir_source_sub, 'r', encoding="utf-8") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
         # 如果存在视频，且没有已识别过的，则需要识别
         if self.source_mp4 and not os.path.exists(self.targetdir_source_sub) and not os.path.exists(
@@ -109,7 +109,7 @@ class TransCreate():
         # 如果存在视频，并且存在目标语言字幕，则前台直接使用该字幕替换
         if self.source_mp4 and os.path.exists(self.targetdir_target_sub):
             # 通知前端替换字幕
-            with open(self.targetdir_target_sub, 'r', encoding='utf-8') as f:
+            with open(self.targetdir_target_sub, 'r', encoding="utf-8") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
 
         # 是否需要翻译，如果存在视频，并且存在目标语言，并且原语言和目标语言不同，并且没有已翻译过的，则需要翻译
@@ -211,7 +211,7 @@ class TransCreate():
         '''
         # 单独提前分离出 novice.mp4
         # 要么需要嵌入字幕 要么需要配音，才需要分离
-        if not self.only_srt and self.source_mp4 and not os.path.exists(self.novoice_mp4):
+        if self.source_mp4 and not os.path.exists(self.novoice_mp4):
             ffmpegars = [
                 "-y",
                 "-i",
@@ -220,6 +220,8 @@ class TransCreate():
                 f'{self.novoice_mp4}'
             ]
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
+        else:
+            config.queue_novice[self.noextname]='end'
 
         # 如果不存在音频，则分离出音频
         if os.path.exists(self.source_mp4) and not os.path.exists(self.targetdir_source_wav):
@@ -402,6 +404,8 @@ class TransCreate():
                     raise Exception("You stop it.")
                 text = f"{text.capitalize()}. ".replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text)
+                if not text.strip():
+                    continue
                 start = timedelta(milliseconds=start_time)
 
                 stmp = str(start).split('.')
@@ -445,6 +449,7 @@ class TransCreate():
                 endTime = ms_to_time_string(ms=segment['end'])
                 text = segment['text'].strip().replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text)
+
                 # 无有效字符
                 if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text) or len(
                         text) <= 1:
