@@ -1002,7 +1002,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if target_dir:
             self.cfg['target_dir'] = target_dir
         elif self.cfg['source_mp4']:
-            self.cfg['target_dir'] = os.path.dirname(self.cfg['source_mp4']) + "/_video_out"
+            self.cfg['target_dir'] = f"{os.path.dirname(self.cfg['source_mp4'])}/_video_out".replace('//','/')
         self.target_dir.setText(self.cfg['target_dir'])
 
         # 代理

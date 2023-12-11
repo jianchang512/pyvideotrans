@@ -362,6 +362,7 @@ def runffmpegbox(arg):
     p = subprocess.run(cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            shell=True,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     if p.returncode==0:
         return True
@@ -795,7 +796,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
         if t > 30 and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4) > 0:
             return True
         if noextname not in config.queue_novice:
-            msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试"
+            msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试:{config.queue_novice=}"
             set_process(msg)
             return False
         if config.queue_novice[noextname] == 'error':
