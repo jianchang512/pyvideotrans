@@ -6,4 +6,5 @@ from .chatgpt import chatgpttrans
 from .deeplx import deeplxtrans
 from .google import googletrans
 from .tencent import tencenttrans
+from .azure import azuretrans
 from .baidu_translate_spider_api import baidutrans as baidutrans_spider

@@ -17,8 +17,7 @@ from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger, homedir
-from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, baidutrans_spider, deepltrans, \
-    deeplxtrans
+from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, baidutrans_spider, deepltrans, deeplxtrans,azuretrans
 from videotrans.util.tools import runffmpeg, set_process, delete_files, match_target_amplitude, show_popup, \
     shorten_voice, \
     ms_to_time_string, get_subtitle_from_srt, get_lastjpg_fromvideo, get_video_fps, get_video_resolution, \
@@ -485,6 +484,13 @@ class TransCreate():
                 rawsrt = chatgpttrans(rawsrt,self.obj['target_language_chatgpt'])
             except Exception as e:
                 set_process(f'使用chatGPT翻译字幕时出错:{str(e)}', 'error')
+                return False
+        elif self.obj['translate_type'] == 'Azure':
+            set_process(f"等待 Azure 返回响应", 'logs')
+            try:
+                rawsrt = azuretrans(rawsrt,self.obj['target_language_azure'])
+            except Exception as e:
+                set_process(f'使用Azure翻译字幕时出错:{str(e)}', 'error')
                 return False
         else:
             # 其他翻译，逐行翻译

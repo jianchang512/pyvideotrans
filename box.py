@@ -24,7 +24,7 @@ from videotrans.configure import config as spcfg
 from videotrans.configure.language import language_code_list, english_code_bygpt
 from videotrans.configure.config import logger, rootdir, homedir, langlist
 from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans, baidutrans_spider, \
-    chatgpttrans
+    chatgpttrans, azuretrans
 from videotrans.ui.toolbox import Ui_MainWindow
 from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, runffmpegbox as runffmpeg, \
     get_edge_rolelist, get_subtitle_from_srt, ms_to_time_string, speed_change
@@ -640,7 +640,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_target.addItems(["-"] + self.languagename)
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
-        self.fanyi_translate_type.addItems(["google", "baidu", "chatGPT", "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.fanyi_translate_type.addItems(["google", "baidu", "chatGPT", 'Azure',"tencent", "DeepL", "DeepLX", "baidu(noKey)"])
 
         self.fanyi_sourcetext = Textedit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -1159,6 +1159,8 @@ class FanyiWorker(QThread):
         if not self.issrt:
             if self.type=='chatGPT':
                 self.srts= chatgpttrans(self.text,self.target_language,set_p=False)
+            elif self.type=='Azure':
+                self.srts= azuretrans(self.text,self.target_language,set_p=False)
             elif self.type=='google':
                 self.srts= googletrans(self.text,'auto',self.target_language,set_p=False)
             elif self.type=='baidu':
@@ -1185,6 +1187,15 @@ class FanyiWorker(QThread):
                         self.srts += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 except Exception as e:
                     print(f'使用chatGPT翻译字幕时出错:{str(e)}', 'error')
+                    self.srts=str(e)
+            elif self.type == 'Azure':
+                print(f"等待 Azure 返回响应", 'logs')
+                try:
+                    rawsrt = azuretrans(rawsrt,self.target_language,set_p=False)
+                    for it in rawsrt:
+                        self.srts += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                except Exception as e:
+                    print(f'使用Azure翻译字幕时出错:{str(e)}', 'error')
                     self.srts=str(e)
             else:
                 # 其他翻译，逐行翻译

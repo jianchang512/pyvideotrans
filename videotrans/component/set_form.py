@@ -4,6 +4,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog
 
 from videotrans.configure import config
+from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
@@ -69,5 +70,11 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
-        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
-        #     self.setStyleSheet(f.read())
+
+class AzureForm(QDialog, Ui_azureform):  # <===
+    def __init__(self, parent=None):
+        super(AzureForm, self).__init__(parent)
+        self.setupUi(self)
+        self.azure_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
