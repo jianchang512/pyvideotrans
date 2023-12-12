@@ -15,7 +15,7 @@ from PyQt5.QtCore import QSettings, QUrl, Qt, QSize
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar
 import warnings
 
-from videotrans.component.set_form import InfoForm
+from videotrans.component.set_form import InfoForm, AzureForm
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, Shiting
@@ -94,7 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.clicked.connect(self.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT", "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.translate_type.addItems(["google", "baidu", "chatGPT", "Azure","tencent", "DeepL", "DeepLX", "baidu(noKey)"])
         self.translate_type.setCurrentText(self.cfg['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
@@ -159,6 +159,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
+        self.actionazure_key.triggered.connect(self.set_azure_key)
         self.actiontencent_key.triggered.connect(self.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
@@ -640,13 +641,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.baidu_miyue = self.settings.value("baidu_miyue", "")
         config.deepl_authkey = self.settings.value("deepl_authkey", "")
         config.deeplx_address = self.settings.value("deeplx_address", "")
-        config.chatgpt_api = self.settings.value("chatgpt_api", "")
-        config.chatgpt_key = self.settings.value("chatgpt_key", "")
         config.tencent_SecretId = self.settings.value("tencent_SecretId", "")
         config.tencent_SecretKey = self.settings.value("tencent_SecretKey", "")
 
-        os.environ['OPENAI_API_KEY'] = config.chatgpt_key
+        config.chatgpt_api = self.settings.value("chatgpt_api", "")
+        config.chatgpt_key = self.settings.value("chatgpt_key", "")
         config.chatgpt_model = self.settings.value("chatgpt_model", self.cfg['chatgpt_model'])
+        os.environ['OPENAI_API_KEY'] = config.chatgpt_key
+
+        config.azure_api = self.settings.value("azure_api", "")
+        config.azure_key = self.settings.value("azure_key", "")
+        config.azure_model = self.settings.value("azure_model", self.cfg['azure_model'])
+
+
         self.cfg['translate_type'] = self.settings.value("translate_type", self.cfg['translate_type'])
         self.cfg['subtitle_type'] = self.settings.value("subtitle_type", self.cfg['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
@@ -804,6 +811,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.w.show()
 
+    def set_azure_key(self):
+        def save():
+            key = self.w.azure_key.text()
+            api = self.w.azure_api.text()
+            model = self.w.azure_model.currentText()
+            template = self.w.azure_template.toPlainText()
+            self.settings.setValue("azure_key", key)
+            self.settings.setValue("azure_api", api)
+
+            self.settings.setValue("azure_model", model)
+            self.settings.setValue("azure_template", template)
+
+            config.azure_key = key
+            config.azure_api = api
+            config.azure_model = model
+            config.azure_template = template
+            self.w.close()
+
+        self.w = AzureForm()
+        if config.azure_key:
+            self.w.azure_key.setText(config.azure_key)
+        if config.azure_api:
+            self.w.azure_api.setText(config.azure_api)
+        if config.azure_model:
+            self.w.azure_model.setCurrentText(config.azure_model)
+        if config.azure_template:
+            self.w.azure_template.setPlainText(config.azure_template)
+        self.w.set_azure.clicked.connect(save)
+        self.w.show()
+
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
         try:
@@ -812,6 +849,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             if name == "chatGPT" and not config.chatgpt_key:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
+                return
+            if name == "Azure" and not config.azure_key:
+                QMessageBox.critical(self, transobj['anerror'],"必须填写Azure key")
                 return
             if name == "DeepL" and not config.deepl_authkey:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
@@ -1045,6 +1085,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.cfg['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
                 if not config.chatgpt_key:
                     QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
+                    return
+            elif self.cfg['translate_type'] == 'Azure':
+                # chatGPT 翻译
+                self.cfg['target_language_azure'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.azure_key:
+                    QMessageBox.critical(self, transobj['anerror'], '必须填写Azure key')
                     return
             elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
                 # DeepL翻译
