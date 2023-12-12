@@ -356,6 +356,10 @@ def runffmpegbox(arg):
     cmd = ["ffmpeg","-hide_banner"]
     if config.cuda:
         cmd.extend(["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"])
+        for i, it in enumerate(arg):
+            arg[i]=it.replace('scale=', 'scale_cuda=')
+            if i>0 and arg[i-1]=='-c:v':
+                arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
     cmd = cmd + arg
 
     print(f"runffmpeg: {cmd=}")
@@ -375,6 +379,11 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner"]
     if config.cuda:
         cmd.extend(["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"])
+        for i, it in enumerate(arg):
+            arg[i]=it.replace('scale=', 'scale_cuda=')
+            if i>0 and arg[i-1]=='-c:v':
+                arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
+            
     cmd = cmd + arg
 
     if noextname:

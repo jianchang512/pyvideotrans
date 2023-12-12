@@ -612,7 +612,7 @@ class TransCreate():
         totime = ms_to_time_string(ms=duration_ms).replace(',', '.')
         # 创建 totime 时长的视频
         rs = runffmpeg([
-            '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "h264_nvenc" if config.cuda else "libx264",
+            '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
             '-crf', '0', '-to', f'{totime}', '-pix_fmt', f'yuv420p', '-y', f'{last_clip}'])
         if not rs:
             return False
@@ -620,7 +620,7 @@ class TransCreate():
         shutil.copy2(self.novoice_mp4, f'{self.novoice_mp4}.raw.mp4')
         res=runffmpeg(
             ['-y', '-i', f'{self.novoice_mp4}.raw.mp4', '-i', f'{last_clip}', f'-filter_complex',
-             '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "h264_nvenc" if config.cuda else "libx264", '-crf', '0', '-an',
+             '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0', '-an',
              f'{self.novoice_mp4}'])
         try:
             os.unlink(f'{self.novoice_mp4}.raw.mp4')
@@ -871,18 +871,18 @@ class TransCreate():
                     if os.path.exists(startmp4) and os.path.exists(endmp4) and os.path.exists(clipmp4):
                         runffmpeg(
                             ['-y', '-i', f'{startmp4}', '-i', f'{clipmp4}', '-i', f'{endmp4}', '-filter_complex',
-                             '[0:v][1:v][2:v]concat=n=3:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "h264_nvenc" if config.cuda else "libx264", '-crf',
+                             '[0:v][1:v][2:v]concat=n=3:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf',
                              '0', '-an', f'{novoice_mp4_tmp}'])
                         set_process(f"3个合并")
                     elif os.path.exists(startmp4) and os.path.exists(clipmp4):
                         runffmpeg([
                             '-y', '-i', f'{startmp4}', '-i', f'{clipmp4}', '-filter_complex',
-                            '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "h264_nvenc" if config.cuda else "libx264", '-crf', '0',
+                            '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0',
                             '-an', f'{novoice_mp4_tmp}'])
                         set_process(f"startmp4 和 clipmp4 合并")
                     elif os.path.exists(endmp4) and os.path.exists(clipmp4):
                         runffmpeg(['-y', '-i', f'{clipmp4}', '-i', f'{endmp4}', f'-filter_complex',
-                                   f'[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "h264_nvenc" if config.cuda else "libx264",
+                                   f'[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264",
                                    '-crf', '0', '-an', f'{novoice_mp4_tmp}'])
                         set_process(f"endmp4 和 clipmp4 合并")
                     cut_clip += 1
@@ -1126,7 +1126,7 @@ class TransCreate():
                     "-i",
                     os.path.normpath(self.targetdir_target_wav),
                     "-c:v",
-                    "h264_nvenc" if config.cuda else "libx264",
+                    "libx264",
                     # "libx264",
                     "-c:a",
                     "aac",
@@ -1152,7 +1152,7 @@ class TransCreate():
                     "-i",
                     os.path.normpath(self.targetdir_target_sub),
                     "-c:v",
-                    "h264_nvenc" if config.cuda else "libx264",
+                    "libx264",
                     # "libx264",
                     "-c:a",
                     "aac",
@@ -1173,7 +1173,7 @@ class TransCreate():
                 "-i",
                 os.path.normpath(self.targetdir_target_wav),
                 "-c:v",
-                "h264_nvenc" if config.cuda else "copy",
+                "copy",
                 # "libx264",
                 "-c:a",
                 "aac",
@@ -1192,7 +1192,7 @@ class TransCreate():
                 "-i",
                 os.path.normpath(self.targetdir_source_wav),
                 "-c:v",
-                "h264_nvenc" if config.cuda else "libx264",
+                "libx264",
                 # "libx264",
                 "-c:a",
                 "aac",
@@ -1218,7 +1218,7 @@ class TransCreate():
                 "-i",
                 os.path.normpath(self.targetdir_target_sub),
                 "-c:v",
-                "h264_nvenc" if config.cuda else "libx264",
+                "libx264",
                 "-c:a",
                 "aac",
                 # "libx264",
