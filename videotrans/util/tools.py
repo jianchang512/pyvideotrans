@@ -790,11 +790,16 @@ def is_novoice_mp4(novoice_mp4, noextname):
     t = 0
     if noextname not in config.queue_novice and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4)>0:
         return True
+    last_size=0
     while True:
         if config.current_status != 'ing':
             return False
-        if t > 30 and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4) > 0:
-            return True
+        if os.path.exists(novoice_mp4):
+            current_size=os.path.getsize(novoice_mp4)
+            if last_size>0 and current_size==last_size and t>300:
+                return True
+            last_size=current_size
+            
         if noextname not in config.queue_novice:
             msg = f"抱歉，视频{noextname} 预处理 novoice 失败,请重试:{config.queue_novice=}"
             set_process(msg)
@@ -805,7 +810,8 @@ def is_novoice_mp4(novoice_mp4, noextname):
             return False
 
         if config.queue_novice[noextname] == 'ing':
-            set_process(f"{noextname} 所需资源未准备完毕，请稍等..")
+            size= f'{round(last_size/1024/1024, 2)}MB' if last_size>0 else ""
+            set_process(f"{noextname} 所需资源未准备完毕，请稍等.. {size}")
             time.sleep(3)
             t += 3
             continue
