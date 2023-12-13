@@ -1,4 +1,4 @@
-[English](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑捐助该项目-捐助者列表](./about.md) / [加入Discord讨论](https://discord.gg/evkPeKJddD)
+[English](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑捐助该项目-捐助者列表](./about.md) / [加入Discord讨论](https://discord.gg/TMCM2PfHzQ)
 
 ## 视频翻译和配音工具
 
