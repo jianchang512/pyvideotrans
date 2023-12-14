@@ -223,7 +223,10 @@ class TransCreate():
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
         else:
             config.queue_novice[self.noextname]='end'
-
+        # 如果原语言和目标语言一样，则不分离
+        if self.obj['source_language'] == self.obj['target_language']:
+            return True
+        
         # 如果不存在音频，则分离出音频
         if os.path.exists(self.source_mp4) and not os.path.exists(self.targetdir_source_wav):
             set_process(f"{self.noextname} 分析视频数据", "logs")
@@ -1119,7 +1122,9 @@ class TransCreate():
                 subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(subtitles.strip())
-            hard_srt = self.targetdir_target_sub.replace('\\', '/').replace(':', '\\\\:')
+            shutil.copy2(self.targetdir_target_sub,config.rootdir+"/tmp.srt")
+            hard_srt="tmp.srt"
+            # hard_srt = self.targetdir_target_sub.replace('\\', '/').replace(':', '\\\\:')
         # 有字幕有配音
         if self.obj['voice_role'] != 'No' and self.obj['subtitle_type'] > 0:
             if self.obj['subtitle_type'] == 1:
@@ -1235,4 +1240,9 @@ class TransCreate():
                 # "-shortest",
                 os.path.normpath(self.targetdir_mp4)
             ])
+        try:
+            if os.path.exists(config.rootdir+"/tmp.srt"):
+                os.unlink(config.rootdir+"/tmp.srt")
+        except:
+            pass
         return True

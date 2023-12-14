@@ -353,11 +353,11 @@ def speed_change(sound, speed=1.0):
 
 
 def runffmpegbox(arg):
-    cmd = ["ffmpeg","-hide_banner"]
+    cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.cuda:
-        cmd.extend(["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"])
+        cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
         for i, it in enumerate(arg):
-            arg[i]=it.replace('scale=', 'scale_cuda=')
+            #arg[i]=it.replace('scale=', 'scale_cuda=')
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
     cmd = cmd + arg
@@ -376,11 +376,11 @@ def runffmpegbox(arg):
 
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True):
-    cmd = ["ffmpeg","-hide_banner"]
+    cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.cuda:
-        cmd.extend(["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"])
+        cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
         for i, it in enumerate(arg):
-            arg[i]=it.replace('scale=', 'scale_cuda=')
+            #arg[i]=it.replace('scale=', 'scale_cuda=')
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             
@@ -399,6 +399,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         else:
             config.queue_novice[noextname] = "error"
             set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{errs=}")
+            if config.cuda and re.search(r'Driver\s*does\*not\*support', errs, re.I):
+                set_process("[error]请升级显卡驱动并安装最新版CUDA")
             return False
     while True:
         try:
