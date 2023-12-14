@@ -10,7 +10,7 @@
 >
 > 语音识别基于 `openai-whisper` 离线模型.
 >
-> 文字翻译支持 `google|baidu|tencent|chatGPT|DeepL|DeepLX` ，
+> 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX` ，
 >
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1`.
 >
