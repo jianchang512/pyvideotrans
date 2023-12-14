@@ -1184,7 +1184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, transobj['anerror'], '视频和字幕不能同时都不存在哦！')
 
         # tts类型
-        if self.cfg['tts_type'] == 'openaiTTS' and not self.cfg['chatgpt_key']:
+        if self.cfg['tts_type'] == 'openaiTTS' and not config.chatgpt_key:
             QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
             return
         # 如果没有选择目标语言，但是选择了配音角色，无法配音

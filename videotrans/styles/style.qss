@@ -1,48 +1,117 @@
-QToolBar QToolButton {
-  background-color: #32414B;
-  height:35px;
-  margin-bottom:5px;
-  margin-top:5px;
-  margin-left:2px;
-  margin-right:2px;
-}
-QToolBar QToolButton:hover {
-  border: 1px solid #148CD2;
+/* Set the main window background color and text color */
+QMainWindow {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
 }
 
-QToolBar QToolButton:checked {
-  background-color: #19232D;
-  border: 1px solid #148CD2;
+/* Set the background color and text color for all widgets */
+* {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
 }
 
-QToolBar QToolButton:checked:hover {
-border: 1px solid #339933;
-}
-QLabel{
-    color: #bbbbbb;
-}
-QLabel#show_tips{
-    color:#bbbbbb
-}
-QLineEdit:hover,QComboBox:hover{
-    border-color: #148cd2;
+/* Set the background color and text color for buttons */
+QPushButton {
+    background-color: #61afef;
+    border: 1px solid #61afef;
+    color: #d4d4d4;
+    padding: 6px 12px;
 }
 
-QLineEdit[readOnly="true"],QLineEdit[readOnly="true"]:hover {
-    background-color: transparent;  /* 灰色背景 */
-    border-color: transparent;  /* 灰色背景 */
-}
-QLineEdit,QComboBox{
-    background-color: #161E26;
-    border-color: #32414B;
+QPushButton:hover {
+    background-color: #72c1f2;
+    border: 1px solid #72c1f2;
 }
 
-QLineEdit:disabled {
-    background-color: transparent;  /* 灰色背景 */
-    border-color: transparent;  /* 灰色背景 */
+QPushButton:pressed {
+    background-color: #5294e2;
+    border: 1px solid #5294e2;
 }
 
-QComboBox:disabled{
-    background-color: transparent;  /* 灰色背景 */
-    border-color: #273442;  /* 灰色背景 */
+/* Set the background color and text color for line edits */
+QLineEdit {
+    background-color: #333842;
+    color: #d4d4d4;
+    selection-background-color: #61afef;
+}
+
+/* Set the background color and text color for combo boxes */
+QComboBox {
+    color: #d4d4d4;
+    background: #333842;
+}
+
+QComboBox:editable {
+    selection-color: #d4d4d4;
+    selection-background-color: #2d2d30;
+}
+
+QComboBox QAbstractItemView {
+    selection-color: #2d2d30;
+    selection-background-color: #61afef;
+}
+
+/* Set the background color and text color for check boxes and radio buttons */
+QCheckBox, QRadioButton {
+    color: #d4d4d4;
+}
+
+QCheckBox:hover, QRadioButton:hover {
+    border: 1px solid #4d4d4d;
+    background-color: rgba(77, 77, 77, 50);
+}
+
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    border: 1px solid #61afef;
+    background-color: #61afef;
+}
+
+QCheckBox::indicator:unchecked, QRadioButton::indicator:unchecked {
+    border: 1px solid #4d4d4d;
+    background-color: #1e1e1e;
+}
+
+/* Set the background color and text color for scroll bars */
+QScrollBar:vertical, QScrollBar:horizontal {
+    background-color: #1e1e1e;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background-color: #2d2d30;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background-color: #1e1e1e;
+    border: 1px solid #1e1e1e;
+}
+
+QScrollBar::add-line:vertical:hover, QScrollBar::sub-line:vertical:hover, QScrollBar::add-line:horizontal:hover, QScrollBar::sub-line:horizontal:hover {
+    background-color: #252525;
+}
+
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+    background-color: #3e4452;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical, QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+/* Set the background color and text color for progress bars */
+QProgressBar {
+    text-align: center;
+    color: #d4d4d4;
+    border: 1px inset #606060;
+    border-radius: 10px;
+    background-color: #333842;
+}
+
+QProgressBar::chunk:horizontal {
+    background-color: #61afef;
+    border: 1px solid;
+    border-radius: 8px;
+    border-bottom-color: #236491;
+    border-top-color: #236491;
+    border-right-color: #236491;
+    border-left-color: #236491;
 }
