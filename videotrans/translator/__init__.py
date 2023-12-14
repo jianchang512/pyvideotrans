@@ -7,4 +7,5 @@ from .deeplx import deeplxtrans
 from .google import googletrans
 from .tencent import tencenttrans
 from .azure import azuretrans
+from .gemini import geminitrans
 from .baidu_translate_spider_api import baidutrans as baidutrans_spider

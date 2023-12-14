@@ -255,7 +255,11 @@ def get_edge_rolelist():
                 return voice_list
         except:
             pass
-    v = asyncio.run(edge_tts.list_voices())
+    try:
+        v = asyncio.run(edge_tts.list_voices())
+    except Exception as e:
+        logger.error('获取edgeTTS角色失败'+str(e))
+        print('获取edgeTTS角色失败'+str(e))
     for it in v:
         name = it['ShortName']
         prefix = name.split('-')[0].lower()
