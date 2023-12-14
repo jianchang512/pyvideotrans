@@ -15,7 +15,7 @@ from PyQt5.QtCore import QSettings, QUrl, Qt, QSize
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar
 import warnings
 
-from videotrans.component.set_form import InfoForm, AzureForm
+from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, Shiting
@@ -94,7 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.clicked.connect(self.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT", "Azure","tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.translate_type.addItems(["google", "baidu", "chatGPT", "Azure",'Gemini',"tencent", "DeepL", "DeepLX", "baidu(noKey)"])
         self.translate_type.setCurrentText(self.cfg['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
@@ -160,6 +160,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
         self.actionazure_key.triggered.connect(self.set_azure_key)
+        self.actiongemini_key.triggered.connect(self.set_gemini_key)
         self.actiontencent_key.triggered.connect(self.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
@@ -649,6 +650,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.chatgpt_model = self.settings.value("chatgpt_model", self.cfg['chatgpt_model'])
         os.environ['OPENAI_API_KEY'] = config.chatgpt_key
 
+        config.gemini_key = self.settings.value("gemini_key", "")
+
         config.azure_api = self.settings.value("azure_api", "")
         config.azure_key = self.settings.value("azure_key", "")
         config.azure_model = self.settings.value("azure_model", self.cfg['azure_model'])
@@ -809,6 +812,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.chatgpt_template:
             self.w.chatgpt_template.setPlainText(config.chatgpt_template)
         self.w.set_chatgpt.clicked.connect(save_chatgpt)
+        self.w.show()
+
+    def set_gemini_key(self):
+        def save():
+            key = self.w.gemini_key.text()
+            template = self.w.gemini_template.toPlainText()
+            self.settings.setValue("gemini_key", key)
+            self.settings.setValue("gemini_template", template)
+
+            os.environ['GOOGLE_API_KEY'] = key
+            config.gemini_key = key
+            config.gemini_template = template
+            self.w.close()
+
+        self.w = GeminiForm()
+        if config.gemini_key:
+            self.w.gemini_key.setText(config.gemini_key)
+        if config.gemini_template:
+            self.w.gemini_template.setPlainText(config.gemini_template)
+        self.w.set_gemini.clicked.connect(save)
         self.w.show()
 
     def set_azure_key(self):
@@ -1092,6 +1115,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if not config.azure_key:
                     QMessageBox.critical(self, transobj['anerror'], '必须填写Azure key')
                     return
+            elif self.cfg['translate_type'] == 'Gemini':
+                # chatGPT 翻译
+                self.cfg['target_language_gemini'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.gemini_key:
+                    QMessageBox.critical(self, transobj['anerror'], '必须填写google Gemini key')
+                    return
             elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
                 # DeepL翻译
                 if self.cfg['translate_type'] == 'DeepL' and not config.deepl_authkey:
@@ -1359,11 +1388,10 @@ if __name__ == "__main__":
         QMessageBox.critical(main, transobj['anerror'], transobj['createdirerror'])
 
     # or in new API
-    with open(f'{config.rootdir}/videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
-        main.setStyleSheet(f.read())
     try:
+        with open(f'{config.rootdir}/videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
+            main.setStyleSheet(f.read())
         import qdarkstyle
-
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     except:
         pass

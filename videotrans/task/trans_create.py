@@ -17,13 +17,11 @@ from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger, homedir
-from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, baidutrans_spider, deepltrans, deeplxtrans,azuretrans
+from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, baidutrans_spider, deepltrans, deeplxtrans,azuretrans,geminitrans
 from videotrans.util.tools import runffmpeg, set_process, delete_files, match_target_amplitude, show_popup, \
     shorten_voice, \
     ms_to_time_string, get_subtitle_from_srt, get_lastjpg_fromvideo, get_video_fps, get_video_resolution, \
     is_novoice_mp4, cut_from_video, get_video_duration, text_to_speech, speed_change, delete_temp
-
-from moviepy.editor import VideoFileClip
 
 
 class TransCreate():
@@ -494,6 +492,13 @@ class TransCreate():
                 rawsrt = azuretrans(rawsrt,self.obj['target_language_azure'])
             except Exception as e:
                 set_process(f'使用Azure翻译字幕时出错:{str(e)}', 'error')
+                return False
+        elif self.obj['translate_type']=='Gemini':
+            set_process(f"等待 Gemini 返回响应", 'logs')
+            try:
+                rawsrt = geminitrans(rawsrt,self.obj['target_language_gemini'])
+            except Exception as e:
+                set_process(f'使用Gemini翻译字幕时出错:{str(e)}', 'error')
                 return False
         else:
             # 其他翻译，逐行翻译

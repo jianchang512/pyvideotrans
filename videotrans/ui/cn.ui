@@ -866,6 +866,8 @@ background-color: rgba(255, 255, 255, 0);</string>
     <addaction name="separator"/>
     <addaction name="actionazure_key"/>
     <addaction name="separator"/>
+    <addaction name="actiongemini_key"/>
+    <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
     <addaction name="separator"/>
     <addaction name="actiondeepLX_address"/>
@@ -1143,6 +1145,11 @@ background-color: rgba(255, 255, 255, 0);</string>
   <action name="actionazure_key">
    <property name="text">
     <string>Azure AI</string>
+   </property>
+  </action>
+  <action name="actiongemini_key">
+   <property name="text">
+    <string>Gemini Pro</string>
    </property>
   </action>
  </widget>

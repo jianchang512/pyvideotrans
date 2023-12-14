@@ -9,6 +9,7 @@ from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.tencent import Ui_tencentform
 
@@ -68,6 +69,12 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         super(ChatgptForm, self).__init__(parent)
         self.setupUi(self)
         self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
+class GeminiForm(QDialog, Ui_geminiform):  # <===
+    def __init__(self, parent=None):
+        super(GeminiForm, self).__init__(parent)
+        self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 
