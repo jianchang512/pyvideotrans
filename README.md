@@ -56,7 +56,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
 3. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
 
-4. 选择翻译：可选 google、baidu、chatGPT、DeepL、DeepLX、tencent 翻译渠道
+4. 选择翻译：可选 google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX 翻译渠道
 
 5. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 
