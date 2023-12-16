@@ -63,7 +63,7 @@ class Shiting(QThread):
                  role=config.voice_role,
                  rate= rate,
                  filename=filename,
-                 tts_type= config.tts_type
+                 tts_type= self.obj['tts_type']
             )
             audio_data = AudioSegment.from_file(filename, format="mp3")
             mp3len = len(audio_data)
