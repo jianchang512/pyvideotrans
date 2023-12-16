@@ -50,21 +50,26 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 model=config.chatgpt_model,
                 messages=messages
             )
-            if "choices" in response:
-                return response['choices'][0]['message']['content'].strip()
+            
             try:
                 if response.choices:
-                    return response.choices[0]['message']['content'].strip()
+                    try:
+                        return response.choices[0].message.content.strip()
+                    except:
+                        return response.choices[0]['message']['content'].strip()
             except Exception as e:
                 print(e)
             try:
                 if response.data and response.data['choices']:
-                    return response.data['choices'][0]['message']['content'].strip()
+                    try:
+                        return response.data['choices'][0].message.content.strip()
+                    except:
+                        return response.data['choices'][0]['message']['content'].strip()
             except Exception as e:
                 print(str(e))
         except Exception as e:
             error = str(e)
-            return (f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :{error}")
+            return (f"【chatGPT Error-2.5】翻译失败:openaiAPI={api_url} :{error}")
         return f"翻译失败:{response=}"
 
 
@@ -107,17 +112,13 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
             vail_data=None
             # 返回可能多种形式，openai和第三方
 
+            
+            
             try:
-                if "choices" in response:
-                    vail_data=response['choices']
+                if response.choices:
+                    vail_data=response.choices
             except Exception as e:
                 error+=str(e)
-            if not vail_data:
-                try:
-                    if response.choices:
-                        vail_data=response.choices
-                except Exception as e:
-                    error+=str(e)
             if not vail_data:
                 try:
                     if response.data  and  'choices' in response.data:
@@ -133,7 +134,10 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 except:
                     pass
             if vail_data:
-                result = vail_data[0]['message']['content'].strip()
+                try:
+                    result = vail_data[0].message.content.strip()
+                except:
+                    result = vail_data[0]['message']['content'].strip()
                 # 如果返回的是合法js字符串，则解析为json，否则以\n解析
                 if result.startswith('[') and result.endswith(']'):
                     try:

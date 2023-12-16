@@ -968,7 +968,7 @@ class TransCreate():
 
         def get_item(q):
             return {"text": q['text'], "role": config.voice_role, "rate": config.voice_rate, "filename": q["filename"],
-                    "tts_type": config.tts_type}
+                    "tts_type": self.obj['tts_type']}
 
         # 需要并行的数量3
         while len(queue_tts) > 0:
