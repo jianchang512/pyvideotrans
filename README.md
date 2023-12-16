@@ -1,8 +1,6 @@
 [English](./README_ENG.md) / [文档](https://v.wonyes.org/preview.html) /  [👑捐助该项目-捐助者列表](./about.md) / [加入Discord讨论](https://discord.gg/TMCM2PfHzQ) / QQ群 902124277
 ## 视频翻译和配音工具
-
-
-
+[预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
@@ -45,7 +43,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
 
 
-## 使用预编译版本方法
+## 使用预编译exe版本方法
+[exe版下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
 0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
 
