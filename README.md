@@ -48,7 +48,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
 0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
 
-1. 从 release 中下载最新版，解压，双击 sp.exe
+1. [从 release 中下载最新版](https://github.com/jianchang512/pyvideotrans/releases)，解压，双击 sp.exe
 
 2. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
