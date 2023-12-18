@@ -24,5 +24,6 @@
 - DIY show Crochet  / 2023-11-21 捐助100元 / [Diy 作品](https://www.youtube.com/@DIYshoww)
 - yuppieszh / 2023-12-01 捐助10元 / github用户yuppieszh
 - 微信用户9*9 / 2023-12-02 捐助10元
+- [喵の左爪 / 2023-12.18 捐助5元](https://space.bilibili.com/19225866)
  
 
