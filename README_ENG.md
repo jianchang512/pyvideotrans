@@ -173,12 +173,10 @@ If the installation is correct, the precompiled version can now be used with CUD
 
 ## Software Preview Screenshots
 
-![](./images/p1.png?b)
-![](./images/p2.png?b)
-![](./images/p3.png?b)
-![](./images/p4.png?b)
-![](./images/p5.png?b)
-![](./images/p6.png?b)
+![](./images/pen1.png?c)
+![](./images/pen2.png?c)
+![](./images/pen3.png?c)
+![](./images/pen4.png?c)
 
 ## Comparison of Videos Before and After
 
