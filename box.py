@@ -29,6 +29,7 @@ from videotrans.ui.toolbox import Ui_MainWindow
 from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, runffmpegbox as runffmpeg, \
     get_edge_rolelist, get_subtitle_from_srt, ms_to_time_string, speed_change
 
+from videotrans.configure.config import transobj
 if spcfg.is_vlc:
     try:
         import vlc
@@ -37,6 +38,10 @@ if spcfg.is_vlc:
         class vlc():
             pass
 
+if config.defaulelang == "zh":
+    from videotrans.ui.toolbox import Ui_MainWindow
+else:
+    from videotrans.ui.toolboxen import Ui_MainWindow
 
 class DropButton(QPushButton):
     def __init__(self, text=""):
@@ -45,7 +50,7 @@ class DropButton(QPushButton):
         self.clicked.connect(self.get_file)
 
     def get_file(self):
-        fname, _ = QFileDialog.getOpenFileName(self, "选择音视频文件", os.path.expanduser('~') + "\\Videos",
+        fname, _ = QFileDialog.getOpenFileName(self, transobj['xuanzeyinpinwenjian'], os.path.expanduser('~') + "\\Videos",
                                                filter="Video/Audio files(*.mp4 *.avi *.mov *.wav *.mp3 *.flac)")
         if fname:
             self.setText(fname)
@@ -138,7 +143,7 @@ class Player(QtWidgets.QWidget):
         self.setLayout(layout)
 
         self.videoframe = QtWidgets.QFrame()
-        self.videoframe.setToolTip("拖动视频到此或者双击选择视频" + (",安装VLC解码器后可预览播放" if not spcfg.is_vlc else ""))
+        self.videoframe.setToolTip(transobj['vlctips'] + (transobj['vlctips2'] if not spcfg.is_vlc else ""))
         self.palette = self.videoframe.palette()
         self.palette.setColor(QtGui.QPalette.Window,
                               QtGui.QColor(0, 0, 0))
@@ -146,15 +151,15 @@ class Player(QtWidgets.QWidget):
         self.videoframe.setAutoFillBackground(True)
 
         self.positionslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-        self.positionslider.setToolTip("进度")
+        # self.positionslider.setToolTip("")
         self.positionslider.setMaximum(1000)
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
-        self.playbutton = QtWidgets.QPushButton("点击播放" if spcfg.is_vlc else "安装VLC解码器后可预览播放")
+        self.playbutton = QtWidgets.QPushButton("Play" if spcfg.is_vlc else "No VLC")
         self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);""")
         self.hbuttonbox.addWidget(self.playbutton)
 
-        self.selectbutton = QtWidgets.QPushButton("选择一个视频")
+        self.selectbutton = QtWidgets.QPushButton(transobj['selectmp4'])
         self.selectbutton.setStyleSheet("""background-color:rgb(50,50,50);""")
         self.hbuttonbox.addWidget(self.selectbutton)
         self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
@@ -170,7 +175,7 @@ class Player(QtWidgets.QWidget):
         self.hbuttonbox.addStretch(1)
         self.volumeslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
         self.volumeslider.setMaximum(100)
-        self.volumeslider.setToolTip("调节音量")
+        # self.volumeslider.setToolTip("调节音量")
         self.hbuttonbox.addWidget(self.volumeslider)
         if spcfg.is_vlc:
             self.volumeslider.valueChanged.connect(self.setVolume)
@@ -188,7 +193,7 @@ class Player(QtWidgets.QWidget):
             self.timer.timeout.connect(self.updateUI)
 
     def mouseDoubleClickEvent(self, e=None):
-        fname, _ = QFileDialog.getOpenFileName(self, "打开视频文件", os.path.expanduser('~') + "\\Videos",
+        fname, _ = QFileDialog.getOpenFileName(self, transobj['selectmp4'], os.path.expanduser('~') + "\\Videos",
                                                "Video files(*.mp4 *.avi *.mov)")
         if fname:
             self.OpenFile(fname)
@@ -213,7 +218,7 @@ class Player(QtWidgets.QWidget):
             return self.mouseDoubleClickEvent()
         if self.mediaplayer.get_state() == vlc.State.Playing:
             self.mediaplayer.pause()
-            self.playbutton.setText("播放")
+            self.playbutton.setText("Play")
         else:
             if self.mediaplayer.play() == -1:
                 time.sleep(0.2)
@@ -221,7 +226,7 @@ class Player(QtWidgets.QWidget):
 
             self.timer.start()
             self.mediaplayer.play()
-            self.playbutton.setText("暂停")
+            self.playbutton.setText("Pause")
 
     def OpenFile(self, filepath=None):
         if filepath is not None:
@@ -258,7 +263,7 @@ class Player(QtWidgets.QWidget):
         if self.mediaplayer.get_state() == vlc.State.Ended:
             self.setPosition(0.0)
             self.positionslider.setValue(0)
-            self.playbutton.setText("播放")
+            self.playbutton.setText("Play")
             print("播放完毕停止了")
             self.timer.stop()
             self.mediaplayer.stop()
@@ -284,7 +289,7 @@ class Worker(QThread):
             except Exception as e:
                 logger.error("FFmepg exec error:" + str(e))
                 return f'[error]{str(e)}'
-        self.post_message("end", "完成\n")
+        self.post_message("end", "End\n")
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
@@ -345,12 +350,12 @@ class WorkerTTS(QThread):
                 q=self.before_tts()
             except Exception as e:
                 print(e)
-                self.post_message('end',f'字幕配音前处理失败:{str(e)}')
+                self.post_message('end',f'before dubbing error:{str(e)}')
                 return
             try:
                 self.exec_tts(q)
             except Exception as e:
-                self.post_message('end',f'字幕配音失败:{str(e)}')
+                self.post_message('end',f'srt create dubbing error:{str(e)}')
                 return
         else:
             mp3 = self.filename.replace('.wav', '.mp3')
@@ -370,7 +375,7 @@ class WorkerTTS(QThread):
                 f'{self.filename}',
             ])
             os.unlink(mp3)
-        self.post_message("end", "处理结束")
+        self.post_message("end", "Ended")
     # 配音预处理，去掉无效字符，整理开始时间
     def before_tts(self):
         # 所有临时文件均产生在 tmp/无后缀mp4名文件夹
@@ -421,7 +426,7 @@ class WorkerTTS(QThread):
                 for t in tolist:
                     t.join()
             except Exception as e:
-                self.post_message('end',f'[error]语音识别出错了:{str(e)}')
+                self.post_message('end',f'[error]regcon error:{str(e)}')
                 return False
         segments = []
         start_times = []
@@ -490,7 +495,7 @@ class WorkerTTS(QThread):
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:
-            self.post_message('end',f"[error] exec_tts 合成语音有出错:" + str(e))
+            self.post_message('end',f"[error] exec_tts :" + str(e))
             return False
         return True
 
@@ -533,7 +538,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
-        self.setWindowTitle(f"视频工具箱 {VERSION}")
+        self.setWindowTitle(f"Video Toolbox {VERSION}")
 
     def closeEvent(self, event):
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
@@ -569,7 +574,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ysphb_opendir.clicked.connect(lambda: self.opendir_fn(os.path.dirname(self.ysphb_out.text())))
 
         # tab-3 语音识别 先添加按钮
-        self.shibie_dropbtn = DropButton("点击选择或拖拽音频、视频文件到此处")
+        self.shibie_dropbtn = DropButton(transobj['xuanzeyinshipin'])
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -578,7 +583,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-        self.langauge_name = list(language_code_list["zh"].keys())
+        self.langauge_name = list(langlist.keys()) #list(language_code_list["zh"].keys())
         self.shibie_language.addItems(self.langauge_name)
         self.shibie_model.addItems(["base", "small", "medium", "large", "large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
@@ -614,7 +619,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_input.setMinimumSize(300, 0)
 
 
-        self.geshi_input.setPlaceholderText("拖动要转换的文件到此处松开")
+        self.geshi_input.setPlaceholderText(transobj['tuodongdaoci'])
         self.geshi_input.setReadOnly(True)
         self.geshi_layout.insertWidget(0, self.geshi_input)
         self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
@@ -650,17 +655,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_sourcetext.setSizePolicy(sizePolicy)
         self.fanyi_sourcetext.setMinimumSize(300, 0)
 
-        self.fanyi_sourcetext.setPlaceholderText("拖动要翻译的文本文件或srt文件到此处松开")
+        self.fanyi_sourcetext.setPlaceholderText(transobj['tuodongfanyi'])
 
         self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
 
 
-        self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
+        # self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
 
     # 获取wav件
     def hun_get_file(self,name='file1'):
-        fname, _ = QFileDialog.getOpenFileName(self, "选择文件", os.path.expanduser('~'),
+        fname, _ = QFileDialog.getOpenFileName(self, "Select wav", os.path.expanduser('~'),
                                                  "Audio files(*.wav)")
         if fname:
             if name=='file1':
@@ -669,7 +674,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.hun_file2.setText(fname.replace('file:///','').replace('\\','/'))
     # 文本翻译，导入文本文件
     def fanyi_import_fun(self):
-        fname, _ = QFileDialog.getOpenFileName(self, "选择文本或srt文件", os.path.expanduser('~'),
+        fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
                                                  "Text files(*.srt *.txt)")
         if fname:
             with open(fname.replace('file:///',''),'r',encoding='utf-8') as f:
@@ -703,10 +708,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # fun_name 方法名，type类型，text具体文本
         if data['func_name'] == "yspfl_end":
             # 音视频分离完成了
-            self.yspfl_startbtn.setText("执行完成" if data['type'] == "end" else "执行出错")
+            self.yspfl_startbtn.setText(transobj["zhixingwc"] if data['type'] == "end" else transobj["zhixinger"])
             self.yspfl_startbtn.setDisabled(False)
         elif data['func_name'] == 'ysphb_end':
-            self.ysphb_startbtn.setText("执行完成" if data['type'] == "end" else "执行出错")
+            self.ysphb_startbtn.setText(transobj["zhixingwc"] if data['type'] == "end" else transobj["zhixinger"])
             self.ysphb_startbtn.setDisabled(False)
             self.ysphb_opendir.setDisabled(False)
             if data['type'] == 'end':
@@ -720,33 +725,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 识别执行完成
             self.disabled_shibie(False)
             if data['type'] == 'end':
-                self.shibie_startbtn.setText("执行完成")
+                self.shibie_startbtn.setText(transobj["zhixingwc"])
                 self.shibie_text.insertPlainText(data['text'])
             else:
-                self.shibie_startbtn.setText("执行出错")
+                self.shibie_startbtn.setText(transobj["zhixinger"])
         elif data['func_name'] == 'hecheng_end':
-            self.hecheng_startbtn.setText("执行完成" if data['type'] == 'end' else "执行出错")
+            self.hecheng_startbtn.setText(transobj["zhixingwc"] if data['type'] == 'end' else transobj["zhixinger"])
             self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
             boxcfg.geshi_num -= 1
             self.geshi_result.insertPlainText(data['text'])
             if boxcfg.geshi_num <= 0:
                 self.disabled_geshi(False)
-                self.geshi_result.insertPlainText("全部转换完成")
+                self.geshi_result.insertPlainText(transobj["zhixingwc"])
                 self.geshi_input.clear()
         elif data['func_name']=='hun_end':
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
         elif data['func_name']=='fanyi_end':
             self.fanyi_start.setDisabled(False)
-            self.fanyi_start.setText("立即翻译>")
+            self.fanyi_start.setText(transobj['starttrans'])
             self.fanyi_targettext.setPlainText(data['text'])
 
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
         if not self.yspfl_video_wrap.filepath:
-            return QMessageBox.critical(self, "出错了", "必须选择视频文件")
+            return QMessageBox.critical(self, transobj['anerror'], "必须选择视频文件")
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
         video_out = f"{homedir}/{basename}"
@@ -801,13 +806,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         wavfile = self.ysphb_wavinput.text()
 
         if not videofile or not os.path.exists(videofile):
-            QMessageBox.critical(self, "出错了", "必须选择视频")
+            QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
             return
         if not wavfile and not srtfile:
-            QMessageBox.critical(self, "出错了", "音频和字幕至少要选择一个")
+            QMessageBox.critical(self, transobj['anerror'],transobj['yinpinhezimu'])
             return
         if not os.path.exists(wavfile) and not os.path.exists(srtfile):
-            QMessageBox.critical(self, "出错了", "音频和字幕至少要选择一个")
+            QMessageBox.critical(self, transobj['anerror'], transobj["yinpinhezimu"])
             return
 
         savedir = f"{homedir}/hebing-{basename}"
@@ -837,7 +842,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
         
-        self.ysphb_startbtn.setText("执行中...")
+        self.ysphb_startbtn.setText(transobj["running"])
         self.ysphb_startbtn.setDisabled(True)
         self.ysphb_out.setText(f"{savedir}/{basename}.mp4")
         self.ysphb_opendir.setDisabled(True)
@@ -846,12 +851,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
         if not os.path.exists(rootdir + f"/models/{model}.pt"):
-            return QMessageBox.critical(self, "出错了", "所选模型不存在，请先去下载后放在 /models 目录下")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['modellost'])
         file = self.shibie_dropbtn.text()
         if not file or not os.path.exists(file):
-            return QMessageBox.critical(self, "出错了", "必须选择有效的音视频文件")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bixuyinshipin'])
         basename = os.path.basename(file)
-        self.shibie_startbtn.setText("执行中...")
+        self.shibie_startbtn.setText(transobj["running"])
         self.disabled_shibie(True)
         self.shibie_text.clear()
 
@@ -871,7 +876,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 logger.error("执行语音识别前，先从视频中分离出音频失败：" + str(e))
                 self.shibie_startbtn.setText("执行")
                 self.disabled_shibie(False)
-                QMessageBox.critical(self, "失败了", str(e))
+                QMessageBox.critical(self, transobj['anerror'], str(e))
         else:
             # 是音频，直接执行
             self.shibie_start_next_fun()
@@ -880,7 +885,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def shibie_start_next_fun(self):
         file = self.shibie_dropbtn.text()
         if not os.path.exists(file):
-            return QMessageBox.critical(self, "出错了", "识别前预处理失败，请确认视频中是否含有音频数据")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['chakanerror'])
         model = self.shibie_model.currentText()
         self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0], "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
@@ -889,9 +894,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def shibie_save_fun(self):
         srttxt = self.shibie_text.toPlainText().strip()
         if not srttxt:
-            return QMessageBox.critical(self, "出错了", "字幕内容为空")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['srtisempty'])
         dialog = QFileDialog()
-        dialog.setWindowTitle("选择保存字幕文件到..")
+        dialog.setWindowTitle(transobj['savesrtto'])
         dialog.setNameFilters(["subtitle files (*.srt)"])
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         dialog.exec_()
@@ -919,13 +924,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         if not txt:
-            return QMessageBox.critical(self, "出错了", "内容不能为空")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['neirongweikong'])
         if language == '-' or role == 'No':
-            return QMessageBox.critical(self, "出错了", "语言和角色必须选择")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['yuyanjuesebixuan'])
         if tts_type == 'openaiTTS' and not spcfg.video['chatgpt_key']:
-            return QMessageBox.critical(self, "出错了", "必须设置chatGPT key")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+"chatGPT key")
         elif tts_type == 'coquiTTS' and not spcfg.video['coquitts_key']:
-            return QMessageBox.critical(self, "出错了", "必须设置 coquiTTS key")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+" coquiTTS key")
         # 文件名称
         filename=self.hecheng_out.text()
         if not filename:
@@ -939,16 +944,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rate = f"+{rate}%"
         else:
             rate = f"-{rate}%"
-        # if self.tts_issrt.isChecked():
-        #     newtxt = []
-        #     for it in txt.strip().split("\n"):
-        #         it = it.strip()
-        #         if re.match(r'^\d+$', it):
-        #             continue
-        #         if re.match(r'^\d[\d,:>\s-]+\d$', it):
-        #             continue
-        #         newtxt.append(it)
-        #     txt = "\n".join(newtxt)
+
         issrt=self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
                                       text=txt,
@@ -961,7 +957,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                       tts_issrt=issrt)
         self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
-        self.hecheng_startbtn.setText("执行中...")
+        self.hecheng_startbtn.setText(transobj["running"])
         self.hecheng_startbtn.setDisabled(True)
         self.hecheng_out.setText(wavname)
         self.hecheng_out.setDisabled(True)
@@ -992,18 +988,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         voice_list = get_edge_rolelist()
         if not voice_list:
             self.hecheng_language.setCurrentText('-')
-            QMessageBox.critical(self, "出错了", '未获取到角色列表')
+            QMessageBox.critical(self, transobj['anerror'], transobj['nojueselist'])
             return
         try:
             vt = language_code_list['zh'][t][0].split('-')[0]
             print(f"{vt=}")
             if vt not in voice_list:
                 self.hecheng_role.addItems(['No'])
-                QMessageBox.critical(self, "出错了", f'不支持该语音角色:{t}_{vt}')
+                QMessageBox.critical(self, transobj['anerror'], f'{transobj["buzhichijuese"]}:{t}_{vt}')
                 return
             if len(voice_list[vt]) < 2:
                 self.hecheng_language.setCurrentText('-')
-                QMessageBox.critical(self, "出错了", f'不支持该语音角色:{t}_{vt}')
+                QMessageBox.critical(self, transobj['anerror'], f'{transobj["buzhichijuese"]}:{t}_{vt}')
                 return
             self.hecheng_role.addItems(voice_list[vt])
         except Exception as e:
@@ -1018,7 +1014,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav']:
                 filelist_vail.append(it)
         if len(filelist_vail) < 1:
-            return QMessageBox.critical(self, "出错了", "不存在有效文件")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['nowenjian'])
         self.geshi_input.setPlainText("\n".join(filelist_vail))
         self.disabled_geshi(True)
         boxcfg.geshi_num = len(filelist_vail)
@@ -1031,16 +1027,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ext_this = basename.split('.')[-1].lower()
             if ext == ext_this:
                 boxcfg.geshi_num -= 1
-                self.geshi_result.insertPlainText(f"{it} 无需转为 {ext}")
+                self.geshi_result.insertPlainText(f"{it} -> {ext}")
                 continue
             if ext_this in ["wav", "mp3"] and ext in ["mp4", "mov", "avi"]:
-                self.geshi_result.insertPlainText(f"{it} 音频不可转为 {ext}视频")
+                self.geshi_result.insertPlainText(f"{it} {transobj['yinpinbuke']} {ext} ")
                 boxcfg.geshi_num -= 1
                 continue
             cmdlist.append(['-y', '-i', f'{it}', f'{savedir}/{basename}.{ext}'])
 
         if len(cmdlist) < 1:
-            self.geshi_result.insertPlainText("全部转换完成")
+            self.geshi_result.insertPlainText(transobj["quanbuend"])
             self.disabled_geshi(False)
             return
         self.geshi_task = Worker(cmdlist, "geshi_end", self)
@@ -1084,14 +1080,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         target_language=self.fanyi_target.currentText()
         translate_type=self.fanyi_translate_type.currentText()
         if target_language=='-':
-            return QMessageBox.critical(self,"必须选择目标语言","必须选择要翻译到的目标语言")
+            return QMessageBox.critical(self,transobj['anerror'],transobj["fanyimoshi1"])
         proxy=self.fanyi_proxy.text()
         if proxy:
             set_proxy(proxy)
         issrt=self.fanyi_issrt.isChecked()
         source_text=self.fanyi_sourcetext.toPlainText().strip()
         if not source_text:
-            return QMessageBox.critical(self,"待翻译文本不可为空","待翻译文本不可为空")
+            return QMessageBox.critical(self,transobj['anerror'],transobj["wenbenbukeweikong"])
         # target_language = langlist[target_language][0]
         config.baidu_appid = self.settings.value("baidu_appid", "")
         config.baidu_miyue = self.settings.value("baidu_miyue", "")
@@ -1112,37 +1108,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # baidu language code
             target_language = langlist[target_language][2]
             if not config.baidu_appid or not config.baidu_miyue:
-                QMessageBox.critical(self, '出错了','必须填写百度key')
+                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+'Baidu key')
                 return
         elif translate_type == 'tencent':
             #     腾讯翻译
             target_language = langlist[target_language][4]
             if not config.tencent_SecretId or not config.tencent_SecretKey:
-                QMessageBox.critical(self, '出错了','必须填写腾讯key')
+                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' Tencent key')
                 return
         elif translate_type == 'chatGPT':
             # chatGPT 翻译
             target_language = english_code_bygpt[self.languagename.index(target_language)]
             if not config.chatgpt_key:
-                QMessageBox.critical(self, '出错了','必须填写ChatGPT key')
+                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+'ChatGPT key')
                 return
         elif translate_type == 'DeepL' or translate_type == 'DeepLX':
             # DeepL翻译
             if translate_type == 'DeepL' and not config.deepl_authkey:
-                QMessageBox.critical(self, '出错了','必须填写DeepL信息')
+                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' DeepL key')
                 return
             if translate_type == 'DeepLX' and not config.deeplx_address:
-                QMessageBox.critical(self, '出错了','必须填写DeepLX地址')
+                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' DeepLX url')
                 return
             target_language_deepl = langlist[target_language][3]
             if target_language_deepl == 'No':
-                QMessageBox.critical(self, '出错了','DeepL不支持翻译到该目标语言')
+                QMessageBox.critical(self, transobj['anerror'],'DeepL '+transobj['buzhichifanyi'])
                 return
         self.fanyi_task=FanyiWorker(translate_type,target_language,source_text,issrt,self)
         self.fanyi_task.ui.connect(self.receiver)
         self.fanyi_task.start()
         self.fanyi_start.setDisabled(True)
-        self.fanyi_start.setText("翻译中...")
+        self.fanyi_start.setText(transobj["running"])
         self.fanyi_targettext.clear()
 
 class FanyiWorker(QThread):
@@ -1244,6 +1240,6 @@ if __name__ == "__main__":
     main.show()
     threading.Thread(target=set_proxy).start()
     if shutil.which('ffmpeg') is None:
-        QMessageBox.critical(main, "温馨提示", "未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量")
+        QMessageBox.critical(main, transobj['anerror'], transobj['ffmpegno'])
 
     sys.exit(app.exec())

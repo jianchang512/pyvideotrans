@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1292</width>
+    <width>1488</width>
     <height>771</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SP Video Translate &amp; Doubbing</string>
+   <string>SP-video Translate Dubbing</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -20,17 +20,32 @@
    <layout class="QHBoxLayout" name="horizontalLayout_7">
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <layout class="QFormLayout" name="formLayout">
+             <layout class="QFormLayout" name="layout_source_mp4">
               <item row="0" column="0">
                <widget class="QPushButton" name="btn_get_video">
                 <property name="sizePolicy">
@@ -46,13 +61,13 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>one or more videos</string>
+                 <string>Multiple MP4 videos can be selected and automatically queued for processing</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>Video to be</string>
+                 <string>Select video..</string>
                 </property>
                </widget>
               </item>
@@ -74,14 +89,14 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>Select multiple MP4 videos to be translated and queue up for processing</string>
+                 <string>Multiple MP4 videos can be selected and automatically queued for processing</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_2">
+             <layout class="QFormLayout" name="layout_target_dir">
               <item row="0" column="0">
                <widget class="QPushButton" name="btn_save_dir">
                 <property name="minimumSize">
@@ -90,11 +105,14 @@
                   <height>35</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>Select where to save the processed output resources</string>
+                </property>
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>Save to</string>
+                 <string>Save to..</string>
                 </property>
                </widget>
               </item>
@@ -116,7 +134,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>Select the location to save the translated video to, which defaults to the original directory_ Video_ Out</string>
+                 <string>Select the location where the translated video will be saved, default to the original directory _video_out</string>
                 </property>
                </widget>
               </item>
@@ -139,6 +157,9 @@
                 <height>30</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Open target dir</string>
+              </property>
               <property name="text">
                <string>Open</string>
               </property>
@@ -152,7 +173,7 @@
              <enum>QLayout::SetMinimumSize</enum>
             </property>
             <item>
-             <layout class="QFormLayout" name="formLayout_3">
+             <layout class="QFormLayout" name="layout_translate_type">
               <item row="0" column="0">
                <widget class="QLabel" name="label_9">
                 <property name="sizePolicy">
@@ -168,7 +189,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>TranslChannels</string>
+                 <string>Translate channel</string>
                 </property>
                </widget>
               </item>
@@ -191,7 +212,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_10">
+             <layout class="QFormLayout" name="layout_proxy">
               <item row="0" column="0">
                <widget class="QLabel" name="label">
                 <property name="sizePolicy">
@@ -226,7 +247,7 @@
                  </size>
                 </property>
                 <property name="placeholderText">
-                 <string>eg. http://127.0.0.1:10809 </string>
+                 <string>eg. http://127.0.0.1:10809</string>
                 </property>
                </widget>
               </item>
@@ -240,17 +261,17 @@
                  <bool>false</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>listen voice of dubbing role
-</string>
+                 <string>Click to listen to the pronunciation of the current dubbing character
+Generating dubbing may take a few seconds, please be patient and wait</string>
                 </property>
                 <property name="text">
-                 <string>Listen to</string>
+                 <string>Trial dubbing</string>
                 </property>
                </widget>
               </item>
@@ -264,7 +285,7 @@
              <enum>QLayout::SetMinimumSize</enum>
             </property>
             <item>
-             <layout class="QFormLayout" name="formLayout_4">
+             <layout class="QFormLayout" name="layout_source_language">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
@@ -302,14 +323,14 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>video of language for speaker</string>
+                 <string>The language used for the original video pronunciation</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_5">
+             <layout class="QFormLayout" name="layout_target_language">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
@@ -347,14 +368,14 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Will to translation language</string>
+                 <string>What language do you want to translate into</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_11">
+             <layout class="QFormLayout" name="layout_tts_type">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
@@ -396,7 +417,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_6">
+             <layout class="QFormLayout" name="layout_voice_role">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
@@ -445,7 +466,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <layout class="QGridLayout" name="gridLayout">
+             <layout class="QGridLayout" name="layout_whisper_model">
               <item row="0" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="sizePolicy">
@@ -461,14 +482,14 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Model</string>
+                 <string>Whisper model</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="whisper_model">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -480,24 +501,33 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>base to large，quatiy and speed down </string>
+                 <string>From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="2">
                <widget class="QComboBox" name="whisper_type">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
                   <height>35</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>Overall recognition is suitable for videos with or without background music and noticeable silence</string>
+                </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QFormLayout" name="formLayout_12">
+             <layout class="QFormLayout" name="layout_subtitle_type">
               <property name="formAlignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
@@ -516,7 +546,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Subtitle type</string>
+                 <string>Embed subtitles</string>
                 </property>
                </widget>
               </item>
@@ -535,7 +565,8 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Embed subtitle show every
+                 <string>Embedded subtitles always display subtitles no matter where they are played and cannot be hidden.If supported by the player, soft subtitles can be controlled to be displayed or hidden in the player.
+If you want to display subtitles when playing on a webpage, please select embedded subtitles.
 </string>
                 </property>
                 <property name="currentText">
@@ -551,41 +582,53 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QToolButton" name="gaoji_btn">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Advanced setting</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="Line" name="line">
-              <property name="minimumSize">
-               <size>
-                <width>300</width>
-                <height>1</height>
-               </size>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="gaoji_layout_wrap">
             <item>
              <layout class="QHBoxLayout" name="gaoji_layout_inner">
               <item>
-               <layout class="QFormLayout" name="formLayout_8">
+               <layout class="QFormLayout" name="layout_voice_silence">
+                <property name="formAlignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_7">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Silent duration</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="voice_silence">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>100</width>
+                    <height>35</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>default 500ms</string>
+                  </property>
+                  <property name="placeholderText">
+                   <string>Mute duration for segmented speech, in milliseconds</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="layout_voice_rate">
                 <property name="formAlignment">
                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                 </property>
@@ -617,70 +660,14 @@
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>speed up or down</string>
+                   <string>Overall acceleration or deceleration of voice over playback</string>
                   </property>
                   <property name="placeholderText">
-                   <string>greate 0 is up else down，-90 -&gt; +90</string>
+                   <string>Positive numbers accelerate, negative numbers decelerate, -90 to+90</string>
                   </property>
                  </widget>
                 </item>
                </layout>
-              </item>
-              <item>
-               <layout class="QFormLayout" name="formLayout_9">
-                <property name="formAlignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_7">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Silence duration</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="voice_silence">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>100</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>default 500ms</string>
-                  </property>
-                  <property name="placeholderText">
-                   <string>time unit is ms</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="video_autorate">
-                <property name="toolTip">
-                 <string>After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.
-2 solutions:
-1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment
-2. Force the video to play slowly in order to extend the video duration and align with the dubbing.
-Choose only one of the two options</string>
-                </property>
-                <property name="text">
-                 <string>VideoAutoRate</string>
-                </property>
-               </widget>
               </item>
               <item>
                <widget class="QCheckBox" name="voice_autorate">
@@ -691,14 +678,28 @@ Choose only one of the two options</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>After translation, the duration of pronunciation varies in different languages, such as a sentence in Chinese for 3 seconds and a sentence in English for 5 seconds, resulting in inconsistency between the duration and the video.
-2 solutions:
-1. Force dubbing to accelerate playback to shorten dubbing duration and video alignment
-2. Force the video to play slowly in order to extend the video duration and align with the dubbing.
+                 <string>The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.
+Two solutions:
+1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video
+2. Force the video to play slowly in order to extend the video duration and align the voice over.
 Choose only one of the two options</string>
                 </property>
                 <property name="text">
-                 <string>DubbAutoRate</string>
+                 <string>Voice acceleration?</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="video_autorate">
+                <property name="toolTip">
+                 <string>The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.
+Two solutions:
+1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video
+2. Force the video to play slowly in order to extend the video duration and align the voice over.
+Choose only one of the two options</string>
+                </property>
+                <property name="text">
+                 <string>Video slow</string>
                 </property>
                </widget>
               </item>
@@ -711,10 +712,10 @@ Choose only one of the two options</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>check if CUDA environ is right</string>
+                 <string>It is necessary to ensure that there is an NVIDIA graphics card and that the CUDA environment is correctly configured, otherwise do not choose</string>
                 </property>
                 <property name="text">
-                 <string>Enable CUDA</string>
+                 <string>Enable CUDA?</string>
                 </property>
                </widget>
               </item>
@@ -723,6 +724,19 @@ Choose only one of the two options</string>
            </layout>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="show_tips">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -769,6 +783,9 @@ Choose only one of the two options</string>
           </item>
           <item>
            <widget class="QPushButton" name="stop_djs">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -776,7 +793,7 @@ Choose only one of the two options</string>
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Stop countdown</string>
+             <string>Stop Countdown</string>
             </property>
            </widget>
           </item>
@@ -812,7 +829,14 @@ background-color: rgba(255, 255, 255, 0);</string>
        </layout>
       </widget>
       <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="subtitle_layout"/>
+       <layout class="QVBoxLayout" name="subtitle_layout">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="layout_sub_bottom"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -824,19 +848,23 @@ background-color: rgba(255, 255, 255, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1292</width>
+     <width>1488</width>
      <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>&amp;SettingKey</string>
+     <string>(&amp;S)etting</string>
     </property>
     <addaction name="actionbaidu_key"/>
     <addaction name="separator"/>
     <addaction name="actiontencent_key"/>
     <addaction name="separator"/>
     <addaction name="actionchatgpt_key"/>
+    <addaction name="separator"/>
+    <addaction name="actionazure_key"/>
+    <addaction name="separator"/>
+    <addaction name="actiongemini_key"/>
     <addaction name="separator"/>
     <addaction name="actiondeepL_key"/>
     <addaction name="separator"/>
@@ -845,7 +873,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>&amp;Tool</string>
+     <string>(&amp;T)ools</string>
     </property>
     <addaction name="action_tool"/>
     <addaction name="separator"/>
@@ -853,7 +881,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
-     <string>&amp;Help</string>
+     <string>(&amp;H)elp</string>
     </property>
     <addaction name="separator"/>
     <addaction name="action_website"/>
@@ -875,14 +903,58 @@ background-color: rgba(255, 255, 255, 0);</string>
    <addaction name="menu"/>
    <addaction name="menu_H"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>true</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>100</width>
+     <height>40</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
+   </property>
+   <property name="floatable">
+    <bool>true</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_biaozhun"/>
+   <addaction name="action_tiquzimu"/>
+   <addaction name="action_tiquzimu_no"/>
+   <addaction name="action_zimu_video"/>
+   <addaction name="action_zimu_peiyin"/>
+   <addaction name="action_yuyinshibie"/>
+   <addaction name="action_yuyinhecheng"/>
+   <addaction name="action_yinshipinfenli"/>
+   <addaction name="action_yingyinhebing"/>
+   <addaction name="action_geshi"/>
+   <addaction name="action_hun"/>
+   <addaction name="action_fanyi"/>
+  </widget>
   <action name="actionbaidu_key">
    <property name="text">
-    <string>BaiduKey</string>
+    <string>Baidu Key</string>
    </property>
   </action>
   <action name="actionchatgpt_key">
    <property name="text">
-    <string>OpenAI Key</string>
+    <string>ChatGPT Key</string>
    </property>
   </action>
   <action name="actiondeepL_key">
@@ -895,7 +967,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>Video Toolbox</string>
    </property>
    <property name="toolTip">
-    <string>A simple video tool box</string>
+    <string></string>
    </property>
   </action>
   <action name="action_vlc">
@@ -903,7 +975,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>VLC</string>
    </property>
    <property name="toolTip">
-    <string>go to VLC</string>
+    <string>Go VLC Website</string>
    </property>
   </action>
   <action name="action_ffmpeg">
@@ -911,12 +983,12 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>FFmpeg</string>
    </property>
    <property name="toolTip">
-    <string>go FFmpeg</string>
+    <string>Go FFmpeg website</string>
    </property>
   </action>
   <action name="action_git">
    <property name="text">
-    <string>Github code</string>
+    <string>Github Repositories</string>
    </property>
   </action>
   <action name="action_issue">
@@ -926,7 +998,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_clone">
    <property name="text">
-    <string>Voice clone</string>
+    <string>Clone Voice</string>
    </property>
   </action>
   <action name="actiondeepLX_address">
@@ -936,7 +1008,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_website">
    <property name="text">
-    <string>Document</string>
+    <string>Documents</string>
    </property>
   </action>
   <action name="action_discord">
@@ -951,7 +1023,131 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_about">
    <property name="text">
-    <string>Support US</string>
+    <string>Help me</string>
+   </property>
+  </action>
+  <action name="action_biaozhun">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Standard Function</string>
+   </property>
+   <property name="toolTip">
+    <string>Display all options for video translation and dubbing</string>
+   </property>
+  </action>
+  <action name="action_tiquzimu_no">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Video Subtitle Extract</string>
+   </property>
+   <property name="toolTip">
+    <string>Extracting SRT subtitles in the original language from local videos</string>
+   </property>
+  </action>
+  <action name="action_zimu_video">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Subtitle video merging</string>
+   </property>
+   <property name="toolTip">
+    <string>Embed locally existing SRT subtitles into the video</string>
+   </property>
+  </action>
+  <action name="action_zimu_peiyin">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Subtitle creation dubbing</string>
+   </property>
+   <property name="toolTip">
+    <string>Local existing SRT subtitle generation dubbing WAV files</string>
+   </property>
+  </action>
+  <action name="action_yuyinshibie">
+   <property name="text">
+    <string>Speech recognition</string>
+   </property>
+   <property name="toolTip">
+    <string>Recognize the sound in audio or video and output SRT text</string>
+   </property>
+  </action>
+  <action name="action_yuyinhecheng">
+   <property name="text">
+    <string>Text to speech</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate audio WAV from text or SRT subtitle files</string>
+   </property>
+  </action>
+  <action name="action_tiquzimu">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Extract subtitle translate</string>
+   </property>
+   <property name="toolTip">
+    <string>Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language</string>
+   </property>
+  </action>
+  <action name="action_yinshipinfenli">
+   <property name="text">
+    <string>Video audio separation</string>
+   </property>
+   <property name="toolTip">
+    <string>Separate audio and silent videos from videos</string>
+   </property>
+  </action>
+  <action name="action_yingyinhebing">
+   <property name="text">
+    <string>Video subtitle merging</string>
+   </property>
+   <property name="toolTip">
+    <string>Merge audio, video, and subtitles into one file</string>
+   </property>
+  </action>
+  <action name="action_geshi">
+   <property name="text">
+    <string>File format conversion</string>
+   </property>
+   <property name="toolTip">
+    <string>Convert various formats to each other</string>
+   </property>
+  </action>
+  <action name="action_hun">
+   <property name="text">
+    <string>Mixing two audio streams</string>
+   </property>
+   <property name="toolTip">
+    <string>Mix two audio files into one audio file</string>
+   </property>
+  </action>
+  <action name="action_fanyi">
+   <property name="text">
+    <string>Text subtitle translation</string>
+   </property>
+   <property name="toolTip">
+    <string>Translate text or subtitles</string>
+   </property>
+  </action>
+  <action name="actionazure_key">
+   <property name="text">
+    <string>Azure AI</string>
+   </property>
+  </action>
+  <action name="actiongemini_key">
+   <property name="text">
+    <string>Gemini Pro</string>
    </property>
   </action>
  </widget>

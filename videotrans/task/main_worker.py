@@ -7,6 +7,7 @@ from PyQt5.QtCore import QThread
 from pydub import AudioSegment
 
 from videotrans.configure import config
+from videotrans.configure.config import transobj
 from videotrans.task.trans_create import TransCreate
 from videotrans.util.tools import set_process, delete_temp, get_subtitle_from_srt, text_to_speech, \
      speed_change, pygameaudio
@@ -23,11 +24,11 @@ class Worker(QThread):
         while len(config.queue_task)>0:
             num+=1
             it=config.queue_task.pop(0)
-            set_process(f"<br><strong>:::开始处理第{num}个视频(共{task_nums}个):【{it['source_mp4']}】</strong>")
-            set_process(f"正在处理第{num}个视频(共{task_nums}个):【{it['source_mp4']}】",'statusbar')
+            set_process(f"<br><strong>:::start {num}/{task_nums} :【{it['source_mp4']}】</strong>")
+            set_process(f"Processing {num}/{task_nums}:【{it['source_mp4']}】",'statusbar')
             self.video=TransCreate(it)
             self.video.run()
-        set_process(f"<br><strong>本次任务全部结束</strong><br>",'end')
+        set_process(f"<br><strong>Ended</strong><br>",'end')
         time.sleep(10)
         delete_temp(None)
 
@@ -41,7 +42,7 @@ class Shiting(QThread):
         try:
             subs = get_subtitle_from_srt(self.obj['sub_name'])
         except Exception as e:
-            set_process(f'试听配音时格式化字幕文件出错:{str(e)}')
+            set_process(f'{transobj["geshihuazimuchucuo"]}:{str(e)}')
             return False
         rate = int(str(config.voice_rate).replace('%', ''))
         if rate >= 0:
@@ -53,7 +54,7 @@ class Shiting(QThread):
             if config.task_countdown<=0 or self.stop:
                 return
             if config.current_status != 'ing':
-                set_process('停止了', 'stop')
+                set_process(transobj['tingzhile'], 'stop')
                 return True
             filename=f'{config.voice_role}-{config.voice_rate}-{config.voice_autorate}-{it["text"]}'
             md5_hash = hashlib.md5()
@@ -74,15 +75,15 @@ class Shiting(QThread):
             if diff > 0 and config.voice_autorate:
                 speed = mp3len / wavlen
                 speed = 1.8 if speed > 1.8 else round(speed, 2)
-                set_process(f"自动加速配音 {speed} 倍")
+                set_process(f"dubbing speed {speed} ")
                 # 音频加速 最大加速2倍
                 audio_data = speed_change(audio_data, speed)
-            else:
-                set_process("未启用自动加速配音" if not config.voice_autorate else "已启用自动加速但无需加速")
+            # else:
+            # set_process("No automa" if not config.voice_autorate else "已启用自动加速但无需加速")
 
             tmp=time.time()
             audio_data.export(f"{filename}-{tmp}.wav",format="wav")
-            set_process(f'正在试听:{it["text"]}')
+            set_process(f'Listening:{it["text"]}')
             pygameaudio(f"{filename}-{tmp}.wav")
             try:
                 os.unlink(f"{filename}-{tmp}.wav")

@@ -146,13 +146,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area.setPlaceholderText(transobj['subtitle_tips'])
 
         self.subtitle_layout.insertWidget(0, self.subtitle_area)
-        self.import_sub = QPushButton("导入字幕")
+        self.import_sub = QPushButton(transobj['daoruzimu'])
         self.import_sub.setMinimumSize(80, 35)
         self.import_sub.clicked.connect(self.import_sub_fun)
-        self.listen_peiyin = QPushButton("试听配音")
+        self.listen_peiyin = QPushButton(transobj['shitingpeiyin'])
         self.listen_peiyin.setMinimumSize(0, 35)
         self.listen_peiyin.setDisabled(True)
-        self.listen_peiyin.setToolTip("先启动任务，待字幕翻译完成后可试听,配音速度、自动加速实时修改生效")
+        self.listen_peiyin.setToolTip(transobj['xianqidongrenwu'])
         self.listen_peiyin.clicked.connect(self.shiting_peiyin)
         self.layout_sub_bottom.insertWidget(0, self.import_sub)
         self.layout_sub_bottom.insertWidget(1, self.listen_peiyin)
@@ -197,8 +197,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.setStyleSheet("color:#00a67d")
         self.statusBar.addWidget(self.statusLabel)
 
-        rightbottom = QPushButton(" 请考虑捐助软件，帮助软件保持更新维护！ ")
-        rightbottom.setToolTip("如果有你的捐助，软件将能得到持续维护，点击查看")
+        rightbottom = QPushButton(transobj['juanzhu'])
+        # rightbottom.setToolTip("")
         rightbottom.clicked.connect(self.about)
         rightbottom.setStyleSheet("color:#00a67d")
 
@@ -219,7 +219,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            QMessageBox.critical(self, '你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，可去仓库说明页面查看安装方法,然后重启软件')
+            QMessageBox.critical(self, transobj['nocuda'])
             self.enable_cuda.setChecked(False)
             self.enable_cuda.setDisabled(True)
             res = False
@@ -240,13 +240,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.task:
             return
         if self.voice_role.currentText() == 'No':
-            return QMessageBox.critical(self, "出错了", "未选择角色，不可试听")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['noselectrole'])
         if self.shitingobj:
             self.shitingobj.stop = True
             self.shitingobj = None
-            self.listen_peiyin.setText('重听中')
+            self.listen_peiyin.setText(transobj['chongtingzhong'])
         else:
-            self.listen_peiyin.setText('试听中/点击重听')
+            self.listen_peiyin.setText(transobj['shitingzhong'])
         obj = {
             "sub_name": self.task.video.targetdir_target_sub,
             "noextname": self.task.video.noextname,
@@ -259,7 +259,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         }
         txt=self.subtitle_area.toPlainText().strip()
         if not txt:
-            return QMessageBox.critical(self,"出错了",'无字幕内容，不可试听')
+            return QMessageBox.critical(self,transobj['anerror'],transobj['bukeshiting'])
         with open(self.task.video.targetdir_target_sub,'w',encoding='utf-8') as f:
             f.write(txt)
         self.shitingobj = Shiting(obj, self)
@@ -269,7 +269,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def set_biaozhun(self):
         self.app_mode = 'biaozhun'
         self.show_tips.setText("")
-        self.startbtn.setText("开始处理")
+        self.startbtn.setText(transobj['kaishichuli'])
         self.action_tiquzimu_no.setChecked(False)
         self.action_biaozhun.setChecked(True)
         self.action_tiquzimu.setChecked(False)
@@ -315,8 +315,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
         self.app_mode = 'tiqu'
-        self.show_tips.setText("原始语言设为视频发音语言，目标语言设为想翻译为的语言")
-        self.startbtn.setText("开始提取和翻译")
+        self.show_tips.setText(transobj['tiquzimu'])
+        self.startbtn.setText(transobj['kaishitiquhefanyi'])
         self.action_tiquzimu_no.setChecked(False)
         self.action_tiquzimu.setChecked(True)
         self.action_biaozhun.setChecked(False)
@@ -369,8 +369,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 只显示 选择视频、保存目标、原始语言、语音模型，其他不需要
     def set_tiquzimu_no(self):
         self.app_mode = 'tiqu_no'
-        self.show_tips.setText("原始语言设为视频发音语言")
-        self.startbtn.setText("开始提取字幕")
+        self.show_tips.setText(transobj['tiquzimuno'])
+        self.startbtn.setText(transobj['kaishitiquzimu'])
         self.action_tiquzimu.setChecked(False)
         self.action_tiquzimu_no.setChecked(True)
         self.action_biaozhun.setChecked(False)
@@ -427,8 +427,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 不配音、不识别，
     def set_zimu_video(self):
         self.app_mode = 'hebing'
-        self.show_tips.setText("选择要合并的视频，将字幕srt文件拖拽到右侧字幕区")
-        self.startbtn.setText("开始合并")
+        self.show_tips.setText(transobj['zimu_video'])
+        self.startbtn.setText(transobj['kaishihebing'])
         self.action_tiquzimu_no.setChecked(False)
         self.action_biaozhun.setChecked(False)
         self.action_tiquzimu.setChecked(False)
@@ -477,8 +477,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 仅仅对已有字幕配音，显示目标语言、tts相关，自动加速相关，
     # 不翻译不识别
     def set_zimu_peiyin(self):
-        self.show_tips.setText("请将目标语言设为字幕所用语言，并选择配音角色")
-        self.startbtn.setText("开始配音")
+        self.show_tips.setText(transobj['zimu_peiyin'])
+        self.startbtn.setText(transobj['kaishipeiyin'])
         self.action_tiquzimu_no.setChecked(False)
         self.action_biaozhun.setChecked(False)
         self.action_tiquzimu.setChecked(False)
@@ -698,13 +698,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.toolboxobj.raise_()
         except Exception as e:
             self.toolboxobj = None
-            QMessageBox.critical(self, "出错了", "你可能需要先安装VLC解码器，" + str(e))
+            QMessageBox.critical(self, transobj['anerror'], transobj['anzhuangvlc'] + str(e))
             logger.error("vlc" + str(e))
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
         config.task_countdown = 0
-        self.continue_compos.setText("继续执行中")
+        self.continue_compos.setText(transobj['jixuzhong'])
         self.continue_compos.setDisabled(True)
         self.stop_djs.hide()
         self.process.clear()
@@ -716,9 +716,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.hide()
         config.task_countdown = 86400
         self.process.moveCursor(QTextCursor.End)
-        self.process.insertHtml("<br><strong>倒计时停止，修改后请手动点击“继续执行”按钮</strong><br>")
+        self.process.insertHtml("<br><strong>"+transobj['daojishitingzhi']+"</strong><br>")
         self.continue_compos.setDisabled(False)
-        self.continue_compos.setText("继续下一步")
+        self.continue_compos.setText(transobj['nextstep'])
 
     # set deepl key
     def set_deepL_key(self):
@@ -876,7 +876,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
             if name == "Azure" and not config.azure_key:
-                QMessageBox.critical(self, transobj['anerror'],"必须填写Azure key")
+                QMessageBox.critical(self, transobj['anerror'],transobj['tianxieazure'])
                 return
             if name == "DeepL" and not config.deepl_authkey:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
@@ -916,7 +916,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # 清理字幕
                 self.subtitle_area.clear()
                 # 清理输入
-            self.statusLabel.setText("本次任务结束")
+            self.statusLabel.setText(transobj['bencijieshu'])
             self.source_mp4.clear()
             self.target_dir.clear()
             if self.task:
@@ -926,7 +926,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 重设为开始状态
             self.disabled_widget(True)
             self.startbtn.setText(transobj['running'])
-            self.statusLabel.setText("开始处理...")
+            self.statusLabel.setText(transobj['kaishichuli'])
 
     # tts类型改变
     def tts_type_change(self, type):
@@ -976,7 +976,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 显示试听按钮
     def show_listen_btn(self, role):
         if config.current_status == 'ing' and config.voice_role != 'No' and role == 'No':
-            QMessageBox.critical(self, transobj['anerror'], '运行中，不可改为无配音角色')
+            QMessageBox.critical(self, transobj['anerror'], transobj['yunxingbukerole'])
             self.voice_role.setCurrentText(config.voice_role)
             return
         config.voice_role = role
@@ -1121,7 +1121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # chatGPT 翻译
                 self.cfg['target_language_gemini'] = english_code_bygpt[self.languagename.index(target_language)]
                 if not config.gemini_key:
-                    QMessageBox.critical(self, transobj['anerror'], '必须填写google Gemini key')
+                    QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+'google Gemini key')
                     return
             elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
                 # DeepL翻译
@@ -1171,7 +1171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 如果是 配音模式
         if self.app_mode == 'peiyin':
             if not txt or self.cfg['voice_role'] in ['-', 'no', 'No']:
-                return QMessageBox.critical(self, transobj['anerror'], '配音模式下必须选择配音角色、目标语言、并将本地srt字幕文件拖拽到右侧字幕区')
+                return QMessageBox.critical(self, transobj['anerror'], transobj['peiyinmoshisrt'])
             # 去掉选择视频，去掉原始语言
             self.cfg['source_mp4'] = ''
             self.cfg['subtitle_type'] = 0
@@ -1182,7 +1182,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         elif self.app_mode == 'hebing':
             if not self.cfg['source_mp4'] or self.cfg['subtitle_type'] < 1 or not txt:
-                return QMessageBox.critical(self, transobj['anerror'], '合并模式下，必须选择视频、字幕嵌入类型、并将字幕srt文件拖拽到右侧字幕区')
+                return QMessageBox.critical(self, transobj['anerror'], transobj['hebingmoshisrt'])
             self.cfg['target_language'] = '-'
             self.cfg['source_language'] = '-'
             self.cfg['voice_silence'] = '500'
@@ -1207,12 +1207,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             if self.app_mode == 'tiqu' and self.cfg['target_language'] in ['-', 'no', 'No']:
                 # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
-                return QMessageBox.critical(self, transobj['anerror'], '提取字幕并翻译模式下，你必须选择要翻译到的目标语言')
+                return QMessageBox.critical(self, transobj['anerror'], transobj['fanyimoshi1'])
             if self.app_mode == 'tiqu_no':
                 self.cfg['target_language'] = '-'
         # 综合判断
         if not self.cfg['source_mp4'] and not txt:
-            return QMessageBox.critical(self, transobj['anerror'], '视频和字幕不能同时都不存在哦！')
+            return QMessageBox.critical(self, transobj['anerror'],transobj['bukedoubucunzai'])
 
         # tts类型
         if self.cfg['tts_type'] == 'openaiTTS' and not config.chatgpt_key:
@@ -1220,7 +1220,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if self.cfg['target_language'] == '-' and self.cfg['voice_role'] != 'No':
-            return QMessageBox.critical(self, transobj['anerror'], '没有选择目标语言，无法进行配音哦，请选择目标语言或取消配音角色')
+            return QMessageBox.critical(self, transobj['anerror'], transobj['wufapeiyin'])
         if self.cfg['source_mp4'] and len(config.queue_mp4) < 1:
             config.queue_mp4 = [self.cfg['source_mp4']]
         # 配音模式 无视频
@@ -1303,7 +1303,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if d['text']:
                 self.process.moveCursor(QTextCursor.End)
                 self.process.insertHtml(d['text'])
-            self.statusLabel.setText('本次任务结束')
+            self.statusLabel.setText(transobj['bencijieshu'])
         elif d['type']=='succeed':
             #本次任务结束
             self.process.clear()
@@ -1335,7 +1335,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.continue_compos.setDisabled(True)
             self.update_subtitle()
             self.listen_peiyin.setDisabled(True)
-            self.listen_peiyin.setText('试听配音')
+            self.listen_peiyin.setText(transobj['shitingpeiyin'])
         elif d['type'] == 'show_djs':
             self.process.clear()
             self.process.insertHtml(d['text'])
@@ -1343,7 +1343,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.setWindowTitle(self.rawtitle + " -- " + d['text'])
             usetype = QPushButton(d['text'])
             usetype.setStyleSheet('color:#ff9800')
-            usetype.setToolTip("查看常见使用技巧")
             usetype.clicked.connect(lambda: self.open_url('download'))
             self.container.addWidget(usetype)
 
