@@ -56,7 +56,8 @@ p, li { white-space: pre-wrap; }
 <hr />
 <h2 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">感谢所有捐助者</span></h2>
 <h2 style="-qt-paragraph-type:empty; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:x-large; font-weight:600;"><br /></h2>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">github用户<span style=" color:#00aa00;">yuppiesnotzhuhao </span> |  微信用户<span style=" color:#00aa00;">9*9</span> | 未署名的3位用户 </p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">github用户<span style=" color:#00aa00;">yuppiesnotzhuhao </span> |  微信用户<span style=" color:#00aa00;">9*9</span> | 未署名的3位用户 | ID:BigD-a-yi</p>
+<p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全局捐助列表</a></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p></body></html>
 """))

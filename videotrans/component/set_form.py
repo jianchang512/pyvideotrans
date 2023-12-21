@@ -68,7 +68,7 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
     def __init__(self, parent=None):
         super(ChatgptForm, self).__init__(parent)
         self.setupUi(self)
-        self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
+        self.chatgpt_model.addItems(["gpt-3.5-turbo", "gpt-4"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
 class GeminiForm(QDialog, Ui_geminiform):  # <===
@@ -82,6 +82,6 @@ class AzureForm(QDialog, Ui_azureform):  # <===
     def __init__(self, parent=None):
         super(AzureForm, self).__init__(parent)
         self.setupUi(self)
-        self.azure_model.addItems(["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"])
+        self.azure_model.addItems(["gpt-3.5-turbo", "gpt-4"])
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))

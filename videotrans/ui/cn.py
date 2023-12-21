@@ -593,7 +593,7 @@ class Ui_MainWindow(object):
         self.stop_djs.setText(_translate("MainWindow", "停止倒计时"))
         self.menu_Key.setTitle(_translate("MainWindow", "设置(&S)"))
         self.menu.setTitle(_translate("MainWindow", "工具(&T)"))
-        self.menu_H.setTitle(_translate("MainWindow", "帮助(&H)"))
+        self.menu_H.setTitle(_translate("MainWindow", "帮助支持(&H)"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
         self.actionbaidu_key.setText(_translate("MainWindow", "百度Key"))
         self.actionchatgpt_key.setText(_translate("MainWindow", "ChatGPT Key"))

@@ -7,7 +7,7 @@ from videotrans.configure import config
 from videotrans.configure.config import logger
 from videotrans.util import tools
 import google.generativeai as genai
-
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 '''
 输入
 [{'line': 1, 'time': 'aaa', 'text': '\n我是中国人,你是哪里人\n'}, {'line': 2, 'time': 'bbb', 'text': '我身一头猪'}]
@@ -16,7 +16,24 @@ import google.generativeai as genai
 [{'line': 1, 'time': 'aaa', 'text': 'I am Chinese, where are you from?'}, {'line': 2, 'time': 'bbb', 'text': 'I am a pig'}]
 
 '''
-
+safetySettings = [
+  {
+      "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
+      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    },
+  {
+      "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    },
+  {
+      "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    },
+  {
+      "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    },
+  ]
 
 def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
     serv = tools.set_proxy()
@@ -38,7 +55,8 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         try:
             model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(
-                config.gemini_template.replace('{lang}', lang) + f"\n{text_list}"
+                config.gemini_template.replace('{lang}', lang) + f"\n{text_list}",
+                safety_settings=safetySettings
             )
             return response.text.strip()
         except Exception as e:
@@ -50,6 +68,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
     srts = ''
+    model = genai.GenerativeModel('gemini-pro')
     # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
     for srt_list in srt_lists:
         # 存放时间和行数
@@ -66,17 +85,23 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         len_sub = len(origin)
         logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
         error = ""
+        response=None
         try:
-            model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(
-                config.gemini_template.replace('{lang}', lang) + "\n" + "\n".join(trans)
+                config.gemini_template.replace('{lang}', lang) + "\n" + "\n".join(trans),
+                safety_settings=safetySettings
             )
-            trans_text = response.text.split("\n")
-            logger.info(f"\n[Gemini OK]翻译成功")
-            if set_p:
-                tools.set_process(f"Gemini 翻译成功")
+            if not response.parts and set_p:
+                trans_text = [f"[error]Gemini 请求失败:{response.prompt_feedback}"] * len_sub
+            else:
+                trans_text = response.text.split("\n")
+                logger.info(f"\n[Gemini OK]翻译成功")
+                if set_p:
+                    tools.set_process(f"Gemini 翻译成功")
         except Exception as e:
             error = str(e)
+            if response:
+                error+=f',{response.prompt_feedback=}'
             logger.error(f"【Gemini Error-2】翻译失败 :{error}")
             trans_text = [f"[error]Gemini 请求失败:{error}"] * len_sub
         if error and re.search(r'limit', error, re.I) is not None:
