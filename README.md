@@ -142,6 +142,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 > 
 > 两者只可选其一
 
+**背景音乐问题**
+只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请自行使用提取背景音乐工具，将背景音提取出来，然后再和配音文件合并。相关提取背景音乐项目 https://github.com/deezer/spleeter
+
 
 
 ## 源码部署
