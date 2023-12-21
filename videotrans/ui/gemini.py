@@ -57,5 +57,5 @@ class Ui_geminiform(object):
         self.gemini_template.setPlaceholderText(_translate("geminiform", "prompt"))
         self.label_4.setText(_translate("geminiform", "{lang} don\'t remove"))
         self.set_gemini.setText(_translate("geminiform", "OK"))
-        self.gemini_key.setPlaceholderText(_translate("geminiform", "密钥key"))
+        self.gemini_key.setPlaceholderText(_translate("geminiform", "secret key"))
         self.label_2.setText(_translate("geminiform", "Gemini  Key "))

@@ -6,6 +6,7 @@ from PyQt5.QtCore import QThread
 
 import videotrans
 from videotrans.util.tools import set_proxy, set_process
+from videotrans.configure.config import transobj
 
 
 class CheckUpdateWorker(QThread):
@@ -30,7 +31,7 @@ class CheckUpdateWorker(QThread):
                 d=res.json()
                 print(f"{d=}")
                 if d['version_num']>videotrans.VERSION_NUM:
-                    set_process(f"有新的版本可以下载了:{d['version']}","check_soft_update")
+                    set_process(f"{transobj['newversion']}:{d['version']}","check_soft_update")
         except Exception as e:
             print(e)
             # pass

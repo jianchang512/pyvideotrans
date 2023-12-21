@@ -1,148 +1,194 @@
-# [简体中文](./README.md)
+[简体中文](./README.md) / [Documentation](https://v.wonyes.org/preview.html) / [👑 Donate to This Project - Donors List](./about.md) / [Join Discord Discussion](https://discord.gg/TMCM2PfHzQ) / QQ Group 902124277
+## Video Translation and Dubbing Toolkit
+[Precompiled EXE Download Link](https://github.com/jianchang512/pyvideotrans/releases)
 
-This is a video translation tool that can translate videos from one language to another and create dubbed videos in another language. Speech recognition is based on the `openai-whisper` offline model, text translation uses `google|baidu|chatGPT|DeepL` translation interfaces, and text-to-speech synthesis uses `Microsoft Edge tts`.
-
-[Discord](https://discord.gg/evkPeKJddD)
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-ad5b-34b68170147d
-
-
-*youtube*
-
-[![在youtube上观看](https://img.youtube.com/vi/skLtE1XnO6Q/hqdefault.jpg)](https://www.youtube.com/watch?v=skLtE1XnO6Q)
-
-# Instructions for Using Precompiled Versions
-
-0. Only available for Windows 10 and Windows 11 systems. Compilation from source is required for macOS.
-1. Download the latest release from the releases page, unzip it, and double-click on `sp.exe`.
-2. Original video directory: Select the mp4/avi/mov/mpg/mkv video,one or most.
-3. Output video directory: If not selected, it will default to generating in the same directory under `_video_out`.
-4. Translation selection: Choose Google, Baidu, ChatGPT, or DeepL. For Baidu/ChatGPT/DeepL, click "Set key" to input the corresponding information.
-5. Network proxy address: If you cannot directly access Google/ChatGPT in your region, set the proxy in the software interface under "Network Proxy." For example, if using V2Ray, enter `http://127.0.0.1:10809`, or for Clash, enter `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, enter accordingly.
-6. Video original language: Choose the language of the video to be translated.
-7. Target translation language: Choose the language to translate into.
-8. Dubbing selection: After choosing the target translation language, select a dubbing role.
-
-   Hard subtitles: These are subtitles that are always displayed and cannot be hidden. If you want subtitles to be visible when playing on a webpage, select hard subtitles embedding.
-
-   Soft subtitles: If the player supports subtitle management, you can show or hide subtitles. Soft subtitles will not be displayed when playing on a webpage, and some domestic players may not support them. To display soft subtitles, the generated video and the subtitle file should have the same name and be placed in the same directory.
-
-   **if "neither embed subtitles nor select a dubbing role."** will create srt files
-
-9. Text recognition model: Choose base/small/medium/large/large-v3. The recognition effect improves with larger models, but recognition speed becomes slower, and more memory is required. The model will need to be downloaded the first time; by default, use base. You can pre-download the model and place it in the `current software directory/models` directory.
-
-   **whole all**: not split audio before send to model
-
-   **split**: split 10s secs audio before send to model
-
-   **Model download links:**
-
-   [Tiny model](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
-
-   [Base model](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
-
-   [Small model](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
-
-   [Medium model](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
-
-   [Large model](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
-
-   [Large-v3 model](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
-
-   [VLC decoder download](https://www.videolan.org/vlc/)
-
-   [FFmpeg download (included in the compiled version)](https://www.ffmpeg.org/)
-
-10. Dubbing speed: Enter a number between -90 and +90. The time required for a sentence may vary with different language voices, causing the audio and subtitles to be out of sync. You can adjust the speed here. A negative number slows down the speed, while a positive number speeds it up.
-
-11. Auto speed up: If the translated audio duration is longer than the original, and this option is selected, the software will forcefully accelerate playback to shorten the duration.
-
-12. Silent segments: Enter a number between 100 and 2000, representing milliseconds. The default is 500, indicating the minimum duration of a silent segment for segmenting speech.
-
-13. CUDA acceleration: If your computer's graphics card is an Nvidia card and CUDA environment and driver are configured, enabling this option will significantly improve speed.
-
-14. TTS:  edgeTTS & openai TTS select role use dubbing
-
-15. Click the "Start" button. The bottom will display the current progress and log, and the right text box will show the subtitles.
-
-16. **After the subtitles are parsed, pause and wait to modify the subtitles. If no action is taken, it will automatically continue to the next step after 60 seconds. You can also edit subtitles in the right subtitle area and manually click "Continue to Synthesize."**
-
-> All original videos are uniformly in mp4 format for fast processing and good network compatibility.
 >
-> Soft subtitle embedding: Subtitles are embedded as separate files in the video, which can be extracted again. If the player supports it, you can enable or disable subtitles in the player's subtitle management. Note that many domestic players require the srt subtitle file and video to be in the same directory and have the same name to display soft subtitles. Additionally, the srt file may need to be converted to GBK encoding to avoid displaying garbled text.
+> This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
+>
+> Voice recognition is based on the `openai-whisper` offline model.
+>
+> Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX`.
+>
+> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1`.
+>
 
-By default, a subtitle file with the same name as the video will be generated in the "srt" folder under the target output video directory.
+## Main Use Cases and How to Use
 
-For speech that cannot be recognized, the original audio will be copied directly.
+【Translate Video and Dub】Set each option as needed, freely configure combinations to achieve translation and dubbing, automatic speed increase or decrease, merging, etc
 
-# Source Code Deployment
+【Extract Subtitles Without Translation】Select video files, select the video source language, then recognize the text from the video and automatically export subtitle files to the target folder
 
-1. Set up a Python 3.9+ environment.
-2. Clone the repository: `git clone https://github.com/jianchang512/pyvideotrans`
-3. Navigate to the project directory: `cd pyvideotrans`
-4. Install the required dependencies: `pip install -r requirements.txt`
-5. Unzip `ffmpeg.zip` to the root directory (contains `ffmpeg.exe`).
-6. Run the software interface: `python sp.py`. For command line execution: `python cli.py`.
-7. If you want to package it as an exe, use the command `pyinstaller sp.py`. Do not add `-w -F` parameters; otherwise, it may crash (due to TensorFlow).
+【Extract Subtitles and Translate】Select a video file, select the video source language, set the desired translation target language, then recognize the text from the video and translate it into the target language, then export bilingual subtitle files to the target folder
 
-# CLI (Command Line Interface) Usage
+【Subtitles and Video Merging】Select the video, then drag the existing subtitle file to the right subtitle area, set both the source and target languages to the language used in the subtitles, then select the dubbing type and role, and start execution
 
-After deploying the source code, execute `python cli.py` from the command line.
+【Creating Dubbing for Subtitles】Drag local subtitle files to the right subtitle editor, then select the target language, dubbing type and role, the dubbed audio file will be generated in the target folder
 
-### Supported Parameters
+【Text Recognition for Audio and Video】Drag the video or audio to the recognition window, it will recognize the text and export it in the form of srt subtitles
 
-- **--source_mp4**: [Required] Path to the video to be translated, ending in .mp4.
-- **--target_dir**: Location where the translated video will be saved. Defaults to the `_video_out` folder in the source video directory.
-- **--source_language**: Video language code. Defaults to `en` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar).
-- **--target_language**: Target language code. Defaults to `zh-cn` (zh-cn | zh-tw | en | fr | de | ja | ko | ru | es | th | it | pt | vi | ar).
-- **--proxy**: HTTP proxy address. Defaults to None. If unable to access Google, fill in the proxy, e.g., `http://127.0.0.1:10809`.
-- **--subtitle_type**: 1 for embedding hard subtitles, 2 for embedding soft subtitles.
-- **--voice_role**: Depending on the selected target language code, enter the corresponding role name. Use `python cli.py show_voice` to display available role names for each language.
-- **--voice_rate**: Negative number to decrease dubbing speed, positive number to increase it. Defaults to `0`.
-- **--voice_silence**: Enter a number between 100 and 2000, representing the minimum milliseconds of silent segments. Defaults to `500`.
-- **--voice_autorate**: If the translated audio duration exceeds the original, force speeding up the translated audio for alignment.
-- **--whisper_model**: Defaults to `base`. Options are `base`, `small`, `medium`, `large`. The larger the model, the better the effect, but the slower the speed.
+【Text to Speech Synthesis】Generate a dubbing for a piece of text or subtitle using a specified dubbing role
 
-### CLI Example
+【Separate Audio from Video】Separate video files into audio files and silent videos
 
-```bash
-python cli.py --source_mp4 "D:/video/ex.mp4" --source_language en --target_language zh-cn --proxy "http://127.0.0.1:10809" --voice_replace zh-CN-XiaoxiaoNeural
-```
+【Audio, Video, and Subtitle Merging】Merge audio files, video files, and subtitle files into one video file
 
-This example translates the video located at `D:/video/ex.mp4` from English to Chinese, sets the proxy to `http://127.0.0.1:10809`, and uses the dubbing role `zh-CN-XiaoxiaoNeural`.
+【Audio and Video Format Conversion】Conversion between various formats
 
-```bash
-python cli.py --source_mp4 "D:/video/ex.mp4" --source_language zh-cn --target_language en --proxy "http://127.0.0.1:10809" --voice_replace en-US-AriaNeural --voice_autorate --whisper_model small
-```
 
-This example translates the video located at `D:/video/ex.mp4` from Chinese to English, sets the proxy to `http://127.0.0.1:10809`, uses the dubbing role `en-US-AriaNeural`, and if the translated audio duration is longer than the original, it will automatically accelerate playback. The text recognition model used is `small`.
 
-# Software Preview Screenshots
+## Usage of Precompiled EXE Version
+[EXE Version Download Link](https://github.com/jianchang512/pyvideotrans/releases)
 
-![Screenshot 1](./images/pen1.png?b)
-![Screenshot 2](./images/pen2.png?b)
-![Screenshot 3](./images/pen3.png?b)
-![Screenshot 4](./images/pen4.png?b)
-![Screenshot 5](./images/pen5.png?b)
-![CLI Screenshot](./images/cli.png?c)
+0. Only available for win10 win11 systems/Mac needs to compile from source code
 
-# Video Before and After Comparison
+1. [Download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
 
-[Demo Original Video and Translated Video](https://www.wonyes.org/demo.html)
+2. Original Video: Choose mp4/avi/mov/mkv/mpeg videos, you can select multiple videos;
 
-[Youtube Demo](https://youtu.be/skLtE1XnO6Q)
+3. Output Video Directory: If not selected, it will be generated in `_video_out` in the same directory by default, and two types of subtitle files in the source and target languages will be created in the srt folder in that directory
 
-# CUDA Acceleration Support
+4. Select Translation: Google|Baidu|Tencent|ChatGPT|Azure|Gemini|DeepL|DeepLX translation channels can be selected
 
-1. Precompiled versions partially support CUDA, especially if your GPU is an Nvidia card. You can install the corresponding [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) based on your graphics card driver version and operating system. It's recommended to upgrade your graphics card driver to the latest version before installing. For full CUDA support, you need to use the source code version and deploy it on your computer.
+5. Network Proxy Address: If your region cannot directly access Google/ChatGPT, you need to set a proxy in the software interface network proxy. For example, if you use v2ray, fill in `http://127.0.0.1:10809`, if clash, fill in `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, fill it in as needed
 
-2. Using CUDA in the source code version: You need to install the dependencies for GPU support using `pip install -r requirements-gpu.txt` instead of `requirements.txt`.
+6. Video Original Language: Select the language type in the video to be translated
 
-3. Configuring the CUDA environment can be relatively complex, and you may encounter various issues, so be prepared to search for solutions.
+7. Translation Target Language: Select the language type you hope to translate into
 
-# Acknowledgments
+8. Select Dubbing: After selecting the translation target language, you can select the dubbing role from the dubbing options;
+   
+   Hard Subtitles: Permanently display subtitles that cannot be hidden, if you want subtitles when playing on the web page, please choose hard subtitles embedded
 
-This program relies on several open-source projects:
+   Soft Subtitles: If the player supports subtitle management, it can display or hide subtitles, this method will not display subtitles when playing on the web page, some domestic players may not support it, need to put the generated video and the same name srt file and video in one directory to display
+
+
+9. Voice recognition model: Select base/small/medium/large/large-v3, the recognition effect is getting better and better, but the recognition speed is getting slower and slower, and more memory is needed, the first time will need to download the model, default base, can download the model separately in advance Put it in the `current software directory/models` directory.
+
+   Whole recognition / pre-segmentation: whole recognition refers to directly sending the whole voice file to the model for processing, segmentation may be more accurate, but it may also make a single subtitle of 30s length, suitable for audio with clear silence; pre-segmentation refers to the audio in advance It is cut into about 10s length and then sent to the model for processing separately.
+
+   **Single download address for model**
+
+    [tiny model](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
+    
+    [base model](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
+
+    [small model](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
+
+    [medium model](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
+
+    [large model](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
+
+    [large-v3 model](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
+
+    [VLC decoder download](https://www.videolan.org/vlc/)
+
+    [FFmepg download (compiled version included)](https://www.ffmpeg.org/)
+
+10. Dubbing speed: Fill in a number between -90 and +90, the same sentence under different language voices, the required time is different, so after dubbing, the sound and picture subtitles may be out of sync, you can adjust the language speed here, negative numbers represent Slow down, positive numbers represent accelerated playback.
+
+11. Audio and video alignment: They are "dubbing automatic acceleration" and "video automatic slowdown"
+
+> 
+> The pronunciation duration in different languages after translation is different. For example, a sentence in Chinese is 3s, which may be 5s when translated into English, leading to inconsistent duration and video.
+> 
+> 2 solutions:
+>
+>     1. Forced dubbing to speed up and play, in order to shorten the dubbing duration and align with the video
+> 
+>     2. Forced video to play slowly, in order to prolong the video duration and align with the dubbing.
+> 
+> Only one of the two can be chosen
+>  
+
+  
+12. Silent Segment: Fill in a number between 100 and 2000, in milliseconds, default is 500, that is, voice is divided into sections with silent segments of 500ms or more
+
+13. **CUDA Acceleration**: Confirm that your computer's graphics card is an N card and that the CUDA environment and drivers have been properly configured, then turn on this option for greatly improved speed. For the specific configuration method, see below [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+
+14. TTS: Available in edgeTTS and openai TTS model, choose the role to synthesize the voice, openai needs to use the official interface or a third-party interface that has opened up the tts-1 model
+
+15. Click the start button to display the current progress and log at the bottom, and the subtitle is displayed in the right text box
+
+16. After the subtitle analysis is completed, it will pause and wait for the subtitle to be modified. If no operation is performed, it will automatically continue the next step after 60s. You can also edit the subtitle in the right subtitle area and then manually click to continue synthesis
+
+17. In the subfolder of the software directory, find the srt folder with the same name as the video file to generate two files, the suffix is the original language and the target language text subtitle file.
+
+
+
+## Notes:
+
+**Subtitle Display Problem**
+>
+> When using soft combined subtitles: The subtitles are embedded in the video as separate files, can be extracted again, and can be enabled or disabled in the player's subtitle management if the player supports it.
+>
+> Please note that many domestic players require the srt subtitle file and the video to be placed in the same directory and named the same to load the soft subtitles, and the srt file may need to be converted to GBK encoding, otherwise it will display garbled characters.
+>
+
+**Subtitle Voice Alignment Problem**
+
+> The pronunciation duration may vary in different languages after translation. For example, a sentence in Chinese is 3s, but when translated into English, it might take 5s, resulting in an inconsistency with the video duration.
+>
+> There are two solutions:
+>
+>     1. Force dubbing to play faster to shorten the dubbing duration and align with the video.
+>
+>     2. Force the video to play slower to extend the video duration and align with the dubbing.
+>
+> You can only choose one of the two.
+
+**Background Music Problem**
+
+It only recognizes and saves human voices, that is, there will not be original background music in the dubbed audio. If you need to retain it, you can use the tool to extract background music, extract the background music first, and then merge it with the dubbed file.
+
+
+**Issues with large/large-v3 models**
+
+If you don't have a NVIDIA GPU or if you didn't configure the CUDA environment correctly, do not use these two models, as they will be very slow and laggy.
+
+**Prompt ffmpeg error**
+If you have enabled CUDA and encountered this problem, please update the display card driver and then reconfigure the CUDA environment.
+
+## Source Code Deployment
+
+1. Set up a Python 3.9+ environment
+2. `git clone https://github.com/jianchang512/pyvideotrans`
+3. `cd pyvideotrans`
+4. CPU version: `pip install -r requirements.txt`
+5. Unzip ffmpeg.zip (ffmpeg.exe file) to the root directory
+6. `python sp.py` to open the software interface, `python cli.py` to use the command line execution
+7. If you want to package it as an exe file, please use the command `pyinstaller sp.py`, don't add ` -F` parameter
+8. If you need CUDA acceleration support, you must have a NVIDIA graphics card. Installation prevention is mentioned below in  [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+
+## CUDA Acceleration Support
+
+**Install CUDA Toolkit**
+
+If your computer is equipped with a Nvidia graphics card, you should first upgrade your graphics card driver to the latest version, then install the corresponding [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) and [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive).
+
+After successful installation, press `Win + R`, type `cmd` and press Enter, then type `nvcc --version` in the pop-up window to confirm that the version information is displayed. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e68de07f-4bb1-4fc9-bccd-8f841825915a)
+
+Then continue to type `nvidia-smi`, confirm that there's output information and that you can see the cuda version number. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/71f1d7d3-07f9-4579-b310-39284734006b)
+
+If the installation is correct, the precompiled version can now be used with CUDA. If not, you need to reinstall.
+
+## Software Preview Screenshots
+
+![](./images/p1.png?b)
+![](./images/p2.png?b)
+![](./images/p3.png?b)
+![](./images/p4.png?b)
+![](./images/p5.png?b)
+![](./images/p6.png?b)
+
+## Comparison of Videos Before and After
+
+[Demo original video and translated video](https://www.wonyes.org/demo.html)
+
+[Youtube demo](https://youtu.be/skLtE1XnO6Q)
+
+## Acknowledgements
+
+> This program relies on these open source projects:
 
 1. pydub
 2. ffmpeg

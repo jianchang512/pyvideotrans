@@ -6,7 +6,7 @@ import logging
 from queue import Queue
 
 from .language import translate_language, language_code_list
-
+import configparser
 # 当前执行目录
 rootdir = os.getcwd().replace('\\', '/')
 homedir=os.path.join(os.path.expanduser('~'),'Videos/pyvideotrans').replace('\\','/')
@@ -19,9 +19,26 @@ logging.basicConfig(
     filemode="a")
 logger = logging.getLogger('VideoTrans')
 
+# 初始化一个字典变量
+settings = {}
+if os.path.exists(f'{rootdir}/set.ini'):
+    # 创建配置解析器
+    iniconfig = configparser.ConfigParser()
+    # 读取.ini文件
+    iniconfig.read(f'{rootdir}/set.ini')
+    # 遍历.ini文件中的每个section
+    for section in iniconfig.sections():
+        settings[section] = {}
+        # 遍历每个section中的每个option
+        for key, value in iniconfig.items(section):
+            settings[section][key] = value
 
-# default language
-defaulelang = "zh" # "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+
+# default language 如果 ini中设置了，则直接使用，否则自动判断
+if "GUI" in settings and settings['GUI']['lang'].lower() in ["en",'zh','zh-cn']:
+    defaulelang= "zh" if settings['GUI']['lang'].lower() !='en' else "en"
+else:
+    defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
 if defaulelang == 'en':
     transobj = translate_language['en']
     langlist = language_code_list['en']
