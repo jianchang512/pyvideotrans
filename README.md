@@ -1,6 +1,4 @@
-[English Readme](./README_ENG.md) 
-
-[文档](https://v.wonyes.org/preview.html) /  [👑捐助该项目-捐助者列表](./about.md) / [加入Discord讨论](https://discord.gg/TMCM2PfHzQ) / QQ群 902124277
+[English Readme](./README_ENG.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / QQ群 902124277
 ## 视频翻译和配音工具
 [预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
