@@ -203,12 +203,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 
 ## 软件预览截图
 
-![](./images/p1.png?b)
-![](./images/p2.png?b)
-![](./images/p3.png?b)
-![](./images/p4.png?b)
-![](./images/p5.png?b)
-![](./images/p6.png?b)
+![](./images/p1.png?c)
+![](./images/p2.png?c)
+![](./images/p3.png?c)
+![](./images/p4.png?c)
 
 
 
