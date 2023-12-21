@@ -1,6 +1,5 @@
-[简体中文](./README.md) / [Documentation](https://v.wonyes.org/preview.html) / [👑 Donate to This Project - Donors List](./about.md) / [Join Discord Discussion](https://discord.gg/TMCM2PfHzQ) / QQ Group 902124277
+[简体中文](./README.md) / [👑 Donate](./about.md) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
 ## Video Translation and Dubbing Toolkit
-[Precompiled EXE Download Link](https://github.com/jianchang512/pyvideotrans/releases)
 
 >
 > This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
