@@ -1158,7 +1158,11 @@ class FanyiWorker(QThread):
         # 开始翻译,从目标文件夹读取原始字幕
         if not self.issrt:
             if self.type=='chatGPT':
-                self.srts= chatgpttrans(self.text,self.target_language,set_p=False)
+                srt=chatgpttrans(get_subtitle_from_srt(self.text, is_file=False),self.target_language,set_p=False)
+                srts_tmp=""
+                for it in srt:
+                    srts_tmp +=f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                self.srts= srts_tmp
             elif self.type=='Azure':
                 self.srts= azuretrans(self.text,self.target_language,set_p=False)
             elif self.type=='Gemini':

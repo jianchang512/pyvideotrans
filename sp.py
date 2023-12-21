@@ -197,17 +197,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.setStyleSheet("color:#00a67d")
         self.statusBar.addWidget(self.statusLabel)
 
-        rightbottom = QPushButton(" 捐助该软件！ ")
+        rightbottom = QPushButton(" 请考虑捐助软件，帮助软件保持更新维护！ ")
         rightbottom.setToolTip("如果有你的捐助，软件将能得到持续维护，点击查看")
         rightbottom.clicked.connect(self.about)
+        rightbottom.setStyleSheet("color:#00a67d")
 
-        usetype = QPushButton(" 快速使用技巧 ")
-        usetype.setToolTip("查看常见使用技巧")
-        usetype.clicked.connect(self.usetype)
-        container = QToolBar()
-        container.addWidget(rightbottom)
-        container.addWidget(usetype)
-        self.statusBar.addPermanentWidget(container)
+
+        self.container = QToolBar()
+        self.container.addWidget(rightbottom)
+        # container.addWidget(usetype)
+        self.statusBar.addPermanentWidget(self.container)
         #     日志
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.update_data)
@@ -220,8 +219,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            QMessageBox.critical(self, '你的设备不满足CUDA加速要求',
-                                 '请确认是NVIDIA显卡，并已安装 CUDA 11.8，如未安装，请去 developer.nvidia.com/cuda-downloads 安装匹配当前系统的 cuda 11.8,然后重启软件')
+            QMessageBox.critical(self, '你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，可去仓库说明页面查看安装方法,然后重启软件')
             self.enable_cuda.setChecked(False)
             self.enable_cuda.setDisabled(True)
             res = False
@@ -557,6 +555,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 【音视频格式转换】
 各种格式之间的相互转换
+【文本字幕翻译】
+单独翻译文字或者字幕srt文件
 
         """
         QMessageBox.information(self, "常见使用方式", string)
@@ -684,6 +684,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://v.wonyes.org")
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
+        elif title=='download':
+            webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
 
     # 工具箱
     def open_toolbox(self, index=0):
@@ -1339,11 +1341,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.process.insertHtml(d['text'])
         elif d['type'] == 'check_soft_update':
             self.setWindowTitle(self.rawtitle + " -- " + d['text'])
+            usetype = QPushButton(d['text'])
+            usetype.setStyleSheet('color:#ff9800')
+            usetype.setToolTip("查看常见使用技巧")
+            usetype.clicked.connect(lambda: self.open_url('download'))
+            self.container.addWidget(usetype)
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
-        # sub_name = self.task.video.sub_name
-        # noextname = self.task.video.noextname
         self.stop_djs.hide()
         self.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
@@ -1354,16 +1359,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.clear()
         config.task_countdown = 0
         return True
-        # try:
-        #     if self.get_sub_toarea(noextname):
-        #         config.task_countdown = 0
-        #         return True
-        #     if not self.subtitle_area.toPlainText().strip() and not os.path.exists(sub_name):
-        #         set_process("[error]出错了，不存在有效字幕", 'error')
-        # except Exception as e:
-        #     set_process("[error]:写入字幕出错了：" + str(e), 'error')
-        #     logger.error("[error]:写入字幕出错了：" + str(e), 'error')
-        # return False
 
 
 def pygameinit():

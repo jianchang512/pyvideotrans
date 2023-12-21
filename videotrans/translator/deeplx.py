@@ -12,7 +12,7 @@ def deeplxtrans(text, to_lang,*,set_p=True):
     data = {
         "text": text,
         "source_lang": "auto",
-        "target_lang": to_lang[:2]
+        "target_lang": "ZH" if to_lang.startswith('zh') else to_lang
     }
     logger.info(f"deeplx:{data=}")
     try:

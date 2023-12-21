@@ -883,7 +883,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
-     <string>帮助(&amp;H)</string>
+     <string>帮助支持(&amp;H)</string>
     </property>
     <addaction name="separator"/>
     <addaction name="action_website"/>
