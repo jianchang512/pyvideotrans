@@ -23,7 +23,7 @@ def deeplxtrans(text, to_lang,*,set_p=True):
         try:
             result = response.json()
         except Exception as e:
-            msg=f"[error]deeplx翻译出错:返回内容 "+response.text
+            msg=f"[error]deeplx error: "+response.text
             logger.error(msg)
             if set_p:
                 tools.set_process(msg)
@@ -33,7 +33,7 @@ def deeplxtrans(text, to_lang,*,set_p=True):
             return f"[error]deeplx translate:{response.status_code=},{result['code']=}"
         return result['data']
     except Exception as e:
-        res = f"[error]DeepLX翻译出错:" + str(e)
+        res = f"[error]DeepLX error:" + str(e)
         if set_p:
             tools.set_process(res)
         logger.error(f"deeplx error:{res=}")

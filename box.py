@@ -10,7 +10,6 @@ import sys
 import threading
 import time
 
-import qdarkstyle
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QSettings, QUrl, pyqtSignal, QThread
 from PyQt5.QtGui import QDesktopServices, QIcon
@@ -30,11 +29,14 @@ from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, r
     get_edge_rolelist, get_subtitle_from_srt, ms_to_time_string, speed_change
 
 from videotrans.configure.config import transobj
+
 if spcfg.is_vlc:
     try:
         import vlc
     except:
         spcfg.is_vlc = False
+
+
         class vlc():
             pass
 
@@ -43,6 +45,7 @@ if config.defaulelang == "zh":
 else:
     from videotrans.ui.toolboxen import Ui_MainWindow
 
+
 class DropButton(QPushButton):
     def __init__(self, text=""):
         super(DropButton, self).__init__(text)
@@ -50,7 +53,8 @@ class DropButton(QPushButton):
         self.clicked.connect(self.get_file)
 
     def get_file(self):
-        fname, _ = QFileDialog.getOpenFileName(self, transobj['xuanzeyinpinwenjian'], os.path.expanduser('~') + "\\Videos",
+        fname, _ = QFileDialog.getOpenFileName(self, transobj['xuanzeyinpinwenjian'],
+                                               os.path.expanduser('~') + "\\Videos",
                                                filter="Video/Audio files(*.mp4 *.avi *.mov *.wav *.mp3 *.flac)")
         if fname:
             self.setText(fname)
@@ -295,7 +299,6 @@ class Worker(QThread):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 
-
 # 执行语音识别
 class WorkerWhisper(QThread):
     update_ui = pyqtSignal(str)
@@ -319,7 +322,7 @@ class WorkerWhisper(QThread):
 class WorkerTTS(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, parent=None,*,
+    def __init__(self, parent=None, *,
                  text=None,
                  role=None,
                  rate=None,
@@ -335,11 +338,11 @@ class WorkerTTS(QThread):
         self.rate = rate
         self.filename = filename
         self.tts_type = tts_type
-        self.tts_issrt=tts_issrt
-        self.voice_autorate=voice_autorate
-        self.tmpdir=f'{homedir}/tmp'
+        self.tts_issrt = tts_issrt
+        self.voice_autorate = voice_autorate
+        self.tmpdir = f'{homedir}/tmp'
         if not os.path.exists(self.tmpdir):
-            os.makedirs(self.tmpdir,exist_ok=True)
+            os.makedirs(self.tmpdir, exist_ok=True)
 
     def run(self):
         print(f"start hecheng {self.tts_type=},{self.role=},{self.rate=},{self.filename=}")
@@ -347,15 +350,15 @@ class WorkerTTS(QThread):
         if self.tts_issrt:
             print(f'tts_issrt')
             try:
-                q=self.before_tts()
+                q = self.before_tts()
             except Exception as e:
                 print(e)
-                self.post_message('end',f'before dubbing error:{str(e)}')
+                self.post_message('end', f'before dubbing error:{str(e)}')
                 return
             try:
                 self.exec_tts(q)
             except Exception as e:
-                self.post_message('end',f'srt create dubbing error:{str(e)}')
+                self.post_message('end', f'srt create dubbing error:{str(e)}')
                 return
         else:
             mp3 = self.filename.replace('.wav', '.mp3')
@@ -376,6 +379,7 @@ class WorkerTTS(QThread):
             ])
             os.unlink(mp3)
         self.post_message("end", "Ended")
+
     # 配音预处理，去掉无效字符，整理开始时间
     def before_tts(self):
         # 所有临时文件均产生在 tmp/无后缀mp4名文件夹
@@ -384,7 +388,7 @@ class WorkerTTS(QThread):
         queue_tts = []
         # 获取字幕
         print(f'before-tts,{self.text=}')
-        subs = get_subtitle_from_srt(self.text,is_file=False)
+        subs = get_subtitle_from_srt(self.text, is_file=False)
         print(f'{subs=}')
         rate = int(str(self.rate).replace('%', ''))
         if rate >= 0:
@@ -408,6 +412,7 @@ class WorkerTTS(QThread):
     # 执行 tts配音，配音后根据条件进行视频降速或配音加速处理
     def exec_tts(self, queue_tts):
         queue_copy = copy.deepcopy(queue_tts)
+
         def get_item(q):
             return {"text": q['text'], "role": q['role'], "rate": q['rate'], "filename": q["filename"],
                     "tts_type": self.tts_type}
@@ -426,24 +431,24 @@ class WorkerTTS(QThread):
                 for t in tolist:
                     t.join()
             except Exception as e:
-                self.post_message('end',f'[error]regcon error:{str(e)}')
+                self.post_message('end', f'[error]regcon error:{str(e)}')
                 return False
         segments = []
         start_times = []
         # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
         if len(queue_copy) < 1:
-            return self.post_message('end',f'出错了，{queue_copy=}')
+            return self.post_message('end', f'出错了，{queue_copy=}')
         try:
             # 偏移时间，用于每个 start_time 增减
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
             print(f'{queue_copy=}')
-            srtmeta=[]
+            srtmeta = []
             for (idx, it) in enumerate(queue_copy):
-                srtmeta_item={
-                    'dubbing_time':-1,
-                    'source_time':-1,
-                    'speed_up':-1,
+                srtmeta_item = {
+                    'dubbing_time': -1,
+                    'source_time': -1,
+                    'speed_up': -1,
                 }
                 logger.info(f'\n\n{idx=},{it=}')
                 it['start_time'] += offset
@@ -495,7 +500,7 @@ class WorkerTTS(QThread):
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:
-            self.post_message('end',f"[error] exec_tts :" + str(e))
+            self.post_message('end', f"[error] exec_tts :" + str(e))
             return False
         return True
 
@@ -548,6 +553,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def hideWindow(self):
         # 示例按钮点击时调用，隐藏窗口
         self.hide()
+
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
         # tab-1
@@ -583,7 +589,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-        self.langauge_name = list(langlist.keys()) #list(language_code_list["zh"].keys())
+        self.langauge_name = list(langlist.keys())  # list(language_code_list["zh"].keys())
         self.shibie_language.addItems(self.langauge_name)
         self.shibie_model.addItems(["base", "small", "medium", "large", "large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
@@ -618,7 +624,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_input.setSizePolicy(sizePolicy)
         self.geshi_input.setMinimumSize(300, 0)
 
-
         self.geshi_input.setPlaceholderText(transobj['tuodongdaoci'])
         self.geshi_input.setReadOnly(True)
         self.geshi_layout.insertWidget(0, self.geshi_input)
@@ -629,23 +634,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
         self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{homedir}/conver'))
         if not os.path.exists(f'{homedir}/conver'):
-            os.makedirs(f'{homedir}/conver',exist_ok=True)
+            os.makedirs(f'{homedir}/conver', exist_ok=True)
 
         # 混流
-        self.hun_file1btn.clicked.connect(lambda:self.hun_get_file('file1'))
-        self.hun_file2btn.clicked.connect(lambda:self.hun_get_file('file2'))
+        self.hun_file1btn.clicked.connect(lambda: self.hun_get_file('file1'))
+        self.hun_file2btn.clicked.connect(lambda: self.hun_get_file('file2'))
         self.hun_startbtn.clicked.connect(self.hun_fun)
         self.hun_opendir.clicked.connect(lambda: self.opendir_fn(self.hun_out.text()))
 
         # 翻译
-        proxy=set_proxy()
+        proxy = set_proxy()
         if proxy:
             self.fanyi_proxy.setText(proxy)
         self.languagename = list(langlist.keys())
         self.fanyi_target.addItems(["-"] + self.languagename)
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
-        self.fanyi_translate_type.addItems(["google", "baidu", "chatGPT", 'Azure','Gemini',"tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.fanyi_translate_type.addItems(
+            ["google", "baidu", "chatGPT", 'Azure', 'Gemini', "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
 
         self.fanyi_sourcetext = Textedit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -659,25 +665,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
 
-
         # self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
 
     # 获取wav件
-    def hun_get_file(self,name='file1'):
+    def hun_get_file(self, name='file1'):
         fname, _ = QFileDialog.getOpenFileName(self, "Select wav", os.path.expanduser('~'),
-                                                 "Audio files(*.wav)")
+                                               "Audio files(*.wav)")
         if fname:
-            if name=='file1':
-                self.hun_file1.setText(fname.replace('file:///','').replace('\\','/'))
+            if name == 'file1':
+                self.hun_file1.setText(fname.replace('file:///', '').replace('\\', '/'))
             else:
-                self.hun_file2.setText(fname.replace('file:///','').replace('\\','/'))
+                self.hun_file2.setText(fname.replace('file:///', '').replace('\\', '/'))
+
     # 文本翻译，导入文本文件
     def fanyi_import_fun(self):
         fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
-                                                 "Text files(*.srt *.txt)")
+                                               "Text files(*.srt *.txt)")
         if fname:
-            with open(fname.replace('file:///',''),'r',encoding='utf-8') as f:
+            with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
                 self.fanyi_sourcetext.setPlainText(f.read().strip())
 
     def render_play(self, t):
@@ -739,28 +745,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText(transobj["zhixingwc"])
                 self.geshi_input.clear()
-        elif data['func_name']=='hun_end':
+        elif data['func_name'] == 'hun_end':
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
-        elif data['func_name']=='fanyi_end':
+        elif data['func_name'] == 'fanyi_end':
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(transobj['starttrans'])
             self.fanyi_targettext.setPlainText(data['text'])
 
-
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
         if not self.yspfl_video_wrap.filepath:
-            return QMessageBox.critical(self, transobj['anerror'], "必须选择视频文件")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
         video_out = f"{homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
-        self.yspfl_task = Worker([['-y','-i',file,'-an',f"{video_out}/{basename}.mp4",f"{video_out}/{basename}.wav"]],"yspfl_end", self)
+        self.yspfl_task = Worker(
+            [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl_end",
+            self)
         self.yspfl_task.update_ui.connect(self.receiver)
         self.yspfl_task.start()
-        self.yspfl_startbtn.setText("执行中...")
+        self.yspfl_startbtn.setText(transobj['running'])
         self.yspfl_startbtn.setDisabled(True)
 
         self.yspfl_videoinput.setText(f"{video_out}/{basename}.mp4")
@@ -779,14 +786,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def ysphb_select_fun(self, name):
         if name == "video":
             mime = "Video files(*.mp4 *.avi *.mov)"
-            showname = "视频"
+            showname = " Video "
         elif name == "wav":
             mime = "Audio files(*.mp3 *.wav *.flac)"
-            showname = "音频"
+            showname = " Audio "
         else:
             mime = "Srt files(*.srt)"
-            showname = "字幕"
-        fname, _ = QFileDialog.getOpenFileName(self, f"选择{showname}文件", os.path.expanduser('~') + "\\Videos", mime)
+            showname = " srt "
+        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",
+                                               mime)
         if not fname:
             return
 
@@ -809,7 +817,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
             return
         if not wavfile and not srtfile:
-            QMessageBox.critical(self, transobj['anerror'],transobj['yinpinhezimu'])
+            QMessageBox.critical(self, transobj['anerror'], transobj['yinpinhezimu'])
             return
         if not os.path.exists(wavfile) and not os.path.exists(srtfile):
             QMessageBox.critical(self, transobj['anerror'], transobj["yinpinhezimu"])
@@ -819,29 +827,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(savedir):
             os.makedirs(savedir, exist_ok=True)
 
-        cmds=[]
+        cmds = []
         if wavfile and srtfile:
-            tmpname=f'{config.rootdir}/tmp/{time.time()}.mp4'
-            srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')            
-            cmds=[
-                ['-y', '-i', f'{videofile}','-i', f'{wavfile}','-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map','0:v','-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
+            tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
+            srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+            cmds = [
+                ['-y', '-i', f'{videofile}', '-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",
+                 '-map', '0:v', '-map', "[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
                 ['-y', '-i', f'{tmpname}', "-vf", f"subtitles={srtfile}", f'{savedir}/{basename}.mp4']
             ]
         else:
             cmd = ['-y', '-i', f'{videofile}']
             if wavfile:
                 # 只存在音频，不存在字幕
-                cmd += ['-i', f'{wavfile}','-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map','0:v','-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac']
-            elif srtfile :
-                srtfile=srtfile.replace('\\', '/').replace(':', '\\\\:')
+                cmd += ['-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map', '0:v', '-map',
+                        "[aout]", '-c:v', 'libx264', '-c:a', 'aac']
+            elif srtfile:
+                srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
                 cmd += ["-vf", f"subtitles={srtfile}"]
-                            
+
             cmd += [f'{savedir}/{basename}.mp4']
-            cmds=[cmd]
+            cmds = [cmd]
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
-        
+
         self.ysphb_startbtn.setText(transobj["running"])
         self.ysphb_startbtn.setDisabled(True)
         self.ysphb_out.setText(f"{savedir}/{basename}.mp4")
@@ -887,7 +897,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(file):
             return QMessageBox.critical(self, transobj['anerror'], transobj['chakanerror'])
         model = self.shibie_model.currentText()
-        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0], "shibie_end", self)
+        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0],
+                                         "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
@@ -922,21 +933,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
 
-
         if not txt:
             return QMessageBox.critical(self, transobj['anerror'], transobj['neirongweikong'])
         if language == '-' or role == 'No':
             return QMessageBox.critical(self, transobj['anerror'], transobj['yuyanjuesebixuan'])
         if tts_type == 'openaiTTS' and not spcfg.video['chatgpt_key']:
-            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+"chatGPT key")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + "chatGPT key")
         elif tts_type == 'coquiTTS' and not spcfg.video['coquitts_key']:
-            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+" coquiTTS key")
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + " coquiTTS key")
         # 文件名称
-        filename=self.hecheng_out.text()
+        filename = self.hecheng_out.text()
         if not filename:
-            filename=f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
+            filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
         else:
-            filename=filename.replace('.wav','')+".wav"
+            filename = filename.replace('.wav', '') + ".wav"
         if not os.path.exists(f"{homedir}/tts"):
             os.makedirs(f"{homedir}/tts", exist_ok=True)
         wavname = f"{homedir}/tts/{filename}"
@@ -945,7 +955,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             rate = f"-{rate}%"
 
-        issrt=self.tts_issrt.isChecked()
+        issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
                                       text=txt,
                                       role=role,
@@ -962,11 +972,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_out.setText(wavname)
         self.hecheng_out.setDisabled(True)
 
-    def tts_issrt_change(self,state):
+    def tts_issrt_change(self, state):
         if state:
             self.voice_autorate.setDisabled(False)
         else:
             self.voice_autorate.setDisabled(True)
+
     # tts类型改变
     def tts_type_change(self, type):
         if type == "openaiTTS":
@@ -1050,25 +1061,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_mov.setDisabled(type)
         self.geshi_mp3.setDisabled(type)
         self.geshi_wav.setDisabled(type)
+
     # 音频混流
     def hun_fun(self):
-        out=self.hun_out.text().strip()
+        out = self.hun_out.text().strip()
         if not out:
-            out=f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.wav'
+            out = f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.wav'
         elif not out.endswith('.wav'):
-            out+='.wav'
-            out=out.replace('\\','').replace('/','')
-        dirname=homedir+"/hun_liu"
+            out += '.wav'
+            out = out.replace('\\', '').replace('/', '')
+        dirname = homedir + "/hun_liu"
         if not os.path.exists(dirname):
-            os.makedirs(dirname,exist_ok=True)
-        savename=f'{dirname}/{out}'
+            os.makedirs(dirname, exist_ok=True)
+        savename = f'{dirname}/{out}'
 
         self.hun_out.setText(savename)
 
-        file1=self.hun_file1.text()
-        file2=self.hun_file2.text()
+        file1 = self.hun_file1.text()
+        file2 = self.hun_file2.text()
 
-        cmd=['-y','-i',file1,'-i',file2,'-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac','2', savename]
+        cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
+               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
         self.geshi_task = Worker([cmd], "hun_end", self)
         self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
@@ -1077,17 +1090,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 翻译开始
     def fanyi_start_fun(self):
-        target_language=self.fanyi_target.currentText()
-        translate_type=self.fanyi_translate_type.currentText()
-        if target_language=='-':
-            return QMessageBox.critical(self,transobj['anerror'],transobj["fanyimoshi1"])
-        proxy=self.fanyi_proxy.text()
+        target_language = self.fanyi_target.currentText()
+        translate_type = self.fanyi_translate_type.currentText()
+        if target_language == '-':
+            return QMessageBox.critical(self, transobj['anerror'], transobj["fanyimoshi1"])
+        proxy = self.fanyi_proxy.text()
         if proxy:
             set_proxy(proxy)
-        issrt=self.fanyi_issrt.isChecked()
-        source_text=self.fanyi_sourcetext.toPlainText().strip()
+        issrt = self.fanyi_issrt.isChecked()
+        source_text = self.fanyi_sourcetext.toPlainText().strip()
         if not source_text:
-            return QMessageBox.critical(self,transobj['anerror'],transobj["wenbenbukeweikong"])
+            return QMessageBox.critical(self, transobj['anerror'], transobj["wenbenbukeweikong"])
         # target_language = langlist[target_language][0]
         config.baidu_appid = self.settings.value("baidu_appid", "")
         config.baidu_miyue = self.settings.value("baidu_miyue", "")
@@ -1108,97 +1121,89 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # baidu language code
             target_language = langlist[target_language][2]
             if not config.baidu_appid or not config.baidu_miyue:
-                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+'Baidu key')
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'Baidu key')
                 return
         elif translate_type == 'tencent':
             #     腾讯翻译
             target_language = langlist[target_language][4]
             if not config.tencent_SecretId or not config.tencent_SecretKey:
-                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' Tencent key')
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' Tencent key')
                 return
         elif translate_type == 'chatGPT':
             # chatGPT 翻译
             target_language = english_code_bygpt[self.languagename.index(target_language)]
             if not config.chatgpt_key:
-                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+'ChatGPT key')
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'ChatGPT key')
                 return
         elif translate_type == 'DeepL' or translate_type == 'DeepLX':
             # DeepL翻译
             if translate_type == 'DeepL' and not config.deepl_authkey:
-                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' DeepL key')
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' DeepL key')
                 return
             if translate_type == 'DeepLX' and not config.deeplx_address:
-                QMessageBox.critical(self, transobj['anerror'],transobj['bixutianxie']+' DeepLX url')
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' DeepLX url')
                 return
             target_language_deepl = langlist[target_language][3]
             if target_language_deepl == 'No':
-                QMessageBox.critical(self, transobj['anerror'],'DeepL '+transobj['buzhichifanyi'])
+                QMessageBox.critical(self, transobj['anerror'], 'DeepL ' + transobj['buzhichifanyi'])
                 return
-        self.fanyi_task=FanyiWorker(translate_type,target_language,source_text,issrt,self)
+        self.fanyi_task = FanyiWorker(translate_type, target_language, source_text, issrt, self)
         self.fanyi_task.ui.connect(self.receiver)
         self.fanyi_task.start()
         self.fanyi_start.setDisabled(True)
         self.fanyi_start.setText(transobj["running"])
         self.fanyi_targettext.clear()
 
+
 class FanyiWorker(QThread):
-    ui=pyqtSignal(str)
-    def __init__(self,type,target_language,text,issrt,parent=None):
+    ui = pyqtSignal(str)
+
+    def __init__(self, type, target_language, text, issrt, parent=None):
         super(FanyiWorker, self).__init__(parent)
-        self.type=type
-        self.target_language=target_language
-        self.text=text
-        self.issrt=issrt
-        self.srts=""
+        self.type = type
+        self.target_language = target_language
+        self.text = text
+        self.issrt = issrt
+        self.srts = ""
+
     def run(self):
         # 开始翻译,从目标文件夹读取原始字幕
         if not self.issrt:
-            if self.type=='chatGPT':
-                srt=chatgpttrans(get_subtitle_from_srt(self.text, is_file=False),self.target_language,set_p=False)
-                srts_tmp=""
-                for it in srt:
-                    srts_tmp +=f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                self.srts= srts_tmp
-            elif self.type=='Azure':
-                self.srts= azuretrans(self.text,self.target_language,set_p=False)
-            elif self.type=='Gemini':
-                self.srts= geminitrans(self.text,self.target_language,set_p=False)
-            elif self.type=='google':
-                self.srts= googletrans(self.text,'auto',self.target_language,set_p=False)
-            elif self.type=='baidu':
-                self.srts= baidutrans(self.text,'auto',self.target_language,set_p=False)
-            elif self.type=='baidu(noKey)':
-                self.srts= baidutrans_spider(self.text,'auto',self.target_language,set_p=False)
-            elif self.type=='tencent':
-                self.srts= tencenttrans(self.text,'auto',self.target_language,set_p=False)
-            elif self.type=='DeepL':
-                self.srts= deepltrans(self.text,self.target_language,set_p=False)
-            elif self.type=='DeepLX':
-                self.srts= deeplxtrans(self.text,self.target_language,set_p=False)
+            if self.type == 'chatGPT':
+                self.srts = chatgpttrans(self.text, self.target_language, set_p=False)
+            elif self.type == 'Azure':
+                self.srts = azuretrans(self.text, self.target_language, set_p=False)
+            elif self.type == 'Gemini':
+                self.srts = geminitrans(self.text, self.target_language, set_p=False)
+            elif self.type == 'google':
+                self.srts = googletrans(self.text, 'auto', self.target_language, set_p=False)
+            elif self.type == 'baidu':
+                self.srts = baidutrans(self.text, 'auto', self.target_language, set_p=False)
+            elif self.type == 'baidu(noKey)':
+                self.srts = baidutrans_spider(self.text, 'auto', self.target_language, set_p=False)
+            elif self.type == 'tencent':
+                self.srts = tencenttrans(self.text, 'auto', self.target_language, set_p=False)
+            elif self.type == 'DeepL':
+                self.srts = deepltrans(self.text, self.target_language, set_p=False)
+            elif self.type == 'DeepLX':
+                self.srts = deeplxtrans(self.text, self.target_language, set_p=False)
         else:
             try:
                 rawsrt = get_subtitle_from_srt(self.text, is_file=False)
             except Exception as e:
                 print(f"整理格式化原始字幕信息出错:" + str(e), 'error')
                 return ""
-            if self.type == 'chatGPT':
-                print(f"等待 chatGPT 返回响应", 'logs')
-                try:
-                    rawsrt = chatgpttrans(rawsrt,self.target_language,set_p=False)
-                    for it in rawsrt:
-                        self.srts += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                except Exception as e:
-                    print(f'使用chatGPT翻译字幕时出错:{str(e)}', 'error')
-                    self.srts=str(e)
-            elif self.type == 'Azure':
-                print(f"等待 Azure 返回响应", 'logs')
-                try:
-                    rawsrt = azuretrans(rawsrt,self.target_language,set_p=False)
-                    for it in rawsrt:
-                        self.srts += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                except Exception as e:
-                    print(f'使用Azure翻译字幕时出错:{str(e)}', 'error')
-                    self.srts=str(e)
+            if self.type in ['chatGPT', 'Azure', 'Gemini']:
+                if self.type == 'chatGPT':
+                    srt = chatgpttrans(rawsrt, self.target_language, set_p=False)
+                elif self.type == 'Azure':
+                    srt = azuretrans(rawsrt, self.target_language, set_p=False)
+                elif self.type == 'Gemini':
+                    srt = geminitrans(rawsrt, self.target_language, set_p=False)
+                srts_tmp = ""
+                for it in srt:
+                    srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                self.srts = srts_tmp
             else:
                 # 其他翻译，逐行翻译
                 for (i, it) in enumerate(rawsrt):
@@ -1206,22 +1211,22 @@ class FanyiWorker(QThread):
                     if self.type == 'google':
                         new_text = googletrans(it['text'],
                                                'auto',
-                                               self.target_language,set_p=False)
+                                               self.target_language, set_p=False)
                     elif self.type == 'baidu':
-                        new_text = baidutrans(it['text'], 'auto', self.target_language,set_p=False)
+                        new_text = baidutrans(it['text'], 'auto', self.target_language, set_p=False)
                     elif self.type == 'tencent':
-                        new_text = tencenttrans(it['text'], 'auto',self.target_language,set_p=False)
+                        new_text = tencenttrans(it['text'], 'auto', self.target_language, set_p=False)
                     elif self.type == 'baidu(noKey)':
-                        new_text = baidutrans_spider(it['text'], 'auto', self.target_language,set_p=False)
+                        new_text = baidutrans_spider(it['text'], 'auto', self.target_language, set_p=False)
                     elif self.type == 'DeepL':
-                        new_text = deepltrans(it['text'], self.target_language,set_p=False)
+                        new_text = deepltrans(it['text'], self.target_language, set_p=False)
                     elif self.type == 'DeepLX':
-                        new_text = deeplxtrans(it['text'], self.target_language,set_p=False)
-                    new_text = new_text.replace('&#39;', "'")
-                    new_text = re.sub(r'&#\d+;', '', new_text)
+                        new_text = deeplxtrans(it['text'], self.target_language, set_p=False)
+                    new_text = re.sub(r'&#\d+;', '', new_text.replace('&#39;', "'"))
                     # 更新字幕区域
                     self.srts += f"{it['line']}\n{it['time']}\n{new_text}\n\n"
         self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
+
 
 if __name__ == "__main__":
     threading.Thread(target=get_edge_rolelist)
@@ -1233,9 +1238,14 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     main = MainWindow()
-    with open(f'{config.rootdir}/videotrans/styles/style.qss','r',encoding='utf-8') as f:
-        main.setStyleSheet(f.read())
-    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+    try:
+        with open(f'{config.rootdir}/videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
+            main.setStyleSheet(f.read())
+        import qdarkstyle
+
+        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+    except:
+        pass
 
     main.show()
     threading.Thread(target=set_proxy).start()

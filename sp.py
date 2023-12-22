@@ -94,7 +94,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.clicked.connect(self.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(["google", "baidu", "chatGPT", "Azure",'Gemini',"tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+        self.translate_type.addItems(
+            ["google", "baidu", "chatGPT", "Azure", 'Gemini', "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
         self.translate_type.setCurrentText(self.cfg['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
@@ -202,7 +203,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rightbottom.clicked.connect(self.about)
         rightbottom.setStyleSheet("color:#00a67d")
 
-
         self.container = QToolBar()
         self.container.addWidget(rightbottom)
         # container.addWidget(usetype)
@@ -257,10 +257,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "voice_rate": config.voice_rate,
             "tts_type": self.task.video.obj['tts_type'],
         }
-        txt=self.subtitle_area.toPlainText().strip()
+        txt = self.subtitle_area.toPlainText().strip()
         if not txt:
-            return QMessageBox.critical(self,transobj['anerror'],transobj['bukeshiting'])
-        with open(self.task.video.targetdir_target_sub,'w',encoding='utf-8') as f:
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bukeshiting'])
+        with open(self.task.video.targetdir_target_sub, 'w', encoding='utf-8') as f:
             f.write(txt)
         self.shitingobj = Shiting(obj, self)
         self.shitingobj.start()
@@ -656,7 +656,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.azure_key = self.settings.value("azure_key", "")
         config.azure_model = self.settings.value("azure_model", self.cfg['azure_model'])
 
-
         self.cfg['translate_type'] = self.settings.value("translate_type", self.cfg['translate_type'])
         self.cfg['subtitle_type'] = self.settings.value("subtitle_type", self.cfg['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
@@ -684,7 +683,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://v.wonyes.org")
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
-        elif title=='download':
+        elif title == 'download':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
 
     # 工具箱
@@ -716,7 +715,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.hide()
         config.task_countdown = 86400
         self.process.moveCursor(QTextCursor.End)
-        self.process.insertHtml("<br><strong>"+transobj['daojishitingzhi']+"</strong><br>")
+        self.process.insertHtml("<br><strong>" + transobj['daojishitingzhi'] + "</strong><br>")
         self.continue_compos.setDisabled(False)
         self.continue_compos.setText(transobj['nextstep'])
 
@@ -876,7 +875,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
             if name == "Azure" and not config.azure_key:
-                QMessageBox.critical(self, transobj['anerror'],transobj['tianxieazure'])
+                QMessageBox.critical(self, transobj['anerror'], transobj['tianxieazure'])
                 return
             if name == "DeepL" and not config.deepl_authkey:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
@@ -1067,7 +1066,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if target_dir:
             self.cfg['target_dir'] = target_dir
         elif self.cfg['source_mp4']:
-            self.cfg['target_dir'] = f"{os.path.dirname(self.cfg['source_mp4'])}/_video_out".replace('//','/')
+            self.cfg['target_dir'] = f"{os.path.dirname(self.cfg['source_mp4'])}/_video_out".replace('//', '/')
         self.target_dir.setText(self.cfg['target_dir'])
 
         # 代理
@@ -1121,7 +1120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # chatGPT 翻译
                 self.cfg['target_language_gemini'] = english_code_bygpt[self.languagename.index(target_language)]
                 if not config.gemini_key:
-                    QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie']+'google Gemini key')
+                    QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'google Gemini key')
                     return
             elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
                 # DeepL翻译
@@ -1212,7 +1211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.cfg['target_language'] = '-'
         # 综合判断
         if not self.cfg['source_mp4'] and not txt:
-            return QMessageBox.critical(self, transobj['anerror'],transobj['bukedoubucunzai'])
+            return QMessageBox.critical(self, transobj['anerror'], transobj['bukedoubucunzai'])
 
         # tts类型
         if self.cfg['tts_type'] == 'openaiTTS' and not config.chatgpt_key:
@@ -1236,7 +1235,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 已存在字幕
         if txt:
-            self.cfg['subtitles']=txt
+            self.cfg['subtitles'] = txt
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
@@ -1292,7 +1291,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if d['type'] == "subtitle":
             self.subtitle_area.moveCursor(QTextCursor.End)
             self.subtitle_area.insertPlainText(d['text'])
-        elif d['type']=='set_target_dir':
+        elif d['type'] == 'set_target_dir':
             self.target_dir.setText(d['text'])
         elif d['type'] == "logs":
             self.process.moveCursor(QTextCursor.End)
@@ -1304,8 +1303,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.process.moveCursor(QTextCursor.End)
                 self.process.insertHtml(d['text'])
             self.statusLabel.setText(transobj['bencijieshu'])
-        elif d['type']=='succeed':
-            #本次任务结束
+        elif d['type'] == 'succeed':
+            # 本次任务结束
             self.process.clear()
             self.process.setHtml(d['text'])
             self.subtitle_area.clear()
@@ -1324,7 +1323,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.continue_compos.setText(d['text'])
             self.stop_djs.show()
             # 允许试听
-            if self.task.video.step=='dubbing_before':
+            if self.task.video.step == 'dubbing_before':
                 self.listen_peiyin.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
@@ -1351,8 +1350,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.hide()
         self.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
-        txt=self.subtitle_area.toPlainText().strip()
-        with open(self.task.video.targetdir_source_sub if self.task.video.step == 'translate_before' else self.task.video.targetdir_target_sub, 'w', encoding='utf-8') as f:
+        txt = self.subtitle_area.toPlainText().strip()
+        with open(
+                self.task.video.targetdir_source_sub if self.task.video.step == 'translate_before' else self.task.video.targetdir_target_sub,
+                'w', encoding='utf-8') as f:
             f.write(txt)
         if self.task.video.step == 'translate_before':
             self.subtitle_area.clear()
@@ -1386,6 +1387,7 @@ if __name__ == "__main__":
         with open(f'{config.rootdir}/videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             main.setStyleSheet(f.read())
         import qdarkstyle
+
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
     except:
         pass

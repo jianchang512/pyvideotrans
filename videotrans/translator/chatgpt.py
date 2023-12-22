@@ -35,14 +35,12 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
 
     openai.base_url=api_url
     lang = target_language_chatgpt
-    print(f'{config.chatgpt_template=}')
     if isinstance(text_list,str):
         messages = [
             {'role': 'system',
              'content': config.chatgpt_template.replace('{lang}', lang)},
             {'role': 'user', 'content': text_list},
         ]
-        print(messages)
         response=""
         try:
             client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
@@ -69,8 +67,8 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 print(str(e))
         except Exception as e:
             error = str(e)
-            return (f"【chatGPT Error-2.5】翻译失败:openaiAPI={api_url} :{error}")
-        return f"翻译失败:{response=}"
+            return (f"【ChatGPT Error-2.5】error:openaiAPI={api_url} :{error}")
+        return f"ChatGPT error:{response=}"
 
 
     total_result = []
@@ -129,7 +127,7 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 try:
                     if ("code" in response) and response['code'] != 0:
                         if set_p:
-                            tools.set_process(f"[error]chatGPT翻译请求失败error:" + str(response))
+                            tools.set_process(f"[error]ChatGPT error:" + str(response))
                         logger.error(f"[chatGPT error-1]翻译失败r:" + str(response))
                 except:
                     pass
@@ -148,23 +146,23 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                     trans_text=result.split("\n")
                 logger.info(f"\n[chatGPT OK]翻译成功:{result}")
                 if set_p:
-                    tools.set_process(f"chatGPT 翻译成功")
+                    tools.set_process(f"ChatGPT OK")
             else:
-                trans_text = ["[error]chatGPT翻译失败"] * len_sub
+                trans_text = ["[error]ChatGPT error"] * len_sub
                 if set_p:
-                    tools.set_process(f"[error]chatGPT出错:{error}")
+                    tools.set_process(f"[error]ChatGPT error:{error}")
         except Exception as e:
             error=str(e)
             logger.error(f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :{error}")
             if not api_url.startswith("https://api.openai.com"):
                 if set_p:
-                    tools.set_process(f"[error]chatGPT,当前请求api={api_url}是第三方接口，请尝试接口地址末尾增加或去掉 /v1 后再试:{error}")
+                    tools.set_process(f"[error]ChatGPT error,api={api_url}:{error}")
             elif set_p:
-                tools.set_process(f"[error]chatGPT,当前请求api={api_url} 请求失败:{error}")
-            trans_text = [f"[error]chatGPT 请求失败"] * len_sub
+                tools.set_process(f"[error]ChatGPT error:{error}")
+            trans_text = [f"[error]ChatGPT error"] * len_sub
         if error and re.search(r'Rate limit',error,re.I) is not None:
             if set_p:
-                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试')
+                tools.set_process(f'ChatGPT limit rate, wait 30s')
             time.sleep(30)
             return chatgpttrans(text_list)
         # 处理

@@ -967,7 +967,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <string>Video Toolbox</string>
    </property>
    <property name="toolTip">
-    <string></string>
+    <string>Video Toolbox</string>
    </property>
   </action>
   <action name="action_vlc">
@@ -1034,7 +1034,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Standard Function</string>
+    <string>Standard Function Mode</string>
    </property>
    <property name="toolTip">
     <string>Display all options for video translation and dubbing</string>
@@ -1067,7 +1067,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Subtitle creation dubbing</string>
+    <string>Srt creation dubbing</string>
    </property>
    <property name="toolTip">
     <string>Local existing SRT subtitle generation dubbing WAV files</string>
@@ -1075,7 +1075,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yuyinshibie">
    <property name="text">
-    <string>Speech recognition</string>
+    <string>Speech recognition text</string>
    </property>
    <property name="toolTip">
     <string>Recognize the sound in audio or video and output SRT text</string>
@@ -1083,7 +1083,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_yuyinhecheng">
    <property name="text">
-    <string>Text to speech</string>
+    <string>From Text to speech</string>
    </property>
    <property name="toolTip">
     <string>Generate audio WAV from text or SRT subtitle files</string>
@@ -1094,7 +1094,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Extract subtitle translate</string>
+    <string>Extract Srt translate</string>
    </property>
    <property name="toolTip">
     <string>Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language</string>
@@ -1126,7 +1126,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_hun">
    <property name="text">
-    <string>Mixing two audio streams</string>
+    <string>Mixing 2 audio streams</string>
    </property>
    <property name="toolTip">
     <string>Mix two audio files into one audio file</string>
@@ -1134,7 +1134,7 @@ background-color: rgba(255, 255, 255, 0);</string>
   </action>
   <action name="action_fanyi">
    <property name="text">
-    <string>Text subtitle translation</string>
+    <string>Text or srt translation</string>
    </property>
    <property name="toolTip">
     <string>Translate text or subtitles</string>
