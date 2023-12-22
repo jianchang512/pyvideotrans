@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# 暂时废弃，待重构，若需要 cli 版本，请使用 v0.0.8 老版本
+
 import sys
 import argparse
 import os
@@ -16,7 +18,7 @@ def lower(string):
 
 
 # voice role list
-config.voice_list = get_edge_rolelist()
+voice_list = get_edge_rolelist()
 # voice role by current language
 voice_role_lower = []
 
@@ -26,10 +28,10 @@ def set_default_voice(target_language):
     global voice_role_lower
     try:
         vt = clilanglist[target_language][0].split('-')[0]
-        if vt not in config.voice_list:
+        if vt not in voice_list:
             logger.error("The selected voice role does not exist. Please choose again.")
             return ["No"]
-        li = config.voice_list[vt]
+        li = voice_list[vt]
         for i in li:
             voice_role_lower.append(i.lower())
         return li
@@ -136,33 +138,33 @@ def showprocess(text, type="logs"):
     logger.info(f"{type}:  {text}")
 
 
-def running(p):
-    # remove whitespace
-    mp4name = os.path.basename(p)
-    #  no ext eg. 1123  mp4
-    noextname,mp4ext = os.path.splitext(mp4name)
-    # subtitle filepath
-    a_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.wav"
-    if not os.path.exists(a_name) or os.path.getsize(a_name)==0:
-        runffmpeg([
-                   "-y",
-                   "-i",
-                   f'{p}',
-                   f'{a_name}'
-    ])
+# def running(p):
+#     # remove whitespace
+#     mp4name = os.path.basename(p)
+#     #  no ext eg. 1123  mp4
+#     noextname,mp4ext = os.path.splitext(mp4name)
+#     # subtitle filepath
+#     a_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.wav"
+#     if not os.path.exists(a_name) or os.path.getsize(a_name)==0:
+#         runffmpeg([
+#                    "-y",
+#                    "-i",
+#                    f'{p}',
+#                    f'{a_name}'
+#     ])
+#
+#     get_large_audio_transcriptioncli(noextname, mp4ext, showprocess)
+#     # del temp files
+#     delete_temp(noextname)
 
-    get_large_audio_transcriptioncli(noextname, mp4ext, showprocess)
-    # del temp files
-    delete_temp(noextname)
 
-
-if __name__ == '__main__':
-    if len(sys.argv) == 2 and sys.argv[1][-10:] == 'show_voice':
-        for it in config.voice_list:
-            print(f"[Error]: {it}: {', '.join(config.voice_list[it][1:])}")
-        exit(1)
-    config.video.update(init_args())
-    config.current_status = "ing"
-    if not os.path.exists(os.path.join(config.rootdir, "tmp")):
-        os.mkdir(os.path.join(config.rootdir, 'tmp'))
-    running(config.video['source_mp4'])
+# if __name__ == '__main__':
+#     if len(sys.argv) == 2 and sys.argv[1][-10:] == 'show_voice':
+#         for it in voice_list:
+#             print(f"[Error]: {it}: {', '.join(voice_list[it][1:])}")
+#         exit(1)
+#     config.video.update(init_args())
+#     config.current_status = "ing"
+#     if not os.path.exists(os.path.join(config.rootdir, "tmp")):
+#         os.mkdir(os.path.join(config.rootdir, 'tmp'))
+#     running(config.video)

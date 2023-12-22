@@ -47,10 +47,9 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         if isinstance(text_list,str):
             return err
         else:
-            tools.set_process(f'[error]Gemini翻译出错了:{err}','error')
+            tools.set_process(f'[error]Gemini error:{err}','error')
             return [{"text":err}]
     lang = target_language_chatgpt
-    print(f'{config.gemini_template=}')
     if isinstance(text_list, str):
         try:
             model = genai.GenerativeModel('gemini-pro')
@@ -61,7 +60,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             return response.text.strip()
         except Exception as e:
             error = str(e)
-            return f"Gemini翻译失败 :{error}"
+            return f"Gemini error:{error}"
 
     total_result = []
     split_size = 10
@@ -92,21 +91,21 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 safety_settings=safetySettings
             )
             if not response.parts and set_p:
-                trans_text = [f"[error]Gemini 请求失败:{response.prompt_feedback}"] * len_sub
+                trans_text = [f"[error]Gemini error:{response.prompt_feedback}"] * len_sub
             else:
                 trans_text = response.text.split("\n")
-                logger.info(f"\n[Gemini OK]翻译成功")
+                # logger.info(f"\n[Gemini OK]翻译成功")
                 if set_p:
-                    tools.set_process(f"Gemini 翻译成功")
+                    tools.set_process(f"Gemini OK")
         except Exception as e:
             error = str(e)
             if response:
                 error+=f',{response.prompt_feedback=}'
-            logger.error(f"【Gemini Error-2】翻译失败 :{error}")
-            trans_text = [f"[error]Gemini 请求失败:{error}"] * len_sub
+            logger.error(f"【Gemini Error-2】error :{error}")
+            trans_text = [f"[error]Gemini error:{error}"] * len_sub
         if error and re.search(r'limit', error, re.I) is not None:
             if set_p:
-                tools.set_process(f'Gemini请求速度被限制，暂停30s后自动重试')
+                tools.set_process(f'Gemini limit rate,wait 30s')
             time.sleep(30)
             return geminitrans(text_list)
         # 处理

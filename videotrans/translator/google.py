@@ -23,25 +23,25 @@ def googletrans(text, src, dest,*,set_p=True):
             'https://': serv
         }
     nums=0
-    msg=f"[error]google 翻译失败:{text=}"
+    msg=f"[error]google error:{text=}"
     while nums<2:
         nums+=1
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=40)
             print(f"google translate code={response.status_code}")
             if response.status_code != 200:
-                msg=f"[error] google翻译失败 status_code={response.status_code}"
+                msg=f"[error] google error status_code={response.status_code}"
                 time.sleep(3)
                 continue
 
             re_result = re.findall(
                 r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
             if len(re_result)<1:
-                msg='[error]google翻译失败了'
+                msg='[error]google error'
                 time.sleep(3)
                 continue
             return re_result[0]
         except Exception as e:
-            msg=f"[error]google 翻译失败{serv=}:请确认能连接到google" + str(e)
+            msg=f"[error]google error {serv=}: is connect to google {str(e)}?"
             time.sleep(3)
     return msg

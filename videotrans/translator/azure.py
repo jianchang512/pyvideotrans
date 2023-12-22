@@ -41,7 +41,6 @@ def azuretrans(text_list,target_language_chatgpt="English",*,set_p=True):
         ]
         response=""
         try:
-            # client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
             client = AzureOpenAI(
               api_key = config.azure_key,
               api_version = "2023-05-15",
@@ -98,7 +97,6 @@ def azuretrans(text_list,target_language_chatgpt="English",*,set_p=True):
         logger.info(f"发送消息{messages=}")
         error=""
         try:
-            # client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
             client = AzureOpenAI(
                 api_key=config.azure_key,
                 api_version="2023-05-15",
@@ -136,7 +134,7 @@ def azuretrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 try:
                     if ("code" in response) and response['code'] != 0:
                         if set_p:
-                            tools.set_process(f"[error]azure翻译请求失败error:" + str(response))
+                            tools.set_process(f"[error]Azure error:" + str(response))
                         logger.error(f"[azure error-1]翻译失败r:" + str(response))
                 except:
                     pass
@@ -152,18 +150,18 @@ def azuretrans(text_list,target_language_chatgpt="English",*,set_p=True):
                     trans_text=result.split("\n")
                 logger.info(f"\n[azure OK]翻译成功:{result}")
                 if set_p:
-                    tools.set_process(f"azure 翻译成功")
+                    tools.set_process(f"Azure ok")
             else:
-                trans_text = ["[error]azure翻译失败"] * len_sub
+                trans_text = ["[error]Azure error"] * len_sub
                 if set_p:
-                    tools.set_process(f"[error]azure出错:{error}")
+                    tools.set_process(f"[error]Azure :{error}")
         except Exception as e:
             error=str(e)
             logger.error(f"【azure Error-2】翻译失败 :{error}")
-            trans_text = [f"[error]azure 请求失败"] * len_sub
+            trans_text = [f"[error]Azure error"] * len_sub
         if error and re.search(r'Rate limit',error,re.I) is not None:
             if set_p:
-                tools.set_process(f'azure请求速度被限制，暂停30s后自动重试')
+                tools.set_process(f'Azure limit rate,wait 30s')
             time.sleep(30)
             return azuretrans(text_list)
         # 处理

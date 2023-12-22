@@ -59,6 +59,9 @@ current_status = "stop"
 openaiTTS_rolelist="alloy,echo,fable,onyx,nova,shimmer"
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
+
+
+
 # 是否启用了cuda
 cuda=False
 voice_role="No"
