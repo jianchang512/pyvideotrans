@@ -228,3 +228,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 5. edge-tts
 6. openai-whisper
 7. opencv-python
+
+
+<a href="https://www.buymeacoffee.com/jianchang55" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
