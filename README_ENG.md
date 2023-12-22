@@ -183,7 +183,6 @@ If the installation is correct, the precompiled version can now be used with CUD
 
 [Youtube demo](https://youtu.be/skLtE1XnO6Q)
 
-<a href="https://www.buymeacoffee.com/jianchang55" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Acknowledgements
 
