@@ -39,7 +39,7 @@
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-85ca-0bb70c808145
 
-
+[Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
 ## Usage of Precompiled EXE Version
@@ -188,7 +188,7 @@ If the installation is correct, the precompiled version can now be used with CUD
 
 [Demo original video and translated video](https://www.wonyes.org/demo.html)
 
-[Youtube demo](https://youtu.be/skLtE1XnO6Q)
+
 
 
 ## Acknowledgements
