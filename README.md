@@ -32,6 +32,7 @@
 【Audio, Video, and Subtitle Merging】Merge audio files, video files, and subtitle files into one video file
 
 【Audio and Video Format Conversion】Conversion between various formats
+【Text and srt Translation】Text and srt Translation to other language
 
 
 
