@@ -1,225 +1,192 @@
-[English Readme](./README_ENG.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / QQ群 902124277
-## 视频翻译和配音工具
-[预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
+[简体中文](./README_CN.md) / [👑 Donate](./about.md) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
+## Video Translation and Dubbing Toolkit
 
 >
-> 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
+> This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
 >
-> 语音识别基于 `openai-whisper` 离线模型.
+> Voice recognition is based on the `openai-whisper` offline model.
 >
-> 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX` ，
+> Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX`.
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1`.
+> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1`.
 >
 
-## 主要用途和使用方式
+## Main Use Cases and How to Use
 
-【翻译视频并配音】根据需要设置各个选项，自由配置组合，实现翻译和配音、自动加减速、合并等
+【Translate Video and Dub】Set each option as needed, freely configure combinations to achieve translation and dubbing, automatic speed increase or decrease, merging, etc
 
-【提取字幕不翻译】选择视频文件，选择视频源语言，则从视频识别出文字并自动导出字幕文件到目标文件夹
+【Extract Subtitles Without Translation】Select video files, select the video source language, then recognize the text from the video and automatically export subtitle files to the target folder
 
-【提取字幕并翻译】选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从视频识别出文字并翻译为目标语言，然后导出双语字幕文件到目标文件夹
+【Extract Subtitles and Translate】Select a video file, select the video source language, set the desired translation target language, then recognize the text from the video and translate it into the target language, then export bilingual subtitle files to the target folder
 
-【字幕和视频合并】选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
+【Subtitles and Video Merging】Select the video, then drag the existing subtitle file to the right subtitle area, set both the source and target languages to the language used in the subtitles, then select the dubbing type and role, and start execution
 
-【为字幕创建配音】将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，将生成配音后的音频文件到目标文件夹
+【Creating Dubbing for Subtitles】Drag local subtitle files to the right subtitle editor, then select the target language, dubbing type and role, the dubbed audio file will be generated in the target folder
 
-【音视频识别文字】将视频或音频拖拽到识别窗口，将识别出文字并导出为srt字幕格式
+【Text Recognition for Audio and Video】Drag the video or audio to the recognition window, it will recognize the text and export it in the form of srt subtitles
 
-【将文字合成语音】将一段文字或者字幕，使用指定的配音角色生成配音
+【Text to Speech Synthesis】Generate a dubbing for a piece of text or subtitle using a specified dubbing role
 
-【从视频分离音频】将视频文件分离为音频文件和无声视频
+【Separate Audio from Video】Separate video files into audio files and silent videos
 
-【音视频字幕合并】音频文件、视频文件、字幕文件合并为一个视频文件
+【Audio, Video, and Subtitle Merging】Merge audio files, video files, and subtitle files into one video file
 
-【音视频格式转换】各种格式之间的相互转换
-
-----
-
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-ad5b-34b68170147d
+【Audio and Video Format Conversion】Conversion between various formats
 
 
 
+## Usage of Precompiled EXE Version
+[EXE Version Download Link](https://github.com/jianchang512/pyvideotrans/releases)
 
+0. Only available for win10 win11 systems/Mac needs to compile from source code
 
-## 使用预编译exe版本方法
-[exe版下载地址](https://github.com/jianchang512/pyvideotrans/releases)
+1. [Download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
 
-0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
+2. Original Video: Choose mp4/avi/mov/mkv/mpeg videos, you can select multiple videos;
 
-1. [从 release 中下载最新版](https://github.com/jianchang512/pyvideotrans/releases)，解压，双击 sp.exe
+3. Output Video Directory: If not selected, it will be generated in `_video_out` in the same directory by default, and two types of subtitle files in the source and target languages will be created in the srt folder in that directory
 
-2. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
+4. Select Translation: Google|Baidu|Tencent|ChatGPT|Azure|Gemini|DeepL|DeepLX translation channels can be selected
 
-3. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
+5. Network Proxy Address: If your region cannot directly access Google/ChatGPT, you need to set a proxy in the software interface network proxy. For example, if you use v2ray, fill in `http://127.0.0.1:10809`, if clash, fill in `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, fill it in as needed
 
-4. 选择翻译：可选 google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX 翻译渠道
+6. Video Original Language: Select the language type in the video to be translated
 
-5. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
+7. Translation Target Language: Select the language type you hope to translate into
 
-6. 视频原始语言：选择待翻译视频里的语言种类
-
-7. 翻译目标语言：选择希望翻译到的语言种类
-
-8. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
+8. Select Dubbing: After selecting the translation target language, you can select the dubbing role from the dubbing options;
    
-   硬字幕: 是指始终显示字幕，不可隐藏，如果希望网页中播放时也有字幕，请选择硬字幕嵌入
+   Hard Subtitles: Permanently display subtitles that cannot be hidden, if you want subtitles when playing on the web page, please choose hard subtitles embedded
 
-   软字幕: 如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
+   Soft Subtitles: If the player supports subtitle management, it can display or hide subtitles, this method will not display subtitles when playing on the web page, some domestic players may not support it, need to put the generated video and the same name srt file and video in one directory to display
 
 
-9. 语音识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
+9. Voice recognition model: Select base/small/medium/large/large-v3, the recognition effect is getting better and better, but the recognition speed is getting slower and slower, and more memory is needed, the first time will need to download the model, default base, can download the model separately in advance Put it in the `current software directory/models` directory.
 
-   整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
+   Whole recognition / pre-segmentation: whole recognition refers to directly sending the whole voice file to the model for processing, segmentation may be more accurate, but it may also make a single subtitle of 30s length, suitable for audio with clear silence; pre-segmentation refers to the audio in advance It is cut into about 10s length and then sent to the model for processing separately.
 
-   **模型单独下载地址**
+   **Single download address for model**
 
-    [tiny模型](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
+    [tiny model](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
     
-    [base模型](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
+    [base model](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
 
-    [small模型](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
+    [small model](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
 
-    [medium模型](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
+    [medium model](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
 
-    [large模型](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
+    [large model](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
 
-    [large-v3模型](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
+    [large-v3 model](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
 
-    [VLC解码器下载](https://www.videolan.org/vlc/)
+    [VLC decoder download](https://www.videolan.org/vlc/)
 
-    [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
+    [FFmepg download (compiled version included)](https://www.ffmpeg.org/)
 
-10. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
+10. Dubbing speed: Fill in a number between -90 and +90, the same sentence under different language voices, the required time is different, so after dubbing, the sound and picture subtitles may be out of sync, you can adjust the language speed here, negative numbers represent Slow down, positive numbers represent accelerated playback.
 
-11. 音视频对齐: 分别是“配音自动加速”和“视频自动降速”
+11. Audio and video alignment: They are "dubbing automatic acceleration" and "video automatic slowdown"
 
+> 
+> The pronunciation duration in different languages after translation is different. For example, a sentence in Chinese is 3s, which may be 5s when translated into English, leading to inconsistent duration and video.
+> 
+> 2 solutions:
 >
-> 翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
+>     1. Forced dubbing to speed up and play, in order to shorten the dubbing duration and align with the video
 > 
-> 2种解决方式:
->
->     1. 强制配音加速播放，以便缩短配音时长和视频对齐
+>     2. Forced video to play slowly, in order to prolong the video duration and align with the dubbing.
 > 
->     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
-> 
-> 两者只可选其一
+> Only one of the two can be chosen
 >  
- 
+
   
-12. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
+12. Silent Segment: Fill in a number between 100 and 2000, in milliseconds, default is 500, that is, voice is divided into sections with silent segments of 500ms or more
 
-13. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+13. **CUDA Acceleration**: Confirm that your computer's graphics card is an N card and that the CUDA environment and drivers have been properly configured, then turn on this option for greatly improved speed. For the specific configuration method, see below [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-14. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口
+14. TTS: Available in edgeTTS and openai TTS model, choose the role to synthesize the voice, openai needs to use the official interface or a third-party interface that has opened up the tts-1 model
 
-15. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
+15. Click the start button to display the current progress and log at the bottom, and the subtitle is displayed in the right text box
 
-16. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
+16. After the subtitle analysis is completed, it will pause and wait for the subtitle to be modified. If no operation is performed, it will automatically continue the next step after 60s. You can also edit the subtitle in the right subtitle area and then manually click to continue synthesis
 
-17. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
-
-
-## 注意事项:
-
-**字幕显示问题**
-> 
-> 采用软合成字幕：字幕作为单独文件嵌入视频，可再次提取出，如果播放器支持，可在播放器字幕管理中启用或禁用字幕；
-> 
-> 注意很多国内播放器必须将srt字幕文件和视频放在同一目录下且名字相同，才能加载软字幕，并且可能需要将srt文件转为GBK编码，否则显示乱码，
-> 
-
-**字幕语音对齐问题**
-
-> 翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
-> 
-> 2种解决方式:
-> 
->     1. 强制配音加速播放，以便缩短配音时长和视频对齐
-> 
->     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
-> 
-> 两者只可选其一
-
-**背景音乐问题**
-
-只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请自行使用提取背景音乐工具，将背景音提取出来，然后再和配音文件合并。相关提取背景音乐项目 https://github.com/deezer/spleeter
-
-**large/large-v3模型问题**
-
-如果你没有N卡GPU，或者没有配置好CUDA环境，不要使用这2个模型，否则会非常慢和卡顿
-
-**提示ffmpeg错误**
-如果你启用了CUDA，并遇到了该问题，请更新显卡驱动，然后重新配置CUDA环境
+17. In the subfolder of the software directory, find the srt folder with the same name as the video file to generate two files, the suffix is the original language and the target language text subtitle file.
 
 
 
-## 源码部署
+## Notes:
 
-1. 配置好 python 3.9+ 环境
+**Subtitle Display Problem**
+>
+> When using soft combined subtitles: The subtitles are embedded in the video as separate files, can be extracted again, and can be enabled or disabled in the player's subtitle management if the player supports it.
+>
+> Please note that many domestic players require the srt subtitle file and the video to be placed in the same directory and named the same to load the soft subtitles, and the srt file may need to be converted to GBK encoding, otherwise it will display garbled characters.
+>
+
+**Subtitle Voice Alignment Problem**
+
+> The pronunciation duration may vary in different languages after translation. For example, a sentence in Chinese is 3s, but when translated into English, it might take 5s, resulting in an inconsistency with the video duration.
+>
+> There are two solutions:
+>
+>     1. Force dubbing to play faster to shorten the dubbing duration and align with the video.
+>
+>     2. Force the video to play slower to extend the video duration and align with the dubbing.
+>
+> You can only choose one of the two.
+
+**Background Music Problem**
+
+It only recognizes and saves human voices, that is, there will not be original background music in the dubbed audio. If you need to retain it, you can use the tool to extract background music, extract the background music first, and then merge it with the dubbed file.
+
+
+**Issues with large/large-v3 models**
+
+If you don't have a NVIDIA GPU or if you didn't configure the CUDA environment correctly, do not use these two models, as they will be very slow and laggy.
+
+**Prompt ffmpeg error**
+If you have enabled CUDA and encountered this problem, please update the display card driver and then reconfigure the CUDA environment.
+
+## Source Code Deployment
+
+1. Set up a Python 3.9+ environment
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
-4. CPU版`pip install -r requirements.txt`
-5. 解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)
-6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
-7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 ` -F` 参数
-8. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+4. CPU version: `pip install -r requirements.txt`
+5. Unzip ffmpeg.zip (ffmpeg.exe file) to the root directory
+6. `python sp.py` to open the software interface, `python cli.py` to use the command line execution
+7. If you want to package it as an exe file, please use the command `pyinstaller sp.py`, don't add ` -F` parameter
+8. If you need CUDA acceleration support, you must have a NVIDIA graphics card. Installation prevention is mentioned below in  [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
+## CUDA Acceleration Support
 
-## CUDA 加速支持
+**Install CUDA Toolkit**
 
-**安装CUDA工具**
+If your computer is equipped with a Nvidia graphics card, you should first upgrade your graphics card driver to the latest version, then install the corresponding [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) and [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive).
 
-如果你的电脑是 Nvidia 显卡，先升级显卡驱动到最新，然后去安装对应的 
-   [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads)  和  [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive)。
-   
-   安装完成成，按`Win + R`,输入 `cmd`然后回车，在弹出的窗口中输入`nvcc --version`,确认有版本信息显示，类似该图
-   ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e68de07f-4bb1-4fc9-bccd-8f841825915a)
+After successful installation, press `Win + R`, type `cmd` and press Enter, then type `nvcc --version` in the pop-up window to confirm that the version information is displayed. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e68de07f-4bb1-4fc9-bccd-8f841825915a)
 
-   然后继续输入`nvidia-smi`,确认有输出信息，并且能看到cuda版本号，类似该图
-   ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/71f1d7d3-07f9-4579-b310-39284734006b)
+Then continue to type `nvidia-smi`, confirm that there's output information and that you can see the cuda version number. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/71f1d7d3-07f9-4579-b310-39284734006b)
 
-   说明安装正确，预编译版可以启用CUDA了，否则需重新安装
+If the installation is correct, the precompiled version can now be used with CUDA. If not, you need to reinstall.
 
-**源码版继续配置CUDA环境**
+## Software Preview Screenshots
 
-1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
-   
-2. 安装 `pip install -r requirements.txt` 
+![](./images/pen1.png?c)
+![](./images/pen2.png?c)
+![](./images/pen3.png?c)
+![](./images/pen4.png?c)
 
-3. 到此应该可以使用了，如果有问题，那么执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
-   如下图
-   
-![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
-   然后将 `pip3` 改为 `pip`，再复制命令去执行。
+## Comparison of Videos Before and After
 
-   **安装完毕后，在该虚拟环境里，执行 `python`,等待进入后
-   再分别执行 `import torch`  ,  `torch.cuda.is_available()`
-   如果有输出，说明CUDA配置正确，否则请检查配置或者重新配置CUDA**
-   
-4. CUDA环境配置相对复杂，遇到问题多搜索或发个issue
-
-
-## 软件预览截图
-
-![](./images/p1.png?c)
-![](./images/p2.png?c)
-![](./images/p3.png?c)
-![](./images/p4.png?c)
-
-
-
-## 视频前后对比
-
-[Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
+[Demo original video and translated video](https://www.wonyes.org/demo.html)
 
 [Youtube demo](https://youtu.be/skLtE1XnO6Q)
 
 
-## 致谢
+## Acknowledgements
 
-> 本程序依赖这些开源项目
+> This program relies on these open source projects:
 
 1. pydub
 2. ffmpeg
@@ -228,5 +195,3 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/544409e1-4cec-45b9-a
 5. edge-tts
 6. openai-whisper
 7. opencv-python
-
-
