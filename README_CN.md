@@ -41,7 +41,7 @@
 
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8019-3069aeb66e01
-
+[Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
 
@@ -218,7 +218,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
-[Youtube demo](https://youtu.be/skLtE1XnO6Q)
 
 
 ## 致谢
