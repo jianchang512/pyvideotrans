@@ -1,4 +1,4 @@
-[简体中文](./README_CN.md) / [👑 Donate](./about.md) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
+[简体中文](./README_CN.md) / [👑 Donate buy me a coffee](https://ko-fi.com/jianchang512) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
 ## Video Translation and Dubbing Toolkit
 
 >
