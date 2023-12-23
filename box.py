@@ -943,6 +943,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + " coquiTTS key")
         # 文件名称
         filename = self.hecheng_out.text()
+        if filename and os.path.isfile(filename):
+            filename=""
         if not filename:
             filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
         else:
@@ -996,13 +998,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        voice_list = get_edge_rolelist()
+        voice_list = spcfg.edgeTTS_rolelist#get_edge_rolelist()
         if not voice_list:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, transobj['anerror'], transobj['nojueselist'])
             return
         try:
-            vt = language_code_list['zh'][t][0].split('-')[0]
+            vt = langlist[t][0].split('-')[0]#language_code_list['zh'][t][0].split('-')[0]
             print(f"{vt=}")
             if vt not in voice_list:
                 self.hecheng_role.addItems(['No'])
@@ -1065,6 +1067,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 音频混流
     def hun_fun(self):
         out = self.hun_out.text().strip()
+        if out and os.path.isfile(out):
+            out=""
         if not out:
             out = f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.wav'
         elif not out.endswith('.wav'):
