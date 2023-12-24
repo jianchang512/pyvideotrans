@@ -19,7 +19,6 @@ from pydub import AudioSegment
 
 from videotrans import VERSION
 from videotrans.configure import boxcfg, config
-from videotrans.configure import config as spcfg
 from videotrans.configure.language import language_code_list, english_code_bygpt
 from videotrans.configure.config import logger, rootdir, homedir, langlist
 from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans, baidutrans_spider, \
@@ -30,11 +29,11 @@ from videotrans.util.tools import transcribe_audio, text_to_speech, set_proxy, r
 
 from videotrans.configure.config import transobj
 
-if spcfg.is_vlc:
+if config.is_vlc:
     try:
         import vlc
     except:
-        spcfg.is_vlc = False
+        config.is_vlc = False
 
 
         class vlc():
@@ -129,7 +128,7 @@ class Player(QtWidgets.QWidget):
         self.filepath = None
 
         super(Player, self).__init__(parent)
-        if spcfg.is_vlc:
+        if config.is_vlc:
             self.instance = vlc.Instance()
             self.mediaplayer = self.instance.media_player_new()
         else:
@@ -147,7 +146,7 @@ class Player(QtWidgets.QWidget):
         self.setLayout(layout)
 
         self.videoframe = QtWidgets.QFrame()
-        self.videoframe.setToolTip(transobj['vlctips'] + (transobj['vlctips2'] if not spcfg.is_vlc else ""))
+        self.videoframe.setToolTip(transobj['vlctips'] + (transobj['vlctips2'] if not config.is_vlc else ""))
         self.palette = self.videoframe.palette()
         self.palette.setColor(QtGui.QPalette.Window,
                               QtGui.QColor(0, 0, 0))
@@ -159,7 +158,7 @@ class Player(QtWidgets.QWidget):
         self.positionslider.setMaximum(1000)
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
-        self.playbutton = QtWidgets.QPushButton("Play" if spcfg.is_vlc else "No VLC")
+        self.playbutton = QtWidgets.QPushButton("Play" if config.is_vlc else "No VLC")
         self.playbutton.setStyleSheet("""background-color:rgb(50,50,50);""")
         self.hbuttonbox.addWidget(self.playbutton)
 
@@ -168,7 +167,7 @@ class Player(QtWidgets.QWidget):
         self.hbuttonbox.addWidget(self.selectbutton)
         self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
 
-        if spcfg.is_vlc:
+        if config.is_vlc:
             self.positionslider.sliderMoved.connect(self.setPosition)
             self.playbutton.clicked.connect(self.PlayPause)
         else:
@@ -181,7 +180,7 @@ class Player(QtWidgets.QWidget):
         self.volumeslider.setMaximum(100)
         # self.volumeslider.setToolTip("调节音量")
         self.hbuttonbox.addWidget(self.volumeslider)
-        if spcfg.is_vlc:
+        if config.is_vlc:
             self.volumeslider.valueChanged.connect(self.setVolume)
             self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
 
@@ -191,7 +190,7 @@ class Player(QtWidgets.QWidget):
         self.vboxlayout.addLayout(self.hbuttonbox)
 
         self.widget.setLayout(self.vboxlayout)
-        if spcfg.is_vlc:
+        if config.is_vlc:
             self.timer = QtCore.QTimer(self)
             self.timer.setInterval(200)
             self.timer.timeout.connect(self.updateUI)
@@ -610,7 +609,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_startbtn.clicked.connect(self.hecheng_start_fun)
         self.hecheng_opendir.clicked.connect(lambda: self.opendir_fn(self.hecheng_out.text().strip()))
         # 设置 tts_type
-        self.tts_type.addItems(spcfg.video['tts_type_list'])
+        self.tts_type.addItems(config.params['tts_type_list'])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
         self.tts_issrt.stateChanged.connect(self.tts_issrt_change)
@@ -937,13 +936,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, transobj['anerror'], transobj['neirongweikong'])
         if language == '-' or role == 'No':
             return QMessageBox.critical(self, transobj['anerror'], transobj['yuyanjuesebixuan'])
-        if tts_type == 'openaiTTS' and not spcfg.video['chatgpt_key']:
+        if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
             return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + "chatGPT key")
-        elif tts_type == 'coquiTTS' and not spcfg.video['coquitts_key']:
+        elif tts_type == 'coquiTTS' and not config.params['coquitts_key']:
             return QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + " coquiTTS key")
         # 文件名称
         filename = self.hecheng_out.text()
-        if filename and os.path.isfile(filename):
+        if filename and re.search(r'\\|/', filename):
             filename=""
         if not filename:
             filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
@@ -984,9 +983,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def tts_type_change(self, type):
         if type == "openaiTTS":
             self.hecheng_role.clear()
-            self.hecheng_role.addItems(spcfg.video['openaitts_role'].split(","))
+            self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
         elif type == 'coquiTTS':
-            self.hecheng_role.addItems(spcfg.video['coquitts_role'].split(","))
+            self.hecheng_role.addItems(config.params['coquitts_role'].split(","))
         elif type == 'edgeTTS':
             self.hecheng_language_fun(self.hecheng_language.currentText())
 
@@ -998,7 +997,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        voice_list = spcfg.edgeTTS_rolelist#get_edge_rolelist()
+        voice_list = config.edgeTTS_rolelist#get_edge_rolelist()
         if not voice_list:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, transobj['anerror'], transobj['nojueselist'])

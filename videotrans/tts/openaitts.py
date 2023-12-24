@@ -23,7 +23,7 @@ def get_voice(text, role, rate, filename):
         if rate:
             rate=float(rate.replace('%',''))/100
             speed+=rate
-        client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
+        client = OpenAI(base_url=None if not config.params['chatgpt_api'] else config.params['chatgpt_api'], http_client=httpx.Client(proxies=proxies))
         response = client.audio.speech.create(
             model="tts-1",
             voice=role,

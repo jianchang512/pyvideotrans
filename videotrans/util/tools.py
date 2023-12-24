@@ -278,7 +278,7 @@ def shorten_voice(normalized_sound):
     max_interval = 10000
     buffer = 500
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.video['voice_silence']),
+    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
                                     silence_thresh=-20 - 25)
     # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
@@ -331,14 +331,14 @@ def merge_audio_segments(segments, start_times, total_duration, noextname):
     # 如果新长度大于原时长，则末尾截断
     if total_duration > 0 and (len(merged_audio) > total_duration):
         # 截断前先保存原完整文件
-        merged_audio.export(f'{config.video["target_dir"]}/{noextname}/{config.video["target_language"]}-nocut.wav',
+        merged_audio.export(f'{config.params["target_dir"]}/{noextname}/{config.params["target_language"]}-nocut.wav',
                             format="wav")
         merged_audio = merged_audio[:total_duration]
     # 创建配音后的文件
     merged_audio.export(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav", format="wav")
     shutil.copy(
         f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav",
-        f"{config.video['target_dir']}/{noextname}/{config.video['target_language']}.wav"
+        f"{config.params['target_dir']}/{noextname}/{config.params['target_language']}.wav"
     )
     return merged_audio
 
@@ -358,10 +358,9 @@ def speed_change(sound, speed=1.0):
 
 def runffmpegbox(arg):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
-    if config.cuda:
+    if config.params['cuda']:
         cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
         for i, it in enumerate(arg):
-            #arg[i]=it.replace('scale=', 'scale_cuda=')
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
     cmd = cmd + arg
@@ -381,7 +380,7 @@ def runffmpegbox(arg):
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
-    if config.cuda:
+    if config.params['cuda']:
         cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
@@ -402,7 +401,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         else:
             config.queue_novice[noextname] = "error"
             set_process(f"[error]ffmpeg error: {cmd=},\n{errs=}")
-            if config.cuda:
+            if config.params['cuda']:
                 set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
             return False
     while True:
@@ -419,7 +418,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 # 成功
                 return True
             # 失败
-            if error_exit and config.cuda:
+            if error_exit and config.params['cuda']:
                 set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
@@ -435,8 +434,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 return False
         except Exception as e:
             #出错异常
-            if error_exit and config.cuda:
-                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
+            if error_exit and config.params['cuda']:
+                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA",'error')
             else:
                 set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{str(e)}",'error' if error_exit else 'logs')
             return False

@@ -10,7 +10,7 @@ deepltranslator = None
 def deepltrans(text, to_lang, *, set_p=True):
     global deepltranslator
     if deepltranslator is None:
-        deepltranslator = deepl.Translator(config.deepl_authkey)
+        deepltranslator = deepl.Translator(config.params['deepl_authkey'])
     try:
         result = deepltranslator.translate_text(text, target_lang="ZH" if to_lang.startswith('zh') else to_lang)
         return result.text.strip()

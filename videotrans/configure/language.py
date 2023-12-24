@@ -118,7 +118,7 @@ translate_language = {
         "xiugaipeiyinzimu":"等待修改配音字幕/点击继续", 
         "zidonghebingmiaohou":"秒后自动合并，你可以停止倒计时后去修改字幕，以便配音更准确", 
         "jieshutips":"视频处理结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等", 
-
+        "mubiao":"输出文件夹"
     },
     "en": {
         "continue_action":"继续下一步",
@@ -238,11 +238,12 @@ translate_language = {
 "xiugaipeiyinzimu":"Wait to modify the dubbed subtitles / click continue", 
 "zidonghebingmiaohou":"Automatically merge in seconds, you can stop the countdown to modify the subtitles so that the dubbing is more accurate", 
 "jieshutips":"Video processing ends: Relevant materials can be found in the target folder, including subtitle files, voiceover files, etc",
+        "mubiao":"Output folder"
     }
 }
 
 
-#  名称: google翻译代码and语音识别代码，字幕语言代码，百度翻译代码，deep代码,腾讯代码
+#  名称: google翻译代码，字幕语言代码，百度翻译代码，deep代码,腾讯代码
 language_code_list={
     "zh":{
         "中文简": ['zh-cn', 'chi','zh','ZH','zh'],
@@ -258,7 +259,8 @@ language_code_list={
         "意大利语": ['it', 'ita','it','IT','it'],
         "葡萄牙语": ['pt', 'por','pt','PT','pt'],
         "越南语": ['vi', 'vie','vie','No','vi'],
-        "阿拉伯语": ['ar', 'are','ara','No','ar']
+        "阿拉伯语": ['ar', 'are','ara','No','ar'],
+        "土耳其语": ['tr', 'tur','tr','tr','tr'],
     },
     "en":{
         "Simplified_Chinese": ['zh-cn', 'chi','zh','ZH','zh'],
@@ -274,7 +276,8 @@ language_code_list={
         "Italian": ['it', 'ita','it','IT','it'],
         "Portuguese": ['pt', 'por','pt','PT','pt'],
         "Vietnamese": ['vi', 'vie','vie','No','vi'],
-        "Arabic": ['ar', 'are','ara','No','ar']
+        "Arabic": ['ar', 'are','ara','No','ar'],
+        "Turkish": ['tr', 'tur','tr','tr','tr'],
     }
 }
 
@@ -293,6 +296,7 @@ clilanglist = {
     "it": ['it', 'ita'],
     "pt": ['pt', 'por'],
     "vi": ['vi', 'vie'],
-    "ar": ['ar', 'are']
+    "ar": ['ar', 'are'],
+    "tr": ['tr', 'tur'],
 }
 english_code_bygpt=list(language_code_list['zh'].keys())

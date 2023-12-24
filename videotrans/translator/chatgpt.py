@@ -21,7 +21,8 @@ from videotrans.util import tools
 
 '''
 
-def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
+
+def chatgpttrans(text_list, target_language_chatgpt="English", *, set_p=True):
     proxies = None
     serv = tools.set_proxy()
     if serv:
@@ -29,26 +30,27 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
             'http://': serv,
             'https://': serv
         }
-    api_url="https://api.openai.com/v1"
-    if config.chatgpt_api:
-        api_url=config.chatgpt_api
+    api_url = "https://api.openai.com/v1"
+    if config.params['chatgpt_api']:
+        api_url = config.params['chatgpt_api']
 
-    openai.base_url=api_url
+    openai.base_url = api_url
     lang = target_language_chatgpt
-    if isinstance(text_list,str):
+    if isinstance(text_list, str):
         messages = [
             {'role': 'system',
-             'content': config.chatgpt_template.replace('{lang}', lang)},
+             'content': config.params['chatgpt_template'].replace('{lang}', lang)},
             {'role': 'user', 'content': text_list},
         ]
-        response=""
+        response = ""
         try:
-            client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
+            client = OpenAI(base_url=None if not config.params['chatgpt_api'] else config.params['chatgpt_api'],
+                            http_client=httpx.Client(proxies=proxies))
             response = client.chat.completions.create(
-                model=config.chatgpt_model,
+                model=config.params['chatgpt_model'],
                 messages=messages
             )
-            
+
             try:
                 if response.choices:
                     try:
@@ -70,12 +72,11 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
             return (f"【ChatGPT Error-2.5】error:openaiAPI={api_url} :{error}")
         return f"ChatGPT error:{response=}"
 
-
     total_result = []
     split_size = 10
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
-    srts=''
+    srts = ''
     # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
     for srt_list in srt_lists:
         # 存放时间和行数
@@ -90,39 +91,38 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
             origin.append({"line": it["line"], "time": it["time"], "text": ""})
 
         len_sub = len(origin)
-        logger.info(f"\n[chatGPT start]待翻译文本:"+"\n".join(trans))
+        logger.info(f"\n[chatGPT start]待翻译文本:" + "\n".join(trans))
         messages = [
             {'role': 'system',
-             'content': config.chatgpt_template.replace('{lang}', lang)},
+             'content': config.params['chatgpt_template'].replace('{lang}', lang)},
             {'role': 'user', 'content': "\n".join(trans)},
         ]
         logger.info(f"发送消息{messages=}")
-        error=""
+        error = ""
         try:
-            client = OpenAI(base_url=None if not config.chatgpt_api else config.chatgpt_api, http_client=httpx.Client(proxies=proxies))
+            client = OpenAI(base_url=None if not config.params['chatgpt_api'] else config.params['chatgpt_api'],
+                            http_client=httpx.Client(proxies=proxies))
             response = client.chat.completions.create(
-                model=config.chatgpt_model,
+                model=config.params['chatgpt_model'],
                 messages=messages
             )
             logger.info(f"返回响应:{response=}")
 
             # 是否在 code 判断时就已出错
-            vail_data=None
+            vail_data = None
             # 返回可能多种形式，openai和第三方
 
-            
-            
             try:
                 if response.choices:
-                    vail_data=response.choices
+                    vail_data = response.choices
             except Exception as e:
-                error+=str(e)
+                error += str(e)
             if not vail_data:
                 try:
-                    if response.data  and  'choices' in response.data:
-                        vail_data=response.data['choices']
+                    if response.data and 'choices' in response.data:
+                        vail_data = response.data['choices']
                 except Exception as e:
-                    error+=str(e)
+                    error += str(e)
             if not vail_data:
                 try:
                     if ("code" in response) and response['code'] != 0:
@@ -139,11 +139,11 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 # 如果返回的是合法js字符串，则解析为json，否则以\n解析
                 if result.startswith('[') and result.endswith(']'):
                     try:
-                        trans_text=json.loads(result)
+                        trans_text = json.loads(result)
                     except:
-                        trans_text=result.split("\n")
+                        trans_text = result.split("\n")
                 else:
-                    trans_text=result.split("\n")
+                    trans_text = result.split("\n")
                 logger.info(f"\n[chatGPT OK]翻译成功:{result}")
                 if set_p:
                     tools.set_process(f"ChatGPT OK")
@@ -152,7 +152,7 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
                 if set_p:
                     tools.set_process(f"[error]ChatGPT error:{error}")
         except Exception as e:
-            error=str(e)
+            error = str(e)
             logger.error(f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :{error}")
             if not api_url.startswith("https://api.openai.com"):
                 if set_p:
@@ -160,7 +160,7 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
             elif set_p:
                 tools.set_process(f"[error]ChatGPT error:{error}")
             trans_text = [f"[error]ChatGPT error"] * len_sub
-        if error and re.search(r'Rate limit',error,re.I) is not None:
+        if error and re.search(r'Rate limit', error, re.I) is not None:
             if set_p:
                 tools.set_process(f'ChatGPT limit rate, wait 30s')
             time.sleep(30)
@@ -169,14 +169,14 @@ def chatgpttrans(text_list,target_language_chatgpt="English",*,set_p=True):
 
         for index, it in enumerate(origin):
             if index < len(trans_text):
-                it["text"]=trans_text[index]
-                origin[index]=it
+                it["text"] = trans_text[index]
+                origin[index] = it
                 # 更新字幕
-                st=f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 if set_p:
-                    tools.set_process(st,'subtitle')
-                srts+=st
+                    tools.set_process(st, 'subtitle')
+                srts += st
         total_result.extend(origin)
     if set_p:
-        tools.set_process(srts,'replace_subtitle')
+        tools.set_process(srts, 'replace_subtitle')
     return total_result

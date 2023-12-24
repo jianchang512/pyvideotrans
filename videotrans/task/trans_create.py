@@ -28,13 +28,14 @@ class TransCreate():
 
     def __init__(self, obj):
         # 一条待处理的完整信息
-        self.obj = obj
+        # config.params = config.params
+        # config.params.update(obj)
         self.step = 'prepare'
         # 仅提取字幕，不嵌入字幕，不配音，仅用于提取字幕
         # 【从视频提取出字幕文件】
-        self.only_srt = obj['subtitle_type'] < 1 and obj['voice_role'] in ['No', 'no', '-']
+        self.only_srt = config.params['subtitle_type'] < 1 and config.params['voice_role'] in ['No', 'no', '-']
         # 原始视频
-        self.source_mp4 = self.obj['source_mp4'].replace('\\', '/')
+        self.source_mp4 = obj['source_mp4'].replace('\\', '/') if 'source_mp4' in obj else ""
 
         # 没有视频，是根据字幕生成配音
         if not self.source_mp4:
@@ -43,10 +44,13 @@ class TransCreate():
         else:
             # 去掉扩展名的视频名，做标识
             self.noextname = os.path.splitext(os.path.basename(self.source_mp4))[0]
-            if not self.obj['target_dir']:
+            if not config.params['target_dir']:
                 self.target_dir = (os.path.dirname(self.source_mp4) + "/_video_out").replace('\\', '/')
             else:
-                self.target_dir = self.obj['target_dir'].replace('\\', '/')
+                self.target_dir = config.params['target_dir'].replace('\\', '/')
+        # 全局目标，用于前台打开
+        config.params['target_dir']=self.target_dir
+        #真实具体到每个文件目标
         self.target_dir += f"/{self.noextname}"
         set_process(self.target_dir,'set_target_dir')
 
@@ -70,22 +74,22 @@ class TransCreate():
             os.makedirs(self.cache_folder, exist_ok=True)
         # 源语言字幕和目标语言字幕
         self.novoice_mp4 = f"{self.target_dir}/novoice.mp4"
-        self.targetdir_source_sub = f"{self.target_dir}/{self.obj['source_language']}.srt"
-        self.targetdir_target_sub = f"{self.target_dir}/{self.obj['target_language']}.srt"
+        self.targetdir_source_sub = f"{self.target_dir}/{config.params['source_language']}.srt"
+        self.targetdir_target_sub = f"{self.target_dir}/{config.params['target_language']}.srt"
         # 原wav和目标音频
-        self.targetdir_source_wav = f"{self.target_dir}/{self.obj['source_language']}.wav"
-        self.targetdir_target_wav = f"{self.target_dir}/{self.obj['target_language']}.wav"
+        self.targetdir_source_wav = f"{self.target_dir}/{config.params['source_language']}.wav"
+        self.targetdir_target_wav = f"{self.target_dir}/{config.params['target_language']}.wav"
         self.targetdir_mp4 = f"{self.target_dir}/{self.noextname}.mp4"
         # 如果存在字幕，则直接生成
-        if "subtitles" in self.obj and self.obj['subtitles']:
+        if "subtitles" in obj and obj['subtitles']:
             # 如果原语言和目标语言相同，或不存在视频，则不翻译
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
-                f.write(self.obj['subtitles'].strip())
+                f.write(obj['subtitles'].strip())
 
     # 启动执行入口
     def run(self):
         # 存在视频并且不是仅提取字幕，则分离
-        if self.obj['source_mp4']:
+        if self.source_mp4 and os.path.exists(self.source_mp4):
             set_process(f'audio and video split')
             if not self.split_wav_novicemp4():
                 return set_process("split error", 'error')
@@ -112,8 +116,8 @@ class TransCreate():
         # 是否需要翻译，如果存在视频，并且存在目标语言，并且原语言和目标语言不同，并且没有已翻译过的，则需要翻译
         self.step = 'translate_before'
         if self.source_mp4 \
-                and self.obj['target_language'] not in ['No', 'no', '-'] \
-                and self.obj['target_language'] != self.obj['source_language'] \
+                and config.params['target_language'] not in ['No', 'no', '-'] \
+                and config.params['target_language'] != config.params['source_language'] \
                 and not os.path.exists(self.targetdir_target_sub):
             # 等待编辑原字幕后翻译
             set_process(transobj["xiugaiyuanyuyan"], 'edit_subtitle')
@@ -140,22 +144,22 @@ class TransCreate():
 
         # 如果存在目标语言字幕，并且存在 配音角色，则需要配音
         self.step = "dubbing_before"
-        if self.obj['voice_role'] not in ['No', 'no', '-'] \
+        if config.params['voice_role'] not in ['No', 'no', '-'] \
                 and os.path.exists(self.targetdir_target_sub) \
                 and not os.path.exists(self.targetdir_target_wav):
             set_process(transobj["xiugaipeiyinzimu"], "edit_subtitle")
             config.task_countdown = 60
             while config.task_countdown > 0:
                 if config.current_status != 'ing':
-                    set_process(transobj["tingzhile"], 'stop')
-                    return
+                    return set_process(transobj["tingzhile"], 'stop')
+
                 # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
                 time.sleep(1)
                 # 倒计时中
                 config.task_countdown -= 1
                 if config.task_countdown <= 60 and config.task_countdown >= 0:
                     set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
-            # set_process(f"<br>开始配音操作:{self.obj['tts_type']},{self.obj['voice_role']}")
+            # set_process(f"<br>开始配音操作:{config.params['tts_type']},{config.params['voice_role']}")
             set_process('<br>', 'timeout_djs')
             time.sleep(3)
             self.step = 'dubbing_ing'
@@ -186,9 +190,9 @@ class TransCreate():
             set_process(f"<br>Start last step<br>")
             if self.compos_video():
                 # 检测是否还有
-                set_process(
-                    f"<br><strong style='color:#00a67d;font-size:16px'>[{self.noextname}] {transobj['jieshutips']}</strong><br>",
-                    'succeed')
+                # set_process(
+                #     f"<br><strong style='color:#00a67d;font-size:16px'>[{self.noextname}] {transobj['jieshutips']}</strong><br>",
+                #     'succeed')
                 time.sleep(1)
         except Exception as e:
             set_process(f"[error]:last step error " + str(e), "error")
@@ -214,14 +218,14 @@ class TransCreate():
                 f'{self.source_mp4}',
                 "-an",
                 "-c:v", 
-                "h264_nvenc" if config.cuda else "copy",
+                "h264_nvenc" if config.params["cuda"] else "copy",
                 f'{self.novoice_mp4}'
             ]
             threading.Thread(target=runffmpeg, args=(ffmpegars,), kwargs={"noextname": self.noextname}).start()
         else:
             config.queue_novice[self.noextname]='end'
         # 如果原语言和目标语言一样，则不分离
-        if self.obj['source_language'] == self.obj['target_language']:
+        if config.params['source_language'] == config.params['target_language']:
             return True
         
         # 如果不存在音频，则分离出音频
@@ -250,7 +254,7 @@ class TransCreate():
             time.sleep(1)
         try:
             # 识别为字幕
-            if self.obj['whisper_type'] == 'all':
+            if config.params['whisper_type'] == 'all':
                 return self.recognition_all()
             else:
                 return self.recognition_split()
@@ -276,7 +280,7 @@ class TransCreate():
         max_interval = 10000
         buffer = 500
         nonsilent_data = []
-        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(self.obj['voice_silence']),
+        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
                                         silence_thresh=-20 - 25)
         # print(audio_chunks)
         for i, chunk in enumerate(audio_chunks):
@@ -322,7 +326,7 @@ class TransCreate():
         # 如果新长度大于原时长，则末尾截断
         if total_duration > 0 and (len(merged_audio) > total_duration):
             # 截断前先保存原完整文件
-            merged_audio.export(f'{self.target_dir}/{self.obj["target_language"]}-nocut.wav', format="wav")
+            merged_audio.export(f'{self.target_dir}/{config.params["target_language"]}-nocut.wav', format="wav")
             merged_audio = merged_audio[:total_duration]
         # 创建配音后的文件
         merged_audio.export(f"{self.targetdir_target_wav}", format="wav")
@@ -385,10 +389,10 @@ class TransCreate():
                     options = {"download_root": config.rootdir + "/models"}
                     text = r.recognize_whisper(
                         audio_listened,
-                        language="zh" if self.obj['detect_language'] == "zh-cn" or
-                                         self.obj['detect_language'] == "zh-tw" else
-                        self.obj['detect_language'],
-                        model=self.obj['whisper_model'],
+                        language="zh" if config.params['detect_language'] == "zh-cn" or
+                                         config.params['detect_language'] == "zh-tw" else
+                        config.params['detect_language'],
+                        model=config.params['whisper_model'],
                         load_options=options
                     )
                 except sr.UnknownValueError as e:
@@ -422,8 +426,8 @@ class TransCreate():
 
     # 整体识别，全部传给模型
     def recognition_all(self):
-        model = self.obj['whisper_model']
-        language = self.obj['detect_language']
+        model = config.params['whisper_model']
+        language = config.params['detect_language']
         set_process(f"<br>Model:{model} ")
         try:
             model = whisper.load_model(model, download_root=config.rootdir + "/models")
@@ -474,24 +478,24 @@ class TransCreate():
         except Exception as e:
             set_process(f"subtitle srt error:" + str(e), 'error')
             return False
-        if self.obj['translate_type'] == 'chatGPT':
+        if config.params['translate_type'] == 'chatGPT':
             set_process(f"waitting chatGPT", 'logs')
             try:
-                rawsrt = chatgpttrans(rawsrt,self.obj['target_language_chatgpt'])
+                rawsrt = chatgpttrans(rawsrt,config.params['target_language_chatgpt'])
             except Exception as e:
                 set_process(f'ChatGPT error:{str(e)}', 'error')
                 return False
-        elif self.obj['translate_type'] == 'Azure':
+        elif config.params['translate_type'] == 'Azure':
             set_process(f"waitting Azure ", 'logs')
             try:
-                rawsrt = azuretrans(rawsrt,self.obj['target_language_azure'])
+                rawsrt = azuretrans(rawsrt,config.params['target_language_azure'])
             except Exception as e:
                 set_process(f'Azure error:{str(e)}', 'error')
                 return False
-        elif self.obj['translate_type']=='Gemini':
+        elif config.params['translate_type']=='Gemini':
             set_process(f"waitting Gemini", 'logs')
             try:
-                rawsrt = geminitrans(rawsrt,self.obj['target_language_gemini'])
+                rawsrt = geminitrans(rawsrt,config.params['target_language_gemini'])
             except Exception as e:
                 set_process(f'Gemini:{str(e)}', 'error')
                 return False
@@ -501,20 +505,20 @@ class TransCreate():
                 if config.current_status != 'ing':
                     return
                 new_text = it['text']
-                if self.obj['translate_type'] == 'google':
+                if config.params['translate_type'] == 'google':
                     new_text = googletrans(it['text'],
-                                           self.obj['source_language'],
-                                           self.obj['target_language'])
-                elif self.obj['translate_type'] == 'baidu':
-                    new_text = baidutrans(it['text'], 'auto', self.obj['target_language_baidu'])
-                elif self.obj['translate_type'] == 'tencent':
-                    new_text = tencenttrans(it['text'], 'auto', self.obj['target_language_tencent'])
-                elif self.obj['translate_type'] == 'baidu(noKey)':
-                    new_text = baidutrans_spider(it['text'], 'auto', self.obj['target_language_baidu'])
-                elif self.obj['translate_type'] == 'DeepL':
-                    new_text = deepltrans(it['text'], self.obj['target_language_deepl'])
-                elif self.obj['translate_type'] == 'DeepLX':
-                    new_text = deeplxtrans(it['text'], self.obj['target_language_deepl'])
+                                           config.params['source_language'],
+                                           config.params['target_language'])
+                elif config.params['translate_type'] == 'baidu':
+                    new_text = baidutrans(it['text'], 'auto', config.params['target_language_baidu'])
+                elif config.params['translate_type'] == 'tencent':
+                    new_text = tencenttrans(it['text'], 'auto', config.params['target_language_tencent'])
+                elif config.params['translate_type'] == 'baidu(noKey)':
+                    new_text = baidutrans_spider(it['text'], 'auto', config.params['target_language_baidu'])
+                elif config.params['translate_type'] == 'DeepL':
+                    new_text = deepltrans(it['text'], config.params['target_language_deepl'])
+                elif config.params['translate_type'] == 'DeepLX':
+                    new_text = deeplxtrans(it['text'], config.params['target_language_deepl'])
                 new_text = new_text.replace('&#39;', "'")
                 new_text = re.sub(r'&#\d+;', '', new_text)
                 # 更新字幕区域
@@ -563,7 +567,7 @@ class TransCreate():
             total_length=0
 
         # 整合一个队列到 exec_tts 执行
-        if self.obj['voice_role'] not in ['No', 'no', '-']:
+        if config.params['voice_role'] not in ['No', 'no', '-']:
             queue_tts = []
             # 获取字幕
             try:
@@ -571,7 +575,7 @@ class TransCreate():
             except Exception as e:
                 set_process(f'srt error:{str(e)}', 'error')
                 return False
-            rate = int(str(config.voice_rate).replace('%', ''))
+            rate = int(str(config.params['voice_rate']).replace('%', ''))
             if rate >= 0:
                 rate = f"+{rate}%"
             else:
@@ -581,13 +585,13 @@ class TransCreate():
                 if config.current_status != 'ing':
                     set_process(transobj['tingzhile'], 'stop')
                     return True
-                filename = f'{config.voice_role}-{config.voice_rate}-{config.voice_autorate}-{it["text"]}'
+                filename = f'{config.params["voice_role"]}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
                 md5_hash = hashlib.md5()
                 md5_hash.update(f"{filename}".encode('utf-8'))
                 filename = self.cache_folder + "/" + md5_hash.hexdigest() + ".mp3"
                 queue_tts.append({
                     "text": it['text'],
-                    "role": config.voice_role,
+                    "role": config.params['voice_role'],
                     "start_time": it['start_time'],
                     "end_time": it['end_time'],
                     "rate": rate,
@@ -736,7 +740,7 @@ class TransCreate():
                             "-i",
                             f'{self.novoice_mp4}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{endmp4}'
                         ])
                     elif cut_clip == 0 and it['start_time'] > 0:
@@ -751,7 +755,7 @@ class TransCreate():
                             "-i",
                             f'{self.novoice_mp4}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{startmp4}'
                         ])
                         cut_from_video(ss=queue_copy[idx]['startraw'],
@@ -767,7 +771,7 @@ class TransCreate():
                             "-i",
                             f'{self.novoice_mp4}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{endmp4}'
                         ])
                     elif (idx == last_index) and queue_copy[idx]['end_time'] < source_mp4_total_length:
@@ -783,7 +787,7 @@ class TransCreate():
                             "-i",
                             f'{novoice_mp4_tmp}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{startmp4}'
                         ])
                         to_time = queue_copy[idx]['end_time']
@@ -806,7 +810,7 @@ class TransCreate():
                             "-i",
                             f'{self.novoice_mp4}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{endmp4}'
                         ])
                     elif (idx == last_index) and queue_copy[idx]['end_time'] >= source_mp4_total_length and \
@@ -823,7 +827,7 @@ class TransCreate():
                             "-i",
                             f'{novoice_mp4_tmp}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{startmp4}'
                         ])
 
@@ -846,7 +850,7 @@ class TransCreate():
                             "-i",
                             f'{novoice_mp4_tmp}',
                             "-c",
-                            "h264_nvenc" if config.cuda else "copy",
+                            "h264_nvenc" if config.params["cuda"] else "copy",
                             f'{startmp4}'
                         ])
                         to_time = source_mp4_total_length if queue_copy[idx]['end_time'] > source_mp4_total_length else \
@@ -871,7 +875,7 @@ class TransCreate():
                                 "-i",
                                 f'{self.novoice_mp4}',
                                 "-c",
-                                "h264_nvenc" if config.cuda else "copy",
+                                "h264_nvenc" if config.params["cuda"] else "copy",
                                 f'{endmp4}'
                             ])
 
@@ -961,8 +965,8 @@ class TransCreate():
         queue_copy = copy.deepcopy(queue_tts)
 
         def get_item(q):
-            return {"text": q['text'], "role": config.voice_role, "rate": config.voice_rate, "filename": q["filename"],
-                    "tts_type": self.obj['tts_type']}
+            return {"text": q['text'], "role": config.params["voice_role"], "rate": config.params["voice_rate"], "filename": q["filename"],
+                    "tts_type": config.params['tts_type']}
 
         # 需要并行的数量3
         while len(queue_tts) > 0:
@@ -986,7 +990,7 @@ class TransCreate():
         segments = []
         start_times = []
         # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
-        if total_length > 0 and self.obj['video_autorate']:
+        if total_length > 0 and config.params['video_autorate']:
             return self.video_autorate_process(queue_copy, total_length)
         if len(queue_copy) < 1:
             return set_process(f'text to speech，{queue_copy=}', 'error')
@@ -1031,7 +1035,7 @@ class TransCreate():
                 srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
-                if diff > 0 and config.voice_autorate:
+                if diff > 0 and config.params["voice_autorate"]:
                     speed = mp3len / wavlen
                     speed = 1.8 if speed > 1.8 else round(speed, 2)
                     srtmeta_item['speed_up'] = speed
@@ -1047,7 +1051,7 @@ class TransCreate():
                     offset += diff
                 elif diff > 0:
                     offset += diff
-                    if config.voice_autorate:
+                    if config.params["voice_autorate"]:
                         pass
                         # set_process("已启用自动加速但无需加速")
                 it['end_time'] = it['start_time'] + mp3len
@@ -1102,22 +1106,22 @@ class TransCreate():
             return False
 
         # 需要配音
-        if self.obj['voice_role'] not in ['No', 'no', '-']:
+        if config.params['voice_role'] not in ['No', 'no', '-']:
             if not os.path.exists(self.targetdir_target_wav):
                 set_process(f"[error] dubbing file error: {self.targetdir_target_wav}")
                 return False
         # 需要字幕
-        if self.obj['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
+        if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
             set_process(f"[error]no vail srt file {self.targetdir_target_sub}", 'error')
             return False
-        if self.obj['subtitle_type'] == 1:
+        if config.params['subtitle_type'] == 1:
             # 硬字幕 重新整理字幕，换行
             try:
                 subs = get_subtitle_from_srt(self.targetdir_target_sub)
             except Exception as e:
                 set_process(f'subtitles srt error:{str(e)}')
                 return False
-            maxlen = 36 if self.obj['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+            maxlen = 36 if config.params['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
             subtitles = ""
             for it in subs:
                 it['text'] = textwrap.fill(it['text'], maxlen)
@@ -1127,8 +1131,8 @@ class TransCreate():
             shutil.copy2(self.targetdir_target_sub,config.rootdir+"/tmp.srt")
             hard_srt="tmp.srt"
         # 有字幕有配音
-        if self.obj['voice_role'] != 'No' and self.obj['subtitle_type'] > 0:
-            if self.obj['subtitle_type'] == 1:
+        if config.params['voice_role'] != 'No' and config.params['subtitle_type'] > 0:
+            if config.params['subtitle_type'] == 1:
                 set_process(f"{self.noextname} dubbing & embed srt")
                 # 需要配音+硬字幕
                 runffmpeg([
@@ -1171,11 +1175,11 @@ class TransCreate():
                     "-c:s",
                     "mov_text",
                     "-metadata:s:s:0",
-                    f"language={self.obj['subtitle_language']}",
+                    f"language={config.params['subtitle_language']}",
                     # "-shortest",
                     os.path.normpath(self.targetdir_mp4)
                 ])
-        elif self.obj['voice_role'] != 'No':
+        elif config.params['voice_role'] != 'No':
             # 配音无字幕
             set_process(f"{self.noextname} dubbing")
             runffmpeg([
@@ -1194,7 +1198,7 @@ class TransCreate():
                 os.path.normpath(self.targetdir_mp4)
             ])
         # 无配音 使用 novice.mp4 和 原始 wav合并
-        elif self.obj['subtitle_type'] == 1:
+        elif config.params['subtitle_type'] == 1:
             # 硬字幕无配音 将原始mp4复制到当前文件夹下
             set_process(f"{self.noextname} embed srt & no dubbing")
             runffmpeg([
@@ -1214,7 +1218,7 @@ class TransCreate():
                 # "-shortest",
                 os.path.normpath(self.targetdir_mp4),
             ])
-        elif self.obj['subtitle_type'] == 2:
+        elif config.params['subtitle_type'] == 2:
             # 软字幕无配音
             set_process(f"{self.noextname} srt & no dubbing")
             runffmpeg([
@@ -1237,7 +1241,7 @@ class TransCreate():
                 "-c:s",
                 "mov_text",
                 "-metadata:s:s:0",
-                f"language={self.obj['subtitle_language']}",
+                f"language={config.params['subtitle_language']}",
                 # "-shortest",
                 os.path.normpath(self.targetdir_mp4)
             ])

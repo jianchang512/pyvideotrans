@@ -3,9 +3,9 @@
 import httpx
 import json
 
-from ..configure import config
-from ..util import tools
-from ..configure.config import logger
+from videotrans.configure import config
+from videotrans.util import tools
+from videotrans.configure.config import logger
 
 
 def deeplxtrans(text, to_lang,*,set_p=True):
@@ -16,7 +16,7 @@ def deeplxtrans(text, to_lang,*,set_p=True):
     }
     logger.info(f"deeplx:{data=}")
     try:
-        url=config.deeplx_address.replace('/translate','')+'/translate'
+        url=config.params['deeplx_address'].replace('/translate','')+'/translate'
         if not url.startswith('http'):
             url=f"http://{url}"
         response = httpx.post(url=url,data=json.dumps(data))

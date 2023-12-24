@@ -21,14 +21,19 @@ class Worker(QThread):
     def run(self) -> None:
         task_nums=len(config.queue_task)
         num=0
+        html=[]
+        stylecss="""padding:5px;margin:5px;color:#00a67d;"""
         while len(config.queue_task)>0:
             num+=1
             it=config.queue_task.pop(0)
-            set_process(f"<br><strong>:::start {num}/{task_nums} :【{it['source_mp4']}】</strong>")
+            set_process(f"<br><strong>start {num}/{task_nums} :【{it['source_mp4']}】</strong>")
             set_process(f"Processing {num}/{task_nums}:【{it['source_mp4']}】",'statusbar')
             self.video=TransCreate(it)
-            self.video.run()
-        set_process(f"<br><strong>Ended</strong><br>",'end')
+
+            if self.video.run():
+                html.append(f'<p style="{stylecss}">{transobj["mubiao"]}: {self.video.target_dir}</p><br>')
+        # 全部完成
+        set_process( "\n".join(html) if len(html)>0 else "",'end')
         time.sleep(10)
         delete_temp(None)
 
@@ -44,7 +49,7 @@ class Shiting(QThread):
         except Exception as e:
             set_process(f'{transobj["geshihuazimuchucuo"]}:{str(e)}')
             return False
-        rate = int(str(config.voice_rate).replace('%', ''))
+        rate = int(str(config.params["voice_rate"]).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
         else:
@@ -56,15 +61,15 @@ class Shiting(QThread):
             if config.current_status != 'ing':
                 set_process(transobj['tingzhile'], 'stop')
                 return True
-            filename=f'{config.voice_role}-{config.voice_rate}-{config.voice_autorate}-{it["text"]}'
+            filename=f'{config.params["voice_role"]}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
             md5_hash = hashlib.md5()
             md5_hash.update(f"{filename}".encode('utf-8'))
             filename = self.obj['cache_folder']+"/"+md5_hash.hexdigest()+".mp3"
             text_to_speech(text=it['text'],
-                 role=config.voice_role,
+                 role=config.params["voice_role"],
                  rate= rate,
                  filename=filename,
-                 tts_type= self.obj['tts_type']
+                 tts_type= config.params['tts_type']
             )
             audio_data = AudioSegment.from_file(filename, format="mp3")
             mp3len = len(audio_data)
@@ -72,15 +77,12 @@ class Shiting(QThread):
             wavlen = it['end_time'] - it['start_time']
             # 新配音大于原字幕里设定时长
             diff = mp3len - wavlen
-            if diff > 0 and config.voice_autorate:
+            if diff > 0 and config.params["voice_autorate"]:
                 speed = mp3len / wavlen
                 speed = 1.8 if speed > 1.8 else round(speed, 2)
                 set_process(f"dubbing speed {speed} ")
                 # 音频加速 最大加速2倍
                 audio_data = speed_change(audio_data, speed)
-            # else:
-            # set_process("No automa" if not config.voice_autorate else "已启用自动加速但无需加速")
-
             tmp=time.time()
             audio_data.export(f"{filename}-{tmp}.wav",format="wav")
             set_process(f'Listening:{it["text"]}')
