@@ -8,6 +8,7 @@ from videotrans.configure.config import logger
 from videotrans.util import tools
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
 '''
 输入
 [{'line': 1, 'time': 'aaa', 'text': '\n我是中国人,你是哪里人\n'}, {'line': 2, 'time': 'bbb', 'text': '我身一头猪'}]
@@ -17,23 +18,24 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 '''
 safetySettings = [
-  {
-      "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
-      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    {
+        "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
+        "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
-  {
-      "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    {
+        "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
-  {
-      "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    {
+        "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
-  {
-      "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      "threshold": HarmBlockThreshold.BLOCK_NONE,
+    {
+        "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
-  ]
+]
+
 
 def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
     serv = tools.set_proxy()
@@ -41,20 +43,20 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         os.environ['http_proxy'] = serv
         os.environ['https_proxy'] = serv
     try:
-        genai.configure(api_key=config.gemini_key)
+        genai.configure(api_key=config.params['gemini_key'])
     except Exception as e:
-        err=str(e)
-        if isinstance(text_list,str):
+        err = str(e)
+        if isinstance(text_list, str):
             return err
         else:
-            tools.set_process(f'[error]Gemini error:{err}','error')
-            return [{"text":err}]
+            tools.set_process(f'[error]Gemini error:{err}', 'error')
+            return [{"text": err}]
     lang = target_language_chatgpt
     if isinstance(text_list, str):
         try:
             model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(
-                config.gemini_template.replace('{lang}', lang) + f"\n{text_list}",
+                config.params['gemini_template'].replace('{lang}', lang) + f"\n{text_list}",
                 safety_settings=safetySettings
             )
             return response.text.strip()
@@ -84,10 +86,10 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         len_sub = len(origin)
         logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
         error = ""
-        response=None
+        response = None
         try:
             response = model.generate_content(
-                config.gemini_template.replace('{lang}', lang) + "\n" + "\n".join(trans),
+                config.params['gemini_template'].replace('{lang}', lang) + "\n" + "\n".join(trans),
                 safety_settings=safetySettings
             )
             if not response.parts and set_p:
@@ -100,7 +102,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         except Exception as e:
             error = str(e)
             if response:
-                error+=f',{response.prompt_feedback=}'
+                error += f',{response.prompt_feedback=}'
             logger.error(f"【Gemini Error-2】error :{error}")
             trans_text = [f"[error]Gemini error:{error}"] * len_sub
         if error and re.search(r'limit', error, re.I) is not None:

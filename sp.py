@@ -9,10 +9,11 @@ import threading
 import webbrowser
 import torch
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import QSettings, QUrl, Qt, QSize
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar
+from PyQt5.QtCore import QSettings, QUrl, Qt, QSize, pyqtSlot, QDir
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
+    QTextBrowser
 import warnings
 
 from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm
@@ -36,13 +37,28 @@ if config.defaulelang == "zh":
 else:
     from videotrans.ui.en import Ui_MainWindow
 
+class MyTextBrowser(QTextBrowser):
+    def __init__(self):
+        super(MyTextBrowser, self).__init__()
+        # self.setOpenExternalLinks(True)  # 禁用在外部浏览器中打开链接
 
+    # @pyqtSlot(QUrl)
+    def anchorClicked(self, url):
+        # 拦截超链接点击事件
+        if url.scheme() == "file":
+            # 如果是本地文件链接
+            file_path = url.toLocalFile()
+            print(f'{file_path=}')
+            # 使用 QDir.toNativeSeparators 处理路径分隔符
+            file_path = QDir.toNativeSeparators(file_path)
+            print(file_path)
+            # 打开系统目录
+            QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
 # primary ui
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        self.cfg = config.video
         self.task = None
         self.toolboxobj = None
         self.shitingobj = None
@@ -95,23 +111,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #  translation type
         self.translate_type.addItems(
-            ["google", "baidu", "chatGPT", "Azure", 'Gemini', "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
-        self.translate_type.setCurrentText(self.cfg['translate_type'])
+            ["google", "baidu", "chatGPT", "Azure", 'Gemini', "tencent", "DeepL", "DeepLX"])
+        self.translate_type.setCurrentText(config.params['translate_type'])
         self.translate_type.currentTextChanged.connect(self.set_translate_type)
 
         #         model
         self.whisper_type.addItems([transobj['whisper_type_all'], transobj['whisper_type_split']])
         self.whisper_type.currentIndexChanged.connect(self.check_whisper_type)
-        if self.cfg['whisper_type']:
-            self.whisper_type.setCurrentIndex(0 if self.cfg['whisper_type'] == 'all' else 1)
+        if config.params['whisper_type']:
+            self.whisper_type.setCurrentIndex(0 if config.params['whisper_type'] == 'all' else 1)
         self.whisper_model.addItems(['base', 'small', 'medium', 'large', 'large-v3'])
-        self.whisper_model.setCurrentText(self.cfg['whisper_model'])
+        self.whisper_model.setCurrentText(config.params['whisper_model'])
         self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
 
         #
-        self.voice_rate.setText(self.cfg['voice_rate'])
+        self.voice_rate.setText(config.params['voice_rate'])
         self.voice_rate.textChanged.connect(self.voice_rate_changed)
-        self.voice_silence.setText(self.cfg['voice_silence'])
+        self.voice_silence.setText(config.params['voice_silence'])
 
         self.voice_autorate.stateChanged.connect(
             lambda: self.autorate_changed(self.voice_autorate.isChecked(), "voice"))
@@ -119,23 +135,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.autorate_changed(self.video_autorate.isChecked(), "video"))
 
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
-        if self.cfg['tts_type'] == 'edgeTTS':
+        if config.params['tts_type'] == 'edgeTTS':
             self.voice_role.addItems(['No'])
-        elif self.cfg['tts_type'] == 'openaiTTS':
-            self.voice_role.addItems(['No'] + self.cfg['openaitts_role'].split(','))
-        elif self.cfg['tts_type'] == 'coquiTTS':
-            self.voice_role.addItems(['No'] + self.cfg['coquitts_role'].split(','))
+        elif config.params['tts_type'] == 'openaiTTS':
+            self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
+        elif config.params['tts_type'] == 'coquiTTS':
+            self.voice_role.addItems(['No'] + config.params['coquitts_role'].split(','))
         # 设置 tts_type
-        self.tts_type.addItems(self.cfg['tts_type_list'])
-        self.tts_type.setCurrentText(self.cfg['tts_type'])
+        self.tts_type.addItems(config.params['tts_type_list'])
+        self.tts_type.setCurrentText(config.params['tts_type'])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
         self.enable_cuda.stateChanged.connect(self.check_cuda)
-        self.enable_cuda.setChecked(self.cfg['enable_cuda'])
+        self.enable_cuda.setChecked(config.params['cuda'])
 
         # subtitle 0 no 1=embed subtitle 2=softsubtitle
         self.subtitle_type.addItems([transobj['nosubtitle'], transobj['embedsubtitle'], transobj['softsubtitle']])
-        self.subtitle_type.setCurrentIndex(self.cfg['subtitle_type'])
+        self.subtitle_type.setCurrentIndex(config.params['subtitle_type'])
 
         # 字幕编辑
         self.subtitle_area = TextGetdir(self)
@@ -158,6 +174,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.layout_sub_bottom.insertWidget(0, self.import_sub)
         self.layout_sub_bottom.insertWidget(1, self.listen_peiyin)
 
+        # 使用 MyTextBrowser 类继承 process 实例
+
+        # new_process=MyTextBrowser()
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(new_process.sizePolicy().hasHeightForWidth())
+        # new_process.setSizePolicy(sizePolicy)
+        # new_process.setMinimumSize(QtCore.QSize(0, 100))
+        # new_process.setAutoFillBackground(False)
+        # new_process.setStyleSheet("border:0;\n"
+        #                            "selection-background-color: rgba(255, 255, 255, 0);\n"
+        #                            "background-color: rgba(255, 255, 255, 0);")
+        # new_process.setReadOnly(True)
+        # new_process.setObjectName("process")
+        #
+        # self.verticalLayout_3.replaceWidget(self.process, new_process)
+        # self.process.deleteLater()
+
+        self.process.setOpenExternalLinks(True)
+        self.process.anchorClicked.connect(self.openExternalLink)
+        # # url = QUrl.fromLocalFile(os.path.normpath("C:/Users/c1/Videos/_video_out/3 - 副本"))
+        # file="file:///C:\\Users\\c1\\Videos\\_video_out\\3 - 副本"
+
+        # self.process=new_process
+        # self.process.show()
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
         self.actionazure_key.triggered.connect(self.set_azure_key)
@@ -215,6 +257,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
 
+    def openExternalLink(self,url):
+        try:
+
+            QDesktopServices.openUrl(url)
+
+            # QDesktopServices.openUrl(QUrl.fromLocalFile(file))
+            # QDir.openUrl(QUrl.fromLocalFile(file))
+        except:
+            pass
+        return
+
     def check_cuda(self, state):
         res = state
         # 选中如果无效，则取消
@@ -223,8 +276,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.enable_cuda.setChecked(False)
             self.enable_cuda.setDisabled(True)
             res = False
-        config.cuda = res
-        if config.cuda:
+        config.params['cuda'] = res
+        if res:
             os.environ['CUDA_OK'] = "yes"
         elif os.environ.get('CUDA_OK'):
             os.environ.pop('CUDA_OK')
@@ -233,7 +286,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def voice_rate_changed(self, text):
         text = int(str(text).replace('+', '').replace('%', ''))
         text = f'+{text}%' if text >= 0 else f'-{text}%'
-        config.voice_rate = text
+        config.params['voice_rate'] = text
 
     # 字幕下方试听配音
     def shiting_peiyin(self):
@@ -252,10 +305,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "noextname": self.task.video.noextname,
             "cache_folder": self.task.video.cache_folder,
             "source_wav": self.task.video.targetdir_source_sub,
-            "voice_role": config.voice_role,
-            "voice_autorate": config.voice_autorate,
-            "voice_rate": config.voice_rate,
-            "tts_type": self.task.video.obj['tts_type'],
+            # "voice_role": config.params['voice_role'],
+            # "voice_autorate": config.params['voice_autorate'],
+            # "voice_rate": config.params['voice_rate'],
+            # "tts_type": self.task.video.obj['tts_type'],
         }
         txt = self.subtitle_area.toPlainText().strip()
         if not txt:
@@ -574,16 +627,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.voice_autorate.setChecked(False)
         if name == 'voice':
-            config.voice_autorate = state
+            config.params['voice_autorate'] = state
         else:
-            config.video_autorate = state
+            config.params['video_autorate'] = state
 
     def open_dir(self, dirname=None):
         if not dirname:
             return
+
+        print(dirname)
+
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
-        QDesktopServices.openUrl(QUrl(f"file:{dirname}"))
+        print(dirname)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+        # QDesktopServices.openUrl(QUrl(f"{dirname}"))
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -638,35 +696,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_setting(self):
         # 从缓存获取默认配置
-        config.baidu_appid = self.settings.value("baidu_appid", "")
-        config.baidu_miyue = self.settings.value("baidu_miyue", "")
-        config.deepl_authkey = self.settings.value("deepl_authkey", "")
-        config.deeplx_address = self.settings.value("deeplx_address", "")
-        config.tencent_SecretId = self.settings.value("tencent_SecretId", "")
-        config.tencent_SecretKey = self.settings.value("tencent_SecretKey", "")
+        config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
+        config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
+        config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
+        config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
+        config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
+        config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
 
-        config.chatgpt_api = self.settings.value("chatgpt_api", "")
-        config.chatgpt_key = self.settings.value("chatgpt_key", "")
-        config.chatgpt_model = self.settings.value("chatgpt_model", self.cfg['chatgpt_model'])
-        os.environ['OPENAI_API_KEY'] = config.chatgpt_key
+        config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
+        config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
+        os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
-        config.gemini_key = self.settings.value("gemini_key", "")
+        config.params["gemini_key"] = self.settings.value("gemini_key", "")
 
-        config.azure_api = self.settings.value("azure_api", "")
-        config.azure_key = self.settings.value("azure_key", "")
-        config.azure_model = self.settings.value("azure_model", self.cfg['azure_model'])
+        config.params["azure_api"] = self.settings.value("azure_api", "")
+        config.params["azure_key"] = self.settings.value("azure_key", "")
+        config.params["azure_model"] = self.settings.value("azure_model", config.params['azure_model'])
 
-        self.cfg['translate_type'] = self.settings.value("translate_type", self.cfg['translate_type'])
-        self.cfg['subtitle_type'] = self.settings.value("subtitle_type", self.cfg['subtitle_type'], int)
+        config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
+        config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
-        self.cfg['voice_rate'] = self.settings.value("voice_rate", self.cfg['voice_rate'], str)
-        self.cfg['voice_silence'] = self.settings.value("voice_silence", self.cfg['voice_silence'], str)
-        self.cfg['enable_cuda'] = False if not config.cuda else self.settings.value("enable_cuda", False, bool)
-        self.cfg['whisper_model'] = self.settings.value("whisper_model", self.cfg['whisper_model'], str)
-        self.cfg['whisper_type'] = self.settings.value("whisper_type", self.cfg['whisper_type'], str)
-        self.cfg['tts_type'] = self.settings.value("tts_type", self.cfg['tts_type'], str)
-        if not self.cfg['tts_type']:
-            self.cfg['tts_type'] = 'edgeTTS'
+        config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'], str)
+        config.params['voice_silence'] = self.settings.value("voice_silence", config.params['voice_silence'], str)
+        config.params['cuda'] = self.settings.value("cuda", False, bool)
+        config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
+        config.params['whisper_type'] = self.settings.value("whisper_type", config.params['whisper_type'], str)
+        config.params['tts_type'] = self.settings.value("tts_type", config.params['tts_type'], str)
+        if not config.params['tts_type']:
+            config.params['tts_type'] = 'edgeTTS'
 
     def open_url(self, title):
         if title == 'vlc':
@@ -724,12 +782,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         def save():
             key = self.w.deepl_authkey.text()
             self.settings.setValue("deepl_authkey", key)
-            config.deepl_authkey = key
+            config.params['deepl_authkey'] = key
             self.w.close()
 
         self.w = DeepLForm()
-        if config.deepl_authkey:
-            self.w.deepl_authkey.setText(config.deepl_authkey)
+        if config.params['deepl_authkey']:
+            self.w.deepl_authkey.setText(config.params['deepl_authkey'])
         self.w.set_deepl.clicked.connect(save)
         self.w.show()
 
@@ -741,8 +799,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.w.close()
 
         self.w = DeepLXForm()
-        if config.deeplx_address:
-            self.w.deeplx_address.setText(config.deeplx_address)
+        if config.params["deeplx_address"]:
+            self.w.deeplx_address.setText(config.params["deeplx_address"])
         self.w.set_deeplx.clicked.connect(save)
         self.w.show()
 
@@ -758,10 +816,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.w.close()
 
         self.w = BaiduForm()
-        if config.baidu_appid:
-            self.w.baidu_appid.setText(config.baidu_appid)
-        if config.baidu_miyue:
-            self.w.baidu_miyue.setText(config.baidu_miyue)
+        if config.params["baidu_appid"]:
+            self.w.baidu_appid.setText(config.params["baidu_appid"])
+        if config.params["baidu_miyue"]:
+            self.w.baidu_miyue.setText(config.params["baidu_miyue"])
         self.w.set_badiu.clicked.connect(save_baidu)
         self.w.show()
 
@@ -771,15 +829,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             SecretKey = self.w.tencent_SecretKey.text()
             self.settings.setValue("tencent_SecretId", SecretId)
             self.settings.setValue("tencent_SecretKey", SecretKey)
-            config.tencent_SecretId = SecretId
-            config.tencent_SecretKey = SecretKey
+            config.params["tencent_SecretId"] = SecretId
+            config.params["tencent_SecretKey"] = SecretKey
             self.w.close()
 
         self.w = TencentForm()
-        if config.tencent_SecretId:
-            self.w.tencent_SecretId.setText(config.tencent_SecretId)
-        if config.tencent_SecretKey:
-            self.w.tencent_SecretKey.setText(config.tencent_SecretKey)
+        if config.params["tencent_SecretId"]:
+            self.w.tencent_SecretId.setText(config.params["tencent_SecretId"])
+        if config.params["tencent_SecretKey"]:
+            self.w.tencent_SecretKey.setText(config.params["tencent_SecretKey"])
         self.w.set_tencent.clicked.connect(save)
         self.w.show()
 
@@ -797,21 +855,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue("chatgpt_template", template)
 
             os.environ['OPENAI_API_KEY'] = key
-            config.chatgpt_key = key
-            config.chatgpt_api = api
-            config.chatgpt_model = model
-            config.chatgpt_template = template
+            config.params["chatgpt_key"] = key
+            config.params["chatgpt_api"] = api
+            config.params["chatgpt_model"] = model
+            config.params["chatgpt_template"] = template
             self.w.close()
 
         self.w = ChatgptForm()
-        if config.chatgpt_key:
-            self.w.chatgpt_key.setText(config.chatgpt_key)
-        if config.chatgpt_api:
-            self.w.chatgpt_api.setText(config.chatgpt_api)
-        if config.chatgpt_model:
-            self.w.chatgpt_model.setCurrentText(config.chatgpt_model)
-        if config.chatgpt_template:
-            self.w.chatgpt_template.setPlainText(config.chatgpt_template)
+        if config.params["chatgpt_key"]:
+            self.w.chatgpt_key.setText(config.params["chatgpt_key"])
+        if config.params["chatgpt_api"]:
+            self.w.chatgpt_api.setText(config.params["chatgpt_api"])
+        if config.params["chatgpt_model"]:
+            self.w.chatgpt_model.setCurrentText(config.params["chatgpt_model"])
+        if config.params["chatgpt_template"]:
+            self.w.chatgpt_template.setPlainText(config.params["chatgpt_template"])
         self.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.w.show()
 
@@ -823,15 +881,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue("gemini_template", template)
 
             os.environ['GOOGLE_API_KEY'] = key
-            config.gemini_key = key
-            config.gemini_template = template
+            config.params["gemini_key"] = key
+            config.params["gemini_template"] = template
             self.w.close()
 
         self.w = GeminiForm()
-        if config.gemini_key:
-            self.w.gemini_key.setText(config.gemini_key)
-        if config.gemini_template:
-            self.w.gemini_template.setPlainText(config.gemini_template)
+        if config.params["gemini_key"]:
+            self.w.gemini_key.setText(config.params["gemini_key"])
+        if config.params["gemini_template"]:
+            self.w.gemini_template.setPlainText(config.params["gemini_template"])
         self.w.set_gemini.clicked.connect(save)
         self.w.show()
 
@@ -847,51 +905,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue("azure_model", model)
             self.settings.setValue("azure_template", template)
 
-            config.azure_key = key
-            config.azure_api = api
-            config.azure_model = model
-            config.azure_template = template
+            config.params["azure_key"] = key
+            config.params["azure_api"] = api
+            config.params["azure_model"] = model
+            config.params["azure_template"] = template
             self.w.close()
 
         self.w = AzureForm()
-        if config.azure_key:
-            self.w.azure_key.setText(config.azure_key)
-        if config.azure_api:
-            self.w.azure_api.setText(config.azure_api)
-        if config.azure_model:
-            self.w.azure_model.setCurrentText(config.azure_model)
-        if config.azure_template:
-            self.w.azure_template.setPlainText(config.azure_template)
+        if config.params["azure_key"]:
+            self.w.azure_key.setText(config.params["azure_key"])
+        if config.params["azure_api"]:
+            self.w.azure_api.setText(config.params["azure_api"])
+        if config.params["azure_model"]:
+            self.w.azure_model.setCurrentText(config.params["azure_model"])
+        if config.params["azure_template"]:
+            self.w.azure_template.setPlainText(config.params["azure_template"])
         self.w.set_azure.clicked.connect(save)
         self.w.show()
 
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
         try:
-            if name == "baidu" and not config.baidu_appid:
+            if name == "baidu" and not config.params["baidu_appid"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['baidukeymust'])
                 return
-            if name == "chatGPT" and not config.chatgpt_key:
+            if name == "chatGPT" and not config.params["chatgpt_key"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                 return
-            if name == "Azure" and not config.azure_key:
+            if name == "Azure" and not config.params["azure_key"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['tianxieazure'])
                 return
-            if name == "DeepL" and not config.deepl_authkey:
+            if name == "DeepL" and not config.params["deepl_authkey"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeepl_authkey'])
                 return
-            if name == "DeepLX" and not config.deeplx_address:
+            if name == "DeepLX" and not config.params["deeplx_address"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
                 return
-            self.cfg['translate_type'] = name
+            config.params['translate_type'] = name
         except Exception as e:
             QMessageBox.critical(self, transobj['anerror'], str(e))
 
     def check_whisper_type(self, index):
         if index == 0:
-            self.cfg['whisper_type'] = 'all'
+            config.params['whisper_type'] = 'all'
         else:
-            self.cfg['whisper_type'] = 'split'
+            config.params['whisper_type'] = 'split'
 
     # check model is exits
     def check_whisper_model(self, name):
@@ -917,7 +975,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # 清理输入
             self.statusLabel.setText(transobj['bencijieshu'])
             self.source_mp4.clear()
-            self.target_dir.clear()
+            # self.target_dir.clear()
             if self.task:
                 self.task.requestInterruption()
                 self.task.quit()
@@ -929,13 +987,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tts类型改变
     def tts_type_change(self, type):
-        self.cfg['tts_type'] = type
+        config.params['tts_type'] = type
         # 如果任务是在进行中，则更改
         if type == "openaiTTS":
             self.voice_role.clear()
-            self.voice_role.addItems(['No'] + self.cfg['openaitts_role'].split(','))
+            self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
         elif type == 'coquiTTS':
-            self.voice_role.addItems(['No'] + self.cfg['coquitts_role'].split(','))
+            self.voice_role.addItems(['No'] + config.params['coquitts_role'].split(','))
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())
 
@@ -943,10 +1001,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def listen_voice_fun(self):
         currentlang = self.target_language.currentText()
         if currentlang in ["English", "英语"]:
-            text = self.cfg['listen_text_en']
+            text = config.params['listen_text_en']
             lang = "en"
         elif currentlang in ["中文简", "中文繁", "Simplified_Chinese", "Traditional_Chinese"]:
-            text = self.cfg['listen_text_cn']
+            text = config.params['listen_text_cn']
             lang = "zh"
         else:
             return
@@ -960,13 +1018,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             voice_dir = voice_dir.replace('\\', '/') + "/pyvideotrans"
         if not os.path.exists(voice_dir):
             os.makedirs(voice_dir)
-        voice_file = f"{voice_dir}/{self.cfg['tts_type']}-{lang}-{role}.mp3"
+        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{role}.mp3"
         obj = {
             "text": text,
             "rate": "+0%",
             "role": role,
             "voice_file": voice_file,
-            "tts_type": self.cfg['tts_type'],
+            # "tts_type": config.params['tts_type'],
         }
         from videotrans.task.play_audio import PlayMp3
         t = PlayMp3(obj, self)
@@ -974,11 +1032,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 显示试听按钮
     def show_listen_btn(self, role):
-        if config.current_status == 'ing' and config.voice_role != 'No' and role == 'No':
+        if config.current_status == 'ing' and config.params["voice_role"] != 'No' and role == 'No':
             QMessageBox.critical(self, transobj['anerror'], transobj['yunxingbukerole'])
-            self.voice_role.setCurrentText(config.voice_role)
+            self.voice_role.setCurrentText(config.params["voice_role"])
             return
-        config.voice_role = role
+        config.params["voice_role"] = role
         t = self.target_language.currentText()
         if role != 'No' and t in ["中文简", "中文繁", "英语", "Simplified_Chinese", "Traditional_Chinese", "English"]:
             self.listen_btn.show()
@@ -992,7 +1050,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         role = self.voice_role.currentText()
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
-        if self.cfg['tts_type'] != 'edgeTTS':
+        if config.params['tts_type'] != 'edgeTTS':
             if role != 'No' and t in ["中文简", "中文繁", "英语", "Simplified_Chinese", "Traditional_Chinese", "English"]:
                 self.listen_btn.show()
                 self.listen_btn.setDisabled(False)
@@ -1060,14 +1118,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 清理日志
         self.process.clear()
         # 选择视频
-        self.cfg['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
+        config.params['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
         target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
         # 目标文件夹
         if target_dir:
-            self.cfg['target_dir'] = target_dir
-        elif self.cfg['source_mp4']:
-            self.cfg['target_dir'] = f"{os.path.dirname(self.cfg['source_mp4'])}/_video_out".replace('//', '/')
-        self.target_dir.setText(self.cfg['target_dir'])
+            config.params['target_dir'] = target_dir
+        # elif config.params['source_mp4']:
+        #     config.params['target_dir'] = f"{os.path.dirname(config.params['source_mp4'])}/_video_out".replace('//', '/')
+        # self.target_dir.setText(config.params['target_dir'])
 
         # 代理
         config.proxy = self.proxy.text().strip()
@@ -1079,210 +1137,207 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             set_proxy('del')
 
         # 原始语言
-        self.cfg['source_language'] = langlist[self.source_language.currentText()][0]
+        config.params['source_language'] = langlist[self.source_language.currentText()][0]
         # 目标语言
         target_language = self.target_language.currentText()
-        self.cfg['target_language'] = target_language
+        config.params['target_language'] = target_language
 
         # 如果选择了目标语言，再去处理相关
         if '-' != target_language:
-            self.cfg['target_language'] = langlist[target_language][0]
+            config.params['target_language'] = langlist[target_language][0]
             # google language code
-            if self.cfg['translate_type'] == 'google':
-                self.cfg['target_language'] = langlist[target_language][0]
-            elif self.cfg['translate_type'] == 'baidu(noKey)':
-                self.cfg['target_language_baidu'] = langlist[target_language][2]
-            elif self.cfg['translate_type'] == 'baidu':
+            if config.params['translate_type'] == 'google':
+                config.params['target_language'] = langlist[target_language][0]
+            elif config.params['translate_type'] == 'baidu(noKey)':
+                config.params['target_language_baidu'] = langlist[target_language][2]
+            elif config.params['translate_type'] == 'baidu':
                 # baidu language code
-                self.cfg['target_language_baidu'] = langlist[target_language][2]
-                if not config.baidu_appid or not config.baidu_miyue:
+                config.params['target_language_baidu'] = langlist[target_language][2]
+                if not config.params["baidu_appid"] or not config.params["baidu_miyue"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['baikeymust'])
                     return
-            elif self.cfg['translate_type'] == 'tencent':
+            elif config.params['translate_type'] == 'tencent':
                 #     腾讯翻译
-                self.cfg['target_language_tencent'] = langlist[target_language][4]
-                if not config.tencent_SecretId or not config.tencent_SecretKey:
+                config.params['target_language_tencent'] = langlist[target_language][4]
+                if not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['tencent_key'])
                     return
-            elif self.cfg['translate_type'] == 'chatGPT':
+            elif config.params['translate_type'] == 'chatGPT':
                 # chatGPT 翻译
-                self.cfg['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
-                if not config.chatgpt_key:
+                config.params['target_language_chatgpt'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.params["chatgpt_key"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
                     return
-            elif self.cfg['translate_type'] == 'Azure':
+            elif config.params['translate_type'] == 'Azure':
                 # chatGPT 翻译
-                self.cfg['target_language_azure'] = english_code_bygpt[self.languagename.index(target_language)]
-                if not config.azure_key:
+                config.params['target_language_azure'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.params["azure_key"]:
                     QMessageBox.critical(self, transobj['anerror'], '必须填写Azure key')
                     return
-            elif self.cfg['translate_type'] == 'Gemini':
+            elif config.params['translate_type'] == 'Gemini':
                 # chatGPT 翻译
-                self.cfg['target_language_gemini'] = english_code_bygpt[self.languagename.index(target_language)]
-                if not config.gemini_key:
+                config.params['target_language_gemini'] = english_code_bygpt[self.languagename.index(target_language)]
+                if not config.params["gemini_key"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'google Gemini key')
                     return
-            elif self.cfg['translate_type'] == 'DeepL' or self.cfg['translate_type'] == 'DeepLX':
+            elif config.params['translate_type'] == 'DeepL' or config.params['translate_type'] == 'DeepLX':
                 # DeepL翻译
-                if self.cfg['translate_type'] == 'DeepL' and not config.deepl_authkey:
+                if config.params['translate_type'] == 'DeepL' and not config.params["deepl_authkey"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['deepl_authkey'])
                     return
-                if self.cfg['translate_type'] == 'DeepLX' and not config.deeplx_address:
+                if config.params['translate_type'] == 'DeepLX' and not config.params["deeplx_address"]:
                     QMessageBox.critical(self, transobj['anerror'], transobj['setdeeplx_address'])
                     return
 
-                self.cfg['target_language_deepl'] = langlist[target_language][3]
-                if self.cfg['target_language_deepl'] == 'No':
+                config.params['target_language_deepl'] = langlist[target_language][3]
+                if config.params['target_language_deepl'] == 'No':
                     QMessageBox.critical(self, transobj['anerror'], transobj['deepl_nosupport'])
                     return
             # 目标字幕语言
-            self.cfg['subtitle_language'] = langlist[self.target_language.currentText()][1]
+            config.params['subtitle_language'] = langlist[self.target_language.currentText()][1]
         # 检测字幕原始语言
-        self.cfg['detect_language'] = langlist[self.source_language.currentText()][0]
+        config.params['detect_language'] = langlist[self.source_language.currentText()][0]
         # 配音角色
-        self.cfg['voice_role'] = self.voice_role.currentText()
-        config.voice_role = self.cfg['voice_role']
+        config.params['voice_role'] = self.voice_role.currentText()
+        # config.voice_role = config.params['voice_role']
         # 配音自动加速
-        self.cfg['voice_autorate'] = self.voice_autorate.isChecked()
-        config.voice_autorate = self.cfg['voice_autorate']
+        config.params['voice_autorate'] = self.voice_autorate.isChecked()
+        # config.voice_autorate = config.params['voice_autorate']
         # 视频自动减速
-        self.cfg['video_autorate'] = self.video_autorate.isChecked()
+        config.params['video_autorate'] = self.video_autorate.isChecked()
         # 语音模型
-        self.cfg['whisper_model'] = self.whisper_model.currentText()
-        model = config.rootdir + f"/models/{self.cfg['whisper_model']}.pt"
+        config.params['whisper_model'] = self.whisper_model.currentText()
+        model = config.rootdir + f"/models/{config.params['whisper_model']}.pt"
         # 字幕嵌入类型
-        self.cfg['subtitle_type'] = int(self.subtitle_type.currentIndex())
+        config.params['subtitle_type'] = int(self.subtitle_type.currentIndex())
 
         try:
             voice_rate = int(self.voice_rate.text().strip().replace('+', '').replace('%', ''))
-            self.cfg['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
+            config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
         except:
-            self.cfg['voice_rate'] = '+0%'
-        config.voice_rate = self.cfg['voice_rate']
+            config.params['voice_rate'] = '+0%'
+        # config.voice_rate = config.params['voice_rate']
         try:
             voice_silence = int(self.voice_silence.text().strip())
-            self.cfg['voice_silence'] = voice_silence
+            config.params['voice_silence'] = voice_silence
         except:
-            self.cfg['voice_silence'] = '500'
+            config.params['voice_silence'] = '500'
         # 字幕区文字
         txt = self.subtitle_area.toPlainText().strip()
 
         # 如果是 配音模式
         if self.app_mode == 'peiyin':
-            if not txt or self.cfg['voice_role'] in ['-', 'no', 'No']:
+            if not txt or config.params['voice_role'] in ['-', 'no', 'No']:
                 return QMessageBox.critical(self, transobj['anerror'], transobj['peiyinmoshisrt'])
             # 去掉选择视频，去掉原始语言
-            self.cfg['source_mp4'] = ''
-            self.cfg['subtitle_type'] = 0
-            self.cfg['voice_silence'] = '500'
-            self.cfg['video_autorate'] = False
-            self.cfg['whisper_model'] = 'base'
-            self.cfg['whisper_type'] = 'all'
+            config.params['source_mp4'] = ''
+            config.params['subtitle_type'] = 0
+            config.params['voice_silence'] = '500'
+            config.params['video_autorate'] = False
+            config.params['whisper_model'] = 'base'
+            config.params['whisper_type'] = 'all'
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         elif self.app_mode == 'hebing':
-            if not self.cfg['source_mp4'] or self.cfg['subtitle_type'] < 1 or not txt:
+            if not config.params['source_mp4'] or config.params['subtitle_type'] < 1 or not txt:
                 return QMessageBox.critical(self, transobj['anerror'], transobj['hebingmoshisrt'])
-            self.cfg['target_language'] = '-'
-            self.cfg['source_language'] = '-'
-            self.cfg['voice_silence'] = '500'
-            self.cfg['voice_role'] = 'No'
-            self.cfg['voice_rate'] = '+0%'
-            self.cfg['voice_autorate'] = False
-            self.cfg['whisper_model'] = 'base'
-            self.cfg['whisper_type'] = 'all'
+            config.params['target_language'] = '-'
+            config.params['source_language'] = '-'
+            config.params['voice_silence'] = '500'
+            config.params['voice_role'] = 'No'
+            config.params['voice_rate'] = '+0%'
+            config.params['voice_autorate'] = False
+            config.params['whisper_model'] = 'base'
+            config.params['whisper_type'] = 'all'
         elif self.app_mode == 'tiqu_no' or self.app_mode == 'tiqu':
-            self.cfg['subtitle_type'] = 0
-            self.cfg['voice_role'] = 'No'
-            self.cfg['voice_silence'] = '500'
-            self.cfg['voice_rate'] = '+0%'
-            self.cfg['voice_autorate'] = False
-            self.cfg['video_autorate'] = False
+            config.params['subtitle_type'] = 0
+            config.params['voice_role'] = 'No'
+            config.params['voice_silence'] = '500'
+            config.params['voice_rate'] = '+0%'
+            config.params['voice_autorate'] = False
+            config.params['video_autorate'] = False
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            if not self.cfg['source_mp4']:
+            if not config.params['source_mp4']:
                 return QMessageBox.critical(self, transobj['anerror'], '必须选择视频')
             elif not os.path.exists(model) or os.path.getsize(model) < 100:
-                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{self.cfg['whisper_model']}.pt")
-                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{self.cfg['whisper_model']}.pt")
+                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{config.params['whisper_model']}.pt")
+                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{config.params['whisper_model']}.pt")
                 return
-            if self.app_mode == 'tiqu' and self.cfg['target_language'] in ['-', 'no', 'No']:
+            if self.app_mode == 'tiqu' and config.params['target_language'] in ['-', 'no', 'No']:
                 # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
                 return QMessageBox.critical(self, transobj['anerror'], transobj['fanyimoshi1'])
             if self.app_mode == 'tiqu_no':
-                self.cfg['target_language'] = '-'
+                config.params['target_language'] = '-'
         # 综合判断
-        if not self.cfg['source_mp4'] and not txt:
+        if not config.params['source_mp4'] and not txt:
             return QMessageBox.critical(self, transobj['anerror'], transobj['bukedoubucunzai'])
 
         # tts类型
-        if self.cfg['tts_type'] == 'openaiTTS' and not config.chatgpt_key:
+        if config.params['tts_type'] == 'openaiTTS' and not config.params["chatgpt_key"]:
             QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
             return
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
-        if self.cfg['target_language'] == '-' and self.cfg['voice_role'] != 'No':
+        if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
             return QMessageBox.critical(self, transobj['anerror'], transobj['wufapeiyin'])
-        if self.cfg['source_mp4'] and len(config.queue_mp4) < 1:
-            config.queue_mp4 = [self.cfg['source_mp4']]
+        if config.params['source_mp4'] and len(config.queue_mp4) < 1:
+            config.queue_mp4 = [config.params['source_mp4']]
         # 配音模式 无视频
         # 保存设置
-        if config.cuda and not torch.cuda.is_available():
-            self.cfg['enable_cuda'] = False
-            config.cuda = False
+        if config.params["cuda"] and not torch.cuda.is_available():
+            config.params['cuda'] = False
+            # config.cuda = False
             self.enable_cuda.setChecked(False)
             if os.environ.get('CUDA_OK'):
                 os.environ.pop('CUDA_OK')
         self.save_setting()
         self.update_status("ing")
 
-        # 已存在字幕
-        if txt:
-            self.cfg['subtitles'] = txt
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
             while len(config.queue_mp4) > 0:
-                self.cfg['source_mp4'] = config.queue_mp4.pop(0)
-                config.queue_task.append(copy.deepcopy(self.cfg))
-        else:
+                config.queue_task.append({"source_mp4":config.queue_mp4.pop(0)})
+        elif txt:
             # 不存在视频
-            config.queue_task.append(copy.deepcopy(self.cfg))
+            # 已存在字幕
+            config.queue_task.append({"subtitles":txt})
 
         self.task = Worker(self)
         self.task.start()
 
     # 存储本地数据
     def save_setting(self):
-        self.settings.setValue("target_dir", self.cfg['target_dir'])
+        self.settings.setValue("target_dir", config.params['target_dir'])
         self.settings.setValue("proxy", config.proxy)
-        self.settings.setValue("whisper_model", self.cfg['whisper_model'])
-        self.settings.setValue("whisper_type", self.cfg['whisper_type'])
-        self.settings.setValue("voice_rate", self.cfg['voice_rate'])
-        self.settings.setValue("voice_silence", self.cfg['voice_silence'])
-        self.settings.setValue("voice_autorate", self.cfg['voice_autorate'])
-        self.settings.setValue("video_autorate", self.cfg['video_autorate'])
-        self.settings.setValue("subtitle_type", self.cfg['subtitle_type'])
-        self.settings.setValue("translate_type", self.cfg['translate_type'])
-        self.settings.setValue("enable_cuda", config.cuda)
-        self.settings.setValue("tts_type", self.cfg['tts_type'])
-        self.settings.setValue("tencent_SecretKey", self.cfg['tencent_SecretKey'])
-        self.settings.setValue("tencent_SecretId", self.cfg['tencent_SecretId'])
+        self.settings.setValue("whisper_model", config.params['whisper_model'])
+        self.settings.setValue("whisper_type", config.params['whisper_type'])
+        self.settings.setValue("voice_rate", config.params['voice_rate'])
+        self.settings.setValue("voice_silence", config.params['voice_silence'])
+        self.settings.setValue("voice_autorate", config.params['voice_autorate'])
+        self.settings.setValue("video_autorate", config.params['video_autorate'])
+        self.settings.setValue("subtitle_type", config.params['subtitle_type'])
+        self.settings.setValue("translate_type", config.params['translate_type'])
+        self.settings.setValue("enable_cuda", config.params['cuda'])
+        self.settings.setValue("tts_type", config.params['tts_type'])
+        self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
+        self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
 
     # 判断是否存在字幕文件，如果存在，则读出填充字幕区
-    def get_sub_toarea(self, noextname):
-        if not os.path.exists(f"{config.rootdir}/tmp/{noextname}"):
-            os.makedirs(f"{config.rootdir}/tmp/{noextname}", exist_ok=True)
-        sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
-        c = self.subtitle_area.toPlainText().strip()
-        #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
-        if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
-            with open(sub_name, 'r', encoding="utf-8") as f:
-                self.subtitle_area.setPlainText(f.read().strip())
-                return True
-        # 右侧存在，则创建字幕
-        if c:
-            with open(sub_name, 'w', encoding="utf-8") as f:
-                f.write(self.subtitle_area.toPlainText().strip())
-                return True
-        return False
+    # def get_sub_toarea(self, noextname):
+    #     if not os.path.exists(f"{config.rootdir}/tmp/{noextname}"):
+    #         os.makedirs(f"{config.rootdir}/tmp/{noextname}", exist_ok=True)
+    #     sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
+    #     c = self.subtitle_area.toPlainText().strip()
+    #     #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
+    #     if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
+    #         with open(sub_name, 'r', encoding="utf-8") as f:
+    #             self.subtitle_area.setPlainText(f.read().strip())
+    #             return True
+    #     # 右侧存在，则创建字幕
+    #     if c:
+    #         with open(sub_name, 'w', encoding="utf-8") as f:
+    #             f.write(self.subtitle_area.toPlainText().strip())
+    #             return True
+    #     return False
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1292,7 +1347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.moveCursor(QTextCursor.End)
             self.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'set_target_dir':
-            self.target_dir.setText(d['text'])
+            self.target_dir.setText(config.params['target_dir'])
         elif d['type'] == "logs":
             self.process.moveCursor(QTextCursor.End)
             self.process.insertHtml(d['text'])
@@ -1300,7 +1355,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.update_status(d['type'])
             self.continue_compos.hide()
             if d['text']:
-                self.process.moveCursor(QTextCursor.End)
+                # self.process.moveCursor(QTextCursor.End)
+                self.process.clear()
                 self.process.insertHtml(d['text'])
             self.statusLabel.setText(transobj['bencijieshu'])
         elif d['type'] == 'succeed':
