@@ -13,7 +13,7 @@ translate_language = {
         "running": "执行中",
         "ing": "执行中",
         "exit": "退出",
-        "end": "已结束(点击重新开始)",
+        "end": "已结束",
         "stop": "已停止(点击开始)",
         "subtitleandvoice_role": "你没有选择视频，只输入了字幕，将仅仅创建配音wav文件，请确认继续？",
         "waitrole":"正在获取可用配音角色，请稍等重新选择",
@@ -118,7 +118,9 @@ translate_language = {
         "xiugaipeiyinzimu":"等待修改配音字幕/点击继续", 
         "zidonghebingmiaohou":"秒后自动合并，你可以停止倒计时后去修改字幕，以便配音更准确", 
         "jieshutips":"视频处理结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等", 
-        "mubiao":"输出文件夹"
+        "mubiao":"打开输出文件夹",
+        "endandopen":"已完成，点击打开 ",
+        "waitforstart":"等待开始"
     },
     "en": {
         "continue_action":"继续下一步",
@@ -170,7 +172,7 @@ translate_language = {
         "running": "Running",
         "ing": "Running",
         "exit": "Exit",
-        "end": "Ended(click reststart)",
+        "end": "Ended",
         "stop": "Stop(click start)", 
         
         "daoruzimu":"Import subtitles", 
@@ -238,7 +240,9 @@ translate_language = {
 "xiugaipeiyinzimu":"Wait to modify the dubbed subtitles / click continue", 
 "zidonghebingmiaohou":"Automatically merge in seconds, you can stop the countdown to modify the subtitles so that the dubbing is more accurate", 
 "jieshutips":"Video processing ends: Relevant materials can be found in the target folder, including subtitle files, voiceover files, etc",
-        "mubiao":"Output folder"
+        "mubiao":"Open output folder",
+        "endandopen":"Ended click to open ",
+        "waitforstart":"Wait for starting"
     }
 }
 

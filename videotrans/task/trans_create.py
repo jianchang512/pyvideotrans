@@ -127,7 +127,7 @@ class TransCreate():
                     set_process(f"{config.task_countdown} {transobj['jimiaohoufanyi']}", 'show_djs')
                 time.sleep(1)
                 config.task_countdown -= 1
-            set_process('<br>', 'timeout_djs')
+            set_process('', 'timeout_djs')
             time.sleep(2)
             if not self.trans():
                 return set_process("translate error.", 'error')
@@ -138,7 +138,7 @@ class TransCreate():
         # 【从视频提取出字幕文件】
         # 选择视频文件，选择视频源语言，如果选择目标语言，则会输出翻译后的字幕文件，其他无需选择，开始执行
         if self.only_srt:
-            set_process(f"<br>{self.source_mp4} Ended")
+            set_process(f"Ended")
             # 检测是否还有
             return True
 
@@ -160,7 +160,7 @@ class TransCreate():
                 if config.task_countdown <= 60 and config.task_countdown >= 0:
                     set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
             # set_process(f"<br>开始配音操作:{config.params['tts_type']},{config.params['voice_role']}")
-            set_process('<br>', 'timeout_djs')
+            set_process('', 'timeout_djs')
             time.sleep(3)
             self.step = 'dubbing_ing'
             try:
@@ -187,12 +187,8 @@ class TransCreate():
         # 最后一步合成
         self.step = 'compos_before'
         try:
-            set_process(f"<br>Start last step<br>")
+            set_process(f"Start last step")
             if self.compos_video():
-                # 检测是否还有
-                # set_process(
-                #     f"<br><strong style='color:#00a67d;font-size:16px'>[{self.noextname}] {transobj['jieshutips']}</strong><br>",
-                #     'succeed')
                 time.sleep(1)
         except Exception as e:
             set_process(f"[error]:last step error " + str(e), "error")
@@ -240,7 +236,7 @@ class TransCreate():
                     "1",
                     f'{self.targetdir_source_wav}'
                 ]):
-                    set_process(f'[error]{self.source_mp4}', 'error')
+                    set_process(f'[error]', 'error')
                     return False
             except Exception as e:
                 set_process(f'{str(e)}', 'error')
@@ -336,7 +332,7 @@ class TransCreate():
     # 所有临时文件保存在 /tmp/noextname文件夹下
     # 分批次读取
     def recognition_split(self):
-        set_process("<br>预先分割数据进行语音识别")
+        set_process("预先分割数据进行语音识别")
         if config.current_status == 'stop':
             return False
         tmp_path = f'{self.cache_folder}/##{self.noextname}_tmp'
@@ -355,7 +351,7 @@ class TransCreate():
             if config.current_status == 'stop':
                 return False
             nonsilent_data = shorten_voice(normalized_sound)
-            set_process(f"{self.noextname} 对音频文件按静音片段分割处理", 'logs')
+            set_process(f"对音频文件按静音片段分割处理", 'logs')
             with open(nonslient_file, 'w') as outfile:
                 json.dump(nonsilent_data, outfile)
         r = sr.Recognizer()
@@ -374,7 +370,7 @@ class TransCreate():
                     offset += 200
             time_covered = start_time / len(normalized_sound) * 100
             # 进度
-            set_process(f"{self.noextname} 音频处理进度{time_covered:.1f}%")
+            set_process(f"音频处理进度{time_covered:.1f}%")
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
             add_vol = 0
             audio_chunk = normalized_sound[start_time:end_time] + add_vol
@@ -428,7 +424,7 @@ class TransCreate():
     def recognition_all(self):
         model = config.params['whisper_model']
         language = config.params['detect_language']
-        set_process(f"<br>Model:{model} ")
+        set_process(f"Model:{model} ")
         try:
             model = whisper.load_model(model, download_root=config.rootdir + "/models")
             transcribe = model.transcribe(self.targetdir_source_wav,
@@ -525,7 +521,7 @@ class TransCreate():
                 set_process(f"{it['line']}\n{it['time']}\n{new_text}\n\n", "subtitle")
                 it['text'] = new_text
                 rawsrt[i] = it
-        set_process(f"<br>Translation end")
+        set_process(f"Translation end")
         # 保存到 翻译后的 字幕 到tmp缓存
         # self.save_srt_tmp(rawsrt)
         # 保存翻译后的字幕到目标文件夹
@@ -909,10 +905,10 @@ class TransCreate():
                     queue_params[idx] = it
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
-                set_process(f"[{line_num}] end<br>\n\n")
+                set_process(f"[{line_num}] end")
                 srtmeta.append(srtmeta_item)
 
-            set_process(f"<br>Origin:{source_mp4_total_length=} + offset:{offset} = {source_mp4_total_length + offset}")
+            set_process(f"Origin:{source_mp4_total_length=} + offset:{offset} = {source_mp4_total_length + offset}")
 
             if os.path.exists(novoice_mp4_tmp):
                 # os.unlink(self.novoice_mp4)
@@ -1025,7 +1021,7 @@ class TransCreate():
                 # 原字幕发音时间段长度
                 wavlen = it['end_time'] - it['start_time']
 
-                if wavlen == 0:
+                if wavlen <= 0:
                     queue_copy[idx] = it
                     srtmeta.append(srtmeta_item)
                     continue
@@ -1133,7 +1129,7 @@ class TransCreate():
         # 有字幕有配音
         if config.params['voice_role'] != 'No' and config.params['subtitle_type'] > 0:
             if config.params['subtitle_type'] == 1:
-                set_process(f"{self.noextname} dubbing & embed srt")
+                set_process(f"dubbing & embed srt")
                 # 需要配音+硬字幕
                 runffmpeg([
                     "-y",
@@ -1153,7 +1149,7 @@ class TransCreate():
                     os.path.normpath(self.targetdir_mp4),
                 ])
             else:
-                set_process(f"{self.noextname} dubbing & srt")
+                set_process(f"dubbing & srt")
                 # 配音+软字幕
                 runffmpeg([
                     "-y",
@@ -1181,7 +1177,7 @@ class TransCreate():
                 ])
         elif config.params['voice_role'] != 'No':
             # 配音无字幕
-            set_process(f"{self.noextname} dubbing")
+            set_process(f"dubbing")
             runffmpeg([
                 "-y",
                 "-i",
@@ -1200,7 +1196,7 @@ class TransCreate():
         # 无配音 使用 novice.mp4 和 原始 wav合并
         elif config.params['subtitle_type'] == 1:
             # 硬字幕无配音 将原始mp4复制到当前文件夹下
-            set_process(f"{self.noextname} embed srt & no dubbing")
+            set_process(f"embed srt & no dubbing")
             runffmpeg([
                 "-y",
                 "-i",
@@ -1220,7 +1216,7 @@ class TransCreate():
             ])
         elif config.params['subtitle_type'] == 2:
             # 软字幕无配音
-            set_process(f"{self.noextname} srt & no dubbing")
+            set_process(f"srt & no dubbing")
             runffmpeg([
                 "-y",
                 "-i",

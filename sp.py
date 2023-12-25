@@ -13,7 +13,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
 from PyQt5.QtCore import QSettings, QUrl, Qt, QSize, pyqtSlot, QDir
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
-    QTextBrowser
+    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy
 import warnings
 
 from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task = None
         self.toolboxobj = None
         self.shitingobj = None
+        self.processbtns={}
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
         self.rawtitle = f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {VERSION}"
@@ -193,10 +194,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.verticalLayout_3.replaceWidget(self.process, new_process)
         # self.process.deleteLater()
 
-        self.process.setOpenExternalLinks(True)
-        self.process.anchorClicked.connect(self.openExternalLink)
+        # self.process.setOpenExternalLinks(True)
+        # self.process.anchorClicked.connect(self.openExternalLink)
         # # url = QUrl.fromLocalFile(os.path.normpath("C:/Users/c1/Videos/_video_out/3 - 副本"))
         # file="file:///C:\\Users\\c1\\Videos\\_video_out\\3 - 副本"
+
+        # 创建 Scroll Area
+        # scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+
+        # 创建一个 QWidget 作为 Scroll Area 的 viewport
+        viewport = QWidget(self.scroll_area)
+        self.scroll_area.setWidget(viewport)
+
+        # 创建一个垂直布局管理器，用于在 viewport 中放置按钮
+        self.processlayout = QVBoxLayout(viewport)
+        # 设置布局管理器的对齐方式为顶部对齐
+        self.processlayout.setAlignment(Qt.AlignTop)
+
+
 
         # self.process=new_process
         # self.process.show()
@@ -657,6 +673,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     hide_recursive(item.layout(), show_status)
 
         hide_recursive(wrap_layout, show_status)
+    # 删除proce里的元素
+    def delete_process(self):
+        for i in range(self.processlayout.count()):
+            item = self.processlayout.itemAt(i)
+            if item.widget():
+                item.widget().deleteLater()
 
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
@@ -764,7 +786,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.setText(transobj['jixuzhong'])
         self.continue_compos.setDisabled(True)
         self.stop_djs.hide()
-        self.process.clear()
+        # self.process.clear()
+        self.set_process_btn_text(transobj['jixuzhong'])
         if self.shitingobj:
             self.shitingobj.stop = True
 
@@ -772,8 +795,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def reset_timeid(self):
         self.stop_djs.hide()
         config.task_countdown = 86400
-        self.process.moveCursor(QTextCursor.End)
-        self.process.insertHtml("<br><strong>" + transobj['daojishitingzhi'] + "</strong><br>")
+        # self.process.moveCursor(QTextCursor.End)
+        # self.process.insertHtml("<br><strong>" + transobj['daojishitingzhi'] + "</strong><br>")
+        self.set_process_btn_text(transobj['daojishitingzhi'])
         self.continue_compos.setDisabled(False)
         self.continue_compos.setText(transobj['nextstep'])
 
@@ -1108,6 +1132,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dirname = dirname.replace('\\', '/')
         self.target_dir.setText(dirname)
 
+    # 添加按钮
+    def add_process_btn(self,txt):
+        # 创建三个按钮并添加到布局中
+        button1 = QPushButton(transobj["waitforstart"]+" " + txt, self)
+
+        # 设置按钮高度为 80px，宽度撑满父控件
+        button1.setFixedHeight(50)
+        button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+
+        # 将按钮添加到布局中
+        self.processlayout.addWidget(button1)
+        return button1
+    def click_process_btn(self,text):
+        print(f'click--{text=}')
+        dirs=text.split(transobj["endandopen"])
+        if os.path.isdir(dirs[-1]):
+            QDesktopServices.openUrl(QUrl.fromLocalFile(dirs[-1]))
     # 检测开始状态并启动
     def check_start(self):
         if config.current_status == 'ing':
@@ -1116,16 +1158,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.update_status('stop')
                 return
         # 清理日志
-        self.process.clear()
+        self.delete_process()
+
         # 选择视频
         config.params['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
         target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
         # 目标文件夹
         if target_dir:
             config.params['target_dir'] = target_dir
-        # elif config.params['source_mp4']:
-        #     config.params['target_dir'] = f"{os.path.dirname(config.params['source_mp4'])}/_video_out".replace('//', '/')
-        # self.target_dir.setText(config.params['target_dir'])
 
         # 代理
         config.proxy = self.proxy.text().strip()
@@ -1294,12 +1334,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
+            for it in config.queue_mp4:
+                self.processbtns[it]=self.add_process_btn(it)
             while len(config.queue_mp4) > 0:
                 config.queue_task.append({"source_mp4":config.queue_mp4.pop(0)})
         elif txt:
             # 不存在视频
             # 已存在字幕
             config.queue_task.append({"subtitles":txt})
+            self.processbtns["srt2wav"]=self.add_process_btn("srt2wav")
 
         self.task = Worker(self)
         self.task.start()
@@ -1321,23 +1364,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
         self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
 
-    # 判断是否存在字幕文件，如果存在，则读出填充字幕区
-    # def get_sub_toarea(self, noextname):
-    #     if not os.path.exists(f"{config.rootdir}/tmp/{noextname}"):
-    #         os.makedirs(f"{config.rootdir}/tmp/{noextname}", exist_ok=True)
-    #     sub_name = f"{config.rootdir}/tmp/{noextname}/{noextname}.srt"
-    #     c = self.subtitle_area.toPlainText().strip()
-    #     #     判断 如果右侧字幕区无字幕，并且已存在字幕文件，则读取
-    #     if not c and os.path.exists(sub_name) and os.path.getsize(sub_name) > 0:
-    #         with open(sub_name, 'r', encoding="utf-8") as f:
-    #             self.subtitle_area.setPlainText(f.read().strip())
-    #             return True
-    #     # 右侧存在，则创建字幕
-    #     if c:
-    #         with open(sub_name, 'w', encoding="utf-8") as f:
-    #             f.write(self.subtitle_area.toPlainText().strip())
-    #             return True
-    #     return False
+
+    # 设置按钮上的日志信息
+    def set_process_btn_text(self,text,type="logs"):
+        if self.task and self.task.video and self.task.video.source_mp4:
+            # 有视频
+            btnkey = self.task.video.source_mp4
+            if type!='succeed':
+                text=f'{self.task.video.source_mp4}: {text}'
+        else:
+            # 字幕到配音，无视频
+            btnkey = "srt2wav"
+        if btnkey in self.processbtns:
+            if type=='succeed':
+                text=f'{transobj["endandopen"]}{text}'
+                self.processbtns[btnkey].clicked.connect(lambda: self.click_process_btn(text[:]))
+                print(f'{text=}')
+                self.processbtns[btnkey].setStyleSheet('color:#00a67d')
+            elif type=='error':
+                self.processbtns[btnkey].setStyleSheet('color:#ff0000')
+            else:
+                text=f'{transobj["running"]} {text}'
+            self.processbtns[btnkey].setText(text)
+
+
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1349,28 +1399,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif d['type'] == 'set_target_dir':
             self.target_dir.setText(config.params['target_dir'])
         elif d['type'] == "logs":
-            self.process.moveCursor(QTextCursor.End)
-            self.process.insertHtml(d['text'])
+            self.set_process_btn_text(d['text'])
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_status(d['type'])
             self.continue_compos.hide()
             if d['text']:
-                # self.process.moveCursor(QTextCursor.End)
-                self.process.clear()
-                self.process.insertHtml(d['text'])
+                self.set_process_btn_text(d['text'])
             self.statusLabel.setText(transobj['bencijieshu'])
         elif d['type'] == 'succeed':
             # 本次任务结束
-            self.process.clear()
-            self.process.setHtml(d['text'])
-            self.subtitle_area.clear()
+            self.set_process_btn_text(d['text'],'succeed')
         elif d['type'] == 'statusbar':
             self.statusLabel.setText(d['text'])
         elif d['type'] == 'error':
             # 出错停止
             self.update_status('stop')
-            self.process.moveCursor(QTextCursor.End)
-            self.process.insertHtml(d['text'])
+            # self.process.moveCursor(QTextCursor.End)
+            self.set_process_btn_text(d['text'],'error')
             self.continue_compos.hide()
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
@@ -1392,8 +1437,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.listen_peiyin.setDisabled(True)
             self.listen_peiyin.setText(transobj['shitingpeiyin'])
         elif d['type'] == 'show_djs':
-            self.process.clear()
-            self.process.insertHtml(d['text'])
+            # self.process.clear()
+            self.set_process_btn_text(d['text'])
         elif d['type'] == 'check_soft_update':
             self.setWindowTitle(self.rawtitle + " -- " + d['text'])
             usetype = QPushButton(d['text'])

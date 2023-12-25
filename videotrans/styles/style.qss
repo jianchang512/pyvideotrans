@@ -46,3 +46,10 @@ QComboBox:disabled{
     background-color: transparent;  /* 灰色背景 */
     border-color: #273442;  /* 灰色背景 */
 }
+
+QScrollArea QPushButton{
+    background-color: #32414B;
+}
+QScrollArea QPushButton:hover{
+    background-color: #19232D;
+}
