@@ -126,6 +126,21 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 17. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
 
 
+
+## 源码部署
+
+1. 配置好 python 3.9->3.11 环境
+2. `git clone https://github.com/jianchang512/pyvideotrans`
+3. `cd pyvideotrans`
+4. `python -m venv venv`
+5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
+6. `pip install -r requirements.txt`
+7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
+8. `python sp.py` 打开软件界面
+9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+
+
+
 ## 注意事项:
 
 **字幕显示问题**
@@ -160,17 +175,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 
 
-## 源码部署
-
-1. 配置好 python 3.9->3.11 环境
-2. `git clone https://github.com/jianchang512/pyvideotrans`
-3. `cd pyvideotrans`
-4. `python -m venv venv`
-5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
-6. `pip install -r requirements.txt`
-7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
-8. `python sp.py` 打开软件界面
-9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 
 ## CUDA 加速支持
@@ -188,13 +192,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
    说明安装正确，预编译版可以启用CUDA了，否则需重新安装
 
-**源码版继续配置CUDA环境**
 
-1. 去git拉取源码，然后配置好python虚拟环境，然后激活 
-   
-2. 安装 `pip install -r requirements.txt` 
-
-3. 到此应该可以使用了，如果有问题，那么执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
+    如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
    如下图
    
 ![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
@@ -204,7 +203,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
    再分别执行 `import torch`  ,  `torch.cuda.is_available()`
    如果有输出，说明CUDA配置正确，否则请检查配置或者重新配置CUDA**
    
-4. CUDA环境配置相对复杂，遇到问题多搜索或发个issue
 
 
 ## 软件预览截图
