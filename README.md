@@ -121,6 +121,19 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 17. In the subfolder of the software directory, find the srt folder with the same name as the video file to generate two files, the suffix is the original language and the target language text subtitle file.
 
 
+## Source Code Deployment
+
+1. Set up the Python 3.9->3.11 environment.
+2. `git clone https://github.com/jianchang512/pyvideotrans`
+3. `cd pyvideotrans`
+4. `python -m venv venv`
+5. For Windows, run `%cd%/venv/scripts/activate`; for Linux and Mac, run `source ./venv/bin/activate`.
+6. `pip install -r requirements.txt`
+7. For Windows, unzip ffmpeg.zip to the root directory (ffmpeg.exe file); for Linux and Mac, download the corresponding version of ffmpeg from the [ffmpeg official website](https://ffmpeg.org/download.html), unzip it to the root directory, and make sure to place the executable file ffmepg directly in the root directory.
+8. Open the software interface by running `python sp.py`.
+9. If CUDA acceleration support is needed, the device must have an NVIDIA GPU. For specific installation steps, see [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+
+
 
 ## Notes:
 
@@ -155,17 +168,6 @@ If you don't have a NVIDIA GPU or if you didn't configure the CUDA environment c
 **Prompt ffmpeg error**
 If you have enabled CUDA and encountered this problem, please update the display card driver and then reconfigure the CUDA environment.
 
-## Source Code Deployment
-
-1. Set up the Python 3.9->3.11 environment.
-2. `git clone https://github.com/jianchang512/pyvideotrans`
-3. `cd pyvideotrans`
-4. `python -m venv venv`
-5. For Windows, run `%cd%/venv/scripts/activate`; for Linux and Mac, run `source ./venv/bin/activate`.
-6. `pip install -r requirements.txt`
-7. For Windows, unzip ffmpeg.zip to the root directory (ffmpeg.exe file); for Linux and Mac, download the corresponding version of ffmpeg from the [ffmpeg official website](https://ffmpeg.org/download.html), unzip it to the root directory, and make sure to place the executable file ffmepg directly in the root directory.
-8. Open the software interface by running `python sp.py`.
-9. If CUDA acceleration support is needed, the device must have an NVIDIA GPU. For specific installation steps, see [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
 
 
 ## CUDA Acceleration Support
