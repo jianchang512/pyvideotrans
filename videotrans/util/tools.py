@@ -2,7 +2,6 @@
 import ctypes
 import inspect
 
-import cv2
 from videotrans.configure import boxcfg
 from videotrans.configure.config import rootdir
 from ctypes.util import find_library
@@ -63,30 +62,6 @@ def transcribe_audio(audio_path, model, language):
         result += f"{segmentId}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
     return result
 
-
-# 获取摄像头
-def get_camera_list():
-    if boxcfg.check_camera_ing:
-        return
-    boxcfg.check_camera_ing = True
-    index = 0
-    if len(boxcfg.camera_list) > 0:
-        boxcfg.check_camera_ing = False
-        return
-    print("获取摄像头")
-    try:
-        while True:
-            camera = cv2.VideoCapture(index)
-            if not camera.read()[0]:
-                break
-            else:
-                boxcfg.camera_list.append(index)
-                index += 1
-        camera.release()
-        print(f"{boxcfg.camera_list=}")
-    except Exception as e:
-        print("获取摄像头出错")
-    boxcfg.check_camera_ing = False
 
 
 def find_lib():
