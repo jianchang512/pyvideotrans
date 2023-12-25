@@ -78,7 +78,6 @@ oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==1.2.3
 openai-whisper @ git+https://github.com/openai/whisper.git@e58f28804528831904c3b6f2c0e473f346223433
-opencv-python==4.8.1.78
 opt-einsum==3.3.0
 packaging==23.1
 pandas==1.5.3
