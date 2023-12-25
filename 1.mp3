@@ -1,8 +1,0 @@
-{
-  "code": "InvalidRequest",
-  "message": "Not supported TtsAudioFormat value audio-24khz-160kbitrate-mono-mp3 in AccFreeTrial",
-  "innerError": {
-    "code": "InvalidPayload",
-    "message": "Not supported TtsAudioFormat value audio-24khz-160kbitrate-mono-mp3 in AccFreeTrial"
-  }
-}
