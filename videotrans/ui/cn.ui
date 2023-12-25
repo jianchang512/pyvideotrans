@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1488</width>
-    <height>771</height>
+    <height>884</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -802,30 +802,26 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextBrowser" name="process">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
+         <widget class="QScrollArea" name="scroll_area">
           <property name="styleSheet">
-           <string notr="true">border:0;
-selection-background-color: rgba(255, 255, 255, 0);
-background-color: rgba(255, 255, 255, 0);</string>
+           <string notr="true">border-color:#32414B</string>
           </property>
-          <property name="readOnly">
+          <property name="widgetResizable">
            <bool>true</bool>
           </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents_5">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>1328</width>
+             <height>480</height>
+            </rect>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border:0</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>

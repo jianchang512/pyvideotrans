@@ -162,14 +162,15 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 ## 源码部署
 
-1. 配置好 python 3.9+ 环境
+1. 配置好 python 3.9->3.11 环境
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
-4. CPU版`pip install -r requirements.txt`
-5. 解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)
-6. `python sp.py` 打开软件界面, `python cli.py` 命令行执行
-7. 如果希望打包为exe的话，请使用命令 `pyinstaller sp.py`,不要添加 ` -F` 参数
-8. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+4. `python -m venv venv`
+5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
+6. `pip install -r requirements.txt`
+7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
+8. `python sp.py` 打开软件界面
+9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 
 ## CUDA 加速支持

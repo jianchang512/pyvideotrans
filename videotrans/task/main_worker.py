@@ -21,19 +21,19 @@ class Worker(QThread):
     def run(self) -> None:
         task_nums=len(config.queue_task)
         num=0
-        html=[]
-        stylecss="""padding:5px;margin:5px;color:#00a67d;"""
+        # html=[]
+        # stylecss="""padding:5px;margin:5px;color:#00a67d;"""
         while len(config.queue_task)>0:
             num+=1
             it=config.queue_task.pop(0)
-            set_process(f"<br><strong>start {num}/{task_nums} :【{it['source_mp4']}】</strong>")
-            set_process(f"Processing {num}/{task_nums}:【{it['source_mp4']}】",'statusbar')
+            set_process(f"Starting")
+            set_process(f"Processing {num}/{task_nums}",'statusbar')
             self.video=TransCreate(it)
-
             if self.video.run():
-                html.append(f'<p style="{stylecss}">{transobj["mubiao"]}: {self.video.target_dir}</p><br>')
+                set_process(f"{self.video.target_dir}",'succeed')
+                # html.append(f'<p style="{stylecss}">{transobj["mubiao"]}: {self.video.target_dir}</p><br>')
         # 全部完成
-        set_process( "\n".join(html) if len(html)>0 else "",'end')
+        set_process( "",'end')
         time.sleep(10)
         delete_temp(None)
 

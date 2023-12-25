@@ -689,13 +689,13 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
 def set_process(text, type="logs"):
     try:
         if text:
-            log_msg = text.replace('<br>', "\n").replace('<strong>','').replace('</strong>','').strip()
+            log_msg = text.replace('<br>', "").replace('<strong>','').replace('</strong>','').strip()
             if log_msg.startswith("[error"):
                 logger.error(log_msg)
             else:
                 logger.info(log_msg)
-        if type == 'logs':
-            text = text.replace('[error]', '<strong style="color:#f00">ERROR:</strong>') + '<br>'
+        # if type == 'logs':
+        #     text = text.
         queue_logs.put_nowait({"text": text, "type": type})
     except Exception as e:
         pass

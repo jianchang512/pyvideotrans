@@ -650,7 +650,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
         self.fanyi_translate_type.addItems(
-            ["google", "baidu", "chatGPT", 'Azure', 'Gemini', "tencent", "DeepL", "DeepLX", "baidu(noKey)"])
+            ["google", "baidu", "chatGPT", 'Azure', 'Gemini', "tencent", "DeepL", "DeepLX"])
 
         self.fanyi_sourcetext = Textedit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)

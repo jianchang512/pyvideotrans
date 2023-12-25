@@ -157,14 +157,16 @@ If you have enabled CUDA and encountered this problem, please update the display
 
 ## Source Code Deployment
 
-1. Set up a Python 3.9+ environment
+1. Set up the Python 3.9->3.11 environment.
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
-4. CPU version: `pip install -r requirements.txt`
-5. Unzip ffmpeg.zip (ffmpeg.exe file) to the root directory
-6. `python sp.py` to open the software interface, `python cli.py` to use the command line execution
-7. If you want to package it as an exe file, please use the command `pyinstaller sp.py`, don't add ` -F` parameter
-8. If you need CUDA acceleration support, you must have a NVIDIA graphics card. Installation prevention is mentioned below in  [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+4. `python -m venv venv`
+5. For Windows, run `%cd%/venv/scripts/activate`; for Linux and Mac, run `source ./venv/bin/activate`.
+6. `pip install -r requirements.txt`
+7. For Windows, unzip ffmpeg.zip to the root directory (ffmpeg.exe file); for Linux and Mac, download the corresponding version of ffmpeg from the [ffmpeg official website](https://ffmpeg.org/download.html), unzip it to the root directory, and make sure to place the executable file ffmepg directly in the root directory.
+8. Open the software interface by running `python sp.py`.
+9. If CUDA acceleration support is needed, the device must have an NVIDIA GPU. For specific installation steps, see [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+
 
 ## CUDA Acceleration Support
 
