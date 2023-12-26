@@ -236,6 +236,5 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 4. SpeechRecognition
 5. edge-tts
 6. openai-whisper
-7. opencv-python
 
 
