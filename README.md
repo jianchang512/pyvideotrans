@@ -156,10 +156,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 >
 > You can only choose one of the two.
 
-**Background Music Problem**
 
-It only recognizes and saves human voices, that is, there will not be original background music in the dubbed audio. If you need to retain it, you can use the tool to extract background music, extract the background music first, and then merge it with the dubbed file.
-https://github.com/jianchang512/vocal-separate
+**Background Music Issue**
+
+The tool only recognizes vocals and saves vocals, meaning there will be no original background music in the audio after dubbing. If you need to retain the background music, please use the [Vocal Background Music Separation Project](https://github.com/jianchang512/vocal-separate) to extract the background music and then merge it with the dubbing file.
+
+**Language Cloning and Custom Voice**
+
+Currently, this feature is not supported. If needed, you can first recognize the subtitles, then use another [voice cloning project](https://github.com/jiangchang512/clone-voice), input the subtitle srt file, choose a custom voice to synthesize into an audio file, and then generate a new video.
 
 
 
