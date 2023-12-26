@@ -212,4 +212,3 @@ If the installation is correct, the precompiled version can now be used with CUD
 4. SpeechRecognition
 5. edge-tts
 6. openai-whisper
-7. opencv-python
