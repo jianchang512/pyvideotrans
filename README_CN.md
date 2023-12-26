@@ -164,9 +164,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 **背景音乐问题**
 
-只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请自行使用提取背景音乐工具，将背景音提取出来，然后再和配音文件合并。相关提取背景音乐项目
+只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请使用[人声背景音乐分离项目](https://github.com/jianchang512/vocal-separate)，将背景音提取出来，然后再和配音文件合并。
 
-https://github.com/jianchang512/vocal-separate
+**语言克隆和自定义音色**
+目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice),输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
+
 
 **large/large-v3模型问题**
 
@@ -174,6 +176,8 @@ https://github.com/jianchang512/vocal-separate
 
 **提示ffmpeg错误**
 如果你启用了CUDA，并遇到了该问题，请更新显卡驱动，然后重新配置CUDA环境
+
+
 
 
 
