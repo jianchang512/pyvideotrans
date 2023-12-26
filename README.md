@@ -159,6 +159,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 **Background Music Problem**
 
 It only recognizes and saves human voices, that is, there will not be original background music in the dubbed audio. If you need to retain it, you can use the tool to extract background music, extract the background music first, and then merge it with the dubbed file.
+https://github.com/jianchang512/vocal-separate
+
 
 
 **Issues with large/large-v3 models**
