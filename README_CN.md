@@ -1,4 +1,4 @@
-[English Readme](./README.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / QQ群 902124277
+[English Readme](./README.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / [Q群 902124277](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
 ## 视频翻译和配音工具
 [预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
