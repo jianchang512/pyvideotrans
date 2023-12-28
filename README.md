@@ -219,6 +219,13 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
 
 
+# 相关联项目
+
+[声音克隆工具:用任意音色合成语音](https://github.com/jianchang512/clone-voice)
+
+[语音识别工具:本地离线的语音识别转文字工具](https://github.com/jianchang512/stt)
+
+[人声背景乐分离:极简的人声和背景音乐分离工具，本地化网页操作](https://github.com/jianchang512/stt)
 
 ## 致谢
 
