@@ -45,36 +45,49 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
-
-
-
-## 使用预编译exe版本方法
+## 使用预编译exe版本
 [exe版下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
 0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
 
 1. [从 release 中下载最新版](https://github.com/jianchang512/pyvideotrans/releases)，解压，双击 sp.exe
 
-2. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
-3. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
+## 源码部署
 
-4. 选择翻译：可选 google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX 翻译渠道
+1. 配置好 python 3.9->3.11 环境
+2. `git clone https://github.com/jianchang512/pyvideotrans`
+3. `cd pyvideotrans`
+4. `python -m venv venv`
+5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
+6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps`
+7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
+8. `python sp.py` 打开软件界面
+9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-5. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 
-6. 视频原始语言：选择待翻译视频里的语言种类
+## 使用方法
 
-7. 翻译目标语言：选择希望翻译到的语言种类
+1. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
-8. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
+2. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
+
+3. 选择翻译：可选 google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX 翻译渠道
+
+4. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
+
+5. 视频原始语言：选择待翻译视频里的语言种类
+
+6. 翻译目标语言：选择希望翻译到的语言种类
+
+7. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
    
    硬字幕: 是指始终显示字幕，不可隐藏，如果希望网页中播放时也有字幕，请选择硬字幕嵌入
 
    软字幕: 如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
 
 
-9. 语音识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
+8. 语音识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
 
    整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
 
@@ -96,9 +109,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
     [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
 
-10. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
+9. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 
-11. 音视频对齐: 分别是“配音自动加速”和“视频自动降速”
+10. 音视频对齐: 分别是“配音自动加速”和“视频自动降速”
 
 >
 > 翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
@@ -113,31 +126,21 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 >  
  
   
-12. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
+11. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
 
-13. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-14. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口
+13. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口
 
-15. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
+14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
-16. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
+15. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
 
-17. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
+16. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
 
+17. 设置行角色：可对字幕中的每行设定发音角色，首先左侧选好TTS类型和角色，然后点击字幕区右下方“设置行角色”，在每个角色名后面文本中中，填写要使用该角色配音的行编号，如下图：
+    ![](./images/p2.png)
 
-
-## 源码部署
-
-1. 配置好 python 3.9->3.11 环境
-2. `git clone https://github.com/jianchang512/pyvideotrans`
-3. `cd pyvideotrans`
-4. `python -m venv venv`
-5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
-6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps`
-7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
-8. `python sp.py` 打开软件界面
-9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 
 
@@ -177,12 +180,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 **提示ffmpeg错误**
 如果你启用了CUDA，并遇到了该问题，请更新显卡驱动，然后重新配置CUDA环境
 
-
-
-
-
-
-
 ## CUDA 加速支持
 
 **安装CUDA工具**
@@ -214,10 +211,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 ## 软件预览截图
 
 ![](./images/p1.png?c)
-![](./images/p2.png?c)
-![](./images/p3.png?c)
-![](./images/p4.png?c)
-
 
 
 ## 视频前后对比
