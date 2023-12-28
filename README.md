@@ -45,12 +45,13 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
-## 使用预编译exe版本
-[exe版下载地址](https://github.com/jianchang512/pyvideotrans/releases)
+## 使用win预编译exe版本(其他系统使用源码部署)
 
-0. 只可用于 win10 win11 系统/Mac下需自行拉取源码编译
+0. [点击下载去下载预编译版](https://github.com/jianchang512/pyvideotrans/releases)
 
-1. [从 release 中下载最新版](https://github.com/jianchang512/pyvideotrans/releases)，解压，双击 sp.exe
+1. 建议解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe(若遇到权限问题可右键使用管理员权限打开)
+
+3. 未做免杀，国产杀软可能误报，可忽略或使用源码部署
 
 
 ## 源码部署
