@@ -45,11 +45,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 
 ## Usage of Precompiled EXE Version
 
-[EXE Version Download Link](https://github.com/jianchang512/pyvideotrans/releases)
-
 0. Only available for win10 win11 systems/Mac needs to compile from source code
 
-1. [Download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
+1. [Click to download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
 
 
 ## Source Code Deployment
