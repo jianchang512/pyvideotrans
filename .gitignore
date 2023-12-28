@@ -21,3 +21,4 @@ voice_list.json
 *.ui
 *.bak
 pretrained_models
+set.ini

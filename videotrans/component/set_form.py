@@ -11,8 +11,15 @@ from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
+from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.tencent import Ui_tencentform
 
+class SetLineRole(QDialog, Ui_setlinerole):  # <===
+    def __init__(self, parent=None):
+        super(SetLineRole, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
 
 class BaiduForm(QDialog, Ui_baiduform):  # <===
     def __init__(self, parent=None):
@@ -20,8 +27,6 @@ class BaiduForm(QDialog, Ui_baiduform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
-        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
-        #     self.setStyleSheet(f.read())
 
 class TencentForm(QDialog, Ui_tencentform):  # <===
     def __init__(self, parent=None):
@@ -29,8 +34,6 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
-        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
-        #     self.setStyleSheet(f.read())
 
 
 class DeepLForm(QDialog, Ui_deeplform):  # <===
@@ -39,8 +42,6 @@ class DeepLForm(QDialog, Ui_deeplform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
-        # with open(f'{config.rootdir}/style.qss', 'r', encoding='utf-8') as f:
-        #     self.setStyleSheet(f.read())
 
 
 class InfoForm(QDialog, Ui_infoform):  # <===

@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 import copy
 import datetime
 import json
+import re
 import shutil
 import sys
 import os
@@ -13,11 +13,10 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
 from PyQt5.QtCore import QSettings, QUrl, Qt, QSize, pyqtSlot, QDir
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
-    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy
+    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea
 import warnings
 
-from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm
-from videotrans.spwin import MainWindow
+from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, Shiting
@@ -33,16 +32,15 @@ from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_r
 from videotrans.configure import config
 import pygame
 
-'''
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
 else:
     from videotrans.ui.en import Ui_MainWindow
 
+
 class MyTextBrowser(QTextBrowser):
     def __init__(self):
         super(MyTextBrowser, self).__init__()
-        # self.setOpenExternalLinks(True)  # 禁用在外部浏览器中打开链接
 
     # @pyqtSlot(QUrl)
     def anchorClicked(self, url):
@@ -50,12 +48,12 @@ class MyTextBrowser(QTextBrowser):
         if url.scheme() == "file":
             # 如果是本地文件链接
             file_path = url.toLocalFile()
-            print(f'{file_path=}')
             # 使用 QDir.toNativeSeparators 处理路径分隔符
             file_path = QDir.toNativeSeparators(file_path)
-            print(file_path)
             # 打开系统目录
             QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+
+
 # primary ui
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -64,7 +62,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task = None
         self.toolboxobj = None
         self.shitingobj = None
-        self.processbtns={}
+        self.processbtns = {}
+        # 当前所有可用角色列表
+        self.current_rolelist = []
+        config.params['line_roles'] = {}
         self.initUI()
         self.setWindowIcon(QIcon("./icon.ico"))
         self.rawtitle = f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {VERSION}"
@@ -166,43 +167,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area.setPlaceholderText(transobj['subtitle_tips'])
 
         self.subtitle_layout.insertWidget(0, self.subtitle_area)
-        self.import_sub = QPushButton(transobj['daoruzimu'])
-        self.import_sub.setMinimumSize(80, 35)
+
         self.import_sub.clicked.connect(self.import_sub_fun)
-        self.listen_peiyin = QPushButton(transobj['shitingpeiyin'])
-        self.listen_peiyin.setMinimumSize(0, 35)
+
         self.listen_peiyin.setDisabled(True)
-        self.listen_peiyin.setToolTip(transobj['xianqidongrenwu'])
         self.listen_peiyin.clicked.connect(self.shiting_peiyin)
-        self.layout_sub_bottom.insertWidget(0, self.import_sub)
-        self.layout_sub_bottom.insertWidget(1, self.listen_peiyin)
-
-        # 使用 MyTextBrowser 类继承 process 实例
-
-        # new_process=MyTextBrowser()
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(new_process.sizePolicy().hasHeightForWidth())
-        # new_process.setSizePolicy(sizePolicy)
-        # new_process.setMinimumSize(QtCore.QSize(0, 100))
-        # new_process.setAutoFillBackground(False)
-        # new_process.setStyleSheet("border:0;\n"
-        #                            "selection-background-color: rgba(255, 255, 255, 0);\n"
-        #                            "background-color: rgba(255, 255, 255, 0);")
-        # new_process.setReadOnly(True)
-        # new_process.setObjectName("process")
-        #
-        # self.verticalLayout_3.replaceWidget(self.process, new_process)
-        # self.process.deleteLater()
-
-        # self.process.setOpenExternalLinks(True)
-        # self.process.anchorClicked.connect(self.openExternalLink)
-        # # url = QUrl.fromLocalFile(os.path.normpath("C:/Users/c1/Videos/_video_out/3 - 副本"))
-        # file="file:///C:\\Users\\c1\\Videos\\_video_out\\3 - 副本"
+        self.set_line_role.clicked.connect(self.set_line_role_fun)
 
         # 创建 Scroll Area
-        # scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
 
         # 创建一个 QWidget 作为 Scroll Area 的 viewport
@@ -214,10 +186,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 设置布局管理器的对齐方式为顶部对齐
         self.processlayout.setAlignment(Qt.AlignTop)
 
-
-
-        # self.process=new_process
-        # self.process.show()
         # menubar
         self.actionbaidu_key.triggered.connect(self.set_baidu_key)
         self.actionazure_key.triggered.connect(self.set_azure_key)
@@ -265,7 +233,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.container = QToolBar()
         self.container.addWidget(rightbottom)
-        # container.addWidget(usetype)
         self.statusBar.addPermanentWidget(self.container)
         #     日志
         self.task_logs = LogsWorker(self)
@@ -275,13 +242,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
 
-    def openExternalLink(self,url):
+    def openExternalLink(self, url):
         try:
-
             QDesktopServices.openUrl(url)
-
-            # QDesktopServices.openUrl(QUrl.fromLocalFile(file))
-            # QDir.openUrl(QUrl.fromLocalFile(file))
         except:
             pass
         return
@@ -322,11 +285,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "sub_name": self.task.video.targetdir_target_sub,
             "noextname": self.task.video.noextname,
             "cache_folder": self.task.video.cache_folder,
-            "source_wav": self.task.video.targetdir_source_sub,
-            # "voice_role": config.params['voice_role'],
-            # "voice_autorate": config.params['voice_autorate'],
-            # "voice_rate": config.params['voice_rate'],
-            # "tts_type": self.task.video.obj['tts_type'],
+            "source_wav": self.task.video.targetdir_source_sub
         }
         txt = self.subtitle_area.toPlainText().strip()
         if not txt:
@@ -594,44 +553,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # cuda
         self.enable_cuda.show()
 
-    # 使用指南
-    def usetype(self):
-        string = """
-【标准模式】 
-根据需要设置各个选项，自由配置组合，实现翻译和配音、合并等
-
-【提取字幕不翻译】 
-选择视频文件，选择视频源语言，则从视频识别出文字并自动导出字幕文件到目标文件夹
-
-【提取字幕并翻译】 
-选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从视频识别出文字并翻译为目标语言，然后导出双语字幕文件到目标文件夹
-
-【字幕和视频合并】 
-选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
-
-【为字幕创建配音】 
-将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，将生成配音后的音频文件到目标文件夹
-
-【音视频识别文字】
-将视频或音频拖拽到识别窗口，将识别出文字并导出为srt字幕格式
-
-【将文字合成语音】
-将一段文字或者字幕，使用指定的配音角色生成配音
-
-【从视频分离音频】
-将视频文件分离为音频文件和无声视频
-
-【音视频字幕合并】
-音频文件、视频文件、字幕文件合并为一个视频文件
-
-【音视频格式转换】
-各种格式之间的相互转换
-【文本字幕翻译】
-单独翻译文字或者字幕srt文件
-
-        """
-        QMessageBox.information(self, "常见使用方式", string)
-
     # 关于页面
     def about(self):
         self.infofrom = InfoForm()
@@ -652,14 +573,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_dir(self, dirname=None):
         if not dirname:
             return
-
-        print(dirname)
-
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
-        print(dirname)
         QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
-        # QDesktopServices.openUrl(QUrl(f"{dirname}"))
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -675,6 +591,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     hide_recursive(item.layout(), show_status)
 
         hide_recursive(wrap_layout, show_status)
+
     # 删除proce里的元素
     def delete_process(self):
         for i in range(self.processlayout.count()):
@@ -788,7 +705,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.setText(transobj['jixuzhong'])
         self.continue_compos.setDisabled(True)
         self.stop_djs.hide()
-        # self.process.clear()
         self.set_process_btn_text(transobj['jixuzhong'])
         if self.shitingobj:
             self.shitingobj.stop = True
@@ -797,11 +713,62 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def reset_timeid(self):
         self.stop_djs.hide()
         config.task_countdown = 86400
-        # self.process.moveCursor(QTextCursor.End)
-        # self.process.insertHtml("<br><strong>" + transobj['daojishitingzhi'] + "</strong><br>")
         self.set_process_btn_text(transobj['daojishitingzhi'])
         self.continue_compos.setDisabled(False)
         self.continue_compos.setText(transobj['nextstep'])
+
+    # 设置每行角色
+    def set_line_role_fun(self):
+
+        def save():
+            config.params['line_roles'] = {}
+            for role in self.current_rolelist:
+                if role in ["No", 'no', '-']:
+                    continue
+                val = self.w.findChild(QLineEdit, role).text()
+                if val:
+                    config.params['line_roles'][role] = val.replace('，', ',')
+            self.w.close()
+            print(f'{config.params["line_roles"]=}')
+
+        if config.params['voice_role'] in ['No', '-', 'no']:
+            return QMessageBox.critical(self, transobj['anerror'], transobj['xianxuanjuese'])
+        self.w = SetLineRole()
+        set_line_nums = {}
+        box = QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
+        box.setLayout(QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
+
+        for role in self.current_rolelist:
+            if role in ["No", 'no', '-']:
+                continue
+            # 创建新水平布局
+            h_layout = QHBoxLayout()
+
+            # 创建并配置 QLabel
+            label = QLabel()
+            label.setText(role)
+            set_line_nums[role] = 0
+
+            # 创建并配置 QLineEdit
+            line_edit = QLineEdit()
+            line_edit.setPlaceholderText(transobj['shezhijueseline'])
+            line_edit.setObjectName(role)
+            if "line_roles" in config.params and role in config.params['line_roles']:
+                line_edit.setText(config.params['line_roles'][role])
+            # 将标签和编辑线添加到水平布局
+            h_layout.addWidget(label)
+            h_layout.addWidget(line_edit)
+            box.layout().addLayout(h_layout)
+        # 创建 QScrollArea 并将 box QWidget 设置为小部件
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(box)
+        scroll_area.setWidgetResizable(True)
+
+        # 将 QScrollArea 添加到主窗口的 layout
+        self.w.layout.addWidget(scroll_area)
+
+        self.w.set_ok.clicked.connect(save)
+        self.w.show()
 
     # set deepl key
     def set_deepL_key(self):
@@ -1014,12 +981,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # tts类型改变
     def tts_type_change(self, type):
         config.params['tts_type'] = type
-        # 如果任务是在进行中，则更改
+        config.params['line_roles'] = {}
         if type == "openaiTTS":
             self.voice_role.clear()
-            self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
+            self.current_rolelist = config.params['openaitts_role'].split(',')
+            self.voice_role.addItems(['No'] + self.current_rolelist)
         elif type == 'coquiTTS':
-            self.voice_role.addItems(['No'] + config.params['coquitts_role'].split(','))
+            self.current_rolelist = config.params['coquitts_role'].split(',')
+            self.voice_role.addItems(['No'] + self.current_rolelist)
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())
 
@@ -1049,8 +1018,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "text": text,
             "rate": "+0%",
             "role": role,
-            "voice_file": voice_file,
-            # "tts_type": config.params['tts_type'],
+            "voice_file": voice_file
         }
         from videotrans.task.play_audio import PlayMp3
         t = PlayMp3(obj, self)
@@ -1102,9 +1070,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.target_language.setCurrentText('-')
                 QMessageBox.critical(self, transobj['anerror'], transobj['waitrole'])
                 return
+            self.current_rolelist = config.edgeTTS_rolelist[vt]
             self.voice_role.addItems(config.edgeTTS_rolelist[vt])
         except:
-            self.voice_role.addItems([it for item in list(config.edgeTTS_rolelist.values()) for it in item])
+            self.voice_role.addItems(['No'])
+            # self.voice_role.addItems([it for item in list(config.edgeTTS_rolelist.values()) for it in item])
 
     # get video filter mp4
     def get_mp4(self):
@@ -1127,6 +1097,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if fname:
             with open(fname, 'r', encoding='utf-8') as f:
                 self.subtitle_area.insertPlainText(f.read().strip())
+                # self.import_sub.setDisabled(False)
 
     # 保存目录
     def get_save_dir(self):
@@ -1135,23 +1106,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.target_dir.setText(dirname)
 
     # 添加按钮
-    def add_process_btn(self,txt):
+    def add_process_btn(self, txt):
         # 创建三个按钮并添加到布局中
-        button1 = QPushButton(transobj["waitforstart"]+" " + txt, self)
+        button1 = QPushButton(transobj["waitforstart"] + " " + txt, self)
 
         # 设置按钮高度为 80px，宽度撑满父控件
         button1.setFixedHeight(50)
         button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-
         # 将按钮添加到布局中
         self.processlayout.addWidget(button1)
         return button1
-    def click_process_btn(self,text):
+
+    def click_process_btn(self, text):
         print(f'click--{text=}')
-        dirs=text.split(transobj["endandopen"])
+        dirs = text.split(transobj["endandopen"])
         if os.path.isdir(dirs[-1]):
             QDesktopServices.openUrl(QUrl.fromLocalFile(dirs[-1]))
+
     # 检测开始状态并启动
     def check_start(self):
         if config.current_status == 'ing':
@@ -1337,14 +1309,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 存在视频
         if len(config.queue_mp4) > 0:
             for it in config.queue_mp4:
-                self.processbtns[it]=self.add_process_btn(it)
+                self.processbtns[it] = self.add_process_btn(it)
             while len(config.queue_mp4) > 0:
-                config.queue_task.append({"source_mp4":config.queue_mp4.pop(0)})
+                config.queue_task.append({"source_mp4": config.queue_mp4.pop(0)})
         elif txt:
             # 不存在视频
             # 已存在字幕
-            config.queue_task.append({"subtitles":txt})
-            self.processbtns["srt2wav"]=self.add_process_btn("srt2wav")
+            config.queue_task.append({"subtitles": txt})
+            self.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
 
         self.task = Worker(self)
         self.task.start()
@@ -1366,30 +1338,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
         self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
 
-
     # 设置按钮上的日志信息
-    def set_process_btn_text(self,text,type="logs"):
+    def set_process_btn_text(self, text, type="logs"):
         if self.task and self.task.video and self.task.video.source_mp4:
             # 有视频
             btnkey = self.task.video.source_mp4
-            if type!='succeed':
-                text=f'{self.task.video.source_mp4}: {text}'
+            if type != 'succeed':
+                text = f'{self.task.video.source_mp4}: {text}'
         else:
             # 字幕到配音，无视频
             btnkey = "srt2wav"
         if btnkey in self.processbtns:
-            if type=='succeed':
-                text=f'{transobj["endandopen"]}{text}'
+            if type == 'succeed':
+                text = f'{transobj["endandopen"]}{text}'
                 self.processbtns[btnkey].clicked.connect(lambda: self.click_process_btn(text[:]))
                 print(f'{text=}')
                 self.processbtns[btnkey].setStyleSheet('color:#00a67d')
-            elif type=='error':
+            elif type == 'error':
                 self.processbtns[btnkey].setStyleSheet('color:#ff0000')
             else:
-                text=f'{transobj["running"]} {text}'
+                text = f'{transobj["running"]} {text}'
             self.processbtns[btnkey].setText(text)
-
-
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1410,14 +1379,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusLabel.setText(transobj['bencijieshu'])
         elif d['type'] == 'succeed':
             # 本次任务结束
-            self.set_process_btn_text(d['text'],'succeed')
+            self.set_process_btn_text(d['text'], 'succeed')
         elif d['type'] == 'statusbar':
             self.statusLabel.setText(d['text'])
         elif d['type'] == 'error':
             # 出错停止
             self.update_status('stop')
-            # self.process.moveCursor(QTextCursor.End)
-            self.set_process_btn_text(d['text'],'error')
+            self.set_process_btn_text(d['text'], 'error')
             self.continue_compos.hide()
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
@@ -1462,40 +1430,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.clear()
         config.task_countdown = 0
         return True
-
-'''
-
-def pygameinit():
-    pygame.init()
-    pygame.mixer.init()
-    pygame.display.set_allow_screensaver(True)
-
-
-if __name__ == "__main__":
-    threading.Thread(target=get_edge_rolelist).start()
-    threading.Thread(target=is_vlc).start()
-    app = QApplication(sys.argv)
-    main = MainWindow()
-    try:
-        if not os.path.exists(config.rootdir + "/models"):
-            os.mkdir(config.rootdir + "/models")
-        if not os.path.exists(config.rootdir + "/tmp"):
-            os.makedirs(config.rootdir + "/tmp")
-        if shutil.which('ffmpeg') is None:
-            QMessageBox.critical(main, transobj['anerror'], transobj["installffmpeg"])
-    except Exception as e:
-        QMessageBox.critical(main, transobj['anerror'], transobj['createdirerror'])
-
-    # or in new API
-    try:
-        with open(f'{config.rootdir}/videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
-            main.setStyleSheet(f.read())
-        import qdarkstyle
-
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
-    except:
-        pass
-
-    main.show()
-    threading.Thread(target=pygameinit).start()
-    sys.exit(app.exec())

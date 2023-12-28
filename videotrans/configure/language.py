@@ -120,7 +120,11 @@ translate_language = {
         "jieshutips":"视频处理结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等", 
         "mubiao":"打开输出文件夹",
         "endandopen":"已完成，点击打开 ",
-        "waitforstart":"等待开始"
+        "waitforstart":"等待开始",
+
+
+        "xianxuanjuese":"请先选择TTS类型和角色",
+        "shezhijueseline":"填写使用该角色配音的行数,例如 2,3,7,8"
     },
     "en": {
         "continue_action":"继续下一步",
@@ -242,7 +246,9 @@ translate_language = {
 "jieshutips":"Video processing ends: Relevant materials can be found in the target folder, including subtitle files, voiceover files, etc",
         "mubiao":"Open output folder",
         "endandopen":"Ended click to open ",
-        "waitforstart":"Wait for starting"
+        "waitforstart":"Wait for starting",
+        "xianxuanjuese":"Please select TTS type and role first",
+        "shezhijueseline":"Fill in the number of lines using the character's voice acting, eg. 2,3,7,8"
     }
 }
 

@@ -792,6 +792,12 @@ Choose only one of the two options</string>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>130</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="text">
              <string>Stop Countdown</string>
             </property>
@@ -812,7 +818,7 @@ Choose only one of the two options</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1236</width>
+             <width>896</width>
              <height>367</height>
             </rect>
            </property>
@@ -827,7 +833,47 @@ Choose only one of the two options</string>
          <number>3</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="layout_sub_bottom"/>
+         <layout class="QHBoxLayout" name="layout_sub_bottom">
+          <item>
+           <widget class="QPushButton" name="import_sub">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Import srt</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="listen_peiyin">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Train voice</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="set_line_role">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Set role by line</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
