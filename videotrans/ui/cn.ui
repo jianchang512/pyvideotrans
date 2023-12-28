@@ -794,6 +794,12 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="text">
              <string>停止倒计时</string>
             </property>
@@ -814,7 +820,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1328</width>
+             <width>996</width>
              <height>480</height>
             </rect>
            </property>
@@ -832,7 +838,47 @@
          <number>3</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="layout_sub_bottom"/>
+         <layout class="QHBoxLayout" name="layout_sub_bottom">
+          <item>
+           <widget class="QPushButton" name="import_sub">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>导入字幕</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="listen_peiyin">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>试听</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="set_line_role">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>设置行角色</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

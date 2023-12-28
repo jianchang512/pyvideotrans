@@ -704,3 +704,14 @@ def delete_files(directory, ext):
                 delete_files(item_path)
     except:
         pass
+
+# 将 config.params['line_roles'] 返回按行数：角色名的键值对
+def get_line_role(params):
+    if "line_roles" not in config.params:
+        return None
+    result={}
+    for role,nums in config.params['line_roles'].items():
+        narr=re.split(r'\,|，',nums)
+        for it in narr:
+            result[f'{it}']=role
+    return result

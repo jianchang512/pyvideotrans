@@ -48,7 +48,9 @@ QComboBox:disabled{
 }
 
 QScrollArea QPushButton{
-    background-color: #32414B;
+    background-color: rgba(50, 65, 75, 0.5);
+    border-radius: 0;
+    opacity: 0.1;
 }
 QScrollArea QPushButton:hover{
     background-color: #19232D;
