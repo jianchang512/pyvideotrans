@@ -355,7 +355,9 @@ def runffmpegbox(arg):
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
+    refresh=0
     if config.params['cuda']:
+        #, "-extra_hw_frames", "10"
         cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
@@ -375,9 +377,9 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             return True
         else:
             config.queue_novice[noextname] = "error"
-            set_process(f"[error]ffmpeg error: {cmd=},\n{errs=}")
-            if config.params['cuda']:
-                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
+            #set_process(f"[error]ffmpeg error: {cmd=},\n{errs=}")
+            #if config.params['cuda']:
+            #    set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
             return False
     while True:
         try:
@@ -394,7 +396,14 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 return True
             # 失败
             if error_exit and config.params['cuda']:
-                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
+                refresh+=1
+                if refresh>1:
+                    set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA", 'error')
+                    return False
+                else:
+                    arg.insert(-1, '-vf')
+                    arg.insert(-1, 'hwdownload,format=nv12,midequalizer')
+                    return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
             return False
@@ -410,7 +419,14 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         except Exception as e:
             #出错异常
             if error_exit and config.params['cuda']:
-                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA",'error')
+                refresh+=1
+                if refresh>1:
+                    set_process(f"[error][except] {str(e)}", 'error')
+                    return False
+                else:
+                    arg.insert(-1, '-vf')
+                    arg.insert(-1, 'hwdownload,format=nv12,midequalizer')
+                    return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
             else:
                 set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{str(e)}",'error' if error_exit else 'logs')
             return False
