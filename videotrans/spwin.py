@@ -30,7 +30,6 @@ from videotrans.configure.config import langlist, transobj, logger, homedir
 from videotrans.configure.language import english_code_bygpt
 from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc
 from videotrans.configure import config
-import pygame
 
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
@@ -253,7 +252,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            QMessageBox.critical(self, transobj['nocuda'])
+            QMessageBox.critical(self, transobj['anerror'], transobj['nocuda'])
             self.enable_cuda.setChecked(False)
             self.enable_cuda.setDisabled(True)
             res = False
@@ -1143,12 +1142,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 代理
         config.proxy = self.proxy.text().strip()
-        if config.proxy:
-            # 设置代理
-            set_proxy(config.proxy)
-        else:
-            # 删除代理
-            set_proxy('del')
+        try:
+            if config.proxy:
+                # 设置代理
+                set_proxy(config.proxy)
+            else:
+                # 删除代理
+                set_proxy('del')
+        except:
+            pass
 
         # 原始语言
         config.params['source_language'] = langlist[self.source_language.currentText()][0]
