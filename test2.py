@@ -53,3 +53,6 @@ class MyWindow(QWidget):
 app = QApplication([])
 window = MyWindow()
 app.exec_()
+
+
+# C:\Users\c1\AppData\Local\00\111\22\33\6665541124548758\99871212454\145521245\4566

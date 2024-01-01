@@ -362,6 +362,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
+            else:
+                arg[i]=arg[i].replace('scale=','scale_cuda=')
             
     cmd = cmd + arg
 
@@ -371,6 +373,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    print(p.args)
     def set_result(code,errs=""):
         if code == 0:
             config.queue_novice[noextname] = "end"
@@ -421,6 +424,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             if error_exit and config.params['cuda']:
                 refresh+=1
                 if refresh>1:
+                    if p:
+                        set_process(f"请尝试直接复制后边命令到cmd窗口执行看报错信息:  {p.args} ", 'error')
                     set_process(f"[error][except] {str(e)}", 'error')
                     return False
                 else:
