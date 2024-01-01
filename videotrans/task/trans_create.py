@@ -1135,16 +1135,83 @@ class TransCreate():
             shutil.copy2(self.targetdir_target_sub,config.rootdir+"/tmp.srt")
             hard_srt="tmp.srt"
         # 有字幕有配音
-        if config.params['voice_role'] != 'No' and config.params['subtitle_type'] > 0:
-            if config.params['subtitle_type'] == 1:
-                set_process(f"dubbing & embed srt")
-                # 需要配音+硬字幕
+        try:
+            if config.params['voice_role'] != 'No' and config.params['subtitle_type'] > 0:
+                if config.params['subtitle_type'] == 1:
+                    set_process(f"dubbing & embed srt")
+                    # 需要配音+硬字幕
+                    runffmpeg([
+                        "-y",
+                        "-i",
+                        os.path.normpath(self.novoice_mp4),
+                        "-i",
+                        os.path.normpath(self.targetdir_target_wav),
+                        "-c:v",
+                        "libx264",
+                        # "libx264",
+                        "-c:a",
+                        "aac",
+                        # "pcm_s16le",
+                        "-vf",
+                        f"subtitles={hard_srt}",
+                        # "-shortest",
+                        os.path.normpath(self.targetdir_mp4),
+                    ])
+                else:
+                    set_process(f"dubbing & srt")
+                    # 配音+软字幕
+                    runffmpeg([
+                        "-y",
+                        "-i",
+                        os.path.normpath(self.novoice_mp4),
+                        "-i",
+                        os.path.normpath(self.targetdir_target_wav),
+                        "-sub_charenc",
+                        "UTF-8",
+                        "-f",
+                        "srt",
+                        "-i",
+                        os.path.normpath(self.targetdir_target_sub),
+                        "-c:v",
+                        "libx264",
+                        # "libx264",
+                        "-c:a",
+                        "aac",
+                        "-c:s",
+                        "mov_text",
+                        "-metadata:s:s:0",
+                        f"language={config.params['subtitle_language']}",
+                        # "-shortest",
+                        os.path.normpath(self.targetdir_mp4)
+                    ])
+            elif config.params['voice_role'] != 'No':
+                # 配音无字幕
+                set_process(f"dubbing")
                 runffmpeg([
                     "-y",
                     "-i",
                     os.path.normpath(self.novoice_mp4),
                     "-i",
                     os.path.normpath(self.targetdir_target_wav),
+                    "-c:v",
+                    "copy",
+                    # "libx264",
+                    "-c:a",
+                    "aac",
+                    # "pcm_s16le",
+                    # "-shortest",
+                    os.path.normpath(self.targetdir_mp4)
+                ])
+            # 无配音 使用 novice.mp4 和 原始 wav合并
+            elif config.params['subtitle_type'] == 1:
+                # 硬字幕无配音 将原始mp4复制到当前文件夹下
+                set_process(f"embed srt & no dubbing")
+                runffmpeg([
+                    "-y",
+                    "-i",
+                    os.path.normpath(self.novoice_mp4),
+                    "-i",
+                    os.path.normpath(self.targetdir_source_wav),
                     "-c:v",
                     "libx264",
                     # "libx264",
@@ -1156,15 +1223,15 @@ class TransCreate():
                     # "-shortest",
                     os.path.normpath(self.targetdir_mp4),
                 ])
-            else:
-                set_process(f"dubbing & srt")
-                # 配音+软字幕
+            elif config.params['subtitle_type'] == 2:
+                # 软字幕无配音
+                set_process(f"srt & no dubbing")
                 runffmpeg([
                     "-y",
                     "-i",
                     os.path.normpath(self.novoice_mp4),
                     "-i",
-                    os.path.normpath(self.targetdir_target_wav),
+                    os.path.normpath(self.targetdir_source_wav),
                     "-sub_charenc",
                     "UTF-8",
                     "-f",
@@ -1173,9 +1240,9 @@ class TransCreate():
                     os.path.normpath(self.targetdir_target_sub),
                     "-c:v",
                     "libx264",
-                    # "libx264",
                     "-c:a",
                     "aac",
+                    # "libx264",
                     "-c:s",
                     "mov_text",
                     "-metadata:s:s:0",
@@ -1183,72 +1250,9 @@ class TransCreate():
                     # "-shortest",
                     os.path.normpath(self.targetdir_mp4)
                 ])
-        elif config.params['voice_role'] != 'No':
-            # 配音无字幕
-            set_process(f"dubbing")
-            runffmpeg([
-                "-y",
-                "-i",
-                os.path.normpath(self.novoice_mp4),
-                "-i",
-                os.path.normpath(self.targetdir_target_wav),
-                "-c:v",
-                "copy",
-                # "libx264",
-                "-c:a",
-                "aac",
-                # "pcm_s16le",
-                # "-shortest",
-                os.path.normpath(self.targetdir_mp4)
-            ])
-        # 无配音 使用 novice.mp4 和 原始 wav合并
-        elif config.params['subtitle_type'] == 1:
-            # 硬字幕无配音 将原始mp4复制到当前文件夹下
-            set_process(f"embed srt & no dubbing")
-            runffmpeg([
-                "-y",
-                "-i",
-                os.path.normpath(self.novoice_mp4),
-                "-i",
-                os.path.normpath(self.targetdir_source_wav),
-                "-c:v",
-                "libx264",
-                # "libx264",
-                "-c:a",
-                "aac",
-                # "pcm_s16le",
-                "-vf",
-                f"subtitles={hard_srt}",
-                # "-shortest",
-                os.path.normpath(self.targetdir_mp4),
-            ])
-        elif config.params['subtitle_type'] == 2:
-            # 软字幕无配音
-            set_process(f"srt & no dubbing")
-            runffmpeg([
-                "-y",
-                "-i",
-                os.path.normpath(self.novoice_mp4),
-                "-i",
-                os.path.normpath(self.targetdir_source_wav),
-                "-sub_charenc",
-                "UTF-8",
-                "-f",
-                "srt",
-                "-i",
-                os.path.normpath(self.targetdir_target_sub),
-                "-c:v",
-                "libx264",
-                "-c:a",
-                "aac",
-                # "libx264",
-                "-c:s",
-                "mov_text",
-                "-metadata:s:s:0",
-                f"language={config.params['subtitle_language']}",
-                # "-shortest",
-                os.path.normpath(self.targetdir_mp4)
-            ])
+        except Exception as e:
+            set_process(f'{str(e)}','error')
+            return False
         try:
             if os.path.exists(config.rootdir+"/tmp.srt"):
                 os.unlink(config.rootdir+"/tmp.srt")

@@ -185,6 +185,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 **安装CUDA工具**
 
+[详细安装方法](https://juejin.cn/post/7318704408727519270)
+
+
 如果你的电脑是 Nvidia 显卡，先升级显卡驱动到最新，然后去安装对应的 
    [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads)  和  [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive)。
    
