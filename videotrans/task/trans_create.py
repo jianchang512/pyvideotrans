@@ -11,7 +11,8 @@ import time
 from datetime import timedelta
 
 import speech_recognition as sr
-import whisper
+#import whisper
+from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
@@ -23,6 +24,8 @@ from videotrans.util.tools import runffmpeg, set_process, delete_files, match_ta
     ms_to_time_string, get_subtitle_from_srt, get_lastjpg_fromvideo, get_video_fps, get_video_resolution, \
     is_novoice_mp4, cut_from_video, get_video_duration, text_to_speech, speed_change, delete_temp, get_line_role
 
+import torch
+device= "cuda" if torch.cuda.is_available() else "cpu"
 
 class TransCreate():
 
@@ -358,9 +361,11 @@ class TransCreate():
             set_process(f"对音频文件按静音片段分割处理", 'logs')
             with open(nonslient_file, 'w') as outfile:
                 json.dump(nonsilent_data, outfile)
-        r = sr.Recognizer()
+        #r = sr.Recognizer()
+        r = WhisperModel(config.params['whisper_model'], device=device, compute_type="int8", download_root=config.rootdir + "/models")
         raw_subtitles = []
         offset = 0
+        language="zh" if config.params['detect_language'] == "zh-cn" or config.params['detect_language'] == "zh-tw" else config.params['detect_language']
         for i, duration in enumerate(nonsilent_data):
             if config.current_status == 'stop':
                 raise Exception("You stop it.")
@@ -381,44 +386,53 @@ class TransCreate():
             audio_chunk.export(chunk_filename, format="wav")
 
             # recognize the chunk
-            with sr.AudioFile(chunk_filename) as source:
-                audio_listened = r.record(source)
-                if config.current_status == 'stop':
-                    raise Exception("You stop it.")
-                try:
-                    options = {"download_root": config.rootdir + "/models"}
-                    text = r.recognize_whisper(
-                        audio_listened,
-                        language="zh" if config.params['detect_language'] == "zh-cn" or
-                                         config.params['detect_language'] == "zh-tw" else
-                        config.params['detect_language'],
-                        model=config.params['whisper_model'],
-                        load_options=options
-                    )
-                except sr.UnknownValueError as e:
-                    set_process("[error]:语音识别出错了:" + str(e))
-                    continue
-                except Exception as e:
-                    set_process("[error]:语音识别出错了:" + str(e))
-                    continue
-                if config.current_status == 'stop':
-                    raise Exception("You stop it.")
-                text = f"{text.capitalize()}. ".replace('&#39;', "'")
-                text = re.sub(r'&#\d+;', '', text)
-                if not text.strip():
-                    continue
-                start = timedelta(milliseconds=start_time)
+            #with sr.AudioFile(chunk_filename) as source:
+            #    audio_listened = r.record(source)
+            if config.current_status == 'stop':
+                raise Exception("You stop it.")
+            text=""
+            try:
+                #options = {"download_root": config.rootdir + "/models"}
+                #text = r.recognize_whisper(
+                #    audio_listened,
+                #    language="zh" if config.params['detect_language'] == "zh-cn" or
+                #                     config.params['detect_language'] == "zh-tw" else
+                #    config.params['detect_language'],
+                #    model=config.params['whisper_model'],
+                #    load_options=options
+                #)
+                
+                segments,_ = model.transcribe(chunk_filename, 
+                            beam_size=5,  
+                            vad_filter=True,
+                            vad_parameters=dict(min_silence_duration_ms=config.params['voice_silence']),
+                            language=language)
+                for t in segments:
+                    text+=t.text+" "
+            except sr.UnknownValueError as e:
+                set_process("[error]:语音识别出错了:" + str(e))
+                continue
+            except Exception as e:
+                set_process("[error]:语音识别出错了:" + str(e))
+                continue
+            if config.current_status == 'stop':
+                raise Exception("You stop it.")
+            text = f"{text.capitalize()}. ".replace('&#39;', "'")
+            text = re.sub(r'&#\d+;', '', text)
+            if not text.strip():
+                continue
+            start = timedelta(milliseconds=start_time)
 
-                stmp = str(start).split('.')
-                if len(stmp) == 2:
-                    start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-                end = timedelta(milliseconds=end_time)
-                etmp = str(end).split('.')
-                if len(etmp) == 2:
-                    end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-                line=len(raw_subtitles) + 1
-                set_process(f"{line}\n{start} --> {end}\n{text}\n\n",'subtitle')
-                raw_subtitles.append({"line": line, "time": f"{start} --> {end}", "text": text})
+            stmp = str(start).split('.')
+            if len(stmp) == 2:
+                start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+            end = timedelta(milliseconds=end_time)
+            etmp = str(end).split('.')
+            if len(etmp) == 2:
+                end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+            line=len(raw_subtitles) + 1
+            set_process(f"{line}\n{start} --> {end}\n{text}\n\n",'subtitle')
+            raw_subtitles.append({"line": line, "time": f"{start} --> {end}", "text": text})
         set_process(f"字幕识别完成，共{len(raw_subtitles)}条字幕", 'logs')
         # 写入原语言字幕到目标文件夹
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
@@ -427,28 +441,36 @@ class TransCreate():
     # 整体识别，全部传给模型
     def recognition_all(self):
         model = config.params['whisper_model']
-        language = config.params['detect_language']
+        language = "zh" if config.params['detect_language'] in ["zh-cn", "zh-tw"] else config.params['detect_language']
         set_process(f"Model:{model} ")
         try:
-            model = whisper.load_model(model, download_root=config.rootdir + "/models")
-            transcribe = model.transcribe(self.targetdir_source_wav,
-                                          language="zh" if language in ["zh-cn", "zh-tw"] else language, )
-            segments = transcribe['segments']
+            #model = whisper.load_model(model, download_root=config.rootdir + "/models")
+            #transcribe = model.transcribe(self.targetdir_source_wav,
+            #                              language="zh" if language in ["zh-cn", "zh-tw"] else language, )
+            #segments = transcribe['segments']
+            model = WhisperModel(config.params['whisper_model'], device=device, compute_type="int8", download_root=config.rootdir + "/models")
+            segments,_ = model.transcribe(self.targetdir_source_wav, 
+                            beam_size=5,  
+                            vad_filter=True,
+                            vad_parameters=dict(min_silence_duration_ms=config.params['voice_silence']),
+                            language=language)
             # 保留原始语言的字幕
             raw_subtitles = []
             offset = 0
-            for (sidx, segment) in enumerate(segments):
+            sidx=-1
+            for segment in segments:
+                sidx+=1
                 if config.current_status == 'stop' or config.current_status == 'end':
                     return
-                segment['start'] = int(segment['start'] * 1000) + offset
-                segment['end'] = int(segment['end'] * 1000) + offset
-                if segment['start'] == segment['end']:
-                    segment['end'] += 200
-                    if sidx < len(segments) - 1 and (int(segments[sidx + 1]['start'] * 1000) < segment['end']):
+                start = int(segment.start * 1000) + offset
+                end = int(segment.end * 1000) + offset
+                if start == end:
+                    end += 200
+                    if sidx < len(segments) - 1 and (int(segments[sidx + 1].start * 1000) < end):
                         offset += 200
-                startTime = ms_to_time_string(ms=segment['start'])
-                endTime = ms_to_time_string(ms=segment['end'])
-                text = segment['text'].strip().replace('&#39;', "'")
+                startTime = ms_to_time_string(ms=start)
+                endTime = ms_to_time_string(ms=end)
+                text = segment.text.strip().replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text)
 
                 # 无有效字符

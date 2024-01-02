@@ -17,7 +17,8 @@ import time
 import speech_recognition as sr
 import os
 
-import whisper
+#import whisper
+from faster_whisper import WhisperModel
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 from pydub import AudioSegment
@@ -27,7 +28,7 @@ from datetime import timedelta
 import json
 import edge_tts
 import textwrap
-import pygame
+
 from videotrans.translator import baidutrans, googletrans, tencenttrans, chatgpttrans, deepltrans, deeplxtrans, \
     baidutrans_spider
 
@@ -36,6 +37,7 @@ from videotrans.configure.config import logger, transobj, queue_logs
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts
+import torch
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -43,6 +45,7 @@ else:
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 def pygameaudio(filepath):
+	import pygame
 	pygame.mixer.music.load(filepath)
 	pygame.mixer.music.play()
 	while pygame.mixer.music.get_busy():
@@ -50,16 +53,25 @@ def pygameaudio(filepath):
 		pygame.time.Clock().tick(1)
 
 def transcribe_audio(audio_path, model, language):
-    model = whisper.load_model(model, download_root=rootdir + "/models")  # Change this to your desired model
-    transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language)
-    segments = transcribe['segments']
+    #model = whisper.load_model(model, download_root=rootdir + "/models")  # Change this to your desired model
+    #transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language)
+    #segments = transcribe['segments']
+    model = WhisperModel(model, device="cuda" if torch.cuda.is_available() else "cpu", compute_type="int8", download_root=rootdir + "/models")
+    segments,_ = model.transcribe(audio_path, 
+                            beam_size=5,  
+                            vad_filter=True,
+                            vad_parameters=dict(min_silence_duration_ms=500),
+                            language="zh" if language in ["zh-cn", "zh-tw"] else language)
     result = ""
+    idx=0
     for segment in segments:
-        startTime = str(0) + str(timedelta(seconds=int(segment['start']))) + ',000'
-        endTime = str(0) + str(timedelta(seconds=int(segment['end']))) + ',000'
-        text = segment['text']
-        segmentId = segment['id'] + 1
-        result += f"{segmentId}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
+        idx+=1
+        start = int(segment.start * 1000)
+        end = int(segment.end * 1000)
+        startTime = sms_to_time_string(ms=start)
+        endTime = ms_to_time_string(ms=end)
+        text = segment.text
+        result += f"{idx}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
     return result
 
 
@@ -373,7 +385,6 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    print(p.args)
     def set_result(code,errs=""):
         if code == 0:
             config.queue_novice[noextname] = "end"
@@ -410,7 +421,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
             return False
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired as e:            
             # 如果前台要求停止
             if config.current_status != 'ing':
                 try:
@@ -420,6 +431,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                     pass
                 return False
         except Exception as e:
+            print(f'e={str(e)}')
             #出错异常
             if error_exit and config.params['cuda']:
                 refresh+=1
@@ -492,7 +504,7 @@ def get_video_resolution(file_path):
 
 # 取出最后一帧图片
 def get_lastjpg_fromvideo(file_path, img):
-    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-vsync','0','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'])
+    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'])
 
 
 # 文字合成

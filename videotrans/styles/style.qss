@@ -51,6 +51,8 @@ QScrollArea QPushButton{
     background-color: rgba(50, 65, 75, 0.5);
     border-radius: 0;
     opacity: 0.1;
+    text-align:left;
+    padding-left:5px;
 }
 QScrollArea QPushButton:hover{
     background-color: #19232D;

@@ -25,6 +25,7 @@ deepl==1.16.1
 distro==1.8.0
 edge-tts==6.1.8
 exceptiongroup==1.1.3
+faster-whisper
 ffmpeg-python==0.2.0
 filelock==3.12.4
 flatbuffers==1.12
@@ -77,7 +78,6 @@ numpy==1.26.0
 oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==1.2.3
-openai-whisper @ git+https://github.com/openai/whisper.git@e58f28804528831904c3b6f2c0e473f346223433
 opt-einsum==3.3.0
 packaging==23.1
 pandas==1.5.3
