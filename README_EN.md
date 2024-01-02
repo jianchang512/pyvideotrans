@@ -1,5 +1,6 @@
 [简体中文](./README.md) / [👑 Donate buy me a coffee](https://ko-fi.com/jianchang512) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
-## Video Translation and Dubbing Toolkit
+
+# Video Translation and Dubbing Toolkit
 
 >
 > This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
@@ -11,7 +12,8 @@
 > Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1`.
 >
 
-## Main Use Cases and How to Use
+
+# Main Use Cases and How to Use
 
 【Translate Video and Dub】Set each option as needed, freely configure combinations to achieve translation and dubbing, automatic speed increase or decrease, merging, etc
 
@@ -43,14 +45,15 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
-## Usage of Precompiled EXE Version
+
+# Usage of Precompiled EXE Version
 
 0. Only available for win10 win11 systems/Mac needs to compile from source code
 
 1. [Click to download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
 
 
-## Source Code Deployment
+# Source Code Deployment
 
 1. Set up the Python 3.9->3.11 environment.
 2. `git clone https://github.com/jianchang512/pyvideotrans`
@@ -64,7 +67,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 
 
 
-## Instructions for use
+# Instructions for use
 
 1. Original Video: Choose mp4/avi/mov/mkv/mpeg videos, you can select multiple videos;
 
@@ -129,7 +132,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
     ![](./images/pen2.png)
 
 
-## Notes:
+# Notes:
 
 **Subtitle Display Problem**
 >
@@ -174,30 +177,29 @@ If you have enabled CUDA and encountered this problem, please update the display
 
 
 
-## CUDA Acceleration Support
+# CUDA Acceleration Support
 
 **[Install CUDA Toolkit article](https://juejin.cn/post/7318704408727519270)**
 
-If your computer is equipped with a Nvidia graphics card, you should first upgrade your graphics card driver to the latest version, then install the corresponding [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) and [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive).
-
-After successful installation, press `Win + R`, type `cmd` and press Enter, then type `nvcc --version` in the pop-up window to confirm that the version information is displayed. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e68de07f-4bb1-4fc9-bccd-8f841825915a)
-
-Then continue to type `nvidia-smi`, confirm that there's output information and that you can see the cuda version number. Similar to this picture ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/71f1d7d3-07f9-4579-b310-39284734006b)
 
 If the installation is correct, the precompiled version can now be used with CUDA. If not, you need to reinstall.
 
-## Software Preview Screenshots
+after installed，executable `python testcuda.py`, if output all is True, its ok, else reinstall
+
+
+# Software Preview Screenshots
 
 ![](./images/pen1.png?d)
 
-## Comparison of Videos Before and After
+
+# Comparison of Videos Before and After
 
 [Demo original video and translated video](https://www.wonyes.org/demo.html)
 
 
 
 
-## Acknowledgements
+# Acknowledgements
 
 > This program relies on these open source projects:
 

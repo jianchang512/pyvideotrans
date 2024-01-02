@@ -1,5 +1,6 @@
 [English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / [Q群 902124277](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
-## 视频翻译和配音工具
+
+# 视频翻译和配音工具
 [预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
 >
@@ -12,7 +13,7 @@
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1`.
 >
 
-## 主要用途和使用方式
+# 主要用途和使用方式
 
 【翻译视频并配音】根据需要设置各个选项，自由配置组合，实现翻译和配音、自动加减速、合并等
 
@@ -45,7 +46,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
-## 使用win预编译exe版本(其他系统使用源码部署)
+# 使用win预编译exe版本(其他系统使用源码部署)
 
 0. [点击下载去下载预编译版](https://github.com/jianchang512/pyvideotrans/releases)
 
@@ -54,7 +55,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 3. 未做免杀，国产杀软可能误报，可忽略或使用源码部署
 
 
-## 源码部署
+# 源码部署
 
 1. 配置好 python 3.9->3.11 环境
 2. `git clone https://github.com/jianchang512/pyvideotrans`
@@ -67,7 +68,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 
-## 使用方法
+# 使用方法
 
 1. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
@@ -138,7 +139,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 
 
-## 注意事项:
+# 注意事项:
 
 **字幕显示问题**
 > 
@@ -188,7 +189,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 
 
-## CUDA 加速支持
+# CUDA 加速支持
 
 **安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
 
@@ -203,7 +204,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 
 
-## 软件预览截图
+# 软件预览截图
 
 ![](./images/p1.png?c)
 
