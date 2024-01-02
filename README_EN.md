@@ -186,6 +186,9 @@ If the installation is correct, the precompiled version can now be used with CUD
 
 after installed，executable `python testcuda.py`, if output all is True, its ok, else reinstall
 
+if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，extract and copy dll to C:/Windows/System32
+
+
 
 # Software Preview Screenshots
 
