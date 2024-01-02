@@ -93,6 +93,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
    整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
 
     [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
+    
+    下载后解压，将解压后的文件夹复制到models文件夹内，解压后效果如下
+    ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
+
+
    
     [VLC解码器下载](https://www.videolan.org/vlc/)
 
