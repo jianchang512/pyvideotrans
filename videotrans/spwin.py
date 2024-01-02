@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_type.currentIndexChanged.connect(self.check_whisper_type)
         if config.params['whisper_type']:
             self.whisper_type.setCurrentIndex(0 if config.params['whisper_type'] == 'all' else 1)
-        self.whisper_model.addItems(['base', 'small', 'medium', 'large', 'large-v3'])
+        self.whisper_model.addItems(['base', 'small', 'medium', 'large-v3'])
         self.whisper_model.setCurrentText(config.params['whisper_model'])
         self.whisper_model.currentTextChanged.connect(self.check_whisper_model)
 
@@ -646,6 +646,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
+        if config.params["chatgpt_model"] == 'large':
+            config.params["chatgpt_model"]='large-v3' 
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")

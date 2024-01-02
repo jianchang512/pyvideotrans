@@ -33,6 +33,8 @@ class Worker(QThread):
             if res is True:
                 set_process(f"{self.video.target_dir}",'succeed')
                 config.params['line_roles']={}
+                if os.path.exists(self.video.novoice_mp4):
+                    os.unlink(self.video.novoice_mp4)
             elif res is False:
                 return
         # 全部完成

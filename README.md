@@ -5,7 +5,7 @@
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
 >
-> 语音识别基于 `openai-whisper` 离线模型.
+> 语音识别基于 `faster-whisper` 离线模型.
 >
 > 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX` ，
 >
@@ -88,24 +88,12 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
    软字幕: 如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
 
 
-8. 语音识别模型: 选择 base/small/medium/large/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，第一次将需要下载模型，默认 base,可以预先单独下载模型后，放到 `当前软件目录/models`目录下.
+8. 语音识别模型: 选择 base/small/medium/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
 
    整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
 
-   **模型单独下载地址**
-
-    [tiny模型](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
-    
-    [base模型](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
-
-    [small模型](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
-
-    [medium模型](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
-
-    [large模型](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
-
-    [large-v3模型](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
-
+    [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
+   
     [VLC解码器下载](https://www.videolan.org/vlc/)
 
     [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
@@ -174,42 +162,36 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice),输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
 
 
-**large/large-v3模型问题**
+**large-v3模型问题**
 
-如果你没有N卡GPU，或者没有配置好CUDA环境，不要使用这2个模型，否则会非常慢和卡顿
+如果你没有N卡GPU，或者没有配置好CUDA环境，或者显存低于4G，请不要使用这个模型，否则会非常慢和卡顿
 
 **提示ffmpeg错误**
 如果你启用了CUDA，并遇到了该问题，请更新显卡驱动，然后重新配置CUDA环境
+
+**提示缺少cublasxx.dll文件**
+
+有时会遇到“cublasxx.dll不存在”的错误，此时需要下载 cuBLAS，然后将dll文件复制到系统目录下
+
+[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
+
+
+
 
 ## CUDA 加速支持
 
 **安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
 
 
-如果你的电脑是 Nvidia 显卡，先升级显卡驱动到最新，然后去安装对应的 
-   [CUDA Toolkit ](https://developer.nvidia.com/cuda-downloads)  和  [cudnn for CUDA](https://developer.nvidia.com/rdp/cudnn-archive)。
-   
-   安装完成成，按`Win + R`,输入 `cmd`然后回车，在弹出的窗口中输入`nvcc --version`,确认有版本信息显示，类似该图
-   ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e68de07f-4bb1-4fc9-bccd-8f841825915a)
-
-   然后继续输入`nvidia-smi`,确认有输出信息，并且能看到cuda版本号，类似该图
-   ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/71f1d7d3-07f9-4579-b310-39284734006b)
-
-
-说明安装正确，预编译版可以启用CUDA了，否则需重新安装
-
-如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
+安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
 
    如下图
    
 ![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
 
-   然后将 `pip3` 改为 `pip`，再复制命令去执行。
-
-   **安装完毕后，在该虚拟环境里，执行 `python`,等待进入后
-   再分别执行 `import torch`  ,  `torch.cuda.is_available()`
-   如果有输出，说明CUDA配置正确，否则请检查配置或者重新配置CUDA**
-   
+   将 `pip3` 改为 `pip`，再复制命令去执行。
+ 
+安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
 
 
 ## 软件预览截图
@@ -240,5 +222,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 4. SpeechRecognition
 5. edge-tts
 6. openai-whisper
+7. faster-whisper
 
 

@@ -1,4 +1,3 @@
-*.mp4
 *.log
 *.srt
 .git
@@ -6,6 +5,7 @@
 .idea
 tmp
 models/*.pt
+models/models--Systran--faster-whisper-base
 dev
 venv
 dist

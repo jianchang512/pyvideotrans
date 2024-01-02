@@ -4,7 +4,7 @@
 >
 > This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
 >
-> Voice recognition is based on the `openai-whisper` offline model.
+> Voice recognition is based on the `faster-whisper` offline model.
 >
 > Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX`.
 >
@@ -89,20 +89,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 
    Whole recognition / pre-segmentation: whole recognition refers to directly sending the whole voice file to the model for processing, segmentation may be more accurate, but it may also make a single subtitle of 30s length, suitable for audio with clear silence; pre-segmentation refers to the audio in advance It is cut into about 10s length and then sent to the model for processing separately.
 
-   **Single download address for model**
-
-    [tiny model](https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt)
+    [download models](https://github.com/jianchang512/stt/releases/tag/0.0)
     
-    [base model](https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt)
-
-    [small model](https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt)
-
-    [medium model](https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt)
-
-    [large model](https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large.pt)
-
-    [large-v3 model](https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
-
     [VLC decoder download](https://www.videolan.org/vlc/)
 
     [FFmepg download (compiled version included)](https://www.ffmpeg.org/)
@@ -180,11 +168,15 @@ If you don't have a NVIDIA GPU or if you didn't configure the CUDA environment c
 **Prompt ffmpeg error**
 If you have enabled CUDA and encountered this problem, please update the display card driver and then reconfigure the CUDA environment.
 
+**not exists cublasxx.dll**
+
+[click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，extract and copy dll to C:/Windows/System32
+
 
 
 ## CUDA Acceleration Support
 
-**Install CUDA Toolkit**
+**[Install CUDA Toolkit article](https://juejin.cn/post/7318704408727519270)**
 
 If your computer is equipped with a Nvidia graphics card, you should first upgrade your graphics card driver to the latest version, then install the corresponding [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-downloads) and [cudnn for CUDA11.X](https://developer.nvidia.com/rdp/cudnn-archive).
 
@@ -215,3 +207,4 @@ If the installation is correct, the precompiled version can now be used with CUD
 4. SpeechRecognition
 5. edge-tts
 6. openai-whisper
+7. faster-whisper
