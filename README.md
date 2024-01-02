@@ -171,8 +171,12 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 如果你没有N卡GPU，或者没有配置好CUDA环境，或者显存低于4G，请不要使用这个模型，否则会非常慢和卡顿
 
+
+
 **提示ffmpeg错误**
+
 如果你启用了CUDA，并遇到了该问题，请更新显卡驱动，然后重新配置CUDA环境
+
 
 **提示缺少cublasxx.dll文件**
 
@@ -183,20 +187,20 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 
 
+
 ## CUDA 加速支持
 
 **安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
 
 
-安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令,
-
-   如下图
-   
-![](https://private-user-images.githubusercontent.com/3378335/285566255-521d8623-fc91-43cb-bed4-e21b9b87f39d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5MDg0MDcsIm5iZiI6MTcwMDkwODEwNywicGF0aCI6Ii8zMzc4MzM1LzI4NTU2NjI1NS01MjFkODYyMy1mYzkxLTQzY2ItYmVkNC1lMjFiOWI4N2YzOWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjVUMTAyODI3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDZlODIyYjc1NjgzNWM0NGM4OWY1M2Y3N2Y3OTk3OTg3NzkxODZiOWIwY2Y4NmM0NjVhMjFkMDNlY2NkZjc5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.-WNQR73lwrc-gEHU_-aX5Us-pzeyyRKNMm-5v212CWc)
-
-   将 `pip3` 改为 `pip`，再复制命令去执行。
+安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令去执行。
  
 安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
+
+有时会遇到“cublasxx.dll不存在”的错误，此时需要下载 cuBLAS，然后将dll文件复制到系统目录下
+
+[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
+
 
 
 ## 软件预览截图
