@@ -95,7 +95,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
     [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
     
-    下载后解压，将解压后的文件夹复制到models文件夹内，解压后效果如下
+    下载后解压，将解压后的文件夹复制到models文件夹内，效果如下
     ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
 
 
