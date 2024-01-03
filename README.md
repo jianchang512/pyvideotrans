@@ -234,10 +234,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
-## 视频前后对比
-
-[Demo 原视频和翻译后视频](https://www.wonyes.org/demo.html)
-
 
 # 相关联项目
 
