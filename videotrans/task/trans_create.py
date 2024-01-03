@@ -25,7 +25,7 @@ from videotrans.util.tools import runffmpeg, set_process, delete_files, match_ta
     is_novoice_mp4, cut_from_video, get_video_duration, text_to_speech, speed_change, delete_temp, get_line_role
 
 import torch
-device= "cuda" if torch.cuda.is_available() else "cpu"
+device= "cuda" if config.params['cuda'] else "cpu"
 
 class TransCreate():
 
@@ -362,7 +362,7 @@ class TransCreate():
             with open(nonslient_file, 'w') as outfile:
                 json.dump(nonsilent_data, outfile)
         #r = sr.Recognizer()
-        r = WhisperModel(config.params['whisper_model'], device=device, compute_type="int8", download_root=config.rootdir + "/models")
+        r = WhisperModel(config.params['whisper_model'], device=device,  compute_type="int8" if device=='cpu' else "int8_float16", download_root=config.rootdir + "/models")
         raw_subtitles = []
         offset = 0
         language="zh" if config.params['detect_language'] == "zh-cn" or config.params['detect_language'] == "zh-tw" else config.params['detect_language']
@@ -385,9 +385,6 @@ class TransCreate():
             audio_chunk = normalized_sound[start_time:end_time] + add_vol
             audio_chunk.export(chunk_filename, format="wav")
 
-            # recognize the chunk
-            #with sr.AudioFile(chunk_filename) as source:
-            #    audio_listened = r.record(source)
             if config.current_status == 'stop':
                 raise Exception("You stop it.")
             text=""
@@ -436,11 +433,7 @@ class TransCreate():
         language = "zh" if config.params['detect_language'] in ["zh-cn", "zh-tw"] else config.params['detect_language']
         set_process(f"Model:{model} ")
         try:
-            #model = whisper.load_model(model, download_root=config.rootdir + "/models")
-            #transcribe = model.transcribe(self.targetdir_source_wav,
-            #                              language="zh" if language in ["zh-cn", "zh-tw"] else language, )
-            #segments = transcribe['segments']
-            model = WhisperModel(config.params['whisper_model'], device=device, compute_type="int8", download_root=config.rootdir + "/models")
+            model = WhisperModel(config.params['whisper_model'], device=device, compute_type="int8" if device=='cpu' else "int8_float16", download_root=config.rootdir + "/models")
             segments,_ = model.transcribe(self.targetdir_source_wav, 
                             beam_size=5,  
                             vad_filter=True,

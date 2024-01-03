@@ -414,9 +414,9 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 if refresh>1:
                     set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA", 'error')
                     return False
-                else:
+                elif 'hwdownload' not in arg:
                     arg.insert(-1, '-vf')
-                    arg.insert(-1, 'hwdownload,format=nv12,midequalizer')
+                    arg.insert(-1, 'hwdownload')
                     return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
@@ -440,9 +440,9 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                         set_process(f"请尝试直接复制后边命令到cmd窗口执行看报错信息:  {p.args} ", 'error')
                     set_process(f"[error][except] {str(e)}", 'error')
                     return False
-                else:
+                elif 'hwdownload' not in arg:
                     arg.insert(-1, '-vf')
-                    arg.insert(-1, 'hwdownload,format=nv12,midequalizer')
+                    arg.insert(-1, 'hwdownload')
                     return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
             else:
                 set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{str(e)}",'error' if error_exit else 'logs')
