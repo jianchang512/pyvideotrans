@@ -1,7 +1,8 @@
 [English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / [Q群 902124277](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
 
 # 视频翻译和配音工具
-[预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
+
+[windows预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
 
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为另一种语言配音和字幕的视频。
@@ -43,7 +44,6 @@
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8019-3069aeb66e01
 
-[Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
 # 使用win预编译exe版本(其他系统使用源码部署)
@@ -136,6 +136,17 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
     ![](./images/p2.png)
 
 
+# CUDA 加速支持
+
+**安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
+
+安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令去执行。
+ 
+安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
+
+有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
+
+[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
 
 
 # 常见问题
@@ -215,23 +226,12 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 > 
 
 
-# CUDA 加速支持
-
-**安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
-
-安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令去执行。
- 
-安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
-
-有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
-
-[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
-
-
 
 # 软件预览截图
 
 ![](./images/p1.png?c)
+
+[Youtube demo](https://youtu.be/-S7jptiDdtc)
 
 
 ## 视频前后对比
