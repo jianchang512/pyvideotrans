@@ -199,7 +199,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
  
 安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
 
-有时会遇到“cublasxx.dll不存在”的错误，此时需要下载 cuBLAS，然后将dll文件复制到系统目录下
+有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
 
 [点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
 
