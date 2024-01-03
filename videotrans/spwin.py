@@ -947,11 +947,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # check model is exits
     def check_whisper_model(self, name):
-        if not os.path.exists(config.rootdir + f"/models/{name}.pt"):
-            self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{name}.pt")
-            QMessageBox.critical(self, transobj['downloadmodel'], f"./models/{name}.pt")
+        if not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{name}"):
+            self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/models--Systran--faster-whisper-{name}")
+            QMessageBox.critical(self, transobj['downloadmodel'], f"./models/")
         else:
-            self.statusLabel.setText(transobj['modelpathis'] + f" ./models/{name}.pt")
+            self.statusLabel.setText(transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
 
     # 更新执行状态
     def update_status(self, type):
@@ -1225,7 +1225,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['video_autorate'] = self.video_autorate.isChecked()
         # 语音模型
         config.params['whisper_model'] = self.whisper_model.currentText()
-        model = config.rootdir + f"/models/{config.params['whisper_model']}.pt"
+        model = config.rootdir + f"/models/models--Systran--faster-whisper-{config.params['whisper_model']}"
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.subtitle_type.currentIndex())
 
@@ -1276,9 +1276,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 提取字幕模式，必须有视频、有原始语言，语音模型
             if not config.params['source_mp4']:
                 return QMessageBox.critical(self, transobj['anerror'], '必须选择视频')
-            elif not os.path.exists(model) or os.path.getsize(model) < 100:
-                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/{config.params['whisper_model']}.pt")
-                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/{config.params['whisper_model']}.pt")
+            elif not os.path.exists(model):
+                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/")
+                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/models--Systran--faster-whisper-{config.params['whisper_model']}")
                 return
             if self.app_mode == 'tiqu' and config.params['target_language'] in ['-', 'no', 'No']:
                 # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言

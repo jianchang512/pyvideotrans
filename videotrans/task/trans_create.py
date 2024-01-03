@@ -391,24 +391,15 @@ class TransCreate():
             if config.current_status == 'stop':
                 raise Exception("You stop it.")
             text=""
-            try:
-                #options = {"download_root": config.rootdir + "/models"}
-                #text = r.recognize_whisper(
-                #    audio_listened,
-                #    language="zh" if config.params['detect_language'] == "zh-cn" or
-                #                     config.params['detect_language'] == "zh-tw" else
-                #    config.params['detect_language'],
-                #    model=config.params['whisper_model'],
-                #    load_options=options
-                #)
-                
-                segments,_ = model.transcribe(chunk_filename, 
+            try:               
+                #print(chunk_filename)
+                segments,_ = r.transcribe(chunk_filename, 
                             beam_size=5,  
-                            vad_filter=True,
-                            vad_parameters=dict(min_silence_duration_ms=config.params['voice_silence']),
                             language=language)
+                #print(segments)
                 for t in segments:
                     text+=t.text+" "
+                    print(f'{t.text}')
             except sr.UnknownValueError as e:
                 set_process("[error]:语音识别出错了:" + str(e))
                 continue
@@ -418,9 +409,10 @@ class TransCreate():
             if config.current_status == 'stop':
                 raise Exception("You stop it.")
             text = f"{text.capitalize()}. ".replace('&#39;', "'")
-            text = re.sub(r'&#\d+;', '', text)
-            if not text.strip():
+            text = re.sub(r'&#\d+;', '', text).strip()
+            if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
+            
             start = timedelta(milliseconds=start_time)
 
             stmp = str(start).split('.')
