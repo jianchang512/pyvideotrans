@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 import ctypes
-import inspect
-
-from videotrans.configure import boxcfg
 from videotrans.configure.config import rootdir
 from ctypes.util import find_library
 import asyncio
-import copy
 import re
 import shutil
 import subprocess
@@ -14,30 +10,23 @@ import sys
 import threading
 import time
 
-import speech_recognition as sr
 import os
-
-#import whisper
 from faster_whisper import WhisperModel
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
-import srt
 from datetime import timedelta
 import json
 import edge_tts
-import textwrap
-
-from videotrans.translator import baidutrans, googletrans, tencenttrans, chatgpttrans, deepltrans, deeplxtrans, \
-    baidutrans_spider
 
 from videotrans.configure import config
 from videotrans.configure.config import logger, transobj, queue_logs
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-from videotrans.tts import get_voice_openaitts, get_voice_edgetts
+from videotrans.tts import get_voice_openaitts, get_voice_edgetts,get_voice_elevenlabs
 import torch
+from elevenlabs import play,voices
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -45,18 +34,38 @@ else:
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 def pygameaudio(filepath):
-	import pygame
-	pygame.mixer.music.load(filepath)
-	pygame.mixer.music.play()
-	while pygame.mixer.music.get_busy():
-		# 等待音乐播放完成
-		pygame.time.Clock().tick(1)
+    with open(filepath,'rb') as f:
+        play(f.read())
+
+# 获取 elenevlabs 的角色列表
+def get_elevenlabs_role(force=False):
+    jsonfile=os.path.join(config.rootdir,'elevenlabs.json')
+    namelist=[]
+    if os.path.exists(jsonfile) and os.path.getsize(jsonfile)>0:
+        with open(jsonfile,'r',encoding='utf-8') as f:
+            cache=json.loads(f.read())
+            for it in cache.values():
+                namelist.append(it['name'])
+    if not force and len(namelist)>0:
+        config.params['elevenlabstts_role']=namelist
+        return namelist
+    try:
+        voiceslist = voices()
+        result={}
+        for it in voiceslist:
+            n=re.sub(r'[^a-zA-Z0-9_ -]+','',it.name).strip()
+            result[n]={"name":n,"voice_id":it.voice_id,'url':it.preview_url}
+            namelist.append(n)
+        with open(jsonfile,'w',encoding="utf-8") as f:
+            f.write(json.dumps(result))
+    except Exception as e:
+        print(e)
+    config.params['elevenlabstts_role']=namelist
+    return namelist
 
 def transcribe_audio(audio_path, model, language):
-    #model = whisper.load_model(model, download_root=rootdir + "/models")  # Change this to your desired model
-    #transcribe = model.transcribe(audio_path, language="zh" if language in ["zh-cn", "zh-tw"] else language)
-    #segments = transcribe['segments']
-    model = WhisperModel(model, device="cuda" if torch.cuda.is_available() else "cpu", compute_type="int8", download_root=rootdir + "/models")
+    device="cuda" if torch.cuda.is_available() else "cpu"
+    model = WhisperModel(model, device=device, compute_type="int8" if device=='cpu' else "int8_float16", download_root=rootdir + "/models")
     segments,_ = model.transcribe(audio_path, 
                             beam_size=5,  
                             vad_filter=True,
@@ -68,7 +77,7 @@ def transcribe_audio(audio_path, model, language):
         idx+=1
         start = int(segment.start * 1000)
         end = int(segment.end * 1000)
-        startTime = sms_to_time_string(ms=start)
+        startTime = ms_to_time_string(ms=start)
         endTime = ms_to_time_string(ms=end)
         text = segment.text
         result += f"{idx}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
@@ -385,15 +394,14 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    logger.info(f"runffmpeg: {cmd=}")
     def set_result(code,errs=""):
         if code == 0:
             config.queue_novice[noextname] = "end"
             return True
         else:
             config.queue_novice[noextname] = "error"
-            #set_process(f"[error]ffmpeg error: {cmd=},\n{errs=}")
-            #if config.params['cuda']:
-            #    set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA")
+            logger.error(f'runffmpeg:errs={errs}')
             return False
     while True:
         try:
@@ -403,6 +411,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             if errs:
                 errs = errs.replace('\\\\','\\').replace('\r',' ').replace('\n',' ')
                 errs=errs[errs.find("Error"):]
+                
 
             # 如果结束从此开始执行
             if set_result(p.returncode,str(errs)):
@@ -453,7 +462,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        result = subprocess.run(f'ffprobe {cmd}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        result = subprocess.run(f'ffprobe {cmd}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
         if result.returncode == 0:
             return result.stdout.strip()
         set_process(f'ffprobe error:{result.stdout=},{result.stderr=}')
@@ -466,7 +475,7 @@ def runffprobe(cmd):
 # 获取某个视频的时长 s
 def get_video_duration(file_path):
     duration = runffprobe(
-        f' -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{file_path}"')
+        f' -v error -show_entries "format=duration" -of "default=noprint_wrappers=1:nokey=1" "{file_path}"')
     if not duration:
         return False
     return int(float(duration) * 1000)
@@ -495,8 +504,8 @@ def get_video_fps(file_path):
 
 # 获取宽高分辨率
 def get_video_resolution(file_path):
-    width = runffprobe(f'-v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "{file_path}"')
-    height = runffprobe(f'-v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "{file_path}"')
+    width = runffprobe(f'-v error -select_streams "v:0" -show_entries "stream=width" -of "csv=s=x:p=0" "{file_path}"')
+    height = runffprobe(f'-v error -select_streams "v:0" -show_entries "stream=height" -of "csv=s=x:p=0" "{file_path}"')
     if not width or not height:
         return False
     return int(width), int(height)
@@ -520,6 +529,11 @@ def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None
         elif tts_type == "openaiTTS":
             if not get_voice_openaitts(text, role, rate, filename):
                 logger.error(f"openaiTTS error")
+                open(filename, "w").close()
+                return False
+        elif tts_type=='elevenlabsTTS':
+            if not get_voice_elevenlabs(text, role, rate, filename):
+                logger.error(f"elevenlabsTTS error")
                 open(filename, "w").close()
                 return False
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
@@ -674,23 +688,26 @@ def is_novoice_mp4(novoice_mp4, noextname):
 
 # 从视频中切出一段时间的视频片段
 def cut_from_video(*, ss="", to="", source="", pts="", out=""):
-    cmd = [
+    cmd1 = [
         "-y",
         "-ss",
-        ss.replace(",", '.'),
-        "-i",
-        f'{source}',
-        "-vf",
-        f'setpts={pts}*PTS',
-        "-c:v",
+        ss.replace(",", '.')]
+    if to != '':
+        cmd1.append("-to")
+        cmd1.append(to.replace(',', '.'))  # 如果开始结束时间相同，则强制持续时间1s)
+    cmd1.append('-i')
+    cmd1.append(source)
+
+    if pts:
+        cmd1.append("-vf")
+        cmd1.append(f'setpts={pts}*PTS')
+    cmd=cmd1+["-c:v",
         "libx264",
         "-crf",
         "0",
         f'{out}'
     ]
-    if to != '':
-        cmd.insert(3, "-to")
-        cmd.insert(4, to.replace(',', '.'))  # 如果开始结束时间相同，则强制持续时间1s)
+
     runffmpeg(cmd)
 
 # 写入日志队列

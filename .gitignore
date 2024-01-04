@@ -17,8 +17,9 @@ ffprobe.exe
 ffplay.exe
 __pycache__
 *.spec
-voice_list.json
 *.ui
 *.bak
 pretrained_models
 set.ini
+voice_list.json
+elevenlabs.json

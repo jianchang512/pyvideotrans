@@ -19,8 +19,7 @@ from pydub import AudioSegment
 
 from videotrans import VERSION
 from videotrans.configure import boxcfg, config
-from videotrans.configure.language import language_code_list, english_code_bygpt
-from videotrans.configure.config import logger, rootdir, homedir, langlist
+from videotrans.configure.config import logger, rootdir, homedir, langlist, english_code_bygpt
 from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans, baidutrans_spider, \
     chatgpttrans, azuretrans, geminitrans
 from videotrans.ui.toolbox import Ui_MainWindow
@@ -352,22 +351,27 @@ class WorkerTTS(QThread):
                 q = self.before_tts()
             except Exception as e:
                 print(e)
-                self.post_message('end', f'before dubbing error:{str(e)}')
+                self.post_message('error', f'before dubbing error:{str(e)}')
                 return
             try:
-                self.exec_tts(q)
+                if not self.exec_tts(q):
+                    self.post_message('error', f'srt create dubbing error:view logs')
+                    return
             except Exception as e:
-                self.post_message('end', f'srt create dubbing error:{str(e)}')
+                self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
         else:
             mp3 = self.filename.replace('.wav', '.mp3')
-            text_to_speech(
+            if not text_to_speech(
                 text=self.text,
                 role=self.role,
                 rate=self.rate,
                 filename=mp3,
                 tts_type=self.tts_type
-            )
+            ):
+                self.post_message('error', f'srt create dubbing error:view logs')
+                return
+
             runffmpeg([
                 '-y',
                 '-i',
@@ -386,9 +390,7 @@ class WorkerTTS(QThread):
         # 整合一个队列到 exec_tts 执行
         queue_tts = []
         # 获取字幕
-        print(f'before-tts,{self.text=}')
         subs = get_subtitle_from_srt(self.text, is_file=False)
-        print(f'{subs=}')
         rate = int(str(self.rate).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
@@ -405,32 +407,20 @@ class WorkerTTS(QThread):
                 "startraw": it['startraw'],
                 "endraw": it['endraw'],
                 "filename": f"{self.tmpdir}/tts-{it['start_time']}.mp3"})
-        print(queue_tts)
         return queue_tts
 
     # 执行 tts配音，配音后根据条件进行视频降速或配音加速处理
     def exec_tts(self, queue_tts):
         queue_copy = copy.deepcopy(queue_tts)
-
-        def get_item(q):
-            return {"text": q['text'], "role": q['role'], "rate": q['rate'], "filename": q["filename"],
-                    "tts_type": self.tts_type}
-
         # 需要并行的数量3
         while len(queue_tts) > 0:
             try:
-                tolist = [threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0)))]
-                if len(queue_tts) > 0:
-                    tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
-                if len(queue_tts) > 0:
-                    tolist.append(threading.Thread(target=text_to_speech, kwargs=get_item(queue_tts.pop(0))))
-
-                for t in tolist:
-                    t.start()
-                for t in tolist:
-                    t.join()
+                q=queue_tts.pop(0)
+                if not text_to_speech(text=q['text'],role=q['role'], rate=q['rate'], filename=q["filename"],
+                    tts_type=self.tts_type):
+                    return False
             except Exception as e:
-                self.post_message('end', f'[error]regcon error:{str(e)}')
+                self.post_message('end', f'[error]tts error:{str(e)}')
                 return False
         segments = []
         start_times = []
@@ -441,7 +431,6 @@ class WorkerTTS(QThread):
             # 偏移时间，用于每个 start_time 增减
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
-            print(f'{queue_copy=}')
             srtmeta = []
             for (idx, it) in enumerate(queue_copy):
                 srtmeta_item = {
@@ -588,9 +577,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-        self.langauge_name = list(langlist.keys())  # list(language_code_list["zh"].keys())
+        self.langauge_name = list(langlist.keys())
         self.shibie_language.addItems(self.langauge_name)
-        self.shibie_model.addItems(["base", "small", "medium", "large", "large-v3"])
+        self.shibie_model.addItems(["base", "small", "medium", "large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
         self.shibie_savebtn.clicked.connect(self.shibie_save_fun)
 
@@ -735,7 +724,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.shibie_startbtn.setText(transobj["zhixinger"])
         elif data['func_name'] == 'hecheng_end':
-            self.hecheng_startbtn.setText(transobj["zhixingwc"] if data['type'] == 'end' else transobj["zhixinger"])
+            if data['type'] == 'end':
+                self.hecheng_startbtn.setText(transobj["zhixingwc"])
+                self.hecheng_startbtn.setToolTip(transobj["zhixingwc"])
+            else:
+                self.hecheng_startbtn.setText(data['text'])
+                self.hecheng_startbtn.setToolTip(data['text'])
+                self.hecheng_startbtn.setStyleSheet("""color:#ff0000""")
             self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
             boxcfg.geshi_num -= 1
@@ -859,7 +854,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
-        if not os.path.exists(rootdir + f"/models/{model}.pt"):
+        if not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{model}"):
             return QMessageBox.critical(self, transobj['anerror'], transobj['modellost'])
         file = self.shibie_dropbtn.text()
         if not file or not os.path.exists(file):
@@ -896,7 +891,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(file):
             return QMessageBox.critical(self, transobj['anerror'], transobj['chakanerror'])
         model = self.shibie_model.currentText()
-        self.shibie_task = WorkerWhisper(file, model, language_code_list["zh"][self.shibie_language.currentText()][0],
+        self.shibie_task = WorkerWhisper(file, model, langlist[self.shibie_language.currentText()][0],
                                          "shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
@@ -985,7 +980,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
         elif type == 'coquiTTS':
+            self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['coquitts_role'].split(","))
+        elif type == 'elevenlabsTTS':
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(config.params['elevenlabstts_role'])
         elif type == 'edgeTTS':
             self.hecheng_language_fun(self.hecheng_language.currentText())
 
@@ -1003,7 +1002,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, transobj['anerror'], transobj['nojueselist'])
             return
         try:
-            vt = langlist[t][0].split('-')[0]#language_code_list['zh'][t][0].split('-')[0]
+            vt = langlist[t][0].split('-')[0]
             print(f"{vt=}")
             if vt not in voice_list:
                 self.hecheng_role.addItems(['No'])
