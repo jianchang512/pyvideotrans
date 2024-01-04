@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog,
     QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea
 import warnings
 
-from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole
+from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole, ElevenlabsForm
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, Shiting
@@ -27,8 +27,8 @@ from videotrans import VERSION
 from videotrans.component import DeepLForm, DeepLXForm, BaiduForm, TencentForm, ChatgptForm
 from videotrans.component.controlobj import TextGetdir
 from videotrans.configure.config import langlist, transobj, logger, homedir
-from videotrans.configure.language import english_code_bygpt
-from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc
+from videotrans.configure.config import english_code_bygpt
+from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc, get_elevenlabs_role
 from videotrans.configure import config
 
 if config.defaulelang == "zh":
@@ -144,11 +144,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
         elif config.params['tts_type'] == 'coquiTTS':
             self.voice_role.addItems(['No'] + config.params['coquitts_role'].split(','))
+        elif config.params['tts_type'] == 'elevenlabsTTS':
+            self.voice_role.addItems(['No'] + config.params['elevenlabstts_role'])
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])
+        self.tts_type_change(config.params['tts_type'])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
+
         self.enable_cuda.stateChanged.connect(self.check_cuda)
         self.enable_cuda.setChecked(config.params['cuda'])
 
@@ -192,6 +196,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontencent_key.triggered.connect(self.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.set_chatgpt_key)
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
+        self.actionElevenlabs_key.triggered.connect(self.set_elevenlabs_key)
         self.actiondeepLX_address.triggered.connect(self.set_deepLX_address)
         self.action_vlc.triggered.connect(lambda: self.open_url('vlc'))
         self.action_ffmpeg.triggered.connect(lambda: self.open_url('ffmpeg'))
@@ -656,6 +661,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["azure_key"] = self.settings.value("azure_key", "")
         config.params["azure_model"] = self.settings.value("azure_model", config.params['azure_model'])
 
+        config.params["elevenlabstts_key"] = self.settings.value("elevenlabstts_key", "")
+
         config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
@@ -720,7 +727,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 设置每行角色
     def set_line_role_fun(self):
-
         def save():
             config.params['line_roles'] = {}
             for role in self.current_rolelist:
@@ -730,7 +736,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if val:
                     config.params['line_roles'][role] = val.replace('，', ',')
             self.w.close()
-            print(f'{config.params["line_roles"]=}')
+            # print(f'{config.params["line_roles"]=}')
 
         if config.params['voice_role'] in ['No', '-', 'no']:
             return QMessageBox.critical(self, transobj['anerror'], transobj['xianxuanjuese'])
@@ -783,6 +789,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['deepl_authkey']:
             self.w.deepl_authkey.setText(config.params['deepl_authkey'])
         self.w.set_deepl.clicked.connect(save)
+        self.w.show()
+    def set_elevenlabs_key(self):
+        def save():
+            key = self.w.elevenlabstts_key.text()
+            self.settings.setValue("elevenlabstts_key", key)
+            config.params['elevenlabstts_key'] = key
+            self.w.close()
+
+        self.w = ElevenlabsForm()
+        if config.params['elevenlabstts_key']:
+            self.w.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
+        self.w.set.clicked.connect(save)
         self.w.show()
 
     def set_deepLX_address(self):
@@ -983,12 +1001,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def tts_type_change(self, type):
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
+        # print(f'{type=}')
         if type == "openaiTTS":
             self.voice_role.clear()
             self.current_rolelist = config.params['openaitts_role'].split(',')
             self.voice_role.addItems(['No'] + self.current_rolelist)
         elif type == 'coquiTTS':
+            self.voice_role.clear()
             self.current_rolelist = config.params['coquitts_role'].split(',')
+            self.voice_role.addItems(['No'] + self.current_rolelist)
+        elif type == 'elevenlabsTTS':
+            self.voice_role.clear()
+            self.current_rolelist = config.params['elevenlabstts_role']
+            if len(self.current_rolelist)<1:
+                self.current_rolelist=get_elevenlabs_role()
+            # print(self.current_rolelist)
             self.voice_role.addItems(['No'] + self.current_rolelist)
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())
@@ -1059,6 +1086,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'])
             return
         if not config.edgeTTS_rolelist:
+            config.edgeTTS_rolelist=get_edge_rolelist()
+        if not config.edgeTTS_rolelist:
             self.target_language.setCurrentText('-')
             QMessageBox.critical(self, transobj['anerror'], transobj['waitrole'])
             return
@@ -1120,7 +1149,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return button1
 
     def click_process_btn(self, text):
-        print(f'click--{text=}')
+        # print(f'click--{text=}')
         dirs = text.split(transobj["endandopen"])
         if os.path.isdir(dirs[-1]):
             QDesktopServices.openUrl(QUrl.fromLocalFile(dirs[-1]))
@@ -1348,7 +1377,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 有视频
             btnkey = self.task.video.source_mp4
             if type != 'succeed':
-                text = f'{self.task.video.source_mp4}: {text}'
+                text = f'{self.task.video.noextname}: {text}'
         else:
             # 字幕到配音，无视频
             btnkey = "srt2wav"
@@ -1356,7 +1385,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if type == 'succeed':
                 text = f'{transobj["endandopen"]}{text}'
                 self.processbtns[btnkey].clicked.connect(lambda: self.click_process_btn(text[:]))
-                print(f'{text=}')
+                # print(f'{text=}')
                 self.processbtns[btnkey].setStyleSheet('color:#00a67d')
             elif type == 'error':
                 self.processbtns[btnkey].setStyleSheet('color:#ff0000')

@@ -46,6 +46,8 @@ else:
     transobj = translate_language['zh']
     langlist = language_code_list['zh']
 
+english_code_bygpt=list(language_code_list[defaulelang].keys())
+
 # ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 os.environ['QT_API'] = 'pyqt5'
@@ -78,11 +80,11 @@ params = {
     "listen_text_cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
     "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
 
-    "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS
-    "tts_type_list": ["edgeTTS", "openaiTTS"],
+    "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
+    "tts_type_list": ["edgeTTS", "openaiTTS","elevenlabsTTS"],
 
     "voice_silence": 500,
-    "whisper_type": "split",
+    "whisper_type": "all",
     "whisper_model": "base",
     "translate_type": "google",
     "subtitle_type": 0,  # embed soft
@@ -100,6 +102,11 @@ params = {
 
     "coquitts_role": "",
     "coquitts_key": "",
+
+    "elevenlabstts_role":[],
+    "elevenlabstts_key":"",
+
+
 
     "chatgpt_api": "",
     "chatgpt_key": "",

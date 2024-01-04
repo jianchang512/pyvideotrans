@@ -309,4 +309,3 @@ clilanglist = {
     "ar": ['ar', 'are'],
     "tr": ['tr', 'tur'],
 }
-english_code_bygpt=list(language_code_list['zh'].keys())

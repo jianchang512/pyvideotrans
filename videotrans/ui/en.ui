@@ -893,7 +893,7 @@ Choose only one of the two options</string>
    </property>
    <widget class="QMenu" name="menu_Key">
     <property name="title">
-     <string>(&amp;S)etting</string>
+     <string>&amp;Setting</string>
     </property>
     <addaction name="actionbaidu_key"/>
     <addaction name="separator"/>
@@ -909,10 +909,12 @@ Choose only one of the two options</string>
     <addaction name="separator"/>
     <addaction name="actiondeepLX_address"/>
     <addaction name="separator"/>
+    <addaction name="actionElevenlabs_key"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>(&amp;T)ools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="action_tool"/>
     <addaction name="separator"/>
@@ -920,7 +922,7 @@ Choose only one of the two options</string>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
-     <string>(&amp;H)elp</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="separator"/>
     <addaction name="action_website"/>
@@ -1187,6 +1189,11 @@ Choose only one of the two options</string>
   <action name="actiongemini_key">
    <property name="text">
     <string>Gemini Pro</string>
+   </property>
+  </action>
+  <action name="actionElevenlabs_key">
+   <property name="text">
+    <string>Elevenlabs Key</string>
    </property>
   </action>
  </widget>
