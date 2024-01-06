@@ -918,7 +918,10 @@ Choose only one of the two options</string>
     </property>
     <addaction name="action_tool"/>
     <addaction name="separator"/>
+    <addaction name="actionyoutube"/>
+    <addaction name="separator"/>
     <addaction name="action_clone"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
@@ -1194,6 +1197,11 @@ Choose only one of the two options</string>
   <action name="actionElevenlabs_key">
    <property name="text">
     <string>Elevenlabs Key</string>
+   </property>
+  </action>
+  <action name="actionyoutube">
+   <property name="text">
+    <string>Download from Youtube</string>
    </property>
   </action>
  </widget>

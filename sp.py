@@ -12,7 +12,7 @@ from videotrans.configure.config import  transobj
 from videotrans.util.tools import get_edge_rolelist, is_vlc, get_elevenlabs_role
 from videotrans.configure import config
 
-
+MODE_FILE="sp"
 if __name__ == "__main__":
     
     app = QApplication(sys.argv)

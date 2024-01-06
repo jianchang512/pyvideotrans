@@ -3,9 +3,11 @@ import datetime
 import json
 import re
 import shutil
+import subprocess
 import sys
 import os
 import threading
+import time
 import webbrowser
 import torch
 
@@ -16,8 +18,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog,
     QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea
 import warnings
 
-from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole, ElevenlabsForm
+from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole, ElevenlabsForm, YoutubeForm
 from videotrans.task.check_update import CheckUpdateWorker
+from videotrans.task.download_youtube import Download
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.task.main_worker import Worker, Shiting
 
@@ -61,6 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task = None
         self.toolboxobj = None
         self.shitingobj = None
+        self.youw=None
         self.processbtns = {}
         # 当前所有可用角色列表
         self.current_rolelist = []
@@ -205,6 +209,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_website.triggered.connect(lambda: self.open_url('website'))
         self.action_issue.triggered.connect(lambda: self.open_url('issue'))
         self.action_tool.triggered.connect(self.open_toolbox)
+        self.actionyoutube.triggered.connect(self.open_youtube)
         self.action_about.triggered.connect(self.about)
         self.action_clone.triggered.connect(lambda: show_popup(transobj['yinsekaifazhong'], transobj['yinsekelong']))
 
@@ -776,7 +781,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.w.set_ok.clicked.connect(save)
         self.w.show()
+    def open_youtube(self):
+        def download():
+            proxy=self.youw.proxy.text().strip()
+            outdir=self.youw.outputdir.text()
+            url=self.youw.url.text()
+            if not url or not re.match(r'https://www.youtube.com/watch',url):
+                QMessageBox.critical(self.youw,transobj['anerror'],'must input like https://www.youtube.com/watch?v=jNQXAC9IVRw')
+                return
+            self.settings.setValue("youtube_outdir", outdir)
+            print('start download')
+            cmd=["you-get","--itag=18","-o",outdir]
+            if proxy:
+                config.proxy=proxy
+                self.settings.setValue("proxy", proxy)
+                cmd.append("-x")
+                cmd.append(proxy)
+            cmd.append(url)
+            down=Download(cmd,self)
+            down.start()
 
+
+        def selectdir():
+            dirname = QFileDialog.getExistingDirectory(self, "Select Dir", outdir).replace('\\', '/')
+            self.w.outputdir.setText(dirname)
+
+
+        self.youw = YoutubeForm()
+        outdir=config.params['youtube_outdir'] if 'youtube_outdir' in config.params else os.path.join(config.homedir,'youtube').replace('\\','/')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir,exist_ok=True)
+        self.youw.outputdir.setText(outdir)
+
+        if config.proxy:
+            self.youw.proxy.setText(config.proxy)
+        self.youw.selectdir.clicked.connect(selectdir)
+
+        self.youw.set.clicked.connect(download)
+        self.youw.show()
     # set deepl key
     def set_deepL_key(self):
         def save():
@@ -1166,7 +1208,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 选择视频
         config.params['source_mp4'] = self.source_mp4.text().strip().replace('\\', '/')
-        target_dir = self.target_dir.text().strip().lower().replace('\\', '/')
+        target_dir = self.target_dir.text().strip().replace('\\', '/')
         # 目标文件夹
         if target_dir:
             config.params['target_dir'] = target_dir
@@ -1448,6 +1490,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             usetype.setStyleSheet('color:#ff9800')
             usetype.clicked.connect(lambda: self.open_url('download'))
             self.container.addWidget(usetype)
+        elif d['type']=='update_download' and self.youw is not None:
+            self.youw.logs.setText("Down done succeed" if d['text']=='ok' else d['text'])
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):

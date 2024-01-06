@@ -51,7 +51,10 @@ english_code_bygpt=list(language_code_list[defaulelang].keys())
 # ffmpeg
 os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
 os.environ['QT_API'] = 'pyqt5'
+# spwin主窗口
 queue_logs = Queue(200)
+# box窗口
+queuebox_logs = Queue(200)
 
 # 开始按钮状态
 current_status = "stop"
@@ -134,3 +137,5 @@ queue_novice = {}
 queue_task = []
 # 倒计时
 task_countdown = 60
+# 全局错误信息
+errors=""

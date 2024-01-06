@@ -923,7 +923,10 @@
     </property>
     <addaction name="action_tool"/>
     <addaction name="separator"/>
+    <addaction name="actionyoutube"/>
+    <addaction name="separator"/>
     <addaction name="action_clone"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menu_H">
     <property name="title">
@@ -1199,6 +1202,11 @@
   <action name="actionElevenlabs_key">
    <property name="text">
     <string>Elevenlabs</string>
+   </property>
+  </action>
+  <action name="actionyoutube">
+   <property name="text">
+    <string>下载Youtube视频</string>
    </property>
   </action>
  </widget>

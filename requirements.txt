@@ -104,6 +104,7 @@ pycparser==2.21
 pydantic==2.4.2
 pydantic_core==2.10.1
 pydub==0.25.1
+pygame==2.5.2
 Pygments==2.17.2
 pyinstaller==6.0.0
 pyinstaller-hooks-contrib==2023.9
@@ -153,3 +154,4 @@ websockets==12.0
 Werkzeug==3.0.1
 wrapt==1.15.0
 yarl==1.9.2
+you-get==0.4.1650
