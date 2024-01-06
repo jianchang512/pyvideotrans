@@ -14,6 +14,7 @@ from videotrans.ui.info import Ui_infoform
 from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
+from videotrans.ui.youtube import Ui_youtubeform
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
     def __init__(self, parent=None):
@@ -28,6 +29,14 @@ class BaiduForm(QDialog, Ui_baiduform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("./icon.ico"))
+
+class YoutubeForm(QDialog, Ui_youtubeform):  # <===
+    def __init__(self, parent=None):
+        super(YoutubeForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("./icon.ico"))
+
 
 class TencentForm(QDialog, Ui_tencentform):  # <===
     def __init__(self, parent=None):

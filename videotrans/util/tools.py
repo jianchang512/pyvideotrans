@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import ctypes
-from videotrans.configure.config import rootdir
+from videotrans.configure.config import rootdir, queuebox_logs
 from ctypes.util import find_library
 import asyncio
 import re
@@ -8,8 +8,6 @@ import shutil
 import subprocess
 import sys
 import threading
-import time
-
 import os
 from faster_whisper import WhisperModel
 from PyQt5.QtGui import QIcon
@@ -23,19 +21,29 @@ import edge_tts
 from videotrans.configure import config
 from videotrans.configure.config import logger, transobj, queue_logs
 
+
+
+import time
+
+
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts,get_voice_elevenlabs
 import torch
 from elevenlabs import play,voices
+
+
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 else:
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
+  
 def pygameaudio(filepath):
-    with open(filepath,'rb') as f:
-        play(f.read())
+    from videotrans.util.playmp3 import AudioPlayer
+    player = AudioPlayer(filepath)
+    player.start()
+
 
 # 获取 elenevlabs 的角色列表
 def get_elevenlabs_role(force=False):
@@ -352,6 +360,7 @@ def speed_change(sound, speed=1.0):
     return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
 
+
 def runffmpegbox(arg):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.params['cuda']:
@@ -359,9 +368,12 @@ def runffmpegbox(arg):
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
+            else:
+                arg[i]=arg[i].replace('scale=','scale_cuda=')
+        arg.insert(-1,'-vf')
+        arg.insert(-1,'hwdownload')
     cmd = cmd + arg
 
-    print(f"runffmpeg: {cmd=}")
     p = subprocess.run(cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -369,14 +381,13 @@ def runffmpegbox(arg):
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     if p.returncode==0:
         return True
-    print(str(p.stderr))
+    set_process_box(str(p.stderr),'error')
     return False
 
 
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
-    refresh=0
     if config.params['cuda']:
         #, "-extra_hw_frames", "10"
         cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
@@ -385,6 +396,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             else:
                 arg[i]=arg[i].replace('scale=','scale_cuda=')
+        arg.insert(-1,'-vf')
+        arg.insert(-1,'hwdownload')
             
     cmd = cmd + arg
 
@@ -419,14 +432,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
                 return True
             # 失败
             if error_exit and config.params['cuda']:
-                refresh+=1
-                if refresh>1:
-                    set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA", 'error')
-                    return False
-                elif 'hwdownload' not in arg:
-                    arg.insert(-1, '-vf')
-                    arg.insert(-1, 'hwdownload')
-                    return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
+                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA", 'error')
+                return False
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
             return False
@@ -443,16 +450,8 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
             print(f'e={str(e)}')
             #出错异常
             if error_exit and config.params['cuda']:
-                refresh+=1
-                if refresh>1:
-                    if p:
-                        set_process(f"请尝试直接复制后边命令到cmd窗口执行看报错信息:  {p.args} ", 'error')
-                    set_process(f"[error][except] {str(e)}", 'error')
-                    return False
-                elif 'hwdownload' not in arg:
-                    arg.insert(-1, '-vf')
-                    arg.insert(-1, 'hwdownload')
-                    return runffmpeg(arg,noextname=noextname, error_exit=error_exit)
+                set_process(f"[error][except] {str(e)}, {p.args}", 'error')
+                return False
             else:
                 set_process(f"[error]ffmpeg执行结果:失败 {cmd=},\n{str(e)}",'error' if error_exit else 'logs')
             return False
@@ -711,7 +710,10 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     runffmpeg(cmd)
 
 # 写入日志队列
-def set_process(text, type="logs"):
+def set_process_box(text,type='logs'):
+    set_process(text,type,"box")
+
+def set_process(text, type="logs",qname='sp'):
     try:
         if text:
             log_msg = text.replace('<br>', "").replace('<strong>','').replace('</strong>','').strip()
@@ -719,9 +721,11 @@ def set_process(text, type="logs"):
                 logger.error(log_msg)
             else:
                 logger.info(log_msg)
-        # if type == 'logs':
-        #     text = text.
-        queue_logs.put_nowait({"text": text, "type": type})
+        if qname=='sp':
+            queue_logs.put_nowait({"text": text, "type": type})
+        else:
+            queuebox_logs.put_nowait({"text": text, "type": type})
+
     except Exception as e:
         pass
 
