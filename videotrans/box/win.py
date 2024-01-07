@@ -16,7 +16,7 @@ from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import boxcfg, config
 from videotrans.configure.config import logger, rootdir, homedir, langlist, english_code_bygpt
-from videotrans.util.tools import  set_proxy
+from videotrans.util.tools import set_proxy, has_audio
 
 from videotrans.configure.config import transobj
 
@@ -152,8 +152,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_sourcetext.setPlaceholderText(transobj['tuodongfanyi'])
 
         self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
+        self.daochu.clicked.connect(self.fanyi_save_fun)
+        self.statuslabel=QLabel("")
 
-        # self.statusBar.addWidget(QLabel("如果你无法播放视频，请去下载VLC解码器 www.videolan.org/vlc"))
+        self.statusBar.addWidget(self.statuslabel)
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
 
         #     日志
@@ -206,9 +208,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         data = json.loads(json_data)
         # fun_name 方法名，type类型，text具体文本
         if "func_name" not in data:
-            self.statusBar.setText(data['text'])
+            self.statuslabel.setText(data['text'])
             if data['type']=='error':
-                self.statusBar.setStyle("""color:#ff0000""")
+                self.statuslabel.setStyle("""color:#ff0000""")
         elif data['func_name'] == "yspfl_end":
             # 音视频分离完成了
             self.yspfl_startbtn.setText(transobj["zhixingwc"] if data['type'] == "end" else transobj["zhixinger"])
@@ -255,6 +257,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(transobj['starttrans'])
             self.fanyi_targettext.setPlainText(data['text'])
+            self.daochu.setDisabled(False)
+
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -334,17 +338,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if wavfile and srtfile:
             tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
             srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
-            cmds = [
-                ['-y', '-i', f'{videofile}', '-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",
-                 '-map', '0:v', '-map', "[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
-                ['-y', '-i', f'{tmpname}', "-vf", f"subtitles={srtfile}", f'{savedir}/{basename}.mp4']
-            ]
+            # 视频里是否有音轨
+            if has_audio(videofile):
+                cmds = [
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map', '0:v', '-map', "[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
+                ]
+            else:
+                cmds=[['-y', '-i', videofile, '-i', wavfile, '-map','0:v','-map', '1:a', '-c:v', 'libx264', '-c:a','aac',tmpname]]
+            cmds.append(['-y', '-i', f'{tmpname}', "-vf", f"subtitles={srtfile}", f'{savedir}/{basename}.mp4'])
         else:
-            cmd = ['-y', '-i', f'{videofile}']
+            cmd = ['-y', '-i', videofile]
             if wavfile:
                 # 只存在音频，不存在字幕
-                cmd += ['-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map', '0:v', '-map',
-                        "[aout]", '-c:v', 'libx264', '-c:a', 'aac']
+                cmd += ['-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map', '0:v', '-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac']
             elif srtfile:
                 srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
                 cmd += ["-vf", f"subtitles={srtfile}"]
@@ -608,6 +614,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         proxy = self.fanyi_proxy.text()
         if proxy:
             set_proxy(proxy)
+        else:
+            proxy=self.settings.value("proxy", "", str)
+            if proxy:
+                set_proxy(proxy)
+                self.fanyi_proxy.setText(proxy)
         issrt = self.fanyi_issrt.isChecked()
         source_text = self.fanyi_sourcetext.toPlainText().strip()
         if not source_text:
@@ -654,8 +665,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if translate_type == 'DeepLX' and not config.deeplx_address:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' DeepLX url')
                 return
-            target_language_deepl = langlist[target_language][3]
-            if target_language_deepl == 'No':
+            target_language = langlist[target_language][3]
+            if target_language == 'No':
                 QMessageBox.critical(self, transobj['anerror'], 'DeepL ' + transobj['buzhichifanyi'])
                 return
         self.fanyi_task = FanyiWorker(translate_type, target_language, source_text, issrt, self)
@@ -664,3 +675,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_start.setDisabled(True)
         self.fanyi_start.setText(transobj["running"])
         self.fanyi_targettext.clear()
+        self.daochu.setDisabled(True)
+    def fanyi_save_fun(self):
+        srttxt = self.fanyi_targettext.toPlainText().strip()
+        if not srttxt:
+            return QMessageBox.critical(self, transobj['anerror'], transobj['srtisempty'])
+        issrt = self.fanyi_issrt.isChecked()
+        dialog = QFileDialog()
+        dialog.setWindowTitle(transobj['savesrtto'])
+        dialog.setNameFilters(["subtitle files (*.srt)" if issrt else "text files (*.txt)"])
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.exec_()
+        if not dialog.selectedFiles():  # If the user closed the choice window without selecting anything.
+            return
+        else:
+            path_to_file = dialog.selectedFiles()[0]
+        ext= ".srt" if issrt else ".txt"
+        if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
+            path_to_file=path_to_file[:-4]+ext
+        else:
+            path_to_file+=ext
+        with open(path_to_file , "w") as file:
+            file.write(srttxt)

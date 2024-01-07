@@ -124,9 +124,16 @@ translate_language = {
 
 
         "xianxuanjuese":"请先选择TTS类型和角色",
-        "shezhijueseline":"填写使用该角色配音的行数,例如 2,3,7,8"
+        "shezhijueseline":"填写使用该角色配音的行数,例如 2,3,7,8",
+
+        "youzimuyouset":"字幕区显示完整字幕后才可按行设置多角色",
+        "shezhijuese":"设置角色",
+        "zhishaoxuanzeyihang":"至少要选中一行",
+        "default":"默认"
     },
     "en": {
+        "default":"default",
+        "zhishaoxuanzeyihang":"At least one row must be selected",
         "continue_action":"继续下一步",
         "xuanzejuese":"must to be select dubbing role, frist select subtitle language and select dubbing role",
         "tencent_key":"must be input tencent's SecretId and SecretKey",
@@ -248,7 +255,9 @@ translate_language = {
         "endandopen":"Ended click to open ",
         "waitforstart":"Wait for starting",
         "xianxuanjuese":"Please select TTS type and role first",
-        "shezhijueseline":"Fill in the number of lines using the character's voice acting, eg. 2,3,7,8"
+        "shezhijueseline":"Fill in the number of lines using the character's voice acting, eg. 2,3,7,8",
+        "youzimuyouset":"Multiple roles can only be set by line after displaying complete subtitles in the subtitle area",
+        "shezhijuese":"Set Role"
     }
 }
 

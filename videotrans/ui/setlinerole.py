@@ -23,7 +23,7 @@ class Ui_setlinerole(object):
         setlinerole.setSizePolicy(sizePolicy)
         setlinerole.setMaximumSize(QtCore.QSize(600, 600))
         self.set_ok = QtWidgets.QPushButton(setlinerole)
-        self.set_ok.setGeometry(QtCore.QRect(250, 550, 93, 35))
+        self.set_ok.setGeometry(QtCore.QRect(462, 550, 111, 35))
         self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ok.setObjectName("set_ok")
         self.verticalLayoutWidget = QtWidgets.QWidget(setlinerole)
@@ -32,11 +32,19 @@ class Ui_setlinerole(object):
         self.layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setObjectName("layout")
+        self.select_role = QtWidgets.QComboBox(setlinerole)
+        self.select_role.setGeometry(QtCore.QRect(140, 550, 171, 35))
+        self.select_role.setMinimumSize(QtCore.QSize(100, 35))
+        self.select_role.setObjectName("select_role")
+        self.set_role_label = QtWidgets.QLabel(setlinerole)
+        self.set_role_label.setGeometry(QtCore.QRect(30, 560, 81, 16))
+        self.set_role_label.setText("")
+        self.set_role_label.setObjectName("set_role_label")
 
         self.retranslateUi(setlinerole)
         QtCore.QMetaObject.connectSlotsByName(setlinerole)
 
     def retranslateUi(self, setlinerole):
         _translate = QtCore.QCoreApplication.translate
-        setlinerole.setWindowTitle(_translate("setlinerole", "ChatGPT"))
+        setlinerole.setWindowTitle(_translate("setlinerole", "Set up multiple roles"))
         self.set_ok.setText(_translate("setlinerole", "OK"))

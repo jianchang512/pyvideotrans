@@ -24,18 +24,19 @@ class Worker(QThread):
         self.func_name = func_name
 
     def run(self):
-        set_process_box(f'开始语音识别')
+        set_process_box(f'starting...')
         for cmd in self.cmd_list:
             logger.info(f"[box]Will execute: ffmpeg {cmd=}")
             try:
                 rs=runffmpeg(cmd)
                 if not rs:
-                    set_process_box(f'执行 {cmd=} 出错','error')
+                    set_process_box(f'exec {cmd=} error','error')
             except Exception as e:
                 logger.error("[bxo]FFmepg exec error:" + str(e))
                 set_process_box("[bxo]FFmepg exec error:" + str(e))
                 return f'[error]{str(e)}'
         self.post_message("end", "End\n")
+        set_process_box(f'Ended','end')
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))

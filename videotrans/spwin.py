@@ -15,7 +15,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
 from PyQt5.QtCore import QSettings, QUrl, Qt, QSize, pyqtSlot, QDir
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
-    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea
+    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea, QCheckBox
 import warnings
 
 from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole, ElevenlabsForm, YoutubeForm
@@ -31,7 +31,8 @@ from videotrans.component import DeepLForm, DeepLXForm, BaiduForm, TencentForm, 
 from videotrans.component.controlobj import TextGetdir
 from videotrans.configure.config import langlist, transobj, logger, homedir
 from videotrans.configure.config import english_code_bygpt
-from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc, get_elevenlabs_role
+from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc, get_elevenlabs_role, \
+    get_subtitle_from_srt
 from videotrans.configure import config
 
 if config.defaulelang == "zh":
@@ -250,6 +251,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
+        self.open_toolbox(0,True)
 
     def openExternalLink(self, url):
         try:
@@ -699,11 +701,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
 
     # 工具箱
-    def open_toolbox(self, index=0):
+    def open_toolbox(self, index=0,is_hide=False):
         try:
             import box
             if self.toolboxobj is None:
                 self.toolboxobj = box.MainWindow()
+            if is_hide:
+                self.toolboxobj.hide()
+                return
             self.toolboxobj.show()
             self.toolboxobj.tabWidget.setCurrentIndex(index)
             self.toolboxobj.raise_()
@@ -732,45 +737,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 设置每行角色
     def set_line_role_fun(self):
-        def save():
-            config.params['line_roles'] = {}
-            for role in self.current_rolelist:
-                if role in ["No", 'no', '-']:
-                    continue
-                val = self.w.findChild(QLineEdit, role).text()
-                if val:
-                    config.params['line_roles'][role] = val.replace('，', ',')
-            self.w.close()
-            # print(f'{config.params["line_roles"]=}')
+        def get_checked_boxes(widget):
+            checked_boxes = []
+            for child in widget.children():
+                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
+                    checked_boxes.append(child.objectName())
+                else:
+                    checked_boxes.extend(get_checked_boxes(child))
+            return checked_boxes
+
+
+
+        def save(role):
+            # 初始化一个列表，用于存放所有选中 checkbox 的名字
+            checked_checkbox_names = get_checked_boxes(self.w)
+
+            if len(checked_checkbox_names)<1:
+                return QMessageBox.critical(self.w, transobj['anerror'], transobj['zhishaoxuanzeyihang'])
+
+
+            for n in checked_checkbox_names:
+                _,line=n.split('_')
+                # 设置labe为角色名
+                ck=self.w.findChild(QCheckBox,n)
+                ck.setText(transobj['default'] if role in ['No','no','-'] else role)
+                ck.setChecked(False)
+                config.params['line_roles'][line]=config.params['voice_role'] if role in ['No','no','-'] else role
+            print(config.params['line_roles'])
 
         if config.params['voice_role'] in ['No', '-', 'no']:
-            return QMessageBox.critical(self, transobj['anerror'], transobj['xianxuanjuese'])
+            return QMessageBox.critical(self.w, transobj['anerror'], transobj['xianxuanjuese'])
+        if not self.subtitle_area.toPlainText().strip():
+            return QMessageBox.critical(self.w, transobj['anerror'], transobj['youzimuyouset'])
+
         self.w = SetLineRole()
-        set_line_nums = {}
         box = QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
 
-        for role in self.current_rolelist:
-            if role in ["No", 'no', '-']:
-                continue
+        #  获取字幕
+        srt_json=get_subtitle_from_srt(self.subtitle_area.toPlainText().strip(),is_file=False)
+        for it in srt_json:
             # 创建新水平布局
             h_layout = QHBoxLayout()
-
-            # 创建并配置 QLabel
-            label = QLabel()
-            label.setText(role)
-            set_line_nums[role] = 0
-
+            check=QCheckBox()
+            check.setText(config.params['line_roles'][f'{it["line"]}'] if f'{it["line"]}' in config.params['line_roles'] else  transobj['default'])
+            check.setObjectName(f'check_{it["line"]}')
             # 创建并配置 QLineEdit
             line_edit = QLineEdit()
             line_edit.setPlaceholderText(transobj['shezhijueseline'])
-            line_edit.setObjectName(role)
-            if "line_roles" in config.params and role in config.params['line_roles']:
-                line_edit.setText(config.params['line_roles'][role])
+
+            line_edit.setText(f'[{it["line"]}] {it["text"]}')
+            line_edit.setReadOnly(True)
             # 将标签和编辑线添加到水平布局
-            h_layout.addWidget(label)
+            h_layout.addWidget(check)
             h_layout.addWidget(line_edit)
             box.layout().addLayout(h_layout)
+        self.w.select_role.addItems(self.current_rolelist)
+        self.w.set_role_label.setText(transobj['shezhijuese'])
+
+        self.w.select_role.currentTextChanged.connect(save)
         # 创建 QScrollArea 并将 box QWidget 设置为小部件
         scroll_area = QScrollArea()
         scroll_area.setWidget(box)
@@ -779,7 +804,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 将 QScrollArea 添加到主窗口的 layout
         self.w.layout.addWidget(scroll_area)
 
-        self.w.set_ok.clicked.connect(save)
+        self.w.set_ok.clicked.connect(lambda :self.w.close())
         self.w.show()
     def open_youtube(self):
         def download():
@@ -1043,7 +1068,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def tts_type_change(self, type):
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
-        # print(f'{type=}')
         if type == "openaiTTS":
             self.voice_role.clear()
             self.current_rolelist = config.params['openaitts_role'].split(',')
@@ -1057,7 +1081,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.current_rolelist = config.params['elevenlabstts_role']
             if len(self.current_rolelist)<1:
                 self.current_rolelist=get_elevenlabs_role()
-            # print(self.current_rolelist)
             self.voice_role.addItems(['No'] + self.current_rolelist)
         elif type == 'edgeTTS':
             self.set_voice_role(self.target_language.currentText())

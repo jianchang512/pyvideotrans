@@ -61,7 +61,7 @@ class Shiting(QThread):
             rate = f"{rate}%"
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         # 取出设置的每行角色
-        line_roles= get_line_role(config.params["line_roles"]) if "line_roles" in config.params else None
+        line_roles= config.params["line_roles"] if "line_roles" in config.params else None
         for it in subs:
             if config.task_countdown<=0 or self.stop:
                 return
