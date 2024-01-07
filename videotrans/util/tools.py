@@ -364,14 +364,15 @@ def speed_change(sound, speed=1.0):
 def runffmpegbox(arg):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.params['cuda']:
-        cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
+        # -hwaccel cuvid -c:v h264_cuvid -extra_hw_frames 2
+        cmd.extend(["-hwaccel", "cuvid","-c:v","h264_cuvid", "-extra_hw_frames","2"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             else:
                 arg[i]=arg[i].replace('scale=','scale_cuda=')
-        arg.insert(-1,'-vf')
-        arg.insert(-1,'hwdownload')
+        #arg.insert(-1,'-vf')
+        #arg.insert(-1,'hwdownload')
     cmd = cmd + arg
 
     p = subprocess.run(cmd,
@@ -390,14 +391,14 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.params['cuda']:
         #, "-extra_hw_frames", "10"
-        cmd.extend(["-hwaccel", "cuda","-hwaccel_output_format","cuda"])
+        cmd.extend(["-hwaccel", "cuvid","-c:v","h264_cuvid", "-extra_hw_frames","2"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             else:
                 arg[i]=arg[i].replace('scale=','scale_cuda=')
-        arg.insert(-1,'-vf')
-        arg.insert(-1,'hwdownload')
+        #arg.insert(-1,'-vf')
+        #arg.insert(-1,'hwdownload')
             
     cmd = cmd + arg
 
@@ -478,6 +479,15 @@ def get_video_duration(file_path):
     if not duration:
         return False
     return int(float(duration) * 1000)
+
+
+def has_audio(file):
+    output = runffprobe(f'-v quiet -print_format json -show_streams {file}')
+    output_json = json.loads(output)
+    for stream in output_json['streams']:
+        if stream['codec_type'] == 'audio':
+            return True
+    return False
 
 
 # 获取某个视频的fps
@@ -600,7 +610,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         with open(srtfile, 'r', encoding="utf-8") as f:
             txt = f.read().strip().split("\n")
     else:
-        txt = srtfile.strip().strip().split("\n")
+        txt = srtfile.strip().split("\n")
     # 行号
     line = 0
     maxline = len(txt)

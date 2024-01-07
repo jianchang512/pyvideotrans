@@ -592,7 +592,7 @@ class TransCreate():
             else:
                 rate = f"{rate}%"
                 # 取出设置的每行角色
-            line_roles = get_line_role(config.params["line_roles"]) if "line_roles" in config.params else None
+            line_roles = config.params["line_roles"] if "line_roles" in config.params else None
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
             for it in subs:
                 if config.current_status != 'ing':

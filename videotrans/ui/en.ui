@@ -818,7 +818,7 @@ Choose only one of the two options</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>896</width>
+             <width>857</width>
              <height>367</height>
             </rect>
            </property>
@@ -948,10 +948,22 @@ Choose only one of the two options</string>
    <addaction name="menu_H"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
-     <width>0</width>
+     <width>250</width>
      <height>0</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -1083,16 +1095,26 @@ Choose only one of the two options</string>
    <property name="toolTip">
     <string>Display all options for video translation and dubbing</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_tiquzimu_no">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Video Subtitle Extract</string>
+    <string>Export  Srt  From Videos</string>
    </property>
    <property name="toolTip">
     <string>Extracting SRT subtitles in the original language from local videos</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
    </property>
   </action>
   <action name="action_zimu_video">
@@ -1100,10 +1122,15 @@ Choose only one of the two options</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Subtitle video merging</string>
+    <string>Merging Subtitle  Video</string>
    </property>
    <property name="toolTip">
     <string>Embed locally existing SRT subtitles into the video</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
    </property>
   </action>
   <action name="action_zimu_peiyin">
@@ -1111,26 +1138,41 @@ Choose only one of the two options</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Srt creation dubbing</string>
+    <string>Subtitle Create Dubbing</string>
    </property>
    <property name="toolTip">
     <string>Local existing SRT subtitle generation dubbing WAV files</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_yuyinshibie">
    <property name="text">
-    <string>Speech recognition text</string>
+    <string>Speech Recognition Text</string>
    </property>
    <property name="toolTip">
     <string>Recognize the sound in audio or video and output SRT text</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_yuyinhecheng">
    <property name="text">
-    <string>From Text to speech</string>
+    <string>From  Text  Into  Speech</string>
    </property>
    <property name="toolTip">
     <string>Generate audio WAV from text or SRT subtitle files</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
    </property>
   </action>
   <action name="action_tiquzimu">
@@ -1138,50 +1180,80 @@ Choose only one of the two options</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Extract Srt translate</string>
+    <string>Extract Srt And Translate</string>
    </property>
    <property name="toolTip">
     <string>Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_yinshipinfenli">
    <property name="text">
-    <string>Video audio separation</string>
+    <string>Separate Video to audio</string>
    </property>
    <property name="toolTip">
     <string>Separate audio and silent videos from videos</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_yingyinhebing">
    <property name="text">
-    <string>Video subtitle merging</string>
+    <string>Video Subtitles Merging</string>
    </property>
    <property name="toolTip">
     <string>Merge audio, video, and subtitles into one file</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_geshi">
    <property name="text">
-    <string>File format conversion</string>
+    <string>Files Format Conversion</string>
    </property>
    <property name="toolTip">
     <string>Convert various formats to each other</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_hun">
    <property name="text">
-    <string>Mixing 2 audio streams</string>
+    <string>Mixing 2 Audio Streams</string>
    </property>
    <property name="toolTip">
     <string>Mix two audio files into one audio file</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
+   </property>
   </action>
   <action name="action_fanyi">
    <property name="text">
-    <string>Text or srt translation</string>
+    <string>Text  Or Srt  Translation</string>
    </property>
    <property name="toolTip">
     <string>Translate text or subtitles</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+    </font>
    </property>
   </action>
   <action name="actionazure_key">

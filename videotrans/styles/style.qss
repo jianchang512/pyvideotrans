@@ -1,10 +1,11 @@
 QToolBar QToolButton {
   background-color: #32414B;
   height:35px;
-  margin-bottom:5px;
-  margin-top:5px;
+  margin-bottom:0px;
+  margin-top:8px;
   margin-left:2px;
-  margin-right:2px;
+  margin-right:0px;
+  text-align: left;
 }
 QToolBar QToolButton:hover {
   border: 1px solid #148CD2;

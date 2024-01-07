@@ -1,3 +1,6 @@
+import json
+import subprocess
+
 import requests
 import re
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -140,17 +143,27 @@ def panduan2():
                 f.write(f"{it} 出错\n")
 
 
-twos=[]
-with open("./two.txt",'r') as f:
-      for it in f.readlines():
-          cmp=it.split(' -> ')[-1].strip()
-          if cmp:
-            twos.append(it.split(' -> ')[-1].strip())
-print(twos)
+# twos=[]
+# with open("./two.txt",'r') as f:
+#       for it in f.readlines():
+#           cmp=it.split(' -> ')[-1].strip()
+#           if cmp:
+#             twos.append(it.split(' -> ')[-1].strip())
+# print(twos)
+#
+# with open("./one.txt",'r') as f:
+#       for it in f.readlines():
+#           cmp=it.split(' -> ')[-1].strip()
+#           if  cmp and cmp not in twos:
+#               with open('./onenottwois.txt','a') as f:
+#                   f.write(f"{it}")
 
-with open("./one.txt",'r') as f:
-      for it in f.readlines():
-          cmp=it.split(' -> ')[-1].strip()
-          if  cmp and cmp not in twos:
-              with open('./onenottwois.txt','a') as f:
-                  f.write(f"{it}")
+result = subprocess.run(f'ffprobe   -v quiet -print_format json -show_streams  C:\\Users\\c1\\Videos\\_video_out\\30\\no.mp4', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+print(result.stdout)
+
+output_json = json.loads(result.stdout)
+for stream in output_json['streams']:
+    if stream['codec_type'] == 'audio':
+        print("yes")
+
+print('no')
