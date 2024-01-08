@@ -3,6 +3,7 @@ import datetime
 import os
 import locale
 import logging
+import sys
 from queue import Queue
 
 from .language import translate_language, language_code_list
@@ -49,7 +50,11 @@ else:
 english_code_bygpt=list(language_code_list[defaulelang].keys())
 
 # ffmpeg
-os.environ['PATH'] = rootdir + ';' + os.environ['PATH']
+if sys.platform =='win32':
+    os.environ['PATH'] = rootdir + f';{rootdir}\\ffmpeg;' + os.environ['PATH']
+else:
+    os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
+
 os.environ['QT_API'] = 'pyqt5'
 # spwin主窗口
 queue_logs = Queue(200)

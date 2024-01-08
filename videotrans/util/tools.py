@@ -462,7 +462,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True):
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        result = subprocess.run(f'ffprobe {cmd}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+        result = subprocess.run(f'ffprobe {cmd}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False,creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if result.returncode == 0:
             return result.stdout.strip()
         set_process(f'ffprobe error:{result.stdout=},{result.stderr=}')
@@ -666,6 +666,8 @@ def is_novoice_mp4(novoice_mp4, noextname):
     # 判断novoice_mp4是否完成
     t = 0
     if noextname not in config.queue_novice and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4)>0:
+        return True
+    if noextname in config.queue_novice and config.queue_novice[noextname]=='end':
         return True
     last_size=0
     while True:

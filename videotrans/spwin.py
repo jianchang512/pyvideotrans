@@ -434,7 +434,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 目标语言
         self.hide_show_element(self.layout_target_language, False)
-        # self.target_language.setCurrentText('-')
+
         # tts类型
         self.hide_show_element(self.layout_tts_type, False)
 
@@ -765,14 +765,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.params['line_roles'][line]=config.params['voice_role'] if role in ['No','no','-'] else role
             print(config.params['line_roles'])
 
-        if config.params['voice_role'] in ['No', '-', 'no']:
-            return QMessageBox.critical(self.w, transobj['anerror'], transobj['xianxuanjuese'])
-        if not self.subtitle_area.toPlainText().strip():
-            return QMessageBox.critical(self.w, transobj['anerror'], transobj['youzimuyouset'])
 
         self.w = SetLineRole()
         box = QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
+        if config.params['voice_role'] in ['No', '-', 'no']:
+            return QMessageBox.critical(self.w, transobj['anerror'], transobj['xianxuanjuese'])
+        if not self.subtitle_area.toPlainText().strip():
+            return QMessageBox.critical(self.w, transobj['anerror'], transobj['youzimuyouset'])
 
         #  获取字幕
         srt_json=get_subtitle_from_srt(self.subtitle_area.toPlainText().strip(),is_file=False)
@@ -1219,6 +1219,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if os.path.isdir(dirs[-1]):
             QDesktopServices.openUrl(QUrl.fromLocalFile(dirs[-1]))
 
+    # 检测各个模式下参数是否设置正确
+    def check_mode(self,*,txt=None,model=None):
+        # 如果是 配音模式
+        if self.app_mode == 'peiyin':
+            if not txt or config.params['voice_role'] in ['-', 'no', 'No'] or config.params['target_language'] == '-':
+                QMessageBox.critical(self, transobj['anerror'], transobj['peiyinmoshisrt'])
+                return False
+            # 去掉选择视频，去掉原始语言
+            config.params['source_mp4'] = ''
+            config.params['source_language'] = ''
+            config.params['subtitle_type'] = 0
+            config.params['voice_silence'] = '500'
+            config.params['video_autorate'] = False
+            config.params['whisper_model'] = 'base'
+            config.params['whisper_type'] = 'all'
+        # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
+        elif self.app_mode == 'hebing':
+            if not config.params['source_mp4'] or config.params['subtitle_type'] < 1 or not txt:
+                QMessageBox.critical(self, transobj['anerror'], transobj['hebingmoshisrt'])
+                return False
+            config.params['target_language'] = '-'
+            config.params['source_language'] = '-'
+            config.params['voice_silence'] = '500'
+            config.params['voice_role'] = 'No'
+            config.params['voice_rate'] = '+0%'
+            config.params['voice_autorate'] = False
+            config.params['whisper_model'] = 'base'
+            config.params['whisper_type'] = 'all'
+        elif self.app_mode == 'tiqu_no' or self.app_mode == 'tiqu':
+            # 提取字幕模式，必须有视频、有原始语言，语音模型
+            if not config.params['source_mp4']:
+                QMessageBox.critical(self, transobj['anerror'], transobj['selectvideodir'])
+                return False
+            elif not os.path.exists(model):
+                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/")
+                self.statusLabel.setText(transobj[
+                                             'downloadmodel'] + f" ./models/models--Systran--faster-whisper-{config.params['whisper_model']}")
+                return False
+            if self.app_mode == 'tiqu' and config.params['target_language'] in ['-', 'no', 'No']:
+                # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
+                QMessageBox.critical(self, transobj['anerror'], transobj['fanyimoshi1'])
+                return False
+            config.params['subtitle_type'] = 0
+            config.params['voice_role'] = 'No'
+            config.params['voice_silence'] = '500'
+            config.params['voice_rate'] = '+0%'
+            config.params['voice_autorate'] = False
+            config.params['video_autorate'] = False
+            if self.app_mode == 'tiqu_no':
+                config.params['target_language'] = '-'
+        return True
     # 检测开始状态并启动
     def check_start(self):
         if config.current_status == 'ing':
@@ -1311,10 +1362,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['detect_language'] = langlist[self.source_language.currentText()][0]
         # 配音角色
         config.params['voice_role'] = self.voice_role.currentText()
-        # config.voice_role = config.params['voice_role']
+
         # 配音自动加速
         config.params['voice_autorate'] = self.voice_autorate.isChecked()
-        # config.voice_autorate = config.params['voice_autorate']
+
         # 视频自动减速
         config.params['video_autorate'] = self.video_autorate.isChecked()
         # 语音模型
@@ -1328,7 +1379,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
         except:
             config.params['voice_rate'] = '+0%'
-        # config.voice_rate = config.params['voice_rate']
         try:
             voice_silence = int(self.voice_silence.text().strip())
             config.params['voice_silence'] = voice_silence
@@ -1337,66 +1387,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 字幕区文字
         txt = self.subtitle_area.toPlainText().strip()
 
-        # 如果是 配音模式
-        if self.app_mode == 'peiyin':
-            if not txt or config.params['voice_role'] in ['-', 'no', 'No']:
-                return QMessageBox.critical(self, transobj['anerror'], transobj['peiyinmoshisrt'])
-            # 去掉选择视频，去掉原始语言
-            config.params['source_mp4'] = ''
-            config.params['subtitle_type'] = 0
-            config.params['voice_silence'] = '500'
-            config.params['video_autorate'] = False
-            config.params['whisper_model'] = 'base'
-            config.params['whisper_type'] = 'all'
-        # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
-        elif self.app_mode == 'hebing':
-            if not config.params['source_mp4'] or config.params['subtitle_type'] < 1 or not txt:
-                return QMessageBox.critical(self, transobj['anerror'], transobj['hebingmoshisrt'])
-            config.params['target_language'] = '-'
-            config.params['source_language'] = '-'
-            config.params['voice_silence'] = '500'
-            config.params['voice_role'] = 'No'
-            config.params['voice_rate'] = '+0%'
-            config.params['voice_autorate'] = False
-            config.params['whisper_model'] = 'base'
-            config.params['whisper_type'] = 'all'
-        elif self.app_mode == 'tiqu_no' or self.app_mode == 'tiqu':
-            config.params['subtitle_type'] = 0
-            config.params['voice_role'] = 'No'
-            config.params['voice_silence'] = '500'
-            config.params['voice_rate'] = '+0%'
-            config.params['voice_autorate'] = False
-            config.params['video_autorate'] = False
-            # 提取字幕模式，必须有视频、有原始语言，语音模型
-            if not config.params['source_mp4']:
-                return QMessageBox.critical(self, transobj['anerror'], '必须选择视频')
-            elif not os.path.exists(model):
-                QMessageBox.critical(self, transobj['downloadmodel'], f" ./models/")
-                self.statusLabel.setText(transobj['downloadmodel'] + f" ./models/models--Systran--faster-whisper-{config.params['whisper_model']}")
-                return
-            if self.app_mode == 'tiqu' and config.params['target_language'] in ['-', 'no', 'No']:
-                # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
-                return QMessageBox.critical(self, transobj['anerror'], transobj['fanyimoshi1'])
-            if self.app_mode == 'tiqu_no':
-                config.params['target_language'] = '-'
+        if not self.check_mode(txt=txt,model=model):
+            return False
+
         # 综合判断
         if not config.params['source_mp4'] and not txt:
-            return QMessageBox.critical(self, transobj['anerror'], transobj['bukedoubucunzai'])
-
+            QMessageBox.critical(self, transobj['anerror'], transobj['bukedoubucunzai'])
+            return False
         # tts类型
         if config.params['tts_type'] == 'openaiTTS' and not config.params["chatgpt_key"]:
             QMessageBox.critical(self, transobj['anerror'], transobj['chatgptkeymust'])
-            return
+            return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
-            return QMessageBox.critical(self, transobj['anerror'], transobj['wufapeiyin'])
+            QMessageBox.critical(self, transobj['anerror'], transobj['wufapeiyin'])
+            return False
+
         if config.params['source_mp4'] and len(config.queue_mp4) < 1:
             config.queue_mp4 = [config.params['source_mp4']]
-        # 配音模式 无视频
-        # 保存设置
+
+        # 对各种设置情况判断属于什么模式
+        if self.app_mode=='biaozhun':
+            if config.params['source_mp4'] and config.params['subtitle_type'] < 1 and config.params['voice_role'] in ['No', 'no', '-']:
+                # tiqu 如果 存在视频但无配音 无嵌入字幕，则视为提取
+                self.app_mode= 'tiqu_no' if config.params['source_language'] == target_language or target_language=='-' else 'tiqu'
+            elif config.params['source_mp4'] and txt and config.params['subtitle_type'] >0 and (config.params['source_language'] == target_language or target_language=='-'):
+                # hebing 存在视频，存在字幕，字幕嵌入，不存在目标语言或源目标语言相同无需翻译，视为合并
+                self.app_mode='hebing'
+            elif not config.params['source_mp4'] and txt:
+                # peiyin
+                self.app_mode='peiyin'
+        if not self.check_mode(txt=txt,model=model):
+            return False
+
         if config.params["cuda"] and not torch.cuda.is_available():
             config.params['cuda'] = False
-            # config.cuda = False
             self.enable_cuda.setChecked(False)
             if os.environ.get('CUDA_OK'):
                 os.environ.pop('CUDA_OK')
@@ -1409,11 +1434,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for it in config.queue_mp4:
                 self.processbtns[it] = self.add_process_btn(it)
             while len(config.queue_mp4) > 0:
-                config.queue_task.append({"source_mp4": config.queue_mp4.pop(0)})
+                config.queue_task.append({'subtitles':txt,"source_mp4": config.queue_mp4.pop(0),'app_mode':self.app_mode})
         elif txt:
-            # 不存在视频
-            # 已存在字幕
-            config.queue_task.append({"subtitles": txt})
+            # 不存在视频,已存在字幕
+            config.queue_task.append({"subtitles": txt,'app_mode':self.app_mode})
             self.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
 
         self.task = Worker(self)
