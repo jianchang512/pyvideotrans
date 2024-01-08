@@ -63,7 +63,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 4. `python -m venv venv`
 5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
 6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps`
-7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到根目录下，注意必须是直接将可执行文件 ffmpeg 放在根目录下
+7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 到 [ffmpeg官网](https://ffmpeg.org/download.html)下载对应版本ffmpeg，解压到本项目根目录下，注意必须是直接将二进制可执行文件 ffmpeg 放在本项目根目录下,而不是放到ffmpeg文件夹内
 8. `python sp.py` 打开软件界面
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 

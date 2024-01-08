@@ -34,23 +34,20 @@ class TransCreate():
         # config.params = config.params
         # config.params.update(obj)
         self.step = 'prepare'
-        # 仅提取字幕，不嵌入字幕，不配音，仅用于提取字幕
-        # 【从视频提取出字幕文件】
-        self.only_srt = config.params['subtitle_type'] < 1 and config.params['voice_role'] in ['No', 'no', '-']
+        self.app_mode=obj['app_mode']
         # 原始视频
         self.source_mp4 = obj['source_mp4'].replace('\\', '/') if 'source_mp4' in obj else ""
 
         # 没有视频，是根据字幕生成配音
         if not self.source_mp4:
             self.noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            self.target_dir = f"{homedir}/only_dubbing"
         else:
             # 去掉扩展名的视频名，做标识
             self.noextname = os.path.splitext(os.path.basename(self.source_mp4))[0]
-            if not config.params['target_dir']:
-                self.target_dir = (os.path.dirname(self.source_mp4) + "/_video_out").replace('\\', '/')
-            else:
-                self.target_dir = config.params['target_dir'].replace('\\', '/')
+        if not config.params['target_dir']:
+            self.target_dir =  f"{homedir}/only_dubbing" if not self.source_mp4 else  (os.path.dirname(self.source_mp4) + "/_video_out").replace('\\', '/')
+        else:
+            self.target_dir = config.params['target_dir'].replace('\\', '/')
         # 全局目标，用于前台打开
         self.target_dir=self.target_dir.replace('//', '/')
         config.params['target_dir']=self.target_dir
@@ -69,8 +66,6 @@ class TransCreate():
         self.sub_name = f"{self.cache_folder}/{self.noextname}.srt"
         self.source_mp4_length = -1
 
-        print(f'noextname={self.noextname},target_dir={self.target_dir}')
-
         # 创建文件夹
         if not os.path.exists(self.target_dir):
             os.makedirs(self.target_dir, exist_ok=True)
@@ -84,47 +79,51 @@ class TransCreate():
         self.targetdir_source_wav = f"{self.target_dir}/{config.params['source_language']}.wav"
         self.targetdir_target_wav = f"{self.target_dir}/{config.params['target_language']}.wav"
         self.targetdir_mp4 = f"{self.target_dir}/{self.noextname}.mp4"
-        # 如果存在字幕，则直接生成
-        if "subtitles" in obj and obj['subtitles']:
-            # 如果原语言和目标语言相同，或不存在视频，则不翻译
+        # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
+        if "subtitles" in obj and obj['subtitles'].strip():
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(obj['subtitles'].strip())
+        print(f'{self.app_mode=},{self.targetdir_target_sub=},{self.targetdir_mp4=}')
 
     # 启动执行入口
     def run(self):
-        # 存在视频并且不是仅提取字幕，则分离
-        if self.source_mp4 and os.path.exists(self.source_mp4):
+        # 存在视频 , 不是 tiqu/tiqu_no/hebing
+        if self.source_mp4 and self.app_mode not in ['hebing']:
             set_process(f'audio and video split')
             if not self.split_wav_novicemp4():
                 set_process("split error", 'error')
                 return False
+        elif self.app_mode=='hebing':
+            shutil.copy2(self.source_mp4,self.novoice_mp4)
+            config.queue_novice[self.noextname]='end'
 
-        #####识别阶段 存在视频，且存在原语言字幕，如果界面无字幕，则填充
-        if self.source_mp4 and os.path.exists(self.targetdir_source_sub):
+        #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
+        if self.source_mp4 and not os.path.exists(self.targetdir_target_sub) and os.path.exists(self.targetdir_source_sub):
             # 通知前端替换字幕
             with open(self.targetdir_source_sub, 'r', encoding="utf-8") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
-        # 如果存在视频，且没有已识别过的，则需要识别
+        # 如果存在视频，且没有已识别过的， 并且不是 hebing 则需要识别
+        print(f'11 {self.app_mode=}')
         if self.source_mp4 and not os.path.exists(self.targetdir_source_sub) and not os.path.exists(
-                self.targetdir_target_sub):
+                self.targetdir_target_sub) and self.app_mode != 'hebing':
+            print('22')
             set_process(f'start speech to text')
+
             if not self.recongn():
                 set_process("recognition error", 'error')
                 return False
+            print('33')
 
         ##### 翻译阶段
-        # 如果存在视频，并且存在目标语言字幕，则前台直接使用该字幕替换
+        # 如果存在字幕，并且存在目标语言字幕，则前台直接使用该字幕替换
         if self.source_mp4 and os.path.exists(self.targetdir_target_sub):
             # 通知前端替换字幕
             with open(self.targetdir_target_sub, 'r', encoding="utf-8") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
 
-        # 是否需要翻译，如果存在视频，并且存在目标语言，并且原语言和目标语言不同，并且没有已翻译过的，则需要翻译
+        # 是否需要翻译，不是 tiqu_no/hebing，存在识别后字幕并且不存在目标语言字幕，并且原语言和目标语言不同，则需要翻译
         self.step = 'translate_before'
-        if self.source_mp4 \
-                and config.params['target_language'] not in ['No', 'no', '-'] \
-                and config.params['target_language'] != config.params['source_language'] \
-                and not os.path.exists(self.targetdir_target_sub):
+        if self.app_mode not in ['tiqu_no','hebing'] and os.path.exists(self.targetdir_source_sub) and not os.path.exists(self.targetdir_target_sub) and config.params['target_language'] not in ['No', 'no', '-']  and config.params['target_language'] != config.params['source_language']:
             # 等待编辑原字幕后翻译
             set_process(transobj["xiugaiyuanyuyan"], 'edit_subtitle')
             config.task_countdown = 60
@@ -141,10 +140,8 @@ class TransCreate():
             set_process('Translate end')
         self.step = 'translate_end'
 
-        # 如果仅仅需要提取字幕（不配音、不嵌入字幕），到此返回
-        # 【从视频提取出字幕文件】
-        # 选择视频文件，选择视频源语言，如果选择目标语言，则会输出翻译后的字幕文件，其他无需选择，开始执行
-        if self.only_srt:
+        # 如果仅仅需要提取字幕 tiqu tiqu_no
+        if self.app_mode in ['tiqu','tiqu_no']:
             set_process(f"Ended")
             # 检测是否还有
             return True
@@ -167,7 +164,6 @@ class TransCreate():
                 config.task_countdown -= 1
                 if config.task_countdown <= 60 and config.task_countdown >= 0:
                     set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
-            # set_process(f"<br>开始配音操作:{config.params['tts_type']},{config.params['voice_role']}")
             set_process('', 'timeout_djs')
             time.sleep(3)
             self.step = 'dubbing_ing'
@@ -190,15 +186,17 @@ class TransCreate():
             set_process('Dubbing ended')
 
         self.step = 'dubbing_end'
-        # 如果不需要合成，比如仅配音
-        if not self.source_mp4:
-            set_process('Ended')
+        # 如果仅需配音，到此结束
+        if self.app_mode=='peiyin':
+            set_process(f"Ended")
             return True
 
         # 最后一步合成
         self.step = 'compos_before'
+        print('hebing1')
         try:
             set_process(f"Start last step")
+            print('hebing2')
             if self.compos_video():
                 time.sleep(1)
         except Exception as e:
@@ -237,7 +235,6 @@ class TransCreate():
         
         # 如果不存在音频，则分离出音频
         if os.path.exists(self.source_mp4) and not os.path.exists(self.targetdir_source_wav):
-            # set_process(f"{self.noextname} 分析视频数据", "logs")
             try:
                 if not runffmpeg([
                     "-y",
@@ -256,6 +253,7 @@ class TransCreate():
 
     # 识别出字幕
     def recongn(self):
+        # 分离未完成，需等待
         while not os.path.exists(self.targetdir_source_wav):
             set_process(transobj["running"])
             time.sleep(1)
@@ -278,7 +276,6 @@ class TransCreate():
             return True
         except Exception as e:
             set_process(f"translate error:" + str(e), 'error')
-            set_process(transobj["tingzhile"], 'stop')
         return False
 
     # split audio by silence
@@ -441,12 +438,13 @@ class TransCreate():
             segments,_ = model.transcribe(self.targetdir_source_wav, 
                             beam_size=5,  
                             vad_filter=True,
-                            vad_parameters=dict(min_silence_duration_ms=config.params['voice_silence']),
+                            vad_parameters=dict(min_silence_duration_ms=int(config.params['voice_silence'])),
                             language=language)
             # 保留原始语言的字幕
             raw_subtitles = []
             offset = 0
             sidx=-1
+            print(segments)
             for segment in segments:
                 sidx+=1
                 if config.current_status == 'stop' or config.current_status == 'end':
@@ -1032,13 +1030,14 @@ class TransCreate():
 
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
     def compos_video(self):
-        # 预先创建好的
         # 判断novoice_mp4是否完成
+        print('c-1')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             return False
 
-        # 需要配音
-        if config.params['voice_role'] not in ['No', 'no', '-']:
+        print('c-2')
+        # 需要配音,选择了角色，并且不是 提取模式 合并模式
+        if config.params['voice_role'] not in ['No', 'no', '-'] and self.app_mode not in ['tiqu','tiqu_no','hebing']:
             if not os.path.exists(self.targetdir_target_wav):
                 set_process(f"[error] dubbing file error: {self.targetdir_target_wav}")
                 return False
@@ -1046,6 +1045,7 @@ class TransCreate():
         if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
             set_process(f"[error]no vail srt file {self.targetdir_target_sub}", 'error')
             return False
+        print('c-3')
         if config.params['subtitle_type'] == 1:
             # 硬字幕 重新整理字幕，换行
             try:
@@ -1065,7 +1065,7 @@ class TransCreate():
         # 有字幕有配音
         rs=False
         try:
-            if config.params['voice_role'] != 'No' and config.params['subtitle_type'] > 0:
+            if config.params['voice_role'] not in ['No','no','-'] and config.params['subtitle_type'] > 0:
                 if config.params['subtitle_type'] == 1:
                     set_process(f"dubbing & embed srt")
                     # 需要配音+硬字幕
@@ -1113,7 +1113,7 @@ class TransCreate():
                         # "-shortest",
                         os.path.normpath(self.targetdir_mp4)
                     ])
-            elif config.params['voice_role'] != 'No':
+            elif config.params['voice_role'] not in ['No','no','-']:
                 # 配音无字幕
                 set_process(f"dubbing")
                 rs=runffmpeg([
@@ -1135,50 +1135,54 @@ class TransCreate():
             elif config.params['subtitle_type'] == 1:
                 # 硬字幕无配音 将原始mp4复制到当前文件夹下
                 set_process(f"embed srt & no dubbing")
-                rs=runffmpeg([
+                cmd=[
                     "-y",
                     "-i",
-                    os.path.normpath(self.novoice_mp4),
-                    "-i",
-                    os.path.normpath(self.targetdir_source_wav),
-                    "-c:v",
-                    "libx264",
-                    # "libx264",
-                    "-c:a",
-                    "aac",
-                    # "pcm_s16le",
+                    os.path.normpath(self.novoice_mp4)
+                ]
+                if os.path.exists(self.targetdir_source_wav):
+                    cmd.append('-i')
+                    cmd.append(os.path.normpath(self.targetdir_source_wav))
+                cmd.append('-c:v')
+                cmd.append('libx264')
+                if os.path.exists(self.targetdir_source_wav):
+                    cmd.append('-c:a')
+                    cmd.append('aac')
+                cmd+=[
                     "-vf",
                     f"subtitles={hard_srt}",
-                    # "-shortest",
                     os.path.normpath(self.targetdir_mp4),
-                ])
+                ]
+                rs=runffmpeg(cmd)
             elif config.params['subtitle_type'] == 2:
                 # 软字幕无配音
                 set_process(f"srt & no dubbing")
-                rs=runffmpeg([
+                cmd=[
                     "-y",
                     "-i",
-                    os.path.normpath(self.novoice_mp4),
-                    "-i",
-                    os.path.normpath(self.targetdir_source_wav),
-                    "-sub_charenc",
+                    os.path.normpath(self.novoice_mp4)
+                ]
+                if os.path.exists(self.targetdir_source_wav):
+                    cmd.append("-i")
+                    cmd.append(os.path.normpath(self.targetdir_source_wav))
+                cmd+=["-sub_charenc",
                     "UTF-8",
                     "-f",
                     "srt",
                     "-i",
                     os.path.normpath(self.targetdir_target_sub),
                     "-c:v",
-                    "libx264",
-                    "-c:a",
-                    "aac",
-                    # "libx264",
-                    "-c:s",
+                    "libx264"]
+                if os.path.exists(self.targetdir_source_wav):
+                    cmd.append('-c:a')
+                    cmd.append('aac')
+                cmd+=["-c:s",
                     "mov_text",
                     "-metadata:s:s:0",
                     f"language={config.params['subtitle_language']}",
-                    # "-shortest",
                     os.path.normpath(self.targetdir_mp4)
-                ])
+                ]
+                rs=runffmpeg(cmd)
         except Exception as e:
             set_process(f'{str(e)}','error')
             return False

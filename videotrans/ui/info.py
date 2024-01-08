@@ -57,8 +57,31 @@ p, li { white-space: pre-wrap; }
 <hr />
 <h2 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">感谢所有捐助者</span></h2>
 <h2 style="-qt-paragraph-type:empty; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:x-large; font-weight:600;"><br /></h2>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">github用户<span style=" color:#00aa00;">yuppiesnotzhuhao </span> |  微信用户<span style=" color:#00aa00;">9*9</span> | 未署名的3位用户 | ID:BigD-a-yi</p>
-<p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全局捐助列表</a></p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
+<span style="margin:5px;padding:5px;">wonyes 2023-11-20 捐助100元 </span> /  
+<span style="margin:5px;padding:5px;">yuppiesnotzhuhao  2023-12-01 捐助10元 </span> /  
+<span style="margin:5px;padding:5px;">9*9  2023-12-02 捐助10元 </span> /  
+<span style="margin:5px;padding:5px;">*s  2023-12-7 捐助 10 元 </span> /  
+<span style="margin:5px;padding:5px;">汪*X  2023-12-10 捐助 0.6 元 </span> /  
+<span style="margin:5px;padding:5px;">*兄  2023-12-12 捐助 1 元 </span> /  
+<span style="margin:5px;padding:5px;">*辰  2023-12-13 捐助 5 元 </span> /  
+<span style="margin:5px;padding:5px;">喵の左爪/19225866  2023-12-18 捐助5元 </span> / 
+<span style="margin:5px;padding:5px;">ID:BigD-a-yi2023-12-20  捐助10元 </span> /  
+<span style="margin:5px;padding:5px;">*D  2023-12-20 捐助 10 元 </span> /  
+<span style="margin:5px;padding:5px;">*溪  2023-12-22 捐助 5 元 </span> /  
+<span style="margin:5px;padding:5px;">*星  2023-12-23 捐助 66 元 </span> /  
+<span style="margin:5px;padding:5px;">F*f  2023-12-24 捐助 10 元 </span> /  
+<span style="margin:5px;padding:5px;">*玲  2023-12-25 捐助 10 元 </span> /  
+<span style="margin:5px;padding:5px;">laowangtou-888  2023-12-25 100 元 </span> /  
+<span style="margin:5px;padding:5px;">铁*  2023-12-29 捐助 5 元 </span> /  
+<span style="margin:5px;padding:5px;">dingsmart  2024-1-1 捐助 100 元 </span> /  
+<span style="margin:5px;padding:5px;">*王  2024-1-1 捐助 50 元 </span> /  
+<span style="margin:5px;padding:5px;">*想  2024-1-2 捐助 2.88 元 </span> /  
+<span style="margin:5px;padding:5px;">*)  2024-1-6 捐助 50 元 </span> /  
+<span style="margin:5px;padding:5px;">*道  2024-1-6 捐助 20 元 </span> /  
+<span style="margin:5px;padding:5px;">*剑  2024-1-6 捐助 8 元 </span> /  
+</p>
+<p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p></body></html>
 """))
