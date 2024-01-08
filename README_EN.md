@@ -9,7 +9,7 @@
 >
 > Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX`.
 >
-> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1`.
+> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
 >
 
 
