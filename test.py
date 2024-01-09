@@ -19,3 +19,8 @@ try:
         print("no")
 except:
     pass
+
+import requests
+
+t=requests.get('http://gptgold.vip/api/v1')
+print(t.status_code)
