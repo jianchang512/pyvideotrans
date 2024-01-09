@@ -818,7 +818,7 @@ Choose only one of the two options</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>857</width>
+             <width>905</width>
              <height>367</height>
             </rect>
            </property>
@@ -936,8 +936,6 @@ Choose only one of the two options</string>
     <addaction name="separator"/>
     <addaction name="action_issue"/>
     <addaction name="separator"/>
-    <addaction name="action_vlc"/>
-    <addaction name="separator"/>
     <addaction name="action_ffmpeg"/>
     <addaction name="separator"/>
     <addaction name="action_about"/>
@@ -949,14 +947,14 @@ Choose only one of the two options</string>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>250</width>
+     <width>0</width>
      <height>0</height>
     </size>
    </property>
@@ -1044,7 +1042,7 @@ Choose only one of the two options</string>
   </action>
   <action name="action_git">
    <property name="text">
-    <string>Github Repositories</string>
+    <string>Github</string>
    </property>
   </action>
   <action name="action_issue">
@@ -1079,7 +1077,7 @@ Choose only one of the two options</string>
   </action>
   <action name="action_about">
    <property name="text">
-    <string>Help me</string>
+    <string>Donating developers</string>
    </property>
   </action>
   <action name="action_biaozhun">

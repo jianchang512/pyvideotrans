@@ -37,7 +37,7 @@ translate_language = {
         "autocomposing":"秒倒计时后将自动合成视频，修改字幕编辑区任意内容后将停止倒计时",
         "queding":"确定",
         "hechengchucuo":"合成出错，缺少文件:",
-        "installffmpeg":"未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量",
+        "installffmpeg":"没有 ffmpeg,到ffmpeg.org下载解压后将ffmepg和ffprobe放到本软件根下",
         "yinsekelong":"音色克隆将接入 github.com/jianchang512/clone-voice ，实现自定义音色配音",
         "yinsekaifazhong":"音色克隆开发中",
         "whisper_type_all":"整体识别",
@@ -130,9 +130,11 @@ translate_language = {
         "shezhijuese":"设置角色",
         "zhishaoxuanzeyihang":"至少要选中一行",
         "default":"默认",
-        "sjselectmp4":"双击选择视频或拖拽视频到此处"
+        "sjselectmp4":"双击选择视频或拖拽视频到此处",
+        "ffmpegerror":"请检查CUDA配置是否正确，或检查视频是否H264编码的mp4文件"
     },
     "en": {
+        "ffmpegerror":"Please check if the CUDA configuration is correct or if the video is an H264 encoded mp4 file",
         "sjselectmp4":"Double click to select video or drag video here",
         "default":"default",
         "zhishaoxuanzeyihang":"At least one row must be selected",
@@ -151,7 +153,7 @@ translate_language = {
         "processingstatusbar":"Process video:[{var1}] total, [{var2}] waitting",
         "yinsekelong": "Timbre cloning will use github.com/jianchang512/clone-voice. These features will then be used as the voice for dubbing characters, achieving custom dubbing with any desired timbre.",
         "yinsekaifazhong": "Timbre cloning is under development.",
-        "installffmpeg":"ffmpeg not found, the software is not available. Please download it from ffmpeg.org and add it to the system's environment variables.",
+        "installffmpeg":"No ffmpeg, please go to ffmpeg.org to download and place the file ffmpeg and ffprobe under the root of this software",
         "hechengchucuo":"Composing video error，lost file:",
         "queding":"Confirm",
         "wait_edit_subtitle":"Wait for edit subtitle",

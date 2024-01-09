@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import ctypes
 from videotrans.configure.config import rootdir, queuebox_logs
 from ctypes.util import find_library
@@ -269,11 +270,11 @@ def speed_change(sound, speed=1.0):
 
 
 
-def runffmpegbox(arg):
+def runffmpegbox(arg,*,disable_gpu=False):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
-    if config.params['cuda']:
-        # -hwaccel cuvid -c:v h264_cuvid -extra_hw_frames 2
-        cmd.extend(["-hwaccel", "cuvid","-c:v","h264_cuvid", "-extra_hw_frames","2"])
+    copyarg=copy.deepcopy(arg)
+    if config.params['cuda'] and not disable_gpu:
+        cmd.extend(["-hwaccel", "cuvid"," -hwaccel_output_format","cuda", "-c:v","h264_cuvid", "-extra_hw_frames","2"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
@@ -287,15 +288,18 @@ def runffmpegbox(arg):
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     if p.returncode==0:
         return True
-    set_process_box(str(p.stderr),'error')
-    return False
+    if disable_gpu:
+        set_process_box(str(p.stderr),'error')
+        return False
+    else:
+        return runffmpegbox(copyarg,disable_gpu=True)
 
 
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, error_exit=True,disable_gpu=False):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.params['cuda'] and not disable_gpu:
-        cmd.extend(["-hwaccel", "cuvid","-c:v","h264_cuvid", "-extra_hw_frames","2"])
+        cmd.extend(["-hwaccel", "cuvid"," -hwaccel_output_format","cuda", "-c:v","h264_cuvid", "-extra_hw_frames","2"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
@@ -334,7 +338,7 @@ def runffmpeg(arg, *, noextname=None, error_exit=True,disable_gpu=False):
                 return True
             # 失败
             if error_exit and config.params['cuda']:
-                set_process("[error] Please try upgrading the graphics card driver and reconfigure CUDA", 'error')
+                set_process(f"[error] {transobj['ffmpegerror']}", 'error')
                 return False
             elif error_exit:
                 set_process(f'ffmpeg error:{errs=}','error')
@@ -366,7 +370,7 @@ def runffprobe(cmd):
         result = subprocess.run(f'ffprobe {cmd}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False,creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if result.returncode == 0:
             return result.stdout.strip()
-        set_process(f'ffprobe error:{result.stdout=},{result.stderr=}')
+        #set_process(f'ffprobe error:{result.stdout=},{result.stderr=}')
         return False
     except subprocess.CalledProcessError as e:
         set_process(f'ffprobe error:{str(e)}')
@@ -383,11 +387,14 @@ def get_video_duration(file_path):
 
 
 def has_audio(file):
-    output = runffprobe(f'-v quiet -print_format json -show_streams {file}')
-    output_json = json.loads(output)
-    for stream in output_json['streams']:
-        if stream['codec_type'] == 'audio':
-            return True
+    try:
+        output = runffprobe(f'-v quiet -print_format json -show_streams {file}')
+        output_json = json.loads(output)
+        for stream in output_json['streams']:
+            if stream['codec_type'] == 'audio':
+                return True
+    except:
+        pass
     return False
 
 
@@ -423,7 +430,7 @@ def get_video_resolution(file_path):
 
 # 取出最后一帧图片
 def get_lastjpg_fromvideo(file_path, img):
-    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'])
+    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'], disable_gpu=True)
 
 
 # 文字合成
