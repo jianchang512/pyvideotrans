@@ -941,8 +941,6 @@
     <addaction name="separator"/>
     <addaction name="action_issue"/>
     <addaction name="separator"/>
-    <addaction name="action_vlc"/>
-    <addaction name="separator"/>
     <addaction name="action_ffmpeg"/>
     <addaction name="separator"/>
     <addaction name="action_about"/>
@@ -1029,7 +1027,7 @@
   </action>
   <action name="action_ffmpeg">
    <property name="text">
-    <string>FFmpeg</string>
+    <string>FFmpeg官网</string>
    </property>
    <property name="toolTip">
     <string>去FFmpeg官网</string>
@@ -1037,12 +1035,12 @@
   </action>
   <action name="action_git">
    <property name="text">
-    <string>github 代码</string>
+    <string>GitHub仓库</string>
    </property>
   </action>
   <action name="action_issue">
    <property name="text">
-    <string>发个issue</string>
+    <string>遇到问题?</string>
    </property>
   </action>
   <action name="action_clone">
@@ -1057,7 +1055,7 @@
   </action>
   <action name="action_website">
    <property name="text">
-    <string>文档</string>
+    <string>文档站点</string>
    </property>
   </action>
   <action name="action_discord">
@@ -1072,7 +1070,7 @@
   </action>
   <action name="action_about">
    <property name="text">
-    <string>支持该软件</string>
+    <string>捐助开发者</string>
    </property>
   </action>
   <action name="action_biaozhun">

@@ -1,6 +1,7 @@
 import json
 import re
 import os
+import shutil
 import webbrowser
 import torch
 from PyQt5 import QtWidgets
@@ -80,6 +81,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # start
         self.startbtn.clicked.connect(self.check_start)
+        try:
+            if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+                self.startbtn.setText(transobj['installffmpeg'])
+                self.startbtn.setDisabled(True)
+                self.startbtn.setStyleSheet("""color:#ff0000""")
+        except:
+            pass
+
         # 隐藏倒计时
         self.stop_djs.clicked.connect(self.reset_timeid)
         self.stop_djs.hide()
@@ -194,7 +203,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepL_key.triggered.connect(self.set_deepL_key)
         self.actionElevenlabs_key.triggered.connect(self.set_elevenlabs_key)
         self.actiondeepLX_address.triggered.connect(self.set_deepLX_address)
-        self.action_vlc.triggered.connect(lambda: self.open_url('vlc'))
         self.action_ffmpeg.triggered.connect(lambda: self.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.open_url('discord'))

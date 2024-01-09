@@ -16,6 +16,8 @@
 
 <img src="./images/wx.png" width="200">
 
+<img src="https://v.wonyes.org/images/wx.png" width="100">
+
 
 ## 捐助者列表
 
@@ -43,5 +45,7 @@
 - *) / 2024-1-6 捐助 50 元
 - *道 / 2024-1-6 捐助 20 元
 - *剑 / 2024-1-6 捐助 8 元
- 
+- o*u / 2024-1-9 捐助 100 元
+- o*u / 2024-1-9 捐助 100 元
+- [qxk2005](https://github.com/qxk2005) / 2024-1-9 捐助 100 元
 

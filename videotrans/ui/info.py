@@ -80,6 +80,8 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">*)  2024-1-6 捐助 50 元 </span> /  
 <span style="margin:5px;padding:5px;">*道  2024-1-6 捐助 20 元 </span> /  
 <span style="margin:5px;padding:5px;">*剑  2024-1-6 捐助 8 元 </span> /  
+<span style="margin:5px;padding:5px;">o*u  2024-1-9 捐助 100 元 </span> /  
+<span style="margin:5px;padding:5px;"><a href="https://github.com/qxk2005">qxk2005</a>  2024-1-9 捐助 100 元 </span> /  
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p>
