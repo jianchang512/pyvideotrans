@@ -4,12 +4,10 @@ import json
 import os
 import re
 import time
-
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSettings, QUrl
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QMainWindow,  QFileDialog, QMessageBox,   QLabel
-
 from videotrans import VERSION
 from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
 from videotrans.box.logs_worker import LogsWorker

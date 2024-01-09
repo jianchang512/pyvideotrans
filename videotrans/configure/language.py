@@ -129,9 +129,11 @@ translate_language = {
         "youzimuyouset":"字幕区显示完整字幕后才可按行设置多角色",
         "shezhijuese":"设置角色",
         "zhishaoxuanzeyihang":"至少要选中一行",
-        "default":"默认"
+        "default":"默认",
+        "sjselectmp4":"双击选择视频或拖拽视频到此处"
     },
     "en": {
+        "sjselectmp4":"Double click to select video or drag video here",
         "default":"default",
         "zhishaoxuanzeyihang":"At least one row must be selected",
         "continue_action":"继续下一步",

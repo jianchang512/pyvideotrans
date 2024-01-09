@@ -115,7 +115,6 @@ PyQt5-sip==12.13.0
 PyQt5-stubs==5.15.6.0
 pyreadline3==3.4.1
 python-dateutil==2.8.2
-python-vlc==3.0.20123
 pytz==2023.3.post1
 pywin32-ctypes==0.2.2
 pywinstyles==1.4

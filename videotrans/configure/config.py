@@ -132,8 +132,6 @@ params = {
 # 存放一次性多选的视频
 queue_mp4 = []
 
-# 是否安装 vlc
-is_vlc = False
 
 # 存放视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice = {}

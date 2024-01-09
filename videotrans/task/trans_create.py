@@ -43,7 +43,16 @@ class TransCreate():
             self.noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         else:
             # 去掉扩展名的视频名，做标识
-            self.noextname = os.path.splitext(os.path.basename(self.source_mp4))[0]
+            self.noextname,ext = os.path.splitext(os.path.basename(self.source_mp4))
+            if ext.lower()!='.mp4':
+                out_mp4=re.sub(rf'{ext}$','.mp4',self.source_mp4)
+                runffmpeg([
+                    '-y',
+                    '-i',
+                    os.path.normpath(self.source_mp4),
+                    out_mp4
+                ],disable_gpu=True)
+                self.source_mp4=out_mp4
         if not config.params['target_dir']:
             self.target_dir =  f"{homedir}/only_dubbing" if not self.source_mp4 else  (os.path.dirname(self.source_mp4) + "/_video_out").replace('\\', '/')
         else:
@@ -929,68 +938,54 @@ class TransCreate():
             # 偏移时间，用于每个 start_time 增减
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
-            srtmeta = []
             for (idx, it) in enumerate(queue_copy):
+                # 如果有偏移，则添加偏移
                 it['start_time'] += offset
                 it['end_time'] += offset
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                srtmeta_item = {
-                    'dubbing_time': -1,
-                    'source_time': -1,
-                    'speed_up': -1,
-                    "text": it['text'],
-                    "line": idx + 1
-                }
                 if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
                     start_times.append(it['start_time'])
                     segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
-
                     queue_copy[idx] = it
-                    srtmeta.append(srtmeta_item)
                     continue
                 audio_data = AudioSegment.from_file(it['filename'], format="mp3")
                 mp3len = len(audio_data)
-
                 # 原字幕发音时间段长度
                 wavlen = it['end_time'] - it['start_time']
-
                 if wavlen <= 0:
                     queue_copy[idx] = it
-                    srtmeta.append(srtmeta_item)
                     continue
-                # 新配音时长
-                srtmeta_item['dubbing_time'] = mp3len
-                srtmeta_item['source_time'] = wavlen
-                srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
-                if diff > 0 and config.params["voice_autorate"]:
-                    speed = mp3len / wavlen
-                    speed = 1.8 if speed > 1.8 else round(speed, 2)
-                    srtmeta_item['speed_up'] = speed
-                    # 新的长度
-                    mp3len = mp3len / speed
-                    diff = mp3len - wavlen
-                    if diff < 0:
-                        diff = 0
-                    set_process(f"dubbing speed + {speed}")
-                    # 音频加速 最大加速2倍
-                    audio_data = speed_change(audio_data, speed)
-                    # 增加新的偏移
-                    offset += diff
+                if config.params["voice_autorate"]:
+                    # 需要加速并根据加速调整字幕时间 字幕时间 时长时间不变
+                    if diff > 0 :
+                        speed = mp3len / wavlen
+                        # 新的长度
+                        tmp_mp3=os.path.join(self.cache_folder,f'{it["filename"]}.mp3')
+                        if not runffmpeg([
+                            "-y",
+                            "-i",
+                            it['filename'],
+                            "-af",
+                            f'atempo={speed}',
+                            tmp_mp3
+                        ]):
+                            set_process(f"[error] voice auto rate error {it['filename']}:", 'error')
+                            return False
+                        set_process(f"dubbing speed + {speed}")
+                        # 音频加速 最大加速2倍
+                        audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
                 elif diff > 0:
-                    offset += diff
-                    if config.params["voice_autorate"]:
-                        pass
-                        # set_process("已启用自动加速但无需加速")
-                it['end_time'] = it['start_time'] + mp3len
+                    offset+=diff
+                    it['end_time'] += diff
+
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 queue_copy[idx] = it
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
-                srtmeta.append(srtmeta_item)
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(queue_copy):
@@ -998,31 +993,21 @@ class TransCreate():
             # 字幕保存到目标文件夹一份
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(srt.strip())
-            # 保存字幕元信息
-            # with open(f"{self.target_dir}/srt.json", 'w', encoding="utf-8") as f:
-            #     f.write("dubbing_time=配音时长，source_time=原时长,speed_up=配音加速为原来的倍数\n-1表示无效，0代表未变化，无该字段表示跳过\n" + json.dumps(
-            #         srtmeta))
             # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
-            if total_length > 0 and offset > 0 and queue_copy[-1]['end_time'] > total_length:
+            if total_length > 0 and queue_copy[-1]['end_time'] > total_length:
                 # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
                 offset = int(queue_copy[-1]['end_time'] - total_length)
+                total_length+=offset
                 set_process(f"{offset=}>0，end add video frame {offset} ms")
                 try:
                     # 对视频末尾定格延长
                     if not self.novoicemp4_add_time(offset):
-                        offset = 0
                         set_process(f"[error]Failed to add extended video frame at the end, will remain unchanged, truncate audio, and do not extend video")
                     else:
-                        pass
-                        # set_process(f'视频延长成功')
+                        set_process(f'video extended {offset}ms')
                 except Exception as e:
                     set_process(f"[error]Failed to add extended video frame at the end, will remain unchanged, truncate audio, and do not extend video:{str(e)}")
-                    offset = 0
-            else:
-                pass
-                # set_process(f"末尾不需要延长")
-            # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
-            self.merge_audio_segments(segments, start_times, 0 if total_length == 0 else total_length + offset)
+            self.merge_audio_segments(segments, start_times, total_length)
         except Exception as e:
             set_process(f"[error] exec_tts text to speech:" + str(e), 'error')
             return False
