@@ -93,98 +93,6 @@ def transcribe_audio(audio_path, model, language):
 
 
 
-def find_lib():
-    dll = None
-    plugin_path = os.environ.get('PYTHON_VLC_MODULE_PATH', None)
-    if 'PYTHON_VLC_LIB_PATH' in os.environ:
-        try:
-            dll = ctypes.CDLL(os.environ['PYTHON_VLC_LIB_PATH'])
-        except OSError:
-            return
-    if plugin_path and not os.path.isdir(plugin_path):
-        return
-    if dll is not None:
-        return dll, plugin_path
-
-    if sys.platform.startswith('win'):
-        libname = 'libvlc.dll'
-        p = find_library(libname)
-        if p is None:
-            try:  # some registry settings
-                # leaner than win32api, win32con
-                import winreg as w
-                for r in w.HKEY_LOCAL_MACHINE, w.HKEY_CURRENT_USER:
-                    try:
-                        r = w.OpenKey(r, 'Software\\VideoLAN\\VLC')
-                        plugin_path, _ = w.QueryValueEx(r, 'InstallDir')
-                        w.CloseKey(r)
-                        break
-                    except w.error:
-                        pass
-            except ImportError:  # no PyWin32
-                pass
-            if plugin_path is None:
-                # try some standard locations.
-                programfiles = os.environ["ProgramFiles"]
-                homedir = os.environ["HOMEDRIVE"]
-                for p in ('{programfiles}\\VideoLan{libname}', '{homedir}:\\VideoLan{libname}',
-                          '{programfiles}{libname}', '{homedir}:{libname}'):
-                    p = p.format(homedir=homedir,
-                                 programfiles=programfiles,
-                                 libname='\\VLC\\' + libname)
-                    if os.path.exists(p):
-                        plugin_path = os.path.dirname(p)
-                        break
-            if plugin_path is not None:  # try loading
-                # PyInstaller Windows fix
-                if 'PyInstallerCDLL' in ctypes.CDLL.__name__:
-                    ctypes.windll.kernel32.SetDllDirectoryW(None)
-                p = os.getcwd()
-                os.chdir(plugin_path)
-                # if chdir failed, this will raise an exception
-                dll = ctypes.CDLL('.\\' + libname)
-                # restore cwd after dll has been loaded
-                os.chdir(p)
-            else:  # may fail
-                dll = ctypes.CDLL('.\\' + libname)
-        else:
-            plugin_path = os.path.dirname(p)
-            dll = ctypes.CDLL(p)
-
-    elif sys.platform.startswith('darwin'):
-        # FIXME: should find a means to configure path
-        d = '/Applications/VLC.app/Contents/MacOS/'
-        c = d + 'lib/libvlccore.dylib'
-        p = d + 'lib/libvlc.dylib'
-        if os.path.exists(p) and os.path.exists(c):
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL(c)
-            dll = ctypes.CDLL(p)
-            for p in ('modules', 'plugins'):
-                p = d + p
-                if os.path.isdir(p):
-                    plugin_path = p
-                    break
-        else:  # hope, some [DY]LD_LIBRARY_PATH is set...
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL('libvlccore.dylib')
-            dll = ctypes.CDLL('libvlc.dylib')
-
-    else:
-        # All other OSes (linux, freebsd...)
-        p = find_library('vlc')
-        try:
-            dll = ctypes.CDLL(p)
-        except OSError:  # may fail
-            dll = None
-        if dll is None:
-            try:
-                dll = ctypes.CDLL('libvlc.so.5')
-            except:
-                raise NotImplementedError('Cannot find libvlc lib')
-
-    return dll
-
 
 def set_proxy(set_val=''):
     if set_val=='del':
@@ -371,10 +279,7 @@ def runffmpegbox(arg):
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             else:
                 arg[i]=arg[i].replace('scale=','scale_cuda=')
-        #arg.insert(-1,'-vf')
-        #arg.insert(-1,'hwdownload')
     cmd = cmd + arg
-
     p = subprocess.run(cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -387,21 +292,17 @@ def runffmpegbox(arg):
 
 
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None, error_exit=True):
+def runffmpeg(arg, *, noextname=None, error_exit=True,disable_gpu=False):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
-    if config.params['cuda']:
-        #, "-extra_hw_frames", "10"
+    if config.params['cuda'] and not disable_gpu:
         cmd.extend(["-hwaccel", "cuvid","-c:v","h264_cuvid", "-extra_hw_frames","2"])
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
             else:
                 arg[i]=arg[i].replace('scale=','scale_cuda=')
-        #arg.insert(-1,'-vf')
-        #arg.insert(-1,'hwdownload')
-            
-    cmd = cmd + arg
 
+    cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
     p = subprocess.Popen(cmd,
@@ -742,14 +643,6 @@ def set_process(text, type="logs",qname='sp'):
         pass
 
 
-def is_vlc():
-    try:
-        if find_lib() is None:
-            config.is_vlc = False
-        else:
-            config.is_vlc = True
-    except:
-        config.is_vlc = False
 
 
 # 获取目录下的所有文件和子目录

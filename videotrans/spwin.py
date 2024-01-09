@@ -1,20 +1,12 @@
-import copy
-import datetime
 import json
 import re
-import shutil
-import subprocess
-import sys
 import os
-import threading
-import time
 import webbrowser
 import torch
-
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
-from PyQt5.QtCore import QSettings, QUrl, Qt, QSize, pyqtSlot, QDir
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
+from PyQt5.QtCore import QSettings, QUrl, Qt, QSize,  QDir
+from PyQt5.QtWidgets import QMainWindow,  QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
     QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea, QCheckBox
 import warnings
 
@@ -29,10 +21,9 @@ warnings.filterwarnings('ignore')
 from videotrans import VERSION
 from videotrans.component import DeepLForm, DeepLXForm, BaiduForm, TencentForm, ChatgptForm
 from videotrans.component.controlobj import TextGetdir
-from videotrans.configure.config import langlist, transobj, logger, homedir
+from videotrans.configure.config import langlist, transobj, logger
 from videotrans.configure.config import english_code_bygpt
-from videotrans.util.tools import show_popup, set_proxy, set_process, get_edge_rolelist, is_vlc, get_elevenlabs_role, \
-    get_subtitle_from_srt
+from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt
 from videotrans.configure import config
 
 if config.defaulelang == "zh":
@@ -714,8 +705,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.toolboxobj.raise_()
         except Exception as e:
             self.toolboxobj = None
-            QMessageBox.critical(self, transobj['anerror'], transobj['anzhuangvlc'] + str(e))
-            logger.error("vlc" + str(e))
+            QMessageBox.critical(self, transobj['anerror'], str(e))
+            logger.error("box" + str(e))
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):

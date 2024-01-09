@@ -233,6 +233,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
+# 视频教程(第三方)
+
+[Mac下源码部署/b站](https://b23.tv/RFiTmlA)
 
 
 # 相关联项目
