@@ -11,7 +11,7 @@
 >
 > 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX` ，
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1`.
+> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
 >
 
 # 主要用途和使用方式
