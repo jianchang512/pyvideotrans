@@ -447,8 +447,7 @@ class TransCreate():
             segments,_ = model.transcribe(self.targetdir_source_wav, 
                             beam_size=5,  
                             vad_filter=True,
-                            vad_parameters=dict(min_silence_duration_ms=int(config.params['voice_silence'])),
-                            language=language)
+                            vad_parameters=dict(min_silence_duration_ms=int(config.params['voice_silence']), max_speech_duration_s=15),language=language)
             # 保留原始语言的字幕
             raw_subtitles = []
             offset = 0
@@ -649,15 +648,15 @@ class TransCreate():
         # 创建 totime 时长的视频
         rs = runffmpeg([
             '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
-            '-crf', '0', '-to', f'{totime}', '-pix_fmt', f'yuv420p', '-y', f'{last_clip}'])
+            '-crf', '18', '-to', f'{totime}','-y', f'{last_clip}'], no_decode=True)
         if not rs:
             return False
         # 开始将 novoice_mp4 和 last_clip 合并
         shutil.copy2(self.novoice_mp4, f'{self.novoice_mp4}.raw.mp4')
         res=runffmpeg(
             ['-y', '-i', f'{self.novoice_mp4}.raw.mp4', '-i', f'{last_clip}', f'-filter_complex',
-             '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0', '-an',
-             f'{self.novoice_mp4}'])
+             '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '18', '-an',
+             f'{self.novoice_mp4}'], de_format="nv12")
         try:
             os.unlink(f'{self.novoice_mp4}.raw.mp4')
         except:
@@ -764,7 +763,7 @@ class TransCreate():
                                     ['-y', '-i', novoice_mp4_tmp, '-i', tmppert, '-i', tmppert2, '-filter_complex',
                                      '[0:v][1:v][2:v]concat=n=3:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264",
                                      '-crf',
-                                     '0', '-an', tmppert3])
+                                     '18', '-an', tmppert3], de_format="nv12")
                                 os.unlink(novoice_mp4_tmp)
                                 os.rename(tmppert3,novoice_mp4_tmp)
                             else:
@@ -774,7 +773,7 @@ class TransCreate():
                                                source=self.novoice_mp4, pts=pts, out=tmppert)
                                 runffmpeg([
                                     '-y', '-i', novoice_mp4_tmp, '-i', tmppert, '-filter_complex',
-                                    '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0','-an', tmppert2])
+                                    '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '18','-an', tmppert2], de_format="nv12")
                                 os.unlink(novoice_mp4_tmp)
                                 os.rename(tmppert2,novoice_mp4_tmp)
 
@@ -797,7 +796,7 @@ class TransCreate():
                             runffmpeg(
                                 ['-y', '-i', novoice_mp4_tmp, '-i',tmppert, '-i', tmppert2, '-filter_complex',
                                  '[0:v][1:v][2:v]concat=n=3:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf',
-                                 '0', '-an', tmppert3])
+                                 '18', '-an', tmppert3], de_format="nv12")
                             os.unlink(novoice_mp4_tmp)
                             os.rename(tmppert3,novoice_mp4_tmp)
                         else:
@@ -807,7 +806,7 @@ class TransCreate():
                                            source=self.novoice_mp4,pts=pts, out=tmppert)
                             runffmpeg([
                                 '-y', '-i', novoice_mp4_tmp, '-i', tmppert, '-filter_complex',
-                                '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0','-an', f'{tmppert2}'])
+                                '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '18','-an', f'{tmppert2}'], de_format="nv12")
                             os.unlink(novoice_mp4_tmp)
                             os.rename(tmppert2,novoice_mp4_tmp)
 
@@ -834,8 +833,8 @@ class TransCreate():
                                            source=self.novoice_mp4, out=tmppert)
                         runffmpeg([
                             '-y', '-i', novoice_mp4_tmp, '-i', tmppert, '-filter_complex',
-                            '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0',
-                            '-an', f'{tmppert2}'])
+                            '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '18',
+                            '-an', f'{tmppert2}'], de_format="nv12")
                         os.unlink(novoice_mp4_tmp)
                         os.rename(tmppert2, novoice_mp4_tmp)
                     last_endtime=queue_copy[idx]['end_time']
@@ -849,8 +848,8 @@ class TransCreate():
                                out=tmppert)
                 runffmpeg([
                     '-y', '-i', novoice_mp4_tmp, '-i', tmppert, '-filter_complex',
-                    '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0',
-                    '-an', f'{tmppert2}'])
+                    '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '18',
+                    '-an', f'{tmppert2}'], de_format="nv12")
                 os.unlink(novoice_mp4_tmp)
                 os.rename(tmppert2, novoice_mp4_tmp)
             set_process(f"Origin:{source_mp4_total_length=} + offset:{offset} = {source_mp4_total_length + offset}")
@@ -891,7 +890,7 @@ class TransCreate():
             return False
         try:
             # 视频降速，肯定存在视频，不需要额外处理
-            self.merge_audio_segments(segments, start_times, total_length if total_length >=source_mp4_total_length + offset else source_mp4_total_length + offset)
+            self.merge_audio_segments(segments, start_times, source_mp4_total_length + offset)
         except Exception as e:
             set_process(f"[error]merge audio:seglen={len(segments)},starttimelen={len(start_times)} " + str(e), 'error')
             return False
@@ -971,7 +970,7 @@ class TransCreate():
                             "-af",
                             f'atempo={speed}',
                             tmp_mp3
-                        ]):
+                        ], disable_gpu=True, no_decode=True):
                             set_process(f"[error] voice auto rate error {it['filename']}:", 'error')
                             return False
                         set_process(f"dubbing speed + {speed}")

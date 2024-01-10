@@ -333,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(savedir, exist_ok=True)
 
         cmds = []
+        no_decode=False
         if wavfile and srtfile:
             tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
             srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
@@ -355,7 +356,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             cmd += [f'{savedir}/{basename}.mp4']
             cmds = [cmd]
-        self.ysphb_task = Worker(cmds, "ysphb_end", self)
+            no_decode=True
+        self.ysphb_task = Worker(cmds, "ysphb_end", self, no_decode)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
 
@@ -563,7 +565,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.geshi_result.insertPlainText(transobj["quanbuend"])
             self.disabled_geshi(False)
             return
-        self.geshi_task = Worker(cmdlist, "geshi_end", self)
+        self.geshi_task = Worker(cmdlist, "geshi_end", self, True)
         self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
 
@@ -597,7 +599,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
-        self.geshi_task = Worker([cmd], "hun_end", self)
+        self.geshi_task = Worker([cmd], "hun_end", self, True)
         self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
         self.hun_startbtn.setDisabled(True)

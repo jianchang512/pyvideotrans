@@ -270,11 +270,14 @@ def speed_change(sound, speed=1.0):
 
 
 
-def runffmpegbox(arg,*,disable_gpu=False):
+def runffmpegbox(arg,*,disable_gpu=False, no_decode=False, de_format="cuda"):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     copyarg=copy.deepcopy(arg)
     if config.params['cuda'] and not disable_gpu:
-        cmd.extend(["-hwaccel", "cuvid"," -hwaccel_output_format","cuda", "-c:v","h264_cuvid", "-extra_hw_frames","2"])
+        cmd.extend(["-hwaccel", "cuvid","-hwaccel_output_format",de_format, "-extra_hw_frames","2"])
+        if not no_decode:
+            cmd.append("-c:v")
+            cmd.append("h264_cuvid")
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
@@ -296,10 +299,14 @@ def runffmpegbox(arg,*,disable_gpu=False):
 
 
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None, error_exit=True,disable_gpu=False):
+def runffmpeg(arg, *, noextname=None, error_exit=True,disable_gpu=False, no_decode=False, de_format="cuda"):
     cmd = ["ffmpeg","-hide_banner","-vsync","0"]
     if config.params['cuda'] and not disable_gpu:
-        cmd.extend(["-hwaccel", "cuvid"," -hwaccel_output_format","cuda", "-c:v","h264_cuvid", "-extra_hw_frames","2"])
+        cmd.extend(["-hwaccel", "cuvid","-hwaccel_output_format",de_format, "-extra_hw_frames","2"])
+        # 如果第一个输入是视频，需要解码
+        if not no_decode:
+            cmd.append("-c:v")
+            cmd.append("h264_cuvid")
         for i, it in enumerate(arg):
             if i>0 and arg[i-1]=='-c:v':
                 arg[i]=it.replace('libx264',"h264_nvenc").replace('copy','h264_nvenc')
@@ -430,7 +437,7 @@ def get_video_resolution(file_path):
 
 # 取出最后一帧图片
 def get_lastjpg_fromvideo(file_path, img):
-    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'], disable_gpu=True)
+    return runffmpeg(['-y','-sseof','-3','-i',f'{file_path}','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'], de_format="nv12")
 
 
 # 文字合成
@@ -623,7 +630,7 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     cmd=cmd1+["-c:v",
         "libx264",
         "-crf",
-        "0",
+        "18",
         f'{out}'
     ]
 

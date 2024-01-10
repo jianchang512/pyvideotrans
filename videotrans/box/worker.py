@@ -18,17 +18,18 @@ from videotrans.util.tools import transcribe_audio, text_to_speech, runffmpegbox
 class Worker(QThread):
     update_ui = pyqtSignal(str)
 
-    def __init__(self, cmd_list, func_name="", parent=None):
+    def __init__(self, cmd_list, func_name="", parent=None, no_decode=False):
         super(Worker, self).__init__(parent)
         self.cmd_list = cmd_list
         self.func_name = func_name
+        self.no_decode=no_decode
 
     def run(self):
         set_process_box(f'starting...')
         for cmd in self.cmd_list:
             logger.info(f"[box]Will execute: ffmpeg {cmd=}")
             try:
-                rs=runffmpeg(cmd)
+                rs=runffmpeg(cmd, no_decode=self.no_decode)
                 if not rs:
                     set_process_box(f'exec {cmd=} error','error')
             except Exception as e:
@@ -123,7 +124,7 @@ class WorkerTTS(QThread):
                 "-c:a",
                 "pcm_s16le",
                 f'{self.filename}',
-            ])
+            ], no_decode=True)
             os.unlink(mp3)
         self.post_message("end", "Ended")
 
