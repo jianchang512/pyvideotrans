@@ -144,7 +144,7 @@ class TransCreate():
             set_process('', 'timeout_djs')
             time.sleep(2)
             if not self.trans():
-                set_process("translate error.", 'error')
+                # set_process("translate error.", 'error')
                 return False
             set_process('Translate end')
         self.step = 'translate_end'
@@ -281,10 +281,10 @@ class TransCreate():
     # 翻译字幕
     def trans(self):
         try:
-            self.srt_translation_srt()
-            return True
+            if self.srt_translation_srt():
+                return True
         except Exception as e:
-            set_process(f"translate error:" + str(e), 'error')
+            set_process(f"translate error:" + e, 'error')
         return False
 
     # split audio by silence
@@ -490,37 +490,22 @@ class TransCreate():
         if not os.path.exists(self.targetdir_source_sub):
             return True
         # 开始翻译,从目标文件夹读取原始字幕
-        try:
-            rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
-        except Exception as e:
-            set_process(f"subtitle srt error:" + str(e), 'error')
-            return False
+        rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
+
         if config.params['translate_type'] == 'chatGPT':
             set_process(f"waitting chatGPT", 'logs')
-            try:
-                rawsrt = chatgpttrans(rawsrt,config.params['target_language_chatgpt'])
-            except Exception as e:
-                set_process(f'ChatGPT error:{str(e)}', 'error')
-                return False
+            rawsrt = chatgpttrans(rawsrt,config.params['target_language_chatgpt'])
         elif config.params['translate_type'] == 'Azure':
             set_process(f"waitting Azure ", 'logs')
-            try:
-                rawsrt = azuretrans(rawsrt,config.params['target_language_azure'])
-            except Exception as e:
-                set_process(f'Azure error:{str(e)}', 'error')
-                return False
+            rawsrt = azuretrans(rawsrt,config.params['target_language_azure'])
         elif config.params['translate_type']=='Gemini':
             set_process(f"waitting Gemini", 'logs')
-            try:
-                rawsrt = geminitrans(rawsrt,config.params['target_language_gemini'])
-            except Exception as e:
-                set_process(f'Gemini:{str(e)}', 'error')
-                return False
+            rawsrt = geminitrans(rawsrt,config.params['target_language_gemini'])
         else:
             # 其他翻译，逐行翻译
             for (i, it) in enumerate(rawsrt):
                 if config.current_status != 'ing':
-                    return
+                    return False
                 new_text = it['text']
                 if config.params['translate_type'] == 'google':
                     new_text = googletrans(it['text'],

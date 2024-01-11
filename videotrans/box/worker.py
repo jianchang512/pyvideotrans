@@ -90,7 +90,7 @@ class WorkerTTS(QThread):
             os.makedirs(self.tmpdir, exist_ok=True)
 
     def run(self):
-        set_process_box(f"start hecheng {self.tts_type=},{self.role=},{self.rate=},{self.filename=}")
+        set_process_box(f"start {self.tts_type=},{self.role=},{self.rate=}")
 
         if self.tts_issrt:
             try:

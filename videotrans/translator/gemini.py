@@ -62,7 +62,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             return response.text.strip()
         except Exception as e:
             error = str(e)
-            return f"Gemini error:{error}"
+            raise Exception(f"Gemini error:{error}")
 
     total_result = []
     split_size = 10
@@ -110,6 +110,8 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 tools.set_process(f'Gemini limit rate,wait 30s')
             time.sleep(30)
             return geminitrans(text_list)
+        elif error:
+            raise Exception(error)
         # 处理
 
         for index, it in enumerate(origin):

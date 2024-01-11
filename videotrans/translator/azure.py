@@ -65,7 +65,7 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
         except Exception as e:
             error = str(e)
             return (f"azure翻译失败 :{error}")
-        return f"翻译失败:{response=}"
+        raise Exception(f"[error]translate:{response=}")
 
     total_result = []
     split_size = 10
@@ -162,6 +162,8 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 tools.set_process(f'Azure limit rate,wait 30s')
             time.sleep(30)
             return azuretrans(text_list)
+        elif error:
+            raise Exception(error)
         # 处理
 
         for index, it in enumerate(origin):
