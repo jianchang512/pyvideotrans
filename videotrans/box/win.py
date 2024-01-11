@@ -89,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sizePolicy.setHeightForWidth(self.hecheng_plaintext.sizePolicy().hasHeightForWidth())
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
+        self.hecheng_plaintext.setPlaceholderText(transobj['tuodonghuoshuru'])
         self.hecheng_layout.insertWidget(0, self.hecheng_plaintext)
         self.hecheng_language.addItems(['-'] + self.langauge_name)
         self.hecheng_role.addItems(['No'])
@@ -111,7 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_input.setMinimumSize(300, 0)
 
         self.geshi_input.setPlaceholderText(transobj['tuodongdaoci'])
-        self.geshi_input.setReadOnly(True)
+        #self.geshi_input.setReadOnly(True)
         self.geshi_layout.insertWidget(0, self.geshi_input)
         self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
         self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))

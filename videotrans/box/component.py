@@ -63,19 +63,25 @@ class TextGetdir(QPlainTextEdit):
     def dragEnterEvent(self, event):
         files = event.mimeData().text().split("\n")
         result = []
+        print(f'{files=}')
         for it in files:
             if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3"]:
                 result.append(it)
+        print(f'{result=}')
         if len(result) > 0:
-            event.accept()
+            event.acceptProposedAction()
+            print("jieshou")
         else:
             event.ignore()
 
     def dropEvent(self, event):
+        print('============')
         files = event.mimeData().text().split("\n")
         result = []
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
+        print(f'dropEvent( {result=})')
+        print(f'files={files}')
         for it in files:
             if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3"]:
                 f = it.replace('file:///', '')
@@ -208,33 +214,3 @@ class Player(QtWidgets.QWidget):
         self.selectbutton.setText(self.filepath)
         return
 
-        # self.media = self.instance.media_new(self.filepath)
-        # self.mediaplayer.set_media(self.media)
-        # self.media.parse()
-        # if sys.platform.startswith('linux'):  # for Linux using the X Server
-        #     self.mediaplayer.set_xwindow(self.videoframe.winId())
-        # elif sys.platform == "win32":  # for Windows
-        #     self.mediaplayer.set_hwnd(self.videoframe.winId())
-        # elif sys.platform == "darwin":  # for MacOS
-        #     self.mediaplayer.set_nsobject(int(self.videoframe.winId()))
-        # self.PlayPause()
-
-    # def setVolume(self, Volume):
-    #     self.mediaplayer.audio_set_volume(Volume)
-
-    # def setPosition(self, position):
-    #     print(f"{position=}")
-    #     self.mediaplayer.set_position(position / 1000.0)
-
-    # def updateUI(self):
-    #     percent = int(self.mediaplayer.get_position() * 1000)
-    #     self.positionslider.setValue(percent)
-    #     # 结束重放
-    #     if self.mediaplayer.get_state() == vlc.State.Ended:
-    #         self.setPosition(0.0)
-    #         self.positionslider.setValue(0)
-    #         self.playbutton.setText("Play")
-    #         print("播放完毕停止了")
-    #         self.timer.stop()
-    #         self.mediaplayer.stop()
-    #         self.OpenFile()

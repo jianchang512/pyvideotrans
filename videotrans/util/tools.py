@@ -536,24 +536,27 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     result = []
     # print(f'{maxline=}')
     for i, t in enumerate(txt):
-        # print(f'{i=},{t=}，i+1={txt[i+1]}')
-        # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
-        if i < maxline - 2 and re.match(linepat, t) and re.match(timepat, txt[i + 1]):
-            # print('匹配那个1')
-            #   是行
-            line += 1
-            obj = {"line": line, "time": "", "text": ""}
-            result.append(obj)
-        elif re.match(timepat, t):
-            # print('匹配那个2')
-            # 是时间行
-            result[line - 1]['time'] = t
-        elif len(t.strip()) > 0:
-            # print('匹配那个3')
-            # 是内容
-            txt_tmp = t.strip().replace('&#39;', "'")
-            txt_tmp = re.sub(r'&#\d+;', '', txt_tmp)
-            result[line - 1]['text'] += txt_tmp
+        try:
+            t=t.replace('\ufeff','')
+            # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
+            if i < maxline - 2 and re.match(linepat, t) and re.match(timepat, txt[i + 1]):
+                # print('匹配那个1')
+                #   是行
+                line += 1
+                obj = {"line": line, "time": "", "text": ""}
+                result.append(obj)
+            elif re.match(timepat, t):
+                # print('匹配那个2')
+                # 是时间行
+                result[line - 1]['time'] = t
+            elif len(t.strip()) > 0:
+                # print('匹配那个3')
+                # 是内容
+                txt_tmp = t.strip().replace('&#39;', "'")
+                txt_tmp = re.sub(r'&#\d+;', '', txt_tmp)
+                result[line - 1]['text'] += txt_tmp
+        except Exception as e:
+            raise Exception(f'{i=},{t=},{str(e)}')
     # 再次遍历，删掉美元text的行
     new_result = []
     line = 1

@@ -131,9 +131,11 @@ translate_language = {
         "zhishaoxuanzeyihang":"至少要选中一行",
         "default":"默认",
         "sjselectmp4":"双击选择视频或拖拽视频到此处",
-        "ffmpegerror":"请检查CUDA配置是否正确，或检查视频是否H264编码的mp4文件"
+        "ffmpegerror":"请检查CUDA配置是否正确，或检查视频是否H264编码的mp4文件",
+        "tuodonghuoshuru":"输入文字或者拖动字幕srt文件到此处"
     },
     "en": {
+        "tuodonghuoshuru":"Enter text or drag the subtitle SRT file here",
         "ffmpegerror":"Please check if the CUDA configuration is correct or if the video is an H264 encoded mp4 file",
         "sjselectmp4":"Double click to select video or drag video here",
         "default":"default",
