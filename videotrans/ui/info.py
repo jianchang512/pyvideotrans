@@ -82,6 +82,14 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">*剑  2024-1-6 捐助 8 元 </span> /  
 <span style="margin:5px;padding:5px;">o*u  2024-1-9 捐助 100 元 </span> /  
 <span style="margin:5px;padding:5px;"><a href="https://github.com/qxk2005">qxk2005</a>  2024-1-9 捐助 100 元 </span> /  
+<span style="margin:5px;padding:5px;"><a href="https://space.bilibili.com/19225866">喵の左爪 2024-1-11 捐助10元</a></span> /
+<span style="margin:5px;padding:5px;">*泉 2024-1-11 捐助 6.6 元</span> /
+<span style="margin:5px;padding:5px;">*匐 2024-1-11 捐助 20 元</span> /
+<span style="margin:5px;padding:5px;">m*o 2024-1-11 捐助 1.0 元</span> /
+<span style="margin:5px;padding:5px;">*工 2024-1-12 捐助 10 元</span> /
+<span style="margin:5px;padding:5px;"><a href="https://github.com/maotouying0102">maotouying0102 / 2024-1-12 捐助 10 元</span>
+
+
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>
 <p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#00aa00;"><br /></p>
