@@ -254,6 +254,8 @@ lang =
 
 [Mac下源码部署/b站](https://b23.tv/RFiTmlA)
 
+[用Gemini Api给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
+
 
 # 相关联项目
 
