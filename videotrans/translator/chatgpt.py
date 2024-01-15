@@ -20,7 +20,16 @@ def create_messages(text_list, lang):
     return messages
 
 def create_openai_client(proxies):
-    client = OpenAI(base_url=None if not config.params['chatgpt_api'] else config.params['chatgpt_api'],
+    api_url = "https://api.openai.com/v1"
+    if config.params['chatgpt_api']:
+        api_url = config.params['chatgpt_api']
+        if re.search(r'v1/(chat/)?completions/?$',api_url,re.I):
+            api_url=re.sub(r'v1/(chat/)?completions/?$','v1',api_url,re.I)
+        elif not re.search(r'/v1/?$',api_url,re.I):
+            api_url+= "/v1" if not re.search(r'/$',api_url,re.I) else "v1"
+
+    openai.base_url = api_url
+    client = OpenAI(base_url=api_url,
                     http_client=httpx.Client(proxies=proxies))
     return client
 
@@ -33,11 +42,13 @@ def process_response(response):
         elif response.data and response.data['choices']:
             result = response.data['choices'][0]['message']['content'].strip()
             return result
-        else:
-            logger.error(f'chatGPT error:{response}')
+        msg=f'chatGPT error:{response}'
+
+        logger.error(msg)
+        raise Exception(msg)
     except Exception as e:
         print(e)
-        return f'[error] {str(e)}'
+        raise Exception(f'[error] {str(e)}')
 
 def set_proxies(serv):
     proxies = None
@@ -47,13 +58,6 @@ def set_proxies(serv):
             'https://': serv
         }
     return proxies
-
-def handle_error(error, api_url, set_p):
-    logger.error(f"【chatGPT Error-2】翻译失败:openaiAPI={api_url} :{error}")
-    if set_p:
-        tools.set_process(f"[error]ChatGPT error,api={api_url}:{error}",'error')
-    raise Exception(f"[error]ChatGPT error,api={api_url}:{error}")
-
 
 def process_result(result,len_sub=1):
     return result.split("\n") if isinstance(result, str) else ["[error]ChatGPT error"] * len_sub
@@ -74,18 +78,12 @@ def update_origin(trans_text, origin, set_p):
 def chatgpttrans(text_list, target_language_chatgpt="English", *, set_p=True):
     serv = tools.set_proxy()
     proxies = set_proxies(serv)
-    api_url = "https://api.openai.com/v1"
-    if config.params['chatgpt_api']:
-        api_url = config.params['chatgpt_api']
 
-    openai.base_url = api_url
     lang = target_language_chatgpt
-    error=''
 
     if isinstance(text_list, str):
         messages = create_messages(text_list, lang)
         client = create_openai_client(proxies)
-
         try:
             response = client.chat.completions.create(
                 model=config.params['chatgpt_model'],
@@ -94,49 +92,42 @@ def chatgpttrans(text_list, target_language_chatgpt="English", *, set_p=True):
             return process_response(response)
         except Exception as e:
             error = str(e)
-            return (f"【ChatGPT Error-2.5】error:openaiAPI={api_url} :{error}")
+            raise Exception(f"【ChatGPT Error-2.5】error:{error}")
     else:
         total_result = []
-        split_size = 10
+        split_size = config.settings['OPTIM']['trans_thread']
         srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
         srts = ''
-
+        client = create_openai_client(proxies)
         for srt_list in srt_lists:
             origin = []
             trans = []
             for it in srt_list:
                 trans.append(it['text'].strip())
                 origin.append({"line": it["line"], "time": it["time"], "text": ""})
+                if set_p:
+                    tools.set_process(f'chatGPT Line: {it["line"]}')
             len_sub = len(origin)
             logger.info(f"\n[chatGPT start]待翻译文本:" + "\n".join(trans))
             messages = create_messages("\n".join(trans), lang)
-            client = create_openai_client(proxies)
-
             try:
                 response = client.chat.completions.create(
                     model=config.params['chatgpt_model'],
                     messages=messages
                 )
                 result = process_response(response)
-                if result.startswith('[error]'):
-                    error=result
             except Exception as e:
                 error = str(e)
-                result = "[error]ChatGPT error"
-
-            if re.search(r'Rate limit', error, re.I) is not None:
-                if set_p:
-                    tools.set_process(f'ChatGPT limit rate, wait 30s')
-                time.sleep(30)
-                return chatgpttrans(text_list)
-            elif error:
-                handle_error(error, api_url, set_p)
-                return False
-
+                if re.search(r'Rate limit', error, re.I) is not None:
+                    if set_p:
+                        tools.set_process(f'ChatGPT limit rate, wait 30s')
+                    time.sleep(30)
+                    return chatgpttrans(text_list)
+                else:
+                    raise Exception(f'chatGPT error:{str(error)}')
             trans_text = process_result(result,len_sub)
             origin, srts = update_origin(trans_text, origin, set_p)
             total_result.extend(origin)
-
     if set_p:
         tools.set_process(srts, 'replace_subtitle')
     return total_result

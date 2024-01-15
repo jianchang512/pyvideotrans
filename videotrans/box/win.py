@@ -14,7 +14,7 @@ from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import boxcfg, config
 from videotrans.configure.config import logger, rootdir, homedir, langlist, english_code_bygpt
-from videotrans.util.tools import set_proxy, has_audio
+from videotrans.util.tools import set_proxy, get_video_info, runffmpeg
 
 from videotrans.configure.config import transobj
 
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.initUI()
-        self.setWindowIcon(QIcon("./icon.ico"))
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(f"Video Toolbox {VERSION}")
 
     def closeEvent(self, event):
@@ -119,6 +119,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_mov.clicked.connect(lambda: self.geshi_start_fun("mov"))
         self.geshi_mp3.clicked.connect(lambda: self.geshi_start_fun("mp3"))
         self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
+        self.geshi_aac.clicked.connect(lambda: self.geshi_start_fun("aac"))
+        self.geshi_m4a.clicked.connect(lambda: self.geshi_start_fun("m4a"))
+        self.geshi_flac.clicked.connect(lambda: self.geshi_start_fun("flac"))
         self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{homedir}/conver'))
         if not os.path.exists(f'{homedir}/conver'):
             os.makedirs(f'{homedir}/conver', exist_ok=True)
@@ -144,7 +147,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
+
         self.fanyi_sourcetext.setSizePolicy(sizePolicy)
         self.fanyi_sourcetext.setMinimumSize(300, 0)
 
@@ -164,8 +167,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 获取wav件
     def hun_get_file(self, name='file1'):
-        fname, _ = QFileDialog.getOpenFileName(self, "Select wav", os.path.expanduser('~'),
-                                               "Audio files(*.wav)")
+        fname, _ = QFileDialog.getOpenFileName(self, "Select audio", os.path.expanduser('~'),
+                                               "Audio files(*.wav *.mp3 *.aac *.m4a *.flac)")
         if fname:
             if name == 'file1':
                 self.hun_file1.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -207,7 +210,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         data = json.loads(json_data)
         # fun_name 方法名，type类型，text具体文本
         if "func_name" not in data:
-            self.statuslabel.setText(data['text'])
+            self.statuslabel.setText(data['text'][:60])
             if data['type']=='error':
                 self.statuslabel.setStyle("""color:#ff0000""")
         elif data['func_name'] == "yspfl_end":
@@ -294,13 +297,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mime = "Video files(*.mp4 *.avi *.mov)"
             showname = " Video "
         elif name == "wav":
-            mime = "Audio files(*.mp3 *.wav *.flac)"
+            mime = "Audio files(*.mp3 *.wav *.m4a *.aac *.flac)"
             showname = " Audio "
         else:
             mime = "Srt files(*.srt)"
             showname = " srt "
-        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",
-                                               mime)
+        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",  mime)
         if not fname:
             return
 
@@ -310,7 +312,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ysphb_wavinput.setText(fname)
         else:
             self.ysphb_srtinput.setText(fname)
-        print(fname)
+
 
     def ysphb_start_fun(self):
         # 启动合并
@@ -334,31 +336,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(savedir, exist_ok=True)
 
         cmds = []
-        no_decode=False
-        if wavfile and srtfile:
-            tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
-            srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+        if not os.path.exists(f'{config.rootdir}/tmp'):
+            os.makedirs(f'{config.rootdir}/tmp',exist_ok=True)
+        tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
+        tmpname_conver = f'{config.rootdir}/tmp/box-conver.mp4'
+        video_info=get_video_info(videofile)
+        if videofile[-3:].lower()!='mp4' or video_info['video_codec_name']!='h264' or (video_info['streams_audio']>0 and video_info['audio_codec_name']!='aac'):
+            con_cmd=[
+                '-y',
+                '-i',
+                videofile,
+                '-c:v',
+                "libx264",
+                '-c:a',
+                'aac'
+            ]
+            try:
+                runffmpeg(con_cmd,de_format="nv12",no_decode=True,is_box=True)
+            except:
+                self.ysphb_startbtn.setText(transobj["start"])
+                self.ysphb_startbtn.setDisabled(False)
+                return False
+
+            videofile=tmpname_conver
+
+        if wavfile:
             # 视频里是否有音轨
-            if has_audio(videofile):
+            if video_info['streams_audio']>0:
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map', '0:v', '-map', "[aout]", '-c:v', 'libx264', '-c:a', 'aac', tmpname],
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map', '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
                 ]
             else:
-                cmds=[['-y', '-i', videofile, '-i', wavfile, '-map','0:v','-map', '1:a', '-c:v', 'libx264', '-c:a','aac',tmpname]]
-            cmds.append(['-y', '-i', f'{tmpname}', "-vf", f"subtitles={srtfile}", f'{savedir}/{basename}.mp4'])
-        else:
-            cmd = ['-y', '-i', videofile]
-            if wavfile:
-                # 只存在音频，不存在字幕
-                cmd += ['-i', f'{wavfile}', '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map', '0:v', '-map',"[aout]", '-c:v', 'libx264', '-c:a', 'aac']
-            elif srtfile:
-                srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
-                cmd += ["-vf", f"subtitles={srtfile}"]
+                cmds=[['-y', '-i', videofile, '-i', wavfile, '-map','0:v','-map', '1:a', '-c:v', 'copy', '-c:a','aac',tmpname]]
 
-            cmd += [f'{savedir}/{basename}.mp4']
-            cmds = [cmd]
-            no_decode=True
-        self.ysphb_task = Worker(cmds, "ysphb_end", self, no_decode)
+        if srtfile:
+            srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+            cmds.append(['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}",'-c:v','libx264','-c:a','copy', f'{savedir}/{basename}.mp4'])
+        self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
 
@@ -538,7 +552,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filelist = self.geshi_input.toPlainText().strip().split("\n")
         filelist_vail = []
         for it in filelist:
-            if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav']:
+            if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav','aac','m4a','flac']:
                 filelist_vail.append(it)
         if len(filelist_vail) < 1:
             return QMessageBox.critical(self, transobj['anerror'], transobj['nowenjian'])
@@ -556,7 +570,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 boxcfg.geshi_num -= 1
                 self.geshi_result.insertPlainText(f"{it} -> {ext}")
                 continue
-            if ext_this in ["wav", "mp3"] and ext in ["mp4", "mov", "avi"]:
+            if ext_this in ["wav", "mp3","aac","m4a","flac"] and ext in ["mp4", "mov", "avi"]:
                 self.geshi_result.insertPlainText(f"{it} {transobj['yinpinbuke']} {ext} ")
                 boxcfg.geshi_num -= 1
                 continue
@@ -577,6 +591,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_mov.setDisabled(type)
         self.geshi_mp3.setDisabled(type)
         self.geshi_wav.setDisabled(type)
+        self.geshi_aac.setDisabled(type)
+        self.geshi_flac.setDisabled(type)
+        self.geshi_m4a.setDisabled(type)
 
     # 音频混流
     def hun_fun(self):

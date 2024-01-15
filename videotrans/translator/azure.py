@@ -56,19 +56,19 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 if response.choices:
                     return response.choices[0]['message']['content'].strip()
             except Exception as e:
-                print(e)
+                pass
             try:
                 if response.data and response.data['choices']:
                     return response.data['choices'][0]['message']['content'].strip()
             except Exception as e:
-                print(str(e))
+                pass
+            raise Exception("Azure translation is error")
         except Exception as e:
             error = str(e)
-            return (f"azure翻译失败 :{error}")
-        raise Exception(f"[error]translate:{response=}")
+            raise Exception(f"azure翻译失败 :{error}")
 
     total_result = []
-    split_size = 10
+    split_size = config.settings['OPTIM']['trans_thread']
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
     srts = ''
@@ -84,6 +84,8 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
             trans.append(it['text'].strip())
             # 行数和时间信息
             origin.append({"line": it["line"], "time": it["time"], "text": ""})
+            if set_p:
+                tools.set_process(f'Azure Line: {it["line"]}')
 
         len_sub = len(origin)
         logger.info(f"\n[chatGPT start]待翻译文本:" + "\n".join(trans))
@@ -93,7 +95,6 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
             {'role': 'user', 'content': "\n".join(trans)},
         ]
         logger.info(f"发送消息{messages=}")
-        error = ""
         try:
             client = AzureOpenAI(
                 api_key=config.params["azure_key"],
@@ -106,35 +107,25 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 messages=messages
             )
             logger.info(f"返回响应:{response=}")
-
             # 是否在 code 判断时就已出错
             vail_data = None
             # 返回可能多种形式，openai和第三方
-
             try:
                 if "choices" in response:
                     vail_data = response['choices']
             except Exception as e:
-                error += str(e)
+                pass
             if not vail_data:
                 try:
                     if response.choices:
                         vail_data = response.choices
                 except Exception as e:
-                    error += str(e)
+                    pass
             if not vail_data:
                 try:
                     if response.data and 'choices' in response.data:
                         vail_data = response.data['choices']
                 except Exception as e:
-                    error += str(e)
-            if not vail_data:
-                try:
-                    if ("code" in response) and response['code'] != 0:
-                        if set_p:
-                            tools.set_process(f"[error]Azure error:" + str(response))
-                        logger.error(f"[azure error-1]翻译失败r:" + str(response))
-                except:
                     pass
             if vail_data:
                 result = vail_data[0]['message']['content'].strip()
@@ -146,26 +137,20 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
                         trans_text = result.split("\n")
                 else:
                     trans_text = result.split("\n")
-                logger.info(f"\n[azure OK]翻译成功:{result}")
                 if set_p:
                     tools.set_process(f"Azure ok")
             else:
-                trans_text = ["[error]Azure error"] * len_sub
-                if set_p:
-                    tools.set_process(f"[error]Azure :{error}")
+                raise Exception(f'Azure translation error:{str(response)}')
         except Exception as e:
             error = str(e)
-            logger.error(f"【azure Error-2】翻译失败 :{error}")
-            trans_text = [f"[error]Azure error"] * len_sub
-        if error and re.search(r'Rate limit', error, re.I) is not None:
-            if set_p:
-                tools.set_process(f'Azure limit rate,wait 30s')
-            time.sleep(30)
-            return azuretrans(text_list)
-        elif error:
-            raise Exception(error)
-        # 处理
+            if error and re.search(r'Rate limit', error, re.I) is not None:
+                time.sleep(30)
+                return azuretrans(text_list)
+            else:
+                logger.error(f"【azure Error-2】翻译失败 :{error}")
+                raise Exception(f'Azure translation error:{error}')
 
+        # 处理
         for index, it in enumerate(origin):
             if index < len(trans_text):
                 it["text"] = trans_text[index]

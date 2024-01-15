@@ -152,8 +152,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
 # 常见问题
 
-
-
 1. 使用google翻译，提示 error
 
    国内使用google或chatGPT官方接口，都需要挂梯子
@@ -243,6 +241,99 @@ lang =
 
 ```
 
+# CLI 命令行模式
+
+[![Open In Colab](https://user-images.githubusercontent.com/54370274/224839806-8720fb19-9c7d-46a2-8d7c-de3afb39c11f.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
+
+
+cli.py 是命令行执行脚本，`python cli.py` 是最简单的执行方式
+
+接收的参数:
+
+`-m mp4视频的绝对地址`
+
+具体各项配置参数可在 位于 cli.py 同目录的 cli.ini 中配置，其他待处理的mp4视频地址，也可以通过命令行参数 `-m mp4视频绝对地址` 方式来配置，比如 `python cli.py -m D:/1.mp4`.
+
+cli.ini 里是各项完整参数，第一个参数`source_mp4`即代表待处理的视频，如果命令行通过 -m 传参，则使用命令行参数，否则使用此`source_mp4`.
+
+`-c 配置文件地址`
+
+你也可以复制 cli.ini 到其他位置后，通过命令行上 `-c cli.ini的绝对路径地址` 来指定要使用的配置文件，比如 `python cli.py -c E:/conf/cli.ini`, 则会使用该文件里的配置信息，而忽略项目目录下的配置文件。
+
+`-cuda`无需后跟值，只要添加即代表启用CUDA加速(如果可用) `python cli.py -cuda`
+
+示例:`python cli.py -cuda -m D:/1.mp4`
+
+## cli.ini内具体参数和说明
+
+```
+;命令行参数
+;待处理的视频绝对地址，正斜杠做路径分隔符，也可在命令行参数中 -m 后传递
+source_mp4=
+;网络代理地址，google  chatGPT官方china必填
+proxy=http://127.0.0.1:10809
+;输出结果文件到目录
+target_dir=
+;视频发音语言，从这里选择 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+source_language=zh-cn
+;语音识别语言 无需填写
+detect_language=
+;翻译到的语言 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+target_language=en
+;软字幕嵌入时的语言，不填写
+subtitle_language=
+;true=启用CUDA
+cuda=false
+;角色名称，openaiTTS角色名称“alloy,echo,fable,onyx,nova,shimmer”，edgeTTS角色名称从 voice_list.json 中对应语言的角色中寻找。elevenlabsTTS 的角色名称从 elevenlabs.json 中寻找
+voice_role=en-CA-ClaraNeural
+; 配音加速值，必须以 + 号或 - 号开头，+代表加速，-代表减速，以%结尾
+voice_rate=+0%
+;可选 edgetTTS  openaiTTS elevenlabsTTS
+tts_type=edgeTTS
+;静音片段，单位ms
+voice_silence=500
+;all=整体识别，split=预先分割声音片段后识别
+whisper_type=all
+;语音识别模型可选，base small medium large-v3
+whisper_model=base
+;翻译渠道，可选 google baidu  chatGPT Azure  Gemini  tencent DeepL DeepLX
+translate_type=google
+;0=不嵌入字幕，1=嵌入硬字幕，2=嵌入软字幕
+subtitle_type=1
+;true=配音自动加速
+voice_autorate=false
+;true=视频自动慢速
+video_autorate=false
+;deepl翻译的接口地址
+deepl_authkey=asdgasg
+;自己配置的deeplx服务的接口地址
+deeplx_address=http://127.0.0.1:1188
+;腾讯翻译id
+tencent_SecretId=
+;腾讯翻译key
+tencent_SecretKey=
+;百度翻译id
+baidu_appid=
+;百度翻译密钥
+baidu_miyue=
+; elevenlabstts的key
+elevenlabstts_key=
+;chatGPT 接口地址，以 /v1 结尾，可填写第三方接口地址
+chatgpt_api=
+;chatGPT的key
+chatgpt_key=
+;chatGPT模型，可选 gpt-3.5-turbo gpt-4
+chatgpt_model=gpt-3.5-turbo
+; Azure 的api接口地址
+azure_api=
+;Azure的key
+azure_key=
+; Azure的模型名，可选 gpt-3.5-turbo gpt-4
+azure_model=gpt-3.5-turbo
+;google Gemini 的key
+gemini_key=
+
+```
 
 # 软件预览截图
 
@@ -267,14 +358,11 @@ lang =
 
 ## 致谢
 
-> 本程序依赖这些开源项目
+> 本程序主要依赖的部分开源项目
 
-1. pydub
-2. ffmpeg
-3. PyQt5
-4. SpeechRecognition
-5. edge-tts
-6. openai-whisper
-7. faster-whisper
+1. ffmpeg
+2. PyQt5
+3. edge-tts
+4. faster-whisper
 
 

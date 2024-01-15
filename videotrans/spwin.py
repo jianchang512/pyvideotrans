@@ -7,8 +7,9 @@ import torch
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QTextCursor, QIcon, QDesktopServices
 from PyQt5.QtCore import QSettings, QUrl, Qt, QSize,  QDir
-from PyQt5.QtWidgets import QMainWindow,  QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
-    QTextBrowser, QWidget, QVBoxLayout, QSizePolicy, QHBoxLayout, QLineEdit, QScrollArea, QCheckBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QLabel, QPushButton, QToolBar, \
+    QTextBrowser, QWidget, QVBoxLayout,  QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QApplication, \
+    QProgressBar
 import warnings
 
 from videotrans.component.set_form import InfoForm, AzureForm, GeminiForm, SetLineRole, ElevenlabsForm, YoutubeForm
@@ -33,11 +34,51 @@ else:
     from videotrans.ui.en import Ui_MainWindow
 
 
+class ClickableProgressBar(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.target_dir=None
+
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setFixedHeight(35)
+        self.progress_bar.setRange(0, 100)  # 设置进度范围
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                background-color: transparent;
+                border:1px solid #32414B;
+                color:#fff;
+                height:35px;
+                text-align:left;
+                border-radius:3px;                
+            }
+            QProgressBar::chunk {
+                background-color: #009688;
+                width: 8px;
+                border-radius:0;           
+            }
+        """)
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.progress_bar)  # 将进度条添加到布局
+
+    def setTarget(self,url):
+        self.target_dir=url
+
+
+    def setText(self,text):
+        self.progress_bar.setFormat(f' {text}')  # set text format
+
+
+    def mousePressEvent(self, event):
+        print(f"Progress bar clicked! {self.target_dir},{event.button()}")
+        if self.target_dir and event.button() == Qt.LeftButton:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
+
+
 class MyTextBrowser(QTextBrowser):
     def __init__(self):
         super(MyTextBrowser, self).__init__()
 
-    # @pyqtSlot(QUrl)
     def anchorClicked(self, url):
         # 拦截超链接点击事件
         if url.scheme() == "file":
@@ -54,6 +95,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        screen_resolution = QApplication.desktop().screenGeometry()
+        width, height = screen_resolution.width(), screen_resolution.height()
+        print(f'{width=}')
+        self.width=int(width*0.8)
+        if self.width<1400:
+            self.width=1400
+        elif self.width>1900:
+            self.width=1800
+        self.resize(self.width, height-220)
+
         self.task = None
         self.toolboxobj = None
         self.shitingobj = None
@@ -62,10 +113,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
         config.params['line_roles'] = {}
-        self.initUI()
-        self.setWindowIcon(QIcon("./icon.ico"))
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.rawtitle = f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {VERSION}"
         self.setWindowTitle(self.rawtitle)
+        # 检查窗口是否打开
+        self.initUI()
+        self.show()
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -74,12 +127,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # language code
         self.languagename = list(langlist.keys())
         self.app_mode = 'biaozhun'
-        # 上次缓存
-        self.get_setting()
-
-        self.splitter.setSizes([1000, 360])
-
+        print(self.width)
+        self.splitter.setSizes([self.width-400, 400])
         # start
+        self.get_setting()
         self.startbtn.clicked.connect(self.check_start)
         try:
             if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -243,6 +294,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.container = QToolBar()
         self.container.addWidget(rightbottom)
         self.statusBar.addPermanentWidget(self.container)
+
         #     日志
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.update_data)
@@ -636,7 +688,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.current_status = 'end'
             msg = QMessageBox()
             msg.setWindowTitle(transobj['exit'])
-            msg.setWindowIcon(QIcon(config.rootdir + "/icon.ico"))
+            msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
             msg.setText(transobj['waitclear'])
             msg.addButton(transobj['queding'], QMessageBox.AcceptRole)
             msg.setIcon(QMessageBox.Information)
@@ -722,7 +774,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.setText(transobj['jixuzhong'])
         self.continue_compos.setDisabled(True)
         self.stop_djs.hide()
-        self.set_process_btn_text(transobj['jixuzhong'])
+        # self.set_process_btn_text(transobj['jixuzhong'],d['btnkey'])
         if self.shitingobj:
             self.shitingobj.stop = True
 
@@ -730,7 +782,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def reset_timeid(self):
         self.stop_djs.hide()
         config.task_countdown = 86400
-        self.set_process_btn_text(transobj['daojishitingzhi'])
         self.continue_compos.setDisabled(False)
         self.continue_compos.setText(transobj['nextstep'])
 
@@ -1181,6 +1232,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if len(fnames) > 0:
             self.source_mp4.setText(fnames[0])
+            config.params['source_mp4']=self.source_mp4
             self.settings.setValue("last_dir", os.path.dirname(fnames[0]))
             config.queue_mp4 = fnames
 
@@ -1199,24 +1251,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dirname = dirname.replace('\\', '/')
         self.target_dir.setText(dirname)
 
-    # 添加按钮
-    def add_process_btn(self, txt):
-        # 创建三个按钮并添加到布局中
-        button1 = QPushButton(transobj["waitforstart"] + " " + txt, self)
+    # 添加进度条
+    def add_process_btn(self, txt,index=0):
+        clickable_progress_bar = ClickableProgressBar()
+        clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
+        clickable_progress_bar.setText(f'{transobj["waitforstart"] if index > 0 else transobj["kaishiyuchuli"]}' + " " + txt)
+        clickable_progress_bar.setMinimumSize(500,50)
 
-        # 设置按钮高度为 80px，宽度撑满父控件
-        button1.setFixedHeight(50)
-        button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # # 设置按钮高度为 80px，宽度撑满父控件
+        # button1.setFixedHeight(50)
+        # button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        #
+        # # 将按钮添加到布局中
+        self.processlayout.addWidget(clickable_progress_bar)
+        return clickable_progress_bar
 
-        # 将按钮添加到布局中
-        self.processlayout.addWidget(button1)
-        return button1
-
-    def click_process_btn(self, text):
-        # print(f'click--{text=}')
-        dirs = text.split(transobj["endandopen"])
-        if os.path.isdir(dirs[-1]):
-            QDesktopServices.openUrl(QUrl.fromLocalFile(dirs[-1]))
+    # def click_process_btn(self, url):
+    #     # print(f'click--{text=}')
+    #     # dirs = text.split(transobj["endandopen"])
+    #     if os.path.isdir(url):
+    #         QDesktopServices.openUrl(QUrl.fromLocalFile(url))
 
     # 检测各个模式下参数是否设置正确
     def check_mode(self,*,txt=None,model=None):
@@ -1310,8 +1364,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # google language code
             if config.params['translate_type'] == 'google':
                 config.params['target_language'] = langlist[target_language][0]
-            elif config.params['translate_type'] == 'baidu(noKey)':
-                config.params['target_language_baidu'] = langlist[target_language][2]
             elif config.params['translate_type'] == 'baidu':
                 # baidu language code
                 config.params['target_language_baidu'] = langlist[target_language][2]
@@ -1430,8 +1482,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
-            for it in config.queue_mp4:
-                self.processbtns[it] = self.add_process_btn(it)
+            for (i,it) in enumerate(config.queue_mp4):
+                # 插入进度条
+                key=it if re.search(r'\.mp4',it,re.I) else re.sub(r'\.[a-zA-Z0-9]+$','.mp4',it,re.I)
+                self.processbtns[key] = self.add_process_btn(key,i)
             while len(config.queue_mp4) > 0:
                 config.queue_task.append({'subtitles':txt,"source_mp4": config.queue_mp4.pop(0),'app_mode':self.app_mode})
         elif txt:
@@ -1439,6 +1493,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.queue_task.append({"subtitles": txt,'app_mode':self.app_mode})
             self.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
 
+
+        # json.dump(config.params,open(config.rootdir+"/cli.ini",'w'))
         self.task = Worker(self)
         self.task.start()
 
@@ -1460,26 +1516,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
 
     # 设置按钮上的日志信息
-    def set_process_btn_text(self, text, type="logs"):
-        if self.task and self.task.video and self.task.video.source_mp4:
+    def set_process_btn_text(self, text, btnkey="",type="logs"):
+        # btnkey=None
+        if self.task and self.task.video:
             # 有视频
-            btnkey = self.task.video.source_mp4
+            # btnkey =  #self.task.video.source_mp4 if re.search(r'\.mp4',self.task.video.source_mp4,re.I) else re.sub(r'\.[a-zA-Z0-9]+$','.mp4',self.task.video.source_mp4,re.I)
             if type != 'succeed':
                 text = f'{self.task.video.noextname}: {text}'
-        else:
+        # elif self.task and self.task.video:
             # 字幕到配音，无视频
-            btnkey = "srt2wav"
-        if btnkey in self.processbtns:
+            # btnkey = "srt2wav"
+
+        if btnkey and btnkey in self.processbtns:
             if type == 'succeed':
-                text = f'{transobj["endandopen"]}{text}'
-                self.processbtns[btnkey].clicked.connect(lambda: self.click_process_btn(text[:]))
-                # print(f'{text=}')
-                self.processbtns[btnkey].setStyleSheet('color:#00a67d')
+                text,duration=text.split('##')
+                self.processbtns[btnkey].setTarget(text)
+                text = f'Time:[{duration}s] {transobj["endandopen"]}{text}'
+                # self.processbtns[btnkey].clicked.connect(self.processbtns[btnkey].opendir)
+                self.processbtns[btnkey].progress_bar.setValue(100)
+                # self.processbtns[btnkey].clicked.connect(lambda: self.click_process_btn(text[:]))
+                # self.processbtns[btnkey].setStyleSheet('color:#00a67d')
             elif type == 'error':
                 self.processbtns[btnkey].setStyleSheet('color:#ff0000')
+                self.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
             else:
-                text = f'{transobj["running"]} {text}'
-            self.processbtns[btnkey].setText(text)
+                jindu=f'[{round(self.task.video.precent,1)}%]' if self.task and self.task.video else ""
+                self.processbtns[btnkey].progress_bar.setValue(int(self.task.video.precent))
+                text = f'{transobj["running"]}{jindu} {text}'
+            self.processbtns[btnkey].setText(text[:90])
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1490,23 +1554,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'set_target_dir':
             self.target_dir.setText(config.params['target_dir'])
+            if self.task and self.task.video and self.task.video.source_mp4 and self.task.video.source_mp4 in self.processbtns:
+                self.processbtns[self.task.video.source_mp4].setTarget(self.task.video.target_dir)
         elif d['type'] == "logs":
-            self.set_process_btn_text(d['text'])
+            self.set_process_btn_text(d['text'],d['btnkey'])
         elif d['type'] == 'stop' or d['type'] == 'end':
             self.update_status(d['type'])
             self.continue_compos.hide()
-            if d['text']:
-                self.set_process_btn_text(d['text'])
             self.statusLabel.setText(transobj['bencijieshu'])
         elif d['type'] == 'succeed':
             # 本次任务结束
-            self.set_process_btn_text(d['text'], 'succeed')
+            self.set_process_btn_text(d['text'], d['btnkey'],'succeed')
         elif d['type'] == 'statusbar':
             self.statusLabel.setText(d['text'])
         elif d['type'] == 'error':
             # 出错停止
             self.update_status('stop')
-            self.set_process_btn_text(d['text'], 'error')
+            self.set_process_btn_text(d['text'],d['btnkey'], 'error')
             self.continue_compos.hide()
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
@@ -1515,7 +1579,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.continue_compos.setText(d['text'])
             self.stop_djs.show()
             # 允许试听
-            if self.task.video.step == 'dubbing_before':
+            if self.task.video.step == 'dubbing_start':
                 self.listen_peiyin.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
@@ -1523,13 +1587,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'timeout_djs':
             self.stop_djs.hide()
-            self.continue_compos.setDisabled(True)
             self.update_subtitle()
+            self.continue_compos.setDisabled(True)
             self.listen_peiyin.setDisabled(True)
             self.listen_peiyin.setText(transobj['shitingpeiyin'])
         elif d['type'] == 'show_djs':
-            # self.process.clear()
-            self.set_process_btn_text(d['text'])
+            self.set_process_btn_text(d['text'],d['btnkey'])
         elif d['type'] == 'check_soft_update':
             self.setWindowTitle(self.rawtitle + " -- " + d['text'])
             usetype = QPushButton(d['text'])
@@ -1545,11 +1608,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
         txt = self.subtitle_area.toPlainText().strip()
-        with open(
-                self.task.video.targetdir_source_sub if self.task.video.step == 'translate_before' else self.task.video.targetdir_target_sub,
-                'w', encoding='utf-8') as f:
+        with open(self.task.video.targetdir_source_sub if self.task.video.step == 'translate_start' else self.task.video.targetdir_target_sub,'w', encoding='utf-8') as f:
             f.write(txt)
-        if self.task.video.step == 'translate_before':
+        if self.task.video.step == 'translate_start':
             self.subtitle_area.clear()
         config.task_countdown = 0
         return True
