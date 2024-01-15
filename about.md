@@ -54,4 +54,8 @@
 - m*o / 2024-1-11 捐助 1.0 元
 - *工 / 2024-1-12 捐助 10 元
 - [maotouying0102](https://github.com/maotouying0102) / 2024-1-12 捐助 10 元
+- [super5hunz1](https://github.com/super5hunz1) / 2024-1-13 捐助 16.66 元
+- [zhulinzhao](https://github.com/zhulinzhao) / 2024-1-14 捐助 5 元
+- [darksiderlyd](https://github.com/darksiderlyd) / 2024-1-14 捐助 20 元
+- [againstthewindtofly](https://github.com/againstthewindtofly) / 2024-1-15 捐助 50 元
 
