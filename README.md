@@ -243,7 +243,7 @@ lang =
 
 # CLI 命令行模式
 
-[![Open In Colab](https://user-images.githubusercontent.com/54370274/224839806-8720fb19-9c7d-46a2-8d7c-de3afb39c11f.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
 
 
 cli.py 是命令行执行脚本，`python cli.py` 是最简单的执行方式

@@ -221,7 +221,7 @@ lang =
 
 # CLI Command Line Mode
 
-[![Open In Colab](https://user-images.githubusercontent.com/54370274/224839806-8720fb19-9c7d-46a2-8d7c-de3afb39c11f.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
 
 cli.py is a script executed from the command line and `python cli.py` is the simplest way to execute it.
 
