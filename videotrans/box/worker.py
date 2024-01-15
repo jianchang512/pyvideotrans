@@ -8,9 +8,10 @@ import re
 from PyQt5.QtCore import  pyqtSignal, QThread
 from pydub import AudioSegment
 
+from videotrans.configure import config
 from videotrans.configure.config import logger, homedir
-from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans, baidutrans_spider,   chatgpttrans, azuretrans, geminitrans
-from videotrans.util.tools import transcribe_audio, text_to_speech, runffmpegbox as runffmpeg, \
+from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans,  chatgpttrans, azuretrans, geminitrans
+from videotrans.util.tools import transcribe_audio, text_to_speech, runffmpeg, \
     get_subtitle_from_srt, ms_to_time_string, speed_change, set_process_box
 
 
@@ -29,7 +30,7 @@ class Worker(QThread):
         for cmd in self.cmd_list:
             logger.info(f"[box]Will execute: ffmpeg {cmd=}")
             try:
-                rs=runffmpeg(cmd, no_decode=self.no_decode)
+                rs=runffmpeg(cmd, no_decode=self.no_decode,is_box=True)
                 if not rs:
                     set_process_box(f'exec {cmd=} error','error')
             except Exception as e:
@@ -124,7 +125,7 @@ class WorkerTTS(QThread):
                 "-c:a",
                 "pcm_s16le",
                 f'{self.filename}',
-            ], no_decode=True)
+            ], no_decode=True,is_box=True)
             os.unlink(mp3)
         self.post_message("end", "Ended")
 
@@ -293,8 +294,7 @@ class FanyiWorker(QThread):
                 self.srts = googletrans(self.text, 'auto', self.target_language, set_p=False)
             elif self.type == 'baidu':
                 self.srts = baidutrans(self.text, 'auto', self.target_language, set_p=False)
-            elif self.type == 'baidu(noKey)':
-                self.srts = baidutrans_spider(self.text, 'auto', self.target_language, set_p=False)
+
             elif self.type == 'tencent':
                 self.srts = tencenttrans(self.text, 'auto', self.target_language, set_p=False)
             elif self.type == 'DeepL':
@@ -319,6 +319,36 @@ class FanyiWorker(QThread):
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 self.srts = srts_tmp
             else:
+                split_size = config.settings['OPTIM']['trans_thread']
+                srt_lists = [rawsrt[i:i + split_size] for i in range(0, len(rawsrt), split_size)]
+                for (index, item) in enumerate(srt_lists):
+                    wait_text = []
+                    for (i, it) in enumerate(item):
+                        wait_text.append(it['text'].strip().replace("\n", '.'))
+                    wait_text = "\n".join(wait_text)
+                    # 翻译
+                    new_text = ""
+                    if self.type == 'google':
+                        new_text = googletrans(wait_text,
+                                               'auto',
+                                               self.target_language, set_p=False)
+                    elif self.type == 'baidu':
+                        new_text = baidutrans(wait_text, 'auto', self.target_language, set_p=False)
+                    elif self.type == 'tencent':
+                        new_text = tencenttrans(wait_text, 'auto', self.target_language, set_p=False)
+                    elif self.type == 'DeepL':
+                        new_text = deepltrans(wait_text, self.target_language, set_p=False)
+                    elif self.type == 'DeepLX':
+                        new_text = deeplxtrans(wait_text, self.target_language, set_p=False)
+                    trans_text = re.sub(r'&#\d+;', '', new_text).replace('&#39;', "'").split("\n")
+                    srt_str = ""
+                    for (i, it) in enumerate(item):
+                        if i <= len(trans_text) - 1:
+                            srt_str += f"{it['line']}\n{it['time']}\n{trans_text[i]}\n\n"
+                        else:
+                            srt_str += f"{it['line']}\n{it['time']}\n{item['text']}\n\n"
+                    self.srts +=srt_str
+
                 # 其他翻译，逐行翻译
                 for (i, it) in enumerate(rawsrt):
                     new_text = it['text']
@@ -330,8 +360,6 @@ class FanyiWorker(QThread):
                         new_text = baidutrans(it['text'], 'auto', self.target_language, set_p=False)
                     elif self.type == 'tencent':
                         new_text = tencenttrans(it['text'], 'auto', self.target_language, set_p=False)
-                    elif self.type == 'baidu(noKey)':
-                        new_text = baidutrans_spider(it['text'], 'auto', self.target_language, set_p=False)
                     elif self.type == 'DeepL':
                         new_text = deepltrans(it['text'], self.target_language, set_p=False)
                     elif self.type == 'DeepLX':
@@ -339,5 +367,7 @@ class FanyiWorker(QThread):
                     new_text = re.sub(r'&#\d+;', '', new_text.replace('&#39;', "'"))
                     # 更新字幕区域
                     self.srts += f"{it['line']}\n{it['time']}\n{new_text}\n\n"
+
+
         self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
 

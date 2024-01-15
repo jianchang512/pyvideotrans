@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import queue
-
-
 # 摄像头队列
 camera_list=[]
 # 录制中

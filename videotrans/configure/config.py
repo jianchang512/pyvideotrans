@@ -6,11 +6,14 @@ import logging
 import sys
 from queue import Queue
 
-from .language import translate_language, language_code_list
+from videotrans.configure.language import translate_language, language_code_list,clilanglist
 import configparser
 
 # 当前执行目录
 rootdir = os.getcwd().replace('\\', '/')
+TEMP_DIR=os.path.join(rootdir,"tmp").replace('\\','/')
+if not os.path.exists(TEMP_DIR):
+    os.makedirs(TEMP_DIR,exist_ok=True)
 homedir = os.path.join(os.path.expanduser('~'), 'Videos/pyvideotrans').replace('\\', '/')
 if not os.path.exists(f"{rootdir}/logs"):
     os.makedirs(f"{rootdir}/logs", exist_ok=True)
@@ -21,8 +24,20 @@ logging.basicConfig(
     filemode="a")
 logger = logging.getLogger('VideoTrans')
 
+# 语言
+defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+
 # 初始化一个字典变量
-settings = {}
+settings = {
+    "GUI":{
+        "lang":defaulelang
+    },
+    "OPTIM":{
+        "dubbing_thread":5,
+        "trans_thread":10,
+        "countdown_sec":60
+    }
+}
 if os.path.exists(f'{rootdir}/set.ini'):
     # 创建配置解析器
     iniconfig = configparser.ConfigParser()
@@ -33,13 +48,12 @@ if os.path.exists(f'{rootdir}/set.ini'):
         settings[section] = {}
         # 遍历每个section中的每个option
         for key, value in iniconfig.items(section):
-            settings[section][key] = value
+            settings[section][key] = int(value) if key in ["dubbing_thread","trans_thread","countdown_sec"] else value
 
 # default language 如果 ini中设置了，则直接使用，否则自动判断
-if "GUI" in settings and settings['GUI']['lang'].lower() in ["en", 'zh', 'zh-cn']:
-    defaulelang = "zh" if settings['GUI']['lang'].lower() != 'en' else "en"
-else:
-    defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+if settings['GUI']['lang'].lower() in ["en", 'zh', 'zh-cn']:
+    defaulelang=settings['GUI']['lang'].lower()
+
 if defaulelang == 'en':
     transobj = translate_language['en']
     langlist = language_code_list['en']
@@ -57,13 +71,14 @@ else:
 
 os.environ['QT_API'] = 'pyqt5'
 # spwin主窗口
-queue_logs = Queue(200)
+queue_logs = Queue(1000)
 # box窗口
-queuebox_logs = Queue(200)
+queuebox_logs = Queue(1000)
 
 # 开始按钮状态
 current_status = "stop"
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
+chatgpt_model_list=["gpt-3.5-turbo", "gpt-4"]
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 proxy = None
@@ -142,3 +157,15 @@ queue_task = []
 task_countdown = 60
 # 全局错误信息
 errors=""
+
+# 获取的视频信息
+video_cache={}
+
+# 软件界面当前正在执行的进度条key
+btnkey=""
+
+#cli  gui 模式
+exec_mode="gui"
+
+class Myexcept(Exception):
+    pass

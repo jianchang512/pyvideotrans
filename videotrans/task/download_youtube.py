@@ -1,15 +1,9 @@
 # 从日志队列获取日志
 import subprocess
 import sys
-import time
-
-import requests
 from PyQt5.QtCore import QThread
 
-import videotrans
-from videotrans.configure import config
-from videotrans.util.tools import set_proxy, set_process
-from videotrans.configure.config import transobj
+from videotrans.util.tools import  set_process
 
 
 class Download(QThread):

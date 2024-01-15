@@ -89,7 +89,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>Multiple MP4 videos can be selected and automatically queued for processing</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -134,7 +134,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>Select the location where the translated video will be saved, default to the original directory _video_out</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -799,7 +799,7 @@ Choose only one of the two options</string>
              </size>
             </property>
             <property name="text">
-             <string>Stop Countdown</string>
+             <string>Pause</string>
             </property>
            </widget>
           </item>

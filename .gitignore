@@ -19,9 +19,8 @@ __pycache__
 *.spec
 *.ui
 *.bak
-*.txt
+*.aac
 *副本.py
 pretrained_models
-set.ini
 voice_list.json
 elevenlabs.json

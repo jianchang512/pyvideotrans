@@ -28,7 +28,6 @@ def googletrans(text, src, dest, *, set_p=True):
         nums += 1
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=40)
-            print(f"google translate code={response.status_code}")
             if response.status_code != 200:
                 msg = f"[error] google error status_code={response.status_code}"
                 time.sleep(3)
@@ -43,5 +42,5 @@ def googletrans(text, src, dest, *, set_p=True):
             return re_result[0]
         except Exception as e:
             msg = f"[error]google error {serv=}: is connect to google {str(e)}?"
-            time.sleep(3)
+            raise Exception(msg)
     return msg

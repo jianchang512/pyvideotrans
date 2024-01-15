@@ -1,93 +1,254 @@
+# 测试 CUDA 可用性
+# 找到一个 h264 编码的mp4视频，重命名为 raw.mp4，然后复制到和当前脚本同目录下，然后执行测试
+
+import json
+import subprocess
 import torch
-from videotrans.util.tools import runffmpeg, set_process, delete_files, match_target_amplitude, show_popup, cut_from_video,     ms_to_time_string
 import os
-from videotrans.configure import config
-config.current_status='ing'
+import sys
 
 if torch.cuda.is_available():
-    print('CUDA 可用，如果实际使用仍提示 cuda 相关错误，请尝试升级显卡驱动')
-    config.params['cuda']=True
+    print('CUDA 可用，如果实际使用仍提示 cuda 相关错误，请尝试升级显卡驱动并重新配置CUDA12')
 else:
     print("当前计算机CUDA不可用")
-    exit()
+    input("\n按任意键关闭窗口")
+    sys.exit()
 
-rootdir=os.getcwd()
-tmpdir=os.path.join(rootdir, 'tmp')
+print(f'当前支持的硬件加速器:')
+result = subprocess.run(['ffmpeg', '-hwaccels'], text=True, stdout=subprocess.PIPE)
+print(result.stdout)
+
+rootdir = os.getcwd()
+tmpdir = os.path.join(rootdir, 'tmp')
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir, exist_ok=True)
 
-# 创建 ms 格式
-totime = ms_to_time_string(ms=3200).replace(',', '.')
-img=os.path.join(tmpdir, '1.jpg')
-last_clip=os.path.join(tmpdir, 'lastclip.mp4')
-mansu_clip=os.path.join(tmpdir, 'mansu.mp4')
-testmp4=os.path.join(rootdir, 'test.mp4')
-outmp4=os.path.join(tmpdir, 'testout.mp4')
-# 创建 totime 时长的视频
-# 测试截图
-rs1=runffmpeg(['-y','-sseof','-3','-i',testmp4,'-vsync','0','-q:v','1','-qmin:v','1','-qmax:v','1','-update','true',f'{img}'], disable_gpu=True, no_decode=True)
-print(f'test crop img:{rs1=}')
+# 原始视频
+sourcemp4 = rootdir + "/raw.mp4"
+sourceavi = rootdir + "/raw.mp4.avi"
+if not os.path.exists(sourcemp4):
+    print('为进一步测试能否真实正确完成CUDA下视频处理,\n请复制一个mp4视频，重名为 raw.mp4,粘贴到当前项目目录下')
+    input("\n按任意键关闭窗口")
+    sys.exit()
 
 
-# 测试创建一定时长的视频
-rs2 = runffmpeg([
-    '-loop', '1', '-i', f'{img}', '-vf', f'fps=30,scale=1548:892', '-c:v', "libx264",
-    '-crf', '0', '-to', f'{totime}',  '-y', f'{last_clip}'], no_decode=True)
-print(f'test create videotrans from img:{rs2=}')
-
-# 开始将 test.mp4 和 last_clip 合并为无声视频
-rs3=runffmpeg(
-    ['-y', '-i', testmp4, '-i', f'{last_clip}', f'-filter_complex',
-     '[0:v][1:v]concat=n=2:v=1:a=0[outv]', '-map', '[outv]', '-c:v', "libx264", '-crf', '0', '-an',
-     f'{outmp4}'],  de_format="nv12")
-print(f'test concat 2 video:{rs3=}') 
-
-
-rs4=cut_from_video(ss="0", to="00:00:00.500", source=testmp4, pts=2, out=mansu_clip)
-print(f'test cut video:{rs4=}')
+def runffprobe(cmd):
+    try:
+        p = subprocess.run(['ffprobe'] + cmd, stdout=subprocess.PIPE, text=True)
+        if p.returncode == 0:
+            return p.stdout.strip()
+        else:
+            print(f'{p.stderr=}')
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f'{e=}')
+        return False
 
 
+# 获取视频信息
+def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False):
+    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
+    if out is False:
+        raise Exception(f'ffprobe error:dont get video information')
+    out = json.loads(out)
+    result = {
+        "video_fps": 0,
+        "video_codec_name": "h264",
+        "audio_codec_name": "aac",
+        "width": 0,
+        "height": 0,
+        "time": 0,
+        "streams_len": 0,
+        "streams_audio": 0
+    }
+    if "streams" not in out or len(out["streams"]) < 1:
+        raise Exception(f'ffprobe error:streams is 0')
+
+    if "format" in out and out['format']['duration']:
+        result['time'] = int(float(out['format']['duration']) * 1000)
+    for it in out['streams']:
+        result['streams_len'] += 1
+        if it['codec_type'] == 'video':
+            result['video_codec_name'] = it['codec_name']
+            result['width'] = int(it['width'])
+            result['height'] = int(it['height'])
+            fps, c = it['r_frame_rate'].split('/')
+            if not c or c == '0':
+                c = 1
+                fps = int(fps)
+            else:
+                fps = round(int(fps) / int(c))
+            result['video_fps'] = fps
+        elif it['codec_type'] == 'audio':
+            result['streams_audio'] += 1
+            result['audio_codec_name'] = it['codec_name']
+
+    if video_time:
+        return result['time']
+    if video_fps:
+        return ['video_fps']
+    if video_scale:
+        return result['width'], result['height']
+    return result
+
+
+# 从视频中截取的图片
+img = os.path.join(tmpdir, '1.jpg')
+# 从原始视频中分离出的无声视频
+novoice = os.path.join(tmpdir, 'novoice.mp4')
+# 视频 音频 硬字幕合并后输出
+out_hard = os.path.join(tmpdir, 'out_hard.mp4')
+
+# 视频 音频 软字幕合并后输出
+out_soft = os.path.join(tmpdir, 'out_soft.mp4')
+# 配音无字幕
+out_nosrt = os.path.join(tmpdir, 'out_nosrt.mp4')
+
+# 从原始视频中分离出音频
+m4a = os.path.join(tmpdir, '1.m4a')
+# m4a 格式转为 wav格式
+wav = os.path.join(tmpdir, '1.wav')
+wavspeedup = os.path.join(tmpdir, '1-speedup.wav')
+
+# 连接2个视频片段
+concat = os.path.join(tmpdir, 'concat.txt')
+# 字幕文件
+srtfile = os.path.join(tmpdir, 'zimu.srt')
+# 根据图片生成的视频
+imgvideo = os.path.join(tmpdir, 'img.mp4')
+# 从视频中截取的片段
+pianduan = os.path.join(tmpdir, 'pianduan.mp4')
+
+# 图片视频片段和截取的片段合并
+hebing = os.path.join(tmpdir, 'imgvideo-pianduan.mp4')
+
+# 获取视频信息
+video_info = get_video_info(sourcemp4)
+if not video_info or video_info['time'] == 0:
+    print("视频数据存在错误，请更换视频")
+    input("\n按任意键关闭窗口")
+    sys.exit()
+
+if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] != 'aac':
+    # 转换
+    tmptestmp4 = os.path.join(rootdir, 'tmptest.mp4')
+    rs = os.system(
+        f"ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2    -y -i  {sourcemp4} -c:v h264_nvenc -c:a aac {tmptestmp4}")
+    if rs != 0:
+        print("raw.mp4格式不正确，请确保是h264编码的mp4视频")
+        input("\n按任意键关闭窗口")
+        sys.exit()
+    os.unlink(sourcemp4)
+    os.rename(tmptestmp4, sourcemp4)
+    # 获取视频信息
+    video_info = get_video_info(sourcemp4)
+    if not video_info or video_info['time'] == 0:
+        print("视频数据存在错误，请更换raw.mp4视频")
+        input("\n按任意键关闭窗口")
+        sys.exit()
+
+fps = video_info['video_fps']
+scale = [video_info['width'], video_info['height']]
+
+# 从原始视频 分离出无声视频 cuda + h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -i "{sourcemp4}" -an -c:v h264_nvenc  "{novoice}"')
+print(f'从原始视频 分离出无声视频 {"OK" if rs == 0 else "Error"}')
+
+# 从原始视频 分离出音频 cuda + h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -i "{sourcemp4}" -vn -c:a copy "{m4a}"')
+print(f'从原始视频 分离出音频 {"OK" if rs == 0 else "Error"}')
+
+# 分离出的 m4a 转为 wav cuda + h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid  -y  -i {m4a}  -ac 1 {wav}')
+print(f'分离出的 m4a 转为 wav {"OK" if rs == 0 else "Error"}')
+
+# 提取最后一帧为图片 nv12 + h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2 -c:v h264_cuvid -y -sseof -3 -i {novoice} -q:v 1 -qmin:v 1 -qmax:v 1 -update true {img}')
+print(f'提取最后一帧为图片 {"OK" if rs == 0 else "Error"}')
+
+# 根据图片创建 5s 的视频 nv12 +  not h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2  -y -loop  1 -i {img} -vf  "fps={fps},scale={scale[0]}:{scale[1]}" -c:v h264_nvenc -crf 13 -to 00:00:05  {imgvideo}')
+print(f'根据图片创建 5s 的视频 {"OK" if rs == 0 else "Error"}')
+
+# 截取 00:00:05 -- 00:00:15 nv12 +  not h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid  -y -ss 00:00:05 -to 00:00:10.500 -i {novoice} -vf "setpts=2*PTS" -c:v h264_nvenc -crf 13 {pianduan}')
+print(f'截取 00:00:05 -- 00:00:15 {"OK" if rs == 0 else "Error"}')
+
+# imgvideo 和 pianduan 合并
+srttext = f"""
+file '{imgvideo}'
+file '{pianduan}'
+"""
+with open(concat, 'w', encoding='utf-8') as f:
+    f.write(srttext)
+# 连接 2个视频片段 cuda +  h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -f concat -safe 0 -i {concat} -c:v h264_nvenc -crf 13 -an {hebing}')
+print(f'连接 2个视频片段 {"OK" if rs == 0 else "Error"}')
+
+with open(srtfile, 'w', encoding='utf-8') as f:
+    f.write("""
+1
+00:00:00,000 --> 00:00:05,780
+rear seat
+
+2
+00:00:05,780 --> 00:00:08,436
+In this issue we introduce electromagnetic punishment in the park
+
+3
+00:00:08,436 --> 00:00:10,132
+First of all, we got an electromagnetic penalty
+    """)
+
+# 视频 音频 硬字幕合并 nv12 +  h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2 -c:v h264_cuvid -y -i {novoice} -i {m4a} -c:v h264_nvenc -c:a copy -vf subtitles={srtfile} {out_hard}')
+print(f'视频 音频 硬字幕合并 {"OK" if rs == 0 else "Error"}')
+
+# 视频 硬字幕 nv12 +  h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2 -c:v h264_cuvid -y -i {novoice}  -c:v h264_nvenc   -vf subtitles={srtfile} {out_hard}')
+print(f'视频 硬字幕 {"OK" if rs == 0 else "Error"}')
+
+# 视频 配音 软字幕 cuda +   h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -i {novoice} -i {m4a} -i {srtfile}  -c:v h264_nvenc -c:a copy  -c:s mov_text -metadata:s:s:0 language=chi {out_soft}')
+print(f'视频 配音 软字幕 {"OK" if rs == 0 else "Error"}')
+
+# 软字幕无配音 cuda + h264_cuvid
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -i {novoice}   -i {srtfile}  -c:v h264_nvenc   -c:s mov_text -metadata:s:s:0 language=chi {out_soft}')
+print(f'软字幕无配音 {"OK" if rs == 0 else "Error"}')
+
+# 配音无字幕
+rs = os.system(
+    f'ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -c:v h264_cuvid -y -i {novoice} -i {m4a}   -c:v h264_nvenc -c:a copy  {out_nosrt}')
+print(f'配音无字幕 {"OK" if rs == 0 else "Error"}')
+
+# 加速音频
+rs = os.system(
+    f"ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2  -c:v h264_cuvid -y -i  {wav} -af atempo=2 {wavspeedup}")
+print(f'加速音频 {"OK" if rs == 0 else "Error"}')
+
+# mp4 转为 api
+rs = os.system(
+    f"ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2    -y -i  {sourcemp4} -c:v h264_nvenc -c:a aac {sourceavi}")
+
+print(f'mp4 转为 api {"OK" if rs == 0 else "Error"}')
+
+# avi 转为 mp4
+rs = os.system(
+    f"ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2    -y -i  {sourceavi} -c:v h264_nvenc -c:a aac {sourceavi}.mp4")
+
+print(f'avi 转为 mp4 {"OK" if rs == 0 else "Error"}')
 
 
 
-
-
-
-
-
-
-'''
-
-# 处理视频 非拼接  cuda 格式 需解码 h264_cuvid
-# 视频去掉音频轨道，得到无声视频
-ffmpeg -hide_banner -vsync 0 -hwaccel cuvid -hwaccel_output_format cuda -c:v h264_cuvid -extra_hw_frames 2 -y -i "真实存在的视频地址，正斜杠做路径分隔符，比如 D:/1.mp4" -c:v h264_nvenc -an "D:/novoice.mp4.raw.mp4"
-
-
-# 从视频截图最后一帧
-ffmpeg -hide_banner -vsync 0 -y -sseof -3 -i "D:/novoice.mp4.raw.mp4" -q:v 1 -qmin:v 1 -qmax:v 1 -update true "D:/last.jpg"
-
-
-# 求帧率, 输出的结果，比如 3000/100,  用 3000除以100=30，帧率即为30
-ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "D:/novoice.mp4.raw.mp4"
-
-
-# 获取宽和高
-#执行后边命令得到宽度数字  
-ffprobe -v error -select_streams "v:0" -show_entries "stream=width" -of "csv=s=x:p=0" "D:/novoice.mp4.raw.mp4"
-
-# 执行后边命令得到高度数字
-ffprobe -v error -select_streams "v:0" -show_entries "stream=height" -of "csv=s=x:p=0" "D:/novoice.mp4.raw.mp4"
-
-
-# 从图片生成视频
-ffmpeg -hide_banner -vsync 0 -hwaccel cuvid -hwaccel_output_format cuda -extra_hw_frames 2 -loop 1 -i "D:/last.jpg" -vf "fps=帧率数字,scale_cuda=宽度数字:高度数字" -c:v h264_nvenc -crf 18 -to 00:00:03.366 -y "D:/last_clip.mp4"
-
-
-# 视频处理 拼接  nv12 格式  需解码 h264_cuvid
-ffmpeg -hide_banner -vsync 0 -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2 -c:v h264_cuvid -y -i "D:/novoice.mp4.raw.mp4" -c:v h264_cuvid -i "D:/last_clip.mp4" -filter_complex "[0:v][1:v]concat=n=2:v=1:a=0[outv]" -map "[outv]" -c:v h264_nvenc -crf 18 -an "D:/novoice.mp4"
-
-
-
-'''
-
-
+input("\n按任意键关闭窗口")

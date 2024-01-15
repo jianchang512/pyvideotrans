@@ -41,6 +41,7 @@ QLineEdit,QComboBox{
 QLineEdit:disabled {
     background-color: transparent;  /* 灰色背景 */
     border-color: transparent;  /* 灰色背景 */
+
 }
 
 QComboBox:disabled{

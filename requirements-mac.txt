@@ -85,6 +85,7 @@ oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==1.2.3
 opt-einsum==3.3.0
+ordered-set==4.1.0
 packaging==23.1
 pandas==1.5.3
 parso==0.8.3
@@ -99,7 +100,6 @@ protobuf==4.25.1
 pure-eval==0.2.2
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
-PyAudio==0.2.14
 pycparser==2.21
 pydantic==2.4.2
 pydantic_core==2.10.1
@@ -142,7 +142,7 @@ termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.3.3
 tokenizers==0.14.1
-torch==2.1.2 
+torch==2.1.2
 tqdm==4.66.1
 traitlets==5.14.1
 typer==0.3.2

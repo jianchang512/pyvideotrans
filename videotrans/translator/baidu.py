@@ -21,9 +21,7 @@ def baidutrans(text, src, dest, *, set_p=True):
             f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={dest}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}")
         res = res.json()
         if "error_code" in res:
-            if set_p:
-                tools.set_process("[error]百度翻译失败:" + res['error_msg'])
-            return "baidu api error:" + res['error_msg']
+            raise Exception("[error]百度翻译失败:" + res['error_msg'])
         comb = ""
         if "trans_result" in res:
             comb = ""
@@ -32,6 +30,4 @@ def baidutrans(text, src, dest, *, set_p=True):
         return comb
     except Exception as e:
         logger.error("baidu api error:" + str(e))
-        if set_p:
-            tools.set_process("[error]百度翻译失败:" + str(e))
-        return "baidu api error:" + str(e)
+        raise Exception("[error]百度翻译失败:" + str(e))

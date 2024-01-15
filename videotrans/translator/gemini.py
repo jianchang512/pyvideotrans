@@ -49,8 +49,8 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         if isinstance(text_list, str):
             return err
         else:
-            tools.set_process(f'[error]Gemini error:{err}', 'error')
-            return [{"text": err}]
+            raise Exception(f'[error]Gemini error:{err}')
+
     lang = target_language_chatgpt
     if isinstance(text_list, str):
         try:
@@ -65,7 +65,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             raise Exception(f"Gemini error:{error}")
 
     total_result = []
-    split_size = 10
+    split_size = config.settings['OPTIM']['trans_thread']
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
     srts = ''
@@ -82,6 +82,8 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             trans.append(it['text'].strip())
             # 行数和时间信息
             origin.append({"line": it["line"], "time": it["time"], "text": ""})
+            if set_p:
+                tools.set_process(f'Gemini Line: {it["line"]}')
 
         len_sub = len(origin)
         logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
@@ -93,25 +95,23 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 safety_settings=safetySettings
             )
             if not response.parts and set_p:
-                trans_text = [f"[error]Gemini error:{response.prompt_feedback}"] * len_sub
-            else:
-                trans_text = response.text.split("\n")
-                # logger.info(f"\n[Gemini OK]翻译成功")
-                if set_p:
-                    tools.set_process(f"Gemini OK")
+                raise Exception(f"[error]Gemini error:{response.prompt_feedback}")
+
+            trans_text = response.text.split("\n")
+            if set_p:
+                tools.set_process(f"Gemini OK")
         except Exception as e:
             error = str(e)
             if response:
                 error += f',{response.prompt_feedback=}'
-            logger.error(f"【Gemini Error-2】error :{error}")
-            trans_text = [f"[error]Gemini error:{error}"] * len_sub
-        if error and re.search(r'limit', error, re.I) is not None:
-            if set_p:
-                tools.set_process(f'Gemini limit rate,wait 30s')
-            time.sleep(30)
-            return geminitrans(text_list)
-        elif error:
-            raise Exception(error)
+            if error and re.search(r'limit', error, re.I) is not None:
+                if set_p:
+                    tools.set_process(f'Gemini limit rate,wait 30s')
+                time.sleep(30)
+                return geminitrans(text_list)
+            else:
+                logger.error(f"【Gemini Error-2】error :{error}")
+                raise Exception(error)
         # 处理
 
         for index, it in enumerate(origin):

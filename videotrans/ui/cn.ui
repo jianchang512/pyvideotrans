@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1488</width>
-    <height>884</height>
+    <height>897</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -89,7 +89,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>选择待翻译的mp4视频，可多个，排队处理</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -134,7 +134,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="placeholderText">
-                 <string>选择翻译后的视频保存到的位置，默认原目录下_video_out中</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -801,7 +801,7 @@
              </size>
             </property>
             <property name="text">
-             <string>停止倒计时</string>
+             <string>暂停</string>
             </property>
            </widget>
           </item>
@@ -821,7 +821,7 @@
              <x>0</x>
              <y>0</y>
              <width>996</width>
-             <height>480</height>
+             <height>493</height>
             </rect>
            </property>
            <property name="styleSheet">

@@ -132,50 +132,187 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
     ![](./images/pen2.png)
 
 
-# Notes:
+# Frequently Asked Questions
 
-**Subtitle Display Problem**
->
-> When using soft combined subtitles: The subtitles are embedded in the video as separate files, can be extracted again, and can be enabled or disabled in the player's subtitle management if the player supports it.
->
-> Please note that many domestic players require the srt subtitle file and the video to be placed in the same directory and named the same to load the soft subtitles, and the srt file may need to be converted to GBK encoding, otherwise it will display garbled characters.
->
+1. Using Google Translation, error is prompted.
 
-**Subtitle Voice Alignment Problem**
+   Domestically, using Google or the official interface of chatGPT requires a VPN.
 
-> The pronunciation duration may vary in different languages after translation. For example, a sentence in Chinese is 3s, but when translated into English, it might take 5s, resulting in an inconsistency with the video duration.
+2. Have used global proxy, but it doesn't seem to be going through proxy.
+
+   Need to set specific proxy address in software interface "network proxy", such as http://127.0.0.1:7890
+
+3. Prompting that FFmpeg does not exist.
+
+   First, make sure there are ffmpeg.exe and ffprobe.exe files in the root directory of the software. If not, unzip ffmpeg.7z and put these two files in the root directory of the software.
+
+4. CUDA is enabled on Windows, but errors are prompted.
+
+   A: Firstly, refer to the [detailed installation method](https://juejin.cn/post/7318704408727519270) and confirm that you have successfully installed the related cuda tools. If errors still exist, [click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). After unzipping it, copy the dll files to C:/Windows/System32.
+
+   B: If you are sure it is not related to A, check if the video is H264 encoded mp4. Some HD videos are H265 encoded, which is not supported. You can try to convert to H264 video in the "Video Toolbox".
+
+5. Prompting that the model does not exist.
+
+   After version 0.985, the model needs to be reinstalled. The folder under models directory is the folder of each model, not just pt files.
+To use the base model, ensure that the models/models--Systran--faster-whisper-base directory exists. If it does not, download it and copy this directory to models. Similarly for small, medium, and large-v3 models.
+
+   [Complete model download link](https://github.com/jianchang512/stt/releases/tag/0.0)
+
+6. Prompting the directory does not exist or permission error.
+
+   Right-click on sp.exe and open with administrator permission.
+
+7. Prompting error, but no detailed error message.
+
+   Open logs directory, look for the latest log file, scroll to the bottom to see error messages.
+
+8. The large-v3 model is very slow.
+
+   If you do not have a GPU, or have not set up the CUDA environment properly, or your GPU memory is less than 4G, please do not use this model, otherwise it will be very slow and lagging.
+
+9. Prompting missing cublasxx.dll file.
+
+   Sometimes you may encounter an error saying "cublasxx.dll does not exist", then you need to download cuBLAS and copy the dll file to the system directory.
+
+   [Click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). Extract it and copy the dll files to C:/Windows/System32.
+
+10. Background music is lost.
+
+   Only human voices are recognized and saved, so there will be no original background music in the dubbed audio. If you need to retain it, you can use the [voice-background music separation project](https://github.com/jianchang512/vocal-separate) to extract the background music, and then merge it with the dubbed file.
+
+11. How to use custom voice.
+
+   Currently, this feature is not supported. If needed, you can first recognize the subtitles, and then use another [voice cloning project](https://github.com/jiangchang512/clone-voice), enter the subtitle srt file, select the customized voice to synthesize the audio file, and then recreate the video.
+
+13. Subtitle voice cannot be aligned.
+
+> Duration of pronunciation in different languages may vary after translation. For example, a sentence in Chinese may take 3s, in English could take 5s, leading to inconsistency in duration with the video.
 >
 > There are two solutions:
 >
->     1. Force dubbing to play faster to shorten the dubbing duration and align with the video.
+>     1. Force dubbing playback speeding up to shorten the duration to align with the video.
 >
->     2. Force the video to play slower to extend the video duration and align with the dubbing.
+>     2. Force video to play at a slower speed to extend the duration to align with the dubbing.
 >
-> You can only choose one of the two.
+> Can only choose one of two.
+
+14. Subtitles do not display or display gibberish.
+
+>
+> Using soft synthesized subtitles: Subtitles are embedded into the video as separate files and can be extracted again. If the player supports it, you can enable or disable subtitles in the player's subtitle management.
+>
+> Note that many domestic players must put the srt subtitle file in the same directory as the video file and have the same name in order to load soft subtitles. Also, you might need to convert the srt file to GBK encoding, otherwise, gibberish will be displayed.
+>
+
+15. How to switch the software interface language/Chinese or English.
+
+If there is no set.ini file in the software directory, create one first, then paste the following code into it, fill in the language code after `lang=`, `zh` stands for Chinese, `en` stands for English, then restart the software
+
+```
+[GUI]
+;GUI show language ,set en or zh  eg.  lang=en
+lang =
+
+```
 
 
-**Background Music Issue**
-
-The tool only recognizes vocals and saves vocals, meaning there will be no original background music in the audio after dubbing. If you need to retain the background music, please use the [Vocal Background Music Separation Project](https://github.com/jianchang512/vocal-separate) to extract the background music and then merge it with the dubbing file.
-
-**Language Cloning and Custom Voice**
-
-Currently, this feature is not supported. If needed, you can first recognize the subtitles, then use another [voice cloning project](https://github.com/jiangchang512/clone-voice), input the subtitle srt file, choose a custom voice to synthesize into an audio file, and then generate a new video.
 
 
+# CLI Command Line Mode
 
-**Issues with large/large-v3 models**
+[![Open In Colab](https://user-images.githubusercontent.com/54370274/224839806-8720fb19-9c7d-46a2-8d7c-de3afb39c11f.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
 
-If you don't have a NVIDIA GPU or if you didn't configure the CUDA environment correctly, do not use these two models, as they will be very slow and laggy.
+cli.py is a script executed from the command line and `python cli.py` is the simplest way to execute it.
 
-**Prompt ffmpeg error**
-If you have enabled CUDA and encountered this problem, please update the display card driver and then reconfigure the CUDA environment.
+Received parameters:
 
-**not exists cublasxx.dll**
+`-m absolute address of mp4 video`
 
-[click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，extract and copy dll to C:/Windows/System32
+The specific configuration parameters can be configured in cli.ini located in the same directory as cli.py. The address of other mp4 videos to be processed can also be configured by command line parameter `-m absolute address of mp4 video`, such as `python cli.py -m D:/1.mp4`.
+
+The complete parameters are in cli.ini, the first parameter `source_mp4` represents the video to be processed. If the command line passes parameters through -m, the command line parameter will be used, otherwise, `source_mp4` will be used.
+
+`-c configuration file address`
+
+You can also copy cli.ini to another location and specify the configuration file to be used through `-c absolute path address of cli.ini` on the command line, such as `python cli.py -c E:/conf/cli.ini`, which will use the configuration information in this file and ignore the configuration file in the project directory.
+
+`-cuda` does not need to follow the value, as long as it is added, it means to enable CUDA acceleration (if available) `python cli.py -cuda`
+
+Example:`python cli.py -cuda -m D:/1.mp4`
 
 
+
+## Specific parameters and explanations within cli.ini
+
+```
+;Command line parameters
+;Absolute address of the video to be processed. Forward slash as a path separator, can also be passed after -m in command line parameters
+source_mp4=
+;Network proxy address, google chatGPT official China needs to be filled in
+proxy=http://127.0.0.1:10809
+;Output result file to directory
+target_dir=
+;Video speech language, select from here zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+source_language=zh-cn
+;Speech recognition language, no need to fill in
+detect_language=
+;Language to translate to zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+target_language=en
+;Language when embedding soft subtitles, no need to fill in
+subtitle_language=
+;true=Enable CUDA
+cuda=false
+;Role name, role names of openaiTTS "alloy,echo,fable,onyx,nova,shimmer", role names of edgeTTS can be found in the corresponding language roles in voice_list.json. Role names of elevenlabsTTS can be found in elevenlabs.json
+voice_role=en-CA-ClaraNeural
+; Dubbing acceleration value, must start with + or -, + means acceleration, - means deceleration, ends with %
+voice_rate=+0%
+;Optional edgetTTS openaiTTS elevenlabsTTS
+tts_type=edgeTTS
+;Silent segment, unit ms
+voice_silence=500
+;all=whole recognition, split=pre-split sound segment recognition
+whisper_type=all
+;Speech recognition model optional, base small medium large-v3
+whisper_model=base
+;Translation channel, optional google baidu chatGPT Azure Gemini tencent DeepL DeepLX
+translate_type=google
+;0=Do not embed subtitles, 1=Embed hard subtitles, 2=Embed soft subtitles
+subtitle_type=1
+;true=Automatic dubbing acceleration
+voice_autorate=false
+;true=Automatic video slowdown
+video_autorate=false
+;deepl translation interface address
+deepl_authkey=asdgasg
+;Interface address of own configured deeplx service
+deeplx_address=http://127.0.0.1:1188
+;Tencent translation id
+tencent_SecretId=
+;Tencent translation key
+tencent_SecretKey=
+;Baidu translation id
+baidu_appid=
+;Baidu translation key
+baidu_miyue=
+; key of elevenlabstts
+elevenlabstts_key=
+;chatgpt api, ending with /v1, third party interface address can be filled in
+chatgpt_api=
+;key of chatGPT
+chatgpt_key=
+;chatgpt model, optional gpt-3.5-turbo gpt-4
+chatgpt_model=gpt-3.5-turbo
+; Azure's api interface address
+azure_api=
+;key of Azure
+azure_key=
+; Azure model name, optional gpt-3.5-turbo gpt-4
+azure_model=gpt-3.5-turbo
+;key of google Gemini
+gemini_key=
+
+```
 
 # CUDA Acceleration Support
 
@@ -187,6 +324,8 @@ If the installation is correct, the precompiled version can now be used with CUD
 after installed，executable `python testcuda.py`, if output all is True, its ok, else reinstall
 
 if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，extract and copy dll to C:/Windows/System32
+
+
 
 
 
@@ -204,12 +343,9 @@ if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.co
 
 # Acknowledgements
 
-> This program relies on these open source projects:
+> Some open source projects this program relies on (part of)
 
-1. pydub
-2. ffmpeg
-3. PyQt5
-4. SpeechRecognition
-5. edge-tts
-6. openai-whisper
-7. faster-whisper
+1. ffmpeg
+2. PyQt5
+3. edge-tts
+4. faster-whisper
