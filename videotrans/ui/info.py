@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap, QDesktopServices
 
-from . import wx
+from . import wx,alipay
 
 class Ui_infoform(object):
     def setupUi(self, infoform):
@@ -54,6 +54,7 @@ p, li { white-space: pre-wrap; }
 <h2 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">如何捐助</span></h2>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">你可以向微信或支付宝二维码付款，备注你的github名称</p>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/png/wx.png" width="240" /></p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/png/alipay.png" width="240" /></p>
 <hr />
 <h2 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">感谢所有捐助者</span></h2>
 <h2 style="-qt-paragraph-type:empty; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:x-large; font-weight:600;"><br /></h2>
@@ -87,7 +88,11 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">*匐 2024-1-11 捐助 20 元</span> /
 <span style="margin:5px;padding:5px;">m*o 2024-1-11 捐助 1.0 元</span> /
 <span style="margin:5px;padding:5px;">*工 2024-1-12 捐助 10 元</span> /
-<span style="margin:5px;padding:5px;"><a href="https://github.com/maotouying0102">maotouying0102 / 2024-1-12 捐助 10 元</span>
+<span style="margin:5px;padding:5px;"><a href="https://github.com/maotouying0102">maotouying0102 2024-1-12 捐助 10 元</a></span> /
+<span style="margin:5px;padding:5px;"><a href="https://github.com/super5hunz1">super5hunz1 2024-1-13 捐助 16.66 元</a></span> /
+<span style="margin:5px;padding:5px;"><a href="https://github.com/zhulinzhao">zhulinzhao 2024-1-14 捐助 5 元</a></span> /
+<span style="margin:5px;padding:5px;"><a href="https://github.com/darksiderlyd">darksiderlyd 2024-1-14 捐助 20 元</a></span> /
+<span style="margin:5px;padding:5px;"><a href="https://github.com/againstthewindtofly">againstthewindtofly 2024-1-15 捐助 50 元</a></span> /
 
 
 </p>

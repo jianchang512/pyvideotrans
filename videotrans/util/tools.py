@@ -318,7 +318,7 @@ def runffmpeg(arg, *, noextname=None, disable_gpu=False, no_decode=False, de_for
             if config.params['cuda'] and not disable_gpu and (de_format=='cuda' or not no_decode):
                 # 当前是GPU下出错 重新设为 nv12 和 不解码
                 return runffmpeg(arg_copy,noextname=noextname, disable_gpu=False, no_decode=True, de_format="nv12", is_box=is_box)
-            elif not config.params['cuda'] or not disable_gpu:
+            elif config.params['cuda'] and not disable_gpu:
                 # 切换为cpu
                 if not is_box:
                     set_process(transobj['huituicpu'])
@@ -329,7 +329,7 @@ def runffmpeg(arg, *, noextname=None, disable_gpu=False, no_decode=False, de_for
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        p = subprocess.Popen(['ffprobe']+cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        p = subprocess.Popen(['ffprobe']+cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,encoding="utf-8", text=True,
                              creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         out, errs = p.communicate()
         if p.returncode == 0:

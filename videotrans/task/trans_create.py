@@ -54,8 +54,10 @@ class TransCreate():
             self.noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             config.btnkey="srt2wav"
         else:
+            print('111')
             # 去掉扩展名的视频名，做标识
             self.noextname, ext = os.path.splitext(os.path.basename(self.source_mp4))
+            print(f'111 {ext=}')
             # 不是mp4，先转为mp4
             if ext.lower() != '.mp4':
                 out_mp4 = re.sub(rf'{ext}$', '.mp4', self.source_mp4)
@@ -65,7 +67,12 @@ class TransCreate():
             else:
                 # 获取视频信息
                 config.btnkey=self.source_mp4
-                self.video_info = get_video_info(self.source_mp4)
+                print(f'111 {self.source_mp4=}')
+                try:
+                    self.video_info = get_video_info(self.source_mp4)
+                except Exception as e:
+                    print(f'e=={str(e)}')
+                print(f'111 video')
                 if self.video_info is False:
                     raise Myexcept("get video_info error")
                 # 不是标准mp4，先转码
@@ -74,12 +81,13 @@ class TransCreate():
                     out_mp4 = self.source_mp4[:-4] + "-libx264.mp4"
                     self.wait_convermp4=self.source_mp4
                     self.source_mp4 = out_mp4
-
+        print('222')
         if not config.params['target_dir']:
             self.target_dir = f"{homedir}/only_dubbing" if not self.source_mp4 else (
                     os.path.dirname(self.source_mp4) + "/_video_out")
         else:
             self.target_dir = config.params['target_dir']
+        print('333')
         # 全局目标，用于前台打开
         self.target_dir = self.target_dir.replace('\\','/').replace('//', '/')
         config.params['target_dir'] = self.target_dir
@@ -116,6 +124,7 @@ class TransCreate():
 
     # 启动执行入口
     def run(self):
+        print('444')
         if config.current_status != 'ing':
             raise Myexcept("Had stop")
         if self.wait_convermp4:
