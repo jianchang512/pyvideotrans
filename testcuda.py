@@ -11,7 +11,7 @@ if torch.cuda.is_available():
     print('CUDA 可用，如果实际使用仍提示 cuda 相关错误，请尝试升级显卡驱动并重新配置CUDA12')
 else:
     print("当前计算机CUDA不可用")
-    input("\n按任意键关闭窗口")
+    input("\n按回车键关闭窗口")
     sys.exit()
 
 print(f'当前支持的硬件加速器:')
@@ -28,7 +28,7 @@ sourcemp4 = rootdir + "/raw.mp4"
 sourceavi = rootdir + "/raw.mp4.avi"
 if not os.path.exists(sourcemp4):
     print('为进一步测试能否真实正确完成CUDA下视频处理,\n请复制一个mp4视频，重名为 raw.mp4,粘贴到当前项目目录下')
-    input("\n按任意键关闭窗口")
+    input("\n按回车键关闭窗口")
     sys.exit()
 
 
@@ -126,7 +126,7 @@ hebing = os.path.join(tmpdir, 'imgvideo-pianduan.mp4')
 video_info = get_video_info(sourcemp4)
 if not video_info or video_info['time'] == 0:
     print("视频数据存在错误，请更换视频")
-    input("\n按任意键关闭窗口")
+    input("\n按回车键关闭窗口")
     sys.exit()
 
 if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] != 'aac':
@@ -136,7 +136,7 @@ if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] !=
         f"ffmpeg -hide_banner -ignore_unknown -vsync vfr -hwaccel cuvid -hwaccel_output_format nv12 -extra_hw_frames 2    -y -i  {sourcemp4} -c:v h264_nvenc -c:a aac {tmptestmp4}")
     if rs != 0:
         print("raw.mp4格式不正确，请确保是h264编码的mp4视频")
-        input("\n按任意键关闭窗口")
+        input("\n按回车键关闭窗口")
         sys.exit()
     os.unlink(sourcemp4)
     os.rename(tmptestmp4, sourcemp4)
@@ -144,7 +144,7 @@ if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] !=
     video_info = get_video_info(sourcemp4)
     if not video_info or video_info['time'] == 0:
         print("视频数据存在错误，请更换raw.mp4视频")
-        input("\n按任意键关闭窗口")
+        input("\n按回车键关闭窗口")
         sys.exit()
 
 fps = video_info['video_fps']
@@ -251,4 +251,4 @@ print(f'avi 转为 mp4 {"OK" if rs == 0 else "Error"}')
 
 
 
-input("\n按任意键关闭窗口")
+input("\n按回车键关闭窗口")

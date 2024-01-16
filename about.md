@@ -14,9 +14,9 @@
 
 你可以向微信或支付宝二维码付款，备注你的github名称
 
-<img src="./images/wx.png" width="200">
+<img src="https://v.wonyes.org/images/wx.png" width="200">
 
-<img src="https://v.wonyes.org/images/wx.png" width="100">
+<img src="https://v.wonyes.org/images/alipay.png" width="200">
 
 
 ## 捐助者列表
