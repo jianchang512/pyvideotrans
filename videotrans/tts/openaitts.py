@@ -9,6 +9,13 @@ from videotrans.configure import config
 from videotrans.configure.config import logger
 from videotrans.util import tools
 
+def get_url(url=""):
+    if not url:
+        return "https://api.openai.com/v1"
+    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+/?)',url)
+    if m is not None and len(m.groups())==1:
+        return f'{m.groups()[0]}/v1'
+    return "https://api.openai.com/v1"
 
 def get_voice(text, role, rate, filename):
     proxies = None
@@ -23,7 +30,8 @@ def get_voice(text, role, rate, filename):
         if rate:
             rate=float(rate.replace('%',''))/100
             speed+=rate
-        client = OpenAI(base_url=None if not config.params['chatgpt_api'] else config.params['chatgpt_api'], http_client=httpx.Client(proxies=proxies))
+        api_url=get_url(config.params['chatgpt_api'])
+        client = OpenAI(base_url=api_url, http_client=httpx.Client(proxies=proxies))
         response = client.audio.speech.create(
             model="tts-1",
             voice=role,

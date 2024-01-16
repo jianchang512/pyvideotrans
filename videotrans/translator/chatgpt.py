@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-import os
 import re
 import time
 
@@ -19,14 +17,20 @@ def create_messages(text_list, lang):
     ]
     return messages
 
+def get_url(url=""):
+    if not url:
+        return "https://api.openai.com/v1"
+    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+/?)',url)
+    if m is not None and len(m.groups())==1:
+        return f'{m.groups()[0]}/v1'
+    return "https://api.openai.com/v1"
+
+
 def create_openai_client(proxies):
     api_url = "https://api.openai.com/v1"
     if config.params['chatgpt_api']:
-        api_url = config.params['chatgpt_api']
-        if re.search(r'v1/(chat/)?completions/?$',api_url,re.I):
-            api_url=re.sub(r'v1/(chat/)?completions/?$','v1',api_url,re.I)
-        elif not re.search(r'/v1/?$',api_url,re.I):
-            api_url+= "/v1" if not re.search(r'/$',api_url,re.I) else "v1"
+        api_url = get_url(config.params['chatgpt_api'])
+
 
     openai.base_url = api_url
     client = OpenAI(base_url=api_url,

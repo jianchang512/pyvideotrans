@@ -58,4 +58,5 @@
 - [zhulinzhao](https://github.com/zhulinzhao) / 2024-1-14 捐助 5 元
 - [darksiderlyd](https://github.com/darksiderlyd) / 2024-1-14 捐助 20 元
 - [againstthewindtofly](https://github.com/againstthewindtofly) / 2024-1-15 捐助 50 元
-
+- [wxxvc](https://github.com/wxxvc) / 2024-1-16 捐助 10 元
+- [喵の左爪 / 2024-1-16 捐助5元](https://space.bilibili.com/19225866)

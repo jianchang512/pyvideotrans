@@ -104,25 +104,21 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             error = str(e)
             if response:
                 error += f',{response.prompt_feedback=}'
-            if error and re.search(r'limit', error, re.I) is not None:
+            if error:
                 if set_p:
                     tools.set_process(f'Gemini limit rate,wait 30s')
                 time.sleep(30)
                 return geminitrans(text_list)
-            else:
-                logger.error(f"【Gemini Error-2】error :{error}")
-                raise Exception(error)
         # 处理
 
         for index, it in enumerate(origin):
-            if index < len(trans_text):
-                it["text"] = trans_text[index]
-                origin[index] = it
-                # 更新字幕
-                st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                if set_p:
-                    tools.set_process(st, 'subtitle')
-                srts += st
+            it["text"] = trans_text[index] if index < len(trans_text) else ""
+            origin[index] = it
+            # 更新字幕
+            st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+            if set_p:
+                tools.set_process(st, 'subtitle')
+            srts += st
         total_result.extend(origin)
     if set_p:
         tools.set_process(srts, 'replace_subtitle')

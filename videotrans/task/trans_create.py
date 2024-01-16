@@ -663,7 +663,7 @@ class TransCreate():
             cut_clip = 0
             # 如果字幕开始时间大于0，则先去获取0到字幕开始时间的视频片段
             if queue_copy[0]['start_time'] > 0:
-                cut_from_video(ss="0", to=queue_copy[0]['endraw'], source=self.novoice_mp4, out=novoice_mp4_tmp)
+                cut_from_video(ss="0", to=queue_copy[0]['startraw'], source=self.novoice_mp4, out=novoice_mp4_tmp)
                 last_endtime = queue_copy[0]['start_time']
             for (idx, it) in enumerate(queue_params):
                 if config.current_status != 'ing':
@@ -684,6 +684,7 @@ class TransCreate():
                     start_times.append(it['start_time'])
                     segments.append(AudioSegment.silent(duration=wavlen))
                     queue_params[idx] = it
+                    logger.error(f'配音失败  {it}')
                     continue
 
                 audio_data = AudioSegment.from_file(it['filename'], format="mp3")
@@ -691,7 +692,7 @@ class TransCreate():
                 mp3len = len(audio_data)
                 # 先判断，如果 新时长大于旧时长，需要处理
                 diff = mp3len - wavlen
-                logger.info(f'\n{idx=},{mp3len=},{wavlen=},{diff=}')
+                logger.info(f'\n\n{idx=},{mp3len=},{wavlen=},{diff=}')
                 # 新时长大于旧时长，视频需要降速播放
                 set_process(f"[{idx + 1}/{last_index + 1}] {transobj['shipinjiangsu']} {diff if diff>0 else 0}ms")
                 if diff > 0:
@@ -743,20 +744,27 @@ class TransCreate():
                         if pert > 0:
                             # 和上个片段中间有片段
                             logger.info(f'{pert=}>0,中间有片段')
-                            cut_from_video(ss=queue_copy[idx - 1]['endraw'], to=queue_copy[idx]['startraw'],
+                            pdlist=[novoice_mp4_tmp]
+                            if queue_copy[idx]['start_time']>queue_copy[idx - 1]['end_time']:
+                                cut_from_video(ss=queue_copy[idx - 1]['endraw'], to=queue_copy[idx]['startraw'],
                                            source=self.novoice_mp4, out=tmppert)
+                                pdlist.append(tmppert)
                             cut_from_video(ss=queue_copy[idx]['startraw'],
                                            to=queue_copy[idx]['endraw'],
                                            source=self.novoice_mp4, pts=pts, out=tmppert2)
-                            concat_multi_mp4(filelist=[novoice_mp4_tmp, tmppert, tmppert2], out=tmppert3)
+                            pdlist.append(tmppert2)
+                            concat_multi_mp4(filelist=pdlist, out=tmppert3)
                             os.unlink(novoice_mp4_tmp)
                             os.rename(tmppert3, novoice_mp4_tmp)
                         else:
                             # 和上个片段间中间无片段
                             logger.info(f'pert==0,中间无片段')
-                            cut_from_video(ss=queue_copy[idx - 1]['endraw'], to=queue_copy[idx]['endraw'],
+                            pdlist=[novoice_mp4_tmp]
+                            # if queue_copy[idx]['start_time']>queue_copy[idx - 1]['end_time']:
+                            cut_from_video(ss=queue_copy[idx]['startraw'], to=queue_copy[idx]['endraw'],
                                            source=self.novoice_mp4, pts=pts, out=tmppert)
-                            concat_multi_mp4(filelist=[novoice_mp4_tmp, tmppert], out=tmppert2)
+                            pdlist.append(tmppert)
+                            concat_multi_mp4(filelist=pdlist, out=tmppert2)
                             os.unlink(novoice_mp4_tmp)
                             os.rename(tmppert2, novoice_mp4_tmp)
                     last_endtime = queue_copy[idx]['end_time']
@@ -787,42 +795,43 @@ class TransCreate():
 
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
-
-            if last_endtime < queue_copy[-1]['end_time']:
-                logger.info(f'处理循环完毕，但未到结尾 last_endtime < end_time')
-                cut_from_video(ss=queue_copy[-1]['endraw'], to="", source=self.novoice_mp4,
-                               out=tmppert)
-                concat_multi_mp4(filelist=[novoice_mp4_tmp, tmppert], out=tmppert2)
-                os.unlink(novoice_mp4_tmp)
-                os.rename(tmppert2, novoice_mp4_tmp)
-            set_process(f"Origin:{source_mp4_total_length=} + offset:{offset} = {source_mp4_total_length + offset}")
-
-            if os.path.exists(novoice_mp4_tmp) and os.path.getsize(novoice_mp4_tmp) > 0:
-                shutil.copy2(novoice_mp4_tmp, self.novoice_mp4)
-                # 总长度，单位ms
-                try:
-                    total_length = int(get_video_duration(self.novoice_mp4))
-                except:
-                    total_length = None
-            if not total_length or total_length == 0:
-                total_length = source_mp4_total_length + offset
-            set_process(f"{transobj['xinshipinchangdu']}:{source_mp4_total_length + offset}ms")
-            if total_length < source_mp4_total_length + offset:
-                try:
-                    # 对视频末尾定格延长
-                    self.novoicemp4_add_time(source_mp4_total_length + offset - total_length)
-                except Exception as e:
-                    raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
-            # 重新修改字幕
-            srt = ""
-            for (idx, it) in enumerate(queue_params):
-                srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-            # 修改目标文件夹字幕
-            with open(self.targetdir_target_sub, 'w',
-                      encoding="utf-8") as f:
-                f.write(srt.strip())
         except Exception as e:
-            raise Myexcept("[error]video speed down error:" + str(e))
+            raise Myexcept(f"[error]{transobj['mansuchucuo']}:" + str(e))
+
+        if last_endtime < queue_copy[-1]['end_time']:
+            logger.info(f'处理循环完毕，但未到结尾 last_endtime < end_time')
+            cut_from_video(ss=queue_copy[-1]['endraw'], to="", source=self.novoice_mp4,
+                           out=tmppert)
+            concat_multi_mp4(filelist=[novoice_mp4_tmp, tmppert], out=tmppert2)
+            os.unlink(novoice_mp4_tmp)
+            os.rename(tmppert2, novoice_mp4_tmp)
+        set_process(f"Origin:{source_mp4_total_length=} + offset:{offset} = {source_mp4_total_length + offset}")
+
+        # if os.path.exists(novoice_mp4_tmp) and os.path.getsize(novoice_mp4_tmp) > 0:
+        shutil.copy2(novoice_mp4_tmp, self.novoice_mp4)
+        # 总长度，单位ms
+        total_length = int(get_video_duration(self.novoice_mp4))
+        set_process(f'[1] {self.novoice_mp4=},,{total_length=}')
+        if not total_length or total_length == 0:
+            total_length = source_mp4_total_length + offset
+        set_process(f'[2] {self.novoice_mp4=},,{total_length=}')
+        set_process(f'[3] {source_mp4_total_length=},,{offset=}')
+        set_process(f"{transobj['xinshipinchangdu']}:{source_mp4_total_length + offset}ms")
+        if total_length < source_mp4_total_length + offset:
+            try:
+                # 对视频末尾定格延长
+                self.novoicemp4_add_time(source_mp4_total_length + offset - total_length)
+            except Exception as e:
+                raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
+        # 重新修改字幕
+        srt = ""
+        for (idx, it) in enumerate(queue_params):
+            srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
+        # 修改目标文件夹字幕
+        with open(self.targetdir_target_sub, 'w',
+                  encoding="utf-8") as f:
+            f.write(srt.strip())
+
         # 视频降速，肯定存在视频，不需要额外处理
         self.merge_audio_segments(segments, start_times, source_mp4_total_length + offset)
         return True
@@ -854,7 +863,7 @@ class TransCreate():
                     jd=round(n*10/n_total,1)
                     if self.precent<80:
                         self.precent+=jd
-                    set_process(f'{transobj["kaishipeiyin"]}')
+                    set_process(f'{transobj["kaishipeiyin"]} [{n}/{n_total}]')
                     t.join()
             except Exception as e:
                 raise Myexcept(f'[error]exec_tts:{str(e)}')
@@ -868,61 +877,62 @@ class TransCreate():
             return self.video_autorate_process(queue_copy, total_length)
         if len(queue_copy) < 1:
             raise Myexcept(f'text to speech，{queue_copy=}')
-        try:
-            # 偏移时间，用于每个 start_time 增减
-            offset = 0
-            # 将配音和字幕时间对其，修改字幕时间
-            for (idx, it) in enumerate(queue_copy):
-                # 如果有偏移，则添加偏移
-                it['start_time'] += offset
-                it['end_time'] += offset
-                it['startraw'] = ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                jd=round((idx+1)*10/n_total,1)
-                if self.precent<85:
-                    self.precent+=jd
-                if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
-                    start_times.append(it['start_time'])
-                    segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
-                    queue_copy[idx] = it
-                    continue
-                audio_data = AudioSegment.from_file(it['filename'], format="mp3")
-                mp3len = len(audio_data)
-                # 原字幕发音时间段长度
-                wavlen = it['end_time'] - it['start_time']
-                if wavlen <= 0:
-                    queue_copy[idx] = it
-                    continue
-                # 新配音大于原字幕里设定时长
-                diff = mp3len - wavlen
 
-                if config.params["voice_autorate"]:
-                    # 需要加速并根据加速调整字幕时间 字幕时间 时长时间不变
-                    if diff > 0:
-                        speed = mp3len / wavlen
-                        # 新的长度
-                        tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.mp3')
-                        speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
-                        # mp3 降速
-                        set_process(f"dubbing speed + {speed}")
-                        # 音频加速 最大加速2倍
-                        audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
-                elif diff > 0:
-                    offset += diff
-                    it['end_time'] += diff
-
-                it['startraw'] = ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                queue_copy[idx] = it
+        # 偏移时间，用于每个 start_time 增减
+        offset = 0
+        # 将配音和字幕时间对其，修改字幕时间
+        for (idx, it) in enumerate(queue_copy):
+            # 如果有偏移，则添加偏移
+            it['start_time'] += offset
+            it['end_time'] += offset
+            it['startraw'] = ms_to_time_string(ms=it['start_time'])
+            it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            jd=round((idx+1)*10/n_total,1)
+            if self.precent<85:
+                self.precent+=jd
+            if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
                 start_times.append(it['start_time'])
-                segments.append(audio_data)
-            # 更新字幕
-            srt = ""
-            for (idx, it) in enumerate(queue_copy):
-                srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-            # 字幕保存到目标文件夹一份
-            with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
-                f.write(srt.strip())
+                segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
+                queue_copy[idx] = it
+                continue
+            audio_data = AudioSegment.from_file(it['filename'], format="mp3")
+            mp3len = len(audio_data)
+            # 原字幕发音时间段长度
+            wavlen = it['end_time'] - it['start_time']
+            if wavlen <= 0:
+                queue_copy[idx] = it
+                continue
+            # 新配音大于原字幕里设定时长
+            diff = mp3len - wavlen
+
+            if config.params["voice_autorate"]:
+                # 需要加速并根据加速调整字幕时间 字幕时间 时长时间不变
+                if diff > 0:
+                    speed = mp3len / wavlen
+                    # 新的长度
+                    tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.mp3')
+                    speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                    # mp3 降速
+                    set_process(f"dubbing speed + {speed}")
+                    # 音频加速 最大加速2倍
+                    audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
+            elif diff > 0:
+                offset += diff
+                it['end_time'] += diff
+
+            it['startraw'] = ms_to_time_string(ms=it['start_time'])
+            it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            queue_copy[idx] = it
+            start_times.append(it['start_time'])
+            segments.append(audio_data)
+        # 更新字幕
+        srt = ""
+        for (idx, it) in enumerate(queue_copy):
+            srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
+        # 字幕保存到目标文件夹一份
+        with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
+            f.write(srt.strip())
+        try:
             # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
             if total_length > 0 and queue_copy[-1]['end_time'] > total_length:
                 # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
@@ -931,9 +941,9 @@ class TransCreate():
                 # 对视频末尾定格延长
                 self.novoicemp4_add_time(offset)
                 set_process(f'{transobj["shipinjiangsu"]} {offset}ms')
-            self.merge_audio_segments(segments, start_times, total_length)
         except Exception as e:
             raise Myexcept(f"[error] exec_tts text to speech:" + str(e))
+        self.merge_audio_segments(segments, start_times, total_length)
         return True
 
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
