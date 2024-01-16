@@ -6,9 +6,6 @@ from PyQt5.QtCore import Qt,QTimer
 from PyQt5.QtGui import QPixmap, QPalette, QBrush, QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget
 
-
-#
-
 class StartWindow(QWidget):
     def __init__(self):
         super(StartWindow, self).__init__()
@@ -25,13 +22,13 @@ class StartWindow(QWidget):
         self.center()
         self.show()
         # 使用QTimer延时显示窗口B
-        QTimer.singleShot(500, self.run)
+        QTimer.singleShot(1000, self.run)
 
     def run(self):
         # 创建并显示窗口B
         try:
             from videotrans.util import tools
-            from videotrans.spwin import MainWindow
+            from videotrans.mainwin.spwin import MainWindow
             os.makedirs(os.path.join(os.getcwd(),'models'), exist_ok=True)
             os.makedirs(os.path.join(os.getcwd(),'tmp'), exist_ok=True)
             threading.Thread(target=tools.get_edge_rolelist).start()

@@ -26,12 +26,14 @@ class Worker(QThread):
                 st = time.time()
                 self.video = TransCreate(it)
                 set_process(transobj['kaishichuli'])
-                res = self.video.run()
+                self.video.run()
                 # 成功完成
                 config.params['line_roles'] = {}
-                if os.path.exists(self.video.novoice_mp4):
-                    os.unlink(self.video.novoice_mp4)
                 set_process(f"{self.video.target_dir}##{int(time.time() - st)}", 'succeed')
+
+                if os.path.exists(self.video.novoice_mp4):
+                    time.sleep(3)
+                    os.unlink(self.video.novoice_mp4)
 
             except Exception as e:
                 print(f"mainworker {str(e)}")

@@ -110,10 +110,10 @@ translate_language = {
         "tingzhile": "停止了",
         "geshihuazimuchucuo": "格式化字幕文件出错",
         "moweiyanchangshibai": "末尾添加延长视频帧失败，将保持原样不延长视频",
-        "xiugaiyuanyuyan": "等待修改原语言字幕/继续",
+        "xiugaiyuanyuyan": "等待修改原始字幕,以便翻译更准确/点击继续",
         "jimiaohoufanyi": "秒后自动翻译，你可以暂停后去修改字幕，以便翻译更准确",
         "xiugaipeiyinzimu": "等待修改配音字幕/点击继续",
-        "zidonghebingmiaohou": "秒后自动合并，你可以暂停后去修改字幕，以便配音更准确",
+        "zidonghebingmiaohou": "秒后自动配音，你可以暂停后去修改字幕，以便配音更准确",
         "jieshutips": "视频处理结束:相关素材可在目标文件夹内查看，含字幕文件、配音文件等",
         "mubiao": "打开输出文件夹",
         "endandopen": "已完成，点击打开 ",
@@ -149,9 +149,12 @@ translate_language = {
         "zimuhangshu":"当前字幕行数 ",
 
         "huituicpu":"GPU上执行出错，回退到CPU执行",
-        "zimuwenjianbuzhengque":"字幕文件不正确，尺寸是0"
+        "zimuwenjianbuzhengque":"字幕文件不正确，尺寸是0",
+
+        "mansuchucuo":"视频自动慢速出错，请尝试取消‘视频自动慢速’选项",
     },
     "en": {
+        "mansuchucuo":"Video automatic slow error, please try to cancel the 'Video auto down' option",
         "zimuwenjianbuzhengque":"Subtitles file error,size is 0b",
         "huituicpu":"Execution error on GPU, rollback to CPU execution",
         "zimuhangshu":"subtitles Line ",

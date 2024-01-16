@@ -48,8 +48,8 @@ p, li { white-space: pre-wrap; }
 <h1 style=" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:xx-large; font-weight:600;">捐助该软件以便能够持续维护 Donate to this project and support</span></h1>
 <hr />
 <p><a href="https://ko-fi.com/jianchang512"> 👑 Donate buy me a coffee </a></p>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">有不少朋友问到这个问题，简单说下。 本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。不用担心收费问题。如果你遇到需要付费购买的，请果断拒绝然后来此使用免费开源的正版。</p>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助。如果你手头紧，那么也无需捐助，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。</p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。不用担心收费问题。</p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎小额捐助。</p>
 <hr />
 <h2 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">如何捐助</span></h2>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">你可以向微信或支付宝二维码付款，备注你的github名称</p>
@@ -93,7 +93,8 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;"><a href="https://github.com/zhulinzhao">zhulinzhao 2024-1-14 捐助 5 元</a></span> /
 <span style="margin:5px;padding:5px;"><a href="https://github.com/darksiderlyd">darksiderlyd 2024-1-14 捐助 20 元</a></span> /
 <span style="margin:5px;padding:5px;"><a href="https://github.com/againstthewindtofly">againstthewindtofly 2024-1-15 捐助 50 元</a></span> /
-
+<span style="margin:5px;padding:5px;"><a href="https://github.com/wxxvc">wxxvc 2024-1-16 捐助 10 元</a></span> /
+<span style="margin:5px;padding:5px;"><a href="https://space.bilibili.com/19225866">喵の左爪 2024-1-16 捐助5元</a></span> /
 
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import time
-
 import requests
-
 from videotrans.configure import config
-from videotrans.util import tools
 from videotrans.configure.config import logger
 
 

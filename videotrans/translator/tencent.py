@@ -5,7 +5,6 @@ import time
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
-from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
 from tencentcloud.tmt.v20180321 import tmt_client, models
 from videotrans.configure import config
 from videotrans.configure.config import logger
@@ -44,8 +43,8 @@ def tencenttrans(text, src, dest,*,set_p=True):
         err=str(e)
         if re.search(r'LimitExceeded',err,re.I):
             if set_p:
-                tools.set_process("超出腾讯翻译频率或配额限制，暂停一秒")
-            time.sleep(1)
+                tools.set_process("超出腾讯翻译频率或配额限制，暂停5秒")
+            time.sleep(5)
             return tencenttrans(text, src, dest,set_p=set_p)
         logger.error("tencent api error:" + str(e))
         if set_p:

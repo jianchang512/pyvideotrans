@@ -315,10 +315,7 @@ def runffmpeg(arg, *, noextname=None, disable_gpu=False, no_decode=False, de_for
                     pass
                 return False
         except Exception as e:
-            if config.params['cuda'] and not disable_gpu and (de_format=='cuda' or not no_decode):
-                # 当前是GPU下出错 重新设为 nv12 和 不解码
-                return runffmpeg(arg_copy,noextname=noextname, disable_gpu=False, no_decode=True, de_format="nv12", is_box=is_box)
-            elif config.params['cuda'] and not disable_gpu:
+            if config.params['cuda'] and not disable_gpu:
                 # 切换为cpu
                 if not is_box:
                     set_process(transobj['huituicpu'])
@@ -490,7 +487,7 @@ def get_lastjpg_fromvideo(file_path, img):
 def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
     return runffmpeg([
         '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
-        '-crf', '13', '-to', f'{totime}', '-y', out], de_format="nv12", no_decode=True)
+        '-crf', '13', '-to', f'{totime}', '-y', out], disable_gpu=True,de_format="nv12", no_decode=True)
 
 
 # 创建 多个视频的连接文件
@@ -531,28 +528,20 @@ def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None
             set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
             if not get_voice_edgetts(text=text, role=role, rate=rate, filename=filename):
-                logger.error(f"edgeTTS error")
-                open(filename, "w").close()
-                return False
+                raise Exception(f"edgeTTS error")
         elif tts_type == "openaiTTS":
             if not get_voice_openaitts(text, role, rate, filename):
-                logger.error(f"openaiTTS error")
-                open(filename, "w").close()
-                return False
+                raise Exception(f"openaiTTS error")
         elif tts_type == 'elevenlabsTTS':
             if not get_voice_elevenlabs(text, role, rate, filename):
-                logger.error(f"elevenlabsTTS error")
-                open(filename, "w").close()
-                return False
+                raise Exception(f"elevenlabsTTS error")
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             if play:
                 threading.Thread(target=pygameaudio, args=(filename,)).start()
             return True
         return False
     except Exception as e:
-        logger.error(f"text to speech:{filename=},{tts_type=}," + str(e))
-        open(filename, "w").close()
-        return False
+        raise Exception(f"text to speech:{filename=},{tts_type=}," + str(e))
 
 
 def show_popup(title, text):
