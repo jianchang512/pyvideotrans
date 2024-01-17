@@ -55,8 +55,9 @@ if __name__ == '__main__':
     with open(cfg_file, 'r', encoding="utf-8") as f:
         for line in f.readlines():
             line = line.strip()
-            if not line:
+            if not line or line.startswith(";"):
                 continue
+
             line = line.split("=", maxsplit=2)
             if len(line) != 2:
                 continue
