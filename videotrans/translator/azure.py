@@ -68,7 +68,7 @@ def azuretrans(text_list, target_language_chatgpt="English", *, set_p=True):
             raise Exception(f"azure翻译失败 :{error}")
 
     total_result = []
-    split_size = config.settings['OPTIM']['trans_thread']
+    split_size = config.settings['trans_thread']
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
     srts = ''

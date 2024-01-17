@@ -960,7 +960,7 @@ class SecWindow():
 
         if len(fnames) > 0:
             self.main.source_mp4.setText(fnames[0])
-            config.params['source_mp4'] = self.main.source_mp4
+            config.params['source_mp4'] = fnames[0]
             self.main.settings.setValue("last_dir", os.path.dirname(fnames[0]))
             config.queue_mp4 = fnames
 
@@ -984,13 +984,10 @@ class SecWindow():
         clickable_progress_bar = ClickableProgressBar()
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(
-            f'{transobj["waitforstart"] if index > 0 else transobj["kaishiyuchuli"]}' + " " + txt)
+            f'{transobj["waitforstart"] if len(self.main.processbtns.keys()) > 0 else transobj["kaishiyuchuli"]}' + " " + txt)
         clickable_progress_bar.setMinimumSize(500, 50)
 
-        # # 设置按钮高度为 80px，宽度撑满父控件
-        # button1.setFixedHeight(50)
-        # button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        #
+        
         # # 将按钮添加到布局中
         self.main.processlayout.addWidget(clickable_progress_bar)
         return clickable_progress_bar
@@ -1212,10 +1209,7 @@ class SecWindow():
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
-            for (i, it) in enumerate(config.queue_mp4):
-                # 插入进度条
-                key = it if re.search(r'\.mp4', it, re.I) else re.sub(r'\.[a-zA-Z0-9]+$', '.mp4', it, re.I)
-                self.main.processbtns[key] = self.add_process_btn(key, i)
+            self.main.show_tips.setText("")
             while len(config.queue_mp4) > 0:
                 config.queue_task.append(
                     {'subtitles': txt, "source_mp4": config.queue_mp4.pop(0), 'app_mode': self.main.app_mode})
@@ -1223,6 +1217,7 @@ class SecWindow():
             # 不存在视频,已存在字幕
             config.queue_task.append({"subtitles": txt, 'app_mode': self.main.app_mode})
             self.main.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
+        
         self.main.task = Worker(self.main)
         self.main.task.start()
 
@@ -1260,6 +1255,10 @@ class SecWindow():
         if d['type'] == "subtitle":
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
+        elif d['type']=='add_process':
+            self.main.processbtns[d['text']] = self.add_process_btn(d['text'])
+        elif d['type']=='rename':
+            self.main.show_tips.setText(d['text'])
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(config.params['target_dir'])
             if self.main.task and self.main.task.video and self.main.task.video.source_mp4 and self.main.task.video.source_mp4 in self.main.processbtns:

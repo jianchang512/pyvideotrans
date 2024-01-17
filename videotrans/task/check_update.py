@@ -17,19 +17,10 @@ class CheckUpdateWorker(QThread):
     def run(self):
         time.sleep(15)
         try:
-            proxy=None
-            pro=set_proxy()
-            if pro:
-                proxy={
-                    "http":"http://"+pro.replace('http://',''),
-                    "https":"http://"+pro.replace('http://',''),
-                }
-            res=requests.get("https://raw.githubusercontent.com/jianchang512/pyvideotrans/main/version.json",proxies=proxy)
+            res=requests.get("https://v.wonyes.org/version.json")
             print(f"{res.status_code=}")
-            print(f"{res=}")
             if res.status_code==200:
                 d=res.json()
-                print(f"{d=}")
                 if d['version_num']>videotrans.VERSION_NUM:
                     set_process(f"{transobj['newversion']}:{d['version']}","check_soft_update")
         except Exception as e:

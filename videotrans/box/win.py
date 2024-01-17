@@ -14,7 +14,7 @@ from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import boxcfg, config
 from videotrans.configure.config import logger, rootdir, homedir, langlist, english_code_bygpt
-from videotrans.util.tools import set_proxy, get_video_info, runffmpeg
+from videotrans.util.tools import set_proxy, get_video_info, conver_mp4
 
 from videotrans.configure.config import transobj
 
@@ -342,22 +342,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tmpname_conver = f'{config.rootdir}/tmp/box-conver.mp4'
         video_info=get_video_info(videofile)
         if videofile[-3:].lower()!='mp4' or video_info['video_codec_name']!='h264' or (video_info['streams_audio']>0 and video_info['audio_codec_name']!='aac'):
-            con_cmd=[
-                '-y',
-                '-i',
-                videofile,
-                '-c:v',
-                "libx264",
-                '-c:a',
-                'aac'
-            ]
             try:
-                runffmpeg(con_cmd,de_format="nv12",no_decode=True,is_box=True)
-            except:
+                conver_mp4(videofile, tmpname_conver,is_box=True)
+            except Exception as e:
+                QMessageBox.critical(self,transobj['anerror'],str(e))
                 self.ysphb_startbtn.setText(transobj["start"])
                 self.ysphb_startbtn.setDisabled(False)
                 return False
-
             videofile=tmpname_conver
 
         if wavfile:

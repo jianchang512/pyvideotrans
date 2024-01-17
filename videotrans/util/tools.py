@@ -24,7 +24,9 @@ from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_ele
 import torch
 from elevenlabs import  voices
 
-if sys.platform == 'win32':
+platform=sys.platform
+
+if platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 else:
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
@@ -262,29 +264,33 @@ def speed_change(sound, speed=1.0):
 
 
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None, disable_gpu=False, no_decode=False, de_format="cuda", is_box=False):
+def runffmpeg(arg, *, noextname=None,
+              disable_gpu=False,  # True=禁止使用GPU解码
+              no_decode=config.settings['no_decode'], # False=禁止 h264_cuvid 解码，True=尽量使用硬件解码
+              de_format=config.settings['hwaccel_output_format'], # 硬件输出格式，模型cuda兼容性差，可选nv12
+              is_box=False):
     arg_copy=copy.deepcopy(arg)
     cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", "vfr"]
     # 启用了CUDA 并且没有禁用GPU
     if config.params['cuda'] and not disable_gpu:
-        cmd.extend(["-hwaccel", "cuvid", "-hwaccel_output_format", de_format, "-extra_hw_frames", "2"])
-        # 如果第一个输入是视频，需要解码
+        cmd.extend(["-hwaccel", config.settings['hwaccel'], "-hwaccel_output_format", de_format, "-extra_hw_frames", "2"])
+        # 如果没有禁止硬件解码，则添加
         if not no_decode:
             cmd.append("-c:v")
             cmd.append("h264_cuvid")
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = it.replace('libx264', "h264_nvenc").replace('copy', 'h264_nvenc')
-            # else:
-            #     arg[i] = arg[i].replace('scale=', 'scale_cuda=')
-
+   
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+                         encoding="utf-8",
+                         text=True, 
+                         creationflags=0 if platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     logger.info(f"runffmpeg: {' '.join(cmd)}")
 
     while True:
@@ -315,29 +321,30 @@ def runffmpeg(arg, *, noextname=None, disable_gpu=False, no_decode=False, de_for
                     pass
                 return False
         except Exception as e:
+            #如果启用cuda时出错，则回退cpu
             if config.params['cuda'] and not disable_gpu:
                 # 切换为cpu
                 if not is_box:
                     set_process(transobj['huituicpu'])
-                return runffmpeg(arg_copy,noextname=noextname, disable_gpu=True, no_decode=True, de_format="nv12", is_box=is_box)
+                # disable_gpt=True禁用GPU，no_decode=True禁止h264_cuvid解码，
+                return runffmpeg(arg_copy,noextname=noextname, disable_gpu=True, is_box=is_box)
             raise Exception(str(e))
 
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
+        cmd[-1]=os.path.normpath(rf'{cmd[-1]}')
         p = subprocess.Popen(['ffprobe']+cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,encoding="utf-8", text=True,
                              creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         out, errs = p.communicate()
         if p.returncode == 0:
             return out.strip()
-        else:
-            pass
-            set_process(f'ffprobe error:{str(errs)}')
-        return False
+        raise Exception(f'ffprobe error:{str(errs)}')
     except subprocess.CalledProcessError as e:
-        set_process(f'ffprobe error:{str(e)}')
-        return False
+        raise Exception(f'ffprobe call error:{str(e)}')
+    except Exception as e:
+        raise Exception(f'ffprobe except error:{str(e)}')
 
 
 # 获取视频信息
@@ -409,7 +416,7 @@ def get_video_resolution(file_path):
 
 
 # 视频转为 mp4格式 nv12 + not h264_cuvid
-def conver_mp4(source_file, out_mp4):
+def conver_mp4(source_file, out_mp4,*,is_box=False):
     return runffmpeg([
         '-y',
         '-i',
@@ -419,7 +426,7 @@ def conver_mp4(source_file, out_mp4):
         "-c:a",
         "aac",
         out_mp4
-    ], no_decode=True, de_format="nv12")
+    ], no_decode=True, de_format=config.settings['hwaccel_output_format'],is_box=is_box)
 
 
 # 从原始视频分离出 无声视频 cuda + h264_cuvid
@@ -487,7 +494,7 @@ def get_lastjpg_fromvideo(file_path, img):
 def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
     return runffmpeg([
         '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
-        '-crf', '13', '-to', f'{totime}', '-y', out], disable_gpu=True,de_format="nv12", no_decode=True)
+        '-crf', '13', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12")
 
 
 # 创建 多个视频的连接文件
@@ -751,4 +758,6 @@ def delete_files(directory, ext):
                 delete_files(item_path)
     except:
         pass
+
+
 

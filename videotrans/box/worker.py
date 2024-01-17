@@ -36,6 +36,7 @@ class Worker(QThread):
             except Exception as e:
                 logger.error("[bxo]FFmepg exec error:" + str(e))
                 set_process_box("[bxo]FFmepg exec error:" + str(e))
+                self.post_message("error", "ffmpeg error")
                 return f'[error]{str(e)}'
         self.post_message("end", "End\n")
         set_process_box(f'Ended','end')
@@ -57,8 +58,12 @@ class WorkerWhisper(QThread):
 
     def run(self):
         set_process_box(f'start regcon {self.model}')
-        text = transcribe_audio(self.audio_path, self.model, self.language)
-        self.post_message("end", text)
+        try:
+            text = transcribe_audio(self.audio_path, self.model, self.language)
+            self.post_message("end", text)
+        except Exception as e:
+            self.post_message("error", str(e))
+
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
@@ -172,7 +177,7 @@ class WorkerTTS(QThread):
         start_times = []
         # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
         if len(queue_copy) < 1:
-            return self.post_message('end', f'出错了，{queue_copy=}')
+            return self.post_message('error', f'出错了，{queue_copy=}')
         try:
             # 偏移时间，用于每个 start_time 增减
             offset = 0
@@ -234,7 +239,7 @@ class WorkerTTS(QThread):
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:
-            self.post_message('end', f"[error] exec_tts :" + str(e))
+            self.post_message('error', f"[error] exec_tts :" + str(e))
             return False
         return True
 
@@ -319,7 +324,7 @@ class FanyiWorker(QThread):
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 self.srts = srts_tmp
             else:
-                split_size = config.settings['OPTIM']['trans_thread']
+                split_size = config.settings['trans_thread']
                 srt_lists = [rawsrt[i:i + split_size] for i in range(0, len(rawsrt), split_size)]
                 for (index, item) in enumerate(srt_lists):
                     wait_text = []

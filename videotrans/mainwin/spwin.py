@@ -11,11 +11,10 @@ from videotrans.configure.config import langlist, transobj
 from videotrans import VERSION
 from videotrans.configure import config
 from videotrans.component.controlobj import TextGetdir
-
 from videotrans.util.tools import show_popup
-from videotrans.mainwin.secwin import SecWindow
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
+from videotrans.mainwin.secwin import SecWindow
 if config.defaulelang == "zh":
     from videotrans.ui.cn import Ui_MainWindow
 else:
@@ -49,9 +48,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle(self.rawtitle)
 
         # 检查窗口是否打开
-        # if self.isVisible():
-        self.initUI()
         self.show()
+        if self.isVisible():
+            self.initUI()
 
 
     def initUI(self):
