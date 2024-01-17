@@ -35,6 +35,14 @@ safetySettings = [
         "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
 ]
+def clear_white(text):
+    result=[]
+    for it in text.strip().split("\n"):
+        it=it.strip()
+        result.append(it)
+    return (len(result),"\n".join(result))
+
+
 
 
 def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
@@ -54,6 +62,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
     lang = target_language_chatgpt
     if isinstance(text_list, str):
         try:
+            _,text_list=clear_white(text_list)
             model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(
                 config.params['gemini_template'].replace('{lang}', lang) + f"\n{text_list}",
@@ -65,12 +74,13 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             raise Exception(f"Gemini error:{error}")
 
     total_result = []
-    split_size = config.settings['OPTIM']['trans_thread']
+    split_size = config.settings['trans_thread']
     # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
     srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
     srts = ''
     model = genai.GenerativeModel('gemini-pro')
     # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
+    line_after=0
     for srt_list in srt_lists:
         # 存放时间和行数
         origin = []
@@ -85,10 +95,9 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             if set_p:
                 tools.set_process(f'Gemini Line: {it["line"]}')
 
-        len_sub = len(origin)
         logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
-        error = ""
         response = None
+        trans_text=[]
         try:
             response = model.generate_content(
                 config.params['gemini_template'].replace('{lang}', lang) + "\n" + "\n".join(trans),
@@ -96,7 +105,6 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             )
             if not response.parts and set_p:
                 raise Exception(f"[error]Gemini error:{response.prompt_feedback}")
-
             trans_text = response.text.split("\n")
             if set_p:
                 tools.set_process(f"Gemini OK")
@@ -106,7 +114,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
                 error += f',{response.prompt_feedback=}'
             if error:
                 if set_p:
-                    tools.set_process(f'Gemini limit rate,wait 30s')
+                    tools.set_process(f'Gemini limit rate,wait 30s {error}')
                 time.sleep(30)
                 return geminitrans(text_list)
         # 处理
@@ -114,12 +122,15 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
         for index, it in enumerate(origin):
             it["text"] = trans_text[index] if index < len(trans_text) else ""
             origin[index] = it
-            # 更新字幕
-            st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-            if set_p:
-                tools.set_process(st, 'subtitle')
-            srts += st
-        total_result.extend(origin)
+            if it['text']:
+                line_after+=1
+                it['line']=line_after
+                # 更新字幕
+                st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                if set_p:
+                    tools.set_process(st, 'subtitle')
+                srts += st
+                total_result.append(it)
     if set_p:
         tools.set_process(srts, 'replace_subtitle')
     return total_result

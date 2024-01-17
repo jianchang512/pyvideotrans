@@ -99,7 +99,7 @@ def chatgpttrans(text_list, target_language_chatgpt="English", *, set_p=True):
             raise Exception(f"【ChatGPT Error-2.5】error:{error}")
     else:
         total_result = []
-        split_size = config.settings['OPTIM']['trans_thread']
+        split_size = config.settings['trans_thread']
         srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
         srts = ''
         client = create_openai_client(proxies)

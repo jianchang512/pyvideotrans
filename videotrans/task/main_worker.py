@@ -25,15 +25,21 @@ class Worker(QThread):
             try:
                 st = time.time()
                 self.video = TransCreate(it)
+                if self.video.source_mp4:
+                    set_process(self.video.source_mp4, 'add_process')
+                    #self.main.processbtns[key] = self.add_process_btn(key, i)
                 set_process(transobj['kaishichuli'])
                 self.video.run()
                 # 成功完成
                 config.params['line_roles'] = {}
                 set_process(f"{self.video.target_dir}##{int(time.time() - st)}", 'succeed')
 
-                if os.path.exists(self.video.novoice_mp4):
-                    time.sleep(3)
-                    os.unlink(self.video.novoice_mp4)
+                try:
+                    if os.path.exists(self.video.novoice_mp4):
+                        time.sleep(1)
+                        os.unlink(self.video.novoice_mp4)
+                except:
+                    pass
 
             except Exception as e:
                 print(f"mainworker {str(e)}")

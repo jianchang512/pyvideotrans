@@ -152,8 +152,10 @@ translate_language = {
         "zimuwenjianbuzhengque":"字幕文件不正确，尺寸是0",
 
         "mansuchucuo":"视频自动慢速出错，请尝试取消‘视频自动慢速’选项",
+        "qianyiwenjian":"路径或名称含有非ASCII空格，为避免后续处理出错，将移动到 ", 
     },
     "en": {
+        "qianyiwenjian":"The video path or name contains non ASCII spaces. To avoid errors, it has been migrated to ", 
         "mansuchucuo":"Video automatic slow error, please try to cancel the 'Video auto down' option",
         "zimuwenjianbuzhengque":"Subtitles file error,size is 0b",
         "huituicpu":"Execution error on GPU, rollback to CPU execution",

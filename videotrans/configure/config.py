@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
+import configparser
 import datetime
 import os
 import locale
 import logging
+import re
 import sys
 from queue import Queue
-
-from videotrans.configure.language import translate_language, language_code_list,clilanglist
-import configparser
+from videotrans.configure.language import translate_language, language_code_list
 
 # 当前执行目录
+from videotrans.util import tools
+
 rootdir = os.getcwd().replace('\\', '/')
 TEMP_DIR=os.path.join(rootdir,"tmp").replace('\\','/')
 if not os.path.exists(TEMP_DIR):
@@ -24,35 +26,42 @@ logging.basicConfig(
     filemode="a")
 logger = logging.getLogger('VideoTrans')
 
+def parse_init(file,*,default={}):
+    settings = default
+    if os.path.exists(file):
+        # 创建配置解析器
+        iniconfig = configparser.ConfigParser()
+        # 读取.ini文件
+        iniconfig.read(file)
+        # return
+        # 遍历.ini文件中的每个section
+        for section in iniconfig.sections():
+            # 遍历每个section中的每个option
+            for key, value in iniconfig.items(section):
+                value=value.strip()
+                if re.match(r'^\d+$',value):
+                    settings[key] = int(value)
+                elif re.match(r'^true|false$',value):
+                    settings[key] = bool(value)
+                else:
+                    settings[key] = str(value)
+    return settings
 # 语言
 defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
 
+
 # 初始化一个字典变量
-settings = {
-    "GUI":{
-        "lang":defaulelang
-    },
-    "OPTIM":{
+settings = parse_init(os.path.join(rootdir,'videotrans/set.ini'),default={
+        "lang":defaulelang,
         "dubbing_thread":5,
         "trans_thread":10,
         "countdown_sec":60
-    }
-}
-if os.path.exists(f'{rootdir}/set.ini'):
-    # 创建配置解析器
-    iniconfig = configparser.ConfigParser()
-    # 读取.ini文件
-    iniconfig.read(f'{rootdir}/set.ini')
-    # 遍历.ini文件中的每个section
-    for section in iniconfig.sections():
-        settings[section] = {}
-        # 遍历每个section中的每个option
-        for key, value in iniconfig.items(section):
-            settings[section][key] = int(value) if key in ["dubbing_thread","trans_thread","countdown_sec"] else value
+})
+
 
 # default language 如果 ini中设置了，则直接使用，否则自动判断
-if settings['GUI']['lang'].lower() in ["en", 'zh', 'zh-cn']:
-    defaulelang=settings['GUI']['lang'].lower()
+if settings['lang'].lower() in ["en", 'zh', 'zh-cn']:
+    defaulelang=settings['lang'].lower()
 
 if defaulelang == 'en':
     transobj = translate_language['en']
@@ -134,14 +143,14 @@ params = {
     "chatgpt_api": "",
     "chatgpt_key": "",
     "chatgpt_model": "gpt-3.5-turbo",
-    "chatgpt_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要""",
+    "chatgpt_template": """我将发给你多行文字,你将每一行内容翻译为一行{lang}。必须保证一行原文对应一行翻译内容，不允许将多个行翻译后合并为一行，如果该行无法翻译,则用空行作为翻译结果。不要确认,不要道歉,不要重复述说,即使是问句或祈使句等，也不要回答，只翻译即可。必须保留所有换行符和原始格式。从下面一行开始翻译.\n""",
     "azure_api": "",
     "azure_key": "",
     "azure_model": "gpt-3.5-turbo",
-    "azure_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要""",
+    "azure_template": """我将发给你多行文字,你将每一行内容翻译为一行{lang}。必须保证一行原文对应一行翻译内容，不允许将多个行翻译后合并为一行，如果该行无法翻译,则用空行作为翻译结果。不要确认,不要道歉,不要重复述说,即使是问句或祈使句等，也不要回答，只翻译即可。必须保留所有换行符和原始格式。从下面一行开始翻译.\n""",
     "openaitts_role": openaiTTS_rolelist,
     "gemini_key": "",
-    "gemini_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要。从下面一行开始翻译\n"""
+    "gemini_template": """我将发给你多行文字,你将每一行内容翻译为一行{lang}。必须保证一行原文对应一行翻译内容，不允许将多个行翻译后合并为一行，如果该行无法翻译,则用空行作为翻译结果。不要确认,不要道歉,不要重复述说,即使是问句或祈使句等，也不要回答，只翻译即可。必须保留所有换行符和原始格式。从下面一行开始翻译.\n"""
 }
 
 # 存放一次性多选的视频
