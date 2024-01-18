@@ -47,5 +47,4 @@ def get_voice(text, role, rate, filename):
             time.sleep(30)
             return get_voice(text, role, rate, filename)
         logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        tools.set_process(f"openaiTTS 合成失败：request error:" + str(e))
-    return False
+        raise Exception(f"openaiTTS 合成失败：request error:" + str(e))
