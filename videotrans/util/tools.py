@@ -281,7 +281,6 @@ def runffmpeg(arg, *, noextname=None,
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = it.replace('libx264', "h264_nvenc").replace('copy', 'h264_nvenc')
-   
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'

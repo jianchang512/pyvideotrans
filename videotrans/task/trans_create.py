@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import textwrap
 import threading
 import time
@@ -561,6 +562,8 @@ class TransCreate():
                 set_process(srt_str, "subtitle")
                 trans_list.extend(item)
         # 保存翻译后的字幕到目标文件夹
+        if len(rawsrt)<1:
+            raise Exception("translate result is 0")
         self.save_srt_target(rawsrt, self.targetdir_target_sub)
         return True
 
@@ -585,6 +588,8 @@ class TransCreate():
             # 获取字幕
             try:
                 subs = get_subtitle_from_srt(self.targetdir_target_sub)
+                if len(subs)<1:
+                    raise Exception(" subtitles size is 0")
             except Exception as e:
                 raise Myexcept(f'[error] before tts srt error:{str(e)}')
 
@@ -994,8 +999,12 @@ class TransCreate():
                 subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(subtitles.strip())
-            shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
-            hard_srt = "tmp.srt"
+            if sys.platform=='win32':
+                shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
+                os.chdir(config.rootdir)
+                hard_srt = "tmp.srt"
+            else:
+                hard_srt=self.targetdir_target_sub
         if self.precent<95:
             self.precent+=1
         # 有字幕有配音
