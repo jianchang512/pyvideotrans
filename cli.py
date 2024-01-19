@@ -11,11 +11,8 @@ python cli.py -c D:/cli.ini  -m c:/Users/c1/Videos/1.mp4 使用 D:/cli.ini, 忽�
 import os
 import re
 import sys
-
 from videotrans.configure import config
 import argparse
-
-from videotrans.configure.config import transobj, settings
 from videotrans.task.trans_create import TransCreate
 from videotrans.util.tools import set_proxy, get_edge_rolelist, get_elevenlabs_role
 
@@ -42,7 +39,7 @@ if not os.path.exists(os.path.join(config.rootdir,'elevenlabs.json')) or os.path
 
 if __name__ == '__main__':
     config.exec_mode = 'cli'
-    settings['OPTIM']['countdown_sec'] = 0
+    config.settings['countdown_sec'] = 0
 
     args = vars(parser.parse_args())
 
@@ -84,20 +81,20 @@ if __name__ == '__main__':
         # baidu language code
         config.params['target_language_baidu'] = config.clilanglist[config.params['target_language']][2]
         if not config.params["baidu_appid"] or not config.params["baidu_miyue"]:
-            print(transobj['anerror'], transobj['baikeymust'])
+            print(config.transobj['anerror'], config.transobj['baikeymust'])
             sys.exit()
     elif config.params['translate_type'] == 'tencent':
         #     腾讯翻译
         config.params['target_language_tencent'] = config.clilanglist[config.params['target_language']][4]
         if not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]:
-            print(transobj['tencent_key'])
+            print(config.transobj['tencent_key'])
             sys.exit()
     elif config.params['translate_type'] == 'chatGPT':
         # chatGPT 翻译 5 是中文语言名称，6是英文名称
         config.params['target_language_chatgpt'] = config.clilanglist[config.params['target_language']][
             5 if config.defaulelang == 'zh' else 6]
         if not config.params["chatgpt_key"]:
-            print(transobj['chatgptkeymust'])
+            print(config.transobj['chatgptkeymust'])
             sys.exit()
     elif config.params['translate_type'] == 'Azure':
         # chatGPT 翻译
@@ -111,20 +108,20 @@ if __name__ == '__main__':
         config.params['target_language_gemini'] = config.clilanglist[config.params['target_language']][
             5 if config.defaulelang == 'zh' else 6]
         if not config.params["gemini_key"]:
-            print(transobj['bixutianxie'] + 'google Gemini key')
+            print(config.transobj['bixutianxie'] + 'google Gemini key')
             sys.exit()
     elif config.params['translate_type'] == 'DeepL' or config.params['translate_type'] == 'DeepLX':
         # DeepL翻译
         if config.params['translate_type'] == 'DeepL' and not config.params["deepl_authkey"]:
-            print(transobj['deepl_authkey'])
+            print(config.transobj['deepl_authkey'])
             sys.exit()
         if config.params['translate_type'] == 'DeepLX' and not config.params["deeplx_address"]:
-            print(transobj['setdeeplx_address'])
+            print(config.transobj['setdeeplx_address'])
             sys.exit()
 
         config.params['target_language_deepl'] = config.clilanglist[config.params['source_language']][3]
         if config.params['target_language_deepl'] == 'No':
-            print(transobj['deepl_nosupport'])
+            print(config.transobj['deepl_nosupport'])
             sys.exit()
     try:
         voice_rate = int(config.params['voice_rate'].strip().replace('+', '').replace('%', ''))
@@ -147,7 +144,7 @@ if __name__ == '__main__':
 
     try:
         task = TransCreate({"source_mp4": config.params['source_mp4'], 'app_mode': "biaozhun"})
-        set_process(transobj['kaishichuli'])
+        set_process(config.transobj['kaishichuli'])
         res = task.run()
         print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {task.targetdir_mp4}')
     except Exception as e:
