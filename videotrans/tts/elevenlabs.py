@@ -2,7 +2,6 @@ import json
 import os
 from elevenlabs import generate, Voice,set_api_key
 from videotrans.configure import config
-from videotrans.configure.config import logger
 from videotrans.util import tools
 
 
@@ -22,5 +21,5 @@ def get_voice(text, role, rate, filename):
         return True
     except Exception as e:
         error=str(e)
-        logger.error(f"elevenlabsTTS 合成失败：request error:{error}")
+        config.logger.error(f"elevenlabsTTS 合成失败：request error:{error}")
         raise Exception(f"elevenlabsTTS  合成失败：request error:{error}")

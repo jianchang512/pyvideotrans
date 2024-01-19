@@ -6,7 +6,6 @@ import httpx
 
 from openai import OpenAI
 from videotrans.configure import config
-from videotrans.configure.config import logger
 from videotrans.util import tools
 
 def get_url(url=""):
@@ -46,5 +45,5 @@ def get_voice(text, role, rate, filename):
             tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试')
             time.sleep(30)
             return get_voice(text, role, rate, filename)
-        logger.error(f"openaiTTS合成失败：request error:" + str(e))
+        config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
         raise Exception(f"openaiTTS 合成失败：request error:" + str(e))
