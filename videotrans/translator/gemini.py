@@ -4,7 +4,6 @@ import re
 import time
 
 from videotrans.configure import config
-from videotrans.configure.config import logger
 from videotrans.util import tools
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
@@ -95,7 +94,7 @@ def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
             if set_p:
                 tools.set_process(f'Gemini Line: {it["line"]}')
 
-        logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
+        config.logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
         response = None
         trans_text=[]
         try:

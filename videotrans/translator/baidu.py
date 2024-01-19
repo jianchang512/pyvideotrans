@@ -3,7 +3,6 @@ import hashlib
 import time
 import requests
 from videotrans.configure import config
-from videotrans.configure.config import logger
 
 
 def baidutrans(text, src, dest, *, set_p=True):
@@ -26,5 +25,5 @@ def baidutrans(text, src, dest, *, set_p=True):
                 comb += it['dst']
         return comb
     except Exception as e:
-        logger.error("baidu api error:" + str(e))
+        config.logger.error("baidu api error:" + str(e))
         raise Exception("[error]百度翻译失败:" + str(e))
