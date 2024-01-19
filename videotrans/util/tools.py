@@ -16,7 +16,7 @@ from datetime import timedelta
 import json
 import edge_tts
 from videotrans.configure import config
-from videotrans.configure.config import logger, transobj, queue_logs
+from videotrans.configure.config import  transobj
 import time
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_elevenlabs
@@ -163,7 +163,7 @@ def get_edge_rolelist():
     try:
         v = asyncio.run(edge_tts.list_voices())
     except Exception as e:
-        logger.error('获取edgeTTS角色失败' + str(e))
+        config.logger.error('获取edgeTTS角色失败' + str(e))
         print('获取edgeTTS角色失败' + str(e))
     for it in v:
         name = it['ShortName']
@@ -289,7 +289,7 @@ def runffmpeg(arg, *, noextname=None,
                          encoding="utf-8",
                          text=True, 
                          creationflags=0 if platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    logger.info(f"runffmpeg: {' '.join(cmd)}")
+    config.logger.info(f"runffmpeg: {' '.join(cmd)}")
 
     while True:
         try:
@@ -724,9 +724,9 @@ def set_process(text, type="logs", qname='sp'):
         if text:
             log_msg = text.strip()
             if log_msg.startswith("[error"):
-                logger.error(log_msg)
+                config.logger.error(log_msg)
             else:
-                logger.info(log_msg)
+                config.logger.info(log_msg)
         if config.exec_mode=='cli':
             print(f'[{type}] {text}')
             return
