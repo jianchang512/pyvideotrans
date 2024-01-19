@@ -7,7 +7,7 @@ import logging
 import re
 import sys
 from queue import Queue
-from videotrans.configure.language import translate_language, language_code_list
+from videotrans.configure.language import translate_language, language_code_list, clilanglist
 
 rootdir = os.getcwd().replace('\\', '/')
 TEMP_DIR=os.path.join(rootdir,"tmp").replace('\\','/')
@@ -172,6 +172,8 @@ btnkey=""
 
 #cli  gui 模式
 exec_mode="gui"
+
+
 
 class Myexcept(Exception):
     pass
