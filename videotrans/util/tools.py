@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import copy
-from videotrans.configure.config import rootdir, queuebox_logs
 import asyncio
 import re
 import shutil
@@ -68,7 +67,7 @@ def get_elevenlabs_role(force=False):
 def transcribe_audio(audio_path, model, language):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = WhisperModel(model, device=device, compute_type="int8" if device == 'cpu' else "int8_float16",
-                         download_root=rootdir + "/models")
+                         download_root=config.rootdir + "/models")
     segments, _ = model.transcribe(audio_path,
                                    beam_size=5,
                                    vad_filter=True,
@@ -732,9 +731,9 @@ def set_process(text, type="logs", qname='sp'):
             print(f'[{type}] {text}')
             return
         if qname == 'sp':
-            queue_logs.put_nowait({"text": text, "type": type,"btnkey":config.btnkey})
+            config.queue_logs.put_nowait({"text": text, "type": type,"btnkey":config.btnkey})
         else:
-            queuebox_logs.put_nowait({"text": text, "type": type})
+            config.queuebox_logs.put_nowait({"text": text, "type": type})
     except Exception as e:
         pass
 
