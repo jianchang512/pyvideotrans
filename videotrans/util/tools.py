@@ -16,7 +16,6 @@ from datetime import timedelta
 import json
 import edge_tts
 from videotrans.configure import config
-from videotrans.configure.config import  transobj
 import time
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_elevenlabs
@@ -323,7 +322,7 @@ def runffmpeg(arg, *, noextname=None,
             if config.params['cuda'] and not disable_gpu:
                 # 切换为cpu
                 if not is_box:
-                    set_process(transobj['huituicpu'])
+                    set_process(config.transobj['huituicpu'])
                 # disable_gpt=True禁用GPU，no_decode=True禁止h264_cuvid解码，
                 return runffmpeg(arg_copy,noextname=noextname, disable_gpu=True, is_box=is_box)
             raise Exception(str(e))
@@ -554,7 +553,7 @@ def show_popup(title, text):
     msg.setWindowTitle(title)
     msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
     msg.setText(text)
-    msg.addButton(transobj['queding'], QMessageBox.AcceptRole)
+    msg.addButton(config.transobj['queding'], QMessageBox.AcceptRole)
     msg.addButton("Cancel", QMessageBox.RejectRole)
     msg.setIcon(QMessageBox.Information)
     x = msg.exec_()  # 显示消息框
@@ -598,7 +597,7 @@ def ms_to_time_string(*, ms=0, seconds=None):
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
         if os.path.getsize(srtfile)==0:
-            raise Exception(transobj['zimuwenjianbuzhengque'])
+            raise Exception(config.transobj['zimuwenjianbuzhengque'])
         with open(srtfile, 'r', encoding="utf-8") as f:
             txt = f.read().strip().split("\n")
     else:
