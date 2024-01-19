@@ -20,8 +20,9 @@ from videotrans.configure import config
 from videotrans.configure.config import transobj, logger, homedir,Myexcept
 from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, deepltrans,  deeplxtrans, azuretrans, geminitrans
 from videotrans.util.tools import runffmpeg, set_process, match_target_amplitude, shorten_voice,ms_to_time_string, get_subtitle_from_srt, get_lastjpg_fromvideo,  is_novoice_mp4, cut_from_video, get_video_duration, text_to_speech,  delete_temp,     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, m4a2wav, create_video_byimg,  concat_multi_mp4, speed_up_mp3
+import torch
 
-device = "cuda" if config.params['cuda'] else "cpu"
+
 
 
 
@@ -35,6 +36,7 @@ class TransCreate():
         # 原始视频地址，等待转换为mp4格式
         self.wait_convermp4=None
         self.app_mode = obj['app_mode']
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # 原始视频
         self.source_mp4 = obj['source_mp4'].replace('\\', '/') if 'source_mp4' in obj else ""
         # 视频信息
@@ -381,8 +383,8 @@ class TransCreate():
             with open(nonslient_file, 'w') as outfile:
                 json.dump(nonsilent_data, outfile)
 
-        r = WhisperModel(config.params['whisper_model'], device=device,
-                         compute_type="int8" if device == 'cpu' else "int8_float16",
+        r = WhisperModel(config.params['whisper_model'], device=self.device,
+                         compute_type="int8" if self.device == 'cpu' else "int8_float16",
                          download_root=config.rootdir + "/models",num_workers=os.cpu_count(),cpu_threads=os.cpu_count(), local_files_only=True)
         raw_subtitles = []
         # offset = 0
@@ -452,8 +454,8 @@ class TransCreate():
         down_root=os.path.normpath(config.rootdir + "/models")
         print(f'{down_root}')
         try:
-            model = WhisperModel(config.params['whisper_model'], device=device,
-                                 compute_type="int8" if device == 'cpu' else "int8_float16",
+            model = WhisperModel(config.params['whisper_model'], device=self.device,
+                                 compute_type="int8" if self.device == 'cpu' else "int8_float16",
                                  download_root=down_root,num_workers=os.cpu_count(),
                                  cpu_threads=os.cpu_count(),
                                  local_files_only=True)
