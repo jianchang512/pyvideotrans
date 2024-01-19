@@ -9,9 +9,6 @@ import sys
 from queue import Queue
 from videotrans.configure.language import translate_language, language_code_list
 
-# 当前执行目录
-from videotrans.util import tools
-
 rootdir = os.getcwd().replace('\\', '/')
 TEMP_DIR=os.path.join(rootdir,"tmp").replace('\\','/')
 if not os.path.exists(TEMP_DIR):
