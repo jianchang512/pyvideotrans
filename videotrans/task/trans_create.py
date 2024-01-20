@@ -140,6 +140,7 @@ class TransCreate():
 
     # 启动执行入口
     def run(self):
+        config.settings=config.parse_init()
         print('444')
         if config.current_status != 'ing':
             raise Myexcept("Had stop")
@@ -384,7 +385,7 @@ class TransCreate():
                 json.dump(nonsilent_data, outfile)
 
         r = WhisperModel(config.params['whisper_model'], device=self.device,
-                         compute_type="int8" if self.device == 'cpu' else "int8_float16",
+                         compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",num_workers=os.cpu_count(),cpu_threads=os.cpu_count(), local_files_only=True)
         raw_subtitles = []
         # offset = 0
@@ -455,7 +456,7 @@ class TransCreate():
         print(f'{down_root}')
         try:
             model = WhisperModel(config.params['whisper_model'], device=self.device,
-                                 compute_type="int8" if self.device == 'cpu' else "int8_float16",
+                                 compute_type=config.settings['cuda_com_type'],
                                  download_root=down_root,num_workers=os.cpu_count(),
                                  cpu_threads=os.cpu_count(),
                                  local_files_only=True)
