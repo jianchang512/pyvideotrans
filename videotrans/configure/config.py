@@ -23,8 +23,18 @@ logging.basicConfig(
     filemode="a")
 logger = logging.getLogger('VideoTrans')
 
-def parse_init(file,*,default={}):
-    settings = default
+# 语言
+defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+
+
+def parse_init():
+    settings = {
+            "lang":defaulelang,
+            "dubbing_thread":5,
+            "trans_thread":10,
+            "countdown_sec":60
+    }
+    file=os.path.join(rootdir,'videotrans/set.ini')
     if os.path.exists(file):
         # 创建配置解析器
         iniconfig = configparser.ConfigParser()
@@ -43,17 +53,11 @@ def parse_init(file,*,default={}):
                 else:
                     settings[key] = str(value)
     return settings
-# 语言
-defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
+
 
 
 # 初始化一个字典变量
-settings = parse_init(os.path.join(rootdir,'videotrans/set.ini'),default={
-        "lang":defaulelang,
-        "dubbing_thread":5,
-        "trans_thread":10,
-        "countdown_sec":60
-})
+settings = parse_init()
 
 
 # default language 如果 ini中设置了，则直接使用，否则自动判断

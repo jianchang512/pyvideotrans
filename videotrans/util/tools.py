@@ -65,7 +65,7 @@ def get_elevenlabs_role(force=False):
 
 def transcribe_audio(audio_path, model, language):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = WhisperModel(model, device=device, compute_type="int8" if device == 'cpu' else "int8_float16",
+    model = WhisperModel(model, device=device, compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models")
     segments, _ = model.transcribe(audio_path,
                                    beam_size=5,
