@@ -55,7 +55,7 @@ if __name__ == '__main__':
             if not line or line.startswith(";"):
                 continue
 
-            line = line.split("=", maxsplit=2)
+            line = [ x.strip() for x in  line.split("=", maxsplit=1)]
             if len(line) != 2:
                 continue
             if line[1] == 'false':
