@@ -20,12 +20,6 @@ from videotrans.configure import config
 from videotrans.configure.config import transobj, logger, homedir,Myexcept
 from videotrans.translator import chatgpttrans, googletrans, baidutrans, tencenttrans, deepltrans,  deeplxtrans, azuretrans, geminitrans
 from videotrans.util.tools import runffmpeg, set_process, match_target_amplitude, shorten_voice,ms_to_time_string, get_subtitle_from_srt, get_lastjpg_fromvideo,  is_novoice_mp4, cut_from_video, get_video_duration, text_to_speech,  delete_temp,     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, m4a2wav, create_video_byimg,  concat_multi_mp4, speed_up_mp3
-import torch
-
-
-
-
-
 
 class TransCreate():
 
@@ -36,7 +30,7 @@ class TransCreate():
         # 原始视频地址，等待转换为mp4格式
         self.wait_convermp4=None
         self.app_mode = obj['app_mode']
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if config.params['cuda'] else "cpu"
         # 原始视频
         self.source_mp4 = obj['source_mp4'].replace('\\', '/') if 'source_mp4' in obj else ""
         # 视频信息

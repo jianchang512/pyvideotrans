@@ -27,7 +27,6 @@ class Worker(QThread):
                 self.video = TransCreate(it)
                 if self.video.source_mp4:
                     set_process(self.video.source_mp4, 'add_process')
-                    #self.main.processbtns[key] = self.add_process_btn(key, i)
                 set_process(transobj['kaishichuli'])
                 self.video.run()
                 # 成功完成
@@ -40,7 +39,6 @@ class Worker(QThread):
                         os.unlink(self.video.novoice_mp4)
                 except:
                     pass
-
             except Exception as e:
                 print(f"mainworker {str(e)}")
                 set_process(f"{str(e)}", 'error')

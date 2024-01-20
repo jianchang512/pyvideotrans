@@ -19,7 +19,6 @@ from videotrans.configure import config
 import time
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_elevenlabs
-import torch
 from elevenlabs import  voices
 
 platform=sys.platform
@@ -64,8 +63,7 @@ def get_elevenlabs_role(force=False):
 
 
 def transcribe_audio(audio_path, model, language):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = WhisperModel(model, device=device, compute_type=config.settings['cuda_com_type'],
+    model = WhisperModel(model, device="cuda" if config.params['cuda'] else "cpu", compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models")
     segments, _ = model.transcribe(audio_path,
                                    beam_size=5,
