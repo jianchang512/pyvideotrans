@@ -1,4 +1,4 @@
-[English](./language.md#Adding%20Language%20Packs)
+[English](./language.md#adding-language-packs)
 
 # 添加语言包
 
