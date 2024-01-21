@@ -103,7 +103,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 
     ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
  
-    [VLC解码器下载](https://www.videolan.org/vlc/)
 
     [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
 
