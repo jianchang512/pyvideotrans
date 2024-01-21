@@ -18,7 +18,6 @@ warnings.filterwarnings('ignore')
 
 from videotrans.component import DeepLForm, DeepLXForm, BaiduForm, TencentForm, ChatgptForm
 from videotrans.configure.config import langlist, transobj, logger
-from videotrans.configure.config import english_code_bygpt
 from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt
 from videotrans.configure import config
 
@@ -959,8 +958,7 @@ class SecWindow():
             fnames[i] = it.replace('\\', '/')
 
         if len(fnames) > 0:
-            self.main.source_mp4.setText(fnames[0])
-            config.params['source_mp4'] = fnames[0]
+            self.main.source_mp4.setText(f'{len((fnames))} videos')
             self.main.settings.setValue("last_dir", os.path.dirname(fnames[0]))
             config.queue_mp4 = fnames
 
@@ -971,7 +969,6 @@ class SecWindow():
         if fname:
             with open(fname, 'r', encoding='utf-8') as f:
                 self.main.subtitle_area.insertPlainText(f.read().strip())
-                # self.main.import_sub.setDisabled(False)
 
     # 保存目录
     def get_save_dir(self):
@@ -985,9 +982,7 @@ class SecWindow():
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(
             f'{transobj["waitforstart"] if len(self.main.processbtns.keys()) > 0 else transobj["kaishiyuchuli"]}' + " " + txt)
-        clickable_progress_bar.setMinimumSize(500, 50)
-
-        
+        clickable_progress_bar.setMinimumSize(500, 50)        
         # # 将按钮添加到布局中
         self.main.processlayout.addWidget(clickable_progress_bar)
         return clickable_progress_bar
@@ -1009,7 +1004,7 @@ class SecWindow():
             config.params['whisper_type'] = 'all'
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         elif self.main.app_mode == 'hebing':
-            if not config.params['source_mp4'] or config.params['subtitle_type'] < 1 or not txt:
+            if len(config.queue_mp4)<1 or config.params['subtitle_type'] < 1 or not txt:
                 QMessageBox.critical(self.main, transobj['anerror'], transobj['hebingmoshisrt'])
                 return False
             config.params['target_language'] = '-'
@@ -1022,7 +1017,7 @@ class SecWindow():
             config.params['whisper_type'] = 'all'
         elif self.main.app_mode == 'tiqu_no' or self.main.app_mode == 'tiqu':
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            if not config.params['source_mp4']:
+            if len(config.queue_mp4)<1:
                 QMessageBox.critical(self.main, transobj['anerror'], transobj['selectvideodir'])
                 return False
             elif not os.path.exists(model):
@@ -1055,7 +1050,6 @@ class SecWindow():
         self.delete_process()
 
         # 选择视频
-        config.params['source_mp4'] = self.main.source_mp4.text().strip().replace('\\', '/')
         target_dir = self.main.target_dir.text().strip().replace('\\', '/')
         # 目标文件夹
         if target_dir:
@@ -1099,22 +1093,19 @@ class SecWindow():
                     return
             elif config.params['translate_type'] == 'chatGPT':
                 # chatGPT 翻译
-                config.params['target_language_chatgpt'] = english_code_bygpt[
-                    self.main.languagename.index(target_language)]
+                config.params['target_language_chatgpt'] = target_language
                 if not config.params["chatgpt_key"]:
                     QMessageBox.critical(self.main, transobj['anerror'], transobj['chatgptkeymust'])
                     return
             elif config.params['translate_type'] == 'Azure':
                 # chatGPT 翻译
-                config.params['target_language_azure'] = english_code_bygpt[
-                    self.main.languagename.index(target_language)]
+                config.params['target_language_azure'] = target_language
                 if not config.params["azure_key"]:
-                    QMessageBox.critical(self.main, transobj['anerror'], '必须填写Azure key')
+                    QMessageBox.critical(self.main, transobj['anerror'], 'No Azure key')
                     return
             elif config.params['translate_type'] == 'Gemini':
                 # chatGPT 翻译
-                config.params['target_language_gemini'] = english_code_bygpt[
-                    self.main.languagename.index(target_language)]
+                config.params['target_language_gemini'] = target_language
                 if not config.params["gemini_key"]:
                     QMessageBox.critical(self.main, transobj['anerror'], transobj['bixutianxie'] + 'google Gemini key')
                     return
@@ -1166,7 +1157,7 @@ class SecWindow():
             return False
 
         # 综合判断
-        if not config.params['source_mp4'] and not txt:
+        if len(config.queue_mp4)<1 and not txt:
             QMessageBox.critical(self.main, transobj['anerror'], transobj['bukedoubucunzai'])
             return False
         # tts类型
@@ -1178,21 +1169,18 @@ class SecWindow():
             QMessageBox.critical(self.main, transobj['anerror'], transobj['wufapeiyin'])
             return False
 
-        if config.params['source_mp4'] and len(config.queue_mp4) < 1:
-            config.queue_mp4 = [config.params['source_mp4']]
 
         # 对各种设置情况判断属于什么模式
         if self.main.app_mode == 'biaozhun':
-            if config.params['source_mp4'] and config.params['subtitle_type'] < 1 and config.params['voice_role'] in [
+            if len(config.queue_mp4)>0 and config.params['subtitle_type'] < 1 and config.params['voice_role'] in [
                 'No', 'no', '-']:
                 # tiqu 如果 存在视频但无配音 无嵌入字幕，则视为提取
-                self.main.app_mode = 'tiqu_no' if config.params[
-                                                      'source_language'] == target_language or target_language == '-' else 'tiqu'
-            elif config.params['source_mp4'] and txt and config.params['subtitle_type'] > 0 and (
+                self.main.app_mode = 'tiqu_no' if config.params['source_language'] == target_language or target_language == '-' else 'tiqu'
+            elif len(config.queue_mp4)>0 and txt and config.params['subtitle_type'] > 0 and (
                     config.params['source_language'] == target_language or target_language == '-'):
                 # hebing 存在视频，存在字幕，字幕嵌入，不存在目标语言或源目标语言相同无需翻译，视为合并
                 self.main.app_mode = 'hebing'
-            elif not config.params['source_mp4'] and txt:
+            elif len(config.queue_mp4)<1 and txt:
                 # peiyin
                 self.main.app_mode = 'peiyin'
         if not self.check_mode(txt=txt, model=model):
@@ -1223,15 +1211,10 @@ class SecWindow():
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
-        # btnkey=None
         if self.main.task and self.main.task.video:
             # 有视频
-            # btnkey =  #self.main.task.video.source_mp4 if re.search(r'\.mp4',self.main.task.video.source_mp4,re.I) else re.sub(r'\.[a-zA-Z0-9]+$','.mp4',self.main.task.video.source_mp4,re.I)
             if type != 'succeed':
                 text = f'{self.main.task.video.noextname}: {text}'
-        # elif self.main.task and self.main.task.video:
-        # 字幕到配音，无视频
-        # btnkey = "srt2wav"
 
         if btnkey and btnkey in self.main.processbtns:
             if type == 'succeed':

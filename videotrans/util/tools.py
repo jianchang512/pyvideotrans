@@ -19,7 +19,7 @@ from videotrans.configure import config
 import time
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_elevenlabs
-from elevenlabs import  voices
+from elevenlabs import voices, set_api_key
 
 platform=sys.platform
 
@@ -48,6 +48,9 @@ def get_elevenlabs_role(force=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     try:
+        print(config.params["elevenlabstts_key"])
+        if config.params["elevenlabstts_key"]:
+            set_api_key(config.params["elevenlabstts_key"])
         voiceslist = voices()
         result = {}
         for it in voiceslist:

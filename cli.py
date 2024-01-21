@@ -16,26 +16,24 @@ import argparse
 from videotrans.task.trans_create import TransCreate
 from videotrans.util.tools import set_proxy, get_edge_rolelist, get_elevenlabs_role
 
-
 parser = argparse.ArgumentParser(description='cli.ini and source mp4')
 parser.add_argument('-c', type=str, help='cli.ini file absolute filepath', default=os.path.join(os.getcwd(), 'cli.ini'))
 parser.add_argument('-m', type=str, help='mp4 absolute filepath', default="")
 parser.add_argument('-cuda', action='store_true', help='Activates the cuda option')
 
 
-
-
-
 def set_process(text, type="logs"):
     print(f'[{type}] {text}\n')
 
-if not os.path.exists(os.path.join(config.rootdir,'voice_list.json')) or os.path.getsize(os.path.join(config.rootdir,'voice_list.json'))==0:
+
+if not os.path.exists(os.path.join(config.rootdir, 'voice_list.json')) or os.path.getsize(
+        os.path.join(config.rootdir, 'voice_list.json')) == 0:
     print("正在获取 edge TTS 角色...")
     get_edge_rolelist()
-if not os.path.exists(os.path.join(config.rootdir,'elevenlabs.json')) or os.path.getsize(os.path.join(config.rootdir,'elevenlabs.json'))==0:
+if not os.path.exists(os.path.join(config.rootdir, 'elevenlabs.json')) or os.path.getsize(
+        os.path.join(config.rootdir, 'elevenlabs.json')) == 0:
     print("正在获取 elevenlabs TTS 角色...")
     get_elevenlabs_role()
-
 
 if __name__ == '__main__':
     config.exec_mode = 'cli'
@@ -48,14 +46,13 @@ if __name__ == '__main__':
         print('不存在配置文件 cli.ini' if config.defaulelang == 'zh' else "cli.ini file not exists")
         sys.exit()
 
-
     with open(cfg_file, 'r', encoding="utf-8") as f:
         for line in f.readlines():
             line = line.strip()
             if not line or line.startswith(";"):
                 continue
 
-            line = [ x.strip() for x in  line.split("=", maxsplit=1)]
+            line = [x.strip() for x in line.split("=", maxsplit=1)]
             if len(line) != 2:
                 continue
             if line[1] == 'false':
@@ -65,7 +62,7 @@ if __name__ == '__main__':
             else:
                 config.params[line[0]] = int(line[1]) if re.match(r'^\d+$', line[1]) else line[1]
     if args['cuda']:
-        config.params['cuda']=True
+        config.params['cuda'] = True
     if args['m'] and os.path.exists(args['m']):
         config.params['source_mp4'] = args['m']
     if not config.params['source_mp4'] or not os.path.exists(config.params['source_mp4']):
@@ -135,12 +132,10 @@ if __name__ == '__main__':
         config.params['voice_silence'] = '500'
     os.makedirs(os.path.join(os.getcwd(), 'tmp'), exist_ok=True)
 
-
     if config.params['proxy'].strip():
         config.proxy = config.params['proxy'].strip()
         set_proxy(config.proxy)
     config.current_status = 'ing'
-
 
     try:
         task = TransCreate({"source_mp4": config.params['source_mp4'], 'app_mode': "biaozhun"})

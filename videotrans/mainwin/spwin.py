@@ -1,24 +1,22 @@
 import os
 import shutil
+import threading
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtGui import  QIcon
-from PyQt5.QtCore import QSettings,  Qt, QSize
-from PyQt5.QtWidgets import QMainWindow, QMessageBox,  QLabel, QPushButton, QToolBar,  QWidget, QVBoxLayout,   QApplication
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QSettings, Qt, QSize
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout, QApplication
 import warnings
 warnings.filterwarnings('ignore')
-
 from videotrans.configure.config import langlist, transobj
 from videotrans import VERSION
 from videotrans.configure import config
 from videotrans.component.controlobj import TextGetdir
-from videotrans.util.tools import show_popup
+from videotrans.util.tools import show_popup, get_elevenlabs_role
 from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.logs_worker import LogsWorker
 from videotrans.mainwin.secwin import SecWindow
-if config.defaulelang == "zh":
-    from videotrans.ui.cn import Ui_MainWindow
-else:
-    from videotrans.ui.en import Ui_MainWindow
+from videotrans.ui.en import Ui_MainWindow
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -32,39 +30,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         screen_resolution = QApplication.desktop().screenGeometry()
         width, height = screen_resolution.width(), screen_resolution.height()
-        self.width=int(width*0.8)
-        if self.width<1400:
-            self.width=1400
-        elif self.width>1900:
-            self.width=1800
-        self.resize(self.width, height-220)
-
+        self.width = int(width * 0.8)
+        if self.width < 1400:
+            self.width = 1400
+        elif self.width > 1900:
+            self.width = 1800
+        self.resize(self.width, height - 220)
 
         # 当前所有可用角色列表
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{'视频翻译配音' if config.defaulelang != 'en' else ' Video Translate & Dubbing'} {VERSION}"
+
+        self.rawtitle = f"{transobj['softname']} {VERSION}"
         self.setWindowTitle(self.rawtitle)
 
         # 检查窗口是否打开
-        self.show()
-        if self.isVisible():
-            self.initUI()
+        # self.show()
 
+        # if self.isVisible():
+        self.initUI()
 
     def initUI(self):
 
-        self.util=SecWindow(self)
+        self.util = SecWindow(self)
         self.settings = QSettings("Jameson", "VideoTranslate")
         # 获取最后一次选择的目录
         self.last_dir = self.settings.value("last_dir", ".", str)
         # language code
         self.languagename = list(langlist.keys())
         self.app_mode = 'biaozhun'
-        self.splitter.setSizes([self.width-400, 400])
+        self.splitter.setSizes([self.width - 400, 400])
         # start
         self.get_setting()
+        threading.Thread(target=get_elevenlabs_role, args=(True,)).start()
         self.startbtn.clicked.connect(self.util.check_start)
         try:
             if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -103,8 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.clicked.connect(self.util.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(
-            ["google", "baidu", "chatGPT", "Azure", 'Gemini', "tencent", "DeepL", "DeepLX"])
+        self.translate_type.addItems(config.translate_list)
         self.translate_type.setCurrentText(config.params['translate_type'])
         self.translate_type.currentTextChanged.connect(self.util.set_translate_type)
 
@@ -229,8 +227,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.container.addWidget(rightbottom)
         self.statusBar.addPermanentWidget(self.container)
 
-
-
         #     日志
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.util.update_data)
@@ -238,7 +234,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
-
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -270,7 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
         if config.params["chatgpt_model"] == 'large':
-            config.params["chatgpt_model"]='large-v3' 
+            config.params["chatgpt_model"] = 'large-v3'
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
@@ -293,7 +288,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not config.params['tts_type']:
             config.params['tts_type'] = 'edgeTTS'
 
-
     # 存储本地数据
     def save_setting(self):
         self.settings.setValue("target_dir", config.params['target_dir'])
@@ -310,3 +304,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
         self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
+        self.settings.setValue("elevenlabstts_key", config.params["elevenlabstts_key"])
