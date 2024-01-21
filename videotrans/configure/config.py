@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import configparser
 import datetime
+import json
 import os
 import locale
 import logging
 import re
 import sys
 from queue import Queue
-from videotrans.configure.language import translate_language, language_code_list, clilanglist
 
 rootdir = os.getcwd().replace('\\', '/')
 TEMP_DIR=os.path.join(rootdir,"tmp").replace('\\','/')
@@ -24,15 +24,16 @@ logging.basicConfig(
 logger = logging.getLogger('VideoTrans')
 
 # 语言
-defaulelang = "en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh"
-
-
+defaulelang = locale.getdefaultlocale()[0][:2].lower()
 def parse_init():
     settings = {
             "lang":defaulelang,
             "dubbing_thread":5,
             "trans_thread":10,
-            "countdown_sec":60
+            "countdown_sec":60,
+            "cuda_com_type":"int8",
+            "whisper_threads":0,
+            "whisper_worker":2
     }
     file=os.path.join(rootdir,'videotrans/set.ini')
     if os.path.exists(file):
@@ -53,25 +54,21 @@ def parse_init():
                 else:
                     settings[key] = str(value)
     return settings
-
-
-
 # 初始化一个字典变量
 settings = parse_init()
 
-
 # default language 如果 ini中设置了，则直接使用，否则自动判断
-if settings['lang'].lower() in ["en", 'zh', 'zh-cn']:
+if settings['lang']:
     defaulelang=settings['lang'].lower()
+# 语言代码文件是否存在
+if not os.path.join(rootdir,f'videotrans/language/{defaulelang}.json'):
+    defaulelang="en"
 
-if defaulelang == 'en':
-    transobj = translate_language['en']
-    langlist = language_code_list['en']
-else:
-    transobj = translate_language['zh']
-    langlist = language_code_list['zh']
+obj=json.load(open(os.path.join(rootdir,f'videotrans/language/{defaulelang}.json'),'r',encoding='utf-8'))
 
-english_code_bygpt=list(language_code_list[defaulelang].keys())
+transobj = obj["translate_language"]
+langlist = obj["language_code_list"]
+uilanglist = obj["ui_lang"]
 
 # ffmpeg
 if sys.platform =='win32':
@@ -92,7 +89,7 @@ chatgpt_model_list=["gpt-3.5-turbo", "gpt-4"]
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 proxy = None
-
+translate_list=["google", "baidu", "chatGPT", "Azure", 'Gemini', "tencent", "DeepL", "DeepLX"]
 
 # 配置
 params = {
@@ -177,7 +174,28 @@ btnkey=""
 #cli  gui 模式
 exec_mode="gui"
 
+# 临时全局变量
+temp=[]
 
+# cli.py 使用 google翻译代码，字幕语言代码，百度翻译代码，deep代码,腾讯代码
+clilanglist={
+        "zh-cn": ['zh-cn', 'chi', 'zh', 'ZH', 'zh',"中文简","Simplified_Chinese"],
+        "zh-tw": ['zh-tw', 'chi', 'cht', 'ZH', 'zh-TW',"中文繁","Traditional_Chinese"],
+        "en": ['en', 'eng', 'en', 'EN-US', 'en',"英语","English"],
+        "fr": ['fr', 'fre', 'fra', 'FR', 'fr',"法语","French"],
+        "de": ['de', 'ger', 'de', 'DE', 'de',"德语","German"],
+        "ja": ['ja', 'jpn', 'jp', 'JA', 'ja',"日语","Japanese"],
+        "ko": ['ko', 'kor', 'kor', 'KO', 'ko',"韩语","Korean"],
+        "ru": ['ru', 'rus', 'ru', 'RU', 'ru',"俄语","Russian"],
+        "es": ['es', 'spa', 'spa', 'ES', 'es',"西班牙语","Spanish"],
+        "th": ['th', 'tha', 'th', 'No', 'th',"泰国语","Thai"],
+        "it": ['it', 'ita', 'it', 'IT', 'it',"意大利语","Italian"],
+        "pt": ['pt', 'por', 'pt', 'PT', 'pt',"葡萄牙语","Portuguese"],
+        "vi": ['vi', 'vie', 'vie', 'No', 'vi',"越南语","Vietnamese"],
+        "ar": ['ar', 'are', 'ara', 'No', 'ar',"阿拉伯语","Arabic"],
+        "tr": ['tr', 'tur', 'tr', 'tr', 'tr',"土耳其语","Turkish"],
+        "hi": ['hi', 'hin', 'hi', 'No', 'hi',"印度语","Hindi"],
+    }
 
 class Myexcept(Exception):
     pass

@@ -7,21 +7,22 @@ import time
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSettings, QUrl
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QMainWindow,  QFileDialog, QMessageBox,   QLabel
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
 from videotrans import VERSION
 from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
 from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import boxcfg, config
-from videotrans.configure.config import logger, rootdir, homedir, langlist, english_code_bygpt
+from videotrans.configure.config import logger, rootdir, homedir, langlist
 from videotrans.util.tools import set_proxy, get_video_info, conver_mp4
 
-from videotrans.configure.config import transobj
+from videotrans.configure.config import transobj,uilanglist
 
 if config.defaulelang == "zh":
     from videotrans.ui.toolbox import Ui_MainWindow
 else:
     from videotrans.ui.toolboxen import Ui_MainWindow
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -29,7 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"Video Toolbox {VERSION}")
+        self.setWindowTitle(f"{uilanglist['Video Toolbox']} {VERSION}")
 
     def closeEvent(self, event):
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
@@ -112,7 +113,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_input.setMinimumSize(300, 0)
 
         self.geshi_input.setPlaceholderText(transobj['tuodongdaoci'])
-        #self.geshi_input.setReadOnly(True)
+        # self.geshi_input.setReadOnly(True)
         self.geshi_layout.insertWidget(0, self.geshi_input)
         self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
         self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
@@ -140,8 +141,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_target.addItems(["-"] + self.languagename)
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
-        self.fanyi_translate_type.addItems(
-            ["google", "baidu", "chatGPT", 'Azure', 'Gemini', "tencent", "DeepL", "DeepLX"])
+        self.fanyi_translate_type.addItems(config.translate_list)
 
         self.fanyi_sourcetext = Textedit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -155,7 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
         self.daochu.clicked.connect(self.fanyi_save_fun)
-        self.statuslabel=QLabel("")
+        self.statuslabel = QLabel("")
 
         self.statusBar.addWidget(self.statuslabel)
         self.statusBar.addPermanentWidget(QLabel("github.com/jianchang512/pyvideotrans"))
@@ -211,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # fun_name 方法名，type类型，text具体文本
         if "func_name" not in data:
             self.statuslabel.setText(data['text'][:60])
-            if data['type']=='error':
+            if data['type'] == 'error':
                 self.statuslabel.setStyle("""color:#ff0000""")
         elif data['func_name'] == "yspfl_end":
             # 音视频分离完成了
@@ -261,7 +261,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.fanyi_targettext.setPlainText(data['text'])
             self.daochu.setDisabled(False)
 
-
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
         if not self.yspfl_video_wrap.filepath:
@@ -302,7 +301,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             mime = "Srt files(*.srt)"
             showname = " srt "
-        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",  mime)
+        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",
+                                               mime)
         if not fname:
             return
 
@@ -312,7 +312,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ysphb_wavinput.setText(fname)
         else:
             self.ysphb_srtinput.setText(fname)
-
 
     def ysphb_start_fun(self):
         # 启动合并
@@ -337,32 +336,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         cmds = []
         if not os.path.exists(f'{config.rootdir}/tmp'):
-            os.makedirs(f'{config.rootdir}/tmp',exist_ok=True)
+            os.makedirs(f'{config.rootdir}/tmp', exist_ok=True)
         tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
         tmpname_conver = f'{config.rootdir}/tmp/box-conver.mp4'
-        video_info=get_video_info(videofile)
-        if videofile[-3:].lower()!='mp4' or video_info['video_codec_name']!='h264' or (video_info['streams_audio']>0 and video_info['audio_codec_name']!='aac'):
+        video_info = get_video_info(videofile)
+        if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != 'h264' or (
+                video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
             try:
-                conver_mp4(videofile, tmpname_conver,is_box=True)
+                conver_mp4(videofile, tmpname_conver, is_box=True)
             except Exception as e:
-                QMessageBox.critical(self,transobj['anerror'],str(e))
+                QMessageBox.critical(self, transobj['anerror'], str(e))
                 self.ysphb_startbtn.setText(transobj["start"])
                 self.ysphb_startbtn.setDisabled(False)
                 return False
-            videofile=tmpname_conver
+            videofile = tmpname_conver
 
         if wavfile:
             # 视频里是否有音轨
-            if video_info['streams_audio']>0:
+            if video_info['streams_audio'] > 0:
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]",'-map', '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map',
+                     '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
                 ]
             else:
-                cmds=[['-y', '-i', videofile, '-i', wavfile, '-map','0:v','-map', '1:a', '-c:v', 'copy', '-c:a','aac',tmpname]]
+                cmds = [
+                    ['-y', '-i', videofile, '-i', wavfile, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac',
+                     tmpname]]
 
         if srtfile:
             srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
-            cmds.append(['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}",'-c:v','libx264','-c:a','copy', f'{savedir}/{basename}.mp4'])
+            cmds.append(
+                ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}", '-c:v', 'libx264',
+                 '-c:a', 'copy', f'{savedir}/{basename}.mp4'])
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
@@ -459,7 +464,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 文件名称
         filename = self.hecheng_out.text()
         if filename and re.search(r'\\|/', filename):
-            filename=""
+            filename = ""
         if not filename:
             filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
         else:
@@ -517,7 +522,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        voice_list = config.edgeTTS_rolelist#get_edge_rolelist()
+        voice_list = config.edgeTTS_rolelist  # get_edge_rolelist()
         if not voice_list:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, transobj['anerror'], transobj['nojueselist'])
@@ -543,7 +548,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filelist = self.geshi_input.toPlainText().strip().split("\n")
         filelist_vail = []
         for it in filelist:
-            if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav','aac','m4a','flac']:
+            if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav', 'aac',
+                                                                           'm4a', 'flac']:
                 filelist_vail.append(it)
         if len(filelist_vail) < 1:
             return QMessageBox.critical(self, transobj['anerror'], transobj['nowenjian'])
@@ -561,7 +567,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 boxcfg.geshi_num -= 1
                 self.geshi_result.insertPlainText(f"{it} -> {ext}")
                 continue
-            if ext_this in ["wav", "mp3","aac","m4a","flac"] and ext in ["mp4", "mov", "avi"]:
+            if ext_this in ["wav", "mp3", "aac", "m4a", "flac"] and ext in ["mp4", "mov", "avi"]:
                 self.geshi_result.insertPlainText(f"{it} {transobj['yinpinbuke']} {ext} ")
                 boxcfg.geshi_num -= 1
                 continue
@@ -590,7 +596,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def hun_fun(self):
         out = self.hun_out.text().strip()
         if out and os.path.isfile(out):
-            out=""
+            out = ""
         if not out:
             out = f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.wav'
         elif not out.endswith('.wav'):
@@ -624,7 +630,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if proxy:
             set_proxy(proxy)
         else:
-            proxy=self.settings.value("proxy", "", str)
+            proxy = self.settings.value("proxy", "", str)
             if proxy:
                 set_proxy(proxy)
                 self.fanyi_proxy.setText(proxy)
@@ -632,46 +638,58 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         source_text = self.fanyi_sourcetext.toPlainText().strip()
         if not source_text:
             return QMessageBox.critical(self, transobj['anerror'], transobj["wenbenbukeweikong"])
-        # target_language = langlist[target_language][0]
-        config.baidu_appid = self.settings.value("baidu_appid", "")
-        config.baidu_miyue = self.settings.value("baidu_miyue", "")
-        config.deepl_authkey = self.settings.value("deepl_authkey", "")
-        config.deeplx_address = self.settings.value("deeplx_address", "")
-        config.chatgpt_api = self.settings.value("chatgpt_api", "")
-        config.chatgpt_key = self.settings.value("chatgpt_key", "")
-        config.tencent_SecretId = self.settings.value("tencent_SecretId", "")
-        config.tencent_SecretKey = self.settings.value("tencent_SecretKey", "")
-        # os.environ['OPENAI_API_KEY'] = self.cfg['chatgpt_key']
-        # google language code
+
+        config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
+        config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
+        config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
+        config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
+        config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
+        config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
+        config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
+        config.params["gemini_key"] = self.settings.value("gemini_key", "")
+        config.params["azure_api"] = self.settings.value("azure_api", "")
+        config.params["azure_key"] = self.settings.value("azure_key", "")
+        config.params["azure_model"] = self.settings.value("azure_model", "")
 
         if translate_type == 'google':
             target_language = langlist[target_language][0]
-        elif translate_type == 'baidu(noKey)':
-            target_language = langlist[target_language][2]
         elif translate_type == 'baidu':
             # baidu language code
             target_language = langlist[target_language][2]
-            if not config.baidu_appid or not config.baidu_miyue:
+            if not config.params["baidu_appid"] or not config.params["baidu_miyue"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'Baidu key')
                 return
         elif translate_type == 'tencent':
             #     腾讯翻译
             target_language = langlist[target_language][4]
-            if not config.tencent_SecretId or not config.tencent_SecretKey:
+            if not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' Tencent key')
                 return
         elif translate_type == 'chatGPT':
             # chatGPT 翻译
-            target_language = english_code_bygpt[self.languagename.index(target_language)]
-            if not config.chatgpt_key:
+            target_language = target_language
+            if not config.params["chatgpt_key"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'ChatGPT key')
+                return
+        elif config.params['translate_type'] == 'Azure':
+            # chatGPT 翻译
+            config.params['target_language_azure'] = target_language
+            if not config.params["azure_key"]:
+                QMessageBox.critical(self, transobj['anerror'], 'no Azure key')
+                return
+        elif config.params['translate_type'] == 'Gemini':
+            # chatGPT 翻译
+            config.params['target_language_gemini'] = target_language
+            if not config.params["gemini_key"]:
+                QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + 'google Gemini key')
                 return
         elif translate_type == 'DeepL' or translate_type == 'DeepLX':
             # DeepL翻译
-            if translate_type == 'DeepL' and not config.deepl_authkey:
+            if translate_type == 'DeepL' and not config.params["deepl_authkey"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' DeepL key')
                 return
-            if translate_type == 'DeepLX' and not config.deeplx_address:
+            if translate_type == 'DeepLX' and not config.params["deeplx_address"]:
                 QMessageBox.critical(self, transobj['anerror'], transobj['bixutianxie'] + ' DeepLX url')
                 return
             target_language = langlist[target_language][3]
@@ -685,6 +703,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_start.setText(transobj["running"])
         self.fanyi_targettext.clear()
         self.daochu.setDisabled(True)
+
     def fanyi_save_fun(self):
         srttxt = self.fanyi_targettext.toPlainText().strip()
         if not srttxt:
@@ -699,10 +718,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         else:
             path_to_file = dialog.selectedFiles()[0]
-        ext= ".srt" if issrt else ".txt"
+        ext = ".srt" if issrt else ".txt"
         if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
-            path_to_file=path_to_file[:-4]+ext
+            path_to_file = path_to_file[:-4] + ext
         else:
-            path_to_file+=ext
-        with open(path_to_file , "w") as file:
+            path_to_file += ext
+        with open(path_to_file, "w") as file:
             file.write(srttxt)

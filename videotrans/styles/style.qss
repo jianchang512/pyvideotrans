@@ -10,12 +10,10 @@ QToolBar QToolButton {
 QToolBar QToolButton:hover {
   border: 1px solid #148CD2;
 }
-
 QToolBar QToolButton:checked {
   background-color: #19232D;
   border: 1px solid #148CD2;
 }
-
 QToolBar QToolButton:checked:hover {
 border: 1px solid #339933;
 }
@@ -28,7 +26,6 @@ QLabel#show_tips{
 QLineEdit:hover,QComboBox:hover{
     border-color: #148cd2;
 }
-
 QLineEdit[readOnly="true"],QLineEdit[readOnly="true"]:hover {
     background-color: transparent;  /* 灰色背景 */
     border-color: transparent;  /* 灰色背景 */
@@ -37,18 +34,14 @@ QLineEdit,QComboBox{
     background-color: #161E26;
     border-color: #32414B;
 }
-
 QLineEdit:disabled {
     background-color: transparent;  /* 灰色背景 */
     border-color: transparent;  /* 灰色背景 */
-
 }
-
 QComboBox:disabled{
     background-color: transparent;  /* 灰色背景 */
     border-color: #273442;  /* 灰色背景 */
 }
-
 QScrollArea QPushButton{
     background-color: rgba(50, 65, 75, 0.5);
     border-radius: 0;
