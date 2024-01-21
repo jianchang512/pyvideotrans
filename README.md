@@ -139,6 +139,35 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 17. 设置行角色：可对字幕中的每行设定发音角色，首先左侧选好TTS类型和角色，然后点击字幕区右下方“设置行角色”，在每个角色名后面文本中中，填写要使用该角色配音的行编号，如下图：
     ![](./images/p2.png)
 
+# 高级设置 videotrans/set.ini
+
+**请勿随意调整，除非你知道将会发生什么**
+
+```
+;设置软件界面语言，en代表英文，zh代表中文
+lang =
+;同时配音线程数量
+dubbing_thread=5
+;同时翻译行数
+trans_thread=10
+;软件等待修改字幕倒计时
+countdown_sec=60
+;加速设备 cuvid 或 cuda
+hwaccel=cuvid
+; 加速设备输出格式，nv12 或 cuda 
+hwaccel_output_format=nv12
+;是否使用硬件解码 -c:v h264_cuvid  true代表是，false代表否
+no_decode=false
+;语音识别时，数据格式，int8 或 float16 或 float32
+cuda_com_type=int8
+; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可改为4
+whisper_threads=0
+;语音识别工作进程数量
+whisper_worker=2
+
+```
+
+
 
 # CUDA 加速支持
 
