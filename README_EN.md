@@ -132,6 +132,33 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
     ![](./images/pen2.png)
 
 
+# Advanced Settings videotrans/set.ini
+**Please do not make arbitrary adjustments unless you know what will happen**
+
+```
+; Set the software interface language, where en represents English and zh represents Chinese
+lang=
+; Number of simultaneous voice acting threads
+dubbing_ Thread=5
+; Simultaneous translation lines
+trans_thread=10
+; Software waiting for subtitle modification countdown
+countdown_sec=60
+; Accelerate device cuvid or cuda
+hwaccel=cuvid
+; Accelerate device output format, nv12 or cuda
+hwaccel_output_format=nv12
+; Is hardware decoding used - c: v h264_ Cuvid true represents yes, false represents no
+no_code=false
+; In speech recognition, the data format is int8, float16, or float32
+cuda_com_type=int8
+; The number of speech recognition threads, where 0 represents the same number of CPU cores. If it occupies too much CPU, it can be changed to 4 here
+whisper_threads=0
+; Number of speech recognition work processes
+whisper_worker=2
+```
+
+
 # Frequently Asked Questions
 
 1. Using Google Translation, error is prompted.
