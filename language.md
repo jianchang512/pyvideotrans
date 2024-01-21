@@ -75,7 +75,7 @@
 
 和其他2个不同，该内容只需要将字段名改为相应语言文本，字段值不要动，即 [] 数组内的元素不要修改，比如上方内容，可以修改 Simplified_Chinese 和  Traditional_Chinese 为其他语言文本，但 [] 内的保持原样不要动
 
-## 制作完成后，确认符合正确的 json 格式，然后放到 videotrans/language 目录下，重启软件就会自动应用该语言，如何你制作的语言包和默认语言不同，可通过设置 `set.ini`中 lang=语言代码和强制使用，比如 `lang=zh`将强制显示 zh.json 内容
+**制作完成后，确认符合正确的 json 格式，然后放到 videotrans/language 目录下，重启软件就会自动应用该语言，如何你制作的语言包和默认语言不同，可通过设置 `set.ini`中 lang=语言代码和强制使用，比如 `lang=zh`将强制显示 zh.json 内容**
 
 
 
@@ -87,6 +87,7 @@
 
 
 # Adding Language Packs
+
 
 1. First, execute the following code in the console to check the current language code of the system:
 
@@ -161,4 +162,5 @@ Similar to modifying `translate_language`, do not modify the field names in `ui_
 
 This field is different from the other two. Only change the field name to the text in the desired language; do not modify the elements inside the [] array. For example, you can change "Simplified_Chinese" and "Traditional_Chinese" to other language texts, but keep the elements inside [] unchanged.
 
-## After completing the creation, ensure that it conforms to the correct JSON format. Then, place it in the `videotrans/language` directory. Restart the software, and it will automatically apply the new language. If the language pack you created is different from the default language, you can force the use by setting `lang=` to the language code in `set.ini`, for example, `lang=zh` will force the display of the content in zh.json.
+**After completing the creation, ensure that it conforms to the correct JSON format. Then, place it in the `videotrans/language` directory. Restart the software, and it will automatically apply the new language. If the language pack you created is different from the default language, you can force the use by setting `lang=` to the language code in `set.ini`, for example, `lang=zh` will force the display of the content in zh.json.**
+
