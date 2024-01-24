@@ -19,17 +19,18 @@
 
 已存在`en.json` `zh.json` 2种语言文件，可直接复制后修改名称，在此基础上制作新的语言文件
 
-每个语言文件都是一个json对象，最外层有3个字段，分别是
+每个语言文件都是一个json对象，最外层有4个字段，分别是
 
 ```
 {
 "translate_language":{},
 "ui_lang":{},
+"toolbox_lang":{}, 
 "language_code_list":{}
 }
 ```
 
-其中 `translate_language` 是用于进度显示、错误提示、各种交互状态的文本，`ui_lang` 软件界面各个部件的显示名称，`language_code_list` 是支持的语言代码
+其中 `translate_language` 是用于进度显示、错误提示、各种交互状态的文本，`ui_lang` 软件界面各个部件的显示名称，`toolbox_lang` 是视频工具箱界面各个部件的显示名称, `language_code_list` 是支持的语言显示名称
 
 ## translate_language 修改
 
@@ -52,28 +53,39 @@
 }
 同 `translate_language` 的修改一样，字段名不要动，将字段值改为相应语言的文本即可。
 
+## toolbox_lang 修改
+
+"toolbox_lang": {
+    "No voice video":"无声视频",
+    "Open dir":"打开目录",
+    "Audio Wav":"音频文件",
+}
+同 `translate_language` 的修改一样，字段名不要动，将字段值改为相应语言的文本即可。
+
 ## language_code_list 的修改
 
 ```
 "language_code_list": {
-    "Simplified_Chinese": [
-      "zh-cn",
-      "chi",
-      "zh",
-      "ZH",
-      "zh"
-    ],
-    "Traditional_Chinese": [
-      "zh-tw",
-      "chi",
-      "cht",
-      "ZH",
-      "zh-TW"
-    ]
-}
+    "zh-cn":"Simplified Chinese",
+    "zh-tw":"Traditional Chinese",
+    "en":"English",
+    "fr":"French",
+    "de":"German",
+    "ja":"Japanese",
+    "ko":"Korean",
+    "ru":"Russian",
+    "es":"Spanish",
+    "th":"Thai",
+    "it":"Italian",
+    "pt":"Portuguese",
+    "vi":"Vietnamese",
+    "ar":"Arabic",
+    "tr":"Turkish",
+    "hi":"Hindi"
+  }
 ```
 
-和其他2个不同，该内容只需要将字段名改为相应语言文本，字段值不要动，即 [] 数组内的元素不要修改，比如上方内容，可以修改 Simplified_Chinese 和  Traditional_Chinese 为其他语言文本，但 [] 内的保持原样不要动
+和其他一样，该内容字段名不要动，字段值改为要显示的名称
 
 **制作完成后，确认符合正确的 json 格式，然后放到 videotrans/language 目录下，重启软件就会自动应用该语言，如何你制作的语言包和默认语言不同，可通过设置 `set.ini`中 lang=语言代码和强制使用，比如 `lang=zh`将强制显示 zh.json 内容**
 
@@ -89,78 +101,90 @@
 # Adding Language Packs
 
 
-1. First, execute the following code in the console to check the current language code of the system:
 
-```python
-import locale
-locale.getdefaultlocale()[0]
+1. First, execute the following code in the console to check the system's current language code
+
 ```
+    import locale
+    locale.getdefaultlocale()[0]
+```
+Lowercase the first 2 characters of the output content and append `.json` to create a json file as the filename. For example, if the output is `en_US`, create `en.json` in the videotrans/language directory, where `en.json` is the language file.
 
-Take the first two characters of the output, convert them to lowercase, and append `.json` to create a filename. For example, if the output is `en_US`, create a file named `en.json` in the `videotrans/language` directory. This `en.json` file will be the language file.
 
 > 
-> When the software starts, it will use the first two characters in `locale.getdefaultlocale()[0]`, convert them to lowercase, and append `.json` to form a filename. It searches in the `videotrans/language` directory. If the file exists, it is used; otherwise, the English interface is displayed. If a value is set in the `lang=` field in the `videotrans/set.ini` file, it will be used as the default language code. Otherwise, the result of `locale.getdefaultlocale()` is used.
->
+> When the software starts, the system will take the first 2 characters lowercase from locale.getdefaultlocale()[0] and append `.json` to form the filename, and then look for it under the videotrans/language directory. If it exists, it will be used; otherwise, the English interface will be displayed.
+> If the `lang=` in the `videotrans/set.ini` file has a value set, then this value will be taken as the default language code, otherwise the result of `locale.getdefaultlocale()` will be used.
+> 
 
-There are already two language files, `en.json` and `zh.json`. You can directly copy and modify them. Create a new language file based on these two.
 
-Each language file is a JSON object with three main fields:
+There are already `en.json` and `zh.json` 2 language files. You can copy and modify the name directly to create new language files.
 
-```json
+Each language file is a json object. The outermost layer has 4 fields, which are
+
+```
 {
-  "translate_language": {},
-  "ui_lang": {},
-  "language_code_list": {}
+"translate_language":{},
+"ui_lang":{},
+"toolbox_lang":{}, 
+"language_code_list":{}
 }
 ```
 
-Among these, `translate_language` is used for displaying progress, error messages, and various interaction states. `ui_lang` contains display names for various components of the software. `language_code_list` lists supported language codes.
+Here `translate_language` is used for progress display, error prompts, various interaction states of text, `ui_lang` software interface display name of each component, `toolbox_lang` video toolbox interface display name of each component, `language_code_list` is the supported language display name
 
-## Modifying `translate_language`
+## Modification of translate_language 
 
-```json
+```
 "translate_language": {
-    "qianyiwenjian": "The video path or name contains non-ASCII spaces. To avoid errors, it has been migrated to ",
+    "qianyiwenjian": "The video path or name contains non ASCII spaces. To avoid errors, it has been migrated to ",
     "mansuchucuo": "Video automatic slow error, please try to cancel the 'Video auto down' option",
 }
 ```
 
-In the above example, `translate_language` is a JSON object composed of `field_name: field_value` pairs. Do not modify the field names; simply change the field values to the corresponding text in the desired language.
+As mentioned above, translate_language is a json object composed of `field name: field value`. Do not move the field name and change the field value to the corresponding language text.
 
-## Modifying `ui_lang`
 
-```json
+## Modification of ui_lang 
+
 "ui_lang": {
     "SP-video Translate Dubbing": "SP-video Translate Dubbing",
     "Multiple MP4 videos can be selected and automatically queued for processing": "Multiple MP4 videos can be selected and automatically queued for processing",
     "Select video..": "Select video..",
 }
-```
+The same as the modification of `translate_language`, do not move the field name and change the field value to the corresponding language text.
 
-Similar to modifying `translate_language`, do not modify the field names in `ui_lang`. Change the field values to the corresponding text in the desired language.
+## Modification of toolbox_lang 
 
-## Modifying `language_code_list`
-
-```json
-"language_code_list": {
-    "Simplified_Chinese": [
-      "zh-cn",
-      "chi",
-      "zh",
-      "ZH",
-      "zh"
-    ],
-    "Traditional_Chinese": [
-      "zh-tw",
-      "chi",
-      "cht",
-      "ZH",
-      "zh-TW"
-    ]
+"toolbox_lang": {
+    "No voice video":"Silent video",
+    "Open dir":"Open directory",
+    "Audio Wav":"Audio file",
 }
+The same as the modification of `translate_language`, do not move the field name, and change the field value to the relevant language text.
+
+## Modification of language_code_list 
+
+```
+"language_code_list": {
+    "zh-cn":"Simplified Chinese",
+    "zh-tw":"Traditional Chinese",
+    "en":"English",
+    "fr":"French",
+    "de":"German",
+    "ja":"Japanese",
+    "ko":"Korean",
+    "ru":"Russian",
+    "es":"Spanish",
+    "th":"Thai",
+    "it":"Italian",
+    "pt":"Portuguese",
+    "vi":"Vietnamese",
+    "ar":"Arabic",
+    "tr":"Turkish",
+    "hi":"Hindi"
+  }
 ```
 
-This field is different from the other two. Only change the field name to the text in the desired language; do not modify the elements inside the [] array. For example, you can change "Simplified_Chinese" and "Traditional_Chinese" to other language texts, but keep the elements inside [] unchanged.
+Like the others, do not modify the field name of this content, change the field value to the display name
 
-**After completing the creation, ensure that it conforms to the correct JSON format. Then, place it in the `videotrans/language` directory. Restart the software, and it will automatically apply the new language. If the language pack you created is different from the default language, you can force the use by setting `lang=` to the language code in `set.ini`, for example, `lang=zh` will force the display of the content in zh.json.**
-
+**After the production is completed, make sure it meets the correct json format, put it into the videotrans/language directory, and the software will automatically apply the language when restarted. If the language pack you made is different from the default language, you can set `set.ini` in lang= language code and use it forcibly, such as `lang=zh` will forcibly display the content of zh.json**
