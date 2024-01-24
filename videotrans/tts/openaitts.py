@@ -1,9 +1,6 @@
-import os
 import re
 import time
-
 import httpx
-
 from openai import OpenAI
 from videotrans.configure import config
 from videotrans.util import tools
@@ -11,7 +8,7 @@ from videotrans.util import tools
 def get_url(url=""):
     if not url:
         return "https://api.openai.com/v1"
-    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+/?)',url)
+    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?',url)
     if m is not None and len(m.groups())==1:
         return f'{m.groups()[0]}/v1'
     return "https://api.openai.com/v1"

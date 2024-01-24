@@ -45,7 +45,7 @@
     "queding": "Confirm",
     "wait_edit_subtitle": "Wait for edit subtitle",
     "autocomposing": " seconds After the countdown, the video will be automatically synthesized. click Pause, the countdown will stop",
-    "deepl_nosupport": "DeepL don't support translation to the language",
+    "deepl_nosupport": "Don't support translation to the language",
     "deepl_authkey": "You need an DeepL authentication key",
     "confirmstop": "Stop this task?",
     "prcoessingstatusbar": "Processing video: [{var1}], with [{var2}] waiting to be processed",
@@ -226,118 +226,80 @@
     "Download from Youtube": "Download from Youtube",
     "Whisper model": "Whisper model"
   },
+  
+   "toolbox_lang": {
+	"Video Toolbox":"Video Toolbox",
+	"Start":"Start",
+	"No voice video":"No voice video",
+	"Open dir":"Open dir",
+	"Audio Wav":"Audio Wav",
+	"Video audio separation":"Video audio separation",
+	"Video file":"Video file",
+	"Select video":"Select video",
+	"Audio file":"Audio file",
+	"Select audio":"Select audio",
+	"Subtitle srt":"Subtitle srt",
+	"Select srt file":"Select srt file",
+	"Open output dir":"Open output dir",
+	"Video subtitle merging":"Video subtitle merging",
+	"Source lang":"Source lang",
+	"Whisper model":"Whisper model",
+	"Save to srt..":"Save to srt..",
+	"Voice recognition":"Voice recognition",
+	"Subtitle lang":"Subtitle lang",
+	"Select role":"Select role",
+	"Speed change":"Speed change",
+	"Negative deceleration, positive acceleration":"Negative deceleration, positive acceleration",
+	"If so, the line number and time value will skip reading aloud":"If so, the line number and time value will skip reading aloud",
+	"Is srt?":"Is srt?",
+	"Automatic acceleration?":"Automatic acceleration?",
+	"Output audio name":"Output audio name",
+	"Set the name of the generated audio file here. If not filled in, use the time and date command":"Set the name of the generated audio file here. If not filled in, use the time and date command",
+	"Text to speech":"Text to speech",
+	"Convert mp4->":"Convert mp4->",
+	"Convert avi->":"Convert avi->",
+	"Convert mov->":"Convert mov->",
+	"Convert wav->":"Convert wav->",
+	"Convert mp3->":"Convert mp3->",
+	"Convert aac->":"Convert aac->",
+	"Convert m4a->":"Convert m4a->",
+	"Conver flac->":"Conver flac->",
+	"The conversion result is displayed here":"The conversion result is displayed here",
+	"Audio and video format conversion":"Audio and video format conversion",
+	"Audio file 1":"Audio file 1",
+	"Select the first audio file":"Select the first audio file",
+	"Audio file 2":"Audio file 2",
+	"Select the second audio file":"Select the second audio file",
+	"You can customize the output file name here. If not filled in, use a date name":"You can customize the output file name here. If not filled in, use a date name",
+	"Mixing two audio streams":"Mixing two audio streams",
+	"Translation channels":"Translation channels",
+	"Target lang":"Target lang",
+	"Proxy":"Proxy",
+	"Failed to access Google services. Please set up the proxy correctly":"Failed to access Google services. Please set up the proxy correctly",
+	"Import text to be translated from a file..":"Import text to be translated from a file..",
+	"shuoming1":"If it is only pure text, there is no need to select it.\nIf it is in SRT subtitle format, it needs to be selected to not translate the line numbers and time values in the subtitles, and return them in the original subtitle format.\nIf not selected, all content will be sent to the translation engine for processing at once, and punctuation, symbols, and formatting may change.\n",
+	"export..":"export..",
+	"Start>":"Start>",
+	"The translation result is displayed here":"The translation result is displayed here",
+	"Text subtitle translation":"Text subtitle translation"
+	
+  },
   "language_code_list": {
-    "Simplified_Chinese": [
-      "zh-cn",
-      "chi",
-      "zh",
-      "ZH",
-      "zh"
-    ],
-    "Traditional_Chinese": [
-      "zh-tw",
-      "chi",
-      "cht",
-      "ZH",
-      "zh-TW"
-    ],
-    "English": [
-      "en",
-      "eng",
-      "en",
-      "EN-US",
-      "en"
-    ],
-    "French": [
-      "fr",
-      "fre",
-      "fra",
-      "FR",
-      "fr"
-    ],
-    "German": [
-      "de",
-      "ger",
-      "de",
-      "DE",
-      "de"
-    ],
-    "Japanese": [
-      "ja",
-      "jpn",
-      "jp",
-      "JA",
-      "ja"
-    ],
-    "Korean": [
-      "ko",
-      "kor",
-      "kor",
-      "KO",
-      "ko"
-    ],
-    "Russian": [
-      "ru",
-      "rus",
-      "ru",
-      "RU",
-      "ru"
-    ],
-    "Spanish": [
-      "es",
-      "spa",
-      "spa",
-      "ES",
-      "es"
-    ],
-    "Thai": [
-      "th",
-      "tha",
-      "th",
-      "No",
-      "th"
-    ],
-    "Italian": [
-      "it",
-      "ita",
-      "it",
-      "IT",
-      "it"
-    ],
-    "Portuguese": [
-      "pt",
-      "por",
-      "pt",
-      "PT",
-      "pt"
-    ],
-    "Vietnamese": [
-      "vi",
-      "vie",
-      "vie",
-      "No",
-      "vi"
-    ],
-    "Arabic": [
-      "ar",
-      "are",
-      "ara",
-      "No",
-      "ar"
-    ],
-    "Turkish": [
-      "tr",
-      "tur",
-      "tr",
-      "tr",
-      "tr"
-    ],
-    "Hindi": [
-      "hi",
-      "hin",
-      "hi",
-      "No",
-      "hi"
-    ]
+    "zh-cn":"Simplified Chinese",
+    "zh-tw":"Traditional Chinese",
+    "en":"English",
+    "fr":"French",
+    "de":"German",
+    "ja":"Japanese",
+    "ko":"Korean",
+    "ru":"Russian",
+    "es":"Spanish",
+    "th":"Thai",
+    "it":"Italian",
+    "pt":"Portuguese",
+    "vi":"Vietnamese",
+    "ar":"Arabic",
+    "tr":"Turkish",
+    "hi":"Hindi"
   }
 }

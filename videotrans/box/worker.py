@@ -3,16 +3,16 @@
 import copy
 import json
 import os
-import re
 
 from PyQt5.QtCore import  pyqtSignal, QThread
 from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.configure.config import logger, homedir
-from videotrans.translator import deeplxtrans, deepltrans, tencenttrans, baidutrans, googletrans,  chatgpttrans, azuretrans, geminitrans
-from videotrans.util.tools import transcribe_audio, text_to_speech, runffmpeg, \
-    get_subtitle_from_srt, ms_to_time_string, speed_change, set_process_box
+from videotrans.translator import run as run_trans
+from videotrans.recognition import run as run_recogn
+from videotrans.tts import run as run_tts, text_to_speech
+from videotrans.util.tools import runffmpeg, get_subtitle_from_srt, ms_to_time_string, set_process_box, speed_up_mp3
 
 
 # 执行 ffmpeg 线程
@@ -59,11 +59,16 @@ class WorkerWhisper(QThread):
     def run(self):
         set_process_box(f'start regcon {self.model}')
         try:
-            text = transcribe_audio(self.audio_path, self.model, self.language)
-            self.post_message("end", text)
+            config.box_status='ing'
+            srts=run_recogn(type="all",audio_file=self.audio_path,model_name=self.model,detect_language=self.language,set_p=False,cache_folder=config.TEMP_DIR)
+            text=[]
+            for it in srts:
+                text.append(f'{it["line"]}\n{it["time"]}\n{it["text"]}')
+            self.post_message("end", "\n\n".join(text))
         except Exception as e:
+            print(f'eeeee{str(e)}')
             self.post_message("error", str(e))
-
+        # config.box_status='stop'
 
     def post_message(self, type, text):
         self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
@@ -96,31 +101,29 @@ class WorkerTTS(QThread):
             os.makedirs(self.tmpdir, exist_ok=True)
 
     def run(self):
+        config.box_status='ing'
         set_process_box(f"start {self.tts_type=},{self.role=},{self.rate=}")
 
         if self.tts_issrt:
             try:
                 q = self.before_tts()
-            except Exception as e:
-                self.post_message('error', f'before dubbing error:{str(e)}')
-                return
-            try:
-                if not self.exec_tts(q):
-                    self.post_message('error', f'srt create dubbing error:view logs')
-                    return
+                self.exec_tts(q)
             except Exception as e:
                 self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
         else:
             mp3 = self.filename.replace('.wav', '.mp3')
-            if not text_to_speech(
-                text=self.text,
-                role=self.role,
-                rate=self.rate,
-                filename=mp3,
-                tts_type=self.tts_type
-            ):
-                self.post_message('error', f'srt create dubbing error:view logs')
+            try:
+                text_to_speech(
+                    text=self.text,
+                    role=self.role,
+                    rate=self.rate,
+                    filename=mp3,
+                    tts_type=self.tts_type,
+                    set_p=False
+                )
+            except Exception as e:
+                self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
 
             runffmpeg([
@@ -131,8 +134,10 @@ class WorkerTTS(QThread):
                 "pcm_s16le",
                 f'{self.filename}',
             ], no_decode=True,is_box=True)
-            os.unlink(mp3)
+            if os.path.exists(mp3):
+                os.unlink(mp3)
         self.post_message("end", "Ended")
+        # config.box_status='stop'
 
     # 配音预处理，去掉无效字符，整理开始时间
     def before_tts(self):
@@ -157,38 +162,27 @@ class WorkerTTS(QThread):
                 "rate": rate,
                 "startraw": it['startraw'],
                 "endraw": it['endraw'],
+                "tts_type":self.tts_type,
                 "filename": f"{self.tmpdir}/tts-{it['start_time']}.mp3"})
         return queue_tts
 
     # 执行 tts配音，配音后根据条件进行视频降速或配音加速处理
     def exec_tts(self, queue_tts):
         queue_copy = copy.deepcopy(queue_tts)
-        # 需要并行的数量3
-        while len(queue_tts) > 0:
-            try:
-                q=queue_tts.pop(0)
-                if not text_to_speech(text=q['text'],role=q['role'], rate=q['rate'], filename=q["filename"],
-                    tts_type=self.tts_type):
-                    return False
-            except Exception as e:
-                self.post_message('end', f'[error]tts error:{str(e)}')
-                return False
+        try:
+            run_tts(queue_tts=queue_tts,set_p=False)
+        except Exception as e:
+            raise Exception(f'[error]tts error:{str(e)}')
         segments = []
         start_times = []
         # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
         if len(queue_copy) < 1:
-            return self.post_message('error', f'出错了，{queue_copy=}')
+            raise Exception(f'出错了，{queue_copy=}')
         try:
             # 偏移时间，用于每个 start_time 增减
             offset = 0
             # 将配音和字幕时间对其，修改字幕时间
-            srtmeta = []
             for (idx, it) in enumerate(queue_copy):
-                srtmeta_item = {
-                    'dubbing_time': -1,
-                    'source_time': -1,
-                    'speed_up': -1,
-                }
                 logger.info(f'\n\n{idx=},{it=}')
                 it['start_time'] += offset
                 it['end_time'] += offset
@@ -208,23 +202,18 @@ class WorkerTTS(QThread):
                 if wavlen == 0:
                     queue_copy[idx] = it
                     continue
-                # 新配音时长
-                srtmeta_item['dubbing_time'] = mp3len
-                srtmeta_item['source_time'] = wavlen
-                srtmeta_item['speed_up'] = 0
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
                 if diff > 0 and self.voice_autorate:
                     speed = mp3len / wavlen
-                    speed = 1.8 if speed > 1.8 else speed
-                    srtmeta_item['speed_up'] = speed
                     # 新的长度
                     mp3len = mp3len / speed
                     diff = mp3len - wavlen
                     if diff < 0:
                         diff = 0
-                    # 音频加速 最大加速2倍
-                    audio_data = speed_change(audio_data, speed)
+                    tmp_mp3 = os.path.join(config.TEMP_DIR, f'{it["filename"]}.mp3')
+                    speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                    audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
                     # 增加新的偏移
                     offset += diff
                 elif diff > 0:
@@ -235,12 +224,10 @@ class WorkerTTS(QThread):
                 queue_copy[idx] = it
                 start_times.append(it['start_time'])
                 segments.append(audio_data)
-                srtmeta.append(srtmeta_item)
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:
-            self.post_message('error', f"[error] exec_tts :" + str(e))
-            return False
+            raise Exception(f"[error] exec_tts :" + str(e))
         return True
 
     # join all short audio to one ,eg name.mp4  name.mp4.wav
@@ -288,91 +275,23 @@ class FanyiWorker(QThread):
     def run(self):
         # 开始翻译,从目标文件夹读取原始字幕
         set_process_box(f'start translate')
-        if not self.issrt:
-            if self.type == 'chatGPT':
-                self.srts = chatgpttrans(self.text, self.target_language, set_p=False)
-            elif self.type == 'Azure':
-                self.srts = azuretrans(self.text, self.target_language, set_p=False)
-            elif self.type == 'Gemini':
-                self.srts = geminitrans(self.text, self.target_language, set_p=False)
-            elif self.type == 'google':
-                self.srts = googletrans(self.text, 'auto', self.target_language, set_p=False)
-            elif self.type == 'baidu':
-                self.srts = baidutrans(self.text, 'auto', self.target_language, set_p=False)
-
-            elif self.type == 'tencent':
-                self.srts = tencenttrans(self.text, 'auto', self.target_language, set_p=False)
-            elif self.type == 'DeepL':
-                self.srts = deepltrans(self.text, self.target_language, set_p=False)
-            elif self.type == 'DeepLX':
-                self.srts = deeplxtrans(self.text, self.target_language, set_p=False)
-        else:
-            try:
-                rawsrt = get_subtitle_from_srt(self.text, is_file=False)
-            except Exception as e:
-                set_process_box(f"整理格式化原始字幕信息出错:" + str(e), 'error')
-                return ""
-            if self.type in ['chatGPT', 'Azure', 'Gemini']:
-                if self.type == 'chatGPT':
-                    srt = chatgpttrans(rawsrt, self.target_language, set_p=False)
-                elif self.type == 'Azure':
-                    srt = azuretrans(rawsrt, self.target_language, set_p=False)
-                elif self.type == 'Gemini':
-                    srt = geminitrans(rawsrt, self.target_language, set_p=False)
+        try:
+            if not self.issrt:
+                self.srts=run_trans(text_list=self.text,translate_type=self.type,target_language_name=self.target_language,set_p=False)
+            else:
+                try:
+                    rawsrt = get_subtitle_from_srt(self.text, is_file=False)
+                except Exception as e:
+                    set_process_box(f"整理格式化原始字幕信息出错:" + str(e), 'error')
+                    return ""
+                srt=run_trans(translate_type=self.type,text_list=rawsrt,target_language_name=self.target_language,set_p=False)
                 srts_tmp = ""
                 for it in srt:
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 self.srts = srts_tmp
-            else:
-                split_size = config.settings['trans_thread']
-                srt_lists = [rawsrt[i:i + split_size] for i in range(0, len(rawsrt), split_size)]
-                for (index, item) in enumerate(srt_lists):
-                    wait_text = []
-                    for (i, it) in enumerate(item):
-                        wait_text.append(it['text'].strip().replace("\n", '.'))
-                    wait_text = "\n".join(wait_text)
-                    # 翻译
-                    new_text = ""
-                    if self.type == 'google':
-                        new_text = googletrans(wait_text,
-                                               'auto',
-                                               self.target_language, set_p=False)
-                    elif self.type == 'baidu':
-                        new_text = baidutrans(wait_text, 'auto', self.target_language, set_p=False)
-                    elif self.type == 'tencent':
-                        new_text = tencenttrans(wait_text, 'auto', self.target_language, set_p=False)
-                    elif self.type == 'DeepL':
-                        new_text = deepltrans(wait_text, self.target_language, set_p=False)
-                    elif self.type == 'DeepLX':
-                        new_text = deeplxtrans(wait_text, self.target_language, set_p=False)
-                    trans_text = re.sub(r'&#\d+;', '', new_text).replace('&#39;', "'").split("\n")
-                    srt_str = ""
-                    for (i, it) in enumerate(item):
-                        if i <= len(trans_text) - 1:
-                            srt_str += f"{it['line']}\n{it['time']}\n{trans_text[i]}\n\n"
-                        else:
-                            srt_str += f"{it['line']}\n{it['time']}\n{item['text']}\n\n"
-                    self.srts +=srt_str
-
-                # 其他翻译，逐行翻译
-                for (i, it) in enumerate(rawsrt):
-                    new_text = it['text']
-                    if self.type == 'google':
-                        new_text = googletrans(it['text'],
-                                               'auto',
-                                               self.target_language, set_p=False)
-                    elif self.type == 'baidu':
-                        new_text = baidutrans(it['text'], 'auto', self.target_language, set_p=False)
-                    elif self.type == 'tencent':
-                        new_text = tencenttrans(it['text'], 'auto', self.target_language, set_p=False)
-                    elif self.type == 'DeepL':
-                        new_text = deepltrans(it['text'], self.target_language, set_p=False)
-                    elif self.type == 'DeepLX':
-                        new_text = deeplxtrans(it['text'], self.target_language, set_p=False)
-                    new_text = re.sub(r'&#\d+;', '', new_text.replace('&#39;', "'"))
-                    # 更新字幕区域
-                    self.srts += f"{it['line']}\n{it['time']}\n{new_text}\n\n"
-
+        except Exception as e:
+            self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "error", "text": str(e)}))
+            return
 
         self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
 

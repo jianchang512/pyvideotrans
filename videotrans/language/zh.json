@@ -31,7 +31,7 @@
     "processingstatusbar": "正在处理视频:[{var1}],还有[{var2}]个在等待处理",
     "confirmstop": "确认停止执行?如果字幕生成一半，再次启动可能不完整，可以手动删掉tmp目录",
     "deepl_authkey": "你必须填写DeepL的授权key",
-    "deepl_nosupport": "DeepL不支持翻译为该语言",
+    "deepl_nosupport": "当前翻译通道不支持翻译为该语言",
     "wait_edit_subtitle": "等待修改字幕",
     "continue_action": "继续下一步",
     "autocomposing": "秒倒计时后将自动合成视频，你可以手动点击暂停按钮",
@@ -224,118 +224,78 @@
     "Download from Youtube": "下载Youtube视频",
     "Whisper model": "语音模型"
   },
+  "toolbox_lang": {
+	"Video Toolbox":"视频工具箱",
+	"Start":"开始执行",
+	"No voice video":"无声视频",
+	"Open dir":"打开目录",
+	"Audio Wav":"音频文件",
+	"Video audio separation":"视频音频分离",
+	"Video file":"视频文件",
+	"Select video":"选择视频",
+	"Audio file":"音频文件",
+	"Select audio":"选择音频",
+	"Subtitle srt":"字幕srt",
+	"Select srt file":"选择字幕",
+	"Open output dir":"打开输出目录",
+	"Video subtitle merging":"视频字幕合并",
+	"Source lang":"发音语言",
+	"Whisper model":"语音识别模型",
+	"Save to srt..":"保存为srt文件..",
+	"Voice recognition":"声音识别为文字",
+	"Subtitle lang":"字幕语言",
+	"Select role":"选择角色",
+	"Speed change":"速度变化百分比",
+	"Negative deceleration, positive acceleration":"负数降速，正数加速",
+	"If so, the line number and time value will skip reading aloud":"如果是，则行号和时间值将跳过朗读",
+	"Is srt?":"是srt字幕?",
+	"Automatic acceleration?":"自动加速?",
+	"Output audio name":"输出音频名称",
+	"Set the name of the generated audio file here. If not filled in, use the time and date command":"在这里设置生成的音频文件名称，不填写则使用时间日期命令",
+	"Text to speech":"文字合成为语音",
+	"Convert mp4->":"转为mp4->",
+	"Convert avi->":"转为avi->",
+	"Convert mov->":"转为mov->",
+	"Convert wav->":"转为wav->",
+	"Convert mp3->":"转为mp3->",
+	"Convert aac->":"转为aac->",
+	"Convert m4a->":"转为m4a->",
+	"Conver flac->":"转为flac->",
+	"The conversion result is displayed here":"这里显示转换结果",
+	"Audio and video format conversion":"音视频格式转换",
+	"Audio file 1":"音频文件1",
+	"Select the first audio file":"选择第一个音频文件",
+	"Audio file 2":"音频文件2",
+	"Select the second audio file":"选择第二个音频文件",
+	"You can customize the output file name here. If not filled in, use a date name":"你可在此自定义输出文件名字，不填写则使用日期命名",
+	"Mixing two audio streams":"两个音频混流",
+	"Translation channels":"翻译渠道",
+	"Target lang":"目标语言",
+	"Proxy":"代理地址",
+	"Failed to access Google services. Please set up the proxy correctly":"网络连接不通，请填写代理地址",
+	"Import text to be translated from a file..":"从文件导入待翻译文本...",
+	"shuoming1":"如果只是纯文字，无需选中。\n如果是srt字幕格式，需选中，将不翻译字幕中的行号和时间值，并按字幕原格式返回。\n不选则一次性将全部内容发给翻译引擎处理，标点、符号、格式可能有变化。\n",
+	"export..":"导出结果..",
+	"Start>":"立即翻译>",
+	"The translation result is displayed here":"这里显示翻译结果",
+	"Text subtitle translation":"文本字幕翻译"	
+  },
   "language_code_list": {
-    "中文简": [
-      "zh-cn",
-      "chi",
-      "zh",
-      "ZH",
-      "zh"
-    ],
-    "中文繁": [
-      "zh-tw",
-      "chi",
-      "cht",
-      "ZH",
-      "zh-TW"
-    ],
-    "英语": [
-      "en",
-      "eng",
-      "en",
-      "EN-US",
-      "en"
-    ],
-    "法语": [
-      "fr",
-      "fre",
-      "fra",
-      "FR",
-      "fr"
-    ],
-    "德语": [
-      "de",
-      "ger",
-      "de",
-      "DE",
-      "de"
-    ],
-    "日语": [
-      "ja",
-      "jpn",
-      "jp",
-      "JA",
-      "ja"
-    ],
-    "韩语": [
-      "ko",
-      "kor",
-      "kor",
-      "KO",
-      "ko"
-    ],
-    "俄语": [
-      "ru",
-      "rus",
-      "ru",
-      "RU",
-      "ru"
-    ],
-    "西班牙语": [
-      "es",
-      "spa",
-      "spa",
-      "ES",
-      "es"
-    ],
-    "泰国语": [
-      "th",
-      "tha",
-      "th",
-      "No",
-      "th"
-    ],
-    "意大利语": [
-      "it",
-      "ita",
-      "it",
-      "IT",
-      "it"
-    ],
-    "葡萄牙语": [
-      "pt",
-      "por",
-      "pt",
-      "PT",
-      "pt"
-    ],
-    "越南语": [
-      "vi",
-      "vie",
-      "vie",
-      "No",
-      "vi"
-    ],
-    "阿拉伯语": [
-      "ar",
-      "are",
-      "ara",
-      "No",
-      "ar"
-    ],
-    "土耳其语": [
-      "tr",
-      "tur",
-      "tr",
-      "tr",
-      "tr"
-    ],
-    "印度语": [
-      "hi",
-      "hin",
-      "hi",
-      "No",
-      "hi"
-    ]
+    "zh-cn":"中文简",
+    "zh-tw":"中文繁",
+    "en":"英语",
+    "fr":"法语",
+    "de":"德语",
+    "ja":"日语",
+    "ko":"韩语",
+    "ru":"俄语",
+    "es":"西班牙语",
+    "th":"泰国语",
+    "it":"意大利语",
+    "pt":"葡萄牙语",
+    "vi":"越南语",
+    "ar":"阿拉伯语",
+    "tr":"土耳其语",
+    "hi":"印度语"
   }
 }

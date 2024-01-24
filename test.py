@@ -1,7 +1,10 @@
-from elevenlabs import voices, set_api_key
+import hashlib
+import json
+import time
 
-set_api_key('f9501890a53212e9c7c28fca90398207')
-
-voiceslist = voices()
-
-print(voiceslist)
+import requests
+try:
+    3/0
+except Exception as e:
+    print(e.args)
+    print(e.errno)

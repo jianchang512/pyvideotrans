@@ -2,20 +2,11 @@
 import os
 import re
 import time
-
 from videotrans.configure import config
 from videotrans.util import tools
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
-'''
-输入
-[{'line': 1, 'time': 'aaa', 'text': '\n我是中国人,你是哪里人\n'}, {'line': 2, 'time': 'bbb', 'text': '我身一头猪'}]
-
-输出
-[{'line': 1, 'time': 'aaa', 'text': 'I am Chinese, where are you from?'}, {'line': 2, 'time': 'bbb', 'text': 'I am a pig'}]
-
-'''
 safetySettings = [
     {
         "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -34,102 +25,78 @@ safetySettings = [
         "threshold": HarmBlockThreshold.BLOCK_NONE,
     },
 ]
-def clear_white(text):
-    result=[]
-    for it in text.strip().split("\n"):
-        it=it.strip()
-        result.append(it)
-    return (len(result),"\n".join(result))
 
 
-
-
-def geminitrans(text_list, target_language_chatgpt="English", *, set_p=True):
+def trans(text_list, target_language="English", *, set_p=True):
+    """
+    text_list:
+        可能是多行字符串，也可能是格式化后的字幕对象数组
+    target_language:
+        目标语言
+    set_p:
+        是否实时输出日志，主界面中需要
+    """
     serv = tools.set_proxy()
     if serv:
         os.environ['http_proxy'] = serv
         os.environ['https_proxy'] = serv
     try:
         genai.configure(api_key=config.params['gemini_key'])
+        model = genai.GenerativeModel('gemini-pro')
     except Exception as e:
         err = str(e)
-        if isinstance(text_list, str):
-            return err
-        else:
-            raise Exception(f'[error]Gemini error:{err}')
+        raise Exception(f'[error]Gemini error:{err}')
 
-    lang = target_language_chatgpt
+    # 翻译后的文本
+    target_text = []
+    # 整理待翻译的文字为 List[str]
     if isinstance(text_list, str):
+        source_text = text_list.strip().split("\n")
+    else:
+        source_text = [t['text'] for t in text_list]
+
+    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    split_size = int(config.settings['trans_thread'])
+    split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+
+    for it in split_source_text:
         try:
-            _,text_list=clear_white(text_list)
-            model = genai.GenerativeModel('gemini-pro')
+            source_length=len(it)
+            print(f'{source_length=}')
             response = model.generate_content(
-                config.params['gemini_template'].replace('{lang}', lang) + f"\n{text_list}",
+                config.params['gemini_template'].replace('{lang}', target_language) + "\n".join(it),
                 safety_settings=safetySettings
             )
-            return response.text.strip()
-        except Exception as e:
-            error = str(e)
-            raise Exception(f"Gemini error:{error}")
 
-    total_result = []
-    split_size = config.settings['trans_thread']
-    # 按照 split_size 将字幕每组8个分成多组,是个二维列表，一维是包含8个字幕dict的list，二维是每个字幕dict的list
-    srt_lists = [text_list[i:i + split_size] for i in range(0, len(text_list), split_size)]
-    srts = ''
-    model = genai.GenerativeModel('gemini-pro')
-    # 分别按组翻译，每组翻译 srt_list是个list列表，内部有10个字幕dict
-    line_after=0
-    for srt_list in srt_lists:
-        # 存放时间和行数
-        origin = []
-        # 存放待翻译文本
-        trans = []
-        # 处理每个字幕信息，it是字幕dict
-        for it in srt_list:
-            # 纯粹文本信息， 第一行是 行号，第二行是 时间，第三行和以后都是文字
-            trans.append(it['text'].strip())
-            # 行数和时间信息
-            origin.append({"line": it["line"], "time": it["time"], "text": ""})
-            if set_p:
-                tools.set_process(f'Gemini Line: {it["line"]}')
 
-        config.logger.info(f"\n[Gemini start]待翻译文本:" + "\n".join(trans))
-        response = None
-        trans_text=[]
-        try:
-            response = model.generate_content(
-                config.params['gemini_template'].replace('{lang}', lang) + "\n" + "\n".join(trans),
-                safety_settings=safetySettings
-            )
-            if not response.parts and set_p:
-                raise Exception(f"[error]Gemini error:{response.prompt_feedback}")
-            trans_text = response.text.split("\n")
-            if set_p:
-                tools.set_process(f"Gemini OK")
-        except Exception as e:
-            error = str(e)
-            if response:
-                error += f',{response.prompt_feedback=}'
-            if error:
+            if response.text:
+                result = response.text.strip()
                 if set_p:
-                    tools.set_process(f'Gemini limit rate,wait 30s {error}')
+                    tools.set_process("\n\n".join(result), 'subtitle')
+                result=result.strip().replace('&#39;','"').split("\n")
+                result_length = len(result)
+                print(f'{result_length=}')
+                while result_length < source_length:
+                    result.append("")
+                    result_length += 1
+                result = result[:source_length]
+                target_text.extend(result)
+            else:
+                config.logger.info(f'Gemini 返回响应:{response}')
+                raise Exception(f'no result:{response.prompt_feedback}')
+        except Exception as e:
+            error = str(e)
+            if set_p and re.search(r'limit', error, re.I):
+                tools.set_process(f'Gemini errir,wait 30s:{error}')
                 time.sleep(30)
-                return geminitrans(text_list)
-        # 处理
+                return trans(text_list, target_language, set_p=set_p)
+            else:
+                raise Exception(f'Gemini error:{str(error)}')
+    if isinstance(text_list, str):
+        return "\n".join(target_text)
 
-        for index, it in enumerate(origin):
-            it["text"] = trans_text[index] if index < len(trans_text) else ""
-            origin[index] = it
-            if it['text']:
-                line_after+=1
-                it['line']=line_after
-                # 更新字幕
-                st = f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                if set_p:
-                    tools.set_process(st, 'subtitle')
-                srts += st
-                total_result.append(it)
-    if set_p:
-        tools.set_process(srts, 'replace_subtitle')
-    return total_result
+    max_i = len(target_text)
+    for i, it in enumerate(text_list):
+        if i < max_i:
+            text_list[i]['text'] = target_text[i]
+    return text_list

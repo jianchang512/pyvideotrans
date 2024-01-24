@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-VERSION="0.9982 by wonyes.org"
-VERSION_NUM=9982
+VERSION="0.9983 by v.wonyes.org"
+VERSION_NUM=9983
