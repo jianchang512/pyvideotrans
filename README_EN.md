@@ -156,6 +156,11 @@ cuda_com_type=int8
 whisper_threads=0
 ; Number of speech recognition work processes
 whisper_worker=2
+;Reducing these two numbers will use less graphics memory
+beam_size=5
+best_of=5
+;Simultaneous execution quantity in pre split mode
+split_threads=4
 ```
 
 

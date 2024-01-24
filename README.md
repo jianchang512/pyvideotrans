@@ -159,11 +159,15 @@ hwaccel_output_format=nv12
 no_decode=false
 ;语音识别时，数据格式，int8 或 float16 或 float32
 cuda_com_type=int8
-; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可改为4
-whisper_threads=0
+; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可设为4
+whisper_threads=4
 ;语音识别工作进程数量
-whisper_worker=2
-
+whisper_worker=1
+;如果显存不足，下面2个值可以改为 1
+beam_size=5
+best_of=5
+;预分割模式同时工作线程
+split_threads=4
 ```
 
 
