@@ -1,33 +1,18 @@
 # -*- coding: utf-8 -*-
 import copy
-import asyncio
+
 import re
 import shutil
 import subprocess
 import sys
-import threading
 import os
-from faster_whisper import WhisperModel
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
-from pydub import AudioSegment
-from pydub.silence import detect_nonsilent
 from datetime import timedelta
 import json
 import edge_tts
 from videotrans.configure import config
 import time
-# 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-from videotrans.tts import get_voice_openaitts, get_voice_edgetts, get_voice_elevenlabs
 from elevenlabs import voices, set_api_key
-
-platform=sys.platform
-
-if platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-else:
-    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-
+# 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 
 def pygameaudio(filepath):
     from videotrans.util.playmp3 import AudioPlayer
@@ -59,31 +44,10 @@ def get_elevenlabs_role(force=False):
             namelist.append(n)
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))
+        config.params['elevenlabstts_role'] = namelist
+        return namelist
     except Exception as e:
         print(e)
-    config.params['elevenlabstts_role'] = namelist
-    return namelist
-
-
-def transcribe_audio(audio_path, model, language):
-    model = WhisperModel(model, device="cuda" if config.params['cuda'] else "cpu", compute_type=config.settings['cuda_com_type'],
-                         download_root=config.rootdir + "/models")
-    segments, _ = model.transcribe(audio_path,
-                                   beam_size=5,
-                                   vad_filter=True,
-                                   vad_parameters=dict(min_silence_duration_ms=500),
-                                   language="zh" if language in ["zh-cn", "zh-tw"] else language)
-    result = ""
-    idx = 0
-    for segment in segments:
-        idx += 1
-        start = int(segment.start * 1000)
-        end = int(segment.end * 1000)
-        startTime = ms_to_time_string(ms=start)
-        endTime = ms_to_time_string(ms=end)
-        text = segment.text
-        result += f"{idx}\n{startTime} --> {endTime}\n{text.strip()}\n\n"
-    return result
 
 
 def set_proxy(set_val=''):
@@ -161,104 +125,25 @@ def get_edge_rolelist():
         except:
             pass
     try:
+        import asyncio
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        else:
+            asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
         v = asyncio.run(edge_tts.list_voices())
+        for it in v:
+            name = it['ShortName']
+            prefix = name.split('-')[0].lower()
+            if prefix not in voice_list:
+                voice_list[prefix] = ["No", name]
+            else:
+                voice_list[prefix].append(name)
+        json.dump(voice_list, open(config.rootdir + "/voice_list.json", "w"))
+        config.edgeTTS_rolelist = voice_list
+        return voice_list
     except Exception as e:
         config.logger.error('获取edgeTTS角色失败' + str(e))
         print('获取edgeTTS角色失败' + str(e))
-    for it in v:
-        name = it['ShortName']
-        prefix = name.split('-')[0].lower()
-        if prefix not in voice_list:
-            voice_list[prefix] = ["No", name]
-        else:
-            voice_list[prefix].append(name)
-    json.dump(voice_list, open(config.rootdir + "/voice_list.json", "w"))
-    config.edgeTTS_rolelist = voice_list
-    return voice_list
-
-
-# split audio by silence
-def shorten_voice(normalized_sound):
-    normalized_sound = match_target_amplitude(normalized_sound, -20.0)
-    max_interval = 10000
-    buffer = 500
-    nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
-                                    silence_thresh=-20 - 25)
-    # print(audio_chunks)
-    for i, chunk in enumerate(audio_chunks):
-        start_time, end_time = chunk
-        n = 0
-        while end_time - start_time >= max_interval:
-            n += 1
-            # new_end = start_time + max_interval+buffer
-            new_end = start_time + max_interval + buffer
-            new_start = start_time
-            nonsilent_data.append((new_start, new_end, True))
-            start_time += max_interval
-        nonsilent_data.append((start_time, end_time, False))
-    return nonsilent_data
-
-
-#
-def match_target_amplitude(sound, target_dBFS):
-    change_in_dBFS = target_dBFS - sound.dBFS
-    return sound.apply_gain(change_in_dBFS)
-
-
-# join all short audio to one ,eg name.mp4  name.mp4.wav
-def merge_audio_segments(segments, start_times, total_duration, noextname):
-    merged_audio = AudioSegment.empty()
-    # start is not 0
-    if start_times[0] != 0:
-        silence_duration = start_times[0]
-        silence = AudioSegment.silent(duration=silence_duration)
-        merged_audio += silence
-
-    # join
-    for i in range(len(segments)):
-        segment = segments[i]
-        start_time = start_times[i]
-        # add silence
-        if i > 0:
-            previous_end_time = start_times[i - 1] + len(segments[i - 1])
-            silence_duration = start_time - previous_end_time
-            # 前面一个和当前之间存在静音区间
-            if silence_duration > 0:
-                silence = AudioSegment.silent(duration=silence_duration)
-                merged_audio += silence
-
-        merged_audio += segment
-    if total_duration > 0 and (len(merged_audio) < total_duration):
-        # 末尾补静音
-        silence = AudioSegment.silent(duration=total_duration - len(merged_audio))
-        merged_audio += silence
-    # 如果新长度大于原时长，则末尾截断
-    if total_duration > 0 and (len(merged_audio) > total_duration):
-        # 截断前先保存原完整文件
-        merged_audio.export(f'{config.params["target_dir"]}/{noextname}/{config.params["target_language"]}-nocut.wav',
-                            format="wav")
-        merged_audio = merged_audio[:total_duration]
-    # 创建配音后的文件
-    merged_audio.export(f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav", format="wav")
-    shutil.copy(
-        f"{config.rootdir}/tmp/{noextname}/tts-{noextname}.wav",
-        f"{config.params['target_dir']}/{noextname}/{config.params['target_language']}.wav"
-    )
-    return merged_audio
-
-
-# speed change
-def speed_change(sound, speed=1.0):
-    # Manually override the frame_rate. This tells the computer how many
-    # samples to play per second
-    sound_with_altered_frame_rate = sound._spawn(sound.raw_data, overrides={
-        "frame_rate": int(sound.frame_rate * speed)
-    })
-    # convert the sound with altered frame rate to a standard frame rate
-    # so that regular playback programs will work right. They often only
-    # know how to play audio at standard frame rate (like 44.1k)
-    return sound_with_altered_frame_rate.set_frame_rate(sound.frame_rate)
 
 
 
@@ -288,7 +173,7 @@ def runffmpeg(arg, *, noextname=None,
                          stderr=subprocess.PIPE,
                          encoding="utf-8",
                          text=True, 
-                         creationflags=0 if platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+                         creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     config.logger.info(f"runffmpeg: {' '.join(cmd)}")
 
     while True:
@@ -476,6 +361,10 @@ def m4a2wav(m4afile, wavfile):
         m4afile,
         "-ac",
         "1",
+        "-ar",
+        "8000",
+        "-b:a",
+        "128k",
         wavfile
     ]
     return runffmpeg(cmd)
@@ -527,29 +416,31 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
 
 
 # 文字合成
-def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None, play=False):
-    try:
-        if rate != '+0%':
-            set_process(f'text to speech speed {rate}')
-        if tts_type == "edgeTTS":
-            if not get_voice_edgetts(text=text, role=role, rate=rate, filename=filename):
-                raise Exception(f"edgeTTS error")
-        elif tts_type == "openaiTTS":
-            if not get_voice_openaitts(text, role, rate, filename):
-                raise Exception(f"openaiTTS error")
-        elif tts_type == 'elevenlabsTTS':
-            if not get_voice_elevenlabs(text, role, rate, filename):
-                raise Exception(f"elevenlabsTTS error")
-        if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            if play:
-                threading.Thread(target=pygameaudio, args=(filename,)).start()
-            return True
-        return False
-    except Exception as e:
-        raise Exception(f"text to speech:{filename=},{tts_type=}," + str(e))
+# def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None, play=False):
+#     try:
+#         if rate != '+0%':
+#             set_process(f'text to speech speed {rate}')
+#         if tts_type == "edgeTTS":
+#             if not get_voice_edgetts(text=text, role=role, rate=rate, filename=filename):
+#                 raise Exception(f"edgeTTS error")
+#         elif tts_type == "openaiTTS":
+#             if not get_voice_openaitts(text, role, rate, filename):
+#                 raise Exception(f"openaiTTS error")
+#         elif tts_type == 'elevenlabsTTS':
+#             if not get_voice_elevenlabs(text, role, rate, filename):
+#                 raise Exception(f"elevenlabsTTS error")
+#         if os.path.exists(filename) and os.path.getsize(filename) > 0:
+#             if play:
+#                 threading.Thread(target=pygameaudio, args=(filename,)).start()
+#             return True
+#         return False
+#     except Exception as e:
+#         raise Exception(f"text to speech:{filename=},{tts_type=}," + str(e))
 
 
 def show_popup(title, text):
+    from PyQt5.QtGui import QIcon
+    from PyQt5.QtWidgets import QMessageBox
     msg = QMessageBox()
     msg.setWindowTitle(title)
     msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
@@ -714,11 +605,11 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     return runffmpeg(cmd)
 
 
-# 写入日志队列
+# 工具箱写入日志队列
 def set_process_box(text, type='logs'):
     set_process(text, type, "box")
 
-
+# 综合写入日志，默认sp界面
 def set_process(text, type="logs", qname='sp'):
     try:
         if text:
@@ -727,13 +618,13 @@ def set_process(text, type="logs", qname='sp'):
                 config.logger.error(log_msg)
             else:
                 config.logger.info(log_msg)
-        if config.exec_mode=='cli':
-            print(f'[{type}] {text}')
-            return
+
         if qname == 'sp':
             config.queue_logs.put_nowait({"text": text, "type": type,"btnkey":config.btnkey})
-        else:
+        elif qname=='box':
             config.queuebox_logs.put_nowait({"text": text, "type": type})
+        else:
+            print(f'[{type}]: {text}')
     except Exception as e:
         pass
 
@@ -756,6 +647,3 @@ def delete_files(directory, ext):
                 delete_files(item_path)
     except:
         pass
-
-
-

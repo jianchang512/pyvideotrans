@@ -119,7 +119,6 @@ pytz==2023.3.post1
 pywin32-ctypes==0.2.2
 pywinstyles==1.4
 PyYAML==6.0.1
-QDarkStyle==3.2
 QtPy==2.4.1
 regex==2023.10.3
 requests==2.31.0

@@ -1,20 +1,22 @@
 import os
 import shutil
 import threading
+import time
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSettings, Qt, QSize
+from PyQt5.QtCore import QSettings, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout, QApplication
 import warnings
+
+from videotrans.task.get_role_list import GetRoleWorker
+
 warnings.filterwarnings('ignore')
-from videotrans.configure.config import langlist, transobj
-from videotrans import VERSION
+
+from videotrans.translator import TRANSNAMES
 from videotrans.configure import config
+from videotrans import VERSION, configure
 from videotrans.component.controlobj import TextGetdir
-from videotrans.util.tools import show_popup, get_elevenlabs_role
-from videotrans.task.check_update import CheckUpdateWorker
-from videotrans.task.logs_worker import LogsWorker
-from videotrans.mainwin.secwin import SecWindow
 from videotrans.ui.en import Ui_MainWindow
 
 
@@ -23,11 +25,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.task = None
-        self.toolboxobj = None
         self.shitingobj = None
         self.youw = None
         self.processbtns = {}
-
         screen_resolution = QApplication.desktop().screenGeometry()
         width, height = screen_resolution.width(), screen_resolution.height()
         self.width = int(width * 0.8)
@@ -36,57 +36,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.width > 1900:
             self.width = 1800
         self.resize(self.width, height - 220)
-
         # 当前所有可用角色列表
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-
-        self.rawtitle = f"{transobj['softname']} {VERSION}"
+        self.rawtitle = f"{config.transobj['softname']} {VERSION}"
         self.setWindowTitle(self.rawtitle)
-
         # 检查窗口是否打开
-        # self.show()
-
-        # if self.isVisible():
         self.initUI()
 
     def initUI(self):
 
-        self.util = SecWindow(self)
-        self.settings = QSettings("Jameson", "VideoTranslate")
+        self.settings = g
         # 获取最后一次选择的目录
         self.last_dir = self.settings.value("last_dir", ".", str)
         # language code
-        self.languagename = list(langlist.keys())
+        self.languagename = config.langnamelist
         self.app_mode = 'biaozhun'
         self.splitter.setSizes([self.width - 400, 400])
         # start
         self.get_setting()
-        threading.Thread(target=get_elevenlabs_role, args=(True,)).start()
-        self.startbtn.clicked.connect(self.util.check_start)
-        try:
-            if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
-                self.startbtn.setText(transobj['installffmpeg'])
-                self.startbtn.setDisabled(True)
-                self.startbtn.setStyleSheet("""color:#ff0000""")
-        except:
-            pass
 
         # 隐藏倒计时
-        self.stop_djs.clicked.connect(self.util.reset_timeid)
         self.stop_djs.hide()
         # subtitle btn
         self.continue_compos.hide()
-        self.continue_compos.clicked.connect(self.util.set_djs_timeout)
 
         # select and save
-        self.btn_get_video.clicked.connect(self.util.get_mp4)
+
         self.source_mp4.setAcceptDrops(True)
-        self.btn_save_dir.clicked.connect(self.util.get_save_dir)
         self.target_dir.setAcceptDrops(True)
         self.proxy.setText(config.proxy)
-        self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
 
         # language
         self.source_language.addItems(self.languagename)
@@ -95,57 +75,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 目标语言改变时，如果当前tts是 edgeTTS，则根据目标语言去修改显示的角色
         self.target_language.addItems(["-"] + self.languagename)
         # 目标语言改变
-        self.target_language.currentTextChanged.connect(self.util.set_voice_role)
-        self.voice_role.currentTextChanged.connect(self.util.show_listen_btn)
 
         self.listen_btn.hide()
-        self.listen_btn.clicked.connect(self.util.listen_voice_fun)
 
         #  translation type
-        self.translate_type.addItems(config.translate_list)
-        self.translate_type.setCurrentText(config.params['translate_type'])
-        self.translate_type.currentTextChanged.connect(self.util.set_translate_type)
+        self.translate_type.addItems(TRANSNAMES)
+        self.translate_type.setCurrentText(
+            config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0])
 
         #         model
-        self.whisper_type.addItems([transobj['whisper_type_all'], transobj['whisper_type_split']])
-        self.whisper_type.currentIndexChanged.connect(self.util.check_whisper_type)
+        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split']])
         if config.params['whisper_type']:
             self.whisper_type.setCurrentIndex(0 if config.params['whisper_type'] == 'all' else 1)
         self.whisper_model.addItems(['base', 'small', 'medium', 'large-v3'])
         self.whisper_model.setCurrentText(config.params['whisper_model'])
-        self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
 
         #
         self.voice_rate.setText(config.params['voice_rate'])
-        self.voice_rate.textChanged.connect(self.util.voice_rate_changed)
         self.voice_silence.setText(config.params['voice_silence'])
-
-        self.voice_autorate.stateChanged.connect(
-            lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.video_autorate.stateChanged.connect(
-            lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
 
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
         if config.params['tts_type'] == 'edgeTTS':
             self.voice_role.addItems(['No'])
         elif config.params['tts_type'] == 'openaiTTS':
             self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
-        elif config.params['tts_type'] == 'coquiTTS':
-            self.voice_role.addItems(['No'] + config.params['coquitts_role'].split(','))
         elif config.params['tts_type'] == 'elevenlabsTTS':
-            self.voice_role.addItems(['No'] + config.params['elevenlabstts_role'])
+            self.voice_role.addItems(['No'])
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])
-        self.util.tts_type_change(config.params['tts_type'])
-        # tts_type 改变时，重设角色
-        self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
 
-        self.enable_cuda.stateChanged.connect(self.util.check_cuda)
         self.enable_cuda.setChecked(config.params['cuda'])
 
         # subtitle 0 no 1=embed subtitle 2=softsubtitle
-        self.subtitle_type.addItems([transobj['nosubtitle'], transobj['embedsubtitle'], transobj['softsubtitle']])
+        self.subtitle_type.addItems(
+            [config.transobj['nosubtitle'], config.transobj['embedsubtitle'], config.transobj['softsubtitle']])
         self.subtitle_type.setCurrentIndex(config.params['subtitle_type'])
 
         # 字幕编辑
@@ -155,15 +119,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sizePolicy.setVerticalStretch(0)
         self.subtitle_area.setSizePolicy(sizePolicy)
         self.subtitle_area.setMinimumSize(300, 0)
-        self.subtitle_area.setPlaceholderText(transobj['subtitle_tips'])
+        self.subtitle_area.setPlaceholderText(config.transobj['subtitle_tips'])
 
         self.subtitle_layout.insertWidget(0, self.subtitle_area)
 
-        self.import_sub.clicked.connect(self.util.import_sub_fun)
-
         self.listen_peiyin.setDisabled(True)
-        self.listen_peiyin.clicked.connect(self.util.shiting_peiyin)
-        self.set_line_role.clicked.connect(self.util.set_line_role_fun)
 
         # 创建 Scroll Area
         self.scroll_area.setWidgetResizable(True)
@@ -177,7 +137,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 设置布局管理器的对齐方式为顶部对齐
         self.processlayout.setAlignment(Qt.AlignTop)
 
+        # 底部状态栏
+        self.statusLabel = QLabel(config.transobj['modelpathis'] + " /models")
+        self.statusLabel.setStyleSheet("color:#00a67d")
+        self.statusBar.addWidget(self.statusLabel)
+
+        self.rightbottom = QPushButton(config.transobj['juanzhu'])
+        self.rightbottom.setStyleSheet("background-color:#32414B;color:#ffffff")
+        self.rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
+
+        self.container = QToolBar()
+        self.container.addWidget(self.rightbottom)
+        self.statusBar.addPermanentWidget(self.container)
+
+        # 设置QAction的大小
+        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        # 设置QToolBar的大小，影响其中的QAction的大小
+        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
+        # time.sleep(2)
+        # self.show()
+        self.bind_action()
+
+    def bind_action(self):
+        from videotrans.mainwin.secwin import SecWindow
+        self.util = SecWindow(self)
+
         # menubar
+        self.import_sub.clicked.connect(self.util.import_sub_fun)
+        self.listen_peiyin.clicked.connect(self.util.shiting_peiyin)
+        self.set_line_role.clicked.connect(self.util.set_line_role_fun)
+        self.startbtn.clicked.connect(self.util.check_start)
+        self.stop_djs.clicked.connect(self.util.reset_timeid)
+        self.continue_compos.clicked.connect(self.util.set_djs_timeout)
+        self.btn_get_video.clicked.connect(self.util.get_mp4)
+        self.btn_save_dir.clicked.connect(self.util.get_save_dir)
+        self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
+        self.target_language.currentTextChanged.connect(self.util.set_voice_role)
+        self.voice_role.currentTextChanged.connect(self.util.show_listen_btn)
+        self.listen_btn.clicked.connect(self.util.listen_voice_fun)
+        self.translate_type.currentTextChanged.connect(self.util.set_translate_type)
+        self.whisper_type.currentIndexChanged.connect(self.util.check_whisper_type)
+
+        self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
+        self.voice_rate.textChanged.connect(self.util.voice_rate_changed)
+        self.voice_autorate.stateChanged.connect(
+            lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
+        self.video_autorate.stateChanged.connect(
+            lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        # tts_type 改变时，重设角色
+        self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
+
+        self.enable_cuda.stateChanged.connect(self.util.check_cuda)
         self.actionbaidu_key.triggered.connect(self.util.set_baidu_key)
         self.actionazure_key.triggered.connect(self.util.set_azure_key)
         self.actiongemini_key.triggered.connect(self.util.set_gemini_key)
@@ -191,61 +201,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
-        self.action_tool.triggered.connect(self.util.open_toolbox)
+        self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.util.open_youtube)
         self.action_about.triggered.connect(self.util.about)
-        self.action_clone.triggered.connect(lambda: show_popup(transobj['yinsekaifazhong'], transobj['yinsekelong']))
 
-        # 设置QAction的大小
-        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        # 设置QToolBar的大小，影响其中的QAction的大小
-        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
         self.action_tiquzimu_no.triggered.connect(self.util.set_tiquzimu_no)
         self.action_zimu_video.triggered.connect(self.util.set_zimu_video)
         self.action_zimu_peiyin.triggered.connect(self.util.set_zimu_peiyin)
-        self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(2))
-        self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3))
-        self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0))
-        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1))
-        self.action_geshi.triggered.connect(lambda: self.util.open_toolbox(4))
-        self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5))
-        self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6))
-
-        # 底部状态栏
-        self.statusLabel = QLabel(transobj['modelpathis'] + " /models")
-        self.statusLabel.setStyleSheet("color:#00a67d")
-        self.statusBar.addWidget(self.statusLabel)
-
-        rightbottom = QPushButton(transobj['juanzhu'])
-        rightbottom.clicked.connect(self.util.about)
-        rightbottom.setStyleSheet("background-color:#32414B;color:#ffffff")
-        rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
-
-        self.container = QToolBar()
-        self.container.addWidget(rightbottom)
-        self.statusBar.addPermanentWidget(self.container)
-
+        self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(2, False))
+        self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3, False))
+        self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0, False))
+        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1, False))
+        self.action_geshi.triggered.connect(lambda: self.util.open_toolbox(4, False))
+        self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
+        self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
+        self.rightbottom.clicked.connect(self.util.about)
+        if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+            self.startbtn.setText(config.transobj['installffmpeg'])
+            self.startbtn.setDisabled(True)
+            self.startbtn.setStyleSheet("""color:#ff0000""")
         #     日志
+        from videotrans.task.check_update import CheckUpdateWorker
+        from videotrans.task.logs_worker import LogsWorker
+        update_role = GetRoleWorker(self)
+        update_role.start()
+
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.util.update_data)
         self.task_logs.start()
-
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
-        if self.toolboxobj is not None:
-            self.toolboxobj.close()
+        if configure.TOOLBOX is not None:
+            configure.TOOLBOX.close()
         if config.current_status == 'ing':
             config.current_status = 'end'
             msg = QMessageBox()
-            msg.setWindowTitle(transobj['exit'])
+            msg.setWindowTitle(config.transobj['exit'])
             msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-            msg.setText(transobj['waitclear'])
-            msg.addButton(transobj['queding'], QMessageBox.AcceptRole)
+            msg.setText(config.transobj['waitclear'])
+            msg.addButton(config.transobj['queding'], QMessageBox.AcceptRole)
             msg.setIcon(QMessageBox.Information)
             msg.exec_()  # 显示消息框
             event.accept()
@@ -263,6 +262,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+
+        if self.settings.value("chatgpt_template", ""):
+            config.params["chatgpt_template"] = self.settings.value("chatgpt_template", "")
+        if self.settings.value("azure_template", ""):
+            config.params["azure_template"] = self.settings.value("azure_template", "")
+        if self.settings.value("gemini_template", ""):
+            config.params["gemini_template"] = self.settings.value("gemini_template", "")
+
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
         if config.params["chatgpt_model"] == 'large':
             config.params["chatgpt_model"] = 'large-v3'

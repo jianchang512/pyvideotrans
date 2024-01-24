@@ -8,14 +8,14 @@ import os
 import sys
 
 if torch.cuda.is_available():
-    print('CUDA 可用，如果实际使用仍提示 cuda 相关错误，请尝试升级显卡驱动并重新配置CUDA12')
+    print('CUDA is ok')
 else:
-    print("当前计算机CUDA不可用")
-    input("\n按回车键关闭窗口")
+    print("no CUDA environ")
+    input("\nPress enter for close")
     sys.exit()
 
 result = subprocess.run(['ffmpeg', '-hwaccels'], text=True, stdout=subprocess.PIPE)
-print(f'当前支持的硬件加速器:\n{result.stdout}')
+print(f'Accels:\n{result.stdout}')
 
 rootdir = os.getcwd()
 tmpdir = os.path.join(rootdir, 'tmp')
@@ -26,8 +26,8 @@ if not os.path.exists(tmpdir):
 sourcemp4 = rootdir + "/raw.mp4"
 sourceavi = rootdir + "/raw.mp4.avi"
 if not os.path.exists(sourcemp4):
-    print('为进一步测试能否真实正确完成CUDA下视频处理,\n请复制一个mp4视频，重名为 raw.mp4,粘贴到当前项目目录下')
-    input("\n按回车键关闭窗口")
+    print('\ncopy a video rename raw.mp4, and paster to here')
+    input("\nPress enter for close")
     sys.exit()
 
 
@@ -41,18 +41,18 @@ def runffmpeg(cmd, *, title=""):
         print(f'\n[OK] {title}:\n{cmd=}\n')
         return True
 
-    print("\n\n******出错了Error*******")
+    print("\n\n******Its Error*******")
     print(f'\n[Error] {title}\n')
     print(f'{cmd=}')
     print(str(errs))
-    print("\n******Error出错了*******\n")
+    print("\n******Error*******\n")
 
     for (i, it) in enumerate(cmd):
         if it == '-hwaccel' and cmd[i] == 'cuda':
-            print(f'hwaccel_output_format=cuda 测试未通过，hwaccel_output_format=nv12 已通过，你仍可使用CUDA加速功能')
+            print(f'hwaccel_output_format=cuda Dont Support, But hwaccel_output_format=nv12 is OK')
             break
 
-    input("\n按回车键关闭窗口")
+    input("\nPress enter for close")
     sys.exit()
 
 
@@ -119,13 +119,13 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 def test_cuda(*, hwaccel_output_format=""):
     if hwaccel_output_format == "cuda":
         acc_name = "cuda"
-        libx264="h264_nvenc"
+        libx264 = "h264_nvenc"
     elif hwaccel_output_format == 'nv12':
         acc_name = "cuvid"
-        libx264="h264_nvenc"
+        libx264 = "h264_nvenc"
     else:
         acc_name = None
-        libx264="libx264"
+        libx264 = "libx264"
     # 从视频中截取的图片
     img = os.path.join(tmpdir, '1.jpg')
     # 从原始视频中分离出的无声视频
@@ -159,11 +159,11 @@ def test_cuda(*, hwaccel_output_format=""):
     # 获取视频信息
     video_info = get_video_info(sourcemp4)
     if not video_info or video_info['time'] == 0:
-        print("视频数据存在错误，请更换视频")
-        input("\n按回车键关闭窗口")
+        print("The video is error,please replace")
+        input("\nPress enter will close")
         sys.exit()
 
-    print(f"开始测试 -hwaccel_output_format={hwaccel_output_format} 配置...")
+    print(f"start test -hwaccel_output_format={hwaccel_output_format} ...")
     if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] != 'aac':
         # 转换
         tmptestmp4 = os.path.join(rootdir, 'tmptest.mp4')
@@ -193,8 +193,8 @@ def test_cuda(*, hwaccel_output_format=""):
         # 获取视频信息
         video_info = get_video_info(sourcemp4)
         if not video_info or video_info['time'] == 0:
-            print("视频数据存在错误，请更换raw.mp4视频")
-            input("\n按回车键关闭窗口")
+            print("The video is error,please replace")
+            input("\nPress enter will close")
             sys.exit()
 
     fps = video_info['video_fps']
@@ -212,7 +212,7 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -236,7 +236,7 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -259,8 +259,8 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     '-hwaccel_output_format',
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
-                                                                                    '2','-c:v',
-        'h264_cuvid', ]
+                                                                                    '2', '-c:v',
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -283,7 +283,7 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     "nv12",
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -343,7 +343,7 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -381,7 +381,7 @@ def test_cuda(*, hwaccel_output_format=""):
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -429,7 +429,7 @@ First of all, we got an electromagnetic penalty""")
                                                                                     "nv12",
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -457,8 +457,8 @@ First of all, we got an electromagnetic penalty""")
                                                                                     '-hwaccel_output_format',
                                                                                     "nv12",
                                                                                     '-extra_hw_frames',
-                                                                                    '2','-c:v',
-        'h264_cuvid', ]
+                                                                                    '2', '-c:v',
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -483,7 +483,7 @@ First of all, we got an electromagnetic penalty""")
                                                                                     hwaccel_output_format,
                                                                                     '-extra_hw_frames',
                                                                                     '2', '-c:v',
-        'h264_cuvid',]
+                                                                                    'h264_cuvid', ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -510,9 +510,10 @@ First of all, we got an electromagnetic penalty""")
                                                                                     "-hwaccel", acc_name,
                                                                                     "-hwaccel_output_format",
                                                                                     hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2", "-c:v", "h264_cuvid",]
+                                                                                    "-extra_hw_frames", "2", "-c:v",
+                                                                                    "h264_cuvid", ]
     runffmpeg(
-        accel_pre + [ "-y", "-i", novoice, "-i", srtfile, "-c:v", libx264, "-c:s", "mov_text",
+        accel_pre + ["-y", "-i", novoice, "-i", srtfile, "-c:v", libx264, "-c:s", "mov_text",
                      "-metadata:s:s:0", "language=chi", out_soft], title='软字幕无配音')
 
     # 配音无字幕
@@ -521,8 +522,9 @@ First of all, we got an electromagnetic penalty""")
                                                                                     "-hwaccel", acc_name,
                                                                                     "-hwaccel_output_format",
                                                                                     hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2","-c:v", "h264_cuvid", ]
-    runffmpeg(accel_pre + [ "-y", "-i", novoice, "-i", m4a, "-c:v", libx264, "-c:a", "copy",
+                                                                                    "-extra_hw_frames", "2", "-c:v",
+                                                                                    "h264_cuvid", ]
+    runffmpeg(accel_pre + ["-y", "-i", novoice, "-i", m4a, "-c:v", libx264, "-c:a", "copy",
                            out_nosrt], title='配音无字幕')
 
     # 加速音频
@@ -531,8 +533,9 @@ First of all, we got an electromagnetic penalty""")
                                                                                     "-hwaccel", acc_name,
                                                                                     "-hwaccel_output_format",
                                                                                     hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2","-c:v", "h264_cuvid", ]
-    runffmpeg(accel_pre + [ "-y", "-i", wav, "-af", "atempo=2", wavspeedup], title='加速音频')
+                                                                                    "-extra_hw_frames", "2", "-c:v",
+                                                                                    "h264_cuvid", ]
+    runffmpeg(accel_pre + ["-y", "-i", wav, "-af", "atempo=2", wavspeedup], title='加速音频')
 
     # mp4 转为 api
     accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
@@ -554,9 +557,10 @@ First of all, we got an electromagnetic penalty""")
 
 
 test_cuda(hwaccel_output_format="nv12")
-print("\n【hwaccel_output_format=nv12 的测试结果全部ok,可使用CUDA加速功能】\n\n")
-print("\n接下来测试 hwaccel_output_format=cuda 能否使用加速性能更好的配置\n")
+print("\n[hwaccel_output_format=nv12 is ok,CUDA OK】\n\n")
+print("\nNext will test hwaccel_output_format=cuda\n")
 test_cuda(hwaccel_output_format="cuda")
-print("hwaccel_output_format=cuda的测试结果全部ok\n可以将 videotrans/set.ini中\nhwaccel_output_format=nv12 改成 hwaccel_output_format=cuda\nhwaccel=cuvid 改为 hwaccel=cuda 以获得更快处理速度")
+print(
+    "hwaccel_output_format=cuda is ok\nMay be open videotrans/set.ini\nedit 'hwaccel_output_format=nv12' to 'hwaccel_output_format=cuda'\n And edit 'hwaccel=cuvid' to 'hwaccel=cuda'")
 
-input("\n按回车键关闭窗口")
+input("\nPress enter for close")

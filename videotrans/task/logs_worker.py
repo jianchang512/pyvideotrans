@@ -13,6 +13,7 @@ class LogsWorker(QThread):
         super().__init__(parent=parent)
 
     def run(self):
+        # queue_logs.put({"type":"open_toolbox"})
         while True:
             try:
                 obj = queue_logs.get(True, 1)
