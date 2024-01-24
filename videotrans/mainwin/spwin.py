@@ -47,7 +47,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def initUI(self):
 
-        self.settings = g
+        self.settings = QSettings("Jameson", "VideoTranslate")
         # 获取最后一次选择的目录
         self.last_dir = self.settings.value("last_dir", ".", str)
         # language code

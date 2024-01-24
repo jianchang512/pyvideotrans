@@ -4,7 +4,8 @@ import os
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from videotrans.configure import config
-from videotrans.util.tools import text_to_speech, pygameaudio
+from videotrans.tts import text_to_speech
+from videotrans.util.tools import pygameaudio
 
 
 class PlayMp3(QThread):
