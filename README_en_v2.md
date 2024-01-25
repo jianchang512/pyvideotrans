@@ -1,4 +1,4 @@
-[English Readme / ](./README_EN.md)Donate to the project[ / Join Discord](./about.md) [ / ](https://discord.gg/TMCM2PfHzQ)Q Group 902124277[ ](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
+[简体中文](./README.md) / [Donate to the project](./about.md) / [Join Discord](https://discord.gg/TMCM2PfHzQ)
 
 # Video translation and dubbing tools
 
@@ -142,30 +142,41 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 **Don't adjust it unless you know what's going to happen**
 
 ```
-;设置软件界面语言，en代表英文，zh代表中文
-lang =
-;同时配音线程数量
-dubbing_thread=5
-;同时翻译行数
+; Set the software interface language, where en represents English and zh represents Chinese
+lang=
+
+; Number of simultaneous voice acting threads
+dubbing_ Thread=5
+
+; Simultaneous translation lines
 trans_thread=10
-;软件等待修改字幕倒计时
-countdown_sec=60
-;加速设备 cuvid 或 cuda
+
+; Software waiting for subtitle modification countdown
+countdown_sec=30
+
+; Accelerate device cuvid or cuda
 hwaccel=cuvid
-; 加速设备输出格式，nv12 或 cuda 
+
+; Accelerate device output format, nv12 or cuda
 hwaccel_output_format=nv12
-;是否使用硬件解码 -c:v h264_cuvid  true代表是，false代表否
-no_decode=false
-;语音识别时，数据格式，int8 或 float16 或 float32
+
+; Is hardware decoding used - c: v h264_ Cuvid true represents yes, false represents no
+no_code=false
+
+; In speech recognition, the data format is int8, float16, or float32
 cuda_com_type=int8
-; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可设为4
-whisper_threads=4
-;语音识别工作进程数量
-whisper_worker=1
-;如果显存不足，下面2个值可以改为 1
+
+; The number of speech recognition threads, where 0 represents the same number of CPU cores. If it occupies too much CPU, it can be changed to 4 here
+whisper_threads=0
+
+; Number of speech recognition work processes
+whisper_worker=2
+
+;Reducing these two numbers will use less graphics memory
 beam_size=5
 best_of=5
-;预分割模式同时工作线程
+
+;Simultaneous execution quantity in pre split mode
 split_threads=4
 ```
 
@@ -235,13 +246,13 @@ Sometimes you get the error "cublasxx .dll does not exist", or you don't get thi
    [Click to download cuBLAS, ](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)unzip it, and copy the dll file to C:/Windows/System32
 
 
-10. The background music is missing
+10. Background music is lost.
 
-   只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请使用[人声背景音乐分离项目](https://github.com/jianchang512/vocal-separate)，将背景音提取出来，然后再和配音文件合并。
+   Only human voices are recognized and saved, so there will be no original background music in the dubbed audio. If you need to retain it, you can use the [voice-background music separation project](https://github.com/jianchang512/vocal-separate) to extract the background music, and then merge it with the dubbed file.
 
-11. How to use custom sounds
-   
-   目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice),输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
+11. How to use custom voice.
+
+   Currently, this feature is not supported. If needed, you can first recognize the subtitles, and then use another [voice cloning project](https://github.com/jiangchang512/clone-voice), enter the subtitle srt file, select the customized voice to synthesize the audio file, and then recreate the video.
    
 13. Captions can't be aligned in speech
 
@@ -266,7 +277,7 @@ Sometimes you get the error "cublasxx .dll does not exist", or you don't get thi
 
 15. How to switch the software interface language/Chinese or English
 
-If the set.ini file does not exist in the software directory, create it first, then paste the following code into it, `lang=`then fill in the language code`zh`, representing Chinese, `en`representing English, and then restart the software
+If the set.ini file does not exist in the software directory `videtrans/set.ini`,  `lang=`then fill in the language code`zh`, representing Chinese, `en`representing English, and then restart the software
 
 ```
 
@@ -285,13 +296,13 @@ cli.py is a command-line execution script and`python cli.py` is the easiest way 
 
 Parameters received:
 
-`-m mp4视频的绝对地址`
+`-m mp4`
 
 The specific configuration parameters can be configured in the CLI.ini located in the same directory as cli.py, and other MP4 video addresses to be processed can also be configured by command-line parameters `-m mp4视频绝对地址` , such as `python cli.py -m D:/1.mp4`.
 
 cli.ini is the complete parameters, the first parameter `source_mp4`represents the video to be processed, if the command line passes parameters through -m, then use the command line argument, otherwise use this`source_mp4`
 
-`-c 配置文件地址`
+`-c cli.ini file path`
 
 You can also copy cli.ini to another location `-c cli.ini的绝对路径地址` and specify the configuration file to use from the command line  , for example, `python cli.py -c E:/conf/cli.ini` it will use the configuration information in the file and ignore the configuration file in the project directory. 
 
@@ -302,70 +313,70 @@ Example:`python cli.py -cuda -m D:/1.mp4`
 ## Specific parameters and descriptions in cli.ini
 
 ```
-;命令行参数
-;待处理的视频绝对地址，正斜杠做路径分隔符，也可在命令行参数中 -m 后传递
+;Command line parameters
+;Absolute address of the video to be processed. Forward slash as a path separator, can also be passed after -m in command line parameters
 source_mp4=
-;网络代理地址，google  chatGPT官方china必填
+;Network proxy address, google chatGPT official China needs to be filled in
 proxy=http://127.0.0.1:10809
-;输出结果文件到目录
+;Output result file to directory
 target_dir=
-;视频发音语言，从这里选择 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+;Video speech language, select from here zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
 source_language=zh-cn
-;语音识别语言 无需填写
+;Speech recognition language, no need to fill in
 detect_language=
-;翻译到的语言 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+;Language to translate to zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
 target_language=en
-;软字幕嵌入时的语言，不填写
+;Language when embedding soft subtitles, no need to fill in
 subtitle_language=
-;true=启用CUDA
+;true=Enable CUDA
 cuda=false
-;角色名称，openaiTTS角色名称“alloy,echo,fable,onyx,nova,shimmer”，edgeTTS角色名称从 voice_list.json 中对应语言的角色中寻找。elevenlabsTTS 的角色名称从 elevenlabs.json 中寻找
+;Role name, role names of openaiTTS "alloy,echo,fable,onyx,nova,shimmer", role names of edgeTTS can be found in the corresponding language roles in voice_list.json. Role names of elevenlabsTTS can be found in elevenlabs.json
 voice_role=en-CA-ClaraNeural
-; 配音加速值，必须以 + 号或 - 号开头，+代表加速，-代表减速，以%结尾
+; Dubbing acceleration value, must start with + or -, + means acceleration, - means deceleration, ends with %
 voice_rate=+0%
-;可选 edgetTTS  openaiTTS elevenlabsTTS
+;Optional edgetTTS openaiTTS elevenlabsTTS
 tts_type=edgeTTS
-;静音片段，单位ms
+;Silent segment, unit ms
 voice_silence=500
-;all=整体识别，split=预先分割声音片段后识别
+;all=whole recognition, split=pre-split sound segment recognition
 whisper_type=all
-;语音识别模型可选，base small medium large-v3
+;Speech recognition model optional, base small medium large-v3
 whisper_model=base
-;翻译渠道，可选 google baidu  chatGPT Azure  Gemini  tencent DeepL DeepLX
+;Translation channel, optional google baidu chatGPT Azure Gemini tencent DeepL DeepLX
 translate_type=google
-;0=不嵌入字幕，1=嵌入硬字幕，2=嵌入软字幕
+;0=Do not embed subtitles, 1=Embed hard subtitles, 2=Embed soft subtitles
 subtitle_type=1
-;true=配音自动加速
+;true=Automatic dubbing acceleration
 voice_autorate=false
-;true=视频自动慢速
+;true=Automatic video slowdown
 video_autorate=false
-;deepl翻译的接口地址
+;deepl translation interface address
 deepl_authkey=asdgasg
-;自己配置的deeplx服务的接口地址
+;Interface address of own configured deeplx service
 deeplx_address=http://127.0.0.1:1188
-;腾讯翻译id
+;Tencent translation id
 tencent_SecretId=
-;腾讯翻译key
+;Tencent translation key
 tencent_SecretKey=
-;百度翻译id
+;Baidu translation id
 baidu_appid=
-;百度翻译密钥
+;Baidu translation key
 baidu_miyue=
-; elevenlabstts的key
+; key of elevenlabstts
 elevenlabstts_key=
-;chatGPT 接口地址，以 /v1 结尾，可填写第三方接口地址
+;chatgpt api, ending with /v1, third party interface address can be filled in
 chatgpt_api=
-;chatGPT的key
+;key of chatGPT
 chatgpt_key=
-;chatGPT模型，可选 gpt-3.5-turbo gpt-4
+;chatgpt model, optional gpt-3.5-turbo gpt-4
 chatgpt_model=gpt-3.5-turbo
-; Azure 的api接口地址
+; Azure's api interface address
 azure_api=
-;Azure的key
+;key of Azure
 azure_key=
-; Azure的模型名，可选 gpt-3.5-turbo gpt-4
+; Azure model name, optional gpt-3.5-turbo gpt-4
 azure_model=gpt-3.5-turbo
-;google Gemini 的key
+;key of google Gemini
 gemini_key=
 
 ```
