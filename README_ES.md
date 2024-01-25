@@ -1,4 +1,4 @@
-[Léame en inglés / ](./README_EN.md)Dona al proyecto[ / Únete a Discord](./about.md) [ / ](https://discord.gg/TMCM2PfHzQ)Q Group 902124277[ ](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
+[English](./README_EN.md) / [Dona al proyecto](./about.md) / [Join Discord](https://discord.gg/TMCM2PfHzQ)
 
 # Herramientas de traducción y doblaje de vídeo
 
@@ -93,7 +93,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
    Subtítulos suaves: si el reproductor admite la administración de subtítulos, puede mostrar o cerrar subtítulos, pero los subtítulos no se mostrarán cuando se reproduzcan en la página web, es posible que algunos reproductores nacionales no lo admitan y debe colocar el video generado con el mismo nombre srt file y video en un directorio para que se muestre
 
 
-8. Modelo de reconocimiento de voz: seleccione base/pequeño/mediano/grande-v3, el efecto de reconocimiento es cada vez mejor, pero la velocidad de reconocimiento es cada vez más lenta, y la memoria requerida es cada vez más grande, el modelo base incorporado, descargue otros modelos por separado, descomprímalos y colóquelos en el `当前软件目录/models`directorio
+8. Modelo de reconocimiento de voz: seleccione base/pequeño/mediano/grande-v3, el efecto de reconocimiento es cada vez mejor, pero la velocidad de reconocimiento es cada vez más lenta, y la memoria requerida es cada vez más grande, el modelo base incorporado, descargue otros modelos por separado, descomprímalos y colóquelos en el `/models` directorio
 
    Reconocimiento general/presegmentación: El reconocimiento integral se refiere al envío de todo el archivo de voz directamente al modelo, que es procesado por el modelo, y la segmentación puede ser más precisa, pero también puede crear un solo subtítulo con una duración de 30 segundos, que es adecuado para audio con silencio claro;  La segmentación previa significa que el audio se corta a una duración de unos 10 segundos y luego se envía al modelo para su procesamiento.
 
@@ -266,7 +266,7 @@ A veces aparece el error "cublasxx .dll doesn't exist", o no recibe este error, 
 
 15. Cómo cambiar el idioma de la interfaz del software/chino o inglés
 
-Si el archivo set.ini no existe en el directorio del software, créelo primero, luego pegue el siguiente código en él, `lang=`luego complete el código de idioma, que `zh`representa el chino, que representa `en`el inglés y, a continuación, reinicie el software
+Si el archivo videotrans/set.ini no existe  , créelo primero, luego pegue el siguiente código en él, `lang=`luego complete el código de idioma, que `zh`representa el chino, que representa `en`el inglés y, a continuación, reinicie el software
 
 ```
 
@@ -285,13 +285,13 @@ cli.py es un script de ejecución de línea de comandos y`python cli.py` es la f
 
 Parámetros recibidos:
 
-`-m mp4视频的绝对地址`
+`-m mp4 `
 
-Los parámetros de configuración específicos se pueden configurar en la CLI.ini ubicada en el mismo directorio que cli.py, y otras direcciones de video MP4 que se procesarán también se pueden configurar mediante parámetros de línea de comandos, `-m mp4视频绝对地址` como `python cli.py -m D:/1.mp4`.
+Los parámetros de configuración específicos se pueden configurar en la CLI.ini ubicada en el mismo directorio que cli.py, y otras direcciones de video MP4 que se procesarán también se pueden configurar mediante parámetros de línea de comandos, `-m mp4 ` como `python cli.py -m D:/1.mp4`.
 
 cli.ini son los parámetros completos, el primer parámetro `source_mp4`representa el video que se procesará, si la línea de comandos pasa parámetros a través de -m, use el argumento de la línea de comandos, de lo contrario use esto`source_mp4`
 
-`-c 配置文件地址`
+`-c cli.ini`
 
 También puede copiar cli.ini a otra ubicación `-c cli.ini的绝对路径地址` y especificar el archivo de configuración a utilizar desde la línea de comandos,  por ejemplo, `python cli.py -c E:/conf/cli.ini` utilizará la información de configuración en el archivo e ignorará el archivo de configuración en el directorio del proyecto. 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import threading
 
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap, QPalette, QBrush, QIcon
@@ -36,6 +37,7 @@ class StartWindow(QWidget):
             main = MainWindow()
             with open(os.path.join(os.getcwd(),'videotrans/styles/style.qss'),'r',encoding="utf-8") as f:
                 app.setStyleSheet(f.read())
+
             from videotrans.box import win
             from videotrans import configure
             configure.TOOLBOX = win.MainWindow()
@@ -43,6 +45,7 @@ class StartWindow(QWidget):
             self.close()
         except Exception as e:
             print(f'main window {str(e)}')
+
 
 
     def center(self):

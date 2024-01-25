@@ -149,19 +149,23 @@ def get_code(*,show_text=None):
 def get_source_target_code(*,show_source=None,show_target=None,translate_type=None):
     source_list=None
     target_list=None
+    if not translate_type:
+        return None,None
+    lower_translate_type=translate_type.lower()
+
     if show_source:
         source_list=LANG_CODE[config.rev_langlist[show_source]]
     if show_target:
         target_list=LANG_CODE[config.rev_langlist[show_target]]
-    if translate_type==GOOGLE_NAME:
+    if lower_translate_type==GOOGLE_NAME.lower():
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
-    if translate_type==BAIDU_NAME:
+    if lower_translate_type==BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
-    if translate_type in [DEEPLX_NAME,DEEPLX_NAME]:
+    if lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
-    if translate_type==TENCENT_NAME:
+    if lower_translate_type==TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    if translate_type in [CHATGPT_NAME,AZUREGPT_NAME,GEMINI_NAME]:
+    if lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
         return (show_source, show_target)
 
 # 判断当前翻译通道和目标语言是否允许翻译
@@ -170,20 +174,21 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
-    if translate_type==CHATGPT_NAME and not config.params['chatgpt_key']:
+    lower_translate_type=translate_type.lower()
+    if lower_translate_type==CHATGPT_NAME and not config.params['chatgpt_key']:
         return config.transobj['chatgptkeymust']
-    if translate_type==GEMINI_NAME and not config.params['gemini_key']:
+    if lower_translate_type==GEMINI_NAME and not config.params['gemini_key']:
         return config.transobj['chatgptkeymust']
-    if translate_type==AZUREGPT_NAME and (not config.params['azure_key'] or not config.params['azure_api']):
+    if lower_translate_type==AZUREGPT_NAME.lower() and (not config.params['azure_key'] or not config.params['azure_api']):
         return 'No Azure key'
 
-    if translate_type==BAIDU_NAME and (not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
+    if lower_translate_type==BAIDU_NAME.lower() and (not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
         return config.transobj['baikeymust']
-    if translate_type==TENCENT_NAME and (not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
+    if lower_translate_type==TENCENT_NAME.lower() and (not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
         return config.transobj['tencent_key']
-    if translate_type==DEEPL_NAME and  not config.params["deepl_authkey"]:
+    if lower_translate_type==DEEPL_NAME.lower() and  not config.params["deepl_authkey"]:
         return config.transobj['deepl_authkey']
-    if translate_type==DEEPLX_NAME and  not config.params["deeplx_address"]:
+    if lower_translate_type==DEEPLX_NAME.lower() and  not config.params["deeplx_address"]:
         return config.transobj['setdeeplx_address']
 
     if only_key:
@@ -191,11 +196,11 @@ def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
 
 
     index=0
-    if translate_type==BAIDU_NAME:
+    if lower_translate_type==BAIDU_NAME.lower():
         index=2
-    elif translate_type in [DEEPLX_NAME,DEEPLX_NAME]:
+    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
         index=3
-    elif translate_type == TENCENT_NAME:
+    elif lower_translate_type == TENCENT_NAME.lower():
         index=4
 
     if show_target:
