@@ -65,27 +65,27 @@ class TransCreate():
                 newmp4 = f'{new_dir}/{self.noextname}{ext}'
                 shutil.copy2(self.source_mp4, newmp4)
                 self.source_mp4 = newmp4
-
-            # 不是mp4，先转为mp4
-            if ext.lower() != '.mp4':
-                out_mp4 = re.sub(rf'{ext}$', '.mp4', self.source_mp4)
-                self.wait_convermp4 = self.source_mp4
-                self.source_mp4 = out_mp4
-            else:
-                # 获取视频信息
-                try:
-                    self.video_info = get_video_info(self.source_mp4)
-                except Exception as e:
-                    print(f'e=={str(e)}')
-
-                if self.video_info is False:
-                    raise Myexcept("get video_info error")
-                # 不是标准mp4，先转码
-                if self.video_info['video_codec_name'] != 'h264' or self.video_info['audio_codec_name'] != 'aac':
-                    # 不是标准mp4，则转换为 libx264
-                    out_mp4 = self.source_mp4[:-4] + "-libx264.mp4"
+            if self.app_mode not in ['tiqu','tiqu_no']:
+                # 不是mp4，先转为mp4
+                if ext.lower() != '.mp4':
+                    out_mp4 = re.sub(rf'{ext}$', '.mp4', self.source_mp4)
                     self.wait_convermp4 = self.source_mp4
                     self.source_mp4 = out_mp4
+                else:
+                    # 获取视频信息
+                    try:
+                        self.video_info = get_video_info(self.source_mp4)
+                    except Exception as e:
+                        print(f'e=={str(e)}')
+
+                    if self.video_info is False:
+                        raise Myexcept("get video_info error")
+                    # 不是标准mp4，先转码
+                    if self.video_info['video_codec_name'] != 'h264' or self.video_info['audio_codec_name'] != 'aac':
+                        # 不是标准mp4，则转换为 libx264
+                        out_mp4 = self.source_mp4[:-4] + "-libx264.mp4"
+                        self.wait_convermp4 = self.source_mp4
+                        self.source_mp4 = out_mp4
 
         if self.source_mp4:
             self.btnkey = self.source_mp4
@@ -106,11 +106,6 @@ class TransCreate():
         # 临时文件夹
         self.cache_folder = f"{config.rootdir}/tmp/{self.noextname}"
 
-
-        # 配音后的tts音频
-        # self.tts_wav = f"{self.cache_folder}/tts-{self.noextname}.m4a"
-        # 翻译后的字幕文件-存于缓存
-        # self.sub_name = f"{self.cache_folder}/{self.noextname}.srt"
 
         # 创建文件夹
         if not os.path.exists(self.target_dir):
@@ -216,8 +211,8 @@ class TransCreate():
             return True
 
         # 单独提前分离出 novice.mp4
-        # 要么需要嵌入字幕 要么需要配音，才需要分离
-        if not os.path.exists(self.novoice_mp4):
+        # 要么需要嵌入字幕 要么需要配音，才需要分离 tiqu tiqu_no 不需要
+        if not os.path.exists(self.novoice_mp4) and self.app_mode not in ['tiqu','tiqu_no']:
             threading.Thread(target=split_novoice_byraw,
                              args=(self.source_mp4, self.novoice_mp4, self.noextname)).start()
         else:
@@ -257,6 +252,7 @@ class TransCreate():
             detect_language=self.detect_language,
             cache_folder=self.cache_folder,
             model_name=config.params['whisper_model'])
+        # print(raw_subtitles)
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
     # 翻译字幕

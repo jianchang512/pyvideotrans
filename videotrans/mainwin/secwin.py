@@ -190,6 +190,7 @@ class SecWindow():
         self.main.voice_autorate.show()
         # 视频自动降速
         self.main.video_autorate.show()
+        self.main.is_separate.setDisabled(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -243,6 +244,7 @@ class SecWindow():
         # 视频自动降速
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
+        self.main.is_separate.setDisabled(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -301,6 +303,7 @@ class SecWindow():
         # 视频自动降速
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
+        self.main.is_separate.setDisabled(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -352,6 +355,7 @@ class SecWindow():
         # 视频自动降速
         self.main.video_autorate.show()
         self.main.video_autorate.setChecked(False)
+        self.main.is_separate.setDisabled(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -401,6 +405,7 @@ class SecWindow():
         # 视频自动降速
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
+        self.main.is_separate.setDisabled(True)
         # cuda
         self.main.enable_cuda.show()
 

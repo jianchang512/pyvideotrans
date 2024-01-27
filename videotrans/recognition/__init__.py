@@ -56,62 +56,63 @@ def shorten_voice(normalized_sound):
         nonsilent_data.append((start_time, end_time, False))
     return nonsilent_data
 
-
-def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=None, normalized_sound=None,model_name="base"):
-    model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
-                     compute_type=config.settings['cuda_com_type'],
-                     download_root=config.rootdir + "/models",
-                     cpu_threads=1,
-                     num_workers=1, local_files_only=True)
-    if config.current_status != 'ing' and config.box_status!='ing':
-        del model
-        raise config.Myexcept("Has stop")
-    start_time, end_time, buffered = duration
-    if start_time == end_time:
-        end_time += 200
-
-    chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
-    audio_chunk = normalized_sound[start_time:end_time]
-    audio_chunk.export(chunk_filename, format="wav")
-
-    if config.current_status != 'ing':
-        del model
-        raise config.Myexcept("Has stop .")
-    text = ""
-    try:
-        segments, _ = model.transcribe(chunk_filename,
-                                   beam_size=config.settings['beam_size'],
-                                   best_of=config.settings['best_of'],
-                                   condition_on_previous_text=False, 
-                                   language=detect_language)
-        for t in segments:
-            text += t.text + " "
-    except Exception as e:
-        tools.set_process("[error]:" + str(e))
-        del model
-        return
-
-    if config.current_status == 'stop':
-        raise config.Myexcept("Has stop it.")
-    text = f"{text.capitalize()}. ".replace('&#39;', "'")
-    text = re.sub(r'&#\d+;', '', text).strip()
-    if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-        del model
-        return
-    start = timedelta(milliseconds=start_time)
-    stmp = str(start).split('.')
-    if len(stmp) == 2:
-        start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-    end = timedelta(milliseconds=end_time)
-    etmp = str(end).split('.')
-    if len(etmp) == 2:
-        end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-    srt_line = {"line": line, "time": f"{start} --> {end}", "text": text}
-    config.temp[i] = srt_line
-    try:
-        del model
-    except:
-        pass
+#
+# def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=None, normalized_sound=None,model_name="base"):
+#     model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+#                      compute_type=config.settings['cuda_com_type'],
+#                      download_root=config.rootdir + "/models",
+#                      cpu_threads=1,
+#                      num_workers=1, local_files_only=True)
+#     if config.current_status != 'ing' and config.box_status!='ing':
+#         del model
+#         raise config.Myexcept("Has stop")
+#     start_time, end_time, buffered = duration
+#     if start_time == end_time:
+#         end_time += 200
+#
+#     chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
+#     audio_chunk = normalized_sound[start_time:end_time]
+#     audio_chunk.export(chunk_filename, format="wav")
+#
+#     if config.current_status != 'ing':
+#         del model
+#         raise config.Myexcept("Has stop .")
+#     text = ""
+#     try:
+#         segments, _ = model.transcribe(chunk_filename,
+#                                    beam_size=config.settings['beam_size'],
+#                                    best_of=config.settings['best_of'],
+#                                    condition_on_previous_text=False,
+#                                    temperature=0,
+#                                    language=detect_language)
+#         for t in segments:
+#             text += t.text + " "
+#     except Exception as e:
+#         tools.set_process("[error]:" + str(e))
+#         del model
+#         return
+#
+#     if config.current_status == 'stop':
+#         raise config.Myexcept("Has stop it.")
+#     text = f"{text.capitalize()}. ".replace('&#39;', "'")
+#     text = re.sub(r'&#\d+;', '', text).strip()
+#     if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+#         del model
+#         return
+#     start = timedelta(milliseconds=start_time)
+#     stmp = str(start).split('.')
+#     if len(stmp) == 2:
+#         start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+#     end = timedelta(milliseconds=end_time)
+#     etmp = str(end).split('.')
+#     if len(etmp) == 2:
+#         end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+#     srt_line = {"line": line, "time": f"{start} --> {end}", "text": text}
+#     config.temp[i] = srt_line
+#     try:
+#         del model
+#     except:
+#         pass
 
 
 # 预先分割识别
@@ -145,38 +146,68 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             json.dump(nonsilent_data, outfile)
 
     raw_subtitles = []
-    # offset = 0
-    split_size = int(config.settings['split_threads'])
-    if split_size<1:
-        split_size=os.cpu_count()
     total_length = len(nonsilent_data)
-    thread_chunk = [nonsilent_data[i:i + split_size] for i in range(0, len(nonsilent_data), split_size)]
-
     start_t = time.time()
-    for (j, it) in enumerate(thread_chunk):
-        config.temp = {}
-        threads = []
-        line = 0
-        for i, duration in enumerate(it):
-            line = (j * split_size) + i + 1
-            config.temp[i] = None
-            threads.append(threading.Thread(target=shibie,
-                                            kwargs={"i": i, "duration": duration, "line": line, "tmp_path": tmp_path,
-                                                    "detect_language": detect_language,
-                                                    "model_name":model_name,
-                                                    "normalized_sound": normalized_sound}))
-        for th in threads:
-            th.start()
-        for th in threads:
-            th.join()
+    model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+                         compute_type=config.settings['cuda_com_type'],
+                         download_root=config.rootdir + "/models",
+                         cpu_threads=1,num_workers=1, local_files_only=True)
+    for i, duration in enumerate(nonsilent_data):
+        # config.temp = {}
+        if config.current_status != 'ing' and config.box_status != 'ing':
+            del model
+            raise config.Myexcept("Has stop")
+        start_time, end_time, buffered = duration
+        if start_time == end_time:
+            end_time += 200
 
-        tools.set_process(f"{config.transobj['yuyinshibiejindu']} {line}/{total_length}")
-        config.temp = [x for x in list(config.temp.values()) if x is not None]
-        raw_subtitles.extend(config.temp)
-        msg = ""
-        for t in config.temp:
-            msg += f"{t['line']}\n{t['time']}\n{t['text']}\n\n"
+        chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
+        audio_chunk = normalized_sound[start_time:end_time]
+        audio_chunk.export(chunk_filename, format="wav")
+
+        if config.current_status != 'ing':
+            del model
+            raise config.Myexcept("Has stop .")
+        text = ""
+        try:
+            segments, _ = model.transcribe(chunk_filename,
+                                           beam_size=config.settings['beam_size'],
+                                           best_of=config.settings['best_of'],
+                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
+                                           temperature=0 if config.settings['temperature']==0 else [
+            0.0,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1.0,
+        ],
+                                           language=detect_language)
+            for t in segments:
+                text += t.text + " "
+        except Exception as e:
+            tools.set_process("[error]:" + str(e))
+            del model
+            return
+
+
+        text = f"{text.capitalize()}. ".replace('&#39;', "'")
+        text = re.sub(r'&#\d+;', '', text).strip()
+        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+            continue
+        start = timedelta(milliseconds=start_time)
+        stmp = str(start).split('.')
+        if len(stmp) == 2:
+            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+        end = timedelta(milliseconds=end_time)
+        etmp = str(end).split('.')
+        if len(etmp) == 2:
+            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+        srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
+        raw_subtitles.append(srt_line)
+        tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
         if set_p:
+            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
 
     print(f'用时 {time.time() - start_t}')
@@ -200,7 +231,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                              compute_type=config.settings['cuda_com_type'],
                              download_root=down_root,
                              num_workers=config.settings['whisper_worker'],
-                             cpu_threads=os.cpu_count() if config.settings['whisper_threads'] < 1 else config.settings['whisper_threads'],
+                             cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(config.settings['whisper_threads']),
                              local_files_only=True)
         if not config.params['is_separate']:
             wavfile = cache_folder + "/tmp.wav"
@@ -210,8 +241,17 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
-                                          condition_on_previous_text=False, 
+                                          condition_on_previous_text=config.settings['condition_on_previous_text'],
                                           vad_filter=config.settings['vad'],
+
+                                          temperature=0 if config.settings['temperature']==0 else [
+            0.0,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1.0,
+        ],
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
                                               max_speech_duration_s=15), language=detect_language)
