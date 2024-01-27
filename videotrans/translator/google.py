@@ -71,6 +71,11 @@ def trans(text_list, target_language="en", *, set_p=True):
                 raise Exception(f'no result:{re_result}')
         except Exception as e:
             error = str(e)
+            if error.find("HTTPSConnectionP")>-1:
+                if set_p:
+                    tools.set_process(f'Google HTTPSConnectionPool error,after 5s retry')
+                time.sleep(5)
+                return trans(text_list, target_language, set_p=set_p)
             raise Exception(f'Google error:{str(error)}')
     if isinstance(text_list, str):
         return "\n".join(target_text)

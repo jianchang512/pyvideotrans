@@ -6,6 +6,14 @@ import subprocess
 import torch
 import os
 import sys
+from torch.backends import cudnn
+# ffmpeg
+rootdir = os.getcwd()
+tmpdir = os.path.join(rootdir, 'tmp')
+if sys.platform == 'win32':
+    os.environ['PATH'] = rootdir + f';{rootdir}\\ffmpeg;' + os.environ['PATH']
+else:
+    os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
 if torch.cuda.is_available():
     print('CUDA is ok')
@@ -13,12 +21,17 @@ else:
     print("no CUDA environ")
     input("\nPress enter for close")
     sys.exit()
+if cudnn.is_available() and cudnn.is_acceptable(torch.tensor(1.).cuda()):
+    print('cudnn is ok')
+else:
+    print('no cudnn  ')
+    input("\nPress enter for close")
+    sys.exit()
 
 result = subprocess.run(['ffmpeg', '-hwaccels'], text=True, stdout=subprocess.PIPE)
 print(f'Accels:\n{result.stdout}')
 
-rootdir = os.getcwd()
-tmpdir = os.path.join(rootdir, 'tmp')
+
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir, exist_ok=True)
 
