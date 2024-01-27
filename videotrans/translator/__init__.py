@@ -153,12 +153,12 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
     if not translate_type:
         return None,None
     lower_translate_type=translate_type.lower()
-    print(f'{lower_translate_type=},{GOOGLE_NAME.lower()}')
+    print(f'{lower_translate_type==GOOGLE_NAME.lower()}')
     if show_source:
         source_list=LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
-    elif show_target:
+    if show_target:
         target_list=LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
-    elif lower_translate_type==GOOGLE_NAME.lower():
+    if lower_translate_type==GOOGLE_NAME.lower():
         print("here")
         try:
           print((source_list[0] if source_list else "-", target_list[0] if target_list else "-"))
