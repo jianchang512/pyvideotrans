@@ -60,7 +60,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 3. `cd pyvideotrans`
 4. `python -m venv venv`
 5. For Windows, run `%cd%/venv/scripts/activate`; for Linux and Mac, run `source ./venv/bin/activate`.
-6. `pip install -r requirements.txt`, if version conflict error occurred, please executable `pip install -r requirements.txt --no-deps`
+6. `pip install -r requirements.txt`
+ 
+windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then `pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`
+
 7. For Windows, unzip ffmpeg.zip to the root directory (ffmpeg.exe file); for Linux and Mac, Manually installing ffmpeg on your own
 8. Open the software interface by running `python sp.py`.
 9. If CUDA acceleration support is needed, the device must have an NVIDIA GPU. For specific installation steps, see [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
@@ -177,6 +180,10 @@ best_of=5
 vad=true
 ;Simultaneous execution quantity in pre split mode
 split_threads=4
+;0 is use litter GPU,other is more
+temperature=0
+;false is litter GPU,ture is more
+condition_on_previous_text=false
 
 ```
 
@@ -226,9 +233,6 @@ To use the base model, ensure that the models/models--Systran--faster-whisper-ba
 
    [Click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). Extract it and copy the dll files to C:/Windows/System32.
 
-10. Background music is lost.
-
-   Only human voices are recognized and saved, so there will be no original background music in the dubbed audio. If you need to retain it, you can use the [voice-background music separation project](https://github.com/jianchang512/vocal-separate) to extract the background music, and then merge it with the dubbed file.
 
 11. How to use custom voice.
 
@@ -267,8 +271,10 @@ lang =
 
 16. Crash before completion 
 
-The crash is very likely due to insufficient GPU memory. You can switch to using the medium model. When GPU memory is less than 8GB, try to avoid using the largev-3 model, especially when the video size is more than 20MB, otherwise the lack of memory might lead to a crash.
+If CUDA is enabled and the computer has installed the CUDA environment, but CUDNN has not been manually installed and configured, this issue will occur. Please install CUDNN that matches CUDA. For example, if you have installed cuda12.3, you need to download the cudnn for cuda12. x compressed package, and then unzip the three folders inside and copy them to the cuda installation directory. Specific tutorial reference
+https://juejin.cn/post/7318704408727519270
 
+If cudnn crashes even after being installed according to the tutorial, there is a high probability that the GPU memory is insufficient. You can switch to using the medium model. When the memory is less than 8GB, try to avoid using the largev-3 model, especially when the video is larger than 20MB, otherwise it may run out of memory and crash
 
 
 # CLI Command Line Mode
@@ -371,7 +377,8 @@ gemini_key=
 **[Install CUDA Toolkit article](https://juejin.cn/post/7318704408727519270)**
 
 
-If the installation is correct, the precompiled version can now be used with CUDA. If not, you need to reinstall.
+Both cuda and cudnn must be installed properly, otherwise it may crash.
+After installing CUDA, if there are any issues, execute 'pip uninstall y torch', then execute 'pip install torch=2.1.2-- index URL' https://download.pytorch.org/whl/cu121 `.
 
 after installed，executable `python testcuda.py`, if output all is True, its ok, else reinstall
 
