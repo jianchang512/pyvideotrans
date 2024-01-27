@@ -1,10 +1,10 @@
 import json
 import re
 import os
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QTextCursor, QDesktopServices
-from PyQt5.QtCore import QUrl, Qt, QDir, QTimer
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
+from PySide6 import QtWidgets
+from PySide6.QtGui import QTextCursor, QDesktopServices, QGuiApplication
+from PySide6.QtCore import QUrl, Qt, QDir, QTimer
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
     QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QProgressBar
 import warnings
 
@@ -85,6 +85,18 @@ class SecWindow():
         except:
             pass
         return
+
+    def is_separate_fun(self,state):
+        print(f'{state=}')
+        if state and (len(config.queue_mp4)<1 or self.main.voice_role.currentText()=='No'):
+            config.params['is_separate']=False
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
+            self.main.is_separate.setDisabled(True)
+            self.main.is_separate.setChecked(False)
+        else:
+            config.params['is_separate']=True if state else False
+        self.main.is_separate.setDisabled(False)
+        print(config.params['is_separate'])
 
     def check_cuda(self, state):
         import torch
@@ -443,9 +455,9 @@ class SecWindow():
     def disabled_widget(self, type):
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
-        self.main.source_mp4.setDisabled(type)
+        # self.main.source_mp4.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
-        self.main.target_dir.setDisabled(type)
+        # self.main.target_dir.setDisabled(type)
         self.main.translate_type.setDisabled(type)
         self.main.proxy.setDisabled(type)
         self.main.source_language.setDisabled(type)
@@ -457,6 +469,7 @@ class SecWindow():
         self.main.voice_silence.setDisabled(type)
         self.main.video_autorate.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
+        self.main.is_separate.setDisabled(type)
 
     def open_url(self, title):
         import webbrowser
@@ -481,9 +494,7 @@ class SecWindow():
     def open_toolbox(self, index=0, is_hide=True):
         try:
             if configure.TOOLBOX is None:
-                import box
-                configure.TOOLBOX = box.MainWindow()
-                configure.TOOLBOX.resize(int(self.main.width*0.9),450)
+                return
             if is_hide:
                 configure.TOOLBOX.hide()
                 return
@@ -835,7 +846,7 @@ class SecWindow():
                 self.main.subtitle_area.clear()
                 # 清理输入
             self.main.statusLabel.setText(config.transobj['bencijieshu'])
-            self.main.source_mp4.clear()
+            self.main.source_mp4.setText("No videos")
             # self.main.target_dir.clear()
             if self.main.task:
                 self.main.task.requestInterruption()
@@ -1074,7 +1085,7 @@ class SecWindow():
         if config.current_status == 'ing':
             # 停止
             question = show_popup(config.transobj['exit'], config.transobj['confirmstop'])
-            if question == QMessageBox.AcceptRole:
+            if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
         # 清理日志
@@ -1120,7 +1131,7 @@ class SecWindow():
 
         try:
             voice_rate = int(self.main.voice_rate.text().strip().replace('+', '').replace('%', ''))
-            config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"-{voice_rate}%"
+            config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         except:
             config.params['voice_rate'] = '+0%'
         try:
@@ -1196,6 +1207,7 @@ class SecWindow():
             # 不存在视频,已存在字幕
             config.queue_task.append({"subtitles": txt, 'app_mode': self.main.app_mode})
             self.main.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
+            self.main.source_mp4.setText("No Videos")
 
         from videotrans.task.main_worker import Worker
         self.main.task = Worker(self.main)
@@ -1206,7 +1218,7 @@ class SecWindow():
         if self.main.task and self.main.task.video:
             # 有视频
             if type != 'succeed':
-                text = f'{self.main.task.video.noextname}: {text}'
+                text = f'[{self.main.task.video.noextname[:10]}]: {text}'
 
         if btnkey and btnkey in self.main.processbtns:
             if type == 'succeed':
@@ -1218,7 +1230,7 @@ class SecWindow():
                 self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
                 self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
             elif self.main.task and self.main.task.video:
-                jindu = f'[{round(self.main.task.video.precent, 1)}%]' if self.main.task and self.main.task.video else ""
+                jindu = f' {round(self.main.task.video.precent, 1)}% ' if self.main.task and self.main.task.video else ""
                 self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
                 text = f'{config.transobj["running"]}{jindu} {text}'
             elif not self.main.task or not self.main.task.video:

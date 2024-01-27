@@ -4,7 +4,7 @@ import copy
 import json
 import os
 
-from PyQt5.QtCore import  pyqtSignal, QThread
+from PySide6.QtCore import Signal as  pyqtSignal, QThread
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -57,7 +57,7 @@ class WorkerWhisper(QThread):
         self.language = language
 
     def run(self):
-        set_process_box(f'start regcon {self.model}')
+        set_process_box(f'start {self.model}')
         try:
             config.box_status='ing'
             srts=run_recogn(type="all",audio_file=self.audio_path,model_name=self.model,detect_language=self.language,set_p=False,cache_folder=config.TEMP_DIR)

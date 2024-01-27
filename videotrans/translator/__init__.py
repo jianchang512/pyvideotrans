@@ -167,6 +167,7 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     if lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
         return (show_source, show_target)
+    raise Exception(f"[error]{translate_type=},{show_source=},{show_target=}")
 
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
@@ -221,9 +222,6 @@ def get_subtitle_code(*,show_target=None):
     target_list=LANG_CODE[config.rev_langlist[show_target]]
     return target_list[1]
 
-
-
-
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
 def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=True):
     _,target_language=get_source_target_code(show_target=target_language_name,translate_type=translate_type)
@@ -243,4 +241,6 @@ def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=Tru
         from videotrans.translator.gemini import trans
     elif translate_type==AZUREGPT_NAME:
         from videotrans.translator.azure import trans
+    else:
+        raise Exception(f"[error]{translate_type=},{target_language_name=}")
     return trans(text_list,target_language,set_p=set_p)

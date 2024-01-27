@@ -20,7 +20,7 @@ from videotrans.translator import run as  run_trans, get_audio_code, get_subtitl
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, \
     get_lastjpg_fromvideo, is_novoice_mp4, cut_from_video, get_video_duration, delete_temp, \
     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, create_video_byimg, concat_multi_mp4, \
-    speed_up_mp3
+    speed_up_mp3, backandvocal
 
 
 class TransCreate():
@@ -105,12 +105,12 @@ class TransCreate():
 
         # 临时文件夹
         self.cache_folder = f"{config.rootdir}/tmp/{self.noextname}"
-        # 分离出的原始音频文件
-        self.source_wav = f"{self.cache_folder}/{self.noextname}.m4a"
+
+
         # 配音后的tts音频
-        self.tts_wav = f"{self.cache_folder}/tts-{self.noextname}.m4a"
+        # self.tts_wav = f"{self.cache_folder}/tts-{self.noextname}.m4a"
         # 翻译后的字幕文件-存于缓存
-        self.sub_name = f"{self.cache_folder}/{self.noextname}.srt"
+        # self.sub_name = f"{self.cache_folder}/{self.noextname}.srt"
 
         # 创建文件夹
         if not os.path.exists(self.target_dir):
@@ -146,6 +146,18 @@ class TransCreate():
         self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.m4a"
         self.targetdir_target_wav = f"{self.target_dir}/{self.target_language_code}.m4a"
         self.targetdir_mp4 = f"{self.target_dir}/{self.noextname}.mp4"
+
+        # 分离出的原始音频文件
+        if config.params['is_separate']:
+            # 如果保留背景，则转为 wav格式， 以便后续分离
+            self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.wav"
+            #背景音乐
+            self.targetdir_source_instrument = f"{self.target_dir}/instrument.wav"
+            # 转为8k采样率，降低文件
+            self.targetdir_source_regcon = f"{self.target_dir}/vocal8000.wav"
+        else:
+            self.source_separate = self.source_back = self.source_vocal = None
+
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
         if "subtitles" in obj and obj['subtitles'].strip():
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
@@ -212,12 +224,16 @@ class TransCreate():
             config.queue_novice[self.noextname] = 'end'
 
         # 如果不存在音频，则分离出音频
-        if not os.path.exists(self.targetdir_source_wav):
+        if not config.params['is_separate'] and not os.path.exists(self.targetdir_source_wav):
+            # 添加是否保留背景选项
             split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
+        elif config.params['is_separate'] and not os.path.exists(self.targetdir_source_regcon):
+            split_audio_byraw(self.source_mp4, self.targetdir_source_wav,True)
         return True
 
     # 识别出字幕
     def recogn(self):
+        set_process(transobj["kaishishibie"])
         #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
         if not os.path.exists(self.targetdir_target_sub) and os.path.exists(self.targetdir_source_sub):
             # 通知前端替换字幕
@@ -235,9 +251,12 @@ class TransCreate():
             set_process(transobj["running"])
             time.sleep(1)
         # 识别为字幕
-        raw_subtitles = run_recogn(type=config.params['whisper_type'], audio_file=self.targetdir_source_wav,
-                                   detect_language=self.detect_language, cache_folder=self.cache_folder,
-                                   model_name=config.params['whisper_model'])
+        raw_subtitles = run_recogn(
+            type=config.params['whisper_type'],
+            audio_file=self.targetdir_source_wav if not config.params['is_separate'] else self.targetdir_source_regcon,
+            detect_language=self.detect_language,
+            cache_folder=self.cache_folder,
+            model_name=config.params['whisper_model'])
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
     # 翻译字幕
@@ -279,7 +298,7 @@ class TransCreate():
     def dubbing(self):
         # 不需要配音
         if self.app_mode in ['tiqu', 'tiqu_no', 'hebing'] or \
-                config.params['voice_role'] in ['No', 'no', '-'] or \
+                config.params['voice_role'] == 'No' or \
                 os.path.exists(self.targetdir_target_wav) or \
                 not os.path.exists(self.targetdir_target_sub):
             return True
@@ -755,6 +774,11 @@ class TransCreate():
         if self.precent < 95:
             self.precent += 1
         # 有字幕有配音
+        # 如果有配音，有背景音，则合并
+        if config.params['is_separate'] and os.path.exists(self.targetdir_target_wav):
+            # 原始背景音乐 wav,和配音后的文件m4a合并
+            backandvocal(self.targetdir_source_instrument,self.targetdir_target_wav)
+
         rs = False
         try:
             if config.params['voice_role'] not in ['No', 'no', '-'] and config.params['subtitle_type'] > 0:
@@ -879,6 +903,36 @@ class TransCreate():
         try:
             if os.path.exists(config.rootdir + "/tmp.srt"):
                 os.unlink(config.rootdir + "/tmp.srt")
+            with open(os.path.join(self.target_dir,'readme.txt'),'w',encoding="utf-8") as f:
+                f.write(f"""以下是可能存在的全部文件说明，根据执行时配置的选项不同，某些文件可能不会生成
+                
+{os.path.basename(self.targetdir_mp4)} = 最终完成的目标视频文件
+{self.source_language_code}.m4a|.wav = 原始视频中的音频文件(包含所有声音)
+{self.target_language_code}.m4a = 配音后的音频文件(若选择了保留背景音乐则已混入)
+{self.source_language_code}.srt = 原始视频中识别出的字幕
+{self.target_language_code}.srt = 翻译为目标语言后字幕
+vocal.wav = 原始视频中分离出的人声 音频文件
+instrument.wav = 原始视频中分离出的背景音乐 音频文件
+
+====
+
+Here are the descriptions of all possible files that might exist. Depending on the configuration options when executing, some files may not be generated.
+
+{os.path.basename(self.targetdir_mp4)} = The final completed target video file
+{self.source_language_code}.m4a|.wav = The audio file in the original video (containing all sounds)
+{self.target_language_code}.m4a = The dubbed audio file (if you choose to keep the background music, it is already mixed in)
+{self.source_language_code}.srt = Subtitles recognized in the original video
+{self.target_language_code}.srt = Subtitles translated into the target language
+vocal.wav = The vocal audio file separated from the original video
+instrument.wav = The background music audio file separated from the original video
+
+Github: https://github.com/jianchang512/pyvideotrans
+Docs: https://v.wonyes.org
+
+                """)
+            if os.path.exists(self.targetdir_source_regcon):
+                os.unlink(self.targetdir_source_regcon)
+
         except:
             pass
         self.precent = 100

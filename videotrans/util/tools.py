@@ -9,10 +9,14 @@ import os
 from datetime import timedelta
 import json
 import edge_tts
+
+
 from videotrans.configure import config
 import time
 from elevenlabs import voices, set_api_key
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
+from videotrans.separate import st
+from plyer import notification
 
 def pygameaudio(filepath):
     from videotrans.util.playmp3 import AudioPlayer
@@ -168,6 +172,7 @@ def runffmpeg(arg, *, noextname=None,
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
+    print(f'{cmd=}')
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -327,21 +332,72 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname):
 
 
 # 从原始视频中分离出音频 cuda + h264_cuvid
-def split_audio_byraw(source_mp4, targe_audio):
+def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
     cmd = [
         "-y",
         "-i",
-        f'{source_mp4}',
+        source_mp4,
         "-vn",
         "-c:a",
         "copy",
-        f'{targe_audio}'
+        targe_audio
     ]
-    return runffmpeg(cmd)
+    if not is_separate:
+        return runffmpeg(cmd)
+    # 继续人声分离
+    runffmpeg([
+        "-y",
+        "-i",
+        source_mp4,
+        "-vn",
+        "-ac",
+        "2",
+        "-ar",
+        "44100",
+        targe_audio
+    ])
+    try:
+        path=os.path.dirname(targe_audio)
+        if not os.path.exists(os.path.join(path,'vocal.wav')):
+            set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
+            try:
+                gr = st.uvr(model_name="HP2", save_root=path, inp_path=targe_audio)
+                print(next(gr))
+                print(next(gr))
+            except Exception as e:
+                msg=f"separate vocal and background music:{str(e)}"
+                set_process(msg)
+                raise Exception(msg)
+        # 再将 vocal.wav 转为1通道，8000采样率，方便识别
+        runffmpeg([
+            "-y",
+            "-i",
+            os.path.join(path,'vocal.wav'),
+            "-ac",
+            "1",
+            "-ar",
+            "8000",
+            os.path.join(path,'vocal8000.wav'),
+        ])
+    except Exception as e:
+        print("end")
+        msg=f"separate vocal and background music:{str(e)}"
+        set_process(msg)
+        raise Exception(msg)
+
+#  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
+def backandvocal(backwav,peiyinm4a):
+    tmpwav=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.wav')
+    tmpm4a=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.m4a')
+    # 背景转为m4a文件,音量降低为0.8
+    wav2m4a(backwav,tmpm4a,["-filter:a","volume=0.8"])
+    runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',"[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', tmpwav])
+    shutil.copy2(tmpwav,peiyinm4a)
+    # 转为 m4a
 
 
 # wav转为 m4a cuda + h264_cuvid
-def wav2m4a(wavfile, m4afile):
+def wav2m4a(wavfile, m4afile,extra=None):
     cmd = [
         "-y",
         "-i",
@@ -350,6 +406,8 @@ def wav2m4a(wavfile, m4afile):
         "aac",
         m4afile
     ]
+    if extra:
+        cmd=cmd[:3]+extra+cmd[3:]
     return runffmpeg(cmd)
 
 
@@ -439,16 +497,17 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
 
 
 def show_popup(title, text):
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QMessageBox
+    from PySide6.QtGui import QIcon
+    from PySide6.QtWidgets import QMessageBox
     msg = QMessageBox()
     msg.setWindowTitle(title)
     msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
     msg.setText(text)
-    msg.addButton(config.transobj['queding'], QMessageBox.AcceptRole)
-    msg.addButton("Cancel", QMessageBox.RejectRole)
+    msg.addButton(QMessageBox.Yes)
+    msg.addButton(QMessageBox.Cancel)
+    # msg.addButton(a2)
     msg.setIcon(QMessageBox.Information)
-    x = msg.exec_()  # 显示消息框
+    x = msg.exec()  # 显示消息框
     return x
 
 
@@ -647,3 +706,14 @@ def delete_files(directory, ext):
                 delete_files(item_path)
     except:
         pass
+
+
+def send_notification(title, message):
+    notification.notify(
+        title=title,
+        message=message,
+        ticker="视频翻译与配音",
+        app_name="视频翻译与配音",#config.uilanglist['SP-video Translate Dubbing'],
+        app_icon=os.path.join(config.rootdir,'videotrans/styles/icon.ico'),
+        timeout=10  # Display duration in seconds
+    )

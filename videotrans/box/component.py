@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QVBoxLayout, QFileDialog, QPushButton, QPlainTextEdit
+from PySide6 import QtWidgets
+from PySide6.QtWidgets import QVBoxLayout, QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure.config import transobj
 
@@ -49,7 +49,14 @@ class Textedit(QPlainTextEdit):
         filepath = event.mimeData().text().replace('file:///', '')
         with open(filepath, 'r', encoding="utf-8") as f:
             self.setPlainText(f.read().strip())
-
+    def setText(self,filepath=None):
+        print(f'{filepath=}')
+        try:
+            with open(filepath, 'r', encoding="utf-8") as f:
+                self.setPlainText(f.read().strip())
+        except:
+            with open(filepath, 'r', encoding="GBK") as f:
+                self.setPlainText(f.read().strip())
 
 class TextGetdir(QPlainTextEdit):
     def __init__(self):
@@ -59,25 +66,19 @@ class TextGetdir(QPlainTextEdit):
     def dragEnterEvent(self, event):
         files = event.mimeData().text().split("\n")
         result = []
-        print(f'{files=}')
         for it in files:
             if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac"]:
                 result.append(it)
-        print(f'{result=}')
         if len(result) > 0:
             event.acceptProposedAction()
-            print("jieshou")
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        print('============')
         files = event.mimeData().text().split("\n")
         result = []
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
-        print(f'dropEvent( {result=})')
-        print(f'files={files}')
         for it in files:
             if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac"]:
                 f = it.replace('file:///', '')

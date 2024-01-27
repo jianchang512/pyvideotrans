@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from PyQt5.QtCore import QThread
+from PySide6.QtCore import QThread
 from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.task.trans_create import TransCreate
 from videotrans.tts import text_to_speech
-from videotrans.util.tools import set_process, delete_temp, get_subtitle_from_srt, pygameaudio, speed_up_mp3
+from videotrans.util.tools import set_process, delete_temp, get_subtitle_from_srt, pygameaudio, speed_up_mp3,send_notification
 
 
 class Worker(QThread):
@@ -34,7 +34,9 @@ class Worker(QThread):
                 self.video.run()
                 # 成功完成
                 config.params['line_roles'] = {}
-                set_process(f"{self.video.target_dir}##{int(time.time() - st)}", 'succeed')
+                dur=int(time.time() - st)
+                set_process(f"{self.video.target_dir}##{dur}", 'succeed')
+                send_notification(config.transobj["zhixingwc"],f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
 
                 try:
                     if os.path.exists(self.video.novoice_mp4):
@@ -45,6 +47,7 @@ class Worker(QThread):
             except Exception as e:
                 print(f"mainworker {str(e)}")
                 set_process(f"{str(e)}", 'error')
+                send_notification("Error",f"{str(e)}")
                 return
             finally:
                 self.video=None

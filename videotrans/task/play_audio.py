@@ -1,7 +1,7 @@
 import os
 
 # import pygame
-from PyQt5.QtCore import QThread, pyqtSignal
+from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure import config
 from videotrans.tts import text_to_speech

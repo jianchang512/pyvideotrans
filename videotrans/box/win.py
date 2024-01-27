@@ -4,10 +4,10 @@ import json
 import os
 import re
 import time
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QSettings, QUrl
-from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
+from PySide6 import QtWidgets
+from PySide6.QtCore import QSettings, QUrl
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
 from videotrans import VERSION
 from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
 from videotrans.box.logs_worker import LogsWorker
@@ -23,6 +23,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.initSize=None
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(f"{config.uilanglist['Video Toolbox']} {VERSION}")
@@ -90,7 +91,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
         self.hecheng_plaintext.setPlaceholderText(config.transobj['tuodonghuoshuru'])
-        self.hecheng_layout.insertWidget(0, self.hecheng_plaintext)
+        
+        self.hecheng_importbtn = QtWidgets.QPushButton(self.tab_2)
+        self.hecheng_importbtn.setObjectName("hecheng_importbtn")
+        self.hecheng_importbtn.setFixedWidth(100)
+        self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_plaintext))
+
+        self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
+        self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
         self.hecheng_language.addItems(['-'] + config.langnamelist)
         self.hecheng_role.addItems(['No'])
         self.hecheng_language.currentTextChanged.connect(self.hecheng_language_fun)
@@ -112,7 +121,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.geshi_input.setMinimumSize(300, 0)
 
         self.geshi_input.setPlaceholderText(config.transobj['tuodongdaoci'])
-        # self.geshi_input.setReadOnly(True)
+
+        self.geshi_importbtn = QtWidgets.QPushButton(self.tab_6)
+        self.geshi_importbtn.setObjectName("geshi_importbtn")
+        self.geshi_importbtn.setFixedWidth(100)
+        self.geshi_importbtn.setText(config.box_lang['import audio or video'])
+        self.geshi_importbtn.clicked.connect(lambda :self.geshi_import_fun(self.geshi_input))
+        self.horizontalLayout_14.insertWidget(0,self.geshi_importbtn)
+
         self.geshi_layout.insertWidget(0, self.geshi_input)
         self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
         self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
@@ -164,6 +180,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs.start()
         # self.show()
 
+    def geshi_import_fun(self,obj):
+        fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['selectmp4'], config.homedir,
+                                                 "Video files(*.mp4 *.avi *.mov *.m4a *.mp3 *.aac *.flac *.wav)")
+        if len(fnames) < 1:
+            return
+        for (i, it) in enumerate(fnames):
+            fnames[i] = it.replace('\\', '/')
+
+        if len(fnames) > 0:
+            obj.setPlainText("\n".join(fnames))
+
     # 获取wav件
     def hun_get_file(self, name='file1'):
         fname, _ = QFileDialog.getOpenFileName(self, "Select audio", os.path.expanduser('~'),
@@ -175,13 +202,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.hun_file2.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     # 文本翻译，导入文本文件
-    def fanyi_import_fun(self):
+    def fanyi_import_fun(self, obj=None):
         fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
                                                "Text files(*.srt *.txt)")
         if fname:
-            with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
-                self.fanyi_sourcetext.setPlainText(f.read().strip())
-
+            if obj is not None:
+                return obj.setText(fname.replace('file:///', ''))
+            try:
+                with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
+                    self.fanyi_sourcetext.setPlainText(f.read().strip())
+            except:
+                with open(fname.replace('file:///', ''), 'r', encoding='GBK') as f:
+                    self.fanyi_sourcetext.setPlainText(f.read().strip())
     def render_play(self, t):
         if t != 'ok':
             return
@@ -216,11 +248,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 音视频分离完成了
             self.yspfl_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
             self.yspfl_startbtn.setDisabled(False)
+
+            self.statuslabel.setText("")
         elif data['func_name'] == 'ysphb_end':
             self.ysphb_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
             self.ysphb_startbtn.setDisabled(False)
             self.ysphb_opendir.setDisabled(False)
             if data['type'] == 'end':
+                self.statuslabel.setText("")
                 basename = os.path.basename(self.ysphb_videoinput.text())
                 if os.path.exists(config.rootdir + f"/{basename}.srt"):
                     os.unlink(config.rootdir + f"/{basename}.srt")
@@ -233,12 +268,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if data['type'] == 'end':
                 self.shibie_startbtn.setText(config.transobj["zhixingwc"])
                 self.shibie_text.insertPlainText(data['text'])
+                self.statuslabel.setText("")
             else:
                 self.shibie_startbtn.setText(config.transobj["zhixinger"])
         elif data['func_name'] == 'hecheng_end':
             if data['type'] == 'end':
                 self.hecheng_startbtn.setText(config.transobj["zhixingwc"])
                 self.hecheng_startbtn.setToolTip(config.transobj["zhixingwc"])
+                self.statuslabel.setText("")
             else:
                 self.hecheng_startbtn.setText(data['text'])
                 self.hecheng_startbtn.setToolTip(data['text'])
@@ -251,14 +288,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText(config.transobj["zhixingwc"])
                 self.geshi_input.clear()
+                self.statuslabel.setText("")
         elif data['func_name'] == 'hun_end':
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
+            self.statuslabel.setText("")
         elif data['func_name'] == 'fanyi_end':
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(config.transobj['starttrans'])
             self.fanyi_targettext.setPlainText(data['text'])
             self.daochu.setDisabled(False)
+            self.statuslabel.setText("")
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -536,28 +576,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.addItems(config.edgeTTS_rolelist[vt])
         except:
             self.hecheng_role.addItems(['No'])
-
-        # end
-        # voice_list = config.edgeTTS_rolelist  # get_edge_rolelist()
-        # if not voice_list:
-        #     self.hecheng_language.setCurrentText('-')
-        #     QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nojueselist'])
-        #     return
-        # try:
-        #     vt = langlist[t][0].split('-')[0]
-        #     print(f"{vt=}")
-        #     if vt not in voice_list:
-        #         self.hecheng_role.addItems(['No'])
-        #         QMessageBox.critical(self, config.transobj['anerror'], f'{config.transobj["buzhichijuese"]}:{t}_{vt}')
-        #         return
-        #     if len(voice_list[vt]) < 2:
-        #         self.hecheng_language.setCurrentText('-')
-        #         QMessageBox.critical(self, config.transobj['anerror'], f'{config.transobj["buzhichijuese"]}:{t}_{vt}')
-        #         return
-        #     self.hecheng_role.addItems(voice_list[vt])
-        # except Exception as e:
-        #     print(e)
-        #     self.hecheng_role.addItems(["No"])
 
     # tab-5 转换
     def geshi_start_fun(self, ext):
