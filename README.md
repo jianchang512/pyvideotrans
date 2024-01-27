@@ -68,13 +68,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 3. `cd pyvideotrans`
 4. `python -m venv venv`
 5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
-6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps` （MacOS不支持CUDA，Mac下将 requirements.txt 替换为 requirements-mac.txt ）
+6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps` 
 
-如果要启用cuda加速，继续执行
-执行 `pip uninstall -y torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令执行。
+windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y torch` 卸载，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。(必须有N卡并且配置好CUDA环境)
 
 7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 请自行安装 ffmpeg，具体方法可"百度 or Google"
+
 8. `python sp.py` 打开软件界面
+
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 
@@ -193,6 +194,11 @@ split_threads=4
 ;如果显存不足，可以改为false，但字幕分割效果会相对较差
 vad=true
 
+;0 is use litter GPU,other is more
+temperature=0
+
+;false is litter GPU,ture is more
+condition_on_previous_text=false
 ```
 
 
@@ -201,11 +207,11 @@ vad=true
 
 **安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
 
-必须cuda和cudnn都安装好，否则会闪退
+必须 cuda和cudnn都安装好，否则可能会闪退。
 
-安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令去执行。
+安装好CUDA后，如果有问题，执行 `pip uninstall -y torch`，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。
  
-安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
+安装完成后执行 `python testcuda.py` 如果输出均是  True ,说明可用  
 
 有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
 
@@ -262,10 +268,6 @@ vad=true
 
    [点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
 
-
-10. 背景音乐丢失了
-
-   只识别人声并保存人声，即配音后音频中不会存在原背景音乐，如果你需要保留，请使用[人声背景音乐分离项目](https://github.com/jianchang512/vocal-separate)，将背景音提取出来，然后再和配音文件合并。
 
 11. 怎样使用自定义音色
    
