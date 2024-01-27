@@ -138,36 +138,43 @@ LANG_CODE = {
         ]
 }
 
-# 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等
+# 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
 def get_code(*,show_text=None):
-    return config.rev_langlist[show_text]
+    return config.langlist[show_text] if show_text in config.langlist else config.rev_langlist[show_text]
 
 # 根据显示的语言和翻译通道，获取源语言代码和目标语言代码
 # translate_type翻译通道
 # show_source翻译后显示的原语言名称
 # show_target 翻译后显示的目标语言名称
+#如果是cli，则show均是语言代码
 def get_source_target_code(*,show_source=None,show_target=None,translate_type=None):
     source_list=None
     target_list=None
     if not translate_type:
         return None,None
     lower_translate_type=translate_type.lower()
-
+    print(f'{lower_translate_type=},{GOOGLE_NAME.lower()}')
     if show_source:
-        source_list=LANG_CODE[config.rev_langlist[show_source]]
-    if show_target:
-        target_list=LANG_CODE[config.rev_langlist[show_target]]
-    if lower_translate_type==GOOGLE_NAME.lower():
+        source_list=LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
+    elif show_target:
+        target_list=LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
+    elif lower_translate_type==GOOGLE_NAME.lower():
+        print("here")
+        try:
+          print((source_list[0] if source_list else "-", target_list[0] if target_list else "-"))
+        except Exception as e:
+          print(e)
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
-    if lower_translate_type==BAIDU_NAME.lower():
+    elif lower_translate_type==BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
-    if lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
+    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
-    if lower_translate_type==TENCENT_NAME.lower():
+    elif lower_translate_type==TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    if lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
+    elif lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
         return (show_source, show_target)
-    raise Exception(f"[error]{translate_type=},{show_source=},{show_target=}")
+    else:
+        raise Exception(f"[error]{translate_type=},{show_source=},{show_target=}")
 
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
@@ -205,7 +212,7 @@ def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
         index=4
 
     if show_target:
-        target_list=LANG_CODE[config.rev_langlist[show_target]]
+        target_list= LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
         if target_list[index].lower()=='no':
             return config.transobj['deepl_nosupport']
 
@@ -214,32 +221,33 @@ def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*,show_source=None):
-    source_list=LANG_CODE[config.rev_langlist[show_source]]
+    source_list= LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
     return re.split(r'_|-',source_list[0])[0]
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
 def get_subtitle_code(*,show_target=None):
-    target_list=LANG_CODE[config.rev_langlist[show_target]]
+    target_list= LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
     return target_list[1]
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
 def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=True):
     _,target_language=get_source_target_code(show_target=target_language_name,translate_type=translate_type)
-    if translate_type==GOOGLE_NAME:
+    lower_translate_type=translate_type.lower()
+    if lower_translate_type==GOOGLE_NAME.lower():
         from videotrans.translator.google import trans
-    elif translate_type==BAIDU_NAME:
+    elif lower_translate_type==BAIDU_NAME.lower():
         from videotrans.translator.baidu import trans
-    elif translate_type==DEEPL_NAME:
+    elif lower_translate_type==DEEPL_NAME.lower():
         from videotrans.translator.deepl import trans
-    elif translate_type==DEEPLX_NAME:
+    elif lower_translate_type==DEEPLX_NAME.lower():
         from videotrans.translator.deeplx import trans
-    elif translate_type==TENCENT_NAME:
+    elif lower_translate_type==TENCENT_NAME.lower():
         from videotrans.translator.tencent import trans
-    elif translate_type==CHATGPT_NAME:
+    elif lower_translate_type==CHATGPT_NAME.lower():
         from videotrans.translator.chatgpt import trans
-    elif translate_type==GEMINI_NAME:
+    elif lower_translate_type==GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
-    elif translate_type==AZUREGPT_NAME:
+    elif lower_translate_type==AZUREGPT_NAME.lower():
         from videotrans.translator.azure import trans
     else:
         raise Exception(f"[error]{translate_type=},{target_language_name=}")
