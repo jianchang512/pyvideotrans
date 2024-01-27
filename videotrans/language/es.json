@@ -1,6 +1,8 @@
 {
   "translate_language" : {
     "qianyiwenjian" : "La vía de acceso o nombre de vídeo contiene espacios no ASCII.  Para evitar errores, se ha migrado a   ",
+    "bukebaoliubeijing": "Must have a voice actor and input video to preserve background music",
+    "Separating vocals and background music, which may take a longer time": "Separating vocals and background music, which may take a longer time",
     "mansuchucuo" : "Vídeo automático de error lento, por favor, intente cancelar la opción 'Video auto down' ",
     "zimuwenjianbuzhengque" : "Error de archivo de subtítulos, el tamaño es 0b ",
     "huituicpu" : "Error de ejecución en la GPU, retrotracción a la ejecución de la CPU ",
@@ -182,6 +184,8 @@
     "Video slow" : "Vídeo lento ",
     "shuoming05" : "Es necesario asegurarse de que hay una tarjeta gráfica NVIDIA y de que el entorno CUDA está correctamente configurado, no elegir ",
     "Enable CUDA?" : "¿Habilitar CUDA? ",
+    "Preserve background music": "Preserve BackMusic",
+    "If retained, the required time may be longer, please be patient and wait": "If retained, the required time may be longer, please be patient and wait",
     "Start" : "Inicio ",
     "Pause" : "Pausa ",
     "Import srt" : "Importar srt ",
@@ -228,6 +232,7 @@
   },
   "toolbox_lang" : {
     "Video Toolbox" : "Caja de herramientas ",
+    "import audio or video": "Import audio or video",
     "Start" : "Inicio ",
     "No voice video" : "No hay vídeo de voz ",
     "Open dir" : "Dir abierto ",
