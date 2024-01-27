@@ -69,6 +69,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 4. `python -m venv venv`
 5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
 6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps` （MacOS不支持CUDA，Mac下将 requirements.txt 替换为 requirements-mac.txt ）
+
+如果要启用cuda加速，继续执行
+执行 `pip uninstall -y torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令执行。
+
 7. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 请自行安装 ffmpeg，具体方法可"百度 or Google"
 8. `python sp.py` 打开软件界面
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
@@ -197,6 +201,8 @@ vad=true
 
 **安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
 
+必须cuda和cudnn都安装好，否则会闪退
+
 安装好CUDA后，如果有问题，执行 `pip uninstall torch torchaudio torchvision` 卸载，然后去 [https://pytorch.org/get-started/locally/]() 根据你的操作系统类型和 CUDA 版本，选择命令，将 `pip3` 改为 `pip`，再复制命令去执行。
  
 安装完成后执行 `python testcuda.py` 如果输出均是  True,说明可用  
@@ -300,7 +306,13 @@ lang =
 
 16. 尚未执行完毕就闪退
 
-极大概率是GPU显存不足，可以改为使用 medium模型，显存不足8G时，尽量避免使用largev-3模型，尤其是视频大于20M时，否则可能显存不足而崩溃
+如果启用了cuda并且电脑已安装好了cuda环境，但没有手动安装配置过cudnn，那么会出现该问题，去安装和cuda匹配的cudnn。比如你安装了cuda12.3，那么就需要下载cudnn for cuda12.x压缩包，然后解压后里面的3个文件夹复制到cuda安装目录下。具体教程参考 
+https://juejin.cn/post/7318704408727519270
+
+
+如果cudnn按照教程安装好了仍闪退，那么极大概率是GPU显存不足，可以改为使用 medium模型，显存不足8G时，尽量避免使用largev-3模型，尤其是视频大于20M时，否则可能显存不足而崩溃
+
+
 
 # CLI 命令行模式
 
