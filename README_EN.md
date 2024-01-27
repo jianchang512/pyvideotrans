@@ -130,6 +130,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/e02cf259-95d1-4044-8
 17. Set line role：You can set the pronunciation role for each line in the subtitle. First, select the TTS type and role on the left, and then click "Set line role" in the lower right corner of the subtitle area. In the text after each character name, fill in the line number that you want to use for dubbing, as shown in the following figure:
 
     ![](./images/pen2.png)
+    
+18. Preserve Background Music: If this option is selected, the software will first separate the human voices and background accompaniment in the video. The background accompaniment will ultimately be merged with the voice-over audio. As a result, the final video will retain the background accompaniment. **Note**: This function is based on uvr5. If you do not have sufficient Nvidia GPU memory, such as 8GB or more, we recommend caution as this may be very slow and highly resource-intensive.
+
+
 
 
 # Advanced Settings videotrans/set.ini
@@ -169,7 +173,8 @@ whisper_worker=2
 ;Reducing these two numbers will use less graphics memory
 beam_size=5
 best_of=5
-
+;vad set to false,use litter GPU memory
+vad=true
 ;Simultaneous execution quantity in pre split mode
 split_threads=4
 
@@ -260,6 +265,9 @@ lang =
 
 ```
 
+16. Crash before completion 
+
+The crash is very likely due to insufficient GPU memory. You can switch to using the medium model. When GPU memory is less than 8GB, try to avoid using the largev-3 model, especially when the video size is more than 20MB, otherwise the lack of memory might lead to a crash.
 
 
 
