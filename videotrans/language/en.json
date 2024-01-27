@@ -231,8 +231,8 @@
     "Whisper model": "Whisper model"
   },
   
-   "toolbox_lang": {
-    "import audio or video": "Import audio or video",
+"toolbox_lang": {
+  "import audio or video": "Import audio or video",
 	"Video Toolbox":"Video Toolbox",
 	"Start":"Start",
 	"No voice video":"No voice video",
