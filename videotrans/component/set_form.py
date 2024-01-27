@@ -1,7 +1,7 @@
 # set baidu appid and secrot
-from PyQt5 import QtCore
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialog
+from PySide6 import QtCore
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
 from videotrans.ui.azure import Ui_azureform

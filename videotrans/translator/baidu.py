@@ -43,6 +43,11 @@ def trans(text_list, target_language="en", *, set_p=True):
             res = res.json()
             if "error_code" in res or "trans_result" not in res:
                 config.logger.info(f'Google 返回响应:{res}')
+                if res['error_msg'].find('Access Limit')>-1:
+                    if set_p:
+                        tools.set_process("Limit Access, stop 5s")
+                    time.sleep(5)
+                    return trans(text_list=text_list, target_language=target_language,set_p=set_p)
                 raise Exception("[error]百度翻译失败:" + res['error_msg'])
 
             result = res['trans_result'][0]['dst']

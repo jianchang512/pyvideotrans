@@ -39,7 +39,8 @@ def parse_init():
         "whisper_worker": 1,
         "split_threads": 2,
         "beam_size": 1,
-        "best_of": 1
+        "best_of": 1,
+        "vad":True
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -68,7 +69,6 @@ def parse_init():
 defaulelang = locale.getdefaultlocale()[0][:2].lower()
 # 初始化一个字典变量
 settings = parse_init()
-print(settings)
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 if settings['lang']:
     defaulelang = settings['lang'].lower()
@@ -97,7 +97,7 @@ if sys.platform == 'win32':
 else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
-os.environ['QT_API'] = 'pyqt5'
+os.environ['QT_API'] = 'pyside6'
 # spwin主窗口
 queue_logs = Queue(1000)
 # box窗口
@@ -127,6 +127,7 @@ params = {
     "subtitle_language": "chi",
 
     "cuda": False,
+    "is_separate":False,
 
     "voice_role": "No",
     "voice_rate": "+0%",
@@ -194,4 +195,3 @@ btnkey = ""
 # 临时全局变量
 temp = []
 
-TOOLBOX=None

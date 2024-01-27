@@ -1,6 +1,6 @@
 # 从日志队列获取日志
 import requests
-from PyQt5.QtCore import QThread
+from PySide6.QtCore import QThread
 
 import videotrans
 from videotrans.util.tools import set_process, get_edge_rolelist, get_elevenlabs_role

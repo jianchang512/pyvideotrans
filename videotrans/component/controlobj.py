@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtWidgets import QPlainTextEdit
+from PySide6.QtWidgets import QPlainTextEdit
 
 
 class TextGetdir(QPlainTextEdit):

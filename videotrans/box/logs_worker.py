@@ -1,6 +1,6 @@
 # 从日志队列获取日志
 import json
-from PyQt5.QtCore import QThread, pyqtSignal
+from PySide6.QtCore import QThread, Signal as pyqtSignal
 from videotrans.configure.config import queuebox_logs
 
 class LogsWorker(QThread):

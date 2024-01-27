@@ -3,13 +3,14 @@ import shutil
 import threading
 import time
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSettings, Qt, QSize, QTimer
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout, QApplication
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtGui import QIcon, QGuiApplication
+from PySide6.QtCore import QSettings, Qt, QSize, QTimer
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout, QApplication,QDialogButtonBox
 import warnings
 
 from videotrans.task.get_role_list import GetRoleWorker
+from videotrans.util import tools
 
 warnings.filterwarnings('ignore')
 
@@ -18,6 +19,10 @@ from videotrans.configure import config
 from videotrans import VERSION, configure
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
+
+from videotrans.box import win
+from videotrans import configure
+            
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -28,22 +33,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shitingobj = None
         self.youw = None
         self.processbtns = {}
-        screen_resolution = QApplication.desktop().screenGeometry()
+        screen=QGuiApplication.primaryScreen()
+        screen_resolution = screen.geometry()
         width, height = screen_resolution.width(), screen_resolution.height()
         self.width = int(width * 0.8)
-        if self.width < 1400:
-            self.width = 1400
-        elif self.width > 1900:
-            self.width = 1800
-        self.resize(self.width, height - 220)
+        self.height=int(height*0.8)        
+        self.resize(self.width, self.height)
         # 当前所有可用角色列表
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']} {VERSION}"
+        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {' Q群 902124277' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
+        # 打开工具箱
+        configure.TOOLBOX = win.MainWindow()
+        configure.TOOLBOX.resize(int(width*0.7), int(height*0.7))
+        qtRect=configure.TOOLBOX.frameGeometry()
+        qtRect.moveCenter(screen.availableGeometry().center())
+        configure.TOOLBOX.move(qtRect.topLeft())
 
     def initUI(self):
 
@@ -187,7 +196,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
 
-        self.enable_cuda.stateChanged.connect(self.util.check_cuda)
+        self.is_separate.toggled.connect(self.util.is_separate_fun)
+        self.enable_cuda.toggled.connect(self.util.check_cuda)
         self.actionbaidu_key.triggered.connect(self.util.set_baidu_key)
         self.actionazure_key.triggered.connect(self.util.set_azure_key)
         self.actiongemini_key.triggered.connect(self.util.set_gemini_key)
@@ -244,12 +254,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msg.setWindowTitle(config.transobj['exit'])
             msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
             msg.setText(config.transobj['waitclear'])
-            msg.addButton(config.transobj['queding'], QMessageBox.AcceptRole)
+            msg.addButton(QMessageBox.Yes)
             msg.setIcon(QMessageBox.Information)
-            msg.exec_()  # 显示消息框
-            event.accept()
-        else:
-            event.accept()
+            msg.exec()  # 显示消息框
+        event.accept()
 
     def get_setting(self):
         # 从缓存获取默认配置

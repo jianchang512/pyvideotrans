@@ -1,6 +1,8 @@
 {
   "translate_language": {
     "selectmp4": "选择视频",
+    "bukebaoliubeijing": "必须选择配音角色和输入视频，才能保留背景声音",
+    "Separating vocals and background music, which may take a longer time": "正在分离人声和背景音乐，可能耗时较久",
     "selectsavedir": "选择翻译后存储目录",
     "proxyerrortitle": "代理错误",
     "proxyerrorbody": "无法访问google服务，请正确设置代理",
@@ -9,8 +11,8 @@
     "selectvideodir": "必须选择视频",
     "sourenotequaltarget": "源语言和目标语言不得相同",
     "shoundselecttargetlanguage": "必须选择一个目标语言",
-    "running": "执行中...",
-    "ing": "执行中...",
+    "running": "执行中..",
+    "ing": "执行中..",
     "exit": "退出",
     "end": "已结束(点击重新开始)",
     "stop": "已停止(点击重新开始)",
@@ -179,7 +181,9 @@
     "Voice acceleration?": "配音自动加速?",
     "Video slow": "视频自动慢速",
     "shuoming05": "必须确定有NVIDIA显卡且正确配置了CUDA环境，否则勿选",
-    "Enable CUDA?": "使用CUDA加速?",
+    "Enable CUDA?": "CUDA加速",
+    "Preserve background music": "保留背景音",
+    "If retained, the required time may be longer, please be patient and wait": "若保留，所需时间可能较长，请耐心等待",
     "Start": "开始",
     "Pause": "暂停",
     "Import srt": "导入字幕",
@@ -225,6 +229,7 @@
     "Whisper model": "语音模型"
   },
   "toolbox_lang": {
+    "import audio or video": "导入音视频文件",
 	"Video Toolbox":"视频工具箱",
 	"Start":"开始执行",
 	"No voice video":"无声视频",
@@ -273,7 +278,7 @@
 	"Target lang":"目标语言",
 	"Proxy":"代理地址",
 	"Failed to access Google services. Please set up the proxy correctly":"网络连接不通，请填写代理地址",
-	"Import text to be translated from a file..":"从文件导入待翻译文本...",
+	"Import text to be translated from a file..":"从文件导入文本...",
 	"shuoming1":"如果只是纯文字，无需选中。\n如果是srt字幕格式，需选中，将不翻译字幕中的行号和时间值，并按字幕原格式返回。\n不选则一次性将全部内容发给翻译引擎处理，标点、符号、格式可能有变化。\n",
 	"export..":"导出结果..",
 	"Start>":"立即翻译>",

@@ -60,3 +60,10 @@
 - [againstthewindtofly](https://github.com/againstthewindtofly) / 2024-1-15 捐助 50 元
 - [wxxvc](https://github.com/wxxvc) / 2024-1-16 捐助 10 元
 - [喵の左爪 / 2024-1-16 捐助5元](https://space.bilibili.com/19225866)
+- * 眼 / 2024-1-20 捐助 8.88 元
+- * 工 / 2024-1-21 捐助 10 元
+- D* t / 2024-1-21 捐助 10 元
+- L* N / 2024-1-23 捐助 5 元
+- M* / 2024-1-24 捐助 10 元
+- m*l / 2024-1-24 捐助 10 元
+- * 生 / 2024-1-25 捐助 18.88 元

@@ -5,7 +5,7 @@ import re
 import threading
 import time
 from datetime import timedelta
-
+import torch
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
@@ -17,8 +17,15 @@ from videotrans.util import tools
 # 统一入口
 def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True):
     if type == "all":
-        return all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
-    return split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
+        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
+    else:
+        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
+    try:
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except:
+        pass
+    return rs
 
 
 #
@@ -51,12 +58,13 @@ def shorten_voice(normalized_sound):
 
 
 def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=None, normalized_sound=None,model_name="base"):
-    r = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+    model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
                      compute_type=config.settings['cuda_com_type'],
                      download_root=config.rootdir + "/models",
                      cpu_threads=1,
                      num_workers=1, local_files_only=True)
     if config.current_status != 'ing' and config.box_status!='ing':
+        del model
         raise config.Myexcept("Has stop")
     start_time, end_time, buffered = duration
     if start_time == end_time:
@@ -67,10 +75,11 @@ def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=N
     audio_chunk.export(chunk_filename, format="wav")
 
     if config.current_status != 'ing':
+        del model
         raise config.Myexcept("Has stop .")
     text = ""
     try:
-        segments, _ = r.transcribe(chunk_filename,
+        segments, _ = model.transcribe(chunk_filename,
                                    beam_size=config.settings['beam_size'],
                                    best_of=config.settings['best_of'],
                                    condition_on_previous_text=False, 
@@ -79,6 +88,7 @@ def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=N
             text += t.text + " "
     except Exception as e:
         tools.set_process("[error]:" + str(e))
+        del model
         return
 
     if config.current_status == 'stop':
@@ -86,6 +96,7 @@ def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=N
     text = f"{text.capitalize()}. ".replace('&#39;', "'")
     text = re.sub(r'&#\d+;', '', text).strip()
     if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+        del model
         return
     start = timedelta(milliseconds=start_time)
     stmp = str(start).split('.')
@@ -97,7 +108,10 @@ def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=N
         end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
     srt_line = {"line": line, "time": f"{start} --> {end}", "text": text}
     config.temp[i] = srt_line
-    r = None
+    try:
+        del model
+    except:
+        pass
 
 
 # 预先分割识别
@@ -113,8 +127,11 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
             raise config.Myexcept(config.transobj["createdirerror"])
-    wavfile = cache_folder + "/tmp.wav"
-    tools.m4a2wav(audio_file, wavfile)
+    if not config.params['is_separate']:
+        wavfile = cache_folder + "/tmp.wav"
+        tools.m4a2wav(audio_file, wavfile)
+    else:
+        wavfile=audio_file
     normalized_sound = AudioSegment.from_wav(wavfile)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
     if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
@@ -166,7 +183,6 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
     # 写入原语言字幕到目标文件夹
-    # self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
     if os.path.exists(wavfile):
         os.unlink(wavfile)
     return raw_subtitles
@@ -177,6 +193,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
     if set_p:
         tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
     down_root = os.path.normpath(config.rootdir + "/models")
+    model=None
     try:
         start_t = time.time()
         model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
@@ -185,13 +202,16 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if config.settings['whisper_threads'] < 1 else config.settings['whisper_threads'],
                              local_files_only=True)
-        wavfile = cache_folder + "/tmp.wav"
-        tools.m4a2wav(audio_file, wavfile)
+        if not config.params['is_separate']:
+            wavfile = cache_folder + "/tmp.wav"
+            tools.m4a2wav(audio_file, wavfile)
+        else:
+            wavfile=audio_file
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=False, 
-                                          vad_filter=True,
+                                          vad_filter=config.settings['vad'],
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
                                               max_speech_duration_s=15), language=detect_language)
@@ -201,6 +221,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         sidx = -1
         for segment in segments:
             if config.current_status != 'ing' and config.box_status !='ing':
+                del model
                 raise config.Myexcept("Had stop")
             sidx += 1
             start = int(segment.start * 1000)
@@ -221,11 +242,18 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                 tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
                 tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}, {round(segment.end * 100 / info.duration, 2)}%')
 
+
         # 写入翻译前的原语言字幕到目标文件夹
         print(f'用时 {time.time() - start_t}')
-        model = None
+
         if os.path.exists(wavfile):
             os.unlink(wavfile)
         return raw_subtitles
     except Exception as e:
         raise Exception(f'whole all {str(e)}')
+    finally:
+        try:
+            if model:
+                del model
+        except:
+            pass
