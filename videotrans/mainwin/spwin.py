@@ -271,12 +271,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
 
-        if self.settings.value("chatgpt_template", ""):
-            config.params["chatgpt_template"] = self.settings.value("chatgpt_template", "")
-        if self.settings.value("azure_template", ""):
-            config.params["azure_template"] = self.settings.value("azure_template", "")
-        if self.settings.value("gemini_template", ""):
-            config.params["gemini_template"] = self.settings.value("gemini_template", "")
+        #if self.settings.value("chatgpt_template", ""):
+        #    config.params["chatgpt_template"] = self.settings.value("chatgpt_template", "")
+        #if self.settings.value("azure_template", ""):
+        #    config.params["azure_template"] = self.settings.value("azure_template", "")
+        #if self.settings.value("gemini_template", ""):
+        #    config.params["gemini_template"] = self.settings.value("gemini_template", "")
 
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
         if config.params["chatgpt_model"] == 'large':

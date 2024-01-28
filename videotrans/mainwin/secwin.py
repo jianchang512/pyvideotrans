@@ -16,7 +16,6 @@ from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_
 from videotrans.configure import config
 
 
-
 class ClickableProgressBar(QLabel):
     def __init__(self):
         super().__init__()
@@ -78,7 +77,6 @@ class SecWindow():
         self.main = main
         # QTimer.singleShot(100, self.open_toolbox)
 
-
     def openExternalLink(self, url):
         try:
             QDesktopServices.openUrl(url)
@@ -86,15 +84,15 @@ class SecWindow():
             pass
         return
 
-    def is_separate_fun(self,state):
+    def is_separate_fun(self, state):
         print(f'{state=}')
-        if state and (len(config.queue_mp4)<1 or self.main.voice_role.currentText()=='No'):
-            config.params['is_separate']=False
+        if state and (len(config.queue_mp4) < 1 or self.main.voice_role.currentText() == 'No'):
+            config.params['is_separate'] = False
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
             self.main.is_separate.setDisabled(True)
             self.main.is_separate.setChecked(False)
         else:
-            config.params['is_separate']=True if state else False
+            config.params['is_separate'] = True if state else False
         self.main.is_separate.setDisabled(False)
         print(config.params['is_separate'])
 
@@ -543,7 +541,8 @@ class SecWindow():
             checked_checkbox_names = get_checked_boxes(self.main.w)
 
             if len(checked_checkbox_names) < 1:
-                return QMessageBox.critical(self.main.w, config.transobj['anerror'], config.transobj['zhishaoxuanzeyihang'])
+                return QMessageBox.critical(self.main.w, config.transobj['anerror'],
+                                            config.transobj['zhishaoxuanzeyihang'])
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
@@ -554,7 +553,7 @@ class SecWindow():
                 config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
             print(config.params['line_roles'])
 
-        from videotrans.component import  SetLineRole
+        from videotrans.component import SetLineRole
         self.main.w = SetLineRole()
         box = QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
@@ -768,7 +767,7 @@ class SecWindow():
             config.params["gemini_template"] = template
             self.main.w.close()
 
-        from videotrans.component import  GeminiForm
+        from videotrans.component import GeminiForm
         self.main.w = GeminiForm()
         if config.params["gemini_key"]:
             self.main.w.gemini_key.setText(config.params["gemini_key"])
@@ -811,7 +810,7 @@ class SecWindow():
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
         try:
-            rs=is_allow_translate(translate_type=name,only_key=True)
+            rs = is_allow_translate(translate_type=name, only_key=True)
             if rs is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return
@@ -829,12 +828,14 @@ class SecWindow():
 
     # 判断模型是否存在
     def check_whisper_model(self, name):
-        if not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{name}"):
-            self.main.statusLabel.setText(
-                config.transobj['downloadmodel'] + f" ./models/models--Systran--faster-whisper-{name}")
+        file=f'{config.rootdir}/models/models--Systran--faster-whisper-{name}/snapshots'
+        if not os.path.exists(file):
             QMessageBox.critical(self.main, config.transobj['downloadmodel'], f"./models/")
+            return False
         else:
-            self.main.statusLabel.setText(config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
+            self.main.statusLabel.setText(
+                config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
+        return True
 
     # 更新执行状态
     def update_status(self, type):
@@ -856,7 +857,7 @@ class SecWindow():
             if self.main.task:
                 self.main.task.requestInterruption()
                 self.main.task.quit()
-                self.main.task=None
+                self.main.task = None
         else:
             # 重设为开始状态
             self.disabled_widget(True)
@@ -883,7 +884,7 @@ class SecWindow():
     # 中英文下试听配音
     def listen_voice_fun(self):
         code = get_code(show_text=self.main.target_language.currentText())
-        if code =="en":
+        if code == "en":
             text = config.params['listen_text_en']
             lang = "en"
         elif code in ["zh-cn", "zh-tw"]:
@@ -918,7 +919,7 @@ class SecWindow():
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['yunxingbukerole'])
             self.main.voice_role.setCurrentText(config.params["voice_role"])
             return
-        if role=='No':
+        if role == 'No':
             return
         config.params["voice_role"] = role
         code = get_code(show_text=self.main.target_language.currentText())
@@ -1004,13 +1005,13 @@ class SecWindow():
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(
             f'{config.transobj["waitforstart"] if len(self.main.processbtns.keys()) > 0 else config.transobj["kaishiyuchuli"]}' + " " + txt)
-        clickable_progress_bar.setMinimumSize(500, 50)        
+        clickable_progress_bar.setMinimumSize(500, 50)
         # # 将按钮添加到布局中
         self.main.processlayout.addWidget(clickable_progress_bar)
         return clickable_progress_bar
 
     # 检测各个模式下参数是否设置正确
-    def check_mode(self, *, txt=None, model=None):
+    def check_mode(self, *, txt=None):
         # 如果是 从字幕配音模式, 只需要字幕和目标语言，不需要翻译和视频
         if self.main.app_mode == 'peiyin':
             if not txt or config.params['voice_role'] == 'No' or config.params['target_language'] == '-':
@@ -1028,7 +1029,7 @@ class SecWindow():
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         # 不需要翻译
         if self.main.app_mode == 'hebing':
-            if len(config.queue_mp4)<1 or config.params['subtitle_type'] < 1 or not txt:
+            if len(config.queue_mp4) < 1 or config.params['subtitle_type'] < 1 or not txt:
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['hebingmoshisrt'])
                 return False
             config.params['target_language'] = '-'
@@ -1042,14 +1043,10 @@ class SecWindow():
             return True
         if self.main.app_mode == 'tiqu_no' or self.main.app_mode == 'tiqu':
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            if len(config.queue_mp4)<1:
+            if len(config.queue_mp4) < 1:
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['selectvideodir'])
                 return False
-            elif not os.path.exists(model):
-                QMessageBox.critical(self.main, config.transobj['downloadmodel'], f" ./models/")
-                self.main.statusLabel.setText(config.transobj[
-                                                  'downloadmodel'] + f" ./models/models--Systran--faster-whisper-{config.params['whisper_model']}")
-                return False
+
             if self.main.app_mode == 'tiqu' and config.params['target_language'] == '-':
                 # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['fanyimoshi1'])
@@ -1079,7 +1076,7 @@ class SecWindow():
             return True
         if self.main.target_language.currentText() == '-' or self.main.source_language.currentText() == '-':
             return True
-        if self.main.target_language.currentText() == '-' == self.main.source_language.currentText() == '-':
+        if self.main.target_language.currentText() == self.main.source_language.currentText():
             return True
         if self.main.subtitle_area.toPlainText().strip():
             return True
@@ -1116,9 +1113,8 @@ class SecWindow():
         # 原始语言
         config.params['source_language'] = self.main.source_language.currentText()
         # 目标语言
-        target_language=self.main.target_language.currentText()
+        target_language = self.main.target_language.currentText()
         config.params['target_language'] = target_language
-
 
         # 配音角色
         config.params['voice_role'] = self.main.voice_role.currentText()
@@ -1130,7 +1126,7 @@ class SecWindow():
         config.params['video_autorate'] = self.main.video_autorate.isChecked()
         # 语音模型
         config.params['whisper_model'] = self.main.whisper_model.currentText()
-        model = config.rootdir + f"/models/models--Systran--faster-whisper-{config.params['whisper_model']}"
+
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
 
@@ -1148,10 +1144,8 @@ class SecWindow():
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
 
-
-
         # 综合判断
-        if len(config.queue_mp4)<1 and not txt:
+        if len(config.queue_mp4) < 1 and not txt:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukedoubucunzai'])
             return False
         # tts类型
@@ -1166,21 +1160,24 @@ class SecWindow():
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
 
-
         # 未主动选择模式，则判断设置情况应该属于什么模式
         if self.main.app_mode == 'biaozhun':
-            if len(config.queue_mp4)>0 and config.params['subtitle_type'] < 1 and config.params['voice_role']=='No':
+            if len(config.queue_mp4) > 0 and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No':
                 # tiqu 如果 存在视频但 无配音 无嵌入字幕，则视为提取
-                self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params['target_language'] or config.params['target_language'] == '-' else 'tiqu'
-            elif len(config.queue_mp4)>0 and txt and config.params['subtitle_type'] > 0 and  config.params['voice_role'] == 'No':
+                self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params[
+                    'target_language'] or config.params['target_language'] == '-' else 'tiqu'
+            elif len(config.queue_mp4) > 0 and txt and config.params['subtitle_type'] > 0 and config.params[
+                'voice_role'] == 'No':
                 # hebing 存在视频，存在字幕，字幕嵌入，不配音
                 self.main.app_mode = 'hebing'
-            elif len(config.queue_mp4)<1 and txt:
+            elif len(config.queue_mp4) < 1 and txt:
                 # peiyin
                 self.main.app_mode = 'peiyin'
-        if not self.check_mode(txt=txt, model=model):
+        if not self.check_mode(txt=txt):
             return False
-
+        # 除了 peiyin  hebing模式，其他均需要检测模型是否存在
+        if self.main.app_mode not in ['hebing','peiyin'] and not self.check_whisper_model(config.params['whisper_model']):
+            return False
 
         if config.params["cuda"]:
             import torch
@@ -1190,13 +1187,15 @@ class SecWindow():
                 if os.environ.get('CUDA_OK'):
                     os.environ.pop('CUDA_OK')
 
+
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
-            rs=is_allow_translate(translate_type=config.params['translate_type'],show_target=config.params['target_language'])
+            rs = is_allow_translate(translate_type=config.params['translate_type'],
+                                    show_target=config.params['target_language'])
             if rs is not True:
                 # 不是True，有错误
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
-                return
+                return False
 
         self.main.save_setting()
         self.update_status("ing")
@@ -1250,9 +1249,9 @@ class SecWindow():
         if d['type'] == "subtitle":
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
-        elif d['type']=='add_process':
+        elif d['type'] == 'add_process':
             self.main.processbtns[d['text']] = self.add_process_btn(d['text'])
-        elif d['type']=='rename':
+        elif d['type'] == 'rename':
             self.main.show_tips.setText(d['text'])
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(config.params['target_dir'])
@@ -1304,9 +1303,9 @@ class SecWindow():
             self.main.container.addWidget(usetype)
         elif d['type'] == 'update_download' and self.main.youw is not None:
             self.main.youw.logs.setText("Down done succeed" if d['text'] == 'ok' else d['text'])
-        elif d['type']=='open_toolbox':
+        elif d['type'] == 'open_toolbox':
             print("open toolbox")
-            self.open_toolbox(0,True)
+            self.open_toolbox(0, True)
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):

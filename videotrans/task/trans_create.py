@@ -10,13 +10,17 @@ import threading
 import time
 
 # import whisper
+import urllib
+
+import requests
 from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.configure.config import transobj, logger, homedir, Myexcept
 from videotrans.recognition import run as run_recogn
 from videotrans.tts import run as run_tts
-from videotrans.translator import run as  run_trans, get_audio_code, get_subtitle_code
+from videotrans.translator import run as  run_trans, get_audio_code, get_subtitle_code, GOOGLE_NAME
+from videotrans.util import tools
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, \
     get_lastjpg_fromvideo, is_novoice_mp4, cut_from_video, get_video_duration, delete_temp, \
     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, create_video_byimg, concat_multi_mp4, \
@@ -101,7 +105,7 @@ class TransCreate():
         self.target_dir = self.target_dir.replace('\\', '/').replace('//', '/')
         config.params['target_dir'] = self.target_dir
         # 真实具体到每个文件目标
-        self.target_dir += f"/{self.noextname}"
+        self.target_dir = os.path.join(self.target_dir, self.noextname).replace('\\','/')
 
         # 临时文件夹
         self.cache_folder = f"{config.rootdir}/tmp/{self.noextname}"
@@ -179,10 +183,7 @@ class TransCreate():
 
         #### 开始识别
         self.step = 'regcon_start'
-        try:
-            self.recogn()
-        except Exception as e:
-            raise Exception(f'recogn error:{str(e)}')
+        self.recogn()
         self.step = 'regcon_end'
 
         ##### 翻译阶段
@@ -246,13 +247,20 @@ class TransCreate():
             set_process(transobj["running"])
             time.sleep(1)
         # 识别为字幕
-        raw_subtitles = run_recogn(
-            type=config.params['whisper_type'],
-            audio_file=self.targetdir_source_wav if not config.params['is_separate'] else self.targetdir_source_regcon,
-            detect_language=self.detect_language,
-            cache_folder=self.cache_folder,
-            model_name=config.params['whisper_model'])
-        # print(raw_subtitles)
+        try:
+            raw_subtitles = run_recogn(
+                type=config.params['whisper_type'],
+                audio_file=self.targetdir_source_wav if not config.params['is_separate'] else self.targetdir_source_regcon,
+                detect_language=self.detect_language,
+                cache_folder=self.cache_folder,
+                model_name=config.params['whisper_model'])
+        except Exception as e:
+            msg=str(e)
+            if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
+                msg=f'请打开 github.com/jianchang512/pyvideotrans 查看常见问题【缺少cublasxx.dll】' if config.defaulelang=='zh' else f'Open web github.com/jianchang512/pyvideotrans and search [missing cublasxx.dll]'
+            raise Exception(f'[error]{msg}')
+        if len(raw_subtitles)<1:
+            raise Exception(f'[error]:recogn result is empty')
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
     # 翻译字幕
@@ -283,12 +291,42 @@ class TransCreate():
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
         if not os.path.exists(self.targetdir_source_sub) or os.path.exists(self.targetdir_target_sub):
             return True
+        # 测试翻译
+        if config.params['translate_type'].lower()==GOOGLE_NAME.lower():
+            set_process("Test Google connecting...")
+            if not self.testgoogle():
+                raise Exception(f'无法连接Google，请正确设置代理，例如v2ray默认是http://127.0.0.1:10809,clash默认http://127.0.0.1:7890或开启全局代理')
         set_process(transobj['starttrans'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
+        if len(rawsrt)<1:
+            raise Exception(f"[error]：Subtitles is empty,cannot translate")
         target_srt = run_trans(translate_type=config.params['translate_type'], text_list=rawsrt,
                                target_language_name=config.params['target_language'], set_p=True)
         self.save_srt_target(target_srt, self.targetdir_target_sub)
+
+    # 测试google是否可用
+    def testgoogle(self):
+        text="你好"
+        url = f"https://translate.google.com/m?sl=auto&tl=en&hl=en&q={urllib.parse.quote(text)}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        serv = tools.set_proxy()
+        proxies = None
+        if serv:
+            proxies = {
+                'http://': serv,
+                'https://': serv
+            }
+        result=False
+        try:
+            response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
+            if response.status_code == 200:
+                result=True
+        except:
+            pass
+        return result
 
     # 配音处理
     def dubbing(self):
@@ -314,11 +352,11 @@ class TransCreate():
         time.sleep(3)
         try:
             res = self.before_tts()
-            if isinstance(res, tuple):
+            if isinstance(res, tuple) and len(res)==2:
                 self.exec_tts(res[0], res[1])
         except Exception as e:
             delete_temp(self.noextname)
-            raise Myexcept("[error] tts" + str(e))
+            raise Myexcept("[error]TTS:" + str(e))
 
     # 合并操作
     def hebing(self):
@@ -328,7 +366,7 @@ class TransCreate():
             self.compos_video()
         except Exception as e:
             delete_temp(self.noextname)
-            raise Myexcept(f"[error] hebing compose:last step error " + str(e))
+            raise Myexcept(f"[error]Compose:" + str(e))
 
     def merge_audio_segments(self, segments, start_times, total_duration):
         merged_audio = AudioSegment.empty()
@@ -362,9 +400,12 @@ class TransCreate():
             merged_audio.export(f'{self.target_dir}/{config.params["target_language"]}-nocut.wav', format="wav")
             merged_audio = merged_audio[:total_duration]
         # 创建配音后的文件
-        wavfile = self.cache_folder + "/target.wav"
-        merged_audio.export(wavfile, format="wav")
-        wav2m4a(wavfile, self.targetdir_target_wav)
+        try:
+            wavfile = self.cache_folder + "/target.wav"
+            merged_audio.export(wavfile, format="wav")
+            wav2m4a(wavfile, self.targetdir_target_wav)
+        except Exception as e:
+            raise Exception(f'[error]merge_audio:{str(e)}')
         return merged_audio
 
     # 保存字幕文件 到目标文件夹
@@ -374,9 +415,12 @@ class TransCreate():
             txt = ""
             for it in srtstr:
                 txt += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-            with open(file, 'w', encoding="utf-8") as f:
-                f.write(txt.strip())
-                set_process(txt.strip(), 'replace_subtitle')
+            try:
+                with open(file, 'w', encoding="utf-8") as f:
+                    f.write(txt.strip())
+                    set_process(txt.strip(), 'replace_subtitle')
+            except Exception as e:
+                raise Exception(f'[error]Save srt:{str(e)}')
         return True
 
     # 配音预处理，去掉无效字符，整理开始时间
@@ -389,9 +433,9 @@ class TransCreate():
             try:
                 subs = get_subtitle_from_srt(self.targetdir_target_sub)
                 if len(subs) < 1:
-                    raise Exception(" subtitles size is 0")
+                    raise Exception("subtitles size is 0")
             except Exception as e:
-                raise Myexcept(f'[error] before tts srt error:{str(e)}')
+                raise Myexcept(f'[error] tts srt:{str(e)}')
 
             rate = int(str(config.params['voice_rate']).replace('%', ''))
             if rate >= 0:
@@ -430,7 +474,7 @@ class TransCreate():
         total_length = int(total_length)
         queue_copy = copy.deepcopy(queue_tts)
         if len(queue_copy) < 1:
-            raise Myexcept(f'text to speech，queue_tts length is 0')
+            raise Myexcept(f'[error]Queue tts length is 0')
         # 具体配音操作
         run_tts(queue_tts=queue_tts, set_p=True)
 
@@ -498,7 +542,7 @@ class TransCreate():
             f.write(srt.strip())
         try:
             # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
-            if total_length > 0 and queue_copy[-1]['end_time'] > total_length:
+            if total_length > 0 and (queue_copy[-1]['end_time'] > total_length):
                 # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
                 offset = int(queue_copy[-1]['end_time'] - total_length)
                 total_length += offset
@@ -506,7 +550,7 @@ class TransCreate():
                 self.novoicemp4_add_time(offset)
                 set_process(f'{transobj["shipinjiangsu"]} {offset}ms')
         except Exception as e:
-            set_process(f"[warn] exec_tts text to speech:" + str(e))
+            set_process(f"[warn] video end extend is ignore:" + str(e))
         self.merge_audio_segments(segments, start_times, total_length)
         return True
 
@@ -739,12 +783,12 @@ class TransCreate():
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
         # 需要配音,选择了角色，并且不是 提取模式 合并模式
-        if config.params['voice_role'] not in ['No', 'no', '-'] and self.app_mode not in ['tiqu', 'tiqu_no', 'hebing']:
+        if config.params['voice_role'] != 'No' and self.app_mode not in ['tiqu', 'tiqu_no', 'hebing']:
             if not os.path.exists(self.targetdir_target_wav):
-                raise Myexcept(f"[error] dubbing file error: {self.targetdir_target_wav}")
+                raise Myexcept(f"[error] not exists:{self.targetdir_target_wav}")
         # 需要字幕
         if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
-            raise Myexcept(f"[error]no vail srt file {self.targetdir_target_sub}")
+            raise Myexcept(f"[error]not exist srt: {self.targetdir_target_sub}")
         if self.precent < 95:
             self.precent += 1
         if config.params['subtitle_type'] == 1:
@@ -752,7 +796,7 @@ class TransCreate():
             try:
                 subs = get_subtitle_from_srt(self.targetdir_target_sub)
             except Exception as e:
-                raise Myexcept(f'subtitles srt error:{str(e)}')
+                raise Myexcept(f'[error]Subtitles error:{str(e)}')
 
             maxlen = 36 if config.params['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
             subtitles = ""

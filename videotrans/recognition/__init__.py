@@ -56,64 +56,6 @@ def shorten_voice(normalized_sound):
         nonsilent_data.append((start_time, end_time, False))
     return nonsilent_data
 
-#
-# def shibie(*, duration=None, i=None, line=None, tmp_path=None, detect_language=None, normalized_sound=None,model_name="base"):
-#     model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
-#                      compute_type=config.settings['cuda_com_type'],
-#                      download_root=config.rootdir + "/models",
-#                      cpu_threads=1,
-#                      num_workers=1, local_files_only=True)
-#     if config.current_status != 'ing' and config.box_status!='ing':
-#         del model
-#         raise config.Myexcept("Has stop")
-#     start_time, end_time, buffered = duration
-#     if start_time == end_time:
-#         end_time += 200
-#
-#     chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
-#     audio_chunk = normalized_sound[start_time:end_time]
-#     audio_chunk.export(chunk_filename, format="wav")
-#
-#     if config.current_status != 'ing':
-#         del model
-#         raise config.Myexcept("Has stop .")
-#     text = ""
-#     try:
-#         segments, _ = model.transcribe(chunk_filename,
-#                                    beam_size=config.settings['beam_size'],
-#                                    best_of=config.settings['best_of'],
-#                                    condition_on_previous_text=False,
-#                                    temperature=0,
-#                                    language=detect_language)
-#         for t in segments:
-#             text += t.text + " "
-#     except Exception as e:
-#         tools.set_process("[error]:" + str(e))
-#         del model
-#         return
-#
-#     if config.current_status == 'stop':
-#         raise config.Myexcept("Has stop it.")
-#     text = f"{text.capitalize()}. ".replace('&#39;', "'")
-#     text = re.sub(r'&#\d+;', '', text).strip()
-#     if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-#         del model
-#         return
-#     start = timedelta(milliseconds=start_time)
-#     stmp = str(start).split('.')
-#     if len(stmp) == 2:
-#         start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-#     end = timedelta(milliseconds=end_time)
-#     etmp = str(end).split('.')
-#     if len(etmp) == 2:
-#         end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-#     srt_line = {"line": line, "time": f"{start} --> {end}", "text": text}
-#     config.temp[i] = srt_line
-#     try:
-#         del model
-#     except:
-#         pass
-
 
 # 预先分割识别
 def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True):
@@ -133,6 +75,8 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         tools.m4a2wav(audio_file, wavfile)
     else:
         wavfile=audio_file
+    if not os.path.exists(wavfile):
+        raise Exception(f'[error]not exists {wavfile}')
     normalized_sound = AudioSegment.from_wav(wavfile)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
     if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
@@ -174,14 +118,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
                                            beam_size=config.settings['beam_size'],
                                            best_of=config.settings['best_of'],
                                            condition_on_previous_text=config.settings['condition_on_previous_text'],
-                                           temperature=0 if config.settings['temperature']==0 else [
-            0.0,
-            0.2,
-            0.4,
-            0.6,
-            0.8,
-            1.0,
-        ],
+                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
                                            language=detect_language)
             for t in segments:
                 text += t.text + " "
@@ -238,20 +175,15 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             tools.m4a2wav(audio_file, wavfile)
         else:
             wavfile=audio_file
+        if not os.path.exists(wavfile):
+            raise Exception(f'[error]not exists {wavfile}')
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
                                           vad_filter=config.settings['vad'],
 
-                                          temperature=0 if config.settings['temperature']==0 else [
-            0.0,
-            0.2,
-            0.4,
-            0.6,
-            0.8,
-            1.0,
-        ],
+                                          temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
                                               max_speech_duration_s=15), language=detect_language)
