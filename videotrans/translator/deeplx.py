@@ -42,22 +42,22 @@ def trans(text_list, target_language="en", *, set_p=True):
             url=config.params['deeplx_address'].replace('/translate','')+'/translate'
             if not url.startswith('http'):
                 url=f"http://{url}"
-            response = httpx.post(url=url,data=json.dumps(data))
             try:
+                response = httpx.post(url=url,data=json.dumps(data))
                 result = response.json()
             except Exception as e:
-                config.logger.info(f'DeepLx 返回响应:{response}')
-                msg = f"[error]deeplx error: {response}"
+                msg = f"[error]DeepLx出错了，请更换翻译渠道: {str(e)}"
+                config.logger.info(f'DeepLx {msg}')
                 raise Exception(msg)
 
             if response.status_code != 200 or result['code'] != 200:
-                config.logger.error(f"[error]deeplx translate:{result=}")
-                raise Exception(f"[error]deeplx translate:{response.status_code=},{result['code']=}")
+                msg=f"[error]DeepLx出错了，请更换翻译渠道:{response=}"
+                config.logger.error(msg)
+                raise Exception(msg)
             result=result['data'].strip().replace('&#39;','"').split("\n")
             if set_p:
                 tools.set_process("\n\n".join(result), 'subtitle')
             result_length = len(result)
-            print(f'{result_length=}')
             while result_length < source_length:
                 result.append("")
                 result_length += 1
@@ -65,7 +65,7 @@ def trans(text_list, target_language="en", *, set_p=True):
             target_text.extend(result)
         except Exception as e:
             error = str(e)
-            raise Exception(f'DeepLx error:{str(error)}')
+            raise Exception(f'[error]DeepLx出错了，请更换翻译渠道:{str(error)}')
 
     if isinstance(text_list, str):
         return "\n".join(target_text)

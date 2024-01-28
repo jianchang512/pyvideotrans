@@ -251,4 +251,7 @@ def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=Tru
         from videotrans.translator.azure import trans
     else:
         raise Exception(f"[error]{translate_type=},{target_language_name=}")
-    return trans(text_list,target_language,set_p=set_p)
+    try:
+        return trans(text_list,target_language,set_p=set_p)
+    except Exception as e:
+        raise Exception(f'[error]: {str(e)}')
