@@ -25,6 +25,7 @@ class Ui_geminiform(object):
         self.gemini_template = QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_template.setGeometry(QtCore.QRect(10, 180, 571, 151))
         self.gemini_template.setObjectName("gemini_template")
+        self.gemini_template.setReadOnly(True)
         self.label_4 = QtWidgets.QLabel(geminiform)
         self.label_4.setGeometry(QtCore.QRect(10, 155, 271, 21))
         # font = QtGui.QFont()

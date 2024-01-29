@@ -32,6 +32,7 @@ class Ui_azureform(object):
         self.azure_template = QtWidgets.QPlainTextEdit(azureform)
         self.azure_template.setGeometry(QtCore.QRect(10, 180, 571, 151))
         self.azure_template.setObjectName("azure_template")
+        self.azure_template.setReadOnly(True)
         self.label_4 = QtWidgets.QLabel(azureform)
         self.label_4.setGeometry(QtCore.QRect(10, 155, 271, 21))
         # font = QtGui.QFont()

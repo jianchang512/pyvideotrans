@@ -32,6 +32,7 @@ class Ui_chatgptform(object):
         self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
         self.chatgpt_template.setGeometry(QtCore.QRect(10, 180, 571, 151))
         self.chatgpt_template.setObjectName("chatgpt_template")
+        self.chatgpt_template.setReadOnly(True)
         self.label_4 = QtWidgets.QLabel(chatgptform)
         self.label_4.setGeometry(QtCore.QRect(10, 155, 271, 21))
         # font = QtGui.QFont()

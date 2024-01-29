@@ -243,6 +243,8 @@ class SecWindow():
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
+        self.main.is_separate.setChecked(False)
+        config.params['is_separate'] = False
         # cuda
         self.main.enable_cuda.show()
 
@@ -302,6 +304,8 @@ class SecWindow():
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
+        self.main.is_separate.setChecked(False)
+        config.params['is_separate'] = False
         # cuda
         self.main.enable_cuda.show()
 
@@ -354,6 +358,8 @@ class SecWindow():
         self.main.video_autorate.show()
         self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
+        self.main.is_separate.setChecked(False)
+        config.params['is_separate'] = False
         # cuda
         self.main.enable_cuda.show()
 
@@ -404,6 +410,8 @@ class SecWindow():
         self.main.video_autorate.hide()
         self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
+        self.main.is_separate.setChecked(False)
+        config.params['is_separate'] = False
         # cuda
         self.main.enable_cuda.show()
 
