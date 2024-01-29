@@ -673,7 +673,7 @@ class SecWindow():
         def save():
             key = self.main.w.deeplx_address.text()
             self.main.settings.setValue("deeplx_address", key)
-            config.deeplx_address = key
+            config.params["deeplx_address"] = key
             self.main.w.close()
 
         from videotrans.component import DeepLXForm
@@ -681,6 +681,20 @@ class SecWindow():
         if config.params["deeplx_address"]:
             self.main.w.deeplx_address.setText(config.params["deeplx_address"])
         self.main.w.set_deeplx.clicked.connect(save)
+        self.main.w.show()
+    
+    def set_ott_address(self):
+        def save():
+            key = self.main.w.ott_address.text()
+            self.main.settings.setValue("ott_address", key)
+            config.params["ott_address"] = key
+            self.main.w.close()
+
+        from videotrans.component import OttForm
+        self.main.w = OttForm()
+        if config.params["ott_address"]:
+            self.main.w.ott_address.setText(config.params["ott_address"])
+        self.main.w.set_ott.clicked.connect(save)
         self.main.w.show()
 
     # set baidu
@@ -690,8 +704,8 @@ class SecWindow():
             miyue = self.main.w.baidu_miyue.text()
             self.main.settings.setValue("baidu_appid", appid)
             self.main.settings.setValue("baidu_miyue", miyue)
-            config.baidu_appid = appid
-            config.baidu_miyue = miyue
+            config.params["baidu_appid"] = appid
+            config.params["baidu_miyue"] = miyue
             self.main.w.close()
 
         from videotrans.component import BaiduForm

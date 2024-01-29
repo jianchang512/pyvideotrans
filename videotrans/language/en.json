@@ -35,6 +35,7 @@
     "mustberole": "must be selet role for listen",
     "setdeepl_authkey": "must be set DeepL token",
     "setdeeplx_address": "must be set DeepLX address and port",
+    "setott_address": "must be set OTT address and port",
     "subtitle_tips": " Edit subtitle here or drap srt file to here ",
     "waitclear": "closing process",
     "whisper_type_all": "whole",

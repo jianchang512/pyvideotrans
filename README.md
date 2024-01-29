@@ -9,7 +9,7 @@
 >
 > 语音识别基于 `faster-whisper` 离线模型.
 >
-> 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX` ，
+> 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
 >
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
 >
@@ -424,6 +424,7 @@ gemini_key=
 
 
 # 相关联项目
+[OTT:本地离线文字翻译工具](https://github.com/jianchang512/ott)
 
 [声音克隆工具:用任意音色合成语音](https://github.com/jianchang512/clone-voice)
 

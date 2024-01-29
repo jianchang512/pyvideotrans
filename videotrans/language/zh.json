@@ -48,6 +48,7 @@
     "subtitle_tips": " 在此可编辑字幕信息，或拖动已有srt文件到此处松开 ",
     "setdeepl_authkey": "必须在菜单-设置中填写DeepL 授权token",
     "setdeeplx_address": "必须在菜单-设置中填写你的 DeepLX 地址和端口，比如 http://127.0.0.1:1188",
+	"setott_address": "必须在菜单-设置中填写你的 OTT 地址和端口, 比如 http://127.0.0.1:9911",
     "mustberole": "必须选择一个配音角色",
     "qingqueren": "请确认",
     "only_srt": "没有选择目标语言，不会进行翻译和配音，仅从视频中提取字幕srt文件到目录文件夹，点Yes将继续执行，否则取消",

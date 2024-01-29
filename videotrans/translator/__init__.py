@@ -6,6 +6,7 @@ GOOGLE_NAME="Google"
 BAIDU_NAME="Baidu"
 DEEPL_NAME="DeepL"
 DEEPLX_NAME="DeepLx"
+OTT_NAME="OTT"
 TENCENT_NAME="Tencent"
 CHATGPT_NAME="chatGPT"
 AZUREGPT_NAME="AzureGPT"
@@ -20,6 +21,7 @@ TRANSNAMES = [
     AZUREGPT_NAME,
     GEMINI_NAME,
     TENCENT_NAME,
+    OTT_NAME,
     DEEPLX_NAME
 ]
 #
@@ -29,20 +31,23 @@ LANG_CODE = {
             "chi",#字幕嵌入语言
             "zh",#百度通道
             "ZH",#deepl deeplx通道
-            "zh" #腾讯通道
+            "zh", #腾讯通道
+            "zh"#OTT通道
         ],
         "zh-tw": [
             "zh-tw",
             "chi",
             "cht",
             "ZH",
-            "zh-TW"
+            "zh-TW",
+            "zt"
         ],
         "en": [
             "en",
             "eng",
             "en",
             "EN-US",
+            "en",
             "en"
         ],
         "fr": [
@@ -50,6 +55,7 @@ LANG_CODE = {
             "fre",
             "fra",
             "FR",
+            "fr",
             "fr"
         ],
         "de": [
@@ -57,6 +63,7 @@ LANG_CODE = {
             "ger",
             "de",
             "DE",
+            "de",
             "de"
         ],
         "ja": [
@@ -64,6 +71,7 @@ LANG_CODE = {
             "jpn",
             "jp",
             "JA",
+            "ja",
             "ja"
         ],
         "ko": [
@@ -71,6 +79,7 @@ LANG_CODE = {
             "kor",
             "kor",
             "KO",
+            "ko",
             "ko"
         ],
         "ru": [
@@ -78,6 +87,7 @@ LANG_CODE = {
             "rus",
             "ru",
             "RU",
+            "ru",
             "ru"
         ],
         "es": [
@@ -85,6 +95,7 @@ LANG_CODE = {
             "spa",
             "spa",
             "ES",
+            "es",
             "es"
         ],
         "th": [
@@ -92,6 +103,7 @@ LANG_CODE = {
             "tha",
             "th",
             "No",
+            "th",
             "th"
         ],
         "it": [
@@ -99,6 +111,7 @@ LANG_CODE = {
             "ita",
             "it",
             "IT",
+            "it",
             "it"
         ],
         "pt": [
@@ -106,6 +119,7 @@ LANG_CODE = {
             "por",
             "pt",
             "PT",
+            "pt",
             "pt"
         ],
         "vi": [
@@ -113,18 +127,21 @@ LANG_CODE = {
             "vie",
             "vie",
             "No",
-            "vi"
+            "vi",
+            "No"
         ],
         "ar": [
             "ar",
             "are",
             "ara",
             "No",
+            "ar",
             "ar"
         ],
         "tr": [
             "tr",
             "tur",
+            "tr",
             "tr",
             "tr",
             "tr"
@@ -134,6 +151,7 @@ LANG_CODE = {
             "hin",
             "hi",
             "No",
+            "hi",
             "hi"
         ]
 }
@@ -159,11 +177,6 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
     if show_target:
         target_list=LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
     if lower_translate_type==GOOGLE_NAME.lower():
-        print("here")
-        try:
-          print((source_list[0] if source_list else "-", target_list[0] if target_list else "-"))
-        except Exception as e:
-          print(e)
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif lower_translate_type==BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -173,8 +186,10 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
         return (show_source, show_target)
+    elif lower_translate_type == OTT_NAME.lower():
+        return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     else:
-        raise Exception(f"[error]{translate_type=},{show_source=},{show_target=}")
+        raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
 
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
@@ -198,6 +213,9 @@ def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
         return config.transobj['deepl_authkey']
     if lower_translate_type==DEEPLX_NAME.lower() and  not config.params["deeplx_address"]:
         return config.transobj['setdeeplx_address']
+        
+    if lower_translate_type==OTT_NAME.lower() and  not config.params["ott_address"]:
+        return config.transobj['setott_address']
 
     if only_key:
         return True
@@ -241,6 +259,8 @@ def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=Tru
         from videotrans.translator.deepl import trans
     elif lower_translate_type==DEEPLX_NAME.lower():
         from videotrans.translator.deeplx import trans
+    elif lower_translate_type==OTT_NAME.lower():
+        from videotrans.translator.ott import trans
     elif lower_translate_type==TENCENT_NAME.lower():
         from videotrans.translator.tencent import trans
     elif lower_translate_type==CHATGPT_NAME.lower():
@@ -250,7 +270,8 @@ def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=Tru
     elif lower_translate_type==AZUREGPT_NAME.lower():
         from videotrans.translator.azure import trans
     else:
-        raise Exception(f"[error]{translate_type=},{target_language_name=}")
+        print(lower_translate_type==OTT_NAME.lower())
+        raise Exception(f"[error]run {translate_type=},{target_language_name=}")
     try:
         return trans(text_list,target_language,set_p=set_p)
     except Exception as e:
