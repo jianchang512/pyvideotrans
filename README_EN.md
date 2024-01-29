@@ -395,6 +395,7 @@ if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.co
 
 ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/06c4f47c-3f3d-4f01-a3a3-85077d4ba64d)
 
+[Youtube](https://youtu.be/0Qo6nw2OCg4)
 
 
 # Comparison of Videos Before and After
