@@ -42,7 +42,10 @@
 ----
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8019-3069aeb66e01
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/d0df7129-07a8-495d-9b25-3d88ddd1b9a9
+
+
 
 
 
@@ -413,7 +416,8 @@ gemini_key=
 
 # 软件预览截图
 
-![](./images/p1.png?c)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/d60407ca-3b17-43d9-9d13-5bcf5396dbce)
+
 
 [Youtube demo](https://youtu.be/-S7jptiDdtc)
 
