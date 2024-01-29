@@ -96,13 +96,17 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;"><a href="https://github.com/wxxvc">wxxvc 2024-1-16 捐助 10 元</a></span> /
 <span style="margin:5px;padding:5px;"><a href="https://space.bilibili.com/19225866">喵の左爪 2024-1-16 捐助5元</a></span> /
 
-<span style="margin:5px;padding:5px;"> * 眼 / 2024-1-20 捐助 8.88 元</span> / 
-<span style="margin:5px;padding:5px;"> * 工 / 2024-1-21 捐助 10 元</span> / 
-<span style="margin:5px;padding:5px;"> D* t / 2024-1-21 捐助 10 元</span> / 
-<span style="margin:5px;padding:5px;"> L* N / 2024-1-23 捐助 5 元</span> / 
-<span style="margin:5px;padding:5px;"> M* / 2024-1-24 捐助 10 元</span> / 
-<span style="margin:5px;padding:5px;"> m*l / 2024-1-24 捐助 10 元</span> / 
-<span style="margin:5px;padding:5px;"> * 生 / 2024-1-25 捐助 18.88 元</span> / 
+<span style="margin:5px;padding:5px;"> *眼  2024-1-20 捐助 8.88 元</span> / 
+<span style="margin:5px;padding:5px;"> *工  2024-1-21 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;"> D*t  2024-1-21 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;"> L*N  2024-1-23 捐助 5 元</span> / 
+<span style="margin:5px;padding:5px;"> M*  2024-1-24 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;"> m*l  2024-1-24 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;"> *生  2024-1-25 捐助 18.88 元</span> / 
+<span style="margin:5px;padding:5px;">w*d  2024-1-26 捐助 6.66 元</span> / 
+<span style="margin:5px;padding:5px;">*.  2024-1-27 捐助 0.15 元</span> / 
+<span style="margin:5px;padding:5px;">*明  2024-1-29 捐助 20 元</span> / 
+
 
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>

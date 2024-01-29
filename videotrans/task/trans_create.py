@@ -154,6 +154,8 @@ class TransCreate():
             self.targetdir_source_instrument = f"{self.target_dir}/instrument.wav"
             # 转为8k采样率，降低文件
             self.targetdir_source_regcon = f"{self.target_dir}/vocal8000.wav"
+            if os.path.exists(self.targetdir_source_regcon) and os.path.getsize(self.targetdir_source_regcon)==0:
+                os.unlink(self.targetdir_source_regcon)
         else:
             self.source_separate = self.source_back = self.source_vocal = None
 
@@ -161,12 +163,22 @@ class TransCreate():
         if "subtitles" in obj and obj['subtitles'].strip():
             with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                 f.write(obj['subtitles'].strip())
+        if os.path.exists(self.targetdir_source_sub) and os.path.getsize(self.targetdir_source_sub)==0:
+            os.unlink(self.targetdir_source_sub)
+        if os.path.exists(self.targetdir_target_sub) and os.path.getsize(self.targetdir_target_sub)==0:
+            os.unlink(self.targetdir_target_sub)
+        if os.path.exists(self.targetdir_source_wav) and os.path.getsize(self.targetdir_source_wav)==0:
+            os.unlink(self.targetdir_source_wav)
+        
+        if os.path.exists(self.targetdir_target_wav) and os.path.getsize(self.targetdir_target_wav)==0:
+            os.unlink(self.targetdir_target_wav)
 
     # 启动执行入口
     def run(self):
         config.settings = config.parse_init()
         if config.current_status != 'ing':
             raise Myexcept("Had stop")
+        self.precent = 1
         if self.wait_convermp4:
             # 需要转换格式
             set_process(transobj['kaishiyuchuli'])
@@ -255,11 +267,11 @@ class TransCreate():
                 cache_folder=self.cache_folder,
                 model_name=config.params['whisper_model'])
         except Exception as e:
-            msg=str(e)
+            msg=f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
                 msg=f'请打开 github.com/jianchang512/pyvideotrans 查看常见问题【缺少cublasxx.dll】' if config.defaulelang=='zh' else f'Open web github.com/jianchang512/pyvideotrans and search [missing cublasxx.dll]'
             raise Exception(f'[error]{msg}')
-        if len(raw_subtitles)<1:
+        if not raw_subtitles or len(raw_subtitles)<1:
             raise Exception(f'[error]:recogn result is empty')
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
@@ -299,7 +311,7 @@ class TransCreate():
         set_process(transobj['starttrans'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
-        if len(rawsrt)<1:
+        if not rawsrt or len(rawsrt)<1:
             raise Exception(f"[error]：Subtitles is empty,cannot translate")
         target_srt = run_trans(translate_type=config.params['translate_type'], text_list=rawsrt,
                                target_language_name=config.params['target_language'], set_p=True)
@@ -354,6 +366,8 @@ class TransCreate():
             res = self.before_tts()
             if isinstance(res, tuple) and len(res)==2:
                 self.exec_tts(res[0], res[1])
+            else:
+                raise Exception('no subtitles')
         except Exception as e:
             delete_temp(self.noextname)
             raise Myexcept("[error]TTS:" + str(e))
@@ -473,7 +487,7 @@ class TransCreate():
     def exec_tts(self, queue_tts, total_length):
         total_length = int(total_length)
         queue_copy = copy.deepcopy(queue_tts)
-        if len(queue_copy) < 1:
+        if not queue_copy or len(queue_copy) < 1:
             raise Myexcept(f'[error]Queue tts length is 0')
         # 具体配音操作
         run_tts(queue_tts=queue_tts, set_p=True)

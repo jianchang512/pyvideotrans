@@ -92,10 +92,13 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     raw_subtitles = []
     total_length = len(nonsilent_data)
     start_t = time.time()
-    model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+    try:
+        model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
                          compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
                          cpu_threads=1,num_workers=1, local_files_only=True)
+    except Exception as e:
+        raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
         # config.temp = {}
         if config.current_status != 'ing' and config.box_status != 'ing':
@@ -123,10 +126,8 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             for t in segments:
                 text += t.text + " "
         except Exception as e:
-            tools.set_process("[error]:" + str(e))
             del model
-            return
-
+            raise  Exception(str(e.args))
 
         text = f"{text.capitalize()}. ".replace('&#39;', "'")
         text = re.sub(r'&#\d+;', '', text).strip()

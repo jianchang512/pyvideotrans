@@ -2,8 +2,6 @@
 
 # 视频翻译和配音工具
 
-[windows预编译版exe下载地址](https://github.com/jianchang512/pyvideotrans/releases)
-
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。
 >
@@ -20,9 +18,9 @@
 
 【翻译视频并配音】根据需要设置各个选项，自由配置组合，实现翻译和配音、自动加减速、合并等
 
-【提取字幕不翻译】选择视频文件，选择视频源语言，则从视频识别出文字并自动导出字幕文件到目标文件夹
+【提取字幕不翻译】选择视频文件，选择视频源语言，则从视频【语音中识别出文字】并自动导出字幕文件到目标文件夹
 
-【提取字幕并翻译】选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从视频识别出文字并翻译为目标语言，然后导出双语字幕文件到目标文件夹
+【提取字幕并翻译】选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从【视频语音中识别出文字】并翻译为目标语言，然后导出双语字幕文件到目标文件夹
 
 【字幕和视频合并】选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
 
@@ -40,22 +38,22 @@
 
 【文字字幕翻译】将文字或srt字幕文件翻译为其他语言
 
+
 ----
-
-
 
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8019-3069aeb66e01
 
 
 
-# 使用win预编译exe版本(其他系统使用源码部署)
+# 下载windowns预编译exe版本(其他系统使用源码部署)
 
-0. [点击下载去下载预编译版](https://github.com/jianchang512/pyvideotrans/releases)
+0. [点击去下载预编译版,解压即用](https://github.com/jianchang512/pyvideotrans/releases)
 
-1. 建议解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe(若遇到权限问题可右键使用管理员权限打开)
+1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe (若遇到权限问题可右键使用管理员权限打开)
 
 3. 未做免杀，国产杀软可能误报，可忽略或使用源码部署
+
 
 
 # 源码部署
@@ -63,7 +61,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/c3d193c8-f680-45e2-8
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
 
 
-1. 配置好 python 3.9->3.11 环境
+1. 配置好 python 3.10->3.11 环境，建议3.10
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
 4. `python -m venv venv`
@@ -147,75 +145,6 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 18. 保留背景音：如果选择该项，则会先将视频中的人声和背景伴奏分离出来，其中背景伴奏最终再和配音音频合并，最后生成的结果视频中将保留背景伴奏。**注意**:该功能基于uvr5实现，如果你没有足够的N卡GPU显存，比如8G以上，建议慎重选择，可能非常慢并非常消耗资源。
 
-
-
-# 高级设置 videotrans/set.ini
-
-**请勿随意调整，除非你知道将会发生什么**
-
-```
-;设置软件界面语言，en代表英文，zh代表中文
-lang =
-
-;同时配音线程数量
-dubbing_thread=5
-
-;同时翻译行数
-trans_thread=10
-
-;软件等待修改字幕倒计时
-countdown_sec=30
-
-;加速设备 cuvid 或 cuda
-hwaccel=cuvid
-
-; 加速设备输出格式，nv12 或 cuda 
-hwaccel_output_format=nv12
-
-;是否使用硬件解码 -c:v h264_cuvid  true代表是，false代表否
-no_decode=false
-
-;语音识别时，数据格式，int8 或 float16 或 float32
-cuda_com_type=int8
-
-; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可设为4
-whisper_threads=4
-
-;语音识别工作进程数量
-whisper_worker=1
-
-;如果显存不足，下面2个值可以改为 1
-beam_size=5
-best_of=5
-
-;预分割模式同时工作线程
-split_threads=4
-
-;如果显存不足，可以改为false，但字幕分割效果会相对较差
-vad=true
-
-;0 is use litter GPU,other is more
-temperature=0
-
-;false is litter GPU,ture is more
-condition_on_previous_text=false
-```
-
-
-
-# CUDA 加速支持
-
-**安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
-
-必须 cuda和cudnn都安装好，否则可能会闪退。
-
-安装好CUDA后，如果有问题，执行 `pip uninstall -y torch`，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。
- 
-安装完成后执行 `python testcuda.py` 如果输出均是  True ,说明可用  
-
-有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
-
-[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
 
 
 # 常见问题
@@ -313,6 +242,78 @@ https://juejin.cn/post/7318704408727519270
 
 
 如果cudnn按照教程安装好了仍闪退，那么极大概率是GPU显存不足，可以改为使用 medium模型，显存不足8G时，尽量避免使用largev-3模型，尤其是视频大于20M时，否则可能显存不足而崩溃
+
+
+
+
+# 高级设置 videotrans/set.ini
+
+**请勿随意调整，除非你知道将会发生什么**
+
+```
+;设置软件界面语言，en代表英文，zh代表中文
+lang =
+
+;同时配音线程数量
+dubbing_thread=5
+
+;同时翻译行数
+trans_thread=10
+
+;软件等待修改字幕倒计时
+countdown_sec=30
+
+;加速设备 cuvid 或 cuda
+hwaccel=cuvid
+
+; 加速设备输出格式，nv12 或 cuda 
+hwaccel_output_format=nv12
+
+;是否使用硬件解码 -c:v h264_cuvid  true代表是，false代表否
+no_decode=false
+
+;语音识别时，数据格式，int8 或 float16 或 float32
+cuda_com_type=int8
+
+; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可设为4
+whisper_threads=4
+
+;语音识别工作进程数量
+whisper_worker=1
+
+;如果显存不足，下面2个值可以改为 1
+beam_size=5
+best_of=5
+
+;预分割模式同时工作线程
+split_threads=4
+
+;如果显存不足，可以改为false，但字幕分割效果会相对较差
+vad=true
+
+;0 is use litter GPU,other is more
+temperature=0
+
+;false is litter GPU,ture is more
+condition_on_previous_text=false
+```
+
+
+
+# CUDA 加速支持
+
+**安装CUDA工具** [详细安装方法](https://juejin.cn/post/7318704408727519270)
+
+必须 cuda和cudnn都安装好，否则可能会闪退。
+
+安装好CUDA后，如果有问题，执行 `pip uninstall -y torch`，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。
+ 
+安装完成后执行 `python testcuda.py` 如果输出均是  True ,说明可用  
+
+有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
+
+[点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
+
 
 
 
@@ -424,6 +425,7 @@ gemini_key=
 
 
 # 相关联项目
+
 [OTT:本地离线文字翻译工具](https://github.com/jianchang512/ott)
 
 [声音克隆工具:用任意音色合成语音](https://github.com/jianchang512/clone-voice)
@@ -437,7 +439,7 @@ gemini_key=
 > 本程序主要依赖的部分开源项目
 
 1. ffmpeg
-2. PyQt5
+2. PySide6
 3. edge-tts
 4. faster-whisper
 
