@@ -7,7 +7,7 @@
 >
 > Voice recognition is based on the `faster-whisper` offline model.
 >
-> Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX`.
+> Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT`.
 >
 > Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
 >
@@ -393,7 +393,8 @@ if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.co
 
 # Software Preview Screenshots
 
-![](./images/pen1.png?d)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/06c4f47c-3f3d-4f01-a3a3-85077d4ba64d)
+
 
 
 # Comparison of Videos Before and After
