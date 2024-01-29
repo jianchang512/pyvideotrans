@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-import httpx
+import requests
 import json
 from videotrans.configure import config
 from videotrans.util import tools
@@ -34,28 +34,31 @@ def trans(text_list, target_language="en", *, set_p=True):
             source_length = len(it)
             print(f'{source_length=}')
             data = {
-                "text": "\n".join(it),
-                "source_lang": "auto",
-                "target_lang": target_language if not re.match(r'^zh',target_language,re.I) else "ZH"
+                "q": "\n".join(it),
+                "source": "auto",
+                "target": target_language
             }
 
-            url=config.params['deeplx_address'].replace('/translate','')+'/translate'
+            url=config.params['ott_address'].replace('/translate','')+'/translate'
             url=url.replace('//translate','/translate')
             if not url.startswith('http'):
                 url=f"http://{url}"
             try:
-                response = httpx.post(url=url,data=json.dumps(data))
+                response = requests.post(url=url,json=data)
                 result = response.json()
             except Exception as e:
-                msg = f"[error]DeepLx出错了，请更换翻译渠道: {str(e)}"
-                config.logger.info(f'DeepLx {msg}')
+                print(e)
+                msg = f"[error]OTT出错了，请检查部署和地址: {str(e)}"
+                config.logger.info(f'OTT {msg}')
                 raise Exception(msg)
 
-            if response.status_code != 200 or result['code'] != 200:
-                msg=f"[error]DeepLx出错了，请更换翻译渠道:{response=}"
+            if response.status_code != 200:
+                msg=f"[error]OTT出错了，请检查部署和地址:{response=}"
                 config.logger.error(msg)
                 raise Exception(msg)
-            result=result['data'].strip().replace('&#39;','"').split("\n")
+            if "error" in result:
+                raise Exception(result['error'])
+            result=result['translatedText'].strip().replace('&#39;','"').split("\n")
             if set_p:
                 tools.set_process("\n\n".join(result), 'subtitle')
             result_length = len(result)
@@ -66,7 +69,7 @@ def trans(text_list, target_language="en", *, set_p=True):
             target_text.extend(result)
         except Exception as e:
             error = str(e)
-            raise Exception(f'[error]DeepLx出错了，请更换翻译渠道:{str(error)}')
+            raise Exception(f'[error]OTT出错了，请检查部署和地址:{str(error)}')
 
     if isinstance(text_list, str):
         return "\n".join(target_text)

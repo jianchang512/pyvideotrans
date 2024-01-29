@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'deeplx.ui'
+# Form implementation generated from reading ui file 'ott.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -11,18 +11,18 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_deeplxform(object):
-    def setupUi(self, deeplxform):
-        deeplxform.setObjectName("deeplxform")
-        deeplxform.setWindowModality(QtCore.Qt.NonModal)
-        deeplxform.resize(400, 223)
+class Ui_ottform(object):
+    def setupUi(self, ottform):
+        ottform.setObjectName("ottform")
+        ottform.setWindowModality(QtCore.Qt.NonModal)
+        ottform.resize(400, 223)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(deeplxform.sizePolicy().hasHeightForWidth())
-        deeplxform.setSizePolicy(sizePolicy)
-        deeplxform.setMaximumSize(QtCore.QSize(400, 300))
-        self.gridLayout = QtWidgets.QGridLayout(deeplxform)
+        sizePolicy.setHeightForWidth(ottform.sizePolicy().hasHeightForWidth())
+        ottform.setSizePolicy(sizePolicy)
+        ottform.setMaximumSize(QtCore.QSize(400, 300))
+        self.gridLayout = QtWidgets.QGridLayout(ottform)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -33,7 +33,7 @@ class Ui_deeplxform(object):
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(deeplxform)
+        self.label = QtWidgets.QLabel(ottform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -43,27 +43,27 @@ class Ui_deeplxform(object):
         self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.deeplx_address = QtWidgets.QLineEdit(deeplxform)
+        self.ott_address = QtWidgets.QLineEdit(ottform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.deeplx_address.sizePolicy().hasHeightForWidth())
-        self.deeplx_address.setSizePolicy(sizePolicy)
-        self.deeplx_address.setMinimumSize(QtCore.QSize(210, 35))
-        self.deeplx_address.setObjectName("deeplx_address")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_address)
+        sizePolicy.setHeightForWidth(self.ott_address.sizePolicy().hasHeightForWidth())
+        self.ott_address.setSizePolicy(sizePolicy)
+        self.ott_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.ott_address.setObjectName("ott_address")
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ott_address)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-        self.set_deeplx = QtWidgets.QPushButton(deeplxform)
-        self.set_deeplx.setMinimumSize(QtCore.QSize(0, 35))
-        self.set_deeplx.setObjectName("set_deeplx")
-        self.verticalLayout_2.addWidget(self.set_deeplx)
+        self.set_ott = QtWidgets.QPushButton(ottform)
+        self.set_ott.setMinimumSize(QtCore.QSize(0, 35))
+        self.set_ott.setObjectName("set_ott")
+        self.verticalLayout_2.addWidget(self.set_ott)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
-        self.retranslateUi(deeplxform)
-        QtCore.QMetaObject.connectSlotsByName(deeplxform)
+        self.retranslateUi(ottform)
+        QtCore.QMetaObject.connectSlotsByName(ottform)
 
-    def retranslateUi(self, deeplxform):
-        deeplxform.setWindowTitle("DeepLX")
-        self.label.setText("DeepLX_address")
-        self.set_deeplx.setText("OK")
+    def retranslateUi(self, ottform):
+        ottform.setWindowTitle("OTT")
+        self.label.setText("OTT_address")
+        self.set_ott.setText("OK")

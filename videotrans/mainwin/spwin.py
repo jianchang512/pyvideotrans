@@ -206,6 +206,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepL_key.triggered.connect(self.util.set_deepL_key)
         self.actionElevenlabs_key.triggered.connect(self.util.set_elevenlabs_key)
         self.actiondeepLX_address.triggered.connect(self.util.set_deepLX_address)
+        self.actionott_address.triggered.connect(self.util.set_ott_address)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -265,6 +266,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
         config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
+        config.params["ott_address"] = self.settings.value("ott_address", "")
         config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
         config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
 

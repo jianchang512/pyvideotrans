@@ -9,6 +9,7 @@ from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.setlinerole import Ui_setlinerole
@@ -72,6 +73,13 @@ class InfoForm(QDialog, Ui_infoform):  # <===
 class DeepLXForm(QDialog, Ui_deeplxform):  # <===
     def __init__(self, parent=None):
         super(DeepLXForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class OttForm(QDialog, Ui_ottform):  # <===
+    def __init__(self, parent=None):
+        super(OttForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
