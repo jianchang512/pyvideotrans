@@ -419,7 +419,7 @@ gemini_key=
 ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/d60407ca-3b17-43d9-9d13-5bcf5396dbce)
 
 
-[Youtube demo](https://youtu.be/-S7jptiDdtc)
+[Youtube](https://youtu.be/0Qo6nw2OCg4)
 
 # 视频教程(第三方)
 
