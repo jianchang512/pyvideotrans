@@ -14,6 +14,7 @@ from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import config
 from videotrans  import translator
+from videotrans.translator import GOOGLE_NAME
 from videotrans.util  import tools
 
 from videotrans.ui.toolboxen import Ui_MainWindow
@@ -96,7 +97,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
         self.hecheng_importbtn.setFixedWidth(100)
         self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
-        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_plaintext))
+        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_importbtn))
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
@@ -206,7 +207,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
                                                "Text files(*.srt *.txt)")
         if fname:
-            if obj is not None:
+            if obj and not isinstance(obj,bool):
                 return obj.setText(fname.replace('file:///', ''))
             try:
                 with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
@@ -667,7 +668,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             proxy = self.settings.value("proxy", "", str)
             if proxy:
                 tools.set_proxy(proxy)
-                self.fanyi_proxy.setText(proxy)
+                if translate_type.lower()==GOOGLE_NAME:
+                    self.fanyi_proxy.setText(proxy)
         issrt = self.fanyi_issrt.isChecked()
         source_text = self.fanyi_sourcetext.toPlainText().strip()
         if not source_text:
@@ -717,5 +719,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             path_to_file = path_to_file[:-4] + ext
         else:
             path_to_file += ext
-        with open(path_to_file, "w") as file:
+        with open(path_to_file, "w",encoding='utf-8') as file:
             file.write(srttxt)
