@@ -106,6 +106,8 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">w*d  2024-1-26 捐助 6.66 元</span> / 
 <span style="margin:5px;padding:5px;">*.  2024-1-27 捐助 0.15 元</span> / 
 <span style="margin:5px;padding:5px;">*明  2024-1-29 捐助 20 元</span> / 
+<span style="margin:5px;padding:5px;">5*)  2024-1-30 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">rqi14(U*d)  2024-1-30 捐助 200 元</span> / 
 
 
 </p>
