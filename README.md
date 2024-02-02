@@ -331,9 +331,8 @@ condition_on_previous_text=false
 
 必须 cuda和cudnn都安装好，否则可能会闪退。
 
-安装好CUDA后，如果有问题，执行 `pip uninstall -y torch`，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。
- 
-安装完成后执行 `python testcuda.py` 如果输出均是  True ,说明可用  
+
+安装完成后执行 `python testcuda.py` 或 双击 testcuda.exe 如果输出均是  ok ,说明可用  
 
 有时会遇到“cublasxx.dll不存在”的错误, 或者未遇到此错误，并且CUDA配置正确，但始终出现识别错误，需要下载 cuBLAS，然后将dll文件复制到系统目录下
 

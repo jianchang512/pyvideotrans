@@ -17,6 +17,7 @@ from videotrans.util import tools
 # 统一入口
 def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True):
     if type == "all":
+        print(f'____{audio_file=}')
         rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
     else:
         rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
@@ -70,7 +71,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
             raise config.Myexcept(config.transobj["createdirerror"])
-    if not config.params['is_separate']:
+    if audio_file.endswith('.m4a'):
         wavfile = cache_folder + "/tmp.wav"
         tools.m4a2wav(audio_file, wavfile)
     else:
@@ -171,7 +172,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(config.settings['whisper_threads']),
                              local_files_only=True)
-        if not config.params['is_separate']:
+        if audio_file.endswith('.m4a'):
             wavfile = cache_folder + "/tmp.wav"
             tools.m4a2wav(audio_file, wavfile)
         else:
@@ -192,6 +193,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         # 保留原始语言的字幕
         raw_subtitles = []
         sidx = -1
+        print(info.duration)
         for segment in segments:
             if config.current_status != 'ing' and config.box_status !='ing':
                 del model

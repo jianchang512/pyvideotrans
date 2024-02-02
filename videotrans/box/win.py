@@ -457,6 +457,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(file):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['chakanerror'])
         model = self.shibie_model.currentText()
+        print(f'{file=}')
         self.shibie_task = WorkerWhisper(file, model, translator.get_audio_code(show_source=self.shibie_language.currentText()),"shibie_end", self)
         self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
