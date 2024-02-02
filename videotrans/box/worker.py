@@ -17,7 +17,7 @@ from videotrans.util.tools import runffmpeg, get_subtitle_from_srt, ms_to_time_s
 
 # 执行 ffmpeg 线程
 class Worker(QThread):
-    update_ui = pyqtSignal(str)
+    # update_ui = pyqtSignal(str)
 
     def __init__(self, cmd_list, func_name="", parent=None, no_decode=False):
         super(Worker, self).__init__(parent)
@@ -26,7 +26,7 @@ class Worker(QThread):
         self.no_decode=no_decode
 
     def run(self):
-        set_process_box(f'starting...')
+        set_process_box(f'starting ffmpeg...')
         for cmd in self.cmd_list:
             logger.info(f"[box]Will execute: ffmpeg {cmd=}")
             try:
@@ -36,18 +36,19 @@ class Worker(QThread):
             except Exception as e:
                 logger.error("[bxo]FFmepg exec error:" + str(e))
                 set_process_box("[bxo]FFmepg exec error:" + str(e))
-                self.post_message("error", "ffmpeg error")
+                # self.post_message("error", "ffmpeg error")
                 return f'[error]{str(e)}'
-        self.post_message("end", "End\n")
-        set_process_box(f'Ended','end')
+        set_process_box('ffmpeg succeed',"end",func_name=self.func_name)
+        # self.post_message("end", "End\n")
+        # set_process_box(f'Ended ffmpeg','end')
 
-    def post_message(self, type, text):
-        self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
+    # def post_message(self, type, text):
+    #     self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 
 # 执行语音识别
 class WorkerWhisper(QThread):
-    update_ui = pyqtSignal(str)
+    # update_ui = pyqtSignal(str)
 
     def __init__(self, audio_path, model, language, func_name, parent=None):
         super(WorkerWhisper, self).__init__(parent)
@@ -57,7 +58,7 @@ class WorkerWhisper(QThread):
         self.language = language
 
     def run(self):
-        set_process_box(f'start {self.model}')
+        set_process_box(f'start {self.model} ')
         try:
             config.box_status='ing'
             srts=run_recogn(type="all",audio_file=self.audio_path,model_name=self.model,detect_language=self.language,set_p=False,cache_folder=config.TEMP_DIR)
@@ -71,13 +72,13 @@ class WorkerWhisper(QThread):
         # config.box_status='stop'
 
     def post_message(self, type, text):
-        self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
+        set_process_box(text,type,func_name=self.func_name)
+        # self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 
 # 合成
 class WorkerTTS(QThread):
-    update_ui = pyqtSignal(str)
-
+    # update_ui = pyqtSignal(str)
     def __init__(self, parent=None, *,
                  text=None,
                  role=None,
@@ -102,12 +103,13 @@ class WorkerTTS(QThread):
 
     def run(self):
         config.box_status='ing'
-        set_process_box(f"start {self.tts_type=},{self.role=},{self.rate=}")
+        set_process_box(f"start {self.tts_type=}")
 
         if self.tts_issrt:
             try:
                 q = self.before_tts()
                 self.exec_tts(q)
+                self.post_message("end","Succeed")
             except Exception as e:
                 self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
@@ -136,7 +138,7 @@ class WorkerTTS(QThread):
             ], no_decode=True,is_box=True)
             if os.path.exists(mp3):
                 os.unlink(mp3)
-        self.post_message("end", "Ended")
+        self.post_message("end", "Succeed")
         # config.box_status='stop'
 
     # 配音预处理，去掉无效字符，整理开始时间
@@ -206,16 +208,17 @@ class WorkerTTS(QThread):
                 diff = mp3len - wavlen
                 if diff > 0 and self.voice_autorate:
                     speed = mp3len / wavlen
-                    # 新的长度
-                    mp3len = mp3len / speed
-                    diff = mp3len - wavlen
-                    if diff < 0:
-                        diff = 0
-                    tmp_mp3 = os.path.join(config.TEMP_DIR, f'{it["filename"]}.mp3')
-                    speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
-                    audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
-                    # 增加新的偏移
-                    offset += diff
+                    if speed<50:
+                        # 新的长度
+                        mp3len = mp3len / speed
+                        diff = mp3len - wavlen
+                        if diff < 0:
+                            diff = 0
+                        tmp_mp3 = os.path.join(config.TEMP_DIR, f'{it["filename"]}.mp3')
+                        speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                        audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
+                        # 增加新的偏移
+                        offset += diff
                 elif diff > 0:
                     offset += diff
                 it['end_time'] = it['start_time'] + mp3len
@@ -227,7 +230,7 @@ class WorkerTTS(QThread):
             # 原 total_length==0，说明没有上传视频，仅对已有字幕进行处理，不需要裁切音频
             self.merge_audio_segments(segments, start_times)
         except Exception as e:
-            raise Exception(f"[error] exec_tts :" + str(e))
+            raise Exception(f"[error] exec_tts:" + str(e))
         return True
 
     # join all short audio to one ,eg name.mp4  name.mp4.wav
@@ -259,11 +262,11 @@ class WorkerTTS(QThread):
         return merged_audio
 
     def post_message(self, type, text):
-        self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
+        set_process_box(text,type,func_name=self.func_name)
+        # self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 class FanyiWorker(QThread):
-    ui = pyqtSignal(str)
-
+    # ui = pyqtSignal(str)
     def __init__(self, type, target_language, text, issrt, parent=None):
         super(FanyiWorker, self).__init__(parent)
         self.type = type
@@ -290,8 +293,9 @@ class FanyiWorker(QThread):
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 self.srts = srts_tmp
         except Exception as e:
-            self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "error", "text": str(e)}))
+            # self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "error", "text": str(e)}))
+            set_process_box(str(e),"error",func_name="fanyi_end")
             return
-
-        self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
+        set_process_box(self.srts,"end",func_name="fanyi_end")
+        # self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
 

@@ -108,7 +108,18 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">*明  2024-1-29 捐助 20 元</span> / 
 <span style="margin:5px;padding:5px;">5*)  2024-1-30 捐助 10 元</span> / 
 <span style="margin:5px;padding:5px;">rqi14(U*d)  2024-1-30 捐助 200 元</span> / 
-
+<span style="margin:5px;padding:5px;">*明   2024-1-29 捐助 20 元</span> / 
+<span style="margin:5px;padding:5px;">*骁(支付宝)   2024-1-29 捐助 2 元</span> / 
+<span style="margin:5px;padding:5px;">5*)   2024-1-30 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">rqi14(U*d)   2024-1-30 捐助 200 元</span> / 
+<span style="margin:5px;padding:5px;">*正  2024-1-30 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">i*8   2024-1-31 捐助 18 元</span> / 
+<span style="margin:5px;padding:5px;">*.   2024-2-1 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">*途   2024-2-1 捐助 30 元</span> / 
+<span style="margin:5px;padding:5px;">*甜(bingsunny0730)   2024-2-2 捐助 1.68 元</span> / 
+<span style="margin:5px;padding:5px;">k*v   2024-2-2 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">*林(xjsszl)   2024-2-2 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">**宇(支付宝)   2024-2-2 捐助 10 元</span> / 
 
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>

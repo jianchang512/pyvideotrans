@@ -49,7 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         # 打开工具箱
         configure.TOOLBOX = win.MainWindow()
-        configure.TOOLBOX.resize(int(width*0.7), int(height*0.7))
+        configure.TOOLBOX.resize(int(width*0.7), int(height*0.8))
         qtRect=configure.TOOLBOX.frameGeometry()
         qtRect.moveCenter(screen.availableGeometry().center())
         configure.TOOLBOX.move(qtRect.topLeft())

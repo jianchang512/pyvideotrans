@@ -737,11 +737,11 @@ def get_clone_role():
     return False
 
 # 工具箱写入日志队列
-def set_process_box(text, type='logs'):
-    set_process(text, type, "box")
+def set_process_box(text, type='logs',*,func_name=""):
+    set_process(text, type, qname="box",func_name=func_name)
 
 # 综合写入日志，默认sp界面
-def set_process(text, type="logs", qname='sp'):
+def set_process(text, type="logs",*,qname='sp',func_name=""):
     try:
         if text:
             log_msg = text.strip()
@@ -753,7 +753,7 @@ def set_process(text, type="logs", qname='sp'):
         if qname == 'sp':
             config.queue_logs.put_nowait({"text": text, "type": type,"btnkey":config.btnkey})
         elif qname=='box':
-            config.queuebox_logs.put_nowait({"text": text, "type": type})
+            config.queuebox_logs.put_nowait({"text": text, "type": type,"func_name":func_name})
         else:
             print(f'[{type}]: {text}')
     except Exception as e:

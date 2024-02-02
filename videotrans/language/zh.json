@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "Preserve the original sound in the video": "保留视频中原声音",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "字幕配音模式下不可使用clone-voice,因为不存在可复制的音色",
     "lanjie": "已限制",
 	"The ott project at":"OTT离线文字翻译地址: github.com/jianchang512/ott",  
@@ -115,7 +116,7 @@
     "wenbenbukeweikong": "待翻译文本不可为空",
     "buzhichifanyi": "不支持翻译到该目标语言",
     "ffmpegno": "未找到 ffmpeg，软件不可用，请去 ffmpeg.org 下载并加入到系统环境变量",
-    "newversion": "有新的版本可以下载了",
+    "newversion": "有新的版本了，点击去下载",
     "tingzhile": "停止了",
     "geshihuazimuchucuo": "格式化字幕文件出错",
     "moweiyanchangshibai": "末尾添加延长视频帧失败，将保持原样不延长视频",
@@ -286,7 +287,7 @@
 	"Translation channels":"翻译渠道",
 	"Target lang":"目标语言",
 	"Proxy":"代理地址",
-	"Failed to access Google services. Please set up the proxy correctly":"网络连接不通，请填写代理地址",
+	"Failed to access Google services. Please set up the proxy correctly":"Goole或chaGPT官方api需填写代理地址",
 	"Import text to be translated from a file..":"从文件导入文本...",
 	"shuoming1":"如果只是纯文字，无需选中。\n如果是srt字幕格式，需选中，将不翻译字幕中的行号和时间值，并按字幕原格式返回。\n不选则一次性将全部内容发给翻译引擎处理，标点、符号、格式可能有变化。\n",
 	"export..":"导出结果..",

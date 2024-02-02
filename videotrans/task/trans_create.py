@@ -555,7 +555,7 @@ class TransCreate():
                 if diff > 0:
                     speed = round(mp3len / wavlen if wavlen>0 else 1,2)
                     # 新的长度
-                    if os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                    if speed<50 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
                         tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
                         speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
                         # mp3 降速

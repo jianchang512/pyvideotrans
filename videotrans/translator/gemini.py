@@ -74,7 +74,7 @@ def trans(text_list, target_language="English", *, set_p=True):
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
-
+    response=None
     for it in split_source_text:
         try:
             source_length=len(it)
@@ -88,6 +88,8 @@ def trans(text_list, target_language="English", *, set_p=True):
                 result=result.strip().replace('&#39;','"').split("\n")
                 if set_p:
                     tools.set_process("\n\n".join(result), 'subtitle')
+                else:
+                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
                 while len(result) < source_length:
                     result.append("")
                 result = result[:source_length]
