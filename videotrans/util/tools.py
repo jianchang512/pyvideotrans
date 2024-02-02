@@ -9,7 +9,7 @@ import os
 from datetime import timedelta
 import json
 import edge_tts
-
+import requests
 
 from videotrans.configure import config
 import time
@@ -439,7 +439,7 @@ def get_lastjpg_fromvideo(file_path, img):
 def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
     return runffmpeg([
         '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
-        '-crf', '13', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12")
+        '-crf', f'{config.settings["crf"]}', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12")
 
 
 # 创建 多个视频的连接文件
@@ -457,12 +457,13 @@ def concat_multi_mp4(*, filelist=[], out=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
-    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', '13', '-an',
+    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', f'{config.settings["crf"]}', '-an',
                       out])
 
 
 # mp3 加速播放 cuda + h264_cuvid
 def speed_up_mp3(*, filename=None, speed=1, out=None):
+
     return runffmpeg([
         "-y",
         "-i",
@@ -544,52 +545,90 @@ def ms_to_time_string(*, ms=0, seconds=None):
 ]
 '''
 
+# 将字符串或者字幕文件内容，格式化为有效字幕数组对象
+def format_srt(content=[]):
+    content = [i for i in content if i.strip()]
+    result = []
+    # 最大索引
+    maxlen = len(content) - 1
+    # 时间格式
+    timepat = r'\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*'
+    i = 0
+    while i < maxlen - 1:
+        tmp = content[i].strip()
+        # 第一行匹配数字行
+        if re.match(r'^\d+$', tmp):
+            nextmp = content[i + 1].strip()
+            # 再判断第二行匹配时间戳，则视为有效字幕
+            if re.match(timepat, nextmp):
+                res = {"line": tmp, "text": "", "time": nextmp}
+                j = i + 2
+                # 大于最大索引，超出退出
+                if j > maxlen:
+                    break
+                t0 = content[j].strip()
+                # 如果下一行是空行，即没有文字内容，则跳过
+                if re.match(r'^\d+$', t0):
+                    i = j
+                    continue
+                res['text'] += t0
+                # 已是最后一行，直接退出
+                if j == maxlen:
+                    result.append(res)
+                    break
+
+                # 继续判断下一行是否还是内容行
+                while 1:
+                    # 再继续判断下一行是否是内容行
+                    t1 = content[j + 1]
+                    if j < maxlen - 1:
+                        t2 = content[j + 2]
+                        # 后边2行都符合行数规则，则第一行视为内容
+                        if re.match(r'^\d+$', t1) and re.match(r'^\d+$', t2):
+                            res['text'] += t1
+                            j += 1
+                            i = j + 1 + 1
+                            continue
+                        elif not re.match(r'^\d+$', t1):
+                            res['text'] += t1
+                            j += 1
+                            i = j + 1 + 1
+                            continue
+                        else:
+                            i = j + 1
+                            break
+                    elif j >= maxlen - 1:
+                        if not re.match(r'^\d+$', t1):
+                            res['text'] += t1
+                        i = maxlen
+                        break
+                result.append(res)
+    return result
+
 
 def get_subtitle_from_srt(srtfile, *, is_file=True):
+    content=[]
     if is_file:
         if os.path.getsize(srtfile)==0:
             raise Exception(config.transobj['zimuwenjianbuzhengque'])
-        with open(srtfile, 'r', encoding="utf-8") as f:
-            txt = f.read().strip().split("\n")
-    else:
-        txt = srtfile.strip().split("\n")
-    # 行号
-    line = 0
-    maxline = len(txt)
-    # 行格式
-    linepat = r'^\s*?\d+\s*?$'
-    # 时间格式
-    timepat = r'^\s*?\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*?$'
-    result = []
-    # print(f'{maxline=}')
-    for i, t in enumerate(txt):
         try:
-            t = t.replace('\ufeff', '')
-            # 当前行 小于等于倒数第三行 并且匹配行号，并且下一行匹配时间戳，则是行号
-            if i < maxline - 2 and re.match(linepat, t) and re.match(timepat, txt[i + 1]):
-                # print('匹配那个1')
-                #   是行
-                line += 1
-                obj = {"line": line, "time": "", "text": ""}
-                result.append(obj)
-            elif re.match(timepat, t):
-                # print('匹配那个2')
-                # 是时间行
-                result[line - 1]['time'] = t
-            elif len(t.strip()) > 0:
-                # print('匹配那个3')
-                # 是内容
-                txt_tmp = t.strip().replace('&#39;', "'")
-                txt_tmp = re.sub(r'&#\d+;', '', txt_tmp)
-                result[line - 1]['text'] += txt_tmp
-        except Exception as e:
-            raise Exception(f'{i=},{t=},{str(e)}')
-    # 再次遍历，删掉美元text的行
+            with open(srtfile, 'r', encoding='utf-8') as f:
+                content=f.read().strip().splitlines()
+        except:
+            try:
+                with open(srtfile, 'r', encoding='gbk') as f:
+                    content = f.read().strip().splitlines()
+            except Exception as e:
+                raise Exception(f'get srtfile error:{str(e)}')
+    else:
+        content = srtfile.strip().splitlines()
+    if len(content)<1:
+        raise Exception("srt content is 0")
+    result=format_srt(content)
     new_result = []
     line = 1
     for it in result:
-        if "text" in it and len(it['text'].strip()) > 0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',
-                                                                         it['text']):
+        if "text" in it and len(it['text'].strip()) > 0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',it['text']):
             it['line'] = line
             startraw, endraw = it['time'].strip().split(" --> ")
             start = startraw.replace(',', '.').split(":")
@@ -602,6 +641,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
+    print(f'{new_result=}')
     return new_result
 
 
@@ -658,11 +698,43 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     cmd = cmd1 + ["-c:v",
                   "libx264",
                   "-crf",
-                  "13",
+                  f'{config.settings["crf"]}',
                   f'{out}'
                   ]
     return runffmpeg(cmd)
 
+
+# 从音频中截取一个片段
+def cut_from_audio(*,ss,to,audio_file,out_file):
+    cmd=[
+        "-y",
+        "-i",
+        audio_file,
+        "-ss",
+        ss.replace(',','.'),
+        "-to",
+        to.replace(',','.'),
+        "-ar",
+        "8000",
+        out_file
+    ]
+    return runffmpeg(cmd)
+
+# 获取clone-voice的角色列表
+def get_clone_role():
+    if not config.params['clone_api']:
+        return False
+    try:
+        url=config.params['clone_api'].rstrip('/')+"/init"
+        res=requests.get(url)
+        if res.status_code==200:
+            config.clone_voicelist=["clone"]+res.json()
+            set_process('','set_clone_role')
+            return True
+        return False
+    except Exception as e:
+        pass
+    return False
 
 # 工具箱写入日志队列
 def set_process_box(text, type='logs'):

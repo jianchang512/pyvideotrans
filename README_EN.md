@@ -139,56 +139,83 @@ windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then
     
 18. Preserve Background Music: If this option is selected, the software will first separate the human voices and background accompaniment in the video. The background accompaniment will ultimately be merged with the voice-over audio. As a result, the final video will retain the background accompaniment. **Note**: This function is based on uvr5. If you do not have sufficient Nvidia GPU memory, such as 8GB or more, we recommend caution as this may be very slow and highly resource-intensive.
 
+19.  Original voice clone dubbing: First install and deploy [clone voice](https://github.com/jianchang512/clone-voice) Project, download and configure the "text->speech" model, then select "clone-voice" in the TTS type in this software, and select "clone" for the dubbing role to achieve dubbing using the sound from the original video. When using this method, to ensure the effect, "separation of vocals and background music" will be mandatory. Please note that this feature is slow and consumes system resources.
 
+20. You can modify the prompt words for chatGPT, AzureGPT, and Gemini Pro in the `videotrans/chatgpt.txt`, `videotrans/azure.txt`, and `videotrans/gemini.txt` files respectively. You must pay attention to the `{lang}` in the files, which represents the target language of translation. Do not delete or modify it. The prompt words should ensure that AI is informed to return the content after translation line by line, and the number of lines returned should be consistent with the number of lines given to it.
 
 
 # Advanced Settings videotrans/set.ini
+
 **Please do not make arbitrary adjustments unless you know what will happen**
 
+
 ```
-; Set the software interface language, where en represents English and zh represents Chinese
-lang=
 
-; Number of simultaneous voice acting threads
-dubbing_ Thread=5
 
-; Simultaneous translation lines
-trans_thread=10
+;GUI show language ,set en or zh  eg.  lang=en
+;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
+lang =
 
-; Software waiting for subtitle modification countdown
+;0=video lossless processing but slow processing due to large size, 51=fast processing due to small size but lowest quality, default to 13
+;视频处理质量，0-51的整数，0=无损处理尺寸较大速度很慢，51=质量最低尺寸最小处理速度最快
+crf=13
+
+;dubbing thread at same time, > 5 or greater may be forbid by api
+;同时配音的数量，1-10，建议不要大于5，否则容易失败
+dubbing_thread=5
+
+;Simultaneous translation lines
+;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
+trans_thread=15
+
+;countdown sec
+;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
 countdown_sec=30
 
-; Accelerate device cuvid or cuda
+;Accelerator cuvid or cuda
+;硬件编码设备，cuvid或cuda
 hwaccel=cuvid
 
-; Accelerate device output format, nv12 or cuda
+; Accelerator output format = cuda or nv12
+;硬件输出格式，nv12或cuda
 hwaccel_output_format=nv12
 
-; Is hardware decoding used - c: v h264_ Cuvid true represents yes, false represents no
-no_code=false
+;not decode video before use -c:v h264_cuvid,false=use -c:v h264_cuvid, true=dont use
+;是否禁用硬件解码，true=禁用，兼容性好；false=启用，可能某些硬件上有兼容错误
+no_decode=true
 
-; In speech recognition, the data format is int8, float16, or float32
+;cuda data type int8 float16 float32, More and more graphics memory is being occupied
+;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
 cuda_com_type=int8
 
-; The number of speech recognition threads, where 0 represents the same number of CPU cores. If it occupies too much CPU, it can be changed to 4 here
-whisper_threads=0
+; whisper thread 0 is equal cpu core, 
+;字幕识别时，cpu进程
+whisper_threads=4
 
-; Number of speech recognition work processes
-whisper_worker=2
+;whisper num_worker
+;字幕识别时，同时工作进程
+whisper_worker=1
 
 ;Reducing these two numbers will use less graphics memory
-beam_size=5
-best_of=5
-;vad set to false,use litter GPU memory
+;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
+beam_size=1
+best_of=1
+
+;vad set to false,use litter GPU memory,true is more
+;字幕识别时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
 vad=true
-;Simultaneous execution quantity in pre split mode
-split_threads=4
+
 ;0 is use litter GPU,other is more
+;0=占用更少GPU资源，1=占用更多GPU
 temperature=0
+
 ;false is litter GPU,ture is more
+;同 temperature, true=占用更多GPU，false=占用更少GPU
 condition_on_previous_text=false
 
+
 ```
+
 
 
 # Frequently Asked Questions
@@ -235,6 +262,8 @@ To use the base model, ensure that the models/models--Systran--faster-whisper-ba
    Sometimes you may encounter an error saying "cublasxx.dll does not exist", then you need to download cuBLAS and copy the dll file to the system directory.
 
    [Click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). Extract it and copy the dll files to C:/Windows/System32.
+   
+   [cuBLAS.and.cuDNN_win_v4](https://github.com/Purfview/whisper-standalone-win/releases/download/libs/cuBLAS.and.cuDNN_win_v4.7z)
 
 
 11. How to use custom voice.

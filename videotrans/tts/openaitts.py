@@ -13,7 +13,7 @@ def get_url(url=""):
         return f'{m.groups()[0]}/v1'
     return "https://api.openai.com/v1"
 
-def get_voice(text, role, rate, filename):
+def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True):
     proxies = None
     serv = tools.set_proxy()
     if serv:
@@ -39,8 +39,9 @@ def get_voice(text, role, rate, filename):
     except Exception as e:
         error=str(e)
         if error and re.search(r'Rate limit',error,re.I) is not None:
-            tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试')
+            if set_p:
+                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试')
             time.sleep(30)
-            return get_voice(text, role, rate, filename)
+            return get_voice(text=text, role=role, rate=rate, filename=filename)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
         raise Exception(f"openaiTTS 合成失败：request error:" + str(e))

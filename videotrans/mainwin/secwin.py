@@ -1,6 +1,8 @@
 import json
 import re
 import os
+import threading
+
 from PySide6 import QtWidgets
 from PySide6.QtGui import QTextCursor, QDesktopServices, QGuiApplication
 from PySide6.QtCore import QUrl, Qt, QDir, QTimer
@@ -12,7 +14,8 @@ from videotrans import configure
 
 warnings.filterwarnings('ignore')
 from videotrans.translator import is_allow_translate, get_code
-from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt
+from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt, \
+    get_clone_role
 from videotrans.configure import config
 
 
@@ -85,7 +88,6 @@ class SecWindow():
         return
 
     def is_separate_fun(self, state):
-        print(f'{state=}')
         if state and (len(config.queue_mp4) < 1 or self.main.voice_role.currentText() == 'No'):
             config.params['is_separate'] = False
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
@@ -94,7 +96,6 @@ class SecWindow():
         else:
             config.params['is_separate'] = True if state else False
         self.main.is_separate.setDisabled(False)
-        print(config.params['is_separate'])
 
     def check_cuda(self, state):
         import torch
@@ -705,6 +706,20 @@ class SecWindow():
         self.main.w.set_ott.clicked.connect(save)
         self.main.w.show()
 
+    def set_clone_address(self):
+        def save():
+            key = self.main.w.clone_address.text()
+            self.main.settings.setValue("clone_api", key)
+            config.params["clone_api"] = key
+            self.main.w.close()
+
+        from videotrans.component import CloneForm
+        self.main.w = CloneForm()
+        if config.params["clone_api"]:
+            self.main.w.clone_address.setText(config.params["clone_api"])
+        self.main.w.set_clone.clicked.connect(save)
+        self.main.w.show()
+
     # set baidu
     def set_baidu_key(self):
         def save_baidu():
@@ -859,35 +874,14 @@ class SecWindow():
                 config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
         return True
 
-    # 更新执行状态
-    def update_status(self, type):
-        config.current_status = type
-        self.main.continue_compos.hide()
-        self.main.stop_djs.hide()
-        if type != 'ing':
-            # 结束或停止
-            self.main.startbtn.setText(config.transobj[type])
-            # 启用
-            self.disabled_widget(False)
-            if type == 'end':
-                # 清理字幕
-                self.main.subtitle_area.clear()
-                # 清理输入
-            self.main.statusLabel.setText(config.transobj['bencijieshu'])
-            self.main.source_mp4.setText("No videos")
-            # self.main.target_dir.clear()
-            if self.main.task:
-                self.main.task.requestInterruption()
-                self.main.task.quit()
-                self.main.task = None
-        else:
-            # 重设为开始状态
-            self.disabled_widget(True)
-            self.main.startbtn.setText(config.transobj['running'])
-            self.main.statusLabel.setText(config.transobj['kaishichuli'])
+
 
     # tts类型改变
     def tts_type_change(self, type):
+        if self.main.app_mode=='peiyin' and type=='clone-voice':
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            return
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
         if type == "openaiTTS":
@@ -902,6 +896,12 @@ class SecWindow():
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == 'edgeTTS':
             self.set_voice_role(self.main.target_language.currentText())
+        elif type=='clone-voice':
+            self.main.voice_role.clear()
+            self.main.current_rolelist=config.clone_voicelist
+            self.main.voice_role.addItems(self.main.current_rolelist)
+            threading.Thread(target=get_clone_role).start()
+
 
     # 中英文下试听配音
     def listen_voice_fun(self):
@@ -929,8 +929,12 @@ class SecWindow():
             "text": text,
             "rate": "+0%",
             "role": role,
-            "voice_file": voice_file
+            "voice_file": voice_file,
+            "tts_type":config.params['tts_type'],
+            "language":lang
         }
+        if config.params['tts_type']=='clone-voice' and role=='clone':
+            return
         from videotrans.task.play_audio import PlayMp3
         t = PlayMp3(obj, self.main)
         t.start()
@@ -943,8 +947,13 @@ class SecWindow():
             return
         if role == 'No':
             return
+        if config.params['tts_type']=='clone-voice' and role=='clone':
+            self.main.listen_btn.hide()
+            self.main.listen_btn.setDisabled(True)
+            return
         config.params["voice_role"] = role
         code = get_code(show_text=self.main.target_language.currentText())
+
         if code in ["zh-cn", "zh-tw", "en"]:
             self.main.listen_btn.show()
             self.main.listen_btn.setDisabled(False)
@@ -958,6 +967,7 @@ class SecWindow():
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
         code = get_code(show_text=t)
+
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] != 'edgeTTS':
             if role != 'No' and code in ["zh-cn", "zh-tw", "en"]:
@@ -967,6 +977,7 @@ class SecWindow():
                 self.main.listen_btn.hide()
                 self.main.listen_btn.setDisabled(True)
             return
+
         self.main.listen_btn.hide()
         self.main.voice_role.clear()
         # 未设置目标语言，则清空 edgeTTS角色
@@ -1013,6 +1024,7 @@ class SecWindow():
                                                "Srt files(*.srt *.txt)")
         if fname:
             with open(fname, 'r', encoding='utf-8') as f:
+                self.main.subtitle_area.clear()
                 self.main.subtitle_area.insertPlainText(f.read().strip())
 
     # 保存目录
@@ -1174,6 +1186,9 @@ class SecWindow():
         if config.params['tts_type'] == 'openaiTTS' and not config.params["chatgpt_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['chatgptkeymust'])
             return False
+        if config.params['tts_type'] == 'clone-voice' and not config.params["clone_api"]:
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['You must deploy and start the clone-voice service'])
+            return False
         if config.params['tts_type'] == 'elevenlabsTTS' and not config.params["elevenlabstts_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], "no elevenlabs  key")
             return False
@@ -1219,24 +1234,30 @@ class SecWindow():
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
 
-        self.main.save_setting()
-        self.update_status("ing")
+
+
+
 
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
-            while len(config.queue_mp4) > 0:
-                config.queue_task.append(
-                    {'subtitles': txt, "source_mp4": config.queue_mp4.pop(0), 'app_mode': self.main.app_mode})
+            #如果选择了 clone-voice 并且存在视频，就必须选中背景分离
+            if config.params['tts_type']=='clone-voice':
+                config.params['is_separate'] = True
+                self.main.is_separate.setChecked(True)
+                self.main.is_separate.setDisabled(True)
         elif txt:
-            # 不存在视频,已存在字幕
-            config.queue_task.append({"subtitles": txt, 'app_mode': self.main.app_mode})
-            self.main.processbtns["srt2wav"] = self.add_process_btn("srt2wav")
-            self.main.source_mp4.setText("No Videos")
+            self.main.source_mp4.setText(config.transobj["No select videos"])
+            self.main.app_mode='peiyin'
+            if config.params['tts_type']=='clone-voice':
+                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
+                return
 
+        self.main.save_setting()
+        self.update_status("ing")
         from videotrans.task.main_worker import Worker
-        self.main.task = Worker(self.main)
+        self.main.task = Worker(parent=self.main,app_mode=self.main.app_mode,txt=txt)
         self.main.task.start()
 
     # 设置按钮上的日志信息
@@ -1259,11 +1280,45 @@ class SecWindow():
                 jindu = f' {round(self.main.task.video.precent, 1)}% ' if self.main.task and self.main.task.video else ""
                 self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
                 text = f'{config.transobj["running"]}{jindu} {text}'
-            elif not self.main.task or not self.main.task.video:
-                print(f'{type=}')
-                self.delete_process()
             self.main.processbtns[btnkey].setText(text[:90])
 
+    # 更新执行状态
+    def update_status(self, type):
+        config.current_status = type
+        self.main.continue_compos.hide()
+        self.main.stop_djs.hide()
+        if type != 'ing':
+            # 结束或停止
+            self.main.startbtn.setText(config.transobj[type])
+            # 启用
+            self.disabled_widget(False)
+            if type == 'end':
+                # 成功完成
+                self.main.subtitle_area.clear()
+                self.main.source_mp4.setText(config.transobj["No select videos"])
+                self.main.statusLabel.setText(config.transobj['bencijieshu'])
+            else:
+                #error or stop 出错
+                self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')
+                # 清理输入
+            # self.main.target_dir.clear()
+            if self.main.task:
+                self.main.task.requestInterruption()
+                self.main.task.quit()
+                self.main.task = None
+            if self.main.app_mode =='tiqu':
+                self.set_tiquzimu()
+            elif self.main.app_mode=='tiqu_no':
+                self.set_tiquzimu_no()
+            elif self.main.app_mode=='hebing':
+                self.set_zimu_video()
+            elif self.main.app_mode=='peiyin':
+                self.set_zimu_peiyin()
+        else:
+            # 重设为开始状态
+            self.disabled_widget(True)
+            self.main.startbtn.setText(config.transobj['running'])
+            self.main.statusLabel.setText(config.transobj['kaishichuli'])
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
@@ -1281,21 +1336,23 @@ class SecWindow():
                 self.main.processbtns[self.main.task.video.source_mp4].setTarget(self.main.task.video.target_dir)
         elif d['type'] == "logs":
             self.set_process_btn_text(d['text'], d['btnkey'])
-        elif d['type'] == 'stop' or d['type'] == 'end':
+        elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
             self.update_status(d['type'])
             self.main.continue_compos.hide()
             self.main.statusLabel.setText(config.transobj['bencijieshu'])
             self.main.target_dir.clear()
+            if d['type']=='error':
+                self.set_process_btn_text(d['text'], d['btnkey'], 'error')
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
         elif d['type'] == 'statusbar':
             self.main.statusLabel.setText(d['text'])
-        elif d['type'] == 'error':
-            # 出错停止
-            self.update_status('stop')
-            self.set_process_btn_text(d['text'], d['btnkey'], 'error')
-            self.main.continue_compos.hide()
+        # elif d['type'] == 'error':
+        #     # 出错停止
+        #     self.update_status('error')
+        #     self.set_process_btn_text(d['text'], d['btnkey'], 'error')
+        #     self.main.continue_compos.hide()
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
             self.main.continue_compos.show()
@@ -1326,8 +1383,17 @@ class SecWindow():
         elif d['type'] == 'update_download' and self.main.youw is not None:
             self.main.youw.logs.setText("Down done succeed" if d['text'] == 'ok' else d['text'])
         elif d['type'] == 'open_toolbox':
-            print("open toolbox")
             self.open_toolbox(0, True)
+        elif d['type']=='set_clone_role' and config.params['tts_type']=='clone-voice':
+            self.main.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
+            if config.current_status=='ing':
+                return
+            current=self.main.voice_role.currentText()
+            self.main.voice_role.clear()
+            self.main.voice_role.addItems(config.clone_voicelist)
+            self.main.voice_role.setCurrentText(current)
+            
+            
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):

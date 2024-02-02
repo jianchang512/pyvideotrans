@@ -1,4 +1,4 @@
-[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / [Q群 902124277](https://qm.qq.com/cgi-bin/qm/qr?k=9VNSiJyInxyQ3HK3vmOTibo8pzcDekju&jump_from=webapi&authKey=xcW1+7N1E4SM+DXqyl5d61UOtNooA1C9WR5A/yfA0fmfyUDRRSZex1WD0l+9x1kO) <img src="https://github.com/jianchang512/clone-voice/assets/3378335/20858f50-6d47-411d-939b-272fe35e474c" width="50" title="点击看大图">
+[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / Q群 608815898
 
 # 视频翻译和配音工具
 
@@ -9,7 +9,7 @@
 >
 > 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
+> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
@@ -55,7 +55,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/d0df7129-07a8-495d-9
 
 1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe (若遇到权限问题可右键使用管理员权限打开)
 
-3. 未做免杀，国产杀软可能误报，可忽略或使用源码部署
+3. 未做免杀，杀软可能误报，可忽略或使用源码部署
 
 
 
@@ -148,7 +148,9 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 18. 保留背景音：如果选择该项，则会先将视频中的人声和背景伴奏分离出来，其中背景伴奏最终再和配音音频合并，最后生成的结果视频中将保留背景伴奏。**注意**:该功能基于uvr5实现，如果你没有足够的N卡GPU显存，比如8G以上，建议慎重选择，可能非常慢并非常消耗资源。
 
+19. 原音色克隆配音：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
 
+20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
 
 # 常见问题
 
@@ -198,12 +200,14 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
    有时会遇到“cublasxx.dll不存在”的错误，此时需要下载 cuBLAS，然后将dll文件复制到系统目录下
 
-   [点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，解压后将里面的dll文件复制到 C:/Windows/System32下
+   [点击下载 cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z) ，解压后将里面的dll文件复制到 C:/Windows/System32下
+   
+   [cuBLAS.and.cuDNN_win_v4](https://github.com/Purfview/whisper-standalone-win/releases/download/libs/cuBLAS.and.cuDNN_win_v4.7z)
 
 
 11. 怎样使用自定义音色
    
-   目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice),输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
+   目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice) ,输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
    
 13. 字幕语音无法对齐
 
@@ -254,51 +258,69 @@ https://juejin.cn/post/7318704408727519270
 **请勿随意调整，除非你知道将会发生什么**
 
 ```
-;设置软件界面语言，en代表英文，zh代表中文
+
+;GUI show language ,set en or zh  eg.  lang=en
+;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
 lang =
 
-;同时配音线程数量
+;0=video lossless processing but slow processing due to large size, 51=fast processing due to small size but lowest quality, default to 13
+;视频处理质量，0-51的整数，0=无损处理尺寸较大速度很慢，51=质量最低尺寸最小处理速度最快
+crf=13
+
+;dubbing thread at same time, > 5 or greater may be forbid by api
+;同时配音的数量，1-10，建议不要大于5，否则容易失败
 dubbing_thread=5
 
-;同时翻译行数
-trans_thread=10
+;Simultaneous translation lines
+;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
+trans_thread=15
 
-;软件等待修改字幕倒计时
+;countdown sec
+;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
 countdown_sec=30
 
-;加速设备 cuvid 或 cuda
+;Accelerator cuvid or cuda
+;硬件编码设备，cuvid或cuda
 hwaccel=cuvid
 
-; 加速设备输出格式，nv12 或 cuda 
+; Accelerator output format = cuda or nv12
+;硬件输出格式，nv12或cuda
 hwaccel_output_format=nv12
 
-;是否使用硬件解码 -c:v h264_cuvid  true代表是，false代表否
-no_decode=false
+;not decode video before use -c:v h264_cuvid,false=use -c:v h264_cuvid, true=dont use
+;是否禁用硬件解码，true=禁用，兼容性好；false=启用，可能某些硬件上有兼容错误
+no_decode=true
 
-;语音识别时，数据格式，int8 或 float16 或 float32
+;cuda data type int8 float16 float32, More and more graphics memory is being occupied
+;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
 cuda_com_type=int8
 
-; 语音识别线程数量，0代表和cpu核数一致，如果占用cpu太多，此处可设为4
+; whisper thread 0 is equal cpu core, 
+;字幕识别时，cpu进程
 whisper_threads=4
 
-;语音识别工作进程数量
+;whisper num_worker
+;字幕识别时，同时工作进程
 whisper_worker=1
 
-;如果显存不足，下面2个值可以改为 1
-beam_size=5
-best_of=5
+;Reducing these two numbers will use less graphics memory
+;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
+beam_size=1
+best_of=1
 
-;预分割模式同时工作线程
-split_threads=4
-
-;如果显存不足，可以改为false，但字幕分割效果会相对较差
+;vad set to false,use litter GPU memory,true is more
+;字幕识别时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
 vad=true
 
 ;0 is use litter GPU,other is more
+;0=占用更少GPU资源，1=占用更多GPU
 temperature=0
 
 ;false is litter GPU,ture is more
+;同 temperature, true=占用更多GPU，false=占用更少GPU
 condition_on_previous_text=false
+
+
 ```
 
 

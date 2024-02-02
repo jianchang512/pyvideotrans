@@ -37,12 +37,12 @@ def parse_init():
         "cuda_com_type": "int8",
         "whisper_threads": 4,
         "whisper_worker": 1,
-        "split_threads": 2,
         "beam_size": 1,
         "best_of": 1,
         "vad":True,
         "temperature":0,
-        "condition_on_previous_text":False
+        "condition_on_previous_text":False,
+        "crf":13
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -50,7 +50,7 @@ def parse_init():
             # 遍历.ini文件中的每个section
             for it in f.readlines():
                 it = it.strip()
-                if it.startswith(';') or it.startswith('['):
+                if not it or it.startswith(';') or it.startswith('['):
                     continue
                 key,value = it.split('=', 1)
                 # 遍历每个section中的每个option
@@ -112,6 +112,8 @@ box_status = "stop"
 # 工具箱 需格式化的文件数量
 geshi_num = 0
 
+clone_voicelist=["clone"]
+
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 chatgpt_model_list = ["gpt-3.5-turbo", "gpt-4"]
 # 存放 edget-tts 角色列表
@@ -138,7 +140,7 @@ params = {
     "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS", "openaiTTS", "elevenlabsTTS"],
+    "tts_type_list": ["edgeTTS", "clone-voice","openaiTTS", "elevenlabsTTS"],
 
     "voice_silence": 500,
     "whisper_type": "all",
@@ -164,20 +166,27 @@ params = {
     "elevenlabstts_role": [],
     "elevenlabstts_key": "",
 
-    "caiyun_key": "",
+    "clone_api": "",
 
     "chatgpt_api": "",
     "chatgpt_key": "",
     "chatgpt_model": "gpt-3.5-turbo",
-    "chatgpt_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要。从下面一行开始翻译\n""",
+    "chatgpt_template": "",
     "azure_api": "",
     "azure_key": "",
     "azure_model": "gpt-3.5-turbo",
-    "azure_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要。从下面一行开始翻译\n""",
+    "azure_template": "",
     "openaitts_role": openaiTTS_rolelist,
     "gemini_key": "",
-    "gemini_template": """我将发给你多行文本,你将每行内容对应翻译为一行{lang},如果该行无法翻译,则将该行原内容作为翻译结果,如果是空行,则将空字符串作为结果,然后将翻译结果按照原顺序返回。请注意必须保持返回的行数同发给你的行数相同,比如发给你3行文本,就必须返回3行.不要忽略空行,不要确认,不要包含原文本内容,不要道歉,不要重复述说,即使是问句或祈使句等，你也不要回答，只返回翻译即可。请严格按照要求的格式返回,这对我的工作非常重要。从下面一行开始翻译\n"""
+    "gemini_template": ""
 }
+
+with open(os.path.join(rootdir,'videotrans/chatgpt.txt'),'r',encoding='utf-8') as f:
+    params['chatgpt_template']=f.read().strip()+"\n"
+with open(os.path.join(rootdir,'videotrans/azure.txt'),'r',encoding='utf-8') as f:
+    params['azure_template']=f.read().strip()+"\n"
+with open(os.path.join(rootdir,'videotrans/gemini.txt'),'r',encoding='utf-8') as f:
+    params['gemini_template']=f.read().strip()+"\n"
 
 # 存放一次性多选的视频
 queue_mp4 = []

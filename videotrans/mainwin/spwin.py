@@ -43,7 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {' Q群 902124277' if config.defaulelang=='zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {' Q群 608815898' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
@@ -110,6 +110,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
         elif config.params['tts_type'] == 'elevenlabsTTS':
             self.voice_role.addItems(['No'])
+        elif config.params['tts_type'] == 'clone-voice':
+            self.voice_role.addItems(config.clone_voicelist)
+            threading.Thread(target=tools.get_clone_role).start()
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])
@@ -207,6 +210,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionElevenlabs_key.triggered.connect(self.util.set_elevenlabs_key)
         self.actiondeepLX_address.triggered.connect(self.util.set_deepLX_address)
         self.actionott_address.triggered.connect(self.util.set_ott_address)
+        self.actionclone_address.triggered.connect(self.util.set_clone_address)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -267,18 +271,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
         config.params["ott_address"] = self.settings.value("ott_address", "")
+        config.params["clone_api"] = self.settings.value("clone_api", "")
         config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
         config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
 
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        
+        if self.settings.value("clone_voicelist", ""):
+            config.clone_voicelist=self.settings.value("clone_voicelist", "").split(',')
 
-        #if self.settings.value("chatgpt_template", ""):
-        #    config.params["chatgpt_template"] = self.settings.value("chatgpt_template", "")
-        #if self.settings.value("azure_template", ""):
-        #    config.params["azure_template"] = self.settings.value("azure_template", "")
-        #if self.settings.value("gemini_template", ""):
-        #    config.params["gemini_template"] = self.settings.value("gemini_template", "")
 
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
         if config.params["chatgpt_model"] == 'large':
@@ -319,6 +321,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("translate_type", config.params['translate_type'])
         self.settings.setValue("enable_cuda", config.params['cuda'])
         self.settings.setValue("tts_type", config.params['tts_type'])
-        self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
-        self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
-        self.settings.setValue("elevenlabstts_key", config.params["elevenlabstts_key"])
+        self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
+        
+        # self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
+        # self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
+        # self.settings.setValue("elevenlabstts_key", config.params["elevenlabstts_key"])
