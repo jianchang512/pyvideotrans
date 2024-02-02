@@ -39,6 +39,8 @@ def trans(text_list, target_language="en", *, set_p=True):
             result=result.text.strip().replace('&#39;','"').split("\n")
             if set_p:
                 tools.set_process("\n\n".join(result), 'subtitle')
+            else:
+                tools.set_process("\n\n".join(result), func_name="set_fanyi")
             result_length = len(result)
             print(f'{result_length=}')
             while result_length < source_length:

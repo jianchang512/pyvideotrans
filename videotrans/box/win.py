@@ -6,7 +6,7 @@ import re
 import time
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSettings, QUrl
-from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtGui import QDesktopServices, QIcon, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
 from videotrans import VERSION
 from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
@@ -241,22 +241,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def receiver(self, json_data):
         data = json.loads(json_data)
         # fun_name 方法名，type类型，text具体文本
-        if "func_name" not in data:
-            self.statuslabel.setText(data['text'][:60])
-            if data['type'] == 'error':
-                self.statuslabel.setStyle("""color:#ff0000""")
-        elif data['func_name'] == "yspfl_end":
+
+        if data['func_name'] == "yspfl_end":
             # 音视频分离完成了
             self.yspfl_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
             self.yspfl_startbtn.setDisabled(False)
-
-            self.statuslabel.setText("")
+            self.statuslabel.setText("Succeed")
         elif data['func_name'] == 'ysphb_end':
             self.ysphb_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
             self.ysphb_startbtn.setDisabled(False)
             self.ysphb_opendir.setDisabled(False)
             if data['type'] == 'end':
-                self.statuslabel.setText("")
+                self.statuslabel.setText("Succeed")
                 basename = os.path.basename(self.ysphb_videoinput.text())
                 if os.path.exists(config.rootdir + f"/{basename}.srt"):
                     os.unlink(config.rootdir + f"/{basename}.srt")
@@ -268,15 +264,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.disabled_shibie(False)
             if data['type'] == 'end':
                 self.shibie_startbtn.setText(config.transobj["zhixingwc"])
+                self.shibie_text.clear()
                 self.shibie_text.insertPlainText(data['text'])
-                self.statuslabel.setText("")
+                self.statuslabel.setText("Succeed")
             else:
                 self.shibie_startbtn.setText(config.transobj["zhixinger"])
         elif data['func_name'] == 'hecheng_end':
             if data['type'] == 'end':
                 self.hecheng_startbtn.setText(config.transobj["zhixingwc"])
                 self.hecheng_startbtn.setToolTip(config.transobj["zhixingwc"])
-                self.statuslabel.setText("")
+                self.statuslabel.setText("Succeed")
             else:
                 self.hecheng_startbtn.setText(data['text'])
                 self.hecheng_startbtn.setToolTip(data['text'])
@@ -289,17 +286,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.disabled_geshi(False)
                 self.geshi_result.insertPlainText(config.transobj["zhixingwc"])
                 self.geshi_input.clear()
-                self.statuslabel.setText("")
+                self.statuslabel.setText("Succeed")
         elif data['func_name'] == 'hun_end':
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
-            self.statuslabel.setText("")
+            self.statuslabel.setText("Succeed")
         elif data['func_name'] == 'fanyi_end':
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(config.transobj['starttrans'])
+            self.fanyi_targettext.clear()
             self.fanyi_targettext.setPlainText(data['text'])
             self.daochu.setDisabled(False)
-            self.statuslabel.setText("")
+            self.statuslabel.setText("Translate end")
+        elif data['func_name']=='set_fanyi':
+            self.fanyi_targettext.moveCursor(QTextCursor.End)
+            self.fanyi_targettext.insertPlainText(data['text'])
+        elif data['func_name']=='set_subtitle':
+            self.shibie_text.moveCursor(QTextCursor.End)
+            self.shibie_text.insertPlainText(data['text'])
+        elif "func_name" not in data or not data['func_name']:
+            self.statuslabel.setText(data['text'][:60])
+            if data['type'] == 'error':
+                self.statuslabel.setStyle("""color:#ff0000""")
+        else:
+            self.statuslabel.setText(data['text'])
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -313,7 +323,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.yspfl_task = Worker(
             [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl_end",
             self)
-        self.yspfl_task.update_ui.connect(self.receiver)
+        # self.yspfl_task.update_ui.connect(self.receiver)
         self.yspfl_task.start()
         self.yspfl_startbtn.setText(config.transobj['running'])
         self.yspfl_startbtn.setDisabled(True)
@@ -359,7 +369,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         basename = os.path.basename(videofile)
         srtfile = self.ysphb_srtinput.text()
         wavfile = self.ysphb_wavinput.text()
-
+        # 是否保留原声
+        save_raw=self.ysphb_replace.isChecked()
         if not videofile or not os.path.exists(videofile):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
             return
@@ -392,8 +403,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             videofile = tmpname_conver
 
         if wavfile:
-            # 视频里是否有音轨
-            if video_info['streams_audio'] > 0:
+            # 视频里是否有音轨 并且保留原声音
+            if video_info['streams_audio'] > 0 and save_raw:
                 cmds = [
                     ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map',
                      '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
@@ -409,7 +420,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}", '-c:v', 'libx264',
                  '-c:a', 'copy', f'{savedir}/{basename}.mp4'])
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
-        self.ysphb_task.update_ui.connect(self.receiver)
         self.ysphb_task.start()
 
         self.ysphb_startbtn.setText(config.transobj["running"])
@@ -440,7 +450,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.shibie_ffmpeg_task = Worker([
                     ['-y', '-i', file, out_file]
                 ], "shibie_next", self)
-                self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
+                # self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()
             except Exception as e:
                 config.logger.error("执行语音识别前，先从视频中分离出音频失败：" + str(e))
@@ -459,7 +469,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         model = self.shibie_model.currentText()
         print(f'{file=}')
         self.shibie_task = WorkerWhisper(file, model, translator.get_audio_code(show_source=self.shibie_language.currentText()),"shibie_end", self)
-        self.shibie_task.update_ui.connect(self.receiver)
+        # self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
     def shibie_save_fun(self):
@@ -527,7 +537,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                       func_name="hecheng_end",
                                       voice_autorate=issrt and self.voice_autorate.isChecked(),
                                       tts_issrt=issrt)
-        self.hecheng_task.update_ui.connect(self.receiver)
+        # self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText(config.transobj["running"])
         self.hecheng_startbtn.setDisabled(True)
@@ -614,7 +624,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.disabled_geshi(False)
             return
         self.geshi_task = Worker(cmdlist, "geshi_end", self, True)
-        self.geshi_task.update_ui.connect(self.receiver)
+        # self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
 
     # 禁用按钮
@@ -651,7 +661,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
         self.geshi_task = Worker([cmd], "hun_end", self, True)
-        self.geshi_task.update_ui.connect(self.receiver)
+        # self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
         self.hun_startbtn.setDisabled(True)
         self.hun_out.setDisabled(True)
@@ -694,7 +704,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, config.transobj['anerror'], rs)
             return
         self.fanyi_task = FanyiWorker(translate_type, target_language, source_text, issrt, self)
-        self.fanyi_task.ui.connect(self.receiver)
+        # self.fanyi_task.ui.connect(self.receiver)
         self.fanyi_task.start()
         self.fanyi_start.setDisabled(True)
         self.fanyi_start.setText(config.transobj["running"])

@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "Preserve the original sound in the video": "Preserve the original sound in the video",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices",
     "lanjie": "Active restriction",
 	"The ott project at":"The OTT text translate at: github.com/jianchang512/ott",  
@@ -289,7 +290,7 @@
 	"Translation channels":"Translation channels",
 	"Target lang":"Target lang",
 	"Proxy":"Proxy",
-	"Failed to access Google services. Please set up the proxy correctly":"Failed to access Google services. Please set up the proxy correctly",
+	"Failed to access Google services. Please set up the proxy correctly":"set up the proxy",
 	"Import text to be translated from a file..":"Import text to be translated from a file..",
 	"shuoming1":"If it is only pure text, there is no need to select it.\nIf it is in SRT subtitle format, it needs to be selected to not translate the line numbers and time values in the subtitles, and return them in the original subtitle format.\nIf not selected, all content will be sent to the translation engine for processing at once, and punctuation, symbols, and formatting may change.\n",
 	"export..":"export..",

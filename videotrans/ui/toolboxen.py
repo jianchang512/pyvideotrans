@@ -9,6 +9,8 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
+
+from videotrans.configure import config
 from videotrans.configure.config import box_lang
 
 class Ui_MainWindow(object):
@@ -150,12 +152,26 @@ class Ui_MainWindow(object):
         self.ysphb_srtinput.setMinimumSize(QtCore.QSize(0, 40))
         self.ysphb_srtinput.setReadOnly(True)
         self.ysphb_srtinput.setObjectName("ysphb_srtinput")
+
         self.horizontalLayout_6.addWidget(self.ysphb_srtinput, 0, QtCore.Qt.AlignTop)
         self.ysphb_selectsrt = QtWidgets.QPushButton(self.tab_3)
         self.ysphb_selectsrt.setMinimumSize(QtCore.QSize(150, 40))
         self.ysphb_selectsrt.setObjectName("ysphb_selectsrt")
         self.horizontalLayout_6.addWidget(self.ysphb_selectsrt, 0, QtCore.Qt.AlignTop)
+
+
+
+        self.horizontalLayout_replace = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_replace.setObjectName("horizontalLayout_replace")
+        self.ysphb_replace = QtWidgets.QCheckBox(self.tab_3)
+        self.ysphb_replace.setObjectName("ysphb_replace")
+        self.ysphb_replace.setChecked(True)
+        self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
+        self.horizontalLayout_replace.addWidget(self.ysphb_replace, 0, QtCore.Qt.AlignTop)
+
         self.verticalLayout.addLayout(self.horizontalLayout_6)
+        self.verticalLayout.addLayout(self.horizontalLayout_replace)
+
         self.verticalLayout_9.addLayout(self.verticalLayout)
         self.verticalLayout_8 = QtWidgets.QVBoxLayout()
         self.verticalLayout_8.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)

@@ -1348,11 +1348,6 @@ class SecWindow():
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
         elif d['type'] == 'statusbar':
             self.main.statusLabel.setText(d['text'])
-        # elif d['type'] == 'error':
-        #     # 出错停止
-        #     self.update_status('error')
-        #     self.set_process_btn_text(d['text'], d['btnkey'], 'error')
-        #     self.main.continue_compos.hide()
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
             self.main.continue_compos.show()

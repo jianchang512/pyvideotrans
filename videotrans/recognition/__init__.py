@@ -216,6 +216,8 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             if set_p:
                 tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
                 tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}, {round(segment.end * 100 / info.duration, 2)}%')
+            else:
+                tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
 
 
         # 写入翻译前的原语言字幕到目标文件夹
