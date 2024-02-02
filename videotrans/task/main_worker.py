@@ -11,39 +11,82 @@ from videotrans.util.tools import set_process, delete_temp, get_subtitle_from_sr
 
 
 class Worker(QThread):
-    def __init__(self, parent=None):
+    def __init__(self, *,parent=None,app_mode=None,txt=None):
         super().__init__(parent=parent)
         self.video = None
+        self.app_mode=app_mode
+        self.txt=txt
+
+    def srt2audio(self):
+        try:
+            config.btnkey="srt2wav"
+            set_process('srt2wav', 'add_process')
+            self.video = TransCreate({"subtitles": self.txt, 'app_mode': self.app_mode})
+            st = time.time()
+            set_process(config.transobj['kaishichuli'])
+            self.video.run()
+            # 成功完成
+            config.params['line_roles'] = {}
+            dur = int(time.time() - st)
+            set_process(f"{self.video.target_dir}##{dur}", 'succeed')
+            send_notification(config.transobj["zhixingwc"],
+                              f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
+
+            # 全部完成
+            set_process("", 'end')
+            time.sleep(10)
+            delete_temp(None)
+            try:
+                if os.path.exists(self.video.novoice_mp4):
+                    time.sleep(1)
+                    os.unlink(self.video.novoice_mp4)
+            except:
+                pass
+        except Exception as e:
+            set_process(f"{str(e)}", 'error')
+            send_notification("Error",  str(e) )
+        finally:
+            self.video = None
+
 
     def run(self) -> None:
-        task_nums = len(config.queue_task)
-        objs=[]
-        for (i,it) in enumerate(config.queue_task):
-            t=TransCreate(it)
-            set_process(t.btnkey, 'add_process')
-            objs.append(t)
+        # 字幕配音
+        if self.app_mode=='peiyin':
+            return self.srt2audio()
+
+        #多个视频处理
         num = 0
-        while len(objs)>0:
+        tasks=[]
+        for it in config.queue_mp4:
+            obj=TransCreate({'subtitles': self.txt, "source_mp4": it, 'app_mode': self.app_mode})
+            tasks.append(obj)
+            set_process(obj.btnkey, 'add_process')
+        task_nums = len(tasks)
+
+
+        while len(tasks)>0:
             num += 1
             set_process(f"Processing {num}/{task_nums}", 'statusbar')
             try:
                 st = time.time()
-                self.video = objs.pop(0)
+                self.video = tasks.pop(0)
                 config.btnkey=self.video.btnkey
                 set_process(config.transobj['kaishichuli'])
+
                 self.video.run()
+
                 # 成功完成
                 config.params['line_roles'] = {}
                 dur=int(time.time() - st)
                 set_process(f"{self.video.target_dir}##{dur}", 'succeed')
-                send_notification(config.transobj["zhixingwc"],f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
-
+                send_notification(config.transobj["zhixingwc"],f'{dur}s: {self.video.source_mp4}')
                 try:
                     if os.path.exists(self.video.novoice_mp4):
                         time.sleep(1)
                         os.unlink(self.video.novoice_mp4)
                 except:
                     pass
+                config.queue_mp4.pop(0)
             except Exception as e:
                 print(f"mainworker {str(e)}")
                 set_process(f"{str(e)}", 'error')

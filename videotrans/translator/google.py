@@ -53,7 +53,9 @@ def trans(text_list, target_language="en", *, set_p=True):
             re_result = re.findall(
                 r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
             if len(re_result) < 1:
-                tools.set_process(f'Google limit rate,wait 10s')
+                if set_p:
+                    tools.set_process(f'Google limit rate,wait 10s')
+                config.logger.info(f'Google limit rate,wait 10s:{response.text}\nurl={url}')
                 time.sleep(10)
                 return trans(text_list, target_language, set_p=set_p)
             if re_result[0]:
@@ -62,6 +64,7 @@ def trans(text_list, target_language="en", *, set_p=True):
                     tools.set_process("\n\n".join(result), 'subtitle')
                 result_length=len(result)
                 print(f'{result_length=}')
+                config.logger.info(f'{result_length=},{source_length=}')
                 while result_length<source_length:
                     result.append("")
                     result_length+=1
@@ -71,11 +74,13 @@ def trans(text_list, target_language="en", *, set_p=True):
                 raise Exception(f'no result:{re_result}')
         except Exception as e:
             error = str(e)
-            if error.find("HTTPSConnectionP")>-1:
+            if error.find("HTTPSConnection")>-1:
                 if set_p:
                     tools.set_process(f'Google HTTPSConnectionPool error,after 5s retry')
+                config.logger.error(f'Google HTTPSConnectionPool error,after 5s retry:\n{url=}')
                 time.sleep(5)
                 return trans(text_list, target_language, set_p=set_p)
+            config.logger.error(f'Google error:{str(error)}')
             raise Exception(f'Google error:{str(error)}')
     if isinstance(text_list, str):
         return "\n".join(target_text)

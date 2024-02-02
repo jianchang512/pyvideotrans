@@ -1,5 +1,13 @@
 {
   "translate_language" : {
+    "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices",
+    "lanjie": "Active restriction",
+	"The ott project at":"The OTT text translate at: github.com/jianchang512/ott",  
+    "No select videos": "No select videos",
+    "You must deploy and start the clone-voice service": "You must deploy and start the github.com/jianchang512/clone-voice  service, and fill in the address in the menu bar-Settings-cloneVoice",
+    "cannot connection to clone-voice service": "Cannot connection to clone-voice service,You must deploy and start the github.com/jianchang512/clone-voice  service, and fill in the address in the menu bar-Settings-cloneVoice",
+    "test clone voice": "test connecting to clone-voice api ...",
+    "The project at": "Clone voice at: github.com/jianchang512/clone-voice",
     "qianyiwenjian" : "La vía de acceso o nombre de vídeo contiene espacios no ASCII.  Para evitar errores, se ha migrado a   ",
     "bukebaoliubeijing": "Must have a voice actor and input video to preserve background music",
     "Separating vocals and background music, which may take a longer time": "Separating vocals and background music, which may take a longer time",

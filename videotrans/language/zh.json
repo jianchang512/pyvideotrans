@@ -1,5 +1,13 @@
 {
   "translate_language": {
+    "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "字幕配音模式下不可使用clone-voice,因为不存在可复制的音色",
+    "lanjie": "已限制",
+	"The ott project at":"OTT离线文字翻译地址: github.com/jianchang512/ott",  
+    "No select videos": "尚未选择视频",
+    "You must deploy and start the clone-voice service": "必须部署并启动github.com/jianchang512/clone-voice服务，将地址填写在菜单栏-设置-clone-voice中",
+    "cannot connection to clone-voice service": "无法连接到clone-voice服务，你必须部署并启动github.com/jianchang512/clone-voice服务，将地址填写在菜单栏-设置-cloneVoice中",
+    "test clone voice": "正在测试能否连接到clone-voice服务",
+    "The project at": "clone-voice声音克隆地址: github.com/jianchang512/clone-voice",
     "selectmp4": "选择视频",
     "bukebaoliubeijing": "必须选择配音角色和输入视频，才能保留背景声音",
     "Separating vocals and background music, which may take a longer time": "正在分离人声和背景音乐，可能耗时较久",

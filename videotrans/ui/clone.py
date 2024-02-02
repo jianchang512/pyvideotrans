@@ -10,20 +10,22 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QLabel
+
 from videotrans.configure import config
 
-class Ui_ottform(object):
-    def setupUi(self, ottform):
-        ottform.setObjectName("ottform")
-        ottform.setWindowModality(QtCore.Qt.NonModal)
-        ottform.resize(400, 223)
+
+class Ui_cloneform(object):
+    def setupUi(self, clone):
+        clone.setObjectName("clone")
+        clone.setWindowModality(QtCore.Qt.NonModal)
+        clone.resize(500, 223)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(ottform.sizePolicy().hasHeightForWidth())
-        ottform.setSizePolicy(sizePolicy)
-        ottform.setMaximumSize(QtCore.QSize(400, 300))
-        self.gridLayout = QtWidgets.QGridLayout(ottform)
+        sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
+        clone.setSizePolicy(sizePolicy)
+        clone.setMaximumSize(QtCore.QSize(500, 300))
+        self.gridLayout = QtWidgets.QGridLayout(clone)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -34,7 +36,7 @@ class Ui_ottform(object):
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(ottform)
+        self.label = QtWidgets.QLabel(clone)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -44,31 +46,37 @@ class Ui_ottform(object):
         self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.ott_address = QtWidgets.QLineEdit(ottform)
+        self.clone_address = QtWidgets.QLineEdit(clone)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.ott_address.sizePolicy().hasHeightForWidth())
-        self.ott_address.setSizePolicy(sizePolicy)
-        self.ott_address.setMinimumSize(QtCore.QSize(210, 35))
-        self.ott_address.setObjectName("ott_address")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ott_address)
+        sizePolicy.setHeightForWidth(self.clone_address.sizePolicy().hasHeightForWidth())
+        self.clone_address.setSizePolicy(sizePolicy)
+        self.clone_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.clone_address.setObjectName("clone_address")
+        
+        
+        
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-        self.set_ott = QtWidgets.QPushButton(ottform)
-        self.set_ott.setMinimumSize(QtCore.QSize(0, 35))
-        self.set_ott.setObjectName("set_ott")
+
         
-        label=QLabel(config.transobj['The ott project at'])
+
+        self.set_clone = QtWidgets.QPushButton(clone)
+        self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
+        self.set_clone.setObjectName("set_clone")
+
+        label=QLabel(config.transobj['The project at'])
         self.verticalLayout_2.addWidget(label)
         
-        self.verticalLayout_2.addWidget(self.set_ott)
+        self.verticalLayout_2.addWidget(self.set_clone)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
-        self.retranslateUi(ottform)
-        QtCore.QMetaObject.connectSlotsByName(ottform)
+        self.retranslateUi(clone)
+        QtCore.QMetaObject.connectSlotsByName(clone)
 
-    def retranslateUi(self, ottform):
-        ottform.setWindowTitle("OTT")
-        self.label.setText("OTT_address")
-        self.set_ott.setText("OK")
+    def retranslateUi(self, clone):
+        clone.setWindowTitle("clone-voice")
+        self.label.setText("clone-voice_address")
+        self.set_clone.setText("OK")

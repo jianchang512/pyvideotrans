@@ -24,7 +24,7 @@ from videotrans.util import tools
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, \
     get_lastjpg_fromvideo, is_novoice_mp4, cut_from_video, get_video_duration, delete_temp, \
     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, create_video_byimg, concat_multi_mp4, \
-    speed_up_mp3, backandvocal
+    speed_up_mp3, backandvocal, cut_from_audio, get_clone_role
 
 
 class TransCreate():
@@ -52,8 +52,10 @@ class TransCreate():
         self.video_info = None
 
         # 没有视频，是根据字幕生成配音
-        if not self.source_mp4:
+        if not self.source_mp4 or self.app_mode=='peiyin':
+            self.source_mp4=''
             self.noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            self.precent=40
         else:
             # 去掉扩展名的视频名，做标识
             self.noextname, ext = os.path.splitext(os.path.basename(self.source_mp4))
@@ -153,6 +155,7 @@ class TransCreate():
             #背景音乐
             self.targetdir_source_instrument = f"{self.target_dir}/instrument.wav"
             # 转为8k采样率，降低文件
+            self.targetdir_source_vocal = f"{self.target_dir}/vocal.wav"
             self.targetdir_source_regcon = f"{self.target_dir}/vocal8000.wav"
             if os.path.exists(self.targetdir_source_regcon) and os.path.getsize(self.targetdir_source_regcon)==0:
                 os.unlink(self.targetdir_source_regcon)
@@ -177,8 +180,13 @@ class TransCreate():
     def run(self):
         config.settings = config.parse_init()
         if config.current_status != 'ing':
-            raise Myexcept("Had stop")
-        self.precent = 1
+            raise Myexcept(f"Had stop {config.current_status=}")
+        if config.params['is_separate'] and config.params['tts_type']=='clone-voice':
+            set_process(transobj['test clone voice'])
+            if not get_clone_role():
+                raise Exception(transobj['cannot connection to clone-voice service'])
+
+        self.precent +=1
         if self.wait_convermp4:
             # 需要转换格式
             set_process(transobj['kaishiyuchuli'])
@@ -190,7 +198,7 @@ class TransCreate():
         ##### 开始分离
         self.step = 'split_start'
         self.split_wav_novicemp4()
-        self.precent = 5
+        self.precent += 5
         self.step = 'split_end'
 
         #### 开始识别
@@ -411,7 +419,7 @@ class TransCreate():
         # 如果新长度大于原时长，则末尾截断
         if total_duration > 0 and (len(merged_audio) > total_duration):
             # 截断前先保存原完整文件
-            merged_audio.export(f'{self.target_dir}/{config.params["target_language"]}-nocut.wav', format="wav")
+            merged_audio.export(f'{self.target_dir}/{self.target_language_code}-nocut.wav', format="wav")
             merged_audio = merged_audio[:total_duration]
         # 创建配音后的文件
         try:
@@ -469,7 +477,17 @@ class TransCreate():
                 filename = f'{voice_role}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
                 md5_hash = hashlib.md5()
                 md5_hash.update(f"{filename}".encode('utf-8'))
+                # 要保存到的文件
+                # clone-voice同时也是音色复制源
                 filename = self.cache_folder + "/" + md5_hash.hexdigest() + ".mp3"
+                # 如果是clone-voice类型， 需要截取对应片段
+                if config.params['tts_type']=='clone-voice':
+                    if not os.path.exists(self.targetdir_source_vocal):
+                        raise Exception(f'not exits {self.targetdir_source_vocal}')
+                    # clone 方式文件为wav格式
+                    filename+=".wav"
+                    cut_from_audio(audio_file=self.targetdir_source_vocal,ss=it['startraw'],to=it['endraw'],out_file=filename)
+
                 queue_tts.append({
                     "text": it['text'],
                     "role": voice_role,
@@ -490,7 +508,7 @@ class TransCreate():
         if not queue_copy or len(queue_copy) < 1:
             raise Myexcept(f'[error]Queue tts length is 0')
         # 具体配音操作
-        run_tts(queue_tts=queue_tts, set_p=True)
+        run_tts(queue_tts=queue_tts,language=self.target_language_code, set_p=True)
 
         if config.current_status != 'ing':
             raise Myexcept('Had stop')
@@ -517,7 +535,12 @@ class TransCreate():
                 segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
                 queue_copy[idx] = it
                 continue
-            audio_data = AudioSegment.from_file(it['filename'], format="mp3")
+            ext='mp3'
+            #可能是wav
+            if it['filename'].endswith('.wav'):
+                ext='wav'
+                
+            audio_data = AudioSegment.from_file(it['filename'], format=ext)
             mp3len = len(audio_data)
             # 原字幕发音时间段长度
             wavlen = it['end_time'] - it['start_time']
@@ -532,12 +555,15 @@ class TransCreate():
                 if diff > 0:
                     speed = round(mp3len / wavlen if wavlen>0 else 1,2)
                     # 新的长度
-                    tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.mp3')
-                    speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
-                    # mp3 降速
-                    set_process(f"dubbing speed + {speed}")
-                    # 音频加速 最大加速2倍
-                    audio_data = AudioSegment.from_file(tmp_mp3, format="mp3")
+                    if os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                        tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
+                        speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                        # mp3 降速
+                        set_process(f"dubbing speed + {speed}")
+                        # 音频加速 最大加速2倍
+                        audio_data = AudioSegment.from_file(tmp_mp3, format=ext)
+                    else:
+                        logger.error(f'{it["filename"]} 不存在或尺寸为0，加速失败')
             elif diff > 0:
                 offset += diff
                 it['end_time'] += diff
@@ -647,8 +673,8 @@ class TransCreate():
                     queue_params[idx] = it
                     logger.error(f'配音失败  {it}')
                     continue
-
-                audio_data = AudioSegment.from_file(it['filename'], format="mp3")
+                ext="mp3" if it['filename'].endswith('.mp3') else "wav"
+                audio_data = AudioSegment.from_file(it['filename'], format=ext)
                 # 新发音长度
                 mp3len = len(audio_data)
                 # 先判断，如果 新时长大于旧时长，需要处理

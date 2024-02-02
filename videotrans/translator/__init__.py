@@ -158,6 +158,8 @@ LANG_CODE = {
 
 # 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
 def get_code(*,show_text=None):
+    if show_text=='-':
+        return None
     return config.langlist[show_text] if show_text in config.langlist else config.rev_langlist[show_text]
 
 # 根据显示的语言和翻译通道，获取源语言代码和目标语言代码
@@ -180,7 +182,7 @@ def get_source_target_code(*,show_source=None,show_target=None,translate_type=No
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif lower_translate_type==BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
-    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
+    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPL_NAME.lower()]:
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
     elif lower_translate_type==TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
@@ -224,7 +226,7 @@ def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
     index=0
     if lower_translate_type==BAIDU_NAME.lower():
         index=2
-    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPLX_NAME.lower()]:
+    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPL_NAME.lower()]:
         index=3
     elif lower_translate_type == TENCENT_NAME.lower():
         index=4

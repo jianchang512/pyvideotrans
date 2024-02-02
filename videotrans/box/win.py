@@ -107,7 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_startbtn.clicked.connect(self.hecheng_start_fun)
         self.hecheng_opendir.clicked.connect(lambda: self.opendir_fn(self.hecheng_out.text().strip()))
         # 设置 tts_type
-        self.tts_type.addItems(config.params['tts_type_list'])
+        self.tts_type.addItems([i for i in config.params['tts_type_list'] if i !='clone-voice'])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
         self.tts_issrt.stateChanged.connect(self.tts_issrt_change)

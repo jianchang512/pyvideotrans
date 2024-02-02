@@ -5,7 +5,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(text, role, rate, filename):
+def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set_p=True):
     try:
         with open(os.path.join(config.rootdir,'elevenlabs.json'),'r',encoding="utf-8") as f:
             jsondata=json.loads(f.read())
@@ -21,5 +21,7 @@ def get_voice(text, role, rate, filename):
         return True
     except Exception as e:
         error=str(e)
+        if set_p:
+            tools.set_process(f'[error]elevenlabs:{error}')
         config.logger.error(f"elevenlabsTTS 合成失败：request error:{error}")
         raise Exception(f"elevenlabsTTS  合成失败：request error:{error}")

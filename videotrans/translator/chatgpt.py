@@ -88,7 +88,6 @@ def trans(text_list, target_language="English", *, set_p=True):
             if set_p:
                 tools.set_process("\n\n".join(result), 'subtitle')
             result_length = len(result)
-            print(f'{result_length=}')
             while result_length < source_length:
                 result.append("")
                 result_length += 1
@@ -102,7 +101,7 @@ def trans(text_list, target_language="English", *, set_p=True):
                 time.sleep(30)
                 return trans(text_list, target_language, set_p=set_p)
             else:
-                raise Exception(f'chatGPT error:{str(error)}')
+                raise Exception(f'chatGPT:{str(error)}')
     if isinstance(text_list, str):
         return "\n".join(target_text)
 

@@ -10,6 +10,7 @@ from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.ott import Ui_ottform
+from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.setlinerole import Ui_setlinerole
@@ -83,6 +84,13 @@ class OttForm(QDialog, Ui_ottform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+class CloneForm(QDialog, Ui_cloneform):  # <===
+    def __init__(self, parent=None):
+        super(CloneForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 # set chatgpt api and key
 class ChatgptForm(QDialog, Ui_chatgptform):  # <===
