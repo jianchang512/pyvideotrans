@@ -402,8 +402,6 @@ def wav2m4a(wavfile, m4afile,extra=None):
         "-y",
         "-i",
         wavfile,
-        "-c:a",
-        "aac",
         m4afile
     ]
     if extra:
@@ -474,27 +472,6 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
     ])
 
 
-# 文字合成
-# def text_to_speech(*, text="", role="", rate='+0%', filename=None, tts_type=None, play=False):
-#     try:
-#         if rate != '+0%':
-#             set_process(f'text to speech speed {rate}')
-#         if tts_type == "edgeTTS":
-#             if not get_voice_edgetts(text=text, role=role, rate=rate, filename=filename):
-#                 raise Exception(f"edgeTTS error")
-#         elif tts_type == "openaiTTS":
-#             if not get_voice_openaitts(text, role, rate, filename):
-#                 raise Exception(f"openaiTTS error")
-#         elif tts_type == 'elevenlabsTTS':
-#             if not get_voice_elevenlabs(text, role, rate, filename):
-#                 raise Exception(f"elevenlabsTTS error")
-#         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-#             if play:
-#                 threading.Thread(target=pygameaudio, args=(filename,)).start()
-#             return True
-#         return False
-#     except Exception as e:
-#         raise Exception(f"text to speech:{filename=},{tts_type=}," + str(e))
 
 
 def show_popup(title, text):
@@ -631,9 +608,24 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         if "text" in it and len(it['text'].strip()) > 0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',it['text']):
             it['line'] = line
             startraw, endraw = it['time'].strip().split(" --> ")
+            startraw=startraw.strip().replace('.',',')
+            endraw=endraw.strip().replace('.',',')
+
+            if startraw.find(',')==-1:
+                startraw+=',000'
+            if endraw.find(',')==-1:
+                endraw+=',000'
+
+
             start = startraw.replace(',', '.').split(":")
-            start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
             end = endraw.replace(',', '.').split(":")
+
+            if len(start[0])<2:
+                startraw=f'0{startraw}'
+            if len(end[0])<2:
+                endraw=f'0{endraw}'
+
+            start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
             end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
             it['startraw'] = startraw
             it['endraw'] = endraw

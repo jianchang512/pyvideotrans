@@ -78,7 +78,7 @@ def trans(text_list, target_language="en", *, set_p=True):
             config.logger.error("tencent api error:" + str(e))
             if set_p:
                 tools.set_process("[error]腾讯翻译失败:" + str(e))
-            return "tencent api error:" + str(e)
+            raise Exception("tencent api error:" + str(e))
 
     if isinstance(text_list, str):
         return "\n".join(target_text)

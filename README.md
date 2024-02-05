@@ -164,7 +164,7 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 3. 提示 FFmepg 不存在
 
-   首先查看确定软件根目录下存在 ffmpeg.exe, ffprobe.exe文件，如果不存在，解压 ffmpeg.7z，将这2个文件放到软件根目录下
+   首先查看确定软件根目录下存在 ffmpeg.exe, ffprobe.exe 文件或是否存在ffmpeg目录，如果不存在，解压 ffmpeg.7z，将这2个文件放到软件根目录下
 
 4. windows上开启了 CUDA，但是提示错误
 

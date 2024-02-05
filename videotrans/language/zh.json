@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "Open Documents": "查看使用文档",
     "Preserve the original sound in the video": "保留视频中原声音",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "字幕配音模式下不可使用clone-voice,因为不存在可复制的音色",
     "lanjie": "已限制",
@@ -84,7 +85,7 @@
     "nextstep": "继续下一步",
     "tianxieazure": "必须在菜单-设置中填写Azure key",
     "bencijieshu": "本次任务结束",
-    "kaishichuli": "开始处理...",
+    "kaishichuli": "开始处理",
     "yunxingbukerole": "运行中，不可改为无配音角色",
     "bixutianxie": "必须填写",
     "peiyinmoshisrt": "配音模式下必须选择配音角色、目标语言、并将本地srt字幕文件拖拽到右侧字幕区",

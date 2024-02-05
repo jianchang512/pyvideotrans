@@ -448,7 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 print(f'{file=}')
                 self.shibie_dropbtn.setText(out_file)
                 self.shibie_ffmpeg_task = Worker([
-                    ['-y', '-i', file, out_file]
+                    ['-y', '-i', file,'-vn','-ac','1','-ar','8000', out_file]
                 ], "shibie_next", self)
                 # self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
                 self.shibie_ffmpeg_task.start()

@@ -436,7 +436,18 @@ class TransCreate():
         if isinstance(srtstr, list):
             txt = ""
             for it in srtstr:
-                txt += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                startraw, endraw = it['time'].strip().split(" --> ")
+                startraw = startraw.strip().replace('.', ',')
+                endraw = endraw.strip().replace('.', ',')
+                if startraw.find(',') == -1:
+                    startraw += ',000'
+                if endraw.find(',') == -1:
+                    endraw += ',000'
+                if len(startraw.split(':')[0])<2:
+                    startraw=f'0{startraw}'
+                if len(endraw.split(':')[0])<2:
+                    endraw=f'0{endraw}'
+                txt += f"{it['line']}\n{startraw} --> {endraw}\n{it['text']}\n\n"
             try:
                 with open(file, 'w', encoding="utf-8") as f:
                     f.write(txt.strip())

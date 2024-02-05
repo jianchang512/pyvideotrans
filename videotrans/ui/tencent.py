@@ -89,7 +89,7 @@ class Ui_tencentform(object):
 
     def retranslateUi(self, tencentform):
         _translate = QtCore.QCoreApplication.translate
-        tencentform.setWindowTitle(_translate("tencentform", "Baidu"))
+        tencentform.setWindowTitle(_translate("tencentform", "腾讯翻译"))
         self.label.setText(_translate("tencentform", "Tencent SecretId"))
         self.label_2.setText(_translate("tencentform", "Tencent SecretKey"))
         self.set_tencent.setText(_translate("tencentform", "OK"))

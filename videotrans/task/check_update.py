@@ -1,4 +1,6 @@
 # 从日志队列获取日志
+import time
+
 import requests
 from PySide6.QtCore import QThread
 
@@ -12,12 +14,18 @@ class CheckUpdateWorker(QThread):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-    def run(self):
+    def get(self):
         try:
             res=requests.get("https://v.wonyes.org/version.json")
             if res.status_code==200:
                 d=res.json()
                 if d['version_num']>videotrans.VERSION_NUM:
                     set_process(f"{transobj['newversion']}:{d['version']}","check_soft_update")
+                return True
         except Exception as e:
             print(e)
+        return False
+
+    def run(self):
+        while not self.get():
+            time.sleep(60)
