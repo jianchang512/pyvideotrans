@@ -19,6 +19,7 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         asyncio.run(communicate.save(filename))
     except Exception as e:
         err = str(e)
+        config.logger.error(f'[edgeTTS]{err}')
         if err.find("Invalid response status") > 0:
             if set_p:
                 tools.set_process("edgeTTS过于频繁暂停5s后重试")

@@ -75,7 +75,7 @@ class Ui_chatgptform(object):
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/chatgpt.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/chatgpt.txt")
         self.set_chatgpt.setText("OK")
-        self.chatgpt_api.setPlaceholderText("api url default  https://chat.openai.com")
+        self.chatgpt_api.setPlaceholderText("api   https://api.openai.com")
         self.chatgpt_key.setPlaceholderText("secret key")
         self.label.setText("ChatGPT API URL")
         self.label_2.setText("ChatGPT  Key ")

@@ -3,7 +3,7 @@ import re
 import os
 import threading
 
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QTextCursor, QDesktopServices, QGuiApplication
 from PySide6.QtCore import QUrl, Qt, QDir, QTimer
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
@@ -869,9 +869,9 @@ class SecWindow():
         if not os.path.exists(file):
             QMessageBox.critical(self.main, config.transobj['downloadmodel'], f"./models/")
             return False
-        else:
-            self.main.statusLabel.setText(
-                config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
+        # else:
+        #     self.main.statusLabel.setText(
+        #         config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
         return True
 
 
@@ -1296,7 +1296,7 @@ class SecWindow():
                 # 成功完成
                 self.main.subtitle_area.clear()
                 self.main.source_mp4.setText(config.transobj["No select videos"])
-                self.main.statusLabel.setText(config.transobj['bencijieshu'])
+                # self.main.statusLabel.setText(config.transobj['bencijieshu'])
             else:
                 #error or stop 出错
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')
@@ -1318,7 +1318,7 @@ class SecWindow():
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj['running'])
-            self.main.statusLabel.setText(config.transobj['kaishichuli'])
+            # self.main.statusLabel.setText(config.transobj['kaishichuli'])
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
@@ -1339,15 +1339,15 @@ class SecWindow():
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
             self.update_status(d['type'])
             self.main.continue_compos.hide()
-            self.main.statusLabel.setText(config.transobj['bencijieshu'])
+            # self.main.statusLabel.setText(config.transobj['bencijieshu'])
             self.main.target_dir.clear()
             if d['type']=='error':
                 self.set_process_btn_text(d['text'], d['btnkey'], 'error')
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
-        elif d['type'] == 'statusbar':
-            self.main.statusLabel.setText(d['text'])
+        # elif d['type'] == 'statusbar':
+        #     self.main.statusLabel.setText(d['text'])
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
             self.main.continue_compos.show()
@@ -1372,7 +1372,8 @@ class SecWindow():
         elif d['type'] == 'check_soft_update':
             self.main.setWindowTitle(self.main.rawtitle + " -- " + d['text'])
             usetype = QPushButton(d['text'])
-            usetype.setStyleSheet('color:#ff9800')
+            usetype.setStyleSheet('color:#ffff00;border:0')
+            usetype.setCursor(QtCore.Qt.PointingHandCursor)
             usetype.clicked.connect(lambda: self.open_url('download'))
             self.main.container.addWidget(usetype)
         elif d['type'] == 'update_download' and self.main.youw is not None:

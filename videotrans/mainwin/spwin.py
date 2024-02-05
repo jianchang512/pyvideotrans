@@ -150,12 +150,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processlayout.setAlignment(Qt.AlignTop)
 
         # 底部状态栏
-        self.statusLabel = QLabel(config.transobj['modelpathis'] + " /models")
-        self.statusLabel.setStyleSheet("color:#00a67d")
+        self.statusLabel = QPushButton(config.transobj["Open Documents"])
+        self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
+        self.statusLabel.setStyleSheet("background-color:#455364;color:#00a67d")
+
+
         self.statusBar.addWidget(self.statusLabel)
 
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        self.rightbottom.setStyleSheet("background-color:#32414B;color:#ffffff")
+        self.rightbottom.setStyleSheet("background-color:#455364;color:#ffffff;border:0")
         self.rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.container = QToolBar()
@@ -215,6 +218,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
+        self.statusLabel.clicked.connect(lambda: self.util.open_url('website'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.util.open_youtube)

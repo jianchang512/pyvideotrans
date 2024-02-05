@@ -1,5 +1,6 @@
 {
   "translate_language" : {
+    "Open Documents": "Open Documents",
     "Preserve the original sound in the video": "Preserve the original sound in the video",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices",
     "lanjie": "Active restriction",
@@ -110,7 +111,7 @@
     "nextstep" : "Pasar al paso siguiente ",
     "tianxieazure" : "Debe rellenar la clave Azure ",
     "bencijieshu" : "Esta tarea ha terminado ",
-    "kaishichuli" : "Iniciar proceso ... ",
+    "kaishichuli" : "Iniciar proceso",
     "yunxingbukerole" : "Ejecutar, no puede cambiar a sin rol de doblaje ",
     "bixutianxie" : "Debe rellenar el ",
     "peiyinmoshisrt" : "Debe elegir un rol de doblaje, el idioma de destino en modalidad de doblaje y arrastrar y soltar el archivo de subtítulo de srt local en el área de subtítulo derecho ",

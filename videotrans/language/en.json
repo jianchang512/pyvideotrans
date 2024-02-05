@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "Open Documents": "Open Documents",
     "Preserve the original sound in the video": "Preserve the original sound in the video",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices",
     "lanjie": "Active restriction",
@@ -110,7 +111,7 @@
     "nextstep": "Move on to the next step",
     "tianxieazure": "Must fill in Azure key",
     "bencijieshu": "This task is over",
-    "kaishichuli": "Start processing...",
+    "kaishichuli": "Start processing",
     "yunxingbukerole": "Running, cannot change to without dubbing role",
     "bixutianxie": "Must fill in",
     "peiyinmoshisrt": "Must choose a dubbing role, target language in dubbing mode, and drag and drop the local srt subtitle file to the right subtitle area",
