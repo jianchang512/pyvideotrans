@@ -152,7 +152,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
-        self.statusLabel.setStyleSheet("background-color:#455364;color:#00a67d")
+        self.statusLabel.setStyleSheet("background-color:#455364;color:#ffffff")
 
 
         self.statusBar.addWidget(self.statusLabel)
@@ -218,7 +218,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
-        self.statusLabel.clicked.connect(lambda: self.util.open_url('website'))
+        self.statusLabel.clicked.connect(lambda: self.util.open_url('xinshou'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.util.open_youtube)
@@ -325,6 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("translate_type", config.params['translate_type'])
         self.settings.setValue("enable_cuda", config.params['cuda'])
         self.settings.setValue("tts_type", config.params['tts_type'])
+        self.settings.setValue("clone_api", config.params['clone_api'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
         
         # self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
