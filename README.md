@@ -1,4 +1,4 @@
-[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [加入Discord](https://discord.gg/TMCM2PfHzQ) / Q群 608815898
+[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / Q群 608815898
 
 # 视频翻译和配音工具
 
