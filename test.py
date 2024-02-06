@@ -1,16 +1,23 @@
-import re
+import requests
+from PySide6.QtCore import QSettings
 
 from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.task.trans_create import TransCreate
 
-file="C:/Users/c1/Videos/tmp.srt"
+url=QSettings("Jameson", "VideoTranslate").value("clone_api", "")
+print(f'{url=}')
+if not url:
+    print(config.transobj['bixutianxiecloneapi'])
+else:
+    try:
+        url = url.strip().rstrip('/') + "/init"
+        res = requests.get('http://' + url.replace('http://', ''))
+        if res.status_code == 200:
+            print(res.json)
+            print("\nOK\n")
+        else:
+            raise Exception(f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
+    except Exception as e:
+        print(f'[error]:clone-voice:{str(e)}')
 
-config.defaulelang="zh"
-print(config.rev_langlist)
-config.params['source_language']="英语"
-config.params['target_language']="中文简"
 
-obj=TransCreate({"source_mp4":"C:/Users/c1/Videos/1.mp4","app_mode":"biaozhun"})
-
-obj.save_srt_target(tools.get_subtitle_from_srt(file),'ceshi.srt')
+input("Press Enter for quit")

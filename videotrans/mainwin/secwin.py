@@ -497,6 +497,8 @@ class SecWindow():
             webbrowser.open_new_tab("https://discord.com/channels/1174626422044766258/1174626425702207562")
         elif title == 'website':
             webbrowser.open_new_tab("https://v.wonyes.org")
+        elif title == 'xinshou':
+            webbrowser.open_new_tab("https://juejin.cn/post/7331558973657251840")
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
         elif title == 'download':
@@ -708,7 +710,10 @@ class SecWindow():
 
     def set_clone_address(self):
         def save():
-            key = self.main.w.clone_address.text()
+            key = self.main.w.clone_address.text().strip()
+            key=key.rstrip('/')
+            if key:
+                key='http://'+key.replace('http://','')
             self.main.settings.setValue("clone_api", key)
             config.params["clone_api"] = key
             self.main.w.close()
@@ -869,9 +874,6 @@ class SecWindow():
         if not os.path.exists(file):
             QMessageBox.critical(self.main, config.transobj['downloadmodel'], f"./models/")
             return False
-        # else:
-        #     self.main.statusLabel.setText(
-        #         config.transobj['modelpathis'] + f" ./models/models--Systran--faster-whisper-{name}")
         return True
 
 
@@ -1187,7 +1189,8 @@ class SecWindow():
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['chatgptkeymust'])
             return False
         if config.params['tts_type'] == 'clone-voice' and not config.params["clone_api"]:
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['You must deploy and start the clone-voice service'])
+            config.logger.error(f"不存在clone-api:{config.params['tts_type']=},{config.params['clone_api']=}")
+            QMessageBox.critical(self.main, config.transobj['anerror'], 'check-'+config.transobj['bixutianxiecloneapi'])
             return False
         if config.params['tts_type'] == 'elevenlabsTTS' and not config.params["elevenlabstts_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], "no elevenlabs  key")

@@ -75,7 +75,7 @@ settings = parse_init()
 if settings['lang']:
     defaulelang = settings['lang'].lower()
 # 语言代码文件是否存在
-if not os.path.join(rootdir, f'videotrans/language/{defaulelang}.json'):
+if not os.path.exists(os.path.join(rootdir, f'videotrans/language/{defaulelang}.json')):
     defaulelang = "en"
 
 obj = json.load(open(os.path.join(rootdir, f'videotrans/language/{defaulelang}.json'), 'r', encoding='utf-8'))

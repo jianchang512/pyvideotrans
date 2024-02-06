@@ -183,8 +183,10 @@ class TransCreate():
             raise Myexcept(f"Had stop {config.current_status=}")
         if config.params['is_separate'] and config.params['tts_type']=='clone-voice':
             set_process(transobj['test clone voice'])
-            if not get_clone_role():
-                raise Exception(transobj['cannot connection to clone-voice service'])
+            try:
+                get_clone_role(True)
+            except Exception as e:
+               raise Exception(str(e))
 
         self.precent +=1
         if self.wait_convermp4:

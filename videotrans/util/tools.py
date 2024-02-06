@@ -523,68 +523,57 @@ def ms_to_time_string(*, ms=0, seconds=None):
 '''
 
 # 将字符串或者字幕文件内容，格式化为有效字幕数组对象
-def format_srt(content=[]):
-    content = [i for i in content if i.strip()]
-    result = []
-    # 最大索引
-    maxlen = len(content) - 1
+# 格式化为有效的srt格式
+#content是每行内容，按\n分割的，
+def format_srt(content):
+    #去掉空行
+    content=[it for it in content if it.strip()]
+    if len(content)<1:
+        return []
+    result=[]
+    maxindex=len(content)-1
     # 时间格式
-    timepat = r'\d+:\d+:\d+\,?\d*?\s*?-->\s*?\d+:\d+:\d+\,?\d*'
-    i = 0
-    while i < maxlen - 1:
-        tmp = content[i].strip()
-        # 第一行匹配数字行
-        if re.match(r'^\d+$', tmp):
-            nextmp = content[i + 1].strip()
-            # 再判断第二行匹配时间戳，则视为有效字幕
-            if re.match(timepat, nextmp):
-                res = {"line": tmp, "text": "", "time": nextmp}
-                j = i + 2
-                # 大于最大索引，超出退出
-                if j > maxlen:
-                    break
-                t0 = content[j].strip()
-                # 如果下一行是空行，即没有文字内容，则跳过
-                if re.match(r'^\d+$', t0):
-                    i = j
-                    continue
-                res['text'] += t0
-                # 已是最后一行，直接退出
-                if j == maxlen:
-                    result.append(res)
-                    break
+    timepat = r'^\s*?\d+:\d+:\d+(\,\d+?)?\s+?-->\s+?\d+:\d+:\d+(\,\d+?)?\s*?$'
+    textpat=r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
+    for i,it in enumerate(content):
+        #当前空行跳过
+        if not it.strip():
+            continue
+        it=it.strip()
+        is_time=re.match(timepat,it)
+        if is_time:
+            #当前行是时间格式，则添加
+            result.append({"time":it,"text":[]})
+        elif i==0:
+            #当前是第一行，并且不是时间格式，跳过
+            continue
+        elif re.match(r'^\s*?\d+\s*?$',it) and i<maxindex and re.match(timepat,content[i+1]):
+            #当前不是时间格式，不是第一行，并且都是数字，并且下一行是时间格式，则当前是行号，跳过
+            continue
+        elif len(result)>0 and not re.match(textpat,it):
+            #当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
+            result[-1]['text'].append(it)
+    #再次遍历，去掉text为空的
+    result=[it for it in result if len(it['text'])>0]
 
-                # 继续判断下一行是否还是内容行
-                while 1:
-                    # 再继续判断下一行是否是内容行
-                    t1 = content[j + 1]
-                    if j < maxlen - 1:
-                        t2 = content[j + 2]
-                        # 后边2行都符合行数规则，则第一行视为内容
-                        if re.match(r'^\d+$', t1) and re.match(r'^\d+$', t2):
-                            res['text'] += t1
-                            j += 1
-                            i = j + 1 + 1
-                            continue
-                        elif not re.match(r'^\d+$', t1):
-                            res['text'] += t1
-                            j += 1
-                            i = j + 1 + 1
-                            continue
-                        else:
-                            i = j + 1
-                            break
-                    elif j >= maxlen - 1:
-                        if not re.match(r'^\d+$', t1):
-                            res['text'] += t1
-                        i = maxlen
-                        break
-                result.append(res)
+    if len(result)>0:
+        for i,it in enumerate(result):
+            result[i]['line']=i+1
+            result[i]['text']="\n".join(it['text'])
+            s,e=(it['time'].replace('.',',')).split(' --> ')
+            if s.find(',')==-1:
+                s+=',000'
+            if len(s.split(':')[0])<2:
+                s=f'0{s}'
+            if e.find(',')==-1:
+                e+=',000'
+            if len(e.split(':')[0])<2:
+                e=f'0{e}'
+            result[i]['time']=f'{s} --> {e}'
     return result
 
 
 def get_subtitle_from_srt(srtfile, *, is_file=True):
-    content=[]
     if is_file:
         if os.path.getsize(srtfile)==0:
             raise Exception(config.transobj['zimuwenjianbuzhengque'])
@@ -602,29 +591,17 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     if len(content)<1:
         raise Exception("srt content is 0")
     result=format_srt(content)
+    if len(result)<1:
+        return []
+
     new_result = []
     line = 1
     for it in result:
-        if "text" in it and len(it['text'].strip()) > 0 and not re.match(r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$',it['text']):
+        if "text" in it and len(it['text'].strip()) > 0:
             it['line'] = line
             startraw, endraw = it['time'].strip().split(" --> ")
-            startraw=startraw.strip().replace('.',',')
-            endraw=endraw.strip().replace('.',',')
-
-            if startraw.find(',')==-1:
-                startraw+=',000'
-            if endraw.find(',')==-1:
-                endraw+=',000'
-
-
             start = startraw.replace(',', '.').split(":")
             end = endraw.replace(',', '.').split(":")
-
-            if len(start[0])<2:
-                startraw=f'0{startraw}'
-            if len(end[0])<2:
-                endraw=f'0{endraw}'
-
             start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
             end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
             it['startraw'] = startraw
@@ -633,8 +610,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
-    print(f'{new_result=}')
     return new_result
+
 
 
 # 判断 novoice.mp4是否创建好
@@ -713,19 +690,22 @@ def cut_from_audio(*,ss,to,audio_file,out_file):
     return runffmpeg(cmd)
 
 # 获取clone-voice的角色列表
-def get_clone_role():
+def get_clone_role(set_p=False):
     if not config.params['clone_api']:
+        if set_p:
+            raise Exception(config.transobj['bixutianxiecloneapi'])
         return False
     try:
-        url=config.params['clone_api'].rstrip('/')+"/init"
-        res=requests.get(url)
+        url=config.params['clone_api'].strip().rstrip('/')+"/init"
+        res=requests.get('http://'+url.replace('http://',''))
         if res.status_code==200:
             config.clone_voicelist=["clone"]+res.json()
             set_process('','set_clone_role')
             return True
-        return False
+        raise Exception(f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
     except Exception as e:
-        pass
+        if set_p:
+            raise Exception(f'[error]:clone-voice:{str(e)}')
     return False
 
 # 工具箱写入日志队列
