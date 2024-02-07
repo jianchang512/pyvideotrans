@@ -39,7 +39,7 @@ def text_to_speech(*, text="", role="", rate='+0%',language=None, filename=None,
         raise Exception(f'error:{err}')
 
 
-def run(*, queue_tts=None, language=None,set_p=True):
+def run(*, queue_tts=None, language=None,set_p=True,inst=None):
     def get_item(q):
         return {"text": q['text'], "role": q['role'], "rate": q["rate"],
                 "filename": q["filename"], "tts_type": q['tts_type'],"language":language}
@@ -65,6 +65,8 @@ def run(*, queue_tts=None, language=None,set_p=True):
             for t in tolist:
                 n += 1
                 if set_p:
+                    if inst.precent<90:
+                        inst.precent+=round(n/n_total,2)
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]')
                 t.join()
         except Exception as e:

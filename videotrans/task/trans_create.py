@@ -242,11 +242,12 @@ class TransCreate():
             config.queue_novice[self.noextname] = 'end'
 
         # 如果不存在音频，则分离出音频
-        if not config.params['is_separate'] and not os.path.exists(self.targetdir_source_wav):
-            # 添加是否保留背景选项
-            split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
-        elif config.params['is_separate'] and not os.path.exists(self.targetdir_source_regcon):
+        # if not config.params['is_separate'] and not os.path.exists(self.targetdir_source_wav):
+        # 添加是否保留背景选项
+        if config.params['is_separate'] and config.params['voice_role'] !='No' and not os.path.exists(self.targetdir_source_regcon):
             split_audio_byraw(self.source_mp4, self.targetdir_source_wav,True)
+        elif not os.path.exists(self.targetdir_source_wav):
+            split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
         return True
 
     # 识别出字幕
@@ -275,7 +276,7 @@ class TransCreate():
                 audio_file=self.targetdir_source_wav if not config.params['is_separate'] else self.targetdir_source_regcon,
                 detect_language=self.detect_language,
                 cache_folder=self.cache_folder,
-                model_name=config.params['whisper_model'])
+                model_name=config.params['whisper_model'],inst=self)
         except Exception as e:
             msg=f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
@@ -521,7 +522,7 @@ class TransCreate():
         if not queue_copy or len(queue_copy) < 1:
             raise Myexcept(f'[error]Queue tts length is 0')
         # 具体配音操作
-        run_tts(queue_tts=queue_tts,language=self.target_language_code, set_p=True)
+        run_tts(queue_tts=queue_tts,language=self.target_language_code, set_p=True,inst=self)
 
         if config.current_status != 'ing':
             raise Myexcept('Had stop')
@@ -540,9 +541,10 @@ class TransCreate():
             it['end_time'] += offset
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
             it['endraw'] = ms_to_time_string(ms=it['end_time'])
-            jd = round((idx + 1) * 10 / len(queue_copy), 1)
-            if self.precent < 85:
-                self.precent += jd
+            jd = round((idx + 1) / len(queue_copy), 1)
+            # if self.precent < 85:
+            #     self.precent += jd
+            # set_process(transobj["Dubbing.."])
             if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
                 start_times.append(it['start_time'])
                 segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
@@ -668,9 +670,10 @@ class TransCreate():
                 tmppert3 = f"{self.cache_folder}/tmppert3-{idx}.mp4"
                 if config.current_status != 'ing' :
                     raise Myexcept("Had stop")
-                jd = round((idx + 1) * 20 / (last_index + 1), 1)
+                jd = round((idx + 1)  / (last_index + 1), 1)
                 if self.precent < 85:
                     self.precent += jd
+                set_process(transobj["videodown.."])
                 # 原字幕时间段
                 wavlen = it['end_time'] - it['start_time']
                 line_num += 1
@@ -864,7 +867,7 @@ class TransCreate():
                 hard_srt = "tmp.srt"
             else:
                 hard_srt = self.targetdir_target_sub
-        if self.precent < 95:
+        if self.precent < 99:
             self.precent += 1
         # 有字幕有配音
         # 如果有配音，有背景音，则合并

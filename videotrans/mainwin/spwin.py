@@ -113,6 +113,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
+            config.params['is_separate'] = True
+            self.is_separate.setChecked(True)
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])

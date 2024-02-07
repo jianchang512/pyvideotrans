@@ -1,5 +1,13 @@
 {
   "translate_language": {
+    "Select Out Dir": "下载到..",
+    "downing...": "下载中...",
+    "start download": "立即下载",
+    "Down done succeed": "下载完成",
+    "videodown..": "视频降速处理中",
+    "Dubbing..": "配音中",
+    "Separating background music": "正在分离背景音乐",
+    "Unable to connect to the API": "无法连接到该API，请检查网络",
 	"bixutianxiecloneapi":"必须在菜单-设置中填写原音色克隆API",
 	"Save":"保存",
     "Open Documents": "查看新手使用教程",
@@ -167,7 +175,7 @@
     "Select video..": "选择视频..",
     "Select where to save the processed output resources": "选择处理后输出的资源保存到哪里",
     "Save to..": "保存到..",
-    "Open target dir": "打开保存后的目录",
+    "Open target dir": "打开保存目录",
     "Open": "打开",
     "Translate channel": "翻译渠道",
     "Proxy": "代理地址",
@@ -314,6 +322,7 @@
     "vi":"越南语",
     "ar":"阿拉伯语",
     "tr":"土耳其语",
-    "hi":"印度语"
+    "hi":"印度语",
+    "hu": "匈牙利语"
   }
 }

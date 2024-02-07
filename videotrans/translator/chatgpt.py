@@ -11,10 +11,15 @@ from videotrans.util import tools
 def get_url(url=""):
     if not url:
         return "https://api.openai.com/v1"
-    m = re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?', url)
-    if m is not None and len(m.groups()) == 1:
-        return f'{m.groups()[0]}/v1'
-    return "https://api.openai.com/v1"
+    url=url.strip().rstrip('/')
+    url=re.sub(r'/v1/.*?$','/v1',url)
+    if not url.startswith('http'):
+        url=f'https://{url}'
+    if not url.endswith('/v1'):
+        url+='/v1'
+    url=url.replace('chat.openai.com','api.openai.com')
+    return url
+    # return "https://api.openai.com/v1"
 
 
 def create_openai_client(proxies):
@@ -22,8 +27,11 @@ def create_openai_client(proxies):
     if config.params['chatgpt_api']:
         api_url = get_url(config.params['chatgpt_api'])
     openai.base_url = api_url
-    client = OpenAI(base_url=api_url,
+    try:
+        client = OpenAI(base_url=api_url,
                     http_client=httpx.Client(proxies=proxies))
+    except Exception as e:
+        raise Exception(f'API={api_url},{str(e)}')
     return client
 
 
@@ -56,6 +64,7 @@ def trans(text_list, target_language="English", *, set_p=True):
         source_text = text_list.strip().split("\n")
     else:
         source_text = [t['text'] for t in text_list]
+
     client = create_openai_client(proxies)
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
