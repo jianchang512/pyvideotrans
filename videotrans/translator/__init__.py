@@ -2,16 +2,16 @@
 import re
 from videotrans.configure import config
 
-GOOGLE_NAME="Google"
-BAIDU_NAME="Baidu"
-DEEPL_NAME="DeepL"
-DEEPLX_NAME="DeepLx"
-OTT_NAME="OTT"
-TENCENT_NAME="Tencent"
-CHATGPT_NAME="chatGPT"
-AZUREGPT_NAME="AzureGPT"
-GEMINI_NAME="Gemini"
-SRT_NAME="srt"
+GOOGLE_NAME = "Google"
+BAIDU_NAME = "Baidu"
+DEEPL_NAME = "DeepL"
+DEEPLX_NAME = "DeepLx"
+OTT_NAME = "OTT"
+TENCENT_NAME = "Tencent"
+CHATGPT_NAME = "chatGPT"
+AZUREGPT_NAME = "AzureGPT"
+GEMINI_NAME = "Gemini"
+SRT_NAME = "srt"
 # 翻译通道
 TRANSNAMES = [
     GOOGLE_NAME,
@@ -26,255 +26,274 @@ TRANSNAMES = [
 ]
 #
 LANG_CODE = {
-        "zh-cn": [
-            "zh-cn",# google通道
-            "chi",#字幕嵌入语言
-            "zh",#百度通道
-            "ZH",#deepl deeplx通道
-            "zh", #腾讯通道
-            "zh"#OTT通道
-        ],
-        "zh-tw": [
-            "zh-tw",
-            "chi",
-            "cht",
-            "ZH",
-            "zh-TW",
-            "zt"
-        ],
-        "en": [
-            "en",
-            "eng",
-            "en",
-            "EN-US",
-            "en",
-            "en"
-        ],
-        "fr": [
-            "fr",
-            "fre",
-            "fra",
-            "FR",
-            "fr",
-            "fr"
-        ],
-        "de": [
-            "de",
-            "ger",
-            "de",
-            "DE",
-            "de",
-            "de"
-        ],
-        "ja": [
-            "ja",
-            "jpn",
-            "jp",
-            "JA",
-            "ja",
-            "ja"
-        ],
-        "ko": [
-            "ko",
-            "kor",
-            "kor",
-            "KO",
-            "ko",
-            "ko"
-        ],
-        "ru": [
-            "ru",
-            "rus",
-            "ru",
-            "RU",
-            "ru",
-            "ru"
-        ],
-        "es": [
-            "es",
-            "spa",
-            "spa",
-            "ES",
-            "es",
-            "es"
-        ],
-        "th": [
-            "th",
-            "tha",
-            "th",
-            "No",
-            "th",
-            "th"
-        ],
-        "it": [
-            "it",
-            "ita",
-            "it",
-            "IT",
-            "it",
-            "it"
-        ],
-        "pt": [
-            "pt",
-            "por",
-            "pt",
-            "PT",
-            "pt",
-            "pt"
-        ],
-        "vi": [
-            "vi",
-            "vie",
-            "vie",
-            "No",
-            "vi",
-            "No"
-        ],
-        "ar": [
-            "ar",
-            "are",
-            "ara",
-            "No",
-            "ar",
-            "ar"
-        ],
-        "tr": [
-            "tr",
-            "tur",
-            "tr",
-            "tr",
-            "tr",
-            "tr"
-        ],
-        "hi": [
-            "hi",
-            "hin",
-            "hi",
-            "No",
-            "hi",
-            "hi"
-        ]
+    "zh-cn": [
+        "zh-cn",  # google通道
+        "chi",  # 字幕嵌入语言
+        "zh",  # 百度通道
+        "ZH",  # deepl deeplx通道
+        "zh",  # 腾讯通道
+        "zh"  # OTT通道
+    ],
+    "zh-tw": [
+        "zh-tw",
+        "chi",
+        "cht",
+        "ZH",
+        "zh-TW",
+        "zt"
+    ],
+    "en": [
+        "en",
+        "eng",
+        "en",
+        "EN",
+        "en",
+        "en"
+    ],
+    "fr": [
+        "fr",
+        "fre",
+        "fra",
+        "FR",
+        "fr",
+        "fr"
+    ],
+    "de": [
+        "de",
+        "ger",
+        "de",
+        "DE",
+        "de",
+        "de"
+    ],
+    "ja": [
+        "ja",
+        "jpn",
+        "jp",
+        "JA",
+        "ja",
+        "ja"
+    ],
+    "ko": [
+        "ko",
+        "kor",
+        "kor",
+        "KO",
+        "ko",
+        "ko"
+    ],
+    "ru": [
+        "ru",
+        "rus",
+        "ru",
+        "RU",
+        "ru",
+        "ru"
+    ],
+    "es": [
+        "es",
+        "spa",
+        "spa",
+        "ES",
+        "es",
+        "es"
+    ],
+    "th": [
+        "th",
+        "tha",
+        "th",
+        "No",
+        "th",
+        "th"
+    ],
+    "it": [
+        "it",
+        "ita",
+        "it",
+        "IT",
+        "it",
+        "it"
+    ],
+    "pt": [
+        "pt",
+        "por",
+        "pt",
+        "PT",
+        "pt",
+        "pt"
+    ],
+    "vi": [
+        "vi",
+        "vie",
+        "vie",
+        "No",
+        "vi",
+        "No"
+    ],
+    "ar": [
+        "ar",
+        "are",
+        "ara",
+        "No",
+        "ar",
+        "ar"
+    ],
+    "tr": [
+        "tr",
+        "tur",
+        "tr",
+        "tr",
+        "tr",
+        "tr"
+    ],
+    "hi": [
+        "hi",
+        "hin",
+        "hi",
+        "No",
+        "hi",
+        "hi"
+    ],
+    "hu": [
+        "hu",
+        "hun",
+        "hu",
+        "HU",
+        "No",
+        "No"
+    ]
 }
 
+
 # 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
-def get_code(*,show_text=None):
-    if show_text=='-':
+def get_code(*, show_text=None):
+    if show_text == '-':
         return None
     return config.langlist[show_text] if show_text in config.langlist else config.rev_langlist[show_text]
+
 
 # 根据显示的语言和翻译通道，获取源语言代码和目标语言代码
 # translate_type翻译通道
 # show_source翻译后显示的原语言名称
 # show_target 翻译后显示的目标语言名称
-#如果是cli，则show均是语言代码
-def get_source_target_code(*,show_source=None,show_target=None,translate_type=None):
-    source_list=None
-    target_list=None
+# 如果是cli，则show均是语言代码
+def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
+    source_list = None
+    target_list = None
     if not translate_type:
-        return None,None
-    lower_translate_type=translate_type.lower()
-    print(f'{lower_translate_type==GOOGLE_NAME.lower()}')
+        return None, None
+    lower_translate_type = translate_type.lower()
+    print(f'{lower_translate_type == GOOGLE_NAME.lower()}')
     if show_source:
-        source_list=LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
+        source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
+            config.rev_langlist[show_source]]
     if show_target:
-        target_list=LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
-    if lower_translate_type==GOOGLE_NAME.lower():
+        target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
+            config.rev_langlist[show_target]]
+    if lower_translate_type == GOOGLE_NAME.lower():
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
-    elif lower_translate_type==BAIDU_NAME.lower():
+    elif lower_translate_type == BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
-    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPL_NAME.lower()]:
+    elif lower_translate_type in [DEEPLX_NAME.lower(), DEEPL_NAME.lower()]:
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
-    elif lower_translate_type==TENCENT_NAME.lower():
+    elif lower_translate_type == TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    elif lower_translate_type in [CHATGPT_NAME.lower(),AZUREGPT_NAME.lower(),GEMINI_NAME.lower()]:
+    elif lower_translate_type in [CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower()]:
         return (show_source, show_target)
     elif lower_translate_type == OTT_NAME.lower():
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     else:
         raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
 
+
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*,translate_type=None,show_target=None,only_key=False):
-    lower_translate_type=translate_type.lower()
-    if lower_translate_type==CHATGPT_NAME and not config.params['chatgpt_key']:
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False):
+    lower_translate_type = translate_type.lower()
+    if lower_translate_type == CHATGPT_NAME and not config.params['chatgpt_key']:
         return config.transobj['chatgptkeymust']
-    if lower_translate_type==GEMINI_NAME and not config.params['gemini_key']:
+    if lower_translate_type == GEMINI_NAME and not config.params['gemini_key']:
         return config.transobj['chatgptkeymust']
-    if lower_translate_type==AZUREGPT_NAME.lower() and (not config.params['azure_key'] or not config.params['azure_api']):
+    if lower_translate_type == AZUREGPT_NAME.lower() and (
+            not config.params['azure_key'] or not config.params['azure_api']):
         return 'No Azure key'
 
-    if lower_translate_type==BAIDU_NAME.lower() and (not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
+    if lower_translate_type == BAIDU_NAME.lower() and (
+            not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
         return config.transobj['baikeymust']
-    if lower_translate_type==TENCENT_NAME.lower() and (not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
+    if lower_translate_type == TENCENT_NAME.lower() and (
+            not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
         return config.transobj['tencent_key']
-    if lower_translate_type==DEEPL_NAME.lower() and  not config.params["deepl_authkey"]:
+    if lower_translate_type == DEEPL_NAME.lower() and not config.params["deepl_authkey"]:
         return config.transobj['deepl_authkey']
-    if lower_translate_type==DEEPLX_NAME.lower() and  not config.params["deeplx_address"]:
+    if lower_translate_type == DEEPLX_NAME.lower() and not config.params["deeplx_address"]:
         return config.transobj['setdeeplx_address']
-        
-    if lower_translate_type==OTT_NAME.lower() and  not config.params["ott_address"]:
+
+    if lower_translate_type == OTT_NAME.lower() and not config.params["ott_address"]:
         return config.transobj['setott_address']
 
     if only_key:
         return True
 
-
-    index=0
-    if lower_translate_type==BAIDU_NAME.lower():
-        index=2
-    elif lower_translate_type in [DEEPLX_NAME.lower(),DEEPL_NAME.lower()]:
-        index=3
+    index = 0
+    if lower_translate_type == BAIDU_NAME.lower():
+        index = 2
+    elif lower_translate_type in [DEEPLX_NAME.lower(), DEEPL_NAME.lower()]:
+        index = 3
     elif lower_translate_type == TENCENT_NAME.lower():
-        index=4
+        index = 4
 
     if show_target:
-        target_list= LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
-        if target_list[index].lower()=='no':
+        target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
+            config.rev_langlist[show_target]]
+        if target_list[index].lower() == 'no':
             return config.transobj['deepl_nosupport']
 
     return True
 
+
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
-def get_audio_code(*,show_source=None):
-    source_list= LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
-    return re.split(r'_|-',source_list[0])[0]
+def get_audio_code(*, show_source=None):
+    source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
+    return re.split(r'_|-', source_list[0])[0]
+
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
-def get_subtitle_code(*,show_target=None):
-    target_list= LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
+def get_subtitle_code(*, show_target=None):
+    target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
     return target_list[1]
 
+
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
-def run(*,translate_type=None,text_list=None,target_language_name=None,set_p=True):
-    _,target_language=get_source_target_code(show_target=target_language_name,translate_type=translate_type)
-    lower_translate_type=translate_type.lower()
-    if lower_translate_type==GOOGLE_NAME.lower():
+def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True):
+    _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
+    lower_translate_type = translate_type.lower()
+    if lower_translate_type == GOOGLE_NAME.lower():
         from videotrans.translator.google import trans
-    elif lower_translate_type==BAIDU_NAME.lower():
+    elif lower_translate_type == BAIDU_NAME.lower():
         from videotrans.translator.baidu import trans
-    elif lower_translate_type==DEEPL_NAME.lower():
+    elif lower_translate_type == DEEPL_NAME.lower():
         from videotrans.translator.deepl import trans
-    elif lower_translate_type==DEEPLX_NAME.lower():
+    elif lower_translate_type == DEEPLX_NAME.lower():
         from videotrans.translator.deeplx import trans
-    elif lower_translate_type==OTT_NAME.lower():
+    elif lower_translate_type == OTT_NAME.lower():
         from videotrans.translator.ott import trans
-    elif lower_translate_type==TENCENT_NAME.lower():
+    elif lower_translate_type == TENCENT_NAME.lower():
         from videotrans.translator.tencent import trans
-    elif lower_translate_type==CHATGPT_NAME.lower():
+    elif lower_translate_type == CHATGPT_NAME.lower():
         from videotrans.translator.chatgpt import trans
-    elif lower_translate_type==GEMINI_NAME.lower():
+    elif lower_translate_type == GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
-    elif lower_translate_type==AZUREGPT_NAME.lower():
+    elif lower_translate_type == AZUREGPT_NAME.lower():
         from videotrans.translator.azure import trans
     else:
-        print(lower_translate_type==OTT_NAME.lower())
+        print(lower_translate_type == OTT_NAME.lower())
         raise Exception(f"[error]run {translate_type=},{target_language_name=}")
     try:
-        return trans(text_list,target_language,set_p=set_p)
+        return trans(text_list, target_language, set_p=set_p)
     except Exception as e:
         raise Exception(f'[error]: {str(e)}')

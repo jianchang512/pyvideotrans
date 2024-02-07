@@ -11,7 +11,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         if not api_url:
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
         api_url='http://'+api_url.replace('http://','')
-        config.logger(f'clone-voice:api={api_url}')
+        config.logger.info(f'clone-voice:api={api_url}')
 
         data={"text":text.strip(),"language":language}
         # role=clone是直接复制

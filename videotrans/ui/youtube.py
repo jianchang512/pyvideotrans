@@ -9,8 +9,24 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtCore import QObject, QEvent, QUrl
+from PySide6.QtGui import QDesktopServices
+
+from videotrans.configure import config
 
 
+class LineEditClickFilter(QObject):
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonPress:
+            print(obj.text())
+            # 在这里处理点击事件
+            print("LineEdit 被点击了！")
+            if obj.text().strip():
+                QDesktopServices.openUrl(QUrl.fromLocalFile(obj.text().strip()))
+            # 可以在这里执行任何函数或方法
+            return True  # 表示事件已处理，不再传递
+        # 其他事件交给基类处理，保持默认行为
+        return False
 class Ui_youtubeform(object):
     def setupUi(self, youtubeform):
         youtubeform.setObjectName("youtubeform")
@@ -88,6 +104,14 @@ class Ui_youtubeform(object):
         self.outputdir.setMinimumSize(QtCore.QSize(0, 35))
         self.outputdir.setReadOnly(True)
         self.outputdir.setObjectName("outputdir")
+        self.outputdir.setToolTip(config.uilanglist['Open target dir'])
+
+        self.click_filter = LineEditClickFilter()
+        self.outputdir.installEventFilter(self.click_filter)
+
+
+
+
         self.verticalLayout_2.addWidget(self.outputdir)
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
         self.logs = QtWidgets.QLabel(youtubeform)

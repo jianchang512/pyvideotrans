@@ -1,11 +1,10 @@
 import json
-import re
 import os
 import threading
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QTextCursor, QDesktopServices, QGuiApplication
-from PySide6.QtCore import QUrl, Qt, QDir, QTimer
+from PySide6.QtGui import QTextCursor, QDesktopServices
+from PySide6.QtCore import QUrl, Qt, QDir
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
     QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QProgressBar
 import warnings
@@ -17,6 +16,7 @@ from videotrans.translator import is_allow_translate, get_code
 from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt, \
     get_clone_role
 from videotrans.configure import config
+
 
 
 class ClickableProgressBar(QLabel):
@@ -88,14 +88,15 @@ class SecWindow():
         return
 
     def is_separate_fun(self, state):
-        if state and (len(config.queue_mp4) < 1 or self.main.voice_role.currentText() == 'No'):
-            config.params['is_separate'] = False
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
-            self.main.is_separate.setDisabled(True)
-            self.main.is_separate.setChecked(False)
-        else:
-            config.params['is_separate'] = True if state else False
-        self.main.is_separate.setDisabled(False)
+        # if state and (len(config.queue_mp4) < 1 or self.main.voice_role.currentText() == 'No'):
+        #     pass
+            # config.params['is_separate'] = False
+            # QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
+            # self.main.is_separate.setDisabled(True)
+            # self.main.is_separate.setChecked(False)
+        # else:
+        config.params['is_separate'] = True if state else False
+        # self.main.is_separate.setDisabled(False)
 
     def check_cuda(self, state):
         import torch
@@ -610,39 +611,38 @@ class SecWindow():
 
     def open_youtube(self):
 
+
         def download():
             proxy = self.main.youw.proxy.text().strip()
             outdir = self.main.youw.outputdir.text()
             url = self.main.youw.url.text()
-            if not url or not re.match(r'https://www.youtube.com/watch', url):
-                QMessageBox.critical(self.main.youw, config.transobj['anerror'],
-                                     'must input like https://www.youtube.com/watch?v=jNQXAC9IVRw')
-                return
             self.main.settings.setValue("youtube_outdir", outdir)
-            print('start download')
-            cmd = ["you-get", "--itag=18", "-o", outdir]
             if proxy:
                 config.proxy = proxy
                 self.main.settings.setValue("proxy", proxy)
-                cmd.append("-x")
-                cmd.append(proxy)
-            cmd.append(url)
             from videotrans.task.download_youtube import Download
-            down = Download(cmd, self.main)
+            down = Download(proxy=proxy,url=url,out=outdir, parent=self.main)
             down.start()
+            self.main.youw.set.setDisabled(True)
 
         def selectdir():
             dirname = QFileDialog.getExistingDirectory(self.main, "Select Dir", outdir).replace('\\', '/')
-            self.main.w.outputdir.setText(dirname)
+            self.main.youw.outputdir.setText(dirname)
 
         from videotrans.component import YoutubeForm
         self.main.youw = YoutubeForm()
+        self.main.youw.set.setText(config.transobj['start download'])
+        self.main.youw.selectdir.setText(config.transobj['Select Out Dir'])
         outdir = config.params['youtube_outdir'] if 'youtube_outdir' in config.params else os.path.join(config.homedir,
                                                                                                         'youtube').replace(
             '\\', '/')
         if not os.path.exists(outdir):
             os.makedirs(outdir, exist_ok=True)
+        # 创建事件过滤器实例并将其安装到 lineEdit 上
+
         self.main.youw.outputdir.setText(outdir)
+
+        # self.main.youw.outputdir.clicked.connect(lambda :self.open_dir(self.main.youw.outputdir.text()))
 
         if config.proxy:
             self.main.youw.proxy.setText(config.proxy)
@@ -903,6 +903,8 @@ class SecWindow():
             self.main.current_rolelist=config.clone_voicelist
             self.main.voice_role.addItems(self.main.current_rolelist)
             threading.Thread(target=get_clone_role).start()
+            config.params['is_separate'] = True
+            self.main.is_separate.setChecked(True)
 
 
     # 中英文下试听配音
@@ -1245,11 +1247,7 @@ class SecWindow():
         # 存在视频
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
-            #如果选择了 clone-voice 并且存在视频，就必须选中背景分离
-            if config.params['tts_type']=='clone-voice':
-                config.params['is_separate'] = True
-                self.main.is_separate.setChecked(True)
-                self.main.is_separate.setDisabled(True)
+
         elif txt:
             self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.app_mode='peiyin'
@@ -1349,8 +1347,6 @@ class SecWindow():
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
-        # elif d['type'] == 'statusbar':
-        #     self.main.statusLabel.setText(d['text'])
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕
             self.main.continue_compos.show()
@@ -1380,7 +1376,9 @@ class SecWindow():
             usetype.clicked.connect(lambda: self.open_url('download'))
             self.main.container.addWidget(usetype)
         elif d['type'] == 'update_download' and self.main.youw is not None:
-            self.main.youw.logs.setText("Down done succeed" if d['text'] == 'ok' else d['text'])
+            if d['text']=='ok' or d['text'].find('[error]')>-1:
+                self.main.youw.set.setDisabled(False)
+            self.main.youw.logs.setText(config.transobj['Down done succeed'] if d['text'] == 'ok' else f"{d['text']}")
         elif d['type'] == 'open_toolbox':
             self.open_toolbox(0, True)
         elif d['type']=='set_clone_role' and config.params['tts_type']=='clone-voice':

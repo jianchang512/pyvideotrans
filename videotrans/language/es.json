@@ -1,5 +1,13 @@
 {
   "translate_language" : {
+    "Select Out Dir": "Select Out Dir",
+    "downing...": "Downloading...",
+    "start download": "Start Download",
+    "Down done succeed": "Down done succeed",
+    "videodown..": "Video is being slowed down",
+    "Dubbing..": "Dubbing..",
+    "Separating background music": "Separating background music",
+    "Unable to connect to the API": "Unable to connect to the API",
 	"bixutianxiecloneapi":"You must be input api fill in the address in the menu bar-Settings-cloneVoice ",  
 	"Save":"Save",
     "Open Documents": "Open Documents for Beginner",
@@ -316,6 +324,7 @@
     "vi" : "Vietnamita ",
     "ar" : "Árabe ",
     "tr" : "Turquía ",
-    "hi" : "Hindi"
+    "hi" : "Hindi",
+    "hu": "Hungarian"
   }
 }

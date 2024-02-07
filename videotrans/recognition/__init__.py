@@ -15,12 +15,12 @@ from videotrans.util import tools
 
 
 # 统一入口
-def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True):
+def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None):
     if type == "all":
         print(f'____{audio_file=}')
-        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
+        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst)
     else:
-        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p)
+        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -59,7 +59,7 @@ def shorten_voice(normalized_sound):
 
 
 # 预先分割识别
-def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True):
+def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'])
     if config.current_status != 'ing' and config.box_status!='ing':
@@ -144,8 +144,9 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
         srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
         raw_subtitles.append(srt_line)
-        tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
         if set_p:
+            inst.precent += int(round(srt_line['line']  / total_length, 2)*10)
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
 
@@ -159,7 +160,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
 
 
 # 整体识别，全部传给模型
-def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True):
+def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
     if set_p:
         tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
     down_root = os.path.normpath(config.rootdir + "/models")
@@ -215,7 +216,9 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             raw_subtitles.append(s)
             if set_p:
                 tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
-                tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}, {round(segment.end * 100 / info.duration, 2)}%')
+                if inst.precent<65:
+                    inst.precent += round(segment.end  / info.duration, 2)
+                tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}')
             else:
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
 
