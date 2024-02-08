@@ -39,15 +39,14 @@ def trans(text_list, target_language="en", *, set_p=True):
                 "target": target_language
             }
 
-            url=config.params['ott_address'].replace('/translate','')+'/translate'
+            url=config.params['ott_address'].strip().rstrip('/').replace('/translate','')+'/translate'
             url=url.replace('//translate','/translate')
             if not url.startswith('http'):
                 url=f"http://{url}"
             try:
-                response = requests.post(url=url,json=data)
+                response = requests.post(url=url,json=data,proxies={"http":"","https":""})
                 result = response.json()
             except Exception as e:
-                print(e)
                 msg = f"[error]OTT出错了，请检查部署和地址: {str(e)}"
                 config.logger.info(f'OTT {msg}')
                 raise Exception(msg)
