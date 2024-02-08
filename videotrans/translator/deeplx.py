@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import time
 
 import requests
 import json
@@ -31,7 +32,6 @@ def trans(text_list, target_language="en", *, set_p=True):
     for it in split_source_text:
         try:
             source_length = len(it)
-            print(f'{source_length=}')
             data = {
                 "text": "\n".join(it),
                 "source_lang": "auto",
@@ -41,11 +41,12 @@ def trans(text_list, target_language="en", *, set_p=True):
             url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'
             if not url.startswith('http'):
                 url=f"http://{url}"
-            print(f'{url=}')
-            print(data)
             response = requests.post(url=url, json=data, proxies=None)
             if response.status_code!=200:
-                raise Exception(f'错误码={response.status_code}')
+                if set_p:
+                    tools.set_process(f'错误码={response.status_code},5s后重试')
+                time.sleep(5)
+                return trans(text_list,target_language,set_p=set_p)
             result = response.json()
             config.logger.info(f'{result=},{response.text}')
             result=result['data'].strip().replace('&#39;','"').split("\n")
@@ -64,7 +65,11 @@ def trans(text_list, target_language="en", *, set_p=True):
             if response:
                 error+=f'错误码={response.status_code}'
             config.logger.info(f'DeepLx {error}')
-            raise Exception(f'DeepLx出错了，请更换翻译渠道:{error}')
+            if set_p:
+                tools.set_process(f'DeepLx出错了，请更换翻译渠道:{error},5s后重试')
+                time.sleep(5)
+                return trans(text_list,target_language,set_p=set_p)
+            raise Exception(error)
 
     if isinstance(text_list, str):
         return "\n".join(target_text)

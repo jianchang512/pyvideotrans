@@ -30,7 +30,6 @@ def trans(text_list, target_language="en", *, set_p=True):
     for it in split_source_text:
         try:
             source_length = len(it)
-            print(f'{source_length=}')
             text="\n".join(it)
             salt = int(time.time())
             strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"
@@ -58,7 +57,7 @@ def trans(text_list, target_language="en", *, set_p=True):
             else:
                 tools.set_process("\n\n".join(result), func_name="set_fanyi")
             result_length = len(result)
-            print(f'{result_length=}')
+
             while result_length < source_length:
                 result.append("")
                 result_length += 1

@@ -33,49 +33,38 @@ input("Press Enter for quit")
 #     msg=f"separate vocal and background music:{str(e)}"
 #     #set_process(msg)
 #     print(msg)
-import sys
-
-from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import QWidget, QApplication
-
-def ceshi():
-    from you_get.extractors import youtube
-
-    try:
-        youtube.download('https://www.youtube.com/watch?v=n4mF5xo5khM',
-                         output_dir='.',
-                         merge=True,
-                         extractor_proxy='http://127.0.0.1:10809'
-                         )
-    except Exception as e:
-        print(e)
-
-class StartWindow(QWidget):
-    def __init__(self):
-        super(StartWindow, self).__init__()
-        # 设置窗口无边框和标题
-        # 设置窗口的背景图片
-        # 窗口大小
-        self.resize(560, 350)
-        self.center()
-        self.show()
-        # 使用QTimer延时显示窗口B
-        ceshi()
 
 
-    def center(self):
-        screen=QGuiApplication.primaryScreen()
-        qtRect = self.frameGeometry()
-        qtRect.moveCenter(screen.availableGeometry().center())
-        reso=screen.geometry()
-        self.width, self.height=reso.width(), reso.height()
-        self.move(qtRect.topLeft())
+## 获取识别文字
+# import os
+# from faster_whisper import WhisperModel
+# model = WhisperModel("base", device="cpu",
+#                              download_root="./models",
+#                              local_files_only=True)
+# data=[]
+#
+# for i in range(0,24):
+#     name=f'output0{str(i).zfill(2)}.wav'
+#     if not os.path.exists(f'c:/users/c1/videos/_video_out/{name}'):
+#         continue
+#     segments, info = model.transcribe(f'c:/users/c1/videos/_video_out/{name}',
+#                                           beam_size=1,
+#                                           best_of=1,
+#                                           condition_on_previous_text=False,language="zh")
+#     res=[]
+#     for segment in segments:
+#         res.append(segment.text.strip())
+#     data.append(f"wavs/{name}|{'.'.join(res)}|coqui")
+#
+# with open("./metadata_train.csv","w",encoding='utf-8') as f:
+#     f.write("\n".join(data))
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    try:
-        startwin = StartWindow()
-    except Exception as e:
-        print(f"error:{str(e)}")
-    sys.exit(app.exec())
+import requests
+lang=["zh-hans","zh-hant","en","fr","de","ja","ko","ru","es","th","it","pt","vi","ar","tr","hi","hu"]
 
+auth=requests.get('https://edge.microsoft.com/translate/auth')
+
+for it in lang:
+    url=f'https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={it}&api-version=3.0&includeSentenceLength=true'
+    res=requests.post(url,json=[{"Text":"hello,my friend\nI am from China"}],headers={"Authorization":f"Bearer {auth.text}"})
+    print(res.json())

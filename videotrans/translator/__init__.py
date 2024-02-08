@@ -3,6 +3,7 @@ import re
 from videotrans.configure import config
 
 GOOGLE_NAME = "Google"
+MICROSOFT_NAME = "Microsoft"
 BAIDU_NAME = "Baidu"
 DEEPL_NAME = "DeepL"
 DEEPLX_NAME = "DeepLx"
@@ -14,6 +15,7 @@ GEMINI_NAME = "Gemini"
 SRT_NAME = "srt"
 # 翻译通道
 TRANSNAMES = [
+    MICROSOFT_NAME,
     GOOGLE_NAME,
     BAIDU_NAME,
     DEEPL_NAME,
@@ -32,7 +34,8 @@ LANG_CODE = {
         "zh",  # 百度通道
         "ZH",  # deepl deeplx通道
         "zh",  # 腾讯通道
-        "zh"  # OTT通道
+        "zh",  # OTT通道
+        "zh-Hans"
     ],
     "zh-tw": [
         "zh-tw",
@@ -40,13 +43,15 @@ LANG_CODE = {
         "cht",
         "ZH",
         "zh-TW",
-        "zt"
+        "zt",
+        "zh-Hant"
     ],
     "en": [
         "en",
         "eng",
         "en",
         "EN",
+        "en",
         "en",
         "en"
     ],
@@ -56,6 +61,7 @@ LANG_CODE = {
         "fra",
         "FR",
         "fr",
+        "fr",
         "fr"
     ],
     "de": [
@@ -63,6 +69,7 @@ LANG_CODE = {
         "ger",
         "de",
         "DE",
+        "de",
         "de",
         "de"
     ],
@@ -72,6 +79,7 @@ LANG_CODE = {
         "jp",
         "JA",
         "ja",
+        "ja",
         "ja"
     ],
     "ko": [
@@ -79,6 +87,7 @@ LANG_CODE = {
         "kor",
         "kor",
         "KO",
+        "ko",
         "ko",
         "ko"
     ],
@@ -88,6 +97,7 @@ LANG_CODE = {
         "ru",
         "RU",
         "ru",
+        "ru",
         "ru"
     ],
     "es": [
@@ -95,6 +105,7 @@ LANG_CODE = {
         "spa",
         "spa",
         "ES",
+        "es",
         "es",
         "es"
     ],
@@ -104,6 +115,7 @@ LANG_CODE = {
         "th",
         "No",
         "th",
+        "th",
         "th"
     ],
     "it": [
@@ -111,6 +123,7 @@ LANG_CODE = {
         "ita",
         "it",
         "IT",
+        "it",
         "it",
         "it"
     ],
@@ -120,6 +133,7 @@ LANG_CODE = {
         "pt",
         "PT",
         "pt",
+        "pt",
         "pt"
     ],
     "vi": [
@@ -128,7 +142,8 @@ LANG_CODE = {
         "vie",
         "No",
         "vi",
-        "No"
+        "No",
+        "vi"
     ],
     "ar": [
         "ar",
@@ -136,11 +151,13 @@ LANG_CODE = {
         "ara",
         "No",
         "ar",
+        "ar",
         "ar"
     ],
     "tr": [
         "tr",
         "tur",
+        "tr",
         "tr",
         "tr",
         "tr",
@@ -152,6 +169,7 @@ LANG_CODE = {
         "hi",
         "No",
         "hi",
+        "hi",
         "hi"
     ],
     "hu": [
@@ -160,7 +178,8 @@ LANG_CODE = {
         "hu",
         "HU",
         "No",
-        "No"
+        "No",
+        "hu"
     ]
 }
 
@@ -183,7 +202,6 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if not translate_type:
         return None, None
     lower_translate_type = translate_type.lower()
-    print(f'{lower_translate_type == GOOGLE_NAME.lower()}')
     if show_source:
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_source]]
@@ -202,6 +220,8 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return (show_source, show_target)
     elif lower_translate_type == OTT_NAME.lower():
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
+    elif lower_translate_type==MICROSOFT_NAME.lower():
+        return (source_list[6] if source_list else "-", target_list[6] if target_list else "-")
     else:
         raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
 
@@ -237,7 +257,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False)
 
     if only_key:
         return True
-
+    #再判断是否为No，即不支持
     index = 0
     if lower_translate_type == BAIDU_NAME.lower():
         index = 2
@@ -245,6 +265,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False)
         index = 3
     elif lower_translate_type == TENCENT_NAME.lower():
         index = 4
+    elif lower_translate_type==MICROSOFT_NAME.lower():
+        index=6
 
     if show_target:
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
@@ -290,6 +312,8 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         from videotrans.translator.gemini import trans
     elif lower_translate_type == AZUREGPT_NAME.lower():
         from videotrans.translator.azure import trans
+    elif lower_translate_type==MICROSOFT_NAME.lower():
+        from videotrans.translator.microsoft import trans
     else:
         print(lower_translate_type == OTT_NAME.lower())
         raise Exception(f"[error]run {translate_type=},{target_language_name=}")

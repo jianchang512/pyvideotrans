@@ -46,7 +46,7 @@ def trans(text_list, target_language="en", *, set_p=True):
         try:
             # 实例化一个请求对象,每个接口都会对应一个request对象
             source_length = len(it)
-            print(f'{source_length=}')
+
             req = models.TextTranslateRequest()
             params = {
                 "SourceText": "\n".join(it),

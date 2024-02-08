@@ -12,6 +12,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'clone-voice:api={api_url}')
+        print(f'{api_url=}')
 
         data={"text":text.strip(),"language":language}
         # role=clone是直接复制
@@ -22,7 +23,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         else:
             #克隆声音
             files={"audio":open(filename,'rb')}
-        res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies=None)
+        res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies={"http":"","https":""})
         res=res.json()
         if "code" not in res or res['code']!=0:
             raise Exception(f'[error]clone:{res}')

@@ -697,7 +697,7 @@ def get_clone_role(set_p=False):
         return False
     try:
         url=config.params['clone_api'].strip().rstrip('/')+"/init"
-        res=requests.get('http://'+url.replace('http://',''))
+        res=requests.get('http://'+url.replace('http://',''),proxies={"http":"","https":""})
         if res.status_code==200:
             config.clone_voicelist=["clone"]+res.json()
             set_process('','set_clone_role')
@@ -753,11 +753,14 @@ def delete_files(directory, ext):
 
 
 def send_notification(title, message):
-    notification.notify(
-        title=title,
-        message=message,
-        ticker="视频翻译与配音",
-        app_name="视频翻译与配音",#config.uilanglist['SP-video Translate Dubbing'],
-        app_icon=os.path.join(config.rootdir,'videotrans/styles/icon.ico'),
-        timeout=10  # Display duration in seconds
-    )
+    try:
+        notification.notify(
+            title=title,
+            message=message,
+            ticker="视频翻译与配音",
+            app_name="视频翻译与配音",#config.uilanglist['SP-video Translate Dubbing'],
+            app_icon=os.path.join(config.rootdir,'videotrans/styles/icon.ico'),
+            timeout=10  # Display duration in seconds
+        )
+    except:
+        pass

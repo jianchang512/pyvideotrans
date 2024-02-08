@@ -160,6 +160,7 @@ class TransCreate():
             if os.path.exists(self.targetdir_source_regcon) and os.path.getsize(self.targetdir_source_regcon)==0:
                 os.unlink(self.targetdir_source_regcon)
         else:
+            self.targetdir_source_vocal=self.targetdir_source_wav
             self.source_separate = self.source_back = self.source_vocal = None
 
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
@@ -315,11 +316,14 @@ class TransCreate():
         if not os.path.exists(self.targetdir_source_sub) or os.path.exists(self.targetdir_target_sub):
             return True
         # 测试翻译
+        switch_trans=""
         if config.params['translate_type'].lower()==GOOGLE_NAME.lower():
-            set_process("Test Google connecting...")
+            set_process(config.transobj['test google'])
             if not self.testgoogle():
-                raise Exception(f'无法连接Google，请正确设置代理，例如v2ray默认是http://127.0.0.1:10809,clash默认http://127.0.0.1:7890或开启全局代理')
-        set_process(transobj['starttrans'])
+                switch_trans='无法连接Google，已自动切换为Microsoft翻译'
+                config.params['translate_type']='Microsoft'
+
+        set_process(transobj['starttrans']+switch_trans)
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
         if not rawsrt or len(rawsrt)<1:
@@ -496,11 +500,11 @@ class TransCreate():
                 filename = self.cache_folder + "/" + md5_hash.hexdigest() + ".mp3"
                 # 如果是clone-voice类型， 需要截取对应片段
                 if config.params['tts_type']=='clone-voice':
-                    if not os.path.exists(self.targetdir_source_vocal):
+                    if config.params['is_separate'] and not os.path.exists(self.targetdir_source_vocal):
                         raise Exception(f'not exits {self.targetdir_source_vocal}')
-                    # clone 方式文件为wav格式
+                        # clone 方式文件为wav格式
                     filename+=".wav"
-                    cut_from_audio(audio_file=self.targetdir_source_vocal,ss=it['startraw'],to=it['endraw'],out_file=filename)
+                    cut_from_audio(audio_file=self.targetdir_source_vocal if config.params['is_separate'] else self.targetdir_source_wav,ss=it['startraw'],to=it['endraw'],out_file=filename)
 
                 queue_tts.append({
                     "text": it['text'],
