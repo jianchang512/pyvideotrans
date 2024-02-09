@@ -97,7 +97,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
         self.hecheng_importbtn.setFixedWidth(100)
         self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
-        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_importbtn))
+        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_plaintext))
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
@@ -207,14 +207,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
                                                "Text files(*.srt *.txt)")
         if fname:
-            if obj and not isinstance(obj,bool):
-                return obj.setText(fname.replace('file:///', ''))
+
             try:
                 with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
-                    self.fanyi_sourcetext.setPlainText(f.read().strip())
+                    content=f.read().strip()
             except:
                 with open(fname.replace('file:///', ''), 'r', encoding='GBK') as f:
-                    self.fanyi_sourcetext.setPlainText(f.read().strip())
+                    content=f.read().strip()
+            if obj and not isinstance(obj,bool):
+                return obj.setPlainText(content)
+            else:
+                self.fanyi_sourcetext.setPlainText(content)
     def render_play(self, t):
         if t != 'ok':
             return
@@ -281,9 +284,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
             config.geshi_num -= 1
-            self.geshi_result.insertPlainText(data['text'])
+            self.geshi_result.moveCursor(QTextCursor.End)
+            self.geshi_result.insertPlainText("\n"+data['text'])
             if config.geshi_num <= 0:
                 self.disabled_geshi(False)
+                self.geshi_result.moveCursor(QTextCursor.End)
                 self.geshi_result.insertPlainText(config.transobj["zhixingwc"])
                 self.geshi_input.clear()
                 self.statuslabel.setText("Succeed")
@@ -509,11 +514,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['yuyanjuesebixuan'])
         if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixutianxie'] + "chatGPT key")
-        elif tts_type == 'coquiTTS' and not config.params['coquitts_key']:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixutianxie'] + " coquiTTS key")
+
         # 文件名称
         filename = self.hecheng_out.text()
-        if filename and re.search(r'\\|/', filename):
+        if filename and re.search(r'\|/', filename):
             filename = ""
         if not filename:
             filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
@@ -537,7 +541,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                       func_name="hecheng_end",
                                       voice_autorate=issrt and self.voice_autorate.isChecked(),
                                       tts_issrt=issrt)
-        # self.hecheng_task.update_ui.connect(self.receiver)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText(config.transobj["running"])
         self.hecheng_startbtn.setDisabled(True)
@@ -612,11 +615,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if ext == ext_this:
                 config.geshi_num -= 1
                 self.geshi_result.insertPlainText(f"{it} -> {ext}")
+                print('11')
                 continue
             if ext_this in ["wav", "mp3", "aac", "m4a", "flac"] and ext in ["mp4", "mov", "avi"]:
                 self.geshi_result.insertPlainText(f"{it} {config.transobj['yinpinbuke']} {ext} ")
                 config.geshi_num -= 1
+                print('222')
                 continue
+
+            self.geshi_result.insertPlainText(f'{savedir}/{basename}.{ext}')
             cmdlist.append(['-y', '-i', f'{it}', f'{savedir}/{basename}.{ext}'])
 
         if len(cmdlist) < 1:
@@ -624,7 +631,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.disabled_geshi(False)
             return
         self.geshi_task = Worker(cmdlist, "geshi_end", self, True)
-        # self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
 
     # 禁用按钮

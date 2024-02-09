@@ -539,11 +539,20 @@ class Ui_MainWindow(object):
         font.setFamily("Microsoft YaHei")
         self.action_hun.setFont(font)
         self.action_hun.setObjectName("action_hun")
+
         self.action_fanyi = QtGui.QAction(MainWindow)
         font = QtGui.QFont()
         font.setFamily("Microsoft YaHei")
         self.action_fanyi.setFont(font)
         self.action_fanyi.setObjectName("action_fanyi")
+
+        self.action_youtube = QtGui.QAction(MainWindow)
+        font = QtGui.QFont()
+        font.setFamily("Microsoft YaHei")
+        self.action_youtube.setFont(font)
+        self.action_youtube.setObjectName("action_youtube")
+
+
         self.actionazure_key = QtGui.QAction(MainWindow)
         self.actionazure_key.setObjectName("actionazure_key")
         self.actiongemini_key = QtGui.QAction(MainWindow)
@@ -604,6 +613,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_geshi)
         self.toolBar.addAction(self.action_hun)
         self.toolBar.addAction(self.action_fanyi)
+        self.toolBar.addAction(self.action_youtube)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -697,6 +707,9 @@ class Ui_MainWindow(object):
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
+        self.action_youtube.setText(config.uilanglist.get("Download from Youtube"))
+        self.action_youtube.setToolTip(config.uilanglist.get("Download from Youtube"))
+
         self.actionazure_key.setText("AzureGPT AI")
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs Key")

@@ -193,15 +193,17 @@ class TransCreate():
         if self.wait_convermp4:
             # 需要转换格式
             set_process(transobj['kaishiyuchuli'])
-            self.precent = 1
             conver_mp4(self.wait_convermp4, self.source_mp4)
             self.video_info = get_video_info(self.source_mp4)
+            self.precent += 5
 
         set_process(self.target_dir, 'set_target_dir')
         ##### 开始分离
+        # 禁止修改字幕
+        set_process("","disabled_edit")
         self.step = 'split_start'
         self.split_wav_novicemp4()
-        self.precent += 5
+        # self.precent += 5
         self.step = 'split_end'
 
         #### 开始识别
@@ -211,11 +213,13 @@ class TransCreate():
 
         ##### 翻译阶段
         self.step = 'translate_start'
+        #翻译暂停时允许修改字幕，翻译开始后禁止修改
         self.trans()
         self.step = 'translate_end'
 
         # 如果存在目标语言字幕，并且存在 配音角色，则需要配音
         self.step = "dubbing_start"
+        #配音开始前允许修改，开始后禁止修改
         self.dubbing()
         self.step = 'dubbing_end'
 
@@ -223,6 +227,7 @@ class TransCreate():
         self.step = 'compos_start'
         self.hebing()
         self.step = 'compos_end'
+        set_process('','allow_edit')
 
     # 分离音频 和 novoice.mp4
     def split_wav_novicemp4(self):
@@ -302,7 +307,7 @@ class TransCreate():
                 config.params['target_language'] == config.params['source_language']:
             return True
 
-        # 等待编辑原字幕后翻译
+        # 等待编辑原字幕后翻译,允许修改字幕
         set_process(transobj["xiugaiyuanyuyan"], 'edit_subtitle')
         config.task_countdown = config.settings['countdown_sec']
         while config.task_countdown > 0:
@@ -310,6 +315,7 @@ class TransCreate():
                 set_process(f"{config.task_countdown} {transobj['jimiaohoufanyi']}", 'show_djs')
             time.sleep(1)
             config.task_countdown -= 1
+        # 禁止修改字幕
         set_process('', 'timeout_djs')
         time.sleep(2)
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
@@ -328,8 +334,10 @@ class TransCreate():
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
         if not rawsrt or len(rawsrt)<1:
             raise Exception(f"[error]：Subtitles is empty,cannot translate")
+        #开始翻译，禁止修改字幕
+
         target_srt = run_trans(translate_type=config.params['translate_type'], text_list=rawsrt,
-                               target_language_name=config.params['target_language'], set_p=True)
+                               target_language_name=config.params['target_language'], set_p=True,inst=self)
         self.save_srt_target(target_srt, self.targetdir_target_sub)
 
     # 测试google是否可用
@@ -343,8 +351,8 @@ class TransCreate():
         proxies = None
         if serv:
             proxies = {
-                'http://': serv,
-                'https://': serv
+                'http': serv,
+                'https': serv
             }
         result=False
         try:
@@ -363,7 +371,7 @@ class TransCreate():
                 os.path.exists(self.targetdir_target_wav) or \
                 not os.path.exists(self.targetdir_target_sub):
             return True
-
+        #允许修改字幕
         set_process(transobj["xiugaipeiyinzimu"], "edit_subtitle")
         config.task_countdown = config.settings['countdown_sec']
         while config.task_countdown > 0:
@@ -375,9 +383,12 @@ class TransCreate():
             config.task_countdown -= 1
             if config.task_countdown <= config.settings['countdown_sec'] and config.task_countdown >= 0:
                 set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
+        #禁止修改字幕
         set_process('', 'timeout_djs')
         time.sleep(3)
         try:
+            #禁止修改字幕
+            # set_process('','disabled_edit')
             res = self.before_tts()
             if isinstance(res, tuple) and len(res)==2:
                 self.exec_tts(res[0], res[1])

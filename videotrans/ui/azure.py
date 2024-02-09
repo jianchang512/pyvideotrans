@@ -69,12 +69,12 @@ class Ui_azureform(object):
         QtCore.QMetaObject.connectSlotsByName(azureform)
 
     def retranslateUi(self, azureform):
-        azureform.setWindowTitle( "Azure")
+        azureform.setWindowTitle( "AzureGPT")
         self.label_3.setText( "Azure Model")
         self.azure_template.setPlaceholderText( "prompt")
         self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/azure.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/azure.txt")
-        self.set_azure.setText( "OK")
-        self.azure_api.setPlaceholderText( "api url")
-        self.azure_key.setPlaceholderText( "secret key")
-        self.label.setText( "Azure API URL")
+        self.set_azure.setText( '保存' if config.defaulelang=='zh' else "Save")
+        self.azure_api.setPlaceholderText('填写你的api地址' if config.defaulelang=='zh' else "Api url")
+        self.azure_key.setPlaceholderText('填写你的密钥' if config.defaulelang=='zh' else "Secret key")
+        self.label.setText( "API URL")
         self.label_2.setText( "Azure  Key ")

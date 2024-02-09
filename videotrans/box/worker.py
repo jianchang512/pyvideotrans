@@ -36,20 +36,12 @@ class Worker(QThread):
             except Exception as e:
                 logger.error("[bxo]FFmepg exec error:" + str(e))
                 set_process_box("[bxo]FFmepg exec error:" + str(e))
-                # self.post_message("error", "ffmpeg error")
                 return f'[error]{str(e)}'
         set_process_box('ffmpeg succeed',"end",func_name=self.func_name)
-        # self.post_message("end", "End\n")
-        # set_process_box(f'Ended ffmpeg','end')
-
-    # def post_message(self, type, text):
-    #     self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 
 # 执行语音识别
 class WorkerWhisper(QThread):
-    # update_ui = pyqtSignal(str)
-
     def __init__(self, audio_path, model, language, func_name, parent=None):
         super(WorkerWhisper, self).__init__(parent)
         self.func_name = func_name
@@ -67,18 +59,13 @@ class WorkerWhisper(QThread):
                 text.append(f'{it["line"]}\n{it["time"]}\n{it["text"]}')
             self.post_message("end", "\n\n".join(text))
         except Exception as e:
-            print(f'eeeee{str(e)}')
             self.post_message("error", str(e))
-        # config.box_status='stop'
 
     def post_message(self, type, text):
         set_process_box(text,type,func_name=self.func_name)
-        # self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
-
 
 # 合成
 class WorkerTTS(QThread):
-    # update_ui = pyqtSignal(str)
     def __init__(self, parent=None, *,
                  text=None,
                  role=None,
@@ -139,7 +126,7 @@ class WorkerTTS(QThread):
             if os.path.exists(mp3):
                 os.unlink(mp3)
         self.post_message("end", "Succeed")
-        # config.box_status='stop'
+
 
     # 配音预处理，去掉无效字符，整理开始时间
     def before_tts(self):
@@ -263,10 +250,9 @@ class WorkerTTS(QThread):
 
     def post_message(self, type, text):
         set_process_box(text,type,func_name=self.func_name)
-        # self.update_ui.emit(json.dumps({"func_name": self.func_name, "type": type, "text": text}))
 
 class FanyiWorker(QThread):
-    # ui = pyqtSignal(str)
+
     def __init__(self, type, target_language, text, issrt, parent=None):
         super(FanyiWorker, self).__init__(parent)
         self.type = type
@@ -287,15 +273,13 @@ class FanyiWorker(QThread):
                 except Exception as e:
                     set_process_box(f"整理格式化原始字幕信息出错:" + str(e), 'error')
                     return ""
+                config.box_status='ing'
                 srt=run_trans(translate_type=self.type,text_list=rawsrt,target_language_name=self.target_language,set_p=False)
                 srts_tmp = ""
                 for it in srt:
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 self.srts = srts_tmp
         except Exception as e:
-            # self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "error", "text": str(e)}))
             set_process_box(str(e),"error",func_name="fanyi_end")
             return
         set_process_box(self.srts,"end",func_name="fanyi_end")
-        # self.ui.emit(json.dumps({"func_name": "fanyi_end", "type": "end", "text": self.srts}))
-

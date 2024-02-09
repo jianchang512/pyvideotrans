@@ -291,7 +291,7 @@ def get_subtitle_code(*, show_target=None):
 
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
-def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True):
+def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True,inst=None):
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
     lower_translate_type = translate_type.lower()
     if lower_translate_type == GOOGLE_NAME.lower():
@@ -318,6 +318,6 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         print(lower_translate_type == OTT_NAME.lower())
         raise Exception(f"[error]run {translate_type=},{target_language_name=}")
     try:
-        return trans(text_list, target_language, set_p=set_p)
+        return trans(text_list, target_language, set_p=set_p,inst=inst)
     except Exception as e:
         raise Exception(f'[error]: {str(e)}')

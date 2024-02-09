@@ -65,7 +65,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
             for t in tolist:
                 n += 1
                 if set_p:
-                    if inst.precent<90:
+                    if inst and inst.precent<90:
                         inst.precent+=round(n/n_total,2)
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]')
                 t.join()

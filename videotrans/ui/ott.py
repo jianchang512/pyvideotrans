@@ -69,6 +69,7 @@ class Ui_ottform(object):
         QtCore.QMetaObject.connectSlotsByName(ottform)
 
     def retranslateUi(self, ottform):
-        ottform.setWindowTitle("OTT")
-        self.label.setText("OTT_address")
-        self.set_ott.setText("OK")
+        ottform.setWindowTitle("OTT离线翻译" if config.defaulelang=='zh' else 'Offline Text Translate')
+        self.label.setText("OTT_api")
+        self.ott_address.setPlaceholderText('在此填写你的OTT项目部署后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address for your OTT project deployment here')
+        self.set_ott.setText('保存' if config.defaulelang=='zh' else "Save")

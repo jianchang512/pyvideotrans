@@ -145,7 +145,8 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
         raw_subtitles.append(srt_line)
         if set_p:
-            inst.precent += int(round(srt_line['line']  / total_length, 2)*10)
+            if inst and inst.precent<55:
+                inst.precent += round(srt_line['line']*5  / total_length, 2)
             tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
@@ -216,8 +217,8 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             raw_subtitles.append(s)
             if set_p:
                 tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
-                if inst.precent<65:
-                    inst.precent += round(segment.end  / info.duration, 2)
+                if inst and inst.precent<55:
+                    inst.precent += round(segment.end*0.5  / info.duration, 2)
                 tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}')
             else:
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")

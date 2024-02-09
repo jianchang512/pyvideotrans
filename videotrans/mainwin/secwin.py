@@ -563,7 +563,6 @@ class SecWindow():
                 ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
                 config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
-            print(config.params['line_roles'])
 
         from videotrans.component import SetLineRole
         self.main.w = SetLineRole()
@@ -594,6 +593,7 @@ class SecWindow():
             h_layout.addWidget(check)
             h_layout.addWidget(line_edit)
             box.layout().addLayout(h_layout)
+        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         self.main.w.select_role.addItems(self.main.current_rolelist)
         self.main.w.set_role_label.setText(config.transobj['shezhijuese'])
 
@@ -602,7 +602,9 @@ class SecWindow():
         scroll_area = QScrollArea()
         scroll_area.setWidget(box)
         scroll_area.setWidgetResizable(True)
+        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
+        # self.main.w.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # 将 QScrollArea 添加到主窗口的 layout
         self.main.w.layout.addWidget(scroll_area)
 
@@ -641,9 +643,6 @@ class SecWindow():
         # 创建事件过滤器实例并将其安装到 lineEdit 上
 
         self.main.youw.outputdir.setText(outdir)
-
-        # self.main.youw.outputdir.clicked.connect(lambda :self.open_dir(self.main.youw.outputdir.text()))
-
         if config.proxy:
             self.main.youw.proxy.setText(config.proxy)
         self.main.youw.selectdir.clicked.connect(selectdir)
@@ -1229,7 +1228,6 @@ class SecWindow():
                 if os.environ.get('CUDA_OK'):
                     os.environ.pop('CUDA_OK')
 
-
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
             rs = is_allow_translate(translate_type=config.params['translate_type'],
@@ -1238,11 +1236,6 @@ class SecWindow():
                 # 不是True，有错误
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
-
-
-
-
-
         config.queue_task = []
         # 存在视频
         if len(config.queue_mp4) > 0:
@@ -1272,6 +1265,7 @@ class SecWindow():
             if type == 'succeed':
                 text, duration = text.split('##')
                 self.main.processbtns[btnkey].setTarget(text)
+                self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
                 text = f'Time:[{duration}s] {config.transobj["endandopen"]}{text}'
                 self.main.processbtns[btnkey].progress_bar.setValue(100)
             elif type == 'error':
@@ -1282,6 +1276,7 @@ class SecWindow():
                 self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
                 text = f'{config.transobj["running"]}{jindu} {text}'
             self.main.processbtns[btnkey].setText(text[:90])
+            self.main.processbtns[btnkey].setToolTip(config.transobj['mubiao'])
 
     # 更新执行状态
     def update_status(self, type):
@@ -1340,7 +1335,6 @@ class SecWindow():
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
             self.update_status(d['type'])
             self.main.continue_compos.hide()
-            # self.main.statusLabel.setText(config.transobj['bencijieshu'])
             self.main.target_dir.clear()
             if d['type']=='error':
                 self.set_process_btn_text(d['text'], d['btnkey'], 'error')
@@ -1348,7 +1342,8 @@ class SecWindow():
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
         elif d['type'] == 'edit_subtitle':
-            # 显示出合成按钮,等待编辑字幕
+            # 显示出合成按钮,等待编辑字幕,允许修改字幕
+            self.main.subtitle_area.setReadOnly(False)
             self.main.continue_compos.show()
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(d['text'])
@@ -1356,6 +1351,12 @@ class SecWindow():
             # 允许试听
             if self.main.task.video.step == 'dubbing_start':
                 self.main.listen_peiyin.setDisabled(False)
+        elif d['type']=='disabled_edit':
+            #禁止修改字幕
+            self.main.subtitle_area.setReadOnly(True)
+        elif d['type']=='allow_edit':
+            #允许修改字幕
+            self.main.subtitle_area.setReadOnly(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
             self.main.subtitle_area.clear()
@@ -1364,6 +1365,7 @@ class SecWindow():
             self.main.stop_djs.hide()
             self.update_subtitle()
             self.main.continue_compos.setDisabled(True)
+            self.main.subtitle_area.setReadOnly(True)
             self.main.listen_peiyin.setDisabled(True)
             self.main.listen_peiyin.setText(config.transobj['shitingpeiyin'])
         elif d['type'] == 'show_djs':

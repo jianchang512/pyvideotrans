@@ -56,6 +56,7 @@ def get_elevenlabs_role(force=False):
 
 def set_proxy(set_val=''):
     if set_val == 'del':
+        config.proxy=None
         # 删除代理
         if os.environ.get('http_proxy'):
             os.environ.pop('http_proxy')
@@ -64,21 +65,17 @@ def set_proxy(set_val=''):
         return None
     if set_val:
         # 设置代理
-        if set_val.startswith("http") or set_val.startswith('sock'):
-            os.environ['http_proxy'] = set_val
-            os.environ['https_proxy'] = set_val
-        else:
+        if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
-            os.environ['http_proxy'] = set_val
-            os.environ['https_proxy'] = set_val
+        config.proxy=set_val
         return set_val
+
     # 获取代理
-    http_proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy')
+    http_proxy = config.proxy or os.environ.get('http_proxy') or os.environ.get('https_proxy')
     if http_proxy:
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
-            os.environ['http_proxy'] = http_proxy
-            os.environ['https_proxy'] = http_proxy
+        config.proxy=http_proxy
         return http_proxy
     if sys.platform != 'win32':
         return None
@@ -92,13 +89,9 @@ def set_proxy(set_val=''):
             proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
             if proxy_enable == 1 and proxy_server:
                 # 是否需要设置代理
-                if proxy_server.startswith("http") or proxy_server.startswith('sock'):
-                    os.environ['http_proxy'] = proxy_server
-                    os.environ['https_proxy'] = proxy_server
-                else:
+                if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
-                    os.environ['http_proxy'] = proxy_server
-                    os.environ['https_proxy'] = proxy_server
+                config.proxy=proxy_server
                 return proxy_server
     except Exception as e:
         print(f"Error accessing Windows registry: {e}")
@@ -533,7 +526,7 @@ def format_srt(content):
     result=[]
     maxindex=len(content)-1
     # 时间格式
-    timepat = r'^\s*?\d+:\d+:\d+(\,\d+?)?\s+?-->\s+?\d+:\d+:\d+(\,\d+?)?\s*?$'
+    timepat = r'^\s*?\d+:\d+:\d+(\,\d+?)?\s*?-->\s*?\d+:\d+:\d+(\,\d+?)?\s*?$'
     textpat=r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
     for i,it in enumerate(content):
         #当前空行跳过
@@ -560,7 +553,9 @@ def format_srt(content):
         for i,it in enumerate(result):
             result[i]['line']=i+1
             result[i]['text']="\n".join(it['text'])
-            s,e=(it['time'].replace('.',',')).split(' --> ')
+            s,e=(it['time'].replace('.',',')).split('-->')
+            s=s.strip()
+            e=e.strip()
             if s.find(',')==-1:
                 s+=',000'
             if len(s.split(':')[0])<2:
@@ -599,9 +594,9 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     for it in result:
         if "text" in it and len(it['text'].strip()) > 0:
             it['line'] = line
-            startraw, endraw = it['time'].strip().split(" --> ")
-            start = startraw.replace(',', '.').split(":")
-            end = endraw.replace(',', '.').split(":")
+            startraw, endraw = it['time'].strip().split("-->")
+            start = startraw.strip().replace(',', '.').replace('，','.').replace('：',':').split(":")
+            end = endraw.strip().replace(',', '.').replace('，','.').replace('：',':').split(":")
             start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
             end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
             it['startraw'] = startraw

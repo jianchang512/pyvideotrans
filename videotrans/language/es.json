@@ -1,5 +1,13 @@
 {
   "translate_language" : {
+    "only10": "This software only supports Win10 and above systems on the Windows platform",
+    "sp.exeerror": "sp.exe must be located in the original directory after decompression (i.e. in the same directory as videotrans|models|_internal), please do not copy or move it to any other location without permission",
+    "meitiaozimugeshi": "Each subtitle format is as follows:\nLine number\nStart time hours:minutes:seconds,milliseconds -->End time hours:minutes:seconds,milliseconds\nSubtitle content",
+    "Set up separate dubbing roles for each subtitle to be used": "Set up separate dubbing roles for each subtitle to be used",
+    "daoruzimutips": "Existing SRT subtitle files can be imported locally, skipping the recognition and translation stages and using the imported subtitles directly",
+    "Click to start the next step immediately": "Click to start the next step immediately",
+    "Click to pause and modify subtitles for more accurate processing": "Click to pause and modify subtitles for more accurate processing",
+    "zimubianjitishi": "During pause period, subtitles can be edited",
     "test google": "Test connection Google..",
     "Select Out Dir": "Select Out Dir",
     "downing...": "Downloading...",
