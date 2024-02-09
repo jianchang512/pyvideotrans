@@ -129,8 +129,8 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 > 
 > 两者只可选其一
 >  
- 
-  
+
+
 11. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
@@ -151,6 +151,8 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 19. 原音色克隆配音：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
 
 20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
+
+
 
 # 常见问题
 
@@ -444,9 +446,9 @@ gemini_key=
 
 # 视频教程(第三方)
 
-[Mac下源码部署/b站](https://b23.tv/RFiTmlA)
+[Mac下源码部署/b站](https://www.bilibili.com/video/BV1tK421y7rd/)
 
-[用Gemini Api给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
+[用Gemini Api 给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
 
 
 # 相关联项目
@@ -457,7 +459,8 @@ gemini_key=
 
 [语音识别工具:本地离线的语音识别转文字工具](https://github.com/jianchang512/stt)
 
-[人声背景乐分离:极简的人声和背景音乐分离工具，本地化网页操作](https://github.com/jianchang512/stt)
+[人声背景乐分离:极简的人声和背景音乐分离工具](https://github.com/jianchang512/vocal-separate)
+
 
 ## 致谢
 
