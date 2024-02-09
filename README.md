@@ -7,7 +7,7 @@
 >
 > 语音识别基于 `faster-whisper` 离线模型.
 >
-> 文字翻译支持 `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
+> 文字翻译支持 `microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
 >
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
 >
