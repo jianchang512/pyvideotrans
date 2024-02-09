@@ -54,9 +54,9 @@ class Ui_geminiform(object):
         QtCore.QMetaObject.connectSlotsByName(geminiform)
 
     def retranslateUi(self, geminiform):
-        geminiform.setWindowTitle( "Gemini")
+        geminiform.setWindowTitle( "Gemini Pro")
         self.gemini_template.setPlaceholderText( "prompt")
         self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/gemini.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/gemini.txt")
-        self.set_gemini.setText( "OK")
-        self.gemini_key.setPlaceholderText( "secret key")
+        self.set_gemini.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.gemini_key.setPlaceholderText("secret key")
         self.label_2.setText( "Gemini  Key ")

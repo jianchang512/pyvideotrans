@@ -10,6 +10,8 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from videotrans.configure import config
+
 
 class Ui_baiduform(object):
     def setupUi(self, baiduform):
@@ -88,8 +90,7 @@ class Ui_baiduform(object):
         QtCore.QMetaObject.connectSlotsByName(baiduform)
 
     def retranslateUi(self, baiduform):
-        _translate = QtCore.QCoreApplication.translate
-        baiduform.setWindowTitle(_translate("baiduform", "Baidu"))
-        self.label.setText(_translate("baiduform", "Baidu Appid"))
-        self.label_2.setText(_translate("baiduform", "Baidu Secret"))
-        self.set_badiu.setText(_translate("baiduform", "OK"))
+        baiduform.setWindowTitle("百度")
+        self.label.setText("Baidu Appid")
+        self.label_2.setText("Baidu Secret")
+        self.set_badiu.setText('保存' if config.defaulelang=='zh' else "Save")

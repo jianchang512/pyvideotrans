@@ -25,7 +25,8 @@ border: 1px solid #339933;
 QLabel{
     color: #bbbbbb;
 }
- QLineEdit:hover,QComboBox:hover{
+
+QLineEdit:hover,QComboBox:hover{
     border-color: #148cd2;
 }
  QLineEdit,QComboBox{
@@ -49,4 +50,8 @@ QScrollArea QPushButton{
 }
 QScrollArea QPushButton:hover{
     background-color: #19232D;
+}
+QPlainTextEdit:read-only{
+    opacity:0.8;
+    color:#999999;
 }

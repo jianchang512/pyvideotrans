@@ -1,7 +1,5 @@
 import json
-import re
 import time
-
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
@@ -9,7 +7,7 @@ from tencentcloud.tmt.v20180321 import tmt_client, models
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="en", *, set_p=True):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -42,11 +40,12 @@ def trans(text_list, target_language="en", *, set_p=True):
     # 实例化要请求产品的client对象,clientProfile是可选的
     client = tmt_client.TmtClient(cred, "ap-beijing", clientProfile)
 
-    for it in split_source_text:
+    for i,it in enumerate(split_source_text):
+        if stop>0:
+            time.sleep(stop)
         try:
             # 实例化一个请求对象,每个接口都会对应一个request对象
             source_length = len(it)
-
             req = models.TextTranslateRequest()
             params = {
                 "SourceText": "\n".join(it),
@@ -58,8 +57,11 @@ def trans(text_list, target_language="en", *, set_p=True):
             # 返回的resp是一个TextTranslateResponse的实例，与请求对象对应
             resp = client.TextTranslate(req)
             result = resp.TargetText.strip().replace('&#39;','"').split("\n")#json.loads(resp.TargetText)
+            if inst and inst.precent < 75:
+                inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
             if set_p:
                 tools.set_process("\n\n".join(result), 'subtitle')
+                tools.set_process(config.transobj['starttrans'])
             else:
                 tools.set_process("\n\n".join(result), func_name="set_fanyi")
             result_length = len(result)
@@ -69,15 +71,12 @@ def trans(text_list, target_language="en", *, set_p=True):
             result = result[:source_length]
             target_text.extend(result)
         except Exception as e:
-            err = str(e)
-            if re.search(r'LimitExceeded', err, re.I):
-                if set_p:
-                    tools.set_process("超出腾讯翻译频率或配额限制，暂停5秒")
+            error = str(e)
+            config.logger.error(f"tencent api error:{error}" )
+            if set_p and config.current_status=='ing':
+                tools.set_process(f'出错了,等待5s后重试:{error}' if config.defaulelang=='zh' else f'wait 5s retry:{error}')
                 time.sleep(10)
-                return trans(text_list, target_language, set_p=set_p)
-            config.logger.error("tencent api error:" + str(e))
-            if set_p:
-                tools.set_process("[error]腾讯翻译失败:" + str(e))
+                return trans(text_list, target_language,inst=inst, set_p=set_p,stop=3)
             raise Exception("tencent api error:" + str(e))
 
     if isinstance(text_list, str):

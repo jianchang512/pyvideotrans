@@ -9,7 +9,7 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import QObject, QEvent, QUrl
+from PySide6.QtCore import QObject, QEvent, QUrl, Qt
 from PySide6.QtGui import QDesktopServices
 
 from videotrans.configure import config
@@ -42,6 +42,7 @@ class Ui_youtubeform(object):
         self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
+        self.set.setCursor(Qt.PointingHandCursor)
         self.layoutWidget = QtWidgets.QWidget(youtubeform)
         self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 123))
         self.layoutWidget.setObjectName("layoutWidget")
@@ -76,8 +77,8 @@ class Ui_youtubeform(object):
         sizePolicy.setHeightForWidth(self.selectdir.sizePolicy().hasHeightForWidth())
         self.selectdir.setSizePolicy(sizePolicy)
         self.selectdir.setMinimumSize(QtCore.QSize(100, 35))
-        self.selectdir.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
         self.selectdir.setObjectName("selectdir")
+        self.selectdir.setCursor(Qt.PointingHandCursor)
         self.verticalLayout.addWidget(self.selectdir)
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.LabelRole, self.verticalLayout)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
@@ -123,10 +124,9 @@ class Ui_youtubeform(object):
         QtCore.QMetaObject.connectSlotsByName(youtubeform)
 
     def retranslateUi(self, youtubeform):
-        _translate = QtCore.QCoreApplication.translate
-        youtubeform.setWindowTitle(_translate("youtubeform", "Youtube"))
-        self.set.setText(_translate("youtubeform", "Start Download"))
-        self.label.setText(_translate("youtubeform", "Proxy"))
-        self.label_2.setText(_translate("youtubeform", "Video URL"))
-        self.selectdir.setText(_translate("youtubeform", "Select Out Dir"))
-        self.proxy.setPlaceholderText(_translate("youtubeform", "example http://127.0.0.1:7890"))
+        youtubeform.setWindowTitle( '下载Youtube视频' if config.defaulelang=='zh' else "Youtube Download")
+        self.set.setText( '立即开始' if config.defaulelang=='zh' else "Start Download")
+        self.label.setText( '代理地址' if config.defaulelang=='zh' else "Proxy")
+        self.label_2.setText( '视频播放页url' if config.defaulelang=='zh' else "Video URL")
+        self.selectdir.setText( '保存目录' if config.defaulelang=='zh' else "Select Out Dir")
+        self.proxy.setPlaceholderText( '填写代理地址，格式 http://127.0.0.1:端口号' if config.defaulelang=='zh' else "eg http://127.0.0.1:7890")

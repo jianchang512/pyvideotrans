@@ -6,7 +6,7 @@ import requests
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="en", *, set_p=True):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -19,8 +19,8 @@ def trans(text_list, target_language="en", *, set_p=True):
     proxies = None
     if serv:
         proxies = {
-            'http://': serv,
-            'https://': serv
+            'http': serv,
+            'https': serv
         }
     # 翻译后的文本
     target_text = []
@@ -35,10 +35,11 @@ def trans(text_list, target_language="en", *, set_p=True):
 
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
-    for it in split_source_text:
+    for i,it in enumerate(split_source_text):
+        if stop>0:
+            time.sleep(stop)
         try:
             source_length=len(it)
-            print(f'{source_length=}')
             text = "\n".join(it)
             url = f"https://translate.google.com/m?sl=auto&tl={urllib.parse.quote(target_language)}&hl={urllib.parse.quote(target_language)}&q={urllib.parse.quote(text)}"
             headers = {
@@ -46,21 +47,19 @@ def trans(text_list, target_language="en", *, set_p=True):
             }
             response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
             if response.status_code != 200:
-                config.logger.error(f'Google 返回响应:{response.status_code=},{response.text=}\nurl={url}')
                 raise Exception(f'Google error_code={response.status_code}')
 
             re_result = re.findall(
                 r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
             if len(re_result) < 1:
-                if set_p:
-                    tools.set_process(f'Google limit rate,wait 10s')
-                config.logger.info(f'Google limit rate,wait 10s:{response.text}\nurl={url}')
-                time.sleep(10)
-                return trans(text_list, target_language, set_p=set_p)
+                raise Exception('len(re_result)<1')
             if re_result[0]:
                 result=re_result[0].strip().replace('&#39;','"').split("\n")
+                if inst and inst.precent < 75:
+                    inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process("\n\n".join(result), 'subtitle')
+                    tools.set_process(config.transobj['starttrans'])
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
                 result_length=len(result)
@@ -75,6 +74,10 @@ def trans(text_list, target_language="en", *, set_p=True):
         except Exception as e:
             error = str(e)
             config.logger.error(f'Google error:{str(error)}')
+            if set_p  and config.current_status=='ing':
+                tools.set_process(f'出错了,等待5s后重试:{error}' if config.defaulelang=='zh' else f'wait 5s retry:{error}')
+                time.sleep(5)
+                return trans(text_list,target_language,set_p=set_p,stop=3,inst=inst)
             raise Exception(f'Google error:{str(error)}')
     if isinstance(text_list, str):
         return "\n".join(target_text)

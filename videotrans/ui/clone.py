@@ -78,5 +78,6 @@ class Ui_cloneform(object):
 
     def retranslateUi(self, clone):
         clone.setWindowTitle("clone-voice")
-        self.label.setText("clone-voice_address")
-        self.set_clone.setText("OK")
+        self.label.setText("http地址" if config.defaulelang=='zh' else 'clone-voice url')
+        self.clone_address.setPlaceholderText('填写clone-voice项目启动后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address after the clone voice program starts')
+        self.set_clone.setText('保存' if config.defaulelang=='zh' else "Save")

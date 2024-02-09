@@ -1,12 +1,11 @@
 import os
 import shutil
 import threading
-import time
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QIcon, QGuiApplication
-from PySide6.QtCore import QSettings, Qt, QSize, QTimer
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout, QApplication,QDialogButtonBox
+from PySide6.QtCore import QSettings, Qt, QSize
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 import warnings
 
 from videotrans.task.get_role_list import GetRoleWorker
@@ -16,7 +15,7 @@ warnings.filterwarnings('ignore')
 
 from videotrans.translator import TRANSNAMES
 from videotrans.configure import config
-from videotrans import VERSION, configure
+from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
 
@@ -68,10 +67,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 隐藏倒计时
         self.stop_djs.hide()
+        self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
+        self.stop_djs.setToolTip(config.transobj['Click to pause and modify subtitles for more accurate processing'])
         # subtitle btn
         self.continue_compos.hide()
-
-        # select and save
+        self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
+        self.stop_djs.setCursor(Qt.PointingHandCursor)
+        self.continue_compos.setCursor(Qt.PointingHandCursor)
+        self.startbtn.setCursor(Qt.PointingHandCursor)
+        self.btn_get_video.setCursor(Qt.PointingHandCursor)
+        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
+        self.open_targetdir.setCursor(Qt.PointingHandCursor)
 
         self.source_mp4.setAcceptDrops(True)
         self.target_dir.setAcceptDrops(True)
@@ -79,13 +85,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # language
         self.source_language.addItems(self.languagename)
-        self.source_language.setCurrentIndex(2)
+        if config.params['source_language'] and config.params['source_language'] in self.languagename:
+            self.source_language.setCurrentText(config.params['source_language'])
+        else:
+            self.source_language.setCurrentIndex(2)
 
         # 目标语言改变时，如果当前tts是 edgeTTS，则根据目标语言去修改显示的角色
         self.target_language.addItems(["-"] + self.languagename)
+
+
         # 目标语言改变
 
         self.listen_btn.hide()
+        self.listen_btn.setCursor(Qt.PointingHandCursor)
 
         #  translation type
         self.translate_type.addItems(TRANSNAMES)
@@ -103,23 +115,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_rate.setText(config.params['voice_rate'])
         self.voice_silence.setText(config.params['voice_silence'])
 
-        # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
-        if config.params['tts_type'] == 'edgeTTS':
-            self.voice_role.addItems(['No'])
-        elif config.params['tts_type'] == 'openaiTTS':
-            self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
-        elif config.params['tts_type'] == 'elevenlabsTTS':
-            self.voice_role.addItems(['No'])
-        elif config.params['tts_type'] == 'clone-voice':
-            self.voice_role.addItems(config.clone_voicelist)
-            threading.Thread(target=tools.get_clone_role).start()
-            config.params['is_separate'] = True
-            self.is_separate.setChecked(True)
-        # 设置 tts_type
-        self.tts_type.addItems(config.params['tts_type_list'])
-        self.tts_type.setCurrentText(config.params['tts_type'])
 
-        self.enable_cuda.setChecked(config.params['cuda'])
+
+        if config.params['cuda']:
+            self.enable_cuda.setChecked(True)
 
         # subtitle 0 no 1=embed subtitle 2=softsubtitle
         self.subtitle_type.addItems(
@@ -133,9 +132,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sizePolicy.setVerticalStretch(0)
         self.subtitle_area.setSizePolicy(sizePolicy)
         self.subtitle_area.setMinimumSize(300, 0)
-        self.subtitle_area.setPlaceholderText(config.transobj['subtitle_tips'])
+        self.subtitle_area.setPlaceholderText(f"{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
+        # self.subtitle_area.setToolTip(config.transobj['meitiaozimugeshi'])
 
-        self.subtitle_layout.insertWidget(0, self.subtitle_area)
+
+        self.subtitle_tips=QLabel(config.transobj['zimubianjitishi'])
+        self.subtitle_tips.setFixedHeight(30)
+        self.subtitle_tips.setToolTip(config.transobj['meitiaozimugeshi'])
+
+        self.subtitle_layout.insertWidget(0, self.subtitle_tips)
+        self.subtitle_layout.insertWidget(1, self.subtitle_area)
 
         self.listen_peiyin.setDisabled(True)
 
@@ -179,10 +185,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.mainwin.secwin import SecWindow
         self.util = SecWindow(self)
 
+        # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
+        if config.params['tts_type']:
+            self.util.tts_type_change(config.params['tts_type'])
+            self.voice_role.addItems(['No'])
+        # elif config.params['tts_type'] == 'openaiTTS':
+        #     self.util.tts_type_change('openaiTTS')
+        #     self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
+        # elif config.params['tts_type'] == 'elevenlabsTTS':
+        #     self.util.tts_type_change('elevenlabsTTS')
+        #     self.voice_role.addItems(['No'])
+        if config.params['tts_type'] == 'clone-voice':
+            self.voice_role.addItems(config.clone_voicelist)
+            threading.Thread(target=tools.get_clone_role).start()
+            config.params['is_separate'] = True
+            self.is_separate.setChecked(True)
+        # 设置 tts_type
+        self.tts_type.addItems(config.params['tts_type_list'])
+        self.tts_type.setCurrentText(config.params['tts_type'])
+
+        if config.params['target_language'] and config.params['target_language'] in self.languagename:
+            self.target_language.setCurrentText(config.params['target_language'])
+            # 根据目标语言更新角色列表
+            self.util.set_voice_role(config.params['target_language'])
+            #设置默认角色列表
+            if config.params['voice_role'] and config.params['voice_role']!='No' and self.current_rolelist and config.params['voice_role'] in self.current_rolelist:
+                self.voice_role.setCurrentText(config.params['voice_role'])
+
         # menubar
         self.import_sub.clicked.connect(self.util.import_sub_fun)
+        self.import_sub.setCursor(Qt.PointingHandCursor)
+        self.import_sub.setToolTip(config.transobj['daoruzimutips'])
         self.listen_peiyin.clicked.connect(self.util.shiting_peiyin)
+        self.listen_peiyin.setCursor(Qt.PointingHandCursor)
         self.set_line_role.clicked.connect(self.util.set_line_role_fun)
+        self.set_line_role.setCursor(Qt.PointingHandCursor)
+        self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
         self.startbtn.clicked.connect(self.util.check_start)
         self.stop_djs.clicked.connect(self.util.reset_timeid)
         self.continue_compos.clicked.connect(self.util.set_djs_timeout)
@@ -227,17 +265,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.util.about)
 
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
+        # self.action_biaozhun.setCursor(Qt.PointingHandCursor)
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
+        # self.action_tiquzimu.setCursor(Qt.PointingHandCursor)
         self.action_tiquzimu_no.triggered.connect(self.util.set_tiquzimu_no)
+        # self.action_tiquzimu_no.setCursor(Qt.PointingHandCursor)
         self.action_zimu_video.triggered.connect(self.util.set_zimu_video)
+        # self.action_zimu_video.setCursor(Qt.PointingHandCursor)
         self.action_zimu_peiyin.triggered.connect(self.util.set_zimu_peiyin)
+        # self.action_zimu_peiyin.setCursor(Qt.PointingHandCursor)
         self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(2, False))
+        # self.action_yuyinshibie.setCursor(Qt.PointingHandCursor)
         self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3, False))
+        # self.action_yuyinhecheng.setCursor(Qt.PointingHandCursor)
         self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0, False))
+        # self.action_yinshipinfenli.setCursor(Qt.PointingHandCursor)
         self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1, False))
+        # self.action_yingyinhebing.setCursor(Qt.PointingHandCursor)
         self.action_geshi.triggered.connect(lambda: self.util.open_toolbox(4, False))
+        # self.action_geshi.setCursor(Qt.PointingHandCursor)
         self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
+        # self.action_hun.setCursor(Qt.PointingHandCursor)
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
+        self.action_youtube.triggered.connect(self.util.open_youtube)
+        # self.action_fanyi.setCursor(Qt.PointingHandCursor)
+
+        # 禁止随意移动sp.exe
+        if not os.path.exists(os.path.join(config.rootdir,'videotrans')) or not os.path.exists(os.path.join(config.rootdir,'models')):
+            QMessageBox.critical(self,config.transobj['anerror'],config.transobj['sp.exeerror'])
+            return False
+        import platform
+        try:
+            if platform.system().lower()=='windows' and (platform.release().lower()=='xp' or int(platform.release())<10):
+                QMessageBox.critical(self,config.transobj['anerror'],config.transobj['only10'])
+                return False
+        except:
+            pass
+
+
         self.rightbottom.clicked.connect(self.util.about)
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
             self.startbtn.setText(config.transobj['installffmpeg'])
@@ -254,6 +319,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs.start()
         self.check_update = CheckUpdateWorker(self)
         self.check_update.start()
+
+
+
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -273,6 +341,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def get_setting(self):
         # 从缓存获取默认配置
         config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
+        config.params["source_language"] = self.settings.value("source_language", "")
+        config.params["target_language"] = self.settings.value("target_language", "")
+        config.params["voice_role"] = self.settings.value("voice_role", "")
+
+
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
         config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
@@ -316,10 +389,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 存储本地数据
     def save_setting(self):
         self.settings.setValue("target_dir", config.params['target_dir'])
+        self.settings.setValue("source_language", config.params['source_language'])
+        self.settings.setValue("target_language", config.params['target_language'])
         self.settings.setValue("proxy", config.proxy)
         self.settings.setValue("whisper_model", config.params['whisper_model'])
         self.settings.setValue("whisper_type", config.params['whisper_type'])
         self.settings.setValue("voice_rate", config.params['voice_rate'])
+        self.settings.setValue("voice_role", config.params['voice_role'])
         self.settings.setValue("voice_silence", config.params['voice_silence'])
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
         self.settings.setValue("video_autorate", config.params['video_autorate'])
@@ -329,7 +405,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
-        
-        # self.settings.setValue("tencent_SecretKey", config.params['tencent_SecretKey'])
-        # self.settings.setValue("tencent_SecretId", config.params['tencent_SecretId'])
-        # self.settings.setValue("elevenlabstts_key", config.params["elevenlabstts_key"])
+

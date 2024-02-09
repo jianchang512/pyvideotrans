@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
+
 import re
 import time
 from videotrans.configure import config
@@ -43,7 +43,7 @@ def get_error(num=5):
         return REASON_CN[num]
     return REASON_EN[num]
 
-def trans(text_list, target_language="English", *, set_p=True):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -52,16 +52,13 @@ def trans(text_list, target_language="English", *, set_p=True):
     set_p:
         是否实时输出日志，主界面中需要
     """
-    serv = tools.set_proxy()
-    if serv:
-        os.environ['http_proxy'] = serv
-        os.environ['https_proxy'] = serv
+
     try:
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel('gemini-pro')
     except Exception as e:
         err = str(e)
-        raise Exception(f'[error]Gemini error:{err}')
+        raise Exception(f'Gemini:请正确设置http代理,{err}')
 
     # 翻译后的文本
     target_text = []
@@ -75,38 +72,35 @@ def trans(text_list, target_language="English", *, set_p=True):
     split_size = int(config.settings['trans_thread'])
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
     response=None
-    for it in split_source_text:
+    for i,it in enumerate(split_source_text):
+        if stop>0:
+            time.sleep(stop)
         try:
             source_length=len(it)
-            print(f'\n\n{source_length=}')
             response = model.generate_content(
                 config.params['gemini_template'].replace('{lang}', target_language) + "\n".join(it),
                 safety_settings=safetySettings
             )
-            try:
-                result = response.text.strip()
-                result=result.strip().replace('&#39;','"').split("\n")
-                if set_p:
-                    tools.set_process("\n\n".join(result), 'subtitle')
-                else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                while len(result) < source_length:
-                    result.append("")
-                result = result[:source_length]
-                target_text.extend(result)
-            except Exception as e:
-                config.logger.info(f'Gemini 返回响应:{response}')
-                raise Exception(f'no result {str(e)}:{response.prompt_feedback}')
+            result = response.text.strip()
+            result=result.strip().replace('&#39;','"').split("\n")
+            if inst and inst.precent < 75:
+                inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
+            if set_p:
+                tools.set_process("\n\n".join(result), 'subtitle')
+                tools.set_process(config.transobj['starttrans'])
+            else:
+                tools.set_process("\n\n".join(result), func_name="set_fanyi")
+            while len(result) < source_length:
+                result.append("")
+            result = result[:source_length]
+            target_text.extend(result)
+
         except Exception as e:
             error = str(e)
-            if set_p and re.search(r'limit', error, re.I):
-                tools.set_process(f'Gemini errir,wait 30s:{error}')
-                time.sleep(30)
-                return trans(text_list, target_language, set_p=set_p)
-            elif response and  response.candidates[0].finish_reason != 0:
-                raise Exception(f'Gemini:{get_error(response.candidates[0].finish_reason)}:{it}')
-            else:
-                raise Exception(f'Gemini error:{str(error)}')
+            if response and response.candidates[0].finish_reason != 0:
+                raise Exception(f'Gemini:{get_error(response.candidates[0].finish_reason)}：从第{(i*split_size)+1}条开始的{split_size}条字幕')
+            raise Exception(f'Gemini:{str(error)}')
+
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
