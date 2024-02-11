@@ -24,3 +24,4 @@ __pycache__
 pretrained_models
 voice_list.json
 elevenlabs.json
+pack.bat

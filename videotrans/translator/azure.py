@@ -6,7 +6,7 @@ from openai import AzureOpenAI
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -92,7 +92,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process("\n\n".join(result), 'subtitle')
-                    tools.set_process(config.transobj['starttrans'])
+                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
                 result_length = len(result)
@@ -102,7 +102,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
                 result = result[:source_length]
                 target_text.extend(result)
             except Exception as e:
-                error = str(e)
+                error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
                 err = error
                 index = i
                 break

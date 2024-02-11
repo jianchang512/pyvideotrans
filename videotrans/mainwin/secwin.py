@@ -1319,6 +1319,7 @@ class SecWindow():
         self.main.stop_djs.hide()
         if type != 'ing':
             # 结束或停止
+            self.main.subtitle_area.setReadOnly(False)
             self.main.startbtn.setText(config.transobj[type])
             # 启用
             self.disabled_widget(False)
@@ -1326,7 +1327,6 @@ class SecWindow():
                 # 成功完成
                 self.main.subtitle_area.clear()
                 self.main.source_mp4.setText(config.transobj["No select videos"])
-                # self.main.statusLabel.setText(config.transobj['bencijieshu'])
             else:
                 #error or stop 出错
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')

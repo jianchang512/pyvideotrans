@@ -335,7 +335,7 @@ class TransCreate():
         #开始翻译，禁止修改字幕
 
         target_srt = run_trans(translate_type=config.params['translate_type'], text_list=rawsrt,
-                               target_language_name=config.params['target_language'], set_p=True,inst=self)
+                               target_language_name=config.params['target_language'], set_p=True,inst=self,source_code=self.source_language_code)
         self.save_srt_target(target_srt, self.targetdir_target_sub)
 
     # 测试google是否可用
@@ -591,11 +591,6 @@ class TransCreate():
                             # mp3 降速
                             set_process(f"配音加速 {speed}倍")
                             audio_data = AudioSegment.from_file(tmp_mp3, format=ext)
-                            #如果同时存在视频慢速,则音频实际要延长 diff
-                            # if config.params['video_autorate']:
-                            #     offset+=diff
-                            #     it['end_time']+=diff
-                            # else:
                         else:
                             logger.error(f'{it["filename"]} 不存在或尺寸为0，加速失败')
                 elif diff > 0:
@@ -616,7 +611,6 @@ class TransCreate():
                 f.write(srt.strip())
 
             # 如果需要音频加速和视频降速
-
             try:
                 # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
                 if total_length > 0 and (queue_copy[-1]['end_time'] > total_length):
@@ -948,7 +942,7 @@ class TransCreate():
                         "-c:v",
                         "libx264",
                         "-c:a",
-                        "copy",
+                        "aac",
                         "-vf",
                         f"subtitles={hard_srt}",
                         os.path.normpath(self.targetdir_mp4),
@@ -972,7 +966,7 @@ class TransCreate():
                         "copy",
                         # "libx264",
                         "-c:a",
-                        "copy",
+                        "aac",
                         "-c:s",
                         "mov_text",
                         "-metadata:s:s:0",
@@ -993,7 +987,7 @@ class TransCreate():
                     "copy",
                     # "libx264",
                     "-c:a",
-                    "copy",
+                    "aac",
                     # "pcm_s16le",
                     # "-shortest",
                     os.path.normpath(self.targetdir_mp4)
@@ -1013,7 +1007,7 @@ class TransCreate():
                 cmd.append('libx264')
                 if os.path.exists(self.targetdir_source_wav):
                     cmd.append('-c:a')
-                    cmd.append('copy')
+                    cmd.append('aac')
                 cmd += [
                     "-vf",
                     f"subtitles={hard_srt}",
@@ -1042,7 +1036,7 @@ class TransCreate():
                     "copy"]
                 if os.path.exists(self.targetdir_source_wav):
                     cmd.append('-c:a')
-                    cmd.append('copy')
+                    cmd.append('aac')
                 cmd += ["-c:s",
                         "mov_text",
                         "-metadata:s:s:0",
