@@ -1,5 +1,10 @@
 {
   "translate_language": {
+    "zimusrterror": "The subtitle area already has subtitles that do not meet the SRT format requirements. Please delete all subtitle area text or import the correct SRT subtitle format again",
+    "Export srt": "Export srt",
+    "When subtitles exist, the subtitle content can be saved to a local SRT file": "When subtitles exist, the subtitle content can be saved to a local SRT file",
+    "You must fill in the YouTube video playback page address": "You must fill in the YouTube video playback page address",
+    "Error merging background and dubbing": "Error merging background and dubbing",
     "only10": "This software only supports Win10 and above systems on the Windows platform",
     "sp.exeerror": "sp.exe must be located in the original directory after decompression (i.e. in the same directory as videotrans|models|_internal), please do not copy or move it to any other location without permission",
     "meitiaozimugeshi": "Each subtitle format is as follows:\nLine number\nStart time hours:minutes:seconds,milliseconds -->End time hours:minutes:seconds,milliseconds\nSubtitle content",
@@ -99,7 +104,7 @@
     "proxyerrortitle": "Proxy Error",
     "shoundselecttargetlanguage": "Must select a target language ",
     "proxyerrorbody": "Failed to access Google services. Please set up the proxy correctly.",
-    "softname": "Video Translation and Dubbing",
+    "softname": "VideoTrans-Video Translation and Dubbing",
     "anerror": "An error occurred",
     "selectvideodir": "You must select the video to be translated",
     "sourenotequaltarget": "Source language and target language must not be the same",
@@ -180,7 +185,7 @@
     "shezhijuese": "Set Role"
   },
   "ui_lang": {
-    "SP-video Translate Dubbing": "SP-video Translate Dubbing",
+    "SP-video Translate Dubbing": "VideoTrans - Video Translate Dubbing",
     "Multiple MP4 videos can be selected and automatically queued for processing": "Multiple MP4 videos can be selected and automatically queued for processing",
     "Select video..": "Select video..",
     "Select where to save the processed output resources": "Select where to save the processed output resources",
@@ -208,7 +213,7 @@
     "Dubbing speed": "Dubbing speed",
     "Overall acceleration or deceleration of voice over playback": "Overall acceleration or deceleration of voice over playback",
     "Positive numbers accelerate, negative numbers decelerate, -90 to+90": "Positive numbers accelerate, negative numbers decelerate, -90 to+90",
-    "shuoming03": "The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.\nTwo solutions:\n1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video\n2. Force the video to play slowly in order to extend the video duration and align the voice over.\nChoose only one of the two options",
+    "shuoming03": "The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.\nTwo solutions:\n1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video\n2. Force the video to play slowly in order to extend the video duration and align the voice over.",
     "Voice acceleration?": "Voice acceleration?",
     "shuoming04": "The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.\nTwo solutions:\n1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video\n2. Force the video to play slowly in order to extend the video duration and align the voice over.\nChoose only one of the two options",
     "Video slow": "Video slow",

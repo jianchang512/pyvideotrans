@@ -42,7 +42,8 @@ def parse_init():
         "vad":True,
         "temperature":0,
         "condition_on_previous_text":False,
-        "crf":13
+        "crf":13,
+        "retries":5
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -206,4 +207,11 @@ btnkey = ""
 
 # 临时全局变量
 temp = []
-
+#youtube是否取消了下载
+canceldown=False
+#工具箱翻译进行状态,ing进行中，其他停止
+box_trans="stop"
+#工具箱tts状态
+box_tts="stop"
+#工具箱识别状态
+box_recogn='stop'

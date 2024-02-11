@@ -42,7 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {' Q群 608815898' if config.defaulelang=='zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 608815898' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
@@ -115,6 +115,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_rate.setText(config.params['voice_rate'])
         self.voice_silence.setText(config.params['voice_silence'])
 
+        self.voice_autorate.setChecked(config.params['voice_autorate'])
+        self.video_autorate.setChecked(config.params['video_autorate'])
+
 
 
         if config.params['cuda']:
@@ -133,7 +136,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area.setSizePolicy(sizePolicy)
         self.subtitle_area.setMinimumSize(300, 0)
         self.subtitle_area.setPlaceholderText(f"{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
-        # self.subtitle_area.setToolTip(config.transobj['meitiaozimugeshi'])
+
 
 
         self.subtitle_tips=QLabel(config.transobj['zimubianjitishi'])
@@ -189,12 +192,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type']:
             self.util.tts_type_change(config.params['tts_type'])
             self.voice_role.addItems(['No'])
-        # elif config.params['tts_type'] == 'openaiTTS':
-        #     self.util.tts_type_change('openaiTTS')
-        #     self.voice_role.addItems(['No'] + config.params['openaitts_role'].split(','))
-        # elif config.params['tts_type'] == 'elevenlabsTTS':
-        #     self.util.tts_type_change('elevenlabsTTS')
-        #     self.voice_role.addItems(['No'])
+
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
@@ -216,6 +214,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.import_sub.clicked.connect(self.util.import_sub_fun)
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.import_sub.setToolTip(config.transobj['daoruzimutips'])
+
+        self.export_sub.setText(config.transobj['Export srt'])
+        self.export_sub.clicked.connect(self.util.export_sub_fun)
+        self.export_sub.setCursor(Qt.PointingHandCursor)
+        self.export_sub.setToolTip(config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
+
         self.listen_peiyin.clicked.connect(self.util.shiting_peiyin)
         self.listen_peiyin.setCursor(Qt.PointingHandCursor)
         self.set_line_role.clicked.connect(self.util.set_line_role_fun)
@@ -227,6 +231,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_get_video.clicked.connect(self.util.get_mp4)
         self.btn_save_dir.clicked.connect(self.util.get_save_dir)
         self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
+        self.show_tips.clicked.connect(lambda: self.util.open_dir(self.show_tips.text().split('#')[-1]))
         self.target_language.currentTextChanged.connect(self.util.set_voice_role)
         self.voice_role.currentTextChanged.connect(self.util.show_listen_btn)
         self.listen_btn.clicked.connect(self.util.listen_voice_fun)
@@ -344,6 +349,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["source_language"] = self.settings.value("source_language", "")
         config.params["target_language"] = self.settings.value("target_language", "")
         config.params["voice_role"] = self.settings.value("voice_role", "")
+        config.params["voice_autorate"] = self.settings.value("voice_autorate", False,bool)
+        config.params["video_autorate"] = self.settings.value("video_autorate", False,bool)
 
 
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
@@ -404,5 +411,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("enable_cuda", config.params['cuda'])
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
+        self.settings.setValue("voice_autorate", config.params['voice_autorate'])
+        self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
 

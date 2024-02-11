@@ -59,12 +59,30 @@ input("Press Enter for quit")
 # with open("./metadata_train.csv","w",encoding='utf-8') as f:
 #     f.write("\n".join(data))
 
-import requests
-lang=["zh-hans","zh-hant","en","fr","de","ja","ko","ru","es","th","it","pt","vi","ar","tr","hi","hu"]
+# import requests
+# lang=["zh-hans","zh-hant","en","fr","de","ja","ko","ru","es","th","it","pt","vi","ar","tr","hi","hu"]
+#
+# auth=requests.get('https://edge.microsoft.com/translate/auth')
+#
+# for it in lang:
+#     url=f'https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={it}&api-version=3.0&includeSentenceLength=true'
+#     res=requests.post(url,json=[{"Text":"hello,my friend\nI am from China"}],headers={"Authorization":f"Bearer {auth.text}"})
+#     print(res.json())
 
-auth=requests.get('https://edge.microsoft.com/translate/auth')
 
-for it in lang:
-    url=f'https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={it}&api-version=3.0&includeSentenceLength=true'
-    res=requests.post(url,json=[{"Text":"hello,my friend\nI am from China"}],headers={"Authorization":f"Bearer {auth.text}"})
-    print(res.json())
+# from videotrans.util import tools
+#
+# cmd=["-y",'-ss', '0', '-to', '00:00:01.300', '-i', 'C:/Users/c1/Videos/pyvideotrans/renamemp4/_video_out/31-副本/novoice.mp4', '-vf', 'setpts=1.96*PTS', '-c:v', 'libx264', '-crf', '13', 'F:/python/pyvideo/tmp/31-副本/novoice_tmp.mp4']
+#
+# tools.runffmpeg(cmd)
+
+def ceshi():
+    try:
+        1/0
+    except:
+        print('异常')
+        return
+    finally:
+        print("最后")
+
+ceshi()

@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import threading
 
 from PySide6 import QtWidgets, QtCore
@@ -425,11 +426,11 @@ class SecWindow():
 
     # voice_autorate video_autorate 变化
     def autorate_changed(self, state, name):
-        if state:
-            if name == 'voice':
-                self.main.video_autorate.setChecked(False)
-            else:
-                self.main.voice_autorate.setChecked(False)
+        # if state:
+        #     if name == 'voice':
+        #         self.main.video_autorate.setChecked(False)
+        #     else:
+        #         self.main.voice_autorate.setChecked(False)
         if name == 'voice':
             config.params['voice_autorate'] = state
         else:
@@ -438,8 +439,11 @@ class SecWindow():
     def open_dir(self, dirname=None):
         if not dirname:
             return
+        dirname=dirname.strip()
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
+        if not dirname or not os.path.isdir(dirname):
+            return
         QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
 
     # 隐藏布局及其元素
@@ -467,6 +471,7 @@ class SecWindow():
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
         self.main.import_sub.setDisabled(type)
+        # self.main.export_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         # self.main.source_mp4.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
@@ -484,6 +489,29 @@ class SecWindow():
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
 
+    def export_sub_fun(self):
+        srttxt = self.main.subtitle_area.toPlainText().strip()
+        if not srttxt:
+            return
+
+        dialog = QFileDialog()
+        dialog.setWindowTitle(config.transobj['savesrtto'])
+        dialog.setNameFilters(["subtitle files (*.srt)"])
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.exec_()
+        if not dialog.selectedFiles():  # If the user closed the choice window without selecting anything.
+            return
+        else:
+            path_to_file = dialog.selectedFiles()[0]
+        ext = ".srt"
+        if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
+            path_to_file = path_to_file[:-4] + ext
+        else:
+            path_to_file += ext
+        with open(path_to_file, "w",encoding='utf-8') as file:
+            file.write(srttxt)
+
+
     def open_url(self, title):
         import webbrowser
         if title == 'vlc':
@@ -497,9 +525,9 @@ class SecWindow():
         elif title == 'discord':
             webbrowser.open_new_tab("https://discord.com/channels/1174626422044766258/1174626425702207562")
         elif title == 'website':
-            webbrowser.open_new_tab("https://v.wonyes.org")
+            webbrowser.open_new_tab("https://pyvideotrans.com")
         elif title == 'xinshou':
-            webbrowser.open_new_tab("https://juejin.cn/post/7331558973657251840")
+            webbrowser.open_new_tab("https://pyvideotrans.com/guide.html" if config.defaulelang!='zh' else 'https://juejin.cn/post/7331558973657251840')
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
         elif title == 'download':
@@ -617,7 +645,10 @@ class SecWindow():
         def download():
             proxy = self.main.youw.proxy.text().strip()
             outdir = self.main.youw.outputdir.text()
-            url = self.main.youw.url.text()
+            url = self.main.youw.url.text().strip()
+            if not url or not re.match(r'^https://(www.)?(youtube.com/watch\?v=\w|youtu.be/\w)',url,re.I):
+                QMessageBox.critical(self.main.youw, config.transobj['anerror'], config.transobj['You must fill in the YouTube video playback page address'])
+                return
             self.main.settings.setValue("youtube_outdir", outdir)
             if proxy:
                 config.proxy = proxy
@@ -1180,6 +1211,9 @@ class SecWindow():
 
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
+        if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?',txt):
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['zimusrterror'])
+            return
 
         # 综合判断
         if len(config.queue_mp4) < 1 and not txt:
@@ -1325,6 +1359,7 @@ class SecWindow():
         elif d['type'] == 'add_process':
             self.main.processbtns[d['text']] = self.add_process_btn(d['text'])
         elif d['type'] == 'rename':
+
             self.main.show_tips.setText(d['text'])
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(config.params['target_dir'])

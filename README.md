@@ -18,7 +18,7 @@
 
 【翻译视频并配音】根据需要设置各个选项，自由配置组合，实现翻译和配音、自动加减速、合并等
 
-【提取字幕不翻译】选择视频文件，选择视频源语言，则从视频【语音中识别出文字】并自动导出字幕文件到目标文件夹
+【识别字幕不翻译】选择视频文件，选择视频源语言，则从视频【语音中识别出文字】并自动导出字幕文件到目标文件夹
 
 【提取字幕并翻译】选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从【视频语音中识别出文字】并翻译为目标语言，然后导出双语字幕文件到目标文件夹
 
@@ -46,16 +46,15 @@
 https://github.com/jianchang512/pyvideotrans/assets/3378335/d0df7129-07a8-495d-9b25-3d88ddd1b9a9
 
 
-
-
-
 # 下载windowns预编译exe版本(其他系统使用源码部署)
 
-0. [点击去下载预编译版,解压即用](https://github.com/jianchang512/pyvideotrans/releases)
+0. [点击去下载预编译版,解压后双击sp.exe](https://github.com/jianchang512/pyvideotrans/releases)
 
 1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe (若遇到权限问题可右键使用管理员权限打开)
 
 3. 未做免杀，杀软可能误报，可忽略或使用源码部署
+
+4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
 
 
@@ -82,11 +81,11 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 # 使用方法
 
-1. 原始视频：选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
+1. 原始视频：点击选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
 2. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
 
-3. 选择翻译：可选 google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX 翻译渠道
+3. 选择翻译：可选 microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT 翻译渠道
 
 4. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 
@@ -110,7 +109,6 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
     下载后解压，将压缩包内的"models--Systran--faster-whisper-xx"文件夹复制到models目录内，解压复制后 models 目录下文件夹列表如下
 
     ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
- 
 
     [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
 
@@ -127,15 +125,14 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 > 
 >     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
 > 
-> 两者只可选其一
->  
+>
 
 
 11. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-13. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口
+13. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音
 
 14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
@@ -156,13 +153,13 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 # 常见问题
 
-1. 使用google翻译，提示 error
+1. 使用google翻译或者chatGPT，提示出错
 
    国内使用google或chatGPT官方接口，都需要挂梯子
 
 2. 已使用了全局代理，但看起来并没有走代理
 
-   需要在软件界面“网络代理”中设置具体的代理地址，比如 http://127.0.0.1:7890
+   需要在软件界面“网络代理”中设置具体的代理地址，格式为 http://127.0.0.1:端口号
 
 3. 提示 FFmepg 不存在
 
@@ -196,7 +193,7 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 8. large-v3模型非常慢
 
-   如果你没有N卡GPU，或者没有配置好CUDA环境，或者显存低于4G，请不要使用这个模型，否则会非常慢和卡顿
+   如果你没有N卡GPU，或者没有配置好CUDA环境，或者显存低于8G，请不要使用这个模型，否则会非常慢和卡顿
 
 9. 提示缺少cublasxx.dll文件
 
@@ -209,7 +206,7 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 11. 怎样使用自定义音色
    
-   目前暂不支持该功能，如果有需要，你可以先识别出字幕，然后使用另一个[声音克隆项目](https://github.com/jiangchang512/clone-voice) ,输入字幕srt文件，选择自定义的音色合成为音频文件，然后再生成新视频。
+   目前暂不支持该功能，如果有需要，可以选择使用[clone-voice进行原音色配音](https://github.com/jiangchang512/clone-voice)
    
 13. 字幕语音无法对齐
 
@@ -221,8 +218,8 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 > 
 >     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
 > 
-> 两者只可选其一
-   
+
+
 
 14. 字幕不显示或显示乱码
 
@@ -253,8 +250,6 @@ https://juejin.cn/post/7318704408727519270
 如果cudnn按照教程安装好了仍闪退，那么极大概率是GPU显存不足，可以改为使用 medium模型，显存不足8G时，尽量避免使用largev-3模型，尤其是视频大于20M时，否则可能显存不足而崩溃
 
 
-
-
 # 高级设置 videotrans/set.ini
 
 **请勿随意调整，除非你知道将会发生什么**
@@ -276,6 +271,9 @@ dubbing_thread=5
 ;Simultaneous translation lines
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
 trans_thread=15
+
+;翻译出错后重试次数
+retries=5
 
 ;countdown sec
 ;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
@@ -459,7 +457,7 @@ gemini_key=
 
 [语音识别工具:本地离线的语音识别转文字工具](https://github.com/jianchang512/stt)
 
-[人声背景乐分离:极简的人声和背景音乐分离工具](https://github.com/jianchang512/vocal-separate)
+[人声背景乐分离:人声和背景音乐分离工具](https://github.com/jianchang512/vocal-separate)
 
 
 ## 致谢

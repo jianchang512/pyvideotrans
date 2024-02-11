@@ -27,7 +27,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initSize=None
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"{config.uilanglist['Video Toolbox']} {VERSION}")
+        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
@@ -322,13 +322,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
+        rs,newfile,base=tools.rename_move(file,is_dir=False)
+        print(f'{file=},{newfile=},{base=}')
+        if rs:
+            file=newfile
+            basename=base
         video_out = f"{config.homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
         self.yspfl_task = Worker(
             [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl_end",
             self)
-        # self.yspfl_task.update_ui.connect(self.receiver)
+
         self.yspfl_task.start()
         self.yspfl_startbtn.setText(config.transobj['running'])
         self.yspfl_startbtn.setDisabled(True)
@@ -386,9 +391,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj["yinpinhezimu"])
             return
 
+        if os.path.exists(videofile):
+            rs,newfile,base=tools.rename_move(videofile,is_dir=False)
+            if rs:
+                videofile=newfile
+                basename=base
+        if os.path.exists(srtfile):
+            rs,newsrtfile,_=tools.rename_move(srtfile,is_dir=False)
+            if rs:
+                srtfile=newsrtfile
+        if os.path.exists(wavfile):
+            rs,newwavfile,_=tools.rename_move(wavfile,is_dir=False)
+            if rs:
+             wavfile=newwavfile
+
+
+
         savedir = f"{config.homedir}/hebing-{basename}"
-        if not os.path.exists(savedir):
-            os.makedirs(savedir, exist_ok=True)
+        os.makedirs(savedir, exist_ok=True)
 
         cmds = []
         if not os.path.exists(f'{config.rootdir}/tmp'):
@@ -440,7 +460,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file = self.shibie_dropbtn.text()
         if not file or not os.path.exists(file):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixuyinshipin'])
+
+
         basename = os.path.basename(file)
+        rs,newfile,base=tools.rename_move(file,is_dir=False)
+        if rs:
+            file=newfile
+            basename=base
+
         self.shibie_startbtn.setText(config.transobj["running"])
         self.disabled_shibie(True)
         self.shibie_text.clear()
@@ -450,12 +477,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not os.path.exists(f"{config.homedir}/tmp"):
                 os.makedirs(f"{config.homedir}/tmp")
             try:
-                print(f'{file=}')
+
                 self.shibie_dropbtn.setText(out_file)
                 self.shibie_ffmpeg_task = Worker([
                     ['-y', '-i', file,'-vn','-ac','1','-ar','8000', out_file]
                 ], "shibie_next", self)
-                # self.shibie_ffmpeg_task.update_ui.connect(self.receiver)
+
                 self.shibie_ffmpeg_task.start()
             except Exception as e:
                 config.logger.error("执行语音识别前，先从视频中分离出音频失败：" + str(e))
@@ -464,6 +491,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(self, config.transobj['anerror'], str(e))
         else:
             # 是音频，直接执行
+            self.shibie_dropbtn.setText(file)
             self.shibie_start_next_fun()
 
     # 最终执行
@@ -472,9 +500,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(file):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['chakanerror'])
         model = self.shibie_model.currentText()
-        print(f'{file=}')
+
         self.shibie_task = WorkerWhisper(file, model, translator.get_audio_code(show_source=self.shibie_language.currentText()),"shibie_end", self)
-        # self.shibie_task.update_ui.connect(self.receiver)
         self.shibie_task.start()
 
     def shibie_save_fun(self):
@@ -486,7 +513,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.setNameFilters(["subtitle files (*.srt)"])
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         dialog.exec_()
-        if not dialog.selectedFiles():  # If the user closed the choice window without selecting anything.
+        if not dialog.selectedFiles():
             return
         else:
             path_to_file = dialog.selectedFiles()[0]
@@ -615,12 +642,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if ext == ext_this:
                 config.geshi_num -= 1
                 self.geshi_result.insertPlainText(f"{it} -> {ext}")
-                print('11')
+
                 continue
             if ext_this in ["wav", "mp3", "aac", "m4a", "flac"] and ext in ["mp4", "mov", "avi"]:
                 self.geshi_result.insertPlainText(f"{it} {config.transobj['yinpinbuke']} {ext} ")
                 config.geshi_num -= 1
-                print('222')
+
                 continue
 
             self.geshi_result.insertPlainText(f'{savedir}/{basename}.{ext}')
@@ -664,10 +691,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file1 = self.hun_file1.text()
         file2 = self.hun_file2.text()
 
+        rs, newfile1, _ = tools.rename_move(file1, is_dir=False)
+        if rs:
+            file1 = newfile1
+        rs, newfile2, _ = tools.rename_move(file2, is_dir=False)
+        if rs:
+            file2 = newfile2
+
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
         self.geshi_task = Worker([cmd], "hun_end", self, True)
-        # self.geshi_task.update_ui.connect(self.receiver)
         self.geshi_task.start()
         self.hun_startbtn.setDisabled(True)
         self.hun_out.setDisabled(True)
@@ -710,7 +743,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, config.transobj['anerror'], rs)
             return
         self.fanyi_task = FanyiWorker(translate_type, target_language, source_text, issrt, self)
-        # self.fanyi_task.ui.connect(self.receiver)
         self.fanyi_task.start()
         self.fanyi_start.setDisabled(True)
         self.fanyi_start.setText(config.transobj["running"])

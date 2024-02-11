@@ -52,6 +52,5 @@ QScrollArea QPushButton:hover{
     background-color: #19232D;
 }
 QPlainTextEdit:read-only{
-    opacity:0.8;
     color:#999999;
 }
