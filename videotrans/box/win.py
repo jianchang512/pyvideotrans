@@ -16,7 +16,7 @@ from videotrans.configure import config
 from videotrans  import translator
 from videotrans.translator import GOOGLE_NAME
 from videotrans.util  import tools
-
+import shutil
 from videotrans.ui.toolboxen import Ui_MainWindow
 
 
@@ -431,7 +431,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 视频里是否有音轨 并且保留原声音
             if video_info['streams_audio'] > 0 and save_raw:
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[0:a][1:a]amerge=inputs=2[aout]", '-map',
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map',
                      '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
                 ]
             else:
@@ -444,6 +444,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             cmds.append(
                 ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}", '-c:v', 'libx264',
                  '-c:a', 'copy', f'{savedir}/{basename}.mp4'])
+        else:
+            shutil.copy2(tmpname,f'{savedir}/{basename}.mp4')
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.start()
 
@@ -544,7 +546,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 文件名称
         filename = self.hecheng_out.text()
-        if filename and re.search(r'\|/', filename):
+        if os.path.exists(filename):
+            filename=''
+        if filename and re.search(r'[\\/]+', filename):
             filename = ""
         if not filename:
             filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
@@ -553,6 +557,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(f"{config.homedir}/tts"):
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
         wavname = f"{config.homedir}/tts/{filename}"
+        
         if rate >= 0:
             rate = f"+{rate}%"
         else:

@@ -395,6 +395,8 @@ def wav2m4a(wavfile, m4afile,extra=None):
         "-y",
         "-i",
         wavfile,
+        "-c:a",
+        "aac",
         m4afile
     ]
     if extra:
@@ -414,6 +416,8 @@ def m4a2wav(m4afile, wavfile):
         "8000",
         "-b:a",
         "128k",
+        "-c:a",
+        "pcm_s16le",
         wavfile
     ]
     return runffmpeg(cmd)
@@ -637,7 +641,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            set_process(f"{noextname} split video and audio {size}")
+            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang=='zh' else 'spilt audio and video'} {size}")
             time.sleep(3)
             t += 3
             continue

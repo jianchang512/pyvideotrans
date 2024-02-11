@@ -43,7 +43,7 @@ def get_error(num=5):
         return REASON_CN[num]
     return REASON_EN[num]
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -106,7 +106,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process("\n\n".join(result), 'subtitle')
-                    tools.set_process(config.transobj['starttrans'])
+                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
                 while len(result) < source_length:
@@ -117,7 +117,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0):
             except Exception as e:
                 error = str(e)
                 if response and response.candidates[0].finish_reason != 0:
-                    raise Exception(f'Gemini:{get_error(response.candidates[0].finish_reason)}：从第{(i*split_size)+1}条开始的{split_size}条字幕')
+                    raise Exception(f'{get_error(response.candidates[0].finish_reason)}：目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕')
                 index=i
                 err=error
                 break
