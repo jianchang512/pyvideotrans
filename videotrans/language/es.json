@@ -1,5 +1,10 @@
 {
   "translate_language" : {
+    "zimusrterror": "The subtitle area already has subtitles that do not meet the SRT format requirements. Please delete all subtitle area text or import the correct SRT subtitle format again",
+    "Export srt": "Export srt",
+    "When subtitles exist, the subtitle content can be saved to a local SRT file": "When subtitles exist, the subtitle content can be saved to a local SRT file",
+    "You must fill in the YouTube video playback page address": "You must fill in the YouTube video playback page address",
+    "Error merging background and dubbing": "Error merging background and dubbing",
     "only10": "This software only supports Win10 and above systems on the Windows platform",
     "sp.exeerror": "sp.exe must be located in the original directory after decompression (i.e. in the same directory as videotrans|models|_internal), please do not copy or move it to any other location without permission",
     "meitiaozimugeshi": "Each subtitle format is as follows:\nLine number\nStart time hours:minutes:seconds,milliseconds -->End time hours:minutes:seconds,milliseconds\nSubtitle content",
@@ -208,7 +213,7 @@
     "Dubbing speed" : "Velocidad doblada ",
     "Overall acceleration or deceleration of voice over playback" : "Aceleración general o desaceleración de la voz sobre la reproducción ",
     "Positive numbers accelerate, negative numbers decelerate, -90 to+90" : "Los números positivos se aceleran, los números negativos se desaceleran, -90 a + 90 ",
-    "shuoming03" : "La duración de la pronunciación varía en diferentes idiomas después de la traducción, por ejemplo, si una frase está en chino durante 3 segundos, puede tardar 5 segundos en traducirlo al inglés, lo que resulta en una incoherencia entre la duración y el vídeo. \nDos soluciones: \n1. Fuerza de voz para acelerar la reproducción, con el fin de acortar la duración de la voz sobre y alinear con el vídeo \n2. Forzar el video para jugar lentamente con el fin de extender la duración del video y alinear la voz sobre. \nElija sólo una de las dos opciones ",
+    "shuoming03" : "La duración de la pronunciación varía en diferentes idiomas después de la traducción, por ejemplo, si una frase está en chino durante 3 segundos, puede tardar 5 segundos en traducirlo al inglés, lo que resulta en una incoherencia entre la duración y el vídeo. \nDos soluciones: \n1. Fuerza de voz para acelerar la reproducción, con el fin de acortar la duración de la voz sobre y alinear con el vídeo \n2. Forzar el video para jugar lentamente con el fin de extender la duración del video y alinear la voz sobre. ",
     "Voice acceleration?" : "¿aceleración de voz? ",
     "shuoming04" : "La duración de la pronunciación varía en diferentes idiomas después de la traducción, por ejemplo, si una frase está en chino durante 3 segundos, puede tardar 5 segundos en traducirlo al inglés, lo que resulta en una incoherencia entre la duración y el vídeo. \nDos soluciones: \n1. Fuerza de voz para acelerar la reproducción, con el fin de acortar la duración de la voz sobre y alinear con el vídeo \n2. Forzar el video para jugar lentamente con el fin de extender la duración del video y alinear la voz sobre. \nElija sólo una de las dos opciones ",
     "Video slow" : "Vídeo lento ",

@@ -649,10 +649,10 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     cmd1 = [
         "-y",
         "-ss",
-        ss.replace(",", '.')]
+        ss.replace(",", '.').strip()]
     if to != '':
         cmd1.append("-to")
-        cmd1.append(to.replace(',', '.'))  # 如果开始结束时间相同，则强制持续时间1s)
+        cmd1.append(to.replace(',', '.').strip())  # 如果开始结束时间相同，则强制持续时间1s)
     cmd1.append('-i')
     cmd1.append(source)
 
@@ -675,9 +675,9 @@ def cut_from_audio(*,ss,to,audio_file,out_file):
         "-i",
         audio_file,
         "-ss",
-        ss.replace(',','.'),
+        ss.replace(',','.').strip(),
         "-to",
-        to.replace(',','.'),
+        to.replace(',','.').strip(),
         "-ar",
         "8000",
         out_file
@@ -759,3 +759,20 @@ def send_notification(title, message):
         )
     except:
         pass
+
+
+
+# 判断是否需要重命名，如果需要则重命名并转移
+def rename_move(file,*,is_dir=False):
+    patter=r'[ \s`"\'!@#$%^&*()=+,?\|{}\[\]]+'
+    if re.search(patter,file):
+        if is_dir:
+            os.makedirs(config.homedir+"/target_dir",exist_ok=True)
+            return True,config.homedir+"/target_dir",False
+        basename=re.sub(patter,'',os.path.basename(file),0,re.I)
+        basename=basename.replace(':','')
+        os.makedirs(config.homedir+"/rename",exist_ok=True)
+        newfile=config.homedir+f"/rename/{basename}"
+        shutil.copy2(file,newfile)
+        return True,newfile,basename
+    return False,False,False

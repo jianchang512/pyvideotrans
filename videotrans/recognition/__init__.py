@@ -62,7 +62,7 @@ def shorten_voice(normalized_sound):
 def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'])
-    if config.current_status != 'ing' and config.box_status!='ing':
+    if config.current_status != 'ing' and config.box_recogn!='ing':
         return False
     noextname=os.path.basename(audio_file)
     tmp_path = f'{cache_folder}/{noextname}_tmp'
@@ -102,7 +102,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
         # config.temp = {}
-        if config.current_status != 'ing' and config.box_status != 'ing':
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             raise config.Myexcept("Has stop")
         start_time, end_time, buffered = duration
@@ -197,7 +197,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         sidx = -1
         print(info.duration)
         for segment in segments:
-            if config.current_status != 'ing' and config.box_status !='ing':
+            if config.current_status != 'ing' and config.box_recogn !='ing':
                 del model
                 raise config.Myexcept("Had stop")
             sidx += 1

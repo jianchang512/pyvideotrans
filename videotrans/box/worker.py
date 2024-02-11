@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # primary ui
 import copy
-import json
+
 import os
 
-from PySide6.QtCore import Signal as  pyqtSignal, QThread
+from PySide6.QtCore import  QThread
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -52,13 +52,14 @@ class WorkerWhisper(QThread):
     def run(self):
         set_process_box(f'start {self.model} ')
         try:
-            config.box_status='ing'
+            config.box_recogn='ing'
             srts=run_recogn(type="all",audio_file=self.audio_path,model_name=self.model,detect_language=self.language,set_p=False,cache_folder=config.TEMP_DIR)
             text=[]
             for it in srts:
                 text.append(f'{it["line"]}\n{it["time"]}\n{it["text"]}')
             self.post_message("end", "\n\n".join(text))
         except Exception as e:
+            config.box_recogn='stop'
             self.post_message("error", str(e))
 
     def post_message(self, type, text):
@@ -89,7 +90,7 @@ class WorkerTTS(QThread):
             os.makedirs(self.tmpdir, exist_ok=True)
 
     def run(self):
-        config.box_status='ing'
+        config.box_tts='ing'
         set_process_box(f"start {self.tts_type=}")
 
         if self.tts_issrt:
@@ -100,6 +101,8 @@ class WorkerTTS(QThread):
             except Exception as e:
                 self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
+            finally:
+                config.box_tts='stop'
         else:
             mp3 = self.filename.replace('.wav', '.mp3')
             try:
@@ -112,8 +115,10 @@ class WorkerTTS(QThread):
                     set_p=False
                 )
             except Exception as e:
+                config.box_tts='stop'
                 self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
+
 
             runffmpeg([
                 '-y',
@@ -125,6 +130,7 @@ class WorkerTTS(QThread):
             ], no_decode=True,is_box=True)
             if os.path.exists(mp3):
                 os.unlink(mp3)
+        config.box_tts='stop'
         self.post_message("end", "Succeed")
 
 
@@ -264,6 +270,7 @@ class FanyiWorker(QThread):
     def run(self):
         # 开始翻译,从目标文件夹读取原始字幕
         set_process_box(f'start translate')
+        config.box_trans="ing"
         try:
             if not self.issrt:
                 self.srts=run_trans(text_list=self.text,translate_type=self.type,target_language_name=self.target_language,set_p=False)
@@ -273,7 +280,6 @@ class FanyiWorker(QThread):
                 except Exception as e:
                     set_process_box(f"整理格式化原始字幕信息出错:" + str(e), 'error')
                     return ""
-                config.box_status='ing'
                 srt=run_trans(translate_type=self.type,text_list=rawsrt,target_language_name=self.target_language,set_p=False)
                 srts_tmp = ""
                 for it in srt:
@@ -282,4 +288,6 @@ class FanyiWorker(QThread):
         except Exception as e:
             set_process_box(str(e),"error",func_name="fanyi_end")
             return
+        finally:
+            config.box_trans="stop"
         set_process_box(self.srts,"end",func_name="fanyi_end")

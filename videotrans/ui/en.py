@@ -353,9 +353,10 @@ class Ui_MainWindow(object):
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
         self.verticalLayout_2.addLayout(self.gaoji_layout_wrap)
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
-        self.show_tips = QtWidgets.QLabel(self.layoutWidget)
+        self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
         self.show_tips.setText("")
-        self.show_tips.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent""")
+        # self.show_tips.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
@@ -407,10 +408,20 @@ class Ui_MainWindow(object):
         self.subtitle_layout.setObjectName("subtitle_layout")
         self.layout_sub_bottom = QtWidgets.QHBoxLayout()
         self.layout_sub_bottom.setObjectName("layout_sub_bottom")
+
+
         self.import_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.import_sub.setMinimumSize(QtCore.QSize(0, 30))
         self.import_sub.setObjectName("import_sub")
         self.layout_sub_bottom.addWidget(self.import_sub)
+
+        self.export_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.export_sub.setMinimumSize(QtCore.QSize(0, 30))
+        self.export_sub.setObjectName("export_sub")
+
+        self.layout_sub_bottom.addWidget(self.export_sub)
+
+
         self.listen_peiyin = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.listen_peiyin.setMinimumSize(QtCore.QSize(0, 30))
         self.listen_peiyin.setObjectName("listen_peiyin")

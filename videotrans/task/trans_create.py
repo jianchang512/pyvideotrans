@@ -59,18 +59,16 @@ class TransCreate():
         else:
             # 去掉扩展名的视频名，做标识
             self.noextname, ext = os.path.splitext(os.path.basename(self.source_mp4))
-            # 如果含有空格，重命名并移动
-            if re.search(r' |\s', self.source_mp4) or (
-                    config.params['target_dir'] and re.search(r' |\s', config.params['target_dir'])):
-                self.noextname = re.sub(r' |\s', '', self.noextname)
-                new_dir = config.homedir + f"/renamemp4"
-                set_process(f'{transobj["qianyiwenjian"]} {new_dir}', "rename")
-                os.makedirs(new_dir, exist_ok=True)
-                config.params['target_dir'] = new_dir
+            # 如果源视频或目标目录含有空格 特殊字符，重命名并移动
+            rs,newmp4,basename=tools.rename_move(self.source_mp4,is_dir=False)
+            if rs:
+                self.source_mp4=newmp4
+                self.noextname=basename
+            if config.params['target_dir']:
+                rs,newdir,_=tools.rename_move(config.params['target_dir'],is_dir=True)
+                if rs:
+                    config.params['target_dir']=newdir
 
-                newmp4 = f'{new_dir}/{self.noextname}{ext}'
-                shutil.copy2(self.source_mp4, newmp4)
-                self.source_mp4 = newmp4
             if self.app_mode not in ['tiqu','tiqu_no']:
                 # 不是mp4，先转为mp4
                 if ext.lower() != '.mp4':
@@ -286,7 +284,7 @@ class TransCreate():
         except Exception as e:
             msg=f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
-                msg=f'请打开 github.com/jianchang512/pyvideotrans 查看常见问题【缺少cublasxx.dll】' if config.defaulelang=='zh' else f'Open web github.com/jianchang512/pyvideotrans and search [missing cublasxx.dll]'
+                msg=f'请打开 https://github.com/jianchang512/pyvideotrans 查看常见问题【缺少cublasxx.dll】' if config.defaulelang=='zh' else f'Open web https://github.com/jianchang512/pyvideotrans and search [missing cublasxx.dll]'
             raise Exception(f'[error]{msg}')
         if not raw_subtitles or len(raw_subtitles)<1:
             raise Exception(f'[error]:recogn result is empty')
@@ -395,8 +393,8 @@ class TransCreate():
             else:
                 raise Exception('no subtitles')
         except Exception as e:
-            delete_temp(self.noextname)
-            raise Myexcept("[error]TTS:" + str(e))
+            # delete_temp(self.noextname)
+            raise Myexcept("TTS:" + str(e))
 
     # 合并操作
     def hebing(self):
@@ -435,7 +433,7 @@ class TransCreate():
             silence = AudioSegment.silent(duration=total_duration - len(merged_audio))
             merged_audio += silence
         # 如果新长度大于原时长，则末尾截断
-        if total_duration > 0 and (len(merged_audio) > total_duration):
+        if total_duration > 0 and (len(merged_audio) > total_duration+1000):
             # 截断前先保存原完整文件
             merged_audio.export(f'{self.target_dir}/{self.target_language_code}-nocut.wav', format="wav")
             merged_audio = merged_audio[:total_duration]
@@ -543,85 +541,127 @@ class TransCreate():
             raise Myexcept('Had stop')
         segments = []
         start_times = []
-        # 如果设置了视频自动降速 并且有原音频，需要视频自动降速
-        if total_length > 0 and config.params['video_autorate']:
+        # 如果设置了视频自动降速 并且有原音频，并且仅仅需要视频自动降速
+        if total_length > 0 and config.params['video_autorate'] and not config.params['voice_autorate']:
+            set_process('仅视频自动慢速处理')
             return self.video_autorate_process(queue_copy, total_length)
+        elif not config.params['video_autorate']:
+            #没有视频慢速，仅加速或不处理
+            # 偏移时间，用于每个 start_time 增减
+            offset = 0
+            # 将配音和字幕时间对其，修改字幕时间
+            for (idx, it) in enumerate(queue_copy):
+                # 如果有偏移，则添加偏移
+                it['start_time'] += offset
+                it['end_time'] += offset
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
 
-        # 偏移时间，用于每个 start_time 增减
-        offset = 0
-        # 将配音和字幕时间对其，修改字幕时间
-        for (idx, it) in enumerate(queue_copy):
-            # 如果有偏移，则添加偏移
-            it['start_time'] += offset
-            it['end_time'] += offset
-            it['startraw'] = ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = ms_to_time_string(ms=it['end_time'])
-            jd = round((idx + 1) / len(queue_copy), 1)
-            # if self.precent < 85:
-            #     self.precent += jd
-            # set_process(transobj["Dubbing.."])
-            if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
+                if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
+                    start_times.append(it['start_time'])
+                    segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
+                    queue_copy[idx] = it
+                    continue
+                ext='mp3'
+                #可能是wav
+                if it['filename'].endswith('.wav'):
+                    ext='wav'
+
+                audio_data = AudioSegment.from_file(it['filename'], format=ext)
+                mp3len = len(audio_data)
+                # 原字幕发音时间段长度
+                wavlen = it['end_time'] - it['start_time']
+                if wavlen <= 0:
+                    queue_copy[idx] = it
+                    continue
+                # 新配音大于原字幕里设定时长
+                diff = mp3len - wavlen
+                #如果设置了 音频自动加速 and 设置了视频降速,间距分为一半
+                if diff>0 and config.params['voice_autorate'] and config.params['video_autorate']:
+                    diff=int(diff/2)
+
+                # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
+                if config.params["voice_autorate"]:
+                    if diff > 0:
+                        speed = round((wavlen+diff) / wavlen if wavlen>0 else 1,2)
+                        # 新的长度
+                        if speed<100 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                            tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
+                            speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                            # mp3 降速
+                            set_process(f"配音加速 {speed}倍")
+                            audio_data = AudioSegment.from_file(tmp_mp3, format=ext)
+                            #如果同时存在视频慢速,则音频实际要延长 diff
+                            # if config.params['video_autorate']:
+                            #     offset+=diff
+                            #     it['end_time']+=diff
+                            # else:
+                        else:
+                            logger.error(f'{it["filename"]} 不存在或尺寸为0，加速失败')
+                elif diff > 0:
+                    offset += diff
+                    it['end_time'] += diff
+
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                queue_copy[idx] = it
                 start_times.append(it['start_time'])
-                segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
-                queue_copy[idx] = it
-                continue
-            ext='mp3'
-            #可能是wav
-            if it['filename'].endswith('.wav'):
-                ext='wav'
-                
-            audio_data = AudioSegment.from_file(it['filename'], format=ext)
-            mp3len = len(audio_data)
-            # 原字幕发音时间段长度
-            wavlen = it['end_time'] - it['start_time']
-            if wavlen <= 0:
-                queue_copy[idx] = it
-                continue
-            # 新配音大于原字幕里设定时长
-            diff = mp3len - wavlen
+                segments.append(audio_data)
+            # 更新字幕
+            srt = ""
+            for (idx, it) in enumerate(queue_copy):
+                srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
+            # 字幕保存到目标文件夹
+            with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
+                f.write(srt.strip())
 
-            if config.params["voice_autorate"]:
-                # 需要加速并根据加速调整字幕时间 字幕时间 时长时间不变
-                if diff > 0:
-                    speed = round(mp3len / wavlen if wavlen>0 else 1,2)
+            # 如果需要音频加速和视频降速
+
+            try:
+                # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
+                if total_length > 0 and (queue_copy[-1]['end_time'] > total_length):
+                    # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
+                    offset = int(queue_copy[-1]['end_time'] - total_length)
+                    total_length += offset
+                    # 对视频末尾定格延长
+                    self.novoicemp4_add_time(offset)
+                    set_process(f'{transobj["shipinjiangsu"]} {offset}ms')
+            except Exception as e:
+                set_process(f"[warn] video end extend is ignore:" + str(e))
+            self.merge_audio_segments(segments, start_times, total_length)
+        elif config.params['video_autorate'] and config.params['voice_autorate']:
+            #2者,先改变配音文件的速度
+            for (idx, it) in enumerate(queue_copy):
+                if not os.path.exists(it['filename']) or os.path.getsize(it['filename']) == 0:
+                    continue
+                ext = 'mp3'
+                # 可能是wav
+                if it['filename'].endswith('.wav'):
+                    ext = 'wav'
+                audio_data = AudioSegment.from_file(it['filename'], format=ext)
+                mp3len = len(audio_data)
+                # 原字幕发音时间段长度
+                wavlen = it['end_time'] - it['start_time']
+                if wavlen <= 0 or mp3len<=0:
+                    continue
+                # 新配音大于原字幕里设定时长
+                diff = mp3len - wavlen
+                # 如果设置了 音频自动加速 and 设置了视频降速,间距分为一半
+                if diff >= 2:
+                    diff = int(diff / 2)
+                # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
+                    speed = round((wavlen + diff) / wavlen if wavlen > 0 else 1, 2)
                     # 新的长度
-                    if speed<50 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                    if speed < 100 and os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
                         tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
                         speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
+                        shutil.copy2(tmp_mp3,it['filename'])
                         # mp3 降速
-                        set_process(f"dubbing speed + {speed}")
-                        # 音频加速 最大加速2倍
-                        audio_data = AudioSegment.from_file(tmp_mp3, format=ext)
+                        set_process(f"配音加速 {speed}倍")
                     else:
                         logger.error(f'{it["filename"]} 不存在或尺寸为0，加速失败')
-            elif diff > 0:
-                offset += diff
-                it['end_time'] += diff
-
-            it['startraw'] = ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = ms_to_time_string(ms=it['end_time'])
-            queue_copy[idx] = it
-            start_times.append(it['start_time'])
-            segments.append(audio_data)
-        # 更新字幕
-        srt = ""
-        for (idx, it) in enumerate(queue_copy):
-            srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-        # 字幕保存到目标文件夹
-        with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
-            f.write(srt.strip())
-        try:
-            # 原音频长度大于0时，即只有存在原音频时，才进行视频延长
-            if total_length > 0 and (queue_copy[-1]['end_time'] > total_length):
-                # 判断 最后一个片段的 end_time 是否超出 total_length,如果是 ，则修改offset，增加
-                offset = int(queue_copy[-1]['end_time'] - total_length)
-                total_length += offset
-                # 对视频末尾定格延长
-                self.novoicemp4_add_time(offset)
-                set_process(f'{transobj["shipinjiangsu"]} {offset}ms')
-        except Exception as e:
-            set_process(f"[warn] video end extend is ignore:" + str(e))
-        self.merge_audio_segments(segments, start_times, total_length)
+            set_process('配音加速处理后，再次进行视频自动慢速处理')
+            self.video_autorate_process(queue_copy, total_length)
         return True
 
     # 延长 novoice.mp4  duration_ms 毫秒
@@ -655,7 +695,7 @@ class TransCreate():
             pass
         return True
 
-    # 视频自动降速处理
+    # 视频自动降速处理 diff_from 从哪里读取，audio=配音mp3，queue从queue_params
     def video_autorate_process(self, queue_params, source_mp4_total_length):
         # 判断novoice_mp4是否完成
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
@@ -839,7 +879,7 @@ class TransCreate():
         for (idx, it) in enumerate(queue_params):
             srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
         # 修改目标文件夹字幕
-        shutil.copy2(self.targetdir_target_sub,f'{self.targetdir_target_sub}.raw.srt')
+        # shutil.copy2(self.targetdir_target_sub,f'{self.targetdir_target_sub}.raw.srt')
         with open(self.targetdir_target_sub, 'w',
                   encoding="utf-8") as f:
             f.write(srt.strip())
@@ -888,11 +928,14 @@ class TransCreate():
         # 如果有配音，有背景音，则合并
         if config.params['is_separate'] and os.path.exists(self.targetdir_target_wav):
             # 原始背景音乐 wav,和配音后的文件m4a合并
-            backandvocal(self.targetdir_source_instrument,self.targetdir_target_wav)
+            try:
+                backandvocal(self.targetdir_source_instrument,self.targetdir_target_wav)
+            except Exception as e:
+                raise Exception(config.transobj['Error merging background and dubbing']+str(e))
 
         rs = False
         try:
-            if config.params['voice_role'] not in ['No', 'no', '-'] and config.params['subtitle_type'] > 0:
+            if config.params['voice_role'] !=  'No' and config.params['subtitle_type'] > 0:
                 if config.params['subtitle_type'] == 1:
                     set_process(transobj['peiyin-yingzimu'])
                     # 需要配音+硬字幕
@@ -937,7 +980,7 @@ class TransCreate():
                         # "-shortest",
                         os.path.normpath(self.targetdir_mp4)
                     ])
-            elif config.params['voice_role'] not in ['No', 'no', '-']:
+            elif config.params['voice_role'] != 'No':
                 # 配音无字幕
                 set_process(transobj['onlypeiyin'])
                 rs = runffmpeg([
@@ -1014,16 +1057,21 @@ class TransCreate():
         try:
             if os.path.exists(config.rootdir + "/tmp.srt"):
                 os.unlink(config.rootdir + "/tmp.srt")
-            with open(os.path.join(self.target_dir,'readme.txt'),'w',encoding="utf-8") as f:
-                f.write(f"""以下是可能存在的全部文件说明，根据执行时配置的选项不同，某些文件可能不会生成
-                
+            with open(os.path.join(self.target_dir,f'{"readme" if config.defaulelang!="zh" else "文件说明"}.txt'),'w',encoding="utf-8") as f:
+                f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
+
+
 {os.path.basename(self.targetdir_mp4)} = 最终完成的目标视频文件
-{self.source_language_code}.m4a|.wav = 原始视频中的音频文件(包含所有声音)
+{self.source_language_code}.m4a|.wav = 原始视频中的音频文件(包含所有背景音和人声)
 {self.target_language_code}.m4a = 配音后的音频文件(若选择了保留背景音乐则已混入)
-{self.source_language_code}.srt = 原始视频中识别出的字幕
-{self.target_language_code}.srt = 翻译为目标语言后字幕
-vocal.wav = 原始视频中分离出的人声 音频文件
-instrument.wav = 原始视频中分离出的背景音乐 音频文件
+{self.source_language_code}.srt = 原始视频中根据声音识别出的字幕文件
+{self.target_language_code}.srt = 翻译为目标语言后字幕文件
+vocal.wav = 原始视频中分离出的人声音频文件
+instrument.wav = 原始视频中分离出的背景音乐音频文件
+
+
+如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎各位小额赞助，有了一定资金支持，我将能够持续投入更多时间和精力
+捐助地址：https://github.com/jianchang512/pyvideotrans/issues/80
 
 ====
 
@@ -1037,8 +1085,15 @@ Here are the descriptions of all possible files that might exist. Depending on t
 vocal.wav = The vocal audio file separated from the original video
 instrument.wav = The background music audio file separated from the original video
 
+
+If you feel that this project is valuable to you and hope that it can be maintained consistently, we welcome small sponsorships. With some financial support, I will be able to continue to invest more time and energy
+Donation address: https://ko-fi.com/jianchang512
+
+
+====
+
 Github: https://github.com/jianchang512/pyvideotrans
-Docs: https://v.wonyes.org
+Docs: https://pyvideotrans.com
 
                 """)
             if os.path.exists(self.targetdir_source_regcon):

@@ -120,6 +120,15 @@ p, li { white-space: pre-wrap; }
 <span style="margin:5px;padding:5px;">k*v   2024-2-2 捐助 10 元</span> / 
 <span style="margin:5px;padding:5px;">*林(xjsszl)   2024-2-2 捐助 10 元</span> / 
 <span style="margin:5px;padding:5px;">**宇(支付宝)   2024-2-2 捐助 10 元</span> / 
+<span style="margin:5px;padding:5px;">*彦  2024-2-3 捐助 10 元</span> | 
+<span style="margin:5px;padding:5px;">*遡  2024-2-6 捐助 20 元</span> | 
+<span style="margin:5px;padding:5px;">*程(支付宝)  2024-2-6 捐助 50 元</span> | 
+<span style="margin:5px;padding:5px;">*豪(支付宝)  2024-2-7 捐助 8.8 元</span> | 
+<span style="margin:5px;padding:5px;">*u  2024-2-8 捐助 20 元</span> | 
+<span style="margin:5px;padding:5px;">*哦  2024-2-8 捐助 10 元</span> | 
+<span style="margin:5px;padding:5px;">*u  2024-2-9 捐助 30 元</span> | 
+<span style="margin:5px;padding:5px;">*许  2024-2-10 捐助 10 元</span> | 
+<span style="margin:5px;padding:5px;">*伟(支付宝)  2024-2-10 捐助 88.88 元</span> | 
 
 </p>
 <p><a href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">全部捐助列表</a></p>

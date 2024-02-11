@@ -38,6 +38,10 @@ class YoutubeForm(QDialog, Ui_youtubeform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+        config.canceldown=False
+    def closeEvent(self, event):
+        config.canceldown=True
+        print('##############')
 
 
 class TencentForm(QDialog, Ui_tencentform):  # <===
