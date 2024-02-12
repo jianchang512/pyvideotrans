@@ -14,7 +14,8 @@
 > 允许保留背景伴奏音乐等(基于uvr5)
 
 
-<a href="https://www.producthunt.com/posts/translation-of-the-video?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-translation&#0045;of&#0045;the&#0045;video" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=422336&theme=light" alt="Translation&#0032;of&#0032;the&#0032;video - Translation&#0032;of&#0032;subtitles&#0032;and&#0032;dubbed&#0032;translation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
+<a href="https://www.producthunt.com/products/translation-of-the-video?utm_source=badge-follow&utm_medium=badge&utm_souce=badge-translation&#0045;of&#0045;the&#0045;video" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=557901&theme=light" alt="VideoTrans - video&#0032;translator&#0032;and&#0032;dubbing | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 # 主要用途和使用方式
 
