@@ -57,6 +57,8 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/7004ae61-37a8-4f33-9
 
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
+5. [视频教程](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B%E7%AC%AC%E4%B8%89%E6%96%B9)
+
 
 
 # 源码部署
@@ -436,18 +438,25 @@ gemini_key=
 
 ```
 
-# 软件预览截图
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/d60407ca-3b17-43d9-9d13-5bcf5396dbce)
-
-
-[Youtube](https://youtu.be/0Qo6nw2OCg4)
 
 # 视频教程(第三方)
 
 [Mac下源码部署/b站](https://www.bilibili.com/video/BV1tK421y7rd/)
 
 [用Gemini Api 给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
+
+[如何下载和安装](https://www.bilibili.com/video/BV1Gy42187PK/?vd_source=7ccebed8eb1a03b941620c1590dc1b0f)
+
+
+
+
+# 软件预览截图
+
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/d60407ca-3b17-43d9-9d13-5bcf5396dbce)
+
+
+[Youtube](https://youtu.be/0Qo6nw2OCg4)
 
 
 # 相关联项目
