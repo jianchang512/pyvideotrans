@@ -43,7 +43,8 @@
 
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/d0df7129-07a8-495d-9b25-3d88ddd1b9a9
+https://github.com/jianchang512/pyvideotrans/assets/3378335/7004ae61-37a8-4f33-9711-20fd4cc1a94a
+
 
 
 # 下载windowns预编译exe版本(其他系统使用源码部署)
