@@ -43,7 +43,7 @@ class Worker(QThread):
             except:
                 pass
         except Exception as e:
-            set_process(f"{str(e)}", 'error')
+            set_process(f"{str(e)}", 'stop' if str(e)=='stop' else 'error')
             send_notification("Error",  str(e) )
         finally:
             self.video = None
@@ -89,7 +89,7 @@ class Worker(QThread):
                 config.queue_mp4.pop(0)
             except Exception as e:
                 print(f"mainworker {str(e)}")
-                set_process(f"{str(e)}", 'error')
+                set_process(f"{str(e)}", 'stop' if str(e)=='stop' else 'error')
                 send_notification("Error",f"{str(e)}")
                 return
             finally:

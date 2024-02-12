@@ -38,8 +38,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         else:
             source_text = [t['text'] for t in text_list]
 
-        # 切割为每次翻译多少行，值在 set.ini中设定，默认10
-        split_size = int(config.settings['trans_thread'])
+        # 切割为每次翻译多少行，值在 set.ini 中设定，默认10
+        split_size = 1#int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response=None
         for i,it in enumerate(split_source_text):
@@ -50,12 +50,13 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             if stop>0:
                 time.sleep(stop)
             try:
-                source_length = len(it)
+                source_length = len(it)                    
                 data = {
                     "text": "\n".join(it),
                     "source_lang": "auto",
                     "target_lang": target_language
                 }
+                config.logger.info(f'data,{i=}, {data}')
                 url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'
                 if not url.startswith('http'):
                     url=f"http://{url}"
@@ -64,13 +65,17 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     raise Exception(f'code={response.status_code}')
                 try:
                     result = response.json()
-                except:
-                    raise Exception(response.text)
-                result=result['data'].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                except Exception as e:
+                    raise Exception(f'{response.text=},{str(e)}')
+                result=result['data'].strip().replace('&#39;','"').replace('&quot;',"'")
+                if not result:
+                    raise Exception(f'{response.text=}')
+                result=result.split("\n")
+                config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
-                    tools.set_process("\n\n".join(result), 'subtitle')
+                    tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
@@ -80,6 +85,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
+                iter_num=0
             except Exception as e:
                 error = str(e)
                 config.logger.info(f'DeepLx {error}')

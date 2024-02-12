@@ -432,20 +432,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if video_info['streams_audio'] > 0 and save_raw:
                 cmds = [
                     ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map',
-                     '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname],
+                     '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname if srtfile else f'{savedir}/{basename}.mp4'],
                 ]
             else:
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac',
-                     tmpname]]
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac','-shortest',
+                     tmpname if srtfile else f'{savedir}/{basename}.mp4']]
 
         if srtfile:
             srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
             cmds.append(
                 ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}", '-c:v', 'libx264',
                  '-c:a', 'copy', f'{savedir}/{basename}.mp4'])
-        else:
-            shutil.copy2(tmpname,f'{savedir}/{basename}.mp4')
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.start()
 
