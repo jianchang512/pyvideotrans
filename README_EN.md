@@ -39,7 +39,8 @@
 
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/c2c71f7d-b476-4a42-a26d-b1b96d0697b9
+
+https://github.com/jianchang512/pyvideotrans/assets/3378335/dd3b6a33-2b64-4cab-b556-79f768b111c5
 
 
 
