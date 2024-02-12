@@ -179,7 +179,7 @@ class TransCreate():
     def run(self):
         config.settings = config.parse_init()
         if config.current_status != 'ing':
-            raise Myexcept(f"Had stop {config.current_status=}")
+            raise Myexcept(f"stop")
         if config.params['is_separate'] and config.params['tts_type']=='clone-voice':
             set_process(transobj['test clone voice'])
             try:
@@ -374,7 +374,7 @@ class TransCreate():
         config.task_countdown = config.settings['countdown_sec']
         while config.task_countdown > 0:
             if config.current_status != 'ing':
-                raise Myexcept(transobj["tingzhile"])
+                raise Myexcept('stop')
             # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
             time.sleep(1)
             # 倒计时中
@@ -482,7 +482,7 @@ class TransCreate():
             try:
                 subs = get_subtitle_from_srt(self.targetdir_target_sub)
                 if len(subs) < 1:
-                    raise Exception("subtitles size is 0")
+                    raise Exception(f"{os.path.basename(self.targetdir_target_sub)} 字幕格式不正确，请打开查看")
             except Exception as e:
                 raise Myexcept(f'[error] tts srt:{str(e)}')
 
@@ -496,7 +496,7 @@ class TransCreate():
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
             for it in subs:
                 if config.current_status != 'ing':
-                    raise Myexcept(transobj['tingzhile'])
+                    raise Myexcept('stop')
                     # 判断是否存在单独设置的行角色，如果不存在则使用全局
                 voice_role = config.params['voice_role']
                 if line_roles and f'{it["line"]}' in line_roles:
@@ -538,7 +538,7 @@ class TransCreate():
         run_tts(queue_tts=queue_tts,language=self.target_language_code, set_p=True,inst=self)
 
         if config.current_status != 'ing':
-            raise Myexcept('Had stop')
+            raise Myexcept('stop')
         segments = []
         start_times = []
         # 如果设置了视频自动降速 并且有原音频，并且仅仅需要视频自动降速
@@ -718,7 +718,7 @@ class TransCreate():
                 tmppert2 = f"{self.cache_folder}/tmppert2-{idx}.mp4"
                 tmppert3 = f"{self.cache_folder}/tmppert3-{idx}.mp4"
                 if config.current_status != 'ing' :
-                    raise Myexcept("Had stop")
+                    raise Myexcept("stop")
                 jd = round((idx + 1)  / (last_index + 1), 1)
                 if self.precent < 85:
                     self.precent += jd
@@ -939,12 +939,14 @@ class TransCreate():
                         os.path.normpath(self.novoice_mp4),
                         "-i",
                         os.path.normpath(self.targetdir_target_wav),
+                        '-filter_complex', "[1:a]apad",
                         "-c:v",
                         "libx264",
                         "-c:a",
                         "aac",
                         "-vf",
                         f"subtitles={hard_srt}",
+                        "-shortest",
                         os.path.normpath(self.targetdir_mp4),
                     ], de_format="nv12")
                 else:
@@ -962,6 +964,7 @@ class TransCreate():
                         # "srt",
                         "-i",
                         os.path.normpath(self.targetdir_target_sub),
+                        '-filter_complex', "[1:a]apad",
                         "-c:v",
                         "copy",
                         # "libx264",
@@ -971,7 +974,7 @@ class TransCreate():
                         "mov_text",
                         "-metadata:s:s:0",
                         f"language={config.params['subtitle_language']}",
-                        # "-shortest",
+                        "-shortest",
                         os.path.normpath(self.targetdir_mp4)
                     ])
             elif config.params['voice_role'] != 'No':
@@ -983,13 +986,14 @@ class TransCreate():
                     os.path.normpath(self.novoice_mp4),
                     "-i",
                     os.path.normpath(self.targetdir_target_wav),
+                    '-filter_complex', "[1:a]apad",
                     "-c:v",
                     "copy",
                     # "libx264",
                     "-c:a",
                     "aac",
                     # "pcm_s16le",
-                    # "-shortest",
+                    "-shortest",
                     os.path.normpath(self.targetdir_mp4)
                 ])
             # 无配音 使用 novice.mp4 和 原始 wav合并

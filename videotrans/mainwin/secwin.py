@@ -1212,8 +1212,9 @@ class SecWindow():
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?',txt):
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['zimusrterror'])
-            return
+            # QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['zimusrterror'])
+            txt=""
+            self.main.subtitle_area.clear()
 
         # 综合判断
         if len(config.queue_mp4) < 1 and not txt:
@@ -1331,7 +1332,7 @@ class SecWindow():
                 #error or stop 出错
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')
                 # 清理输入
-            # self.main.target_dir.clear()
+
             if self.main.task:
                 self.main.task.requestInterruption()
                 self.main.task.quit()
@@ -1348,7 +1349,7 @@ class SecWindow():
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj['running'])
-            # self.main.statusLabel.setText(config.transobj['kaishichuli'])
+
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
@@ -1373,6 +1374,7 @@ class SecWindow():
             self.main.target_dir.clear()
             if d['type']=='error':
                 self.set_process_btn_text(d['text'], d['btnkey'], 'error')
+                QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
