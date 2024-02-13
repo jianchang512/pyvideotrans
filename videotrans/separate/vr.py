@@ -11,9 +11,10 @@ from videotrans.separate.utils import inference
 from videotrans.configure import config
 
 class AudioPre:
-    def __init__(self, agg, model_path, device, is_half, tta=False):
+    def __init__(self, agg, model_path, device, is_half, tta=False,source="logs"):
         self.model_path = model_path
         self.device = device
+        self.source=source
         self.data = {
             # Processing Options
             "postprocess": False,
@@ -52,6 +53,8 @@ class AudioPre:
         bands_n = len(self.mp.param["band"])
 
         for d in range(bands_n, 0, -1):
+            if self.source!='logs' and config.separate_status !='ing':
+                return
             bp = self.mp.param["band"][d]
             print(f'{bp["sr"]=},{d=},{bands_n=}')
             if d == bands_n:  # high-end band
@@ -100,7 +103,7 @@ class AudioPre:
         }
         with torch.no_grad():
             pred, X_mag, X_phase = inference(
-                X_spec_m, self.device, self.model, aggressiveness, self.data
+                X_spec_m, self.device, self.model, aggressiveness, self.data,self.source
             )
         # Postprocess
         if self.data["postprocess"]:

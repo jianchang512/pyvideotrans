@@ -284,8 +284,8 @@ class TransCreate():
         except Exception as e:
             msg=f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
-                msg=f'请打开 https://github.com/jianchang512/pyvideotrans 查看常见问题【缺少cublasxx.dll】' if config.defaulelang=='zh' else f'Open web https://github.com/jianchang512/pyvideotrans and search [missing cublasxx.dll]'
-            raise Exception(f'[error]{msg}')
+                msg=f'【缺少cuBLAS.dll】请点击菜单栏-帮助支持-下载cublasxx.dll ' if config.defaulelang=='zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll '
+            raise Exception(f'{msg}')
         if not raw_subtitles or len(raw_subtitles)<1:
             raise Exception(f'[error]:recogn result is empty')
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)

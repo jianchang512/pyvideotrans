@@ -165,7 +165,6 @@ def runffmpeg(arg, *, noextname=None,
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
-    print(f'{cmd=}')
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -361,6 +360,7 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
                 msg=f"separate vocal and background music:{str(e)}"
                 set_process(msg)
                 raise Exception(msg)
+
         # 再将 vocal.wav 转为1通道，8000采样率，方便识别
         runffmpeg([
             "-y",

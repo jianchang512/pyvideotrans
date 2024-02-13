@@ -11,7 +11,7 @@ from videotrans.separate.vr import AudioPre
 from videotrans.configure import config
 
 
-def uvr(*,model_name=None, save_root=None, inp_path=None):
+def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
     infos = []
     try:
         func = AudioPre
@@ -20,6 +20,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None):
             model_path=os.path.join(config.rootdir, f"uvr5_weights/{model_name}.pth"),
             device="cuda" if torch.cuda.is_available() else "cpu",
             is_half=False,
+            source=source
         )
         done = 0
         try:

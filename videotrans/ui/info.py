@@ -47,7 +47,7 @@ p, li { white-space: pre-wrap; }
 </style></head><body style=" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;">
 <h1 style=" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:xx-large; font-weight:600;">捐助该软件以便能够持续维护 Donate to this project and support</span></h1>
 <hr />
-<p><a href="https://ko-fi.com/jianchang512"> 👑 Donate buy me a coffee </a></p>
+<p><a style="font-size:16px" href="https://ko-fi.com/jianchang512"> 👑 Donate buy me a coffee </a></p>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。不用担心收费问题。</p>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎小额捐助。</p>
 <hr />

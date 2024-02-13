@@ -215,3 +215,5 @@ box_trans="stop"
 box_tts="stop"
 #工具箱识别状态
 box_recogn='stop'
+# 中断win背景分离
+separate_status='stop'

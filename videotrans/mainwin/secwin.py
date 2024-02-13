@@ -12,6 +12,9 @@ import warnings
 
 from videotrans import configure
 
+from videotrans.task.separate_worker import SeparateWorker
+from videotrans.util import tools
+
 warnings.filterwarnings('ignore')
 from videotrans.translator import is_allow_translate, get_code
 from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt, \
@@ -24,6 +27,7 @@ class ClickableProgressBar(QLabel):
     def __init__(self):
         super().__init__()
         self.target_dir = None
+
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -79,6 +83,7 @@ class MyTextBrowser(QTextBrowser):
 class SecWindow():
     def __init__(self, main=None):
         self.main = main
+        self.usetype=None
         # QTimer.singleShot(100, self.open_toolbox)
 
     def openExternalLink(self, url):
@@ -524,6 +529,12 @@ class SecWindow():
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/issues")
         elif title == 'discord':
             webbrowser.open_new_tab("https://discord.com/channels/1174626422044766258/1174626425702207562")
+        elif title == 'models':
+            webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/0.0")
+        elif title == 'dll':
+            webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/v0.0.1")
+        elif title == 'cuda':
+            webbrowser.open_new_tab("https://juejin.cn/post/7318704408727519270")
         elif title == 'website':
             webbrowser.open_new_tab("https://pyvideotrans.com")
         elif title == 'xinshou':
@@ -639,9 +650,75 @@ class SecWindow():
         self.main.w.set_ok.clicked.connect(lambda: self.main.w.close())
         self.main.w.show()
 
+    def open_separate(self):
+        def get_file():
+            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio video", os.path.expanduser('~'),
+                                                   "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
+            if fname:
+                self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def update(d):
+            #更新
+            if d=='succeed':
+                self.main.sepw.set.setText(config.transobj['Separate End/Restart'])
+                self.main.sepw.fromfile.setText('')
+            elif d=='end':
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+            else:
+                QMessageBox.critical(self.main.sepw,config.transobj['anerror'],d)
+
+
+        def start():
+            if config.separate_status=='ing':
+                config.separate_status='stop'
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+                return
+            #开始处理分离，判断是否选择了源文件
+            file=self.main.sepw.fromfile.text()
+            if not file or not os.path.exists(file):
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], config.transobj['must select audio or video file'])
+                return
+            self.main.sepw.set.setText(config.transobj['Start Separate...'])
+            basename=os.path.basename(file)
+            #判断名称是否正常
+            rs,newfile,base=tools.rename_move(file,is_dir=False)
+            if rs:
+                file=newfile
+                basename=base
+            #创建文件夹
+            out=os.path.join(outdir,basename).replace('\\','/')
+            os.makedirs(out,exist_ok=True)
+            self.main.sepw.url.setText(out)
+            #开始分离
+            config.separate_status='ing'
+            self.main.sepw.task=SeparateWorker(parent=self.main.sepw,out=out,file=file,basename=basename)
+            self.main.sepw.task.finish_event.connect(update)
+            self.main.sepw.task.start()
+
+
+
+        from videotrans.component import SeparateForm
+        try:
+            if self.main.sepw is not None:
+                self.main.sepw.show()
+                return
+            self.main.sepw = SeparateForm()
+            self.main.sepw.set.setText(config.transobj['Start Separate'])
+            outdir = os.path.join(config.homedir,'separate').replace( '\\', '/')
+            if not os.path.exists(outdir):
+                os.makedirs(outdir, exist_ok=True)
+            # 创建事件过滤器实例并将其安装到 lineEdit 上
+            self.main.sepw.url.setText(outdir)
+
+            self.main.sepw.selectfile.clicked.connect(get_file)
+
+            self.main.sepw.set.clicked.connect(start)
+            self.main.sepw.show()
+        except:
+            print('err')
+            pass
+
     def open_youtube(self):
-
-
         def download():
             proxy = self.main.youw.proxy.text().strip()
             outdir = self.main.youw.outputdir.text()
@@ -902,7 +979,7 @@ class SecWindow():
     def check_whisper_model(self, name):
         file=f'{config.rootdir}/models/models--Systran--faster-whisper-{name}/snapshots'
         if not os.path.exists(file):
-            QMessageBox.critical(self.main, config.transobj['downloadmodel'], f"./models/")
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['downloadmodel'])
             return False
         return True
 
@@ -1360,7 +1437,6 @@ class SecWindow():
         elif d['type'] == 'add_process':
             self.main.processbtns[d['text']] = self.add_process_btn(d['text'])
         elif d['type'] == 'rename':
-
             self.main.show_tips.setText(d['text'])
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(config.params['target_dir'])
@@ -1408,12 +1484,14 @@ class SecWindow():
         elif d['type'] == 'show_djs':
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'check_soft_update':
-            self.main.setWindowTitle(self.main.rawtitle + " -- " + d['text'])
-            usetype = QPushButton(d['text'])
-            usetype.setStyleSheet('color:#ffff00;border:0')
-            usetype.setCursor(QtCore.Qt.PointingHandCursor)
-            usetype.clicked.connect(lambda: self.open_url('download'))
-            self.main.container.addWidget(usetype)
+            if not self.usetype:
+                self.usetype=QPushButton("")
+                self.usetype.setStyleSheet('color:#ffff00;border:0')
+                self.usetype.setCursor(QtCore.Qt.PointingHandCursor)
+                self.usetype.clicked.connect(lambda: self.open_url('download'))
+                self.main.container.addWidget(self.usetype)
+            self.usetype.setText(d['text'])
+
         elif d['type'] == 'update_download' and self.main.youw is not None:
             if d['text']=='ok' or d['text'].find('[error]')>-1:
                 self.main.youw.set.setDisabled(False)
@@ -1428,6 +1506,10 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.voice_role.addItems(config.clone_voicelist)
             self.main.voice_role.setCurrentText(current)
+        elif d['type']=='win':
+            #小窗口背景音分离
+            if self.main.sepw is not None:
+                self.main.sepw.set.setText(d['text'])
             
             
 

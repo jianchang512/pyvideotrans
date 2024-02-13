@@ -31,6 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task = None
         self.shitingobj = None
         self.youw = None
+        self.sepw=None
         self.processbtns = {}
         screen=QGuiApplication.primaryScreen()
         screen_resolution = screen.geometry()
@@ -262,6 +263,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
+        self.action_models.triggered.connect(lambda: self.util.open_url('models'))
+        self.action_dll.triggered.connect(lambda: self.util.open_url('dll'))
+        self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('xinshou'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
@@ -293,8 +297,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.action_hun.setCursor(Qt.PointingHandCursor)
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
         self.action_youtube.triggered.connect(self.util.open_youtube)
-        # self.action_fanyi.setCursor(Qt.PointingHandCursor)
-
+        self.action_separate.triggered.connect(self.util.open_separate)
         # 禁止随意移动sp.exe
         if not os.path.exists(os.path.join(config.rootdir,'videotrans')) or not os.path.exists(os.path.join(config.rootdir,'models')):
             QMessageBox.critical(self,config.transobj['anerror'],config.transobj['sp.exeerror'])
