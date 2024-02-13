@@ -12,7 +12,10 @@
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
-> 
+
+
+
+<a href="https://www.producthunt.com/products/translation-of-the-video?utm_source=badge-follow&utm_medium=badge&utm_souce=badge-translation&#0045;of&#0045;the&#0045;video" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=557901&theme=light" alt="VideoTrans - video&#0032;translator&#0032;and&#0032;dubbing | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 # 主要用途和使用方式
 
