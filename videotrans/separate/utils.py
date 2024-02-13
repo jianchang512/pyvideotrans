@@ -7,7 +7,6 @@ import torch
 from videotrans.configure import config
 from videotrans.util import tools
 
-
 def load_data(file_name: str = "") -> dict:
     if not file_name:
         file_name=os.path.join(config.rootdir, "uvr5_weights/name_params.json")
@@ -27,13 +26,13 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data):
+def inference(X_spec, device, model, aggressiveness, data,source="logs"):
     """
     data : dic configs
     """
 
     def _execute(
-        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True
+        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True,source="logs"
     ):
         model.eval()
         with torch.no_grad():
@@ -43,8 +42,10 @@ def inference(X_spec, device, model, aggressiveness, data):
 
             total_iterations = sum(iterations)
             for i in range(n_window):
+                if source!='logs' and config.separate_status !='ing':
+                    return
                 jd=(i+1)*100/n_window
-                tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%")
+                tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%",source)
                 start = i * roi_size
                 X_mag_window = X_mag_pad[
                     None, :, :, start : start + data["window_size"]
@@ -84,7 +85,7 @@ def inference(X_spec, device, model, aggressiveness, data):
     else:
         is_half = False
     pred = _execute(
-        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half
+        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half,source
     )
     pred = pred[:, :, :n_frame]
 

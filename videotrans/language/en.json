@@ -1,5 +1,9 @@
 {
   "translate_language": {
+    "Download Models": "Download Models",
+    "Start Separate": "Start separation",
+    "Start Separate...": "Separating/click stop",
+    "Separate End/Restart": "Separation completed/starting again",
     "zimusrterror": "The subtitle area already has subtitles that do not meet the SRT format requirements. Please delete all subtitle area text or import the correct SRT subtitle format again",
     "Export srt": "Export srt",
     "When subtitles exist, the subtitle content can be saved to a local SRT file": "When subtitles exist, the subtitle content can be saved to a local SRT file",
@@ -96,7 +100,7 @@
     "softsubtitle": "Soft subtitle",
     "modellost": "There is an error in the model download or the download is incomplete. Please re-download and store it in the models directory.",
     "modelpathis": "Model storage path:",
-    "downloadmodel": "Model does not exist, download it and save to:",
+    "downloadmodel": "The model does not exist. click on the menubar - Help Support - Download Model",
     "waitrole": "getting voice role list,hold on",
     "selectsavedir": "select an dir for output",
     "selectmp4": "select an mp4 video",
@@ -185,6 +189,9 @@
     "shezhijuese": "Set Role"
   },
   "ui_lang": {
+    "Download Models": "Download Models",
+    "Download cuBLASxx.dll": "Download cuBLASxx.dll",
+    "Separate vocal voice": "Separate vocal voice",
     "SP-video Translate Dubbing": "VideoTrans - Video Translate Dubbing",
     "Multiple MP4 videos can be selected and automatically queued for processing": "Multiple MP4 videos can be selected and automatically queued for processing",
     "Select video..": "Select video..",

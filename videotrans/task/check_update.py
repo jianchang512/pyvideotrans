@@ -16,11 +16,24 @@ class CheckUpdateWorker(QThread):
 
     def get(self):
         try:
-            res=requests.get("https://v.wonyes.org/version.json")
+            res=requests.get("https://pyvideotrans.com/version.json")
             if res.status_code==200:
                 d=res.json()
                 if d['version_num']>videotrans.VERSION_NUM:
-                    set_process(f"{transobj['newversion']}:{d['version']}","check_soft_update")
+                    msg = f"{transobj['newversion']}:{d['version']}"
+                    length = len(msg)
+                    while 1:
+                        tmp=""
+                        for i in range(length):
+                            if i == 0:
+                                tmp=msg
+                            elif i == length - 1:
+                                tmp=msg
+                            else:
+                                tmp=msg[i:] + msg[:i]
+                            set_process(tmp,"check_soft_update")
+                            time.sleep(0.2)
+                        time.sleep(5)
                 return True
         except Exception as e:
             print(e)

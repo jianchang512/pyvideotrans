@@ -323,7 +323,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
         rs,newfile,base=tools.rename_move(file,is_dir=False)
-        print(f'{file=},{newfile=},{base=}')
         if rs:
             file=newfile
             basename=base
@@ -430,9 +429,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if wavfile:
             # 视频里是否有音轨 并且保留原声音
             if video_info['streams_audio'] > 0 and save_raw:
+                tmp_a = f'{config.rootdir}/tmp/box-a.m4a'
+                
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map',
-                     '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname if srtfile else f'{savedir}/{basename}.mp4'],
+                    ['-y', '-i', videofile, '-i', wavfile,'-vn', '-filter_complex',
+               "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map','[aout]','-ac', '2', tmp_a],
+                    ['-y', '-i', videofile, '-i', tmp_a, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac','-shortest',
+                     tmpname if srtfile else f'{savedir}/{basename}.mp4']
+                    #['-y', '-i', videofile, '-i', wavfile, '-filter_complex', #"[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map',
+                    # '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname if srtfile else #f'{savedir}/{basename}.mp4'],
                 ]
             else:
                 cmds = [

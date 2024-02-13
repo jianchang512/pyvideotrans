@@ -1,5 +1,11 @@
 {
   "translate_language": {
+    "Download Models": "下载识别模型",
+    "Start Separate": "开始分离",
+    "Start Separate...": "分离中/点击停止...",
+    "Separate End/Restart": "分离完成/再次开始",
+    "must select audio or video file": "必须选择音视频文件",
+
     "zimusrterror": "字幕区已有字幕不符合srt格式要求，请删除所有字幕区文字或重新导入正确格式的srt字幕",
     "Export srt": "导出字幕",
     "When subtitles exist, the subtitle content can be saved to a local SRT file": "当存在字幕时，可将字幕内容保存到本地srt文件",
@@ -53,7 +59,7 @@
     "error": "出错停止(点击重新开始)",
     "subtitleandvoice_role": "你没有选择视频，只输入了字幕，将仅仅创建配音wav文件，请确认继续？",
     "waitrole": "正在获取可用配音角色，请稍等重新选择",
-    "downloadmodel": "模型不存在，请到 https://github.com/jianchang512/stt/releases/tag/0.0 下载后存放到:",
+    "downloadmodel": "模型不存在，请点击菜单栏-帮助支持-下载识别模型",
     "modelpathis": "当前模型路径是:",
     "modellost": "模型下载出错或者下载不完整，请重新下载后存放到 models 目录下",
     "embedsubtitle": "硬字幕嵌入",
@@ -184,6 +190,9 @@
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },
   "ui_lang": {
+    "Download Models": "下载识别模型",
+    "Download cuBLASxx.dll": "下载cuBLASxx.dll",
+    "Separate vocal voice": "背景人声分离",
     "SP-video Translate Dubbing": "VideoTrans视频翻译配音",
     "Multiple MP4 videos can be selected and automatically queued for processing": "可选择多个mp4视频，自动排队处理",
     "Select video..": "选择视频..",
@@ -234,7 +243,7 @@
     "Go FFmpeg website": "去FFmpeg官网",
     "Post issue": "遇到问题?",
     "Clone Voice": "音色克隆",
-    "Documents": "文档站点",
+    "Documents": "文档/官网",
     "Donating developers": "捐助开发者",
     "Standard Function Mode": "标准功能模式",
     "Display all options for video translation and dubbing": "显示全部选项，进行视频翻译和配音",

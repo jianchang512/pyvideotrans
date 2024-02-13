@@ -17,6 +17,7 @@ from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.youtube import Ui_youtubeform
+from videotrans.ui.separate import Ui_separateform
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
     def __init__(self, parent=None):
         super(SetLineRole, self).__init__(parent)
@@ -41,7 +42,22 @@ class YoutubeForm(QDialog, Ui_youtubeform):  # <===
         config.canceldown=False
     def closeEvent(self, event):
         config.canceldown=True
-        print('##############')
+
+class SeparateForm(QDialog, Ui_separateform):  # <===
+    def __init__(self, parent=None):
+        super(SeparateForm, self).__init__(parent)
+        self.task=None
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+    def closeEvent(self, event):
+        config.separate_status='stop'
+        print('退出worker')
+        if self.task:
+            self.task.finish_event.emit("end")
+            self.task=None
+        self.hide()
+        event.ignore()
 
 
 class TencentForm(QDialog, Ui_tencentform):  # <===

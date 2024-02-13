@@ -1,6 +1,6 @@
 from videotrans.component.set_form import BaiduForm, \
     ChatgptForm, DeepLForm, DeepLXForm, TencentForm, ElevenlabsForm, InfoForm, AzureForm, GeminiForm, SetLineRole, \
-    YoutubeForm, OttForm,CloneForm
+    YoutubeForm, OttForm,CloneForm,SeparateForm
 
 __all__ = [
     "BaiduForm",
@@ -9,5 +9,5 @@ __all__ = [
     "DeepLXForm",
     "TencentForm",
     "ElevenlabsForm",
-    "InfoForm", "AzureForm", "GeminiForm", "SetLineRole", "ElevenlabsForm", "YoutubeForm","OttForm","CloneForm"
+    "InfoForm", "AzureForm", "GeminiForm", "SetLineRole", "ElevenlabsForm", "YoutubeForm","OttForm","CloneForm","SeparateForm"
 ]

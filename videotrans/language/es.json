@@ -1,5 +1,10 @@
 {
   "translate_language" : {
+    "Download Models": "Download Models",
+    "Start Separate": "Start separation",
+    "Start Separate...": "Separating/click stop",
+    "Separate End/Restart": "Separation completed/starting again",
+    "must select audio or video file": "必须选择音视频文件",
     "zimusrterror": "The subtitle area already has subtitles that do not meet the SRT format requirements. Please delete all subtitle area text or import the correct SRT subtitle format again",
     "Export srt": "Export srt",
     "When subtitles exist, the subtitle content can be saved to a local SRT file": "When subtitles exist, the subtitle content can be saved to a local SRT file",
@@ -96,7 +101,7 @@
     "softsubtitle" : "Subtítulo blando ",
     "modellost" : "Hay un error en la descarga del modelo o la descarga es incompleta.  Vuelva a descargarlo y almacenarlo en el directorio de modelos. ",
     "modelpathis" : "Ruta de almacenamiento del modelo: ",
-    "downloadmodel" : "El modelo no existe, descárguelo y guárdelo en: ",
+    "downloadmodel" : "The model does not exist. click on the menubar - Help Support - Download Model ",
     "waitrole" : "obtener lista de roles de voz, mantener ",
     "selectsavedir" : "seleccionar un directorio para la salida ",
     "selectmp4" : "seleccionar un vídeo mp4 ",
@@ -185,6 +190,9 @@
     "shezhijuese" : "Establecer rol "
   },
   "ui_lang" : {
+    "Download Models": "Download Models",
+    "Download cuBLASxx.dll": "Download cuBLASxx.dll",
+    "Separate vocal voice": "Separate vocal voice",
     "SP-video Translate Dubbing" : "SP-vídeo Translate doblaje ",
     "Multiple MP4 videos can be selected and automatically queued for processing" : "Se pueden seleccionar varios vídeos MP4 y se pueden poner en cola automáticamente para su proceso ",
     "Select video.." : "Seleccione el vídeo. ",
