@@ -482,4 +482,9 @@ gemini_key=
 3. edge-tts
 4. faster-whisper
 
+## 关注作者微信公众号
+
+![weixin](https://github.com/jianchang512/pyvideotrans/assets/3378335/f9337111-9084-41fe-8840-1fb8fedca92d)
+
+
 
