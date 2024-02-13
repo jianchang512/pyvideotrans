@@ -484,7 +484,15 @@ gemini_key=
 
 ## 关注作者微信公众号
 
-![weixin](https://github.com/jianchang512/pyvideotrans/assets/3378335/f9337111-9084-41fe-8840-1fb8fedca92d)
+<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/f9337111-9084-41fe-8840-1fb8fedca92d">
+
+
+如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎捐助
+
+<img width="200" src="https://github.com/jianchang512/pyvideotrans/raw/main/images/wx.png">
+
+<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/fe1aa29d-c26d-46d3-b7f3-e9c030ef32c7">
+
 
 
 
