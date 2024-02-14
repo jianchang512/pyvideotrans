@@ -59,18 +59,20 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 md5.update(strtext.encode('utf-8'))
                 sign = md5.hexdigest()
 
+                config.logger.info(f'Baidu 发送给:{text=}')
                 res = requests.get(
                     f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={target_language}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}")
                 res = res.json()
-                if "error_code" in res or "trans_result" not in res:
+                config.logger.info(f'Baidu 返回响应:{res=}')
+                if "error_code" in res or "trans_result" not in res or len(res['trans_result'])<1:
                     config.logger.info(f'Baidu 返回响应:{res}')
                     if res['error_msg'].find('Access Limit')>-1:
                         raise Exception("Access Limit")
                     raise Exception("[error]百度翻译失败:" + res['error_msg'])
 
-                result = res['trans_result'][0]['dst']
-                if not isinstance(result,list):
-                    result=result.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result = [tres['dst'].strip().replace('&#39;','"').replace('&quot;',"'") for tres in  res['trans_result']]
+                # if not isinstance(result,list):
+                #     result=result.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
