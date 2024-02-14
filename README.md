@@ -12,10 +12,9 @@
 > 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
+> 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语
 
 
-
-<a href="https://www.producthunt.com/products/translation-of-the-video?utm_source=badge-follow&utm_medium=badge&utm_souce=badge-translation&#0045;of&#0045;the&#0045;video" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=557901&theme=light" alt="VideoTrans - video&#0032;translator&#0032;and&#0032;dubbing | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 # 主要用途和使用方式
 
@@ -41,6 +40,8 @@
 
 【文字字幕翻译】将文字或srt字幕文件翻译为其他语言
 
+【人声背景乐分离】将视频中的人声和背景音乐分别分离出来，生成2个音频文件
+
 
 ----
 
@@ -60,7 +61,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/7004ae61-37a8-4f33-9
 
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
-5. [视频教程](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B%E7%AC%AC%E4%B8%89%E6%96%B9)
+5. [B站视频教程](https://space.bilibili.com/384089066/channel/series)
 
 
 
