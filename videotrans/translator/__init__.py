@@ -35,7 +35,8 @@ LANG_CODE = {
         "ZH",  # deepl deeplx通道
         "zh",  # 腾讯通道
         "zh",  # OTT通道
-        "zh-Hans"
+        "zh-Hans",
+        "Simplified Chinese"
     ],
     "zh-tw": [
         "zh-tw",
@@ -44,7 +45,8 @@ LANG_CODE = {
         "ZH",
         "zh-TW",
         "zt",
-        "zh-Hant"
+        "zh-Hant",
+        "Traditional Chinese"
     ],
     "en": [
         "en",
@@ -53,7 +55,8 @@ LANG_CODE = {
         "EN",
         "en",
         "en",
-        "en"
+        "en",
+        "English"
     ],
     "fr": [
         "fr",
@@ -62,7 +65,8 @@ LANG_CODE = {
         "FR",
         "fr",
         "fr",
-        "fr"
+        "fr",
+        "French language"
     ],
     "de": [
         "de",
@@ -71,7 +75,8 @@ LANG_CODE = {
         "DE",
         "de",
         "de",
-        "de"
+        "de",
+        "German language"
     ],
     "ja": [
         "ja",
@@ -80,7 +85,8 @@ LANG_CODE = {
         "JA",
         "ja",
         "ja",
-        "ja"
+        "ja",
+        "Japanese language"
     ],
     "ko": [
         "ko",
@@ -89,7 +95,8 @@ LANG_CODE = {
         "KO",
         "ko",
         "ko",
-        "ko"
+        "ko",
+        "Korean language"
     ],
     "ru": [
         "ru",
@@ -98,7 +105,8 @@ LANG_CODE = {
         "RU",
         "ru",
         "ru",
-        "ru"
+        "ru",
+        "Russian language"
     ],
     "es": [
         "es",
@@ -107,7 +115,8 @@ LANG_CODE = {
         "ES",
         "es",
         "es",
-        "es"
+        "es",
+        "Spanish language"
     ],
     "th": [
         "th",
@@ -116,7 +125,8 @@ LANG_CODE = {
         "No",
         "th",
         "th",
-        "th"
+        "th",
+        "Thai language"
     ],
     "it": [
         "it",
@@ -125,7 +135,8 @@ LANG_CODE = {
         "IT",
         "it",
         "it",
-        "it"
+        "it",
+        "Italian language"
     ],
     "pt": [
         "pt",
@@ -134,7 +145,8 @@ LANG_CODE = {
         "PT",
         "pt",
         "pt",
-        "pt"
+        "pt",
+        "Portuguese language"
     ],
     "vi": [
         "vi",
@@ -143,7 +155,8 @@ LANG_CODE = {
         "No",
         "vi",
         "No",
-        "vi"
+        "vi",
+        "Vietnamese language"
     ],
     "ar": [
         "ar",
@@ -152,7 +165,8 @@ LANG_CODE = {
         "No",
         "ar",
         "ar",
-        "ar"
+        "ar",
+        "Arabic language"
     ],
     "tr": [
         "tr",
@@ -161,7 +175,8 @@ LANG_CODE = {
         "tr",
         "tr",
         "tr",
-        "tr"
+        "tr",
+        "Turkish language"
     ],
     "hi": [
         "hi",
@@ -170,7 +185,8 @@ LANG_CODE = {
         "No",
         "hi",
         "hi",
-        "hi"
+        "hi",
+        "Hindi language"
     ],
     "hu": [
         "hu",
@@ -179,7 +195,8 @@ LANG_CODE = {
         "HU",
         "No",
         "No",
-        "hu"
+        "hu",
+        "Hungarian language"
     ]
 }
 
@@ -217,7 +234,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif lower_translate_type == TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif lower_translate_type in [CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower()]:
-        return (show_source, show_target)
+        return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif lower_translate_type == OTT_NAME.lower():
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     elif lower_translate_type==MICROSOFT_NAME.lower():

@@ -47,7 +47,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         if isinstance(text_list, str):
             source_text = text_list.strip().split("\n")
         else:
-            source_text = [t['text'] for t in text_list]
+            source_text = [f"{t['line']}\n{t['time']}\n{t['text']}" for t in text_list]
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
@@ -87,20 +87,15 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                     result = response.data['choices'][0]['message']['content'].strip()
                 else:
                     raise Exception(f"[error]:Azure {response}")
-                result=result.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result=result.strip().replace('&#39;','"').replace('&quot;',"'")
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
-                    tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
+                    tools.set_process( result, 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
                 else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                result_length = len(result)
-                while result_length < source_length:
-                    result.append("")
-                    result_length += 1
-                result = result[:source_length]
-                target_text.extend(result)
+                    tools.set_process(result, func_name="set_fanyi")
+                target_text.append(result)
                 iter_num=0
             except Exception as e:
                 error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
@@ -114,8 +109,5 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
-    max_i = len(target_text)
-    for i, it in enumerate(text_list):
-        if i < max_i:
-            text_list[i]['text'] = target_text[i]
-    return text_list
+    target = tools.get_subtitle_from_srt("\n\n".join(target_text),is_file=False)
+    return target
