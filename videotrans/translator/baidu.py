@@ -90,6 +90,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 error = str(e)
                 err=error
                 index=i
+                time.sleep(10)
                 break
         else:
             break
