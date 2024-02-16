@@ -350,22 +350,25 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
     ])
     try:
         path=os.path.dirname(targe_audio)
-        if not os.path.exists(os.path.join(path,'vocal.wav')):
+        vocal_file=os.path.join(path,'vocal.wav')
+        if not os.path.exists(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
-                gr = st.uvr(model_name="HP2", save_root=path, inp_path=targe_audio)
-                print(next(gr))
-                print(next(gr))
+                st.start(targe_audio,path)
+                # gr = st.uvr(model_name="HP2", save_root=path, inp_path=targe_audio)
+                # print(next(gr))
+                # print(next(gr))
             except Exception as e:
                 msg=f"separate vocal and background music:{str(e)}"
                 set_process(msg)
                 raise Exception(msg)
-
+        if not os.path.exists(vocal_file):
+            return False
         # 再将 vocal.wav 转为1通道，8000采样率，方便识别
         runffmpeg([
             "-y",
             "-i",
-            os.path.join(path,'vocal.wav'),
+            vocal_file,
             "-ac",
             "1",
             "-ar",
@@ -773,10 +776,31 @@ def rename_move(file,*,is_dir=False):
         if is_dir:
             os.makedirs(config.homedir+"/target_dir",exist_ok=True)
             return True,config.homedir+"/target_dir",False
-        basename=re.sub(patter,'',os.path.basename(file),0,re.I)
-        basename=basename.replace(':','')
-        os.makedirs(config.homedir+"/rename",exist_ok=True)
-        newfile=config.homedir+f"/rename/{basename}"
-        shutil.copy2(file,newfile)
+        dirname=os.path.dirname(file)
+        basename=os.path.basename(file)
+        #目录不规则，迁移目录
+        if re.search(patter,dirname):
+            basename=re.sub(patter,'',basename,0,re.I)
+            basename=basename.replace(':','')
+            os.makedirs(config.homedir+"/rename",exist_ok=True)
+            newfile=config.homedir+f"/rename/{basename}"
+            shutil.copy2(file,newfile)
+        else:
+            #目录规则仅名称不规则，只修改名称
+            basename=re.sub(patter,'',basename,0,re.I)
+            basename=basename.replace(':','')
+            newfile=dirname+"/"+basename
+            shutil.copy2(file,newfile)
+
         return True,newfile,basename
     return False,False,False
+
+
+# 获取音频时长
+def get_audio_time(audio_file):
+    # 如果存在缓存并且没有禁用缓存
+    out = runffprobe(['-v','quiet','-print_format','json','-show_format','-show_streams',audio_file])
+    if out is False:
+        raise Exception(f'ffprobe error:dont get video information')
+    out = json.loads(out)
+    return float(out['format']['duration'])

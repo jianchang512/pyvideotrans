@@ -49,7 +49,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
     if n_total<1:
         raise Exception(f'[error]queue_tts length < 1')
     n = 0
-    dub_nums=2 if queue_tts[0]['tts_type']=='clone-voice' else config.settings['dubbing_thread']
+    dub_nums=config.settings['dubbing_thread']
     while len(queue_tts) > 0:
         if config.current_status != 'ing' and config.box_tts != 'ing':
             raise config.Myexcept('Had stop')

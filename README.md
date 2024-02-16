@@ -263,27 +263,51 @@ https://juejin.cn/post/7318704408727519270
 **请勿随意调整，除非你知道将会发生什么**
 
 ```
+;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
+;If you are not sure of the impact of the modification, please do not modify it, please make a backup before modification, and restore it if something goes wrong.
 
-;GUI show language ,set en or zh  eg.  lang=en
+;升级前请做好备份，升级后按照原备份重新修改。请勿直接用备份文件覆盖，因为新版本可能有新增配置
+;Please make a backup before upgrading, and re-modify according to the original backup after upgrading. Please don't overwrite the backup file directly, because the new version may have added
+
+;The default interface follows the system and can also be specified manually here, zh=Chinese interface, en=English interface.
 ;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
 lang =
 
-;0=video lossless processing but slow processing due to large size, 51=fast processing due to small size but lowest quality, default to 13
+;Video processing quality, integer 0-51, 0 = lossless processing with large size is very slow, 51 = lowest quality with smallest size is the fastest processing speed
 ;视频处理质量，0-51的整数，0=无损处理尺寸较大速度很慢，51=质量最低尺寸最小处理速度最快
 crf=13
 
-;dubbing thread at same time, > 5 or greater may be forbid by api
+;The number of simultaneous voiceovers, 1-10, it is recommended not to be greater than 5, otherwise it is easy to fail
 ;同时配音的数量，1-10，建议不要大于5，否则容易失败
 dubbing_thread=5
 
-;Simultaneous translation lines
+;Maximum audio acceleration, default 0, i.e. no limitation, you need to set a number greater than 1-100, such as 1.5, representing the maximum acceleration of 1.5 times, pay attention to how to set the limit, then the subtitle sound will not be able to be aligned
+;音频最大加速倍数，默认0，即不限制，需设置大于1-100的数字，比如1.5，代表最大加速1.5倍，注意如何设置了限制，则字幕声音将无法对齐
+audio_rate=0
+
+;Maximum permissible slowdown times of the video frequency, default 0, that is, no restriction, you need to set a number greater than 1-20, for example, 1 = on behalf of not slowing down, 20 = down to 1/20 = 0.05 the original speed, pay attention to how to set up the limit, then the subtitles and the screen will not be able to be aligned
+;视频频最大允许慢速倍数，默认0，即不限制，需设置大于1-20的数字，比如1=代表不慢速，20=降为1/20=0.05原速度，注意如何设置了限制，则字幕和画面将无法对齐
+video_rate=0
+
+;Number of simultaneous translations, 1-20, not too large, otherwise it may trigger the translation api frequency limitation
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
 trans_thread=15
 
-;翻译出错后重试次数
+
+
+;Number of translation error retries
+;翻译出错重试次数
 retries=5
 
-;countdown sec
+;chatGPT model list
+;可供选择的chatGPT模型，以英文逗号分隔
+chatgpt_model=gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview
+
+;When separating the background sound, cut the clip, too long audio will exhaust the memory, so cut it and separate it, unit s, default 1800s, i.e. half an hour.
+;背景音分离时切分片段，太长的音频会耗尽显存，因此切分后分离，单位s,默认 1800s，即半小时
+separate_sec=100
+
+;The number of seconds to pause before subtitle recognition is completed and waiting for translation, and the number of seconds to pause after translation and waiting for dubbing.
 ;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
 countdown_sec=30
 
@@ -296,10 +320,11 @@ hwaccel=cuvid
 hwaccel_output_format=nv12
 
 ;not decode video before use -c:v h264_cuvid,false=use -c:v h264_cuvid, true=dont use
+;Whether to disable hardware decoding, true=disable, good compatibility; false=enable, there may be compatibility errors on some hardware.
 ;是否禁用硬件解码，true=禁用，兼容性好；false=启用，可能某些硬件上有兼容错误
 no_decode=true
 
-;cuda data type int8 float16 float32, More and more graphics memory is being occupied
+;cuda data type when recognizing subtitles from video, int8 = consumes fewer resources, faster, lower precision, float32 = consumes more resources, slower, higher precision, int8_float16 = device of choice
 ;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
 cuda_com_type=int8
 
@@ -311,22 +336,23 @@ whisper_threads=4
 ;字幕识别时，同时工作进程
 whisper_worker=1
 
-;Reducing these two numbers will use less graphics memory
+;Subtitle recognition accuracy adjustment, 1-5, 1 = consume the lowest resources, 5 = consume the most, if the video memory is sufficient, can be set to 5, may achieve more accurate recognition results
 ;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
 beam_size=1
 best_of=1
 
-;vad set to false,use litter GPU memory,true is more
-;字幕识别时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
+;Enable custom mute segmentation when in subtitle overall recognition mode, true=enable, can be set to false to disable when video memory is insufficient.
+;字幕整体识别模式时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
 vad=true
 
-;0 is use litter GPU,other is more
-;0=占用更少GPU资源，1=占用更多GPU
+;0 = less GPU resources but slightly worse results, 1 = more GPU resources and better results
+;0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好
 temperature=0
 
-;false is litter GPU,ture is more
-;同 temperature, true=占用更多GPU，false=占用更少GPU
+;Same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs.
+;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
 condition_on_previous_text=false
+
 
 
 ```

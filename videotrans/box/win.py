@@ -182,7 +182,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.show()
 
     def geshi_import_fun(self,obj):
-        fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['selectmp4'], config.homedir,
+        fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['selectmp4'], config.last_opendir,
                                                  "Video files(*.mp4 *.avi *.mov *.m4a *.mp3 *.aac *.flac *.wav)")
         if len(fnames) < 1:
             return
@@ -190,29 +190,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fnames[i] = it.replace('\\', '/')
 
         if len(fnames) > 0:
+            config.last_opendir=os.path.dirname(fnames[0])
+            self.settings.setValue("last_dir", config.last_opendir)
             obj.setPlainText("\n".join(fnames))
 
     # 获取wav件
     def hun_get_file(self, name='file1'):
-        fname, _ = QFileDialog.getOpenFileName(self, "Select audio", os.path.expanduser('~'),
+        fname, _ = QFileDialog.getOpenFileName(self, "Select audio", config.last_opendir,
                                                "Audio files(*.wav *.mp3 *.aac *.m4a *.flac)")
         if fname:
+            fname=fname.replace('file:///', '').replace('\\', '/')
+            config.last_opendir=os.path.dirname(fname)
+            self.settings.setValue("last_dir", config.last_opendir)
             if name == 'file1':
-                self.hun_file1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                self.hun_file1.setText(fname)
             else:
-                self.hun_file2.setText(fname.replace('file:///', '').replace('\\', '/'))
+                self.hun_file2.setText(fname)
 
     # 文本翻译，导入文本文件
     def fanyi_import_fun(self, obj=None):
-        fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", os.path.expanduser('~'),
+        fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", config.last_opendir,
                                                "Text files(*.srt *.txt)")
         if fname:
-
+            fname=fname.replace('file:///', '')
+            config.last_opendir=os.path.dirname(fname)
+            self.settings.setValue("last_dir", config.last_opendir)
             try:
-                with open(fname.replace('file:///', ''), 'r', encoding='utf-8') as f:
+                with open(fname, 'r', encoding='utf-8') as f:
                     content=f.read().strip()
             except:
-                with open(fname.replace('file:///', ''), 'r', encoding='GBK') as f:
+                with open(fname, 'r', encoding='GBK') as f:
                     content=f.read().strip()
             if obj and not isinstance(obj,bool):
                 return obj.setPlainText(content)
@@ -238,7 +245,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
-        QDesktopServices.openUrl(QUrl(f"file:{dirname.strip()}"))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+        # QDesktopServices.openUrl(QUrl(f"file:{dirname.strip()}"))
 
     # 通知更新ui
     def receiver(self, json_data):
@@ -347,7 +355,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pathdir = os.path.dirname(self.yspfl_videoinput.text())
         elif name == "wav":
             pathdir = os.path.dirname(self.yspfl_wavinput.text())
-        QDesktopServices.openUrl(QUrl(f"file:{pathdir}"))
+        # QDesktopServices.openUrl(QUrl(f"file:{pathdir}"))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pathdir))
 
     # tab-2音视频合并
     def ysphb_select_fun(self, name):

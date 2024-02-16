@@ -43,7 +43,11 @@ def parse_init():
         "temperature":0,
         "condition_on_previous_text":False,
         "crf":13,
-        "retries":5
+        "retries":5,
+        "chatgpt_model":"gpt-3.5-turbo,gpt-4",
+        "separate_sec":1800,
+        "audio_rate":0,
+        "video_rate":0
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -59,6 +63,8 @@ def parse_init():
                 value = value.strip()
                 if re.match(r'^\d+$', value):
                     settings[key] = int(value)
+                elif re.match(r'^\d+\.\d$', value):
+                    settings[key] = float(value)
                 elif value.lower() == 'true':
                     settings[key] = True
                 elif value.lower() == 'false':
@@ -116,7 +122,7 @@ geshi_num = 0
 clone_voicelist=["clone"]
 
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
-chatgpt_model_list = ["gpt-3.5-turbo", "gpt-4"]
+chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 proxy = None
@@ -171,7 +177,7 @@ params = {
 
     "chatgpt_api": "",
     "chatgpt_key": "",
-    "chatgpt_model": "gpt-3.5-turbo",
+    "chatgpt_model":chatgpt_model_list[0],
     "chatgpt_template": "",
     "azure_api": "",
     "azure_key": "",
@@ -217,3 +223,5 @@ box_tts="stop"
 box_recogn='stop'
 # 中断win背景分离
 separate_status='stop'
+# 最后一次打开的目录
+last_opendir=homedir if not os.path.exists(homedir+"/Videos") else homedir+"/Videos"
