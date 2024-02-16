@@ -190,7 +190,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
-                                              max_speech_duration_s=15), language=detect_language)
+                                              max_speech_duration_s=12), language=detect_language)
 
         # 保留原始语言的字幕
         raw_subtitles = []
@@ -227,7 +227,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         # 写入翻译前的原语言字幕到目标文件夹
         print(f'用时 {time.time() - start_t}')
 
-        if os.path.exists(wavfile):
+        if audio_file.endswith('.m4a') and os.path.exists(wavfile):
             os.unlink(wavfile)
         return raw_subtitles
     except Exception as e:

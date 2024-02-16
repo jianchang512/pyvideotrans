@@ -58,7 +58,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.settings = QSettings("Jameson", "VideoTranslate")
         # 获取最后一次选择的目录
-        self.last_dir = self.settings.value("last_dir", ".", str)
+        config.last_opendir = self.settings.value("last_dir", config.last_opendir, str)
         # language code
         self.languagename = config.langnamelist
         self.app_mode = 'biaozhun'

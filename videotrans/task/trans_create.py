@@ -250,6 +250,11 @@ class TransCreate():
         # 添加是否保留背景选项
         if config.params['is_separate'] and config.params['voice_role'] !='No' and not os.path.exists(self.targetdir_source_regcon):
             split_audio_byraw(self.source_mp4, self.targetdir_source_wav,True)
+            if not os.path.exists(self.targetdir_source_vocal):
+                #分离失败
+                self.targetdir_source_regcon=self.targetdir_source_vocal=self.targetdir_source_wav
+                self.source_separate = self.source_back = self.source_vocal = None
+                config.params['is_separate']=False
         elif not os.path.exists(self.targetdir_source_wav):
             split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
         return True
@@ -584,6 +589,8 @@ class TransCreate():
                 if config.params["voice_autorate"]:
                     if diff > 0:
                         speed = round((wavlen+diff) / wavlen if wavlen>0 else 1,2)
+                        if config.settings['audio_rate'] > 0 and speed > config.settings['audio_rate']:
+                            speed = config.settings['audio_rate']
                         # 新的长度
                         if speed<100 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
                             tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
@@ -645,6 +652,8 @@ class TransCreate():
                     diff = int(diff / 2)
                 # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
                     speed = round((wavlen + diff) / wavlen if wavlen > 0 else 1, 2)
+                    if config.settings['audio_rate']>0 and speed>config.settings['audio_rate']:
+                        speed=config.settings['audio_rate']
                     # 新的长度
                     if speed < 100 and os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
                         tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
@@ -754,6 +763,8 @@ class TransCreate():
                     offset += diff
                     # 调整视频，新时长/旧时长
                     pts = round(mp3len / wavlen, 2)
+                    if config.settings['video_rate']>0 and pts>config.settings['video_rate']:
+                        pts=config.settings['video_rate']
 
                     # 当前是第一个需要慢速的
                     if cut_clip == 0:
@@ -762,6 +773,8 @@ class TransCreate():
                         if last_endtime == 0:
                             # 第一个
                             pts = round(mp3len / queue_copy[idx]['end_time'], 2)
+                            if config.settings['video_rate'] > 0 and pts > config.settings['video_rate']:
+                                pts = config.settings['video_rate']
                             cut_from_video(ss="0",
                                            to=queue_copy[idx]['endraw'],
                                            source=self.novoice_mp4, pts=pts, out=novoice_mp4_tmp)
@@ -1066,6 +1079,7 @@ class TransCreate():
 {self.target_language_code}.srt = 翻译为目标语言后字幕文件
 vocal.wav = 原始视频中分离出的人声音频文件
 instrument.wav = 原始视频中分离出的背景音乐音频文件
+tmp=临时文件夹
 
 
 如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎各位小额赞助，有了一定资金支持，我将能够持续投入更多时间和精力

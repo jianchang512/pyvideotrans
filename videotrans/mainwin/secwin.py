@@ -1117,7 +1117,7 @@ class SecWindow():
 
     # get video filter mp4
     def get_mp4(self):
-        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], self.main.last_dir,
+        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.last_opendir,
                                                  "Video files(*.mp4 *.avi *.mov *.mpg *.mkv)")
         if len(fnames) < 1:
             return
@@ -1126,12 +1126,13 @@ class SecWindow():
 
         if len(fnames) > 0:
             self.main.source_mp4.setText(f'{len((fnames))} videos')
-            self.main.settings.setValue("last_dir", os.path.dirname(fnames[0]))
+            config.last_opendir=os.path.dirname(fnames[0])
+            self.main.settings.setValue("last_dir", config.last_opendir)
             config.queue_mp4 = fnames
 
     # 从本地导入字幕文件
     def import_sub_fun(self):
-        fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], self.main.last_dir,
+        fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], config.last_opendir,
                                                "Srt files(*.srt *.txt)")
         if fname:
             with open(fname, 'r', encoding='utf-8') as f:
@@ -1140,7 +1141,7 @@ class SecWindow():
 
     # 保存目录
     def get_save_dir(self):
-        dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'], self.main.last_dir)
+        dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'], config.last_opendir)
         dirname = dirname.replace('\\', '/')
         self.main.target_dir.setText(dirname)
 
@@ -1170,6 +1171,7 @@ class SecWindow():
             config.params['video_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
+            config.params['is_separate']=False
             return True
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         # 不需要翻译
@@ -1177,6 +1179,7 @@ class SecWindow():
             if len(config.queue_mp4) < 1 or config.params['subtitle_type'] < 1 or not txt:
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['hebingmoshisrt'])
                 return False
+            config.params['is_separate']=False
             config.params['target_language'] = '-'
             config.params['source_language'] = '-'
             config.params['voice_silence'] = '500'
@@ -1196,6 +1199,7 @@ class SecWindow():
                 # 提取字幕并翻译，必须有视频，原始语言，语音模型, 目标语言
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['fanyimoshi1'])
                 return False
+            config.params['is_separate']=False
             config.params['subtitle_type'] = 0
             config.params['voice_role'] = 'No'
             config.params['voice_silence'] = '500'
@@ -1312,20 +1316,23 @@ class SecWindow():
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
-
+        print(config.params['is_separate'])
         # 未主动选择模式，则判断设置情况应该属于什么模式
         if self.main.app_mode == 'biaozhun':
             if len(config.queue_mp4) > 0 and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No':
                 # tiqu 如果 存在视频但 无配音 无嵌入字幕，则视为提取
                 self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params[
                     'target_language'] or config.params['target_language'] == '-' else 'tiqu'
+                config.params['is_separate']=False
             elif len(config.queue_mp4) > 0 and txt and config.params['subtitle_type'] > 0 and config.params[
                 'voice_role'] == 'No':
                 # hebing 存在视频，存在字幕，字幕嵌入，不配音
                 self.main.app_mode = 'hebing'
+                config.params['is_separate']=False
             elif len(config.queue_mp4) < 1 and txt:
                 # peiyin
                 self.main.app_mode = 'peiyin'
+                config.params['is_separate']=False
         if not self.check_mode(txt=txt):
             return False
         # 除了 peiyin  hebing模式，其他均需要检测模型是否存在
@@ -1349,17 +1356,21 @@ class SecWindow():
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
         config.queue_task = []
+        print(config.params['is_separate'])
         # 存在视频
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
-
         elif txt:
             self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.app_mode='peiyin'
+            config.params['is_separate']=False
             if config.params['tts_type']=='clone-voice':
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
                 return
-
+        if config.params['voice_role'] == 'No':
+            config.params['is_separate'] = False
+        print(config.params['is_separate'])
+        # return
         self.main.save_setting()
         self.update_status("ing")
         from videotrans.task.main_worker import Worker
