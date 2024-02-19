@@ -157,6 +157,7 @@ windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then
 
 
 ```
+
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
 ;If you are not sure of the impact of the modification, please do not modify it, please make a backup before modification, and restore it if something goes wrong.
 
@@ -198,8 +199,8 @@ retries=5
 chatgpt_model=gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview
 
 ;When separating the background sound, cut the clip, too long audio will exhaust the memory, so cut it and separate it, unit s, default 1800s, i.e. half an hour.
-;背景音分离时切分片段，太长的音频会耗尽显存，因此切分后分离，单位s,默认 1800s，即半小时
-separate_sec=100
+;背景音分离时切分片段，太长的音频会耗尽显存，因此切分后分离，单位s,默认 600s
+separate_sec=600
 
 ;The number of seconds to pause before subtitle recognition is completed and waiting for translation, and the number of seconds to pause after translation and waiting for dubbing.
 ;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
@@ -246,6 +247,7 @@ temperature=0
 ;Same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs.
 ;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
 condition_on_previous_text=false
+
 
 
 
