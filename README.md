@@ -251,13 +251,14 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 15. 如何切换软件界面语言/中文or英文
 
-软件目录下如果不存在 set.ini 文件则先创建，然后将以下代码粘贴到内，`lang=`后填写语言代码，`zh`代表中文,`en`代表英文，然后重启软件
+打开软件目录下 videotrans/set.ini 文件，然后将 `lang=` 后填写语言代码，`zh`代表中文,`en`代表英文，修改后重启软件
 
 ```
 
-[GUI]
-;GUI show language ,set en or zh  eg.  lang=en
+;The default interface follows the system and can also be specified manually here, zh=Chinese interface, en=English interface.
+;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
 lang =
+
 
 ```
 
