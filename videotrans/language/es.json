@@ -1,5 +1,7 @@
 {
   "translate_language" : {
+	
+    "recogn result is empty": "No subtitle was recognized, please check if it contains human voice and if the voice category matches the original language you chose, if both are normal, please select the 'Preserve background sound' option in the standard function mode and retry",
     "pianduan": " Partment ",
     "Download Models": "Download Models",
     "Start Separate": "Start separation",
@@ -191,6 +193,8 @@
     "shezhijuese" : "Establecer rol "
   },
   "ui_lang" : {
+	"addbackbtn":"Add background music",
+	"back_audio_place":"The full path of the background music, deleting it does not add it",  
     "Download Models": "Download Models",
     "Download cuBLASxx.dll": "Download cuBLASxx.dll",
     "Separate vocal voice": "Separate vocal voice",

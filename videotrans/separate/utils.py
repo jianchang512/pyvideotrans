@@ -46,6 +46,7 @@ def inference(X_spec, device, model, aggressiveness, data,source="logs"):
                     return
                 jd=(i+1)*100/n_window
                 tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%",source)
+                print(f"{config.transobj['Separating background music']} {round(jd,1)}%")
                 start = i * roi_size
                 X_mag_window = X_mag_pad[
                     None, :, :, start : start + data["window_size"]

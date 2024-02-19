@@ -247,6 +247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
+        self.addbackbtn.clicked.connect(self.util.get_background)
 
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
@@ -272,6 +273,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.util.open_youtube)
         self.action_about.triggered.connect(self.util.about)
+        
 
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
         # self.action_biaozhun.setCursor(Qt.PointingHandCursor)

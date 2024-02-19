@@ -149,7 +149,8 @@ def runffmpeg(arg, *, noextname=None,
               disable_gpu=False,  # True=禁止使用GPU解码
               no_decode=config.settings['no_decode'], # False=禁止 h264_cuvid 解码，True=尽量使用硬件解码
               de_format=config.settings['hwaccel_output_format'], # 硬件输出格式，模型cuda兼容性差，可选nv12
-              is_box=False):
+              is_box=False,
+              use_run=False):
     arg_copy=copy.deepcopy(arg)
     cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", "vfr"]
     # 启用了CUDA 并且没有禁用GPU
@@ -165,6 +166,15 @@ def runffmpeg(arg, *, noextname=None,
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
+    print(f'{cmd=}')
+    if use_run:
+        subprocess.run(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         encoding="utf-8",
+                         text=True, 
+                         creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+        return True
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -355,9 +365,6 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
                 st.start(targe_audio,path)
-                # gr = st.uvr(model_name="HP2", save_root=path, inp_path=targe_audio)
-                # print(next(gr))
-                # print(next(gr))
             except Exception as e:
                 msg=f"separate vocal and background music:{str(e)}"
                 set_process(msg)
@@ -455,8 +462,14 @@ def concat_multi_mp4(*, filelist=[], out=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
-    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', f'{config.settings["crf"]}', '-an',
-                      out])
+    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', f'{config.settings["crf"]}', '-an',out])
+    
+# 多个音频片段连接 
+def concat_multi_audio(*, filelist=[], out=None):
+    # 创建txt文件
+    txt = config.TEMP_DIR + f"/{time.time()}.txt"
+    create_concat_txt(filelist, txt)
+    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:a','aac',out],disable_gpu=True)
 
 
 # mp3 加速播放 cuda + h264_cuvid

@@ -1,5 +1,7 @@
 {
   "translate_language": {
+	
+    "recogn result is empty": "没有识别出字幕，请检查是否包含人类说话声音，以及声音类别是否和你选择的原始语言匹配，如果都正常，请在标准功能模式下选择 '保留背景音' 选项重试",
     "pianduan": "片段",
     "Download Models": "下载识别模型",
     "Start Separate": "开始分离",
@@ -191,6 +193,8 @@
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },
   "ui_lang": {
+	"addbackbtn":"添加背景音乐",
+	"back_audio_place":"背景音乐的完整路径，删除则不添加",  
     "Download Models": "下载识别模型",
     "Download cuBLASxx.dll": "下载cuBLASxx.dll",
     "Separate vocal voice": "背景人声分离",

@@ -69,6 +69,8 @@ class Worker(QThread):
             set_process(f"Processing {num}/{task_nums}", 'statusbar')
             try:
                 st = time.time()
+                if len(tasks)<1:
+                    break
                 self.video = tasks.pop(0)
                 config.btnkey=self.video.btnkey
                 set_process(config.transobj['kaishichuli'])
@@ -86,7 +88,8 @@ class Worker(QThread):
                         os.unlink(self.video.novoice_mp4)
                 except:
                     pass
-                config.queue_mp4.pop(0)
+                if len(config.queue_mp4)>0:
+                    config.queue_mp4.pop(0)
             except Exception as e:
                 print(f"mainworker {str(e)}")
                 set_process(f"{str(e)}", 'stop' if str(e)=='stop' else 'error')
