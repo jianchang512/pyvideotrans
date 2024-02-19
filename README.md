@@ -86,6 +86,11 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
+10. Ubuntu 下可能还需要安装 Libxcb 库，安装命令
+	```
+	sudo apt-get update
+	sudo apt-get install libxcb-cursor0
+	```
 
 # 使用方法
 
@@ -156,6 +161,13 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 19. 原音色克隆配音：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
 
 20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
+
+21. 添加背景音乐：该功能和“保留背景音”类似，但实现方式不同，只可在“标准功能模式”和“字幕创建配音”模式下使用。
+“添加背景音乐”是预先从本地计算机中选择一个作为背景声音的音频文件，文件路径显示在右侧文本框中，在处理结束输出结果视频时，将该音频混入，最终生成的视频里会播放该背景音频文件。
+
+如果同时也选中了“保留背景音”，那么原始视频里的背景音也会保留。
+
+添加背景音乐后，如果又不想要了，直接在右侧文本框中删掉显示的内容即可。
 
 
 
