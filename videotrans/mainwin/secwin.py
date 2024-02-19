@@ -94,15 +94,7 @@ class SecWindow():
         return
 
     def is_separate_fun(self, state):
-        # if state and (len(config.queue_mp4) < 1 or self.main.voice_role.currentText() == 'No'):
-        #     pass
-            # config.params['is_separate'] = False
-            # QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukebaoliubeijing'])
-            # self.main.is_separate.setDisabled(True)
-            # self.main.is_separate.setChecked(False)
-        # else:
         config.params['is_separate'] = True if state else False
-        # self.main.is_separate.setDisabled(False)
 
     def check_cuda(self, state):
         import torch
@@ -197,6 +189,9 @@ class SecWindow():
         # 视频自动降速
         self.main.video_autorate.show()
         self.main.is_separate.setDisabled(False)
+        self.main.addbackbtn.setDisabled(False)
+        self.main.back_audio.setReadOnly(False)
+        
         # cuda
         self.main.enable_cuda.show()
 
@@ -253,6 +248,9 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
+        
+        self.main.addbackbtn.setDisabled(True)
+        self.main.back_audio.setReadOnly(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -314,6 +312,9 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
+        
+        self.main.addbackbtn.setDisabled(True)
+        self.main.back_audio.setReadOnly(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -368,6 +369,8 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
+        self.main.addbackbtn.setDisabled(True)
+        self.main.back_audio.setReadOnly(True)
         # cuda
         self.main.enable_cuda.show()
 
@@ -420,6 +423,8 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
+        self.main.addbackbtn.setDisabled(False)
+        self.main.back_audio.setReadOnly(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -431,11 +436,6 @@ class SecWindow():
 
     # voice_autorate video_autorate 变化
     def autorate_changed(self, state, name):
-        # if state:
-        #     if name == 'voice':
-        #         self.main.video_autorate.setChecked(False)
-        #     else:
-        #         self.main.voice_autorate.setChecked(False)
         if name == 'voice':
             config.params['voice_autorate'] = state
         else:
@@ -493,6 +493,8 @@ class SecWindow():
         self.main.video_autorate.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
+        self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
+        self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
 
     def export_sub_fun(self):
         srttxt = self.main.subtitle_area.toPlainText().strip()
@@ -652,7 +654,7 @@ class SecWindow():
 
     def open_separate(self):
         def get_file():
-            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio video", os.path.expanduser('~'),
+            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video", config.last_opendir,
                                                    "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
             if fname:
                 self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -1129,6 +1131,14 @@ class SecWindow():
             config.last_opendir=os.path.dirname(fnames[0])
             self.main.settings.setValue("last_dir", config.last_opendir)
             config.queue_mp4 = fnames
+    # 导入背景声音
+    def get_background(self):
+        fname, _ = QFileDialog.getOpenFileName(self.main, 'Background music', config.last_opendir,
+                                                 "Audio files(*.mp3 *.wav *.flac)")
+        if not fname:
+            return
+        fname = fname.replace('\\', '/')
+        self.main.back_audio.setText(fname)
 
     # 从本地导入字幕文件
     def import_sub_fun(self):
@@ -1357,6 +1367,9 @@ class SecWindow():
                 return False
         config.queue_task = []
         print(config.params['is_separate'])
+        
+        config.params['back_audio']=self.main.back_audio.text().strip()
+        
         # 存在视频
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
@@ -1369,7 +1382,6 @@ class SecWindow():
                 return
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
-        print(config.params['is_separate'])
         # return
         self.main.save_setting()
         self.update_status("ing")
@@ -1519,6 +1531,7 @@ class SecWindow():
             self.main.voice_role.setCurrentText(current)
         elif d['type']=='win':
             #小窗口背景音分离
+            print(f'{d["text"]=}')
             if self.main.sepw is not None:
                 self.main.sepw.set.setText(d['text'])
             

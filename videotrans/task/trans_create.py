@@ -24,7 +24,7 @@ from videotrans.util import tools
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, \
     get_lastjpg_fromvideo, is_novoice_mp4, cut_from_video, get_video_duration, delete_temp, \
     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, create_video_byimg, concat_multi_mp4, \
-    speed_up_mp3, backandvocal, cut_from_audio, get_clone_role
+    speed_up_mp3, backandvocal, cut_from_audio, get_clone_role,get_audio_time,concat_multi_audio
 
 
 class TransCreate():
@@ -50,8 +50,13 @@ class TransCreate():
         }
         '''
         self.video_info = None
+        self.del_sourcemp4=False
 
         # 没有视频，是根据字幕生成配音
+        if config.params['back_audio'] and os.path.exists(config.params['back_audio']):
+            self.background_music=config.params['back_audio']
+        else:
+            self.background_music=None
         if not self.source_mp4 or self.app_mode=='peiyin':
             self.source_mp4=''
             self.noextname = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -64,10 +69,8 @@ class TransCreate():
             if rs:
                 self.source_mp4=newmp4
                 self.noextname=basename
-            if config.params['target_dir']:
-                rs,newdir,_=tools.rename_move(config.params['target_dir'],is_dir=True)
-                if rs:
-                    config.params['target_dir']=newdir
+                self.del_sourcemp4=True
+            
 
             if self.app_mode not in ['tiqu','tiqu_no']:
                 # 不是mp4，先转为mp4
@@ -95,12 +98,21 @@ class TransCreate():
             self.btnkey = self.source_mp4
         else:
             self.btnkey = "srt2wav"
+        
+        if config.params['target_dir']:
+            rs,newdir,_=tools.rename_move(config.params['target_dir'],is_dir=True)
+            if rs:
+                config.params['target_dir']=newdir
+                set_process(config.transobj['qianyiwenjian'],'rename')
 
         if not config.params['target_dir']:
             self.target_dir = f"{homedir}/only_dubbing" if not self.source_mp4 else (
                     os.path.dirname(self.source_mp4) + "/_video_out")
         else:
             self.target_dir = config.params['target_dir']
+        
+        
+        
         # 全局目标，用于前台打开
         self.target_dir = self.target_dir.replace('\\', '/').replace('//', '/')
         config.params['target_dir'] = self.target_dir
@@ -143,7 +155,12 @@ class TransCreate():
         self.targetdir_target_sub = f"{self.target_dir}/{self.target_language_code}.srt"
         # 原wav和目标音频
         self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.m4a"
+        # 配音后的音频文件
         self.targetdir_target_wav = f"{self.target_dir}/{self.target_language_code}.m4a"
+        # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
+        if config.params['voice_role']!='No' and self.source_language_code==self.target_language_code:
+            self.targetdir_target_wav = f"{self.target_dir}/{self.target_language_code}-dubbing.m4a"
+
         self.targetdir_mp4 = f"{self.target_dir}/{self.noextname}.mp4"
 
         # 分离出的原始音频文件
@@ -226,6 +243,11 @@ class TransCreate():
         self.hebing()
         self.step = 'compos_end'
         set_process('','allow_edit')
+        if self.del_sourcemp4:
+            try:
+                os.unlink(self.source_mp4)
+            except:
+                pass
 
     # 分离音频 和 novoice.mp4
     def split_wav_novicemp4(self):
@@ -292,7 +314,7 @@ class TransCreate():
                 msg=f'【缺少cuBLAS.dll】请点击菜单栏-帮助支持-下载cublasxx.dll ' if config.defaulelang=='zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll '
             raise Exception(f'{msg}')
         if not raw_subtitles or len(raw_subtitles)<1:
-            raise Exception(f'[error]:recogn result is empty')
+            raise Exception(config.transobj['recogn result is empty'])
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
     # 翻译字幕
@@ -446,7 +468,12 @@ class TransCreate():
         try:
             wavfile = self.cache_folder + "/target.wav"
             merged_audio.export(wavfile, format="wav")
-            wav2m4a(wavfile, self.targetdir_target_wav)
+            
+            if not self.source_mp4 and self.background_music and os.path.exists(self.background_music):
+                cmd = ['-y', '-i', wavfile, '-i', self.background_music, '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', self.targetdir_target_wav]
+                runffmpeg(cmd)
+            else:
+                wav2m4a(wavfile, self.targetdir_target_wav)
         except Exception as e:
             raise Exception(f'[error]merge_audio:{str(e)}')
         return merged_audio
@@ -581,10 +608,6 @@ class TransCreate():
                     continue
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
-                #如果设置了 音频自动加速 and 设置了视频降速,间距分为一半
-                if diff>0 and config.params['voice_autorate'] and config.params['video_autorate']:
-                    diff=int(diff/2)
-
                 # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
                 if config.params["voice_autorate"]:
                     if diff > 0:
@@ -895,174 +918,224 @@ class TransCreate():
         self.merge_audio_segments(segments, start_times, source_mp4_total_length + offset)
         return True
 
+
+    def _back_music(self):
+        if config.params['voice_role'] != 'No' and os.path.exists(
+                self.targetdir_target_wav) and self.background_music and os.path.exists(self.background_music):
+            try:
+                # 获取视频长度
+                vtime = get_video_info(self.novoice_mp4, video_time=True)
+                vtime /= 1000
+                # 获取音频长度
+                atime = get_audio_time(self.background_music)
+                # 转为m4a
+                if not self.background_music.lower().endswith('.m4a'):
+                    tmpm4a = self.cache_folder + f"/background_music-1.m4a"
+                    wav2m4a(self.background_music, tmpm4a)
+                    self.background_music = tmpm4a
+                if atime + 1 < vtime:
+                    # 获取延长片段
+                    cmd = ['-y', '-i', self.background_music, '-ss', '00:00:00', '-t', f'{round(vtime - atime, 1)}', self.cache_folder + "/yanchang.m4a"]
+                    runffmpeg(cmd)
+                    # 背景音频连接延长片段
+                    concat_multi_audio(filelist=[self.background_music, self.cache_folder + "/yanchang.m4a"],
+                                       out=self.cache_folder + "/background_music-2.m4a")
+                    self.background_music = self.cache_folder + "/background_music-2.m4a"
+                #背景音频降低音量
+                runffmpeg(['-y', '-i', self.background_music, "-filter:a", "volume=0.8", '-c:a', 'aac', self.cache_folder + f"/background_music-3.m4a"])
+                #背景音频和配音合并
+                cmd = ['-y', '-i', self.cache_folder + f"/background_music-3.m4a", '-i', self.targetdir_target_wav, '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', self.cache_folder + f"/lastend.m4a"]
+                runffmpeg(cmd)
+                self.targetdir_target_wav = self.cache_folder + f"/lastend.m4a"
+            except Exception as e:
+                logger.error(f'添加背景音乐失败:{str(e)}')
+
+    def _separate(self):
+        if config.params['is_separate'] and os.path.exists(self.targetdir_target_wav):
+            try:
+                # 原始背景音乐 wav,和配音后的文件m4a合并
+                # 获取视频长度
+                vtime = get_video_info(self.novoice_mp4, video_time=True)
+                vtime /= 1000
+                # 获取音频长度
+                atime = get_audio_time(self.targetdir_source_instrument)
+                if atime + 1 < vtime:
+                    #延长背景音
+                    cmd = ['-y', '-i', self.targetdir_source_instrument, '-ss', '00:00:00', '-t',
+                           f'{round(vtime - atime, 1)}', self.cache_folder + "/yanchang.m4a"]
+                    runffmpeg(cmd)
+                    #背景音连接延长片段
+                    concat_multi_audio(filelist=[self.targetdir_source_instrument, self.cache_folder + "/yanchang.m4a"], out=self.cache_folder + f"/instrument-2.m4a")
+
+                    self.targetdir_source_instrument = self.cache_folder + f"/instrument-2.m4a"
+                #背景音合并配音
+                backandvocal(self.targetdir_source_instrument, self.targetdir_target_wav)
+            except Exception as e:
+                logger.error('合并原始背景失败' + config.transobj['Error merging background and dubbing'] + str(e))
+
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
     def compos_video(self):
-        # 判断novoice_mp4是否完成
-        if not is_novoice_mp4(self.novoice_mp4, self.noextname):
-            raise Myexcept("not novoice mp4")
-        # 需要配音,选择了角色，并且不是 提取模式 合并模式
-        if config.params['voice_role'] != 'No' and self.app_mode not in ['tiqu', 'tiqu_no', 'hebing']:
-            if not os.path.exists(self.targetdir_target_wav):
-                raise Myexcept(f"[error] not exists:{self.targetdir_target_wav}")
-        # 需要字幕
-        if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
-            raise Myexcept(f"[error]not exist srt: {self.targetdir_target_sub}")
-        if self.precent < 95:
-            self.precent += 1
-        if config.params['subtitle_type'] == 1:
-            # 硬字幕 重新整理字幕，换行
-            try:
-                subs = get_subtitle_from_srt(self.targetdir_target_sub)
-            except Exception as e:
-                raise Myexcept(f'[error]Subtitles error:{str(e)}')
+        if self.app_mode not in ['tiqu', 'tiqu_no', 'peiyin']:
+            # 判断novoice_mp4是否完成
+            if not is_novoice_mp4(self.novoice_mp4, self.noextname):
+                raise Myexcept("not novoice mp4")
+            # 需要配音,选择了角色，并且不是 提取模式 合并模式
+            if config.params['voice_role'] != 'No' and self.app_mode not in ['tiqu', 'tiqu_no', 'hebing']:
+                if not os.path.exists(self.targetdir_target_wav):
+                    raise Myexcept(f"[error] not exists:{self.targetdir_target_wav}")
+            # 需要字幕
+            if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
+                raise Myexcept(f"[error]not exist srt: {self.targetdir_target_sub}")
+            if self.precent < 95:
+                self.precent += 1
+            if config.params['subtitle_type'] == 1:
+                # 硬字幕 重新整理字幕，换行
+                try:
+                    subs = get_subtitle_from_srt(self.targetdir_target_sub)
+                except Exception as e:
+                    raise Myexcept(f'[error]Subtitles error:{str(e)}')
 
-            maxlen = 36 if config.params['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
-            subtitles = ""
-            for it in subs:
-                it['text'] = textwrap.fill(it['text'], maxlen)
-                subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-            with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
-                f.write(subtitles.strip())
-            if sys.platform == 'win32':
-                shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
-                os.chdir(config.rootdir)
-                hard_srt = "tmp.srt"
-            else:
-                hard_srt = self.targetdir_target_sub
-        if self.precent < 99:
-            self.precent += 1
-        # 有字幕有配音
-        # 如果有配音，有背景音，则合并
-        if config.params['is_separate'] and os.path.exists(self.targetdir_target_wav):
-            # 原始背景音乐 wav,和配音后的文件m4a合并
-            try:
-                backandvocal(self.targetdir_source_instrument,self.targetdir_target_wav)
-            except Exception as e:
-                raise Exception(config.transobj['Error merging background and dubbing']+str(e))
-
-        rs = False
-        try:
-            if config.params['voice_role'] !=  'No' and config.params['subtitle_type'] > 0:
-                if config.params['subtitle_type'] == 1:
-                    set_process(transobj['peiyin-yingzimu'])
-                    # 需要配音+硬字幕
-                    rs = runffmpeg([
-                        "-y",
-                        "-i",
-                        os.path.normpath(self.novoice_mp4),
-                        "-i",
-                        os.path.normpath(self.targetdir_target_wav),
-                        '-filter_complex', "[1:a]apad",
-                        "-c:v",
-                        "libx264",
-                        "-c:a",
-                        "aac",
-                        "-vf",
-                        f"subtitles={hard_srt}",
-                        "-shortest",
-                        os.path.normpath(self.targetdir_mp4),
-                    ], de_format="nv12")
+                maxlen = 36 if config.params['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+                subtitles = ""
+                for it in subs:
+                    it['text'] = textwrap.fill(it['text'], maxlen)
+                    subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
+                with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
+                    f.write(subtitles.strip())
+                if sys.platform == 'win32':
+                    shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
+                    os.chdir(config.rootdir)
+                    hard_srt = "tmp.srt"
                 else:
-                    set_process(transobj['peiyin-ruanzimu'])
-                    # 配音+软字幕
+                    hard_srt = self.targetdir_target_sub
+            if self.precent < 99:
+                self.precent += 1
+            # 有字幕有配音               
+            self._back_music()
+            self._separate()
+            rs = False
+            try:
+                if config.params['voice_role'] !=  'No' and config.params['subtitle_type'] > 0:
+                    if config.params['subtitle_type'] == 1:
+                        set_process(transobj['peiyin-yingzimu'])
+                        # 需要配音+硬字幕
+                        rs = runffmpeg([
+                            "-y",
+                            "-i",
+                            os.path.normpath(self.novoice_mp4),
+                            "-i",
+                            os.path.normpath(self.targetdir_target_wav),
+                            '-filter_complex', "[1:a]apad",
+                            "-c:v",
+                            "libx264",
+                            "-c:a",
+                            "aac",
+                            "-vf",
+                            f"subtitles={hard_srt}",
+                            "-shortest",
+                            os.path.normpath(self.targetdir_mp4),
+                        ], de_format="nv12")
+                    else:
+                        set_process(transobj['peiyin-ruanzimu'])
+                        # 配音+软字幕
+                        rs = runffmpeg([
+                            "-y",
+                            "-i",
+                            os.path.normpath(self.novoice_mp4),
+                            "-i",
+                            os.path.normpath(self.targetdir_target_wav),
+                            # "-sub_charenc",
+                            # "UTF-8",
+                            # "-f",
+                            # "srt",
+                            "-i",
+                            os.path.normpath(self.targetdir_target_sub),
+                            '-filter_complex', "[1:a]apad",
+                            "-c:v",
+                            "copy",
+                            # "libx264",
+                            "-c:a",
+                            "aac",
+                            "-c:s",
+                            "mov_text",
+                            "-metadata:s:s:0",
+                            f"language={config.params['subtitle_language']}",
+                            "-shortest",
+                            os.path.normpath(self.targetdir_mp4)
+                        ])
+                elif config.params['voice_role'] != 'No':
+                    # 配音无字幕
+                    set_process(transobj['onlypeiyin'])
                     rs = runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(self.novoice_mp4),
                         "-i",
                         os.path.normpath(self.targetdir_target_wav),
-                        # "-sub_charenc",
-                        # "UTF-8",
-                        # "-f",
-                        # "srt",
-                        "-i",
-                        os.path.normpath(self.targetdir_target_sub),
                         '-filter_complex', "[1:a]apad",
                         "-c:v",
                         "copy",
                         # "libx264",
                         "-c:a",
                         "aac",
-                        "-c:s",
-                        "mov_text",
-                        "-metadata:s:s:0",
-                        f"language={config.params['subtitle_language']}",
+                        # "pcm_s16le",
                         "-shortest",
                         os.path.normpath(self.targetdir_mp4)
                     ])
-            elif config.params['voice_role'] != 'No':
-                # 配音无字幕
-                set_process(transobj['onlypeiyin'])
-                rs = runffmpeg([
-                    "-y",
-                    "-i",
-                    os.path.normpath(self.novoice_mp4),
-                    "-i",
-                    os.path.normpath(self.targetdir_target_wav),
-                    '-filter_complex', "[1:a]apad",
-                    "-c:v",
-                    "copy",
-                    # "libx264",
-                    "-c:a",
-                    "aac",
-                    # "pcm_s16le",
-                    "-shortest",
-                    os.path.normpath(self.targetdir_mp4)
-                ])
-            # 无配音 使用 novice.mp4 和 原始 wav合并
-            elif config.params['subtitle_type'] == 1:
-                set_process(transobj['onlyyingzimu'])
-                cmd = [
-                    "-y",
-                    "-i",
-                    os.path.normpath(self.novoice_mp4)
-                ]
-                if os.path.exists(self.targetdir_source_wav):
-                    cmd.append('-i')
-                    cmd.append(os.path.normpath(self.targetdir_source_wav))
-                cmd.append('-c:v')
-                cmd.append('libx264')
-                if os.path.exists(self.targetdir_source_wav):
-                    cmd.append('-c:a')
-                    cmd.append('aac')
-                cmd += [
-                    "-vf",
-                    f"subtitles={hard_srt}",
-                    os.path.normpath(self.targetdir_mp4),
-                ]
-                rs = runffmpeg(cmd, de_format="nv12")
-            elif config.params['subtitle_type'] == 2:
-                # 软字幕无配音
-                set_process(transobj['onlyruanzimu'])
-                cmd = [
-                    "-y",
-                    "-i",
-                    os.path.normpath(self.novoice_mp4)
-                ]
-                if os.path.exists(self.targetdir_source_wav):
-                    cmd.append("-i")
-                    cmd.append(os.path.normpath(self.targetdir_source_wav))
-                cmd += [
-                    # "-sub_charenc",
-                    # "UTF-8",
-                    # "-f",
-                    # "srt",
-                    "-i",
-                    os.path.normpath(self.targetdir_target_sub),
-                    "-c:v",
-                    "copy"]
-                if os.path.exists(self.targetdir_source_wav):
-                    cmd.append('-c:a')
-                    cmd.append('aac')
-                cmd += ["-c:s",
-                        "mov_text",
-                        "-metadata:s:s:0",
-                        f"language={config.params['subtitle_language']}",
-                        os.path.normpath(self.targetdir_mp4)
-                        ]
-                rs = runffmpeg(cmd)
-        except Exception as e:
-            raise Myexcept(f'[error] compos error:{str(e)}')
+                # 无配音 使用 novice.mp4 和 原始 wav合并
+                elif config.params['subtitle_type'] == 1:
+                    set_process(transobj['onlyyingzimu'])
+                    cmd = [
+                        "-y",
+                        "-i",
+                        os.path.normpath(self.novoice_mp4)
+                    ]
+                    if os.path.exists(self.targetdir_source_wav):
+                        cmd.append('-i')
+                        cmd.append(os.path.normpath(self.targetdir_source_wav))
+                    cmd.append('-c:v')
+                    cmd.append('libx264')
+                    if os.path.exists(self.targetdir_source_wav):
+                        cmd.append('-c:a')
+                        cmd.append('aac')
+                    cmd += [
+                        "-vf",
+                        f"subtitles={hard_srt}",
+                        os.path.normpath(self.targetdir_mp4),
+                    ]
+                    rs = runffmpeg(cmd, de_format="nv12")
+                elif config.params['subtitle_type'] == 2:
+                    # 软字幕无配音
+                    set_process(transobj['onlyruanzimu'])
+                    cmd = [
+                        "-y",
+                        "-i",
+                        os.path.normpath(self.novoice_mp4)
+                    ]
+                    if os.path.exists(self.targetdir_source_wav):
+                        cmd.append("-i")
+                        cmd.append(os.path.normpath(self.targetdir_source_wav))
+                    cmd += [
+                        # "-sub_charenc",
+                        # "UTF-8",
+                        # "-f",
+                        # "srt",
+                        "-i",
+                        os.path.normpath(self.targetdir_target_sub),
+                        "-c:v",
+                        "copy"]
+                    if os.path.exists(self.targetdir_source_wav):
+                        cmd.append('-c:a')
+                        cmd.append('aac')
+                    cmd += ["-c:s",
+                            "mov_text",
+                            "-metadata:s:s:0",
+                            f"language={config.params['subtitle_language']}",
+                            os.path.normpath(self.targetdir_mp4)
+                            ]
+                    rs = runffmpeg(cmd)
+            except Exception as e:
+                raise Myexcept(f'[error] compos error:{str(e)}')
         if self.precent < 100:
             self.precent = 99
         try:
@@ -1079,7 +1152,6 @@ class TransCreate():
 {self.target_language_code}.srt = 翻译为目标语言后字幕文件
 vocal.wav = 原始视频中分离出的人声音频文件
 instrument.wav = 原始视频中分离出的背景音乐音频文件
-tmp=临时文件夹
 
 
 如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎各位小额赞助，有了一定资金支持，我将能够持续投入更多时间和精力

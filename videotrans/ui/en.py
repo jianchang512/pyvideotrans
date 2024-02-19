@@ -297,6 +297,32 @@ class Ui_MainWindow(object):
         self.gaoji_layout_wrap.setObjectName("gaoji_layout_wrap")
         self.gaoji_layout_inner = QtWidgets.QHBoxLayout()
         self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
+        
+        self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
+        self.gaoji_layout_inner2.setObjectName("gaoji_layout_inner2")
+        self.addbackbtn=QtWidgets.QPushButton(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.addbackbtn.sizePolicy().hasHeightForWidth())
+        self.addbackbtn.setSizePolicy(sizePolicy)
+        self.addbackbtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.addbackbtn.setObjectName("addbackbtn")
+        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
+        
+        self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.back_audio.sizePolicy().hasHeightForWidth())
+        self.back_audio.setSizePolicy(sizePolicy)
+        self.back_audio.setMinimumSize(QtCore.QSize(0, 30))
+        self.back_audio.setObjectName("back_audio")
+        self.gaoji_layout_inner2.addWidget(self.back_audio)
+        
+        
+        
+        
         self.layout_voice_silence = QtWidgets.QFormLayout()
         self.layout_voice_silence.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.layout_voice_silence.setObjectName("layout_voice_silence")
@@ -351,7 +377,10 @@ class Ui_MainWindow(object):
 
 
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
+        self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner2)
         self.verticalLayout_2.addLayout(self.gaoji_layout_wrap)
+        
+        
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
         self.show_tips.setText("")
@@ -688,6 +717,8 @@ class Ui_MainWindow(object):
         self.is_separate.setText(config.uilanglist.get("Preserve background music"))
         self.is_separate.setToolTip(config.uilanglist.get("If retained, the required time may be longer, please be patient and wait"))
         self.startbtn.setText(config.uilanglist.get("Start"))
+        self.addbackbtn.setText(config.uilanglist.get("addbackbtn"))
+        self.back_audio.setPlaceholderText(config.uilanglist.get("back_audio_place"))
         self.stop_djs.setText(config.uilanglist.get("Pause"))
         self.import_sub.setText(config.uilanglist.get("Import srt"))
         self.listen_peiyin.setText(config.uilanglist.get("Train voice"))

@@ -123,7 +123,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
                                            best_of=config.settings['best_of'],
                                            condition_on_previous_text=config.settings['condition_on_previous_text'],
                                            temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
-                                           language=detect_language)
+                                           language=detect_language,initial_prompt=None if detect_language!='zh' else '转录为简体中文。')
             for t in segments:
                 text += t.text + " "
         except Exception as e:
@@ -185,12 +185,13 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
-                                          vad_filter=config.settings['vad'],
 
                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
+                                          vad_filter= True,#config.settings['vad'],
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
-                                              max_speech_duration_s=12), language=detect_language)
+                                              max_speech_duration_s=11.5
+                                           ), language=detect_language,initial_prompt=None if detect_language!='zh' else '转录为简体中文。')
 
         # 保留原始语言的字幕
         raw_subtitles = []
