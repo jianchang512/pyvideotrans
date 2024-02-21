@@ -118,12 +118,14 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
    整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
 
     [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
-    
-    下载后解压，将压缩包内的"models--Systran--faster-whisper-xx"文件夹复制到models目录内，解压复制后 models 目录下文件夹列表如下
 
+    **特别注意**
+
+    faster模型：如果下载的是faster模型，下载后解压，将压缩包内的"models--Systran--faster-whisper-xx"文件夹复制到models目录内，解压复制后 models 目录下文件夹列表如下
     ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
 
-    [FFmepg下载(编译版已自带)](https://www.ffmpeg.org/)
+    openai模型：如果下载的是openai模型，下载后直接将里面的 .pt 文件复制到 models文件夹下即可。
+
 
 9. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 
@@ -193,15 +195,28 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
    C: GPU下对视频进行硬件解码编码对数据正确性要求严格，容错率几乎为0，任何一点错误都会导致失败，加上显卡型号、驱动版本、CUDA版本、ffmpeg版本不同版本之间的差异等，导致很容易出现兼容性错误。目前加了回退，GPU上失败后自动使用CPU软件编解码。失败时logs目录下日志里会记录出错信息。
 
-5. 提示模型不存在
+5. 提示模型不存在?
 
-   在 0.985 版本之后，模型需要重新安装，models目录下是各个模型的文件夹，而不是pt文件。
-   要使用base模型，要保证 models/models--Systran--faster-whisper-base 文件夹存在，如果不存在，需要下载后将该文件夹复制到 models下。
-   要使用small模型，要保证 models/models--Systran--faster-whisper-small 文件夹存在，如果不存在，需要下载后将该文件夹复制到 models下。
-   要使用medium模型，要保证 models/models--Systran--faster-whisper-medium 文件夹存在，如果不存在，需要下载后将该文件夹复制到 models下。
-   要使用large-v3模型，要保证 models/models--Systran--faster-whisper-large-v3 文件夹存在，如果不存在，需要下载后将该文件夹复制到 models下。
+    [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
 
-   [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
+    **模型分为两类：**
+
+    一类是适用于“faster模型”的。
+
+    下载解压后，会看到文件夹，类似 “models--Systran--faster-whisper-xxx”形式的，xxx代表模型名，比如 base/small/medium/large-v3等，解压后直接将该文件夹复制到此目录下即可。
+
+    如果所有faster模型下载后，当前models文件夹下应该能看到这几个文件夹
+
+    models--Systran--faster-whisper-base
+    models--Systran--faster-whisper-small
+    models--Systran--faster-whisper-medium
+    models--Systran--faster-whisper-large-v2
+    models--Systran--faster-whisper-large-v3
+
+
+    另一类是适用于"openai模型的"，下载解压后，直接就是 xx.pt 文件，比如 base.pt/small.pt,/medium.pt/large-v3.pt, 直接将该pt文件复制到此文件夹内即可。
+
+    如果所有openai模型下载后，当前models文件夹下应该能直接看到 base.pt, small.pt, medium.pt, large-v1.pt, large-v3.pt
 
 6. 提示目录不存在或权限错误
 

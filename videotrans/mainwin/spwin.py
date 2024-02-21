@@ -96,8 +96,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         # 目标语言改变
-
-        self.listen_btn.hide()
         self.listen_btn.setCursor(Qt.PointingHandCursor)
 
         #  translation type
@@ -109,8 +107,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split']])
         if config.params['whisper_type']:
             self.whisper_type.setCurrentIndex(0 if config.params['whisper_type'] == 'all' else 1)
-        self.whisper_model.addItems(['base', 'small', 'medium', 'large-v3'])
+        self.whisper_model.addItems(['base', 'small', 'medium','large-v2','large-v3'])
         self.whisper_model.setCurrentText(config.params['whisper_model'])
+        if config.params['model_type']=='openai':
+            self.model_type.setCurrentIndex(1)
+        if config.params['only_video']:
+            self.only_video.setChecked(True)
+
 
         #
         self.voice_rate.setText(config.params['voice_rate'])
@@ -210,6 +213,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             #设置默认角色列表
             if config.params['voice_role'] and config.params['voice_role']!='No' and self.current_rolelist and config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
+                self.util.show_listen_btn(config.params['voice_role'])
 
         # menubar
         self.import_sub.clicked.connect(self.util.import_sub_fun)
@@ -240,6 +244,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_type.currentIndexChanged.connect(self.util.check_whisper_type)
 
         self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
+        self.model_type.currentTextChanged.connect(self.util.model_type_change)
         self.voice_rate.textChanged.connect(self.util.voice_rate_changed)
         self.voice_autorate.stateChanged.connect(
             lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
@@ -392,8 +397,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'], str)
         config.params['voice_silence'] = self.settings.value("voice_silence", config.params['voice_silence'], str)
         config.params['cuda'] = self.settings.value("cuda", False, bool)
+        config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
         config.params['whisper_type'] = self.settings.value("whisper_type", config.params['whisper_type'], str)
+        config.params['model_type'] = self.settings.value("model_type", config.params['model_type'], str)
         config.params['tts_type'] = self.settings.value("tts_type", config.params['tts_type'], str)
         if not config.params['tts_type']:
             config.params['tts_type'] = 'edgeTTS'
@@ -406,6 +413,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("proxy", config.proxy)
         self.settings.setValue("whisper_model", config.params['whisper_model'])
         self.settings.setValue("whisper_type", config.params['whisper_type'])
+        self.settings.setValue("model_type", config.params['model_type'])
         self.settings.setValue("voice_rate", config.params['voice_rate'])
         self.settings.setValue("voice_role", config.params['voice_role'])
         self.settings.setValue("voice_silence", config.params['voice_silence'])
@@ -413,7 +421,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("subtitle_type", config.params['subtitle_type'])
         self.settings.setValue("translate_type", config.params['translate_type'])
-        self.settings.setValue("enable_cuda", config.params['cuda'])
+        self.settings.setValue("cuda", config.params['cuda'])
+        self.settings.setValue("only_video", config.params['only_video'])
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])

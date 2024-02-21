@@ -47,7 +47,8 @@ def parse_init():
         "chatgpt_model":"gpt-3.5-turbo,gpt-4",
         "separate_sec":1800,
         "audio_rate":0,
-        "video_rate":0
+        "video_rate":0,
+        "initial_prompt_zh":""
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -70,7 +71,7 @@ def parse_init():
                 elif value.lower() == 'false':
                     settings[key] = False
                 else:
-                    settings[key] = str(value.lower())
+                    settings[key] = str(value.lower()) if value else None
     return settings
 
 
@@ -143,8 +144,23 @@ params = {
     "voice_role": "No",
     "voice_rate": "+0%",
 
-    "listen_text_cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
+    "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
+    "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
     "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
+    "listen_text_fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
+    "listen_text_de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",
+    "listen_text_ja": "こんにちは私の親愛なる友人。 あなたの毎日が美しく楽しいものでありますように！",
+    "listen_text_ko": "안녕, 내 사랑하는 친구. 당신의 매일이 아름답고 즐겁기를 바랍니다!",
+    "listen_text_ru": "Привет, мой дорогой друг. Желаю, чтобы каждый твой день был прекрасен и приятен!",
+    "listen_text_es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
+    "listen_text_th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
+    "listen_text_it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
+    "listen_text_pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
+    "listen_text_vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
+    "listen_text_ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
+    "listen_text_tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
+    "listen_text_hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
+    "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
     "tts_type_list": ["edgeTTS", "clone-voice","openaiTTS", "elevenlabsTTS"],
@@ -152,6 +168,8 @@ params = {
     "voice_silence": 500,
     "whisper_type": "all",
     "whisper_model": "base",
+    "model_type":"faster",
+    "only_video":False,
     "translate_type": "google",
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,

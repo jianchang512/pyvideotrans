@@ -106,10 +106,14 @@ windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then
    Whole recognition / pre-segmentation: whole recognition refers to directly sending the whole voice file to the model for processing, segmentation may be more accurate, but it may also make a single subtitle of 30s length, suitable for audio with clear silence; pre-segmentation refers to the audio in advance It is cut into about 10s length and then sent to the model for processing separately.
 
     [download models](https://github.com/jianchang512/stt/releases/tag/0.0)
-    
-    [VLC decoder download](https://www.videolan.org/vlc/)
 
-    [FFmepg download (compiled version included)](https://www.ffmpeg.org/)
+    **Special Note**
+
+    Master model: If you download the master model, unzip it after downloading and copy the "models--Systran--faster-whisper-xx" folder into the models directory, the list of folders in the models directory after unzipping and copying is as follows
+    ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
+
+    Openai models: If you download openai models, you can copy the .pt file directly to the models folder.
+
 
 9. Dubbing speed: Fill in a number between -90 and +90, the same sentence under different language voices, the required time is different, so after dubbing, the sound and picture subtitles may be out of sync, you can adjust the language speed here, negative numbers represent Slow down, positive numbers represent accelerated playback.
 
@@ -279,10 +283,27 @@ condition_on_previous_text=false
 
 5. Prompting that the model does not exist.
 
-   After version 0.985, the model needs to be reinstalled. The folder under models directory is the folder of each model, not just pt files.
-To use the base model, ensure that the models/models--Systran--faster-whisper-base directory exists. If it does not, download it and copy this directory to models. Similarly for small, medium, and large-v3 models.
+   [Address for all model downloads](https://github.com/jianchang512/stt/releases/tag/0.0)
 
-   [Complete model download link](https://github.com/jianchang512/stt/releases/tag/0.0)
+    **The models are divided into two categories:**
+
+    One is for "Faster Models".
+
+    After downloading and unzipping, you will see a folder like "models--Systran--faster-whisper-xxx", xxx stands for the model name, such as base/small/medium/large-v3, etc. After unzipping, you can directly copy the folder to this directory. After unzipping, copy the folder directly to this directory.
+
+    If all the master models are downloaded, you should see these folders under the current models folder
+
+    models--Systran--faster-whisper-base
+    models--Systran--faster-whisper-small
+    models--Systran--faster-whisper-medium
+    models--Systran--faster-whisper-large-v2
+    models--Systran-faster-whisper-large-v3
+
+
+    The other type is for "openai models", after downloading and unzipping, it is directly xx.pt file, such as base.pt/small.pt,/medium.pt/large-v3.pt, directly copy the pt file to this folder.
+
+    If all openai models are downloaded, you should see base.pt, small.pt, medium.pt, large-v1.pt, large-v3.pt directly in the current models folder.
+
 
 6. Prompting the directory does not exist or permission error.
 

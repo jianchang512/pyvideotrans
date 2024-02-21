@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "openaimodelnot": "你选择的是openai模型{name}，但该{name}模型不存在，请点击菜单栏-帮助支持-下载识别模型,下载后将pt文件放在models文件夹内",
 	
     "recogn result is empty": "没有识别出字幕，请检查是否包含人类说话声音，以及声音类别是否和你选择的原始语言匹配，如果都正常，请在标准功能模式下选择 '保留背景音' 选项重试",
     "pianduan": "片段",
@@ -39,7 +40,7 @@
     "lanjie": "已限制",
 	"The ott project at":"OTT离线文字翻译地址: github.com/jianchang512/ott",  
     "No select videos": "尚未选择视频",
-    "You must deploy and start the clone-voice service": "必须部署并启动github.com/jianchang512/clone-voice服务，将地址填写在菜单栏-设置-clone-voice中",
+    "You must deploy and start the clone-voice service": "必须部署并启动github.com/jianchang512/clone-voice服务，将地址填写在菜单栏-设置-原音色克隆",
     "cannot connection to clone-voice service": "无法连接到clone-voice服务，你必须部署并启动github.com/jianchang512/clone-voice服务，将地址填写在菜单栏-设置-cloneVoice中",
     "test clone voice": "正在测试能否连接到clone-voice服务",
     "The project at": "clone-voice声音克隆地址: github.com/jianchang512/clone-voice",
@@ -62,7 +63,7 @@
     "error": "出错停止(点击重新开始)",
     "subtitleandvoice_role": "你没有选择视频，只输入了字幕，将仅仅创建配音wav文件，请确认继续？",
     "waitrole": "正在获取可用配音角色，请稍等重新选择",
-    "downloadmodel": "模型不存在，请点击菜单栏-帮助支持-下载识别模型",
+    "downloadmodel": "你当前使用的是faster模型{name}，但该{name}模型不存在，请点击菜单栏-帮助支持-下载识别模型",
     "modelpathis": "当前模型路径是:",
     "modellost": "模型下载出错或者下载不完整，请重新下载后存放到 models 目录下",
     "embedsubtitle": "硬字幕嵌入",
@@ -101,7 +102,9 @@
     "shitingpeiyin": "试听配音",
     "xianqidongrenwu": "先启动任务，待字幕翻译完成后可试听,配音速度、自动加速实时修改生效",
     "juanzhu": " 请考虑捐助软件，帮助软件保持更新维护！ ",
-    "nocuda": "你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，可去仓库说明页面查看安装方法,然后重启软件",
+    "nocuda": "你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，点击菜单栏-帮助支持-CUDA help",
+    "nocudnn": "你的设备没有安装配置cuDNN，请参考 https://juejin.cn/post/7318704408727519270#heading-1 安装，然后重启软件",
+    "cudatips": "如果有英伟达显卡并且配置好了CUDA环境，可启用，将极大提升执行速度",
     "noselectrole": "未选择角色，不可试听",
     "chongtingzhong": "重听中",
     "shitingzhong": "试听中/点击重听",
@@ -193,6 +196,9 @@
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },
   "ui_lang": {
+    "onlyvideo": "仅保存视频",
+    "onlyvideo_tips": "如果选中该项，将不保留字幕、音频等素材，仅保存最终生成的视频文件",
+    "model_type_tips": "faster模型更快更节省资源，但除cuda外还需要再安装配置cudnn和cublas\nopenai模型执行较慢也更耗资源，但仅需安装cuda",
 	"addbackbtn":"添加背景音乐",
 	"back_audio_place":"背景音乐的完整路径，删除则不添加",  
     "Download Models": "下载识别模型",
@@ -275,7 +281,9 @@
     "Text  Or Srt  Translation": "文本字幕翻译",
     "Translate text or subtitles": "将文字或者字幕进行翻译",
     "Download from Youtube": "下载油管视频",
-    "Whisper model": "语音模型"
+    "Whisper model": "语音模型",
+    "faster model": "faster模型",
+    "openai model": "openai模型"
   },
   "toolbox_lang": {
     "import audio or video": "导入音视频文件",
