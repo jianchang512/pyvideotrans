@@ -92,6 +92,11 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 	sudo apt-get install libxcb-cursor0
 	```
 
+11. Mac下可能需要执行`
+brew install libsndfile`安装libsndfile
+
+
+
 # 使用方法
 
 1. 原始视频：点击选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
