@@ -36,7 +36,7 @@ class CheckUpdateWorker(QThread):
                         time.sleep(5)
                 return True
         except Exception as e:
-            print(e)
+            pass
         return False
 
     def run(self):

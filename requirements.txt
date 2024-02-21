@@ -85,6 +85,7 @@ numpy==1.26.0
 oauthlib==3.2.2
 onnxruntime==1.16.1
 openai==1.2.3
+openai-whisper==20231117
 opt-einsum==3.3.0
 ordered-set==4.1.0
 packaging==23.1

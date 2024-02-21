@@ -311,7 +311,7 @@ class TransCreate():
         except Exception as e:
             msg=f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll',msg,re.I|re.M) is not None:
-                msg=f'【缺少cuBLAS.dll】请点击菜单栏-帮助支持-下载cublasxx.dll ' if config.defaulelang=='zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll '
+                msg=f'【缺少cuBLAS.dll】请点击菜单栏-帮助支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang=='zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll '
             raise Exception(f'{msg}')
         if not raw_subtitles or len(raw_subtitles)<1:
             raise Exception(config.transobj['recogn result is empty'])
@@ -1014,6 +1014,10 @@ class TransCreate():
             self._back_music()
             self._separate()
             rs = False
+
+            if config.params['only_video']:
+                self.targetdir_mp4=config.params['target_dir']+f"/{self.noextname}.mp4"
+
             try:
                 if config.params['voice_role'] !=  'No' and config.params['subtitle_type'] > 0:
                     if config.params['subtitle_type'] == 1:
@@ -1141,8 +1145,9 @@ class TransCreate():
         try:
             if os.path.exists(config.rootdir + "/tmp.srt"):
                 os.unlink(config.rootdir + "/tmp.srt")
-            with open(os.path.join(self.target_dir,f'{"readme" if config.defaulelang!="zh" else "文件说明"}.txt'),'w',encoding="utf-8") as f:
-                f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
+            if not config.params['only_video']:
+                with open(os.path.join(self.target_dir,f'{"readme" if config.defaulelang!="zh" else "文件说明"}.txt'),'w',encoding="utf-8") as f:
+                    f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
 
 
 {os.path.basename(self.targetdir_mp4)} = 最终完成的目标视频文件
@@ -1182,8 +1187,10 @@ Docs: https://pyvideotrans.com
                 """)
             if os.path.exists(self.targetdir_source_regcon):
                 os.unlink(self.targetdir_source_regcon)
-
+            shutil.rmtree(self.cache_folder,True)
         except:
             pass
         self.precent = 100
-        return rs
+        if config.params['only_video']:
+            shutil.rmtree(self.target_dir,True)
+        return True

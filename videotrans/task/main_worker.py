@@ -80,7 +80,7 @@ class Worker(QThread):
                 # 成功完成
                 config.params['line_roles'] = {}
                 dur=int(time.time() - st)
-                set_process(f"{self.video.target_dir}##{dur}", 'succeed')
+                set_process(f"{self.video.target_dir if not config.params['only_video'] else config.params['target_dir']}##{dur}", 'succeed')
                 send_notification(config.transobj["zhixingwc"],f'{dur}s: {self.video.source_mp4}')
                 try:
                     if os.path.exists(self.video.novoice_mp4):
@@ -99,7 +99,7 @@ class Worker(QThread):
                 self.video=None
         # 全部完成
         set_process("", 'end')
-        time.sleep(10)
+        time.sleep(3)
         delete_temp(None)
 
 

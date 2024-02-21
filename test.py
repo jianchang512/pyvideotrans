@@ -75,17 +75,20 @@ input("Press Enter for quit")
 # cmd=["-y",'-ss', '0', '-to', '00:00:01.300', '-i', 'C:/Users/c1/Videos/pyvideotrans/renamemp4/_video_out/31-副本/novoice.mp4', '-vf', 'setpts=1.96*PTS', '-c:v', 'libx264', '-crf', '13', 'F:/python/pyvideo/tmp/31-副本/novoice_tmp.mp4']
 #
 # tools.runffmpeg(cmd)
-import time
+# import time
 
-a="有新的版本哦，快去升级吧"
-length=len(a)
-while 1:
-    for i in range(length):
-        if i==0:
-            print(a)
-        elif i==length-1:
-            print(a[i]+a[:i])
-        else:
-            print(a[i:]+a[:i])
-        time.sleep(0.1)
-    time.sleep(5)
+# a="有新的版本哦，快去升级吧"
+# length=len(a)
+# while 1:
+#     for i in range(length):
+#         if i==0:
+#             print(a)
+#         elif i==length-1:
+#             print(a[i]+a[:i])
+#         else:
+#             print(a[i:]+a[:i])
+#         time.sleep(0.1)
+#     time.sleep(5)
+from faster_whisper import WhisperModel
+
+model = WhisperModel("large-v2", download_root="./models")

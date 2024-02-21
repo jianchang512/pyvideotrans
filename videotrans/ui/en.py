@@ -240,15 +240,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.layout_whisper_model = QtWidgets.QGridLayout()
         self.layout_whisper_model.setObjectName("layout_whisper_model")
-        self.label_5 = QtWidgets.QLabel(self.layoutWidget)
+
+
+        self.model_type = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
-        self.label_5.setSizePolicy(sizePolicy)
-        self.label_5.setMinimumSize(QtCore.QSize(0, 30))
-        self.label_5.setObjectName("label_5")
-        self.layout_whisper_model.addWidget(self.label_5, 0, 0, 1, 1)
+        sizePolicy.setHeightForWidth(self.model_type.sizePolicy().hasHeightForWidth())
+        self.model_type.setSizePolicy(sizePolicy)
+        self.model_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.model_type.setObjectName("label_5")
+        self.layout_whisper_model.addWidget(self.model_type, 0, 0, 1, 1)
+        self.model_type.addItems([config.uilanglist['faster model'],config.uilanglist['openai model']])
+        self.model_type.setToolTip(config.uilanglist['model_type_tips'])
+
         self.whisper_model = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -319,6 +324,18 @@ class Ui_MainWindow(object):
         self.back_audio.setMinimumSize(QtCore.QSize(0, 30))
         self.back_audio.setObjectName("back_audio")
         self.gaoji_layout_inner2.addWidget(self.back_audio)
+
+        self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
+        self.only_video.setMinimumSize(QtCore.QSize(0, 30))
+        self.only_video.setObjectName("only_video")
+        self.only_video.setText(config.uilanglist['onlyvideo'])
+        self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
+        self.gaoji_layout_inner2.addWidget(self.only_video)
+
+
+
+
+
         
         
         
@@ -346,6 +363,8 @@ class Ui_MainWindow(object):
         self.label_6 = QtWidgets.QLabel(self.layoutWidget)
         self.label_6.setMinimumSize(QtCore.QSize(0, 30))
         self.label_6.setObjectName("label_6")
+
+
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_6)
         self.voice_rate = QtWidgets.QLineEdit(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -357,10 +376,12 @@ class Ui_MainWindow(object):
         self.voice_rate.setObjectName("voice_rate")
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_rate)
         self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
+
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setMinimumSize(QtCore.QSize(0, 30))
         self.voice_autorate.setObjectName("voice_autorate")
         self.gaoji_layout_inner.addWidget(self.voice_autorate)
+
         self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.video_autorate.setObjectName("video_autorate")
         self.gaoji_layout_inner.addWidget(self.video_autorate)
@@ -373,6 +394,7 @@ class Ui_MainWindow(object):
         self.enable_cuda = QtWidgets.QCheckBox(self.layoutWidget)
         self.enable_cuda.setMinimumSize(QtCore.QSize(0, 30))
         self.enable_cuda.setObjectName("enable_cuda")
+        self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
 
 
@@ -385,7 +407,7 @@ class Ui_MainWindow(object):
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
         self.show_tips.setText("")
         self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent""")
-        # self.show_tips.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
@@ -697,7 +719,7 @@ class Ui_MainWindow(object):
         self.tts_text.setText("TTS")
         self.label_4.setText(config.uilanglist.get("Dubbing role"))
         self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
-        self.label_5.setText(config.uilanglist.get("Whisper model"))
+        # self.label_5.setText(config.uilanglist.get("Whisper model"))
         self.whisper_model.setToolTip(config.uilanglist.get("From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
         self.whisper_type.setToolTip(config.uilanglist.get("Overall recognition is suitable for videos with or without background music and noticeable silence"))
         self.label_8.setText(config.uilanglist.get("Embed subtitles"))
@@ -712,13 +734,14 @@ class Ui_MainWindow(object):
         self.voice_autorate.setText(config.uilanglist.get("Voice acceleration?"))
         self.video_autorate.setToolTip(config.uilanglist.get("shuoming03"))
         self.video_autorate.setText(config.uilanglist.get("Video slow"))
-        self.enable_cuda.setToolTip(config.uilanglist.get("It is necessary to ensure that there is an NVIDIA graphics card and that the CUDA environment is correctly configured, otherwise do not choose"))
+        # self.enable_cuda.setToolTip(config.uilanglist.get("It is necessary to ensure that there is an NVIDIA graphics card and that the CUDA environment is correctly configured, otherwise do not choose"))
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
         self.is_separate.setText(config.uilanglist.get("Preserve background music"))
         self.is_separate.setToolTip(config.uilanglist.get("If retained, the required time may be longer, please be patient and wait"))
         self.startbtn.setText(config.uilanglist.get("Start"))
         self.addbackbtn.setText(config.uilanglist.get("addbackbtn"))
         self.back_audio.setPlaceholderText(config.uilanglist.get("back_audio_place"))
+        self.back_audio.setToolTip(config.uilanglist.get("back_audio_place"))
         self.stop_djs.setText(config.uilanglist.get("Pause"))
         self.import_sub.setText(config.uilanglist.get("Import srt"))
         self.listen_peiyin.setText(config.uilanglist.get("Train voice"))

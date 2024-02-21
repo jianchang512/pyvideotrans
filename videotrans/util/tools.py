@@ -720,7 +720,7 @@ def get_clone_role(set_p=False):
         raise Exception(f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
     except Exception as e:
         if set_p:
-            raise Exception(f'[error]:clone-voice:{str(e)}')
+            raise Exception(f'clone-voice:{str(e)}')
     return False
 
 # 工具箱写入日志队列

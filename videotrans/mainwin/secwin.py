@@ -191,7 +191,8 @@ class SecWindow():
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
-        
+        self.main.only_video.setDisable(False)
+
         # cuda
         self.main.enable_cuda.show()
 
@@ -251,6 +252,8 @@ class SecWindow():
         
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
+        self.main.only_video.setDisable(True)
+        self.main.only_video.setCheck(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -315,6 +318,8 @@ class SecWindow():
         
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
+        self.main.only_video.setDisable(True)
+        self.main.only_video.setCheck(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -371,6 +376,7 @@ class SecWindow():
         config.params['is_separate'] = False
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
+        self.main.only_video.setDisable(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -425,6 +431,8 @@ class SecWindow():
         config.params['is_separate'] = False
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
+        self.main.only_video.setDisable(True)
+        self.main.only_video.setCheck(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -493,6 +501,8 @@ class SecWindow():
         self.main.video_autorate.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
+        self.main.model_type.setDisabled(type)
+        self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
 
@@ -976,12 +986,23 @@ class SecWindow():
             config.params['whisper_type'] = 'all'
         else:
             config.params['whisper_type'] = 'split'
-
+    #设定模型类型
+    def model_type_change(self):
+        if self.main.model_type.currentIndex()==0:
+            config.params['model_type']='faster'
+        else:
+            config.params['model_type']='openai'
+        self.check_whisper_model(self.main.whisper_model.currentText())
     # 判断模型是否存在
     def check_whisper_model(self, name):
+        if config.params['model_type']=='openai':
+            if not os.path.exists(config.rootdir+f"/models/{name}.pt"):
+                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',name))
+                return False
+            return True
         file=f'{config.rootdir}/models/models--Systran--faster-whisper-{name}/snapshots'
         if not os.path.exists(file):
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['downloadmodel'])
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['downloadmodel'].replace('{name}',name))
             return False
         return True
 
@@ -989,7 +1010,7 @@ class SecWindow():
 
     # tts类型改变
     def tts_type_change(self, type):
-        if self.main.app_mode=='peiyin' and type=='clone-voice':
+        if self.main.app_mode=='peiyin' and type=='clone-voice' and config.params['voice_role']=='clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             return
@@ -1018,15 +1039,8 @@ class SecWindow():
 
     # 中英文下试听配音
     def listen_voice_fun(self):
-        code = get_code(show_text=self.main.target_language.currentText())
-        if code == "en":
-            text = config.params['listen_text_en']
-            lang = "en"
-        elif code in ["zh-cn", "zh-tw"]:
-            text = config.params['listen_text_cn']
-            lang = "zh"
-        else:
-            return
+        lang = get_code(show_text=self.main.target_language.currentText())
+        text = config.params[f'listen_text_{lang}']
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])
@@ -1048,31 +1062,25 @@ class SecWindow():
         }
         if config.params['tts_type']=='clone-voice' and role=='clone':
             return
+        # 测试能否连接clone
+        if config.params['tts_type']=='clone-voice':
+            try:
+                get_clone_role(set_p=True)
+            except:
+                QMessageBox.critical(self.main,config.transobj['anerror'],config.transobj['You must deploy and start the clone-voice service'])
+                return
         from videotrans.task.play_audio import PlayMp3
         t = PlayMp3(obj, self.main)
         t.start()
 
-    # 显示试听按钮
+    # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
-        if config.current_status == 'ing':
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['yunxingbukerole'])
-            self.main.voice_role.setCurrentText(config.params["voice_role"])
-            return
-        if role == 'No':
-            return
-        if config.params['tts_type']=='clone-voice' and role=='clone':
-            self.main.listen_btn.hide()
-            self.main.listen_btn.setDisabled(True)
-            return
         config.params["voice_role"] = role
-        code = get_code(show_text=self.main.target_language.currentText())
-
-        if code in ["zh-cn", "zh-tw", "en"]:
-            self.main.listen_btn.show()
-            self.main.listen_btn.setDisabled(False)
-        else:
-            self.main.listen_btn.hide()
+        if role == 'No' or (config.params['tts_type']=='clone-voice' and config.params['voice_role']=='clone'):
             self.main.listen_btn.setDisabled(True)
+            return
+        self.main.listen_btn.show()
+        self.main.listen_btn.setDisabled(False)
 
     # 目标语言改变时设置配音角色
     def set_voice_role(self, t):
@@ -1083,11 +1091,10 @@ class SecWindow():
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] != 'edgeTTS':
-            if role != 'No' and code in ["zh-cn", "zh-tw", "en"]:
+            if role != 'No':
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
             else:
-                self.main.listen_btn.hide()
                 self.main.listen_btn.setDisabled(True)
             return
 
@@ -1249,6 +1256,7 @@ class SecWindow():
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
+
         # 清理日志
         self.delete_process()
 
@@ -1303,7 +1311,6 @@ class SecWindow():
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?',txt):
-            # QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['zimusrterror'])
             txt=""
             self.main.subtitle_area.clear()
 
@@ -1352,10 +1359,11 @@ class SecWindow():
         if config.params["cuda"]:
             import torch
             if not torch.cuda.is_available():
-                config.params['cuda'] = False
-                self.main.enable_cuda.setChecked(False)
-                if os.environ.get('CUDA_OK'):
-                    os.environ.pop('CUDA_OK')
+                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
+                return
+            from torch.backends import cudnn
+            if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
+                return
 
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
@@ -1371,13 +1379,16 @@ class SecWindow():
         config.params['back_audio']=self.main.back_audio.text().strip()
         
         # 存在视频
+        config.params['only_video']=False
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
+            if self.main.only_video.isChecked():
+                config.params['only_video']=True
         elif txt:
             self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.app_mode='peiyin'
             config.params['is_separate']=False
-            if config.params['tts_type']=='clone-voice':
+            if config.params['tts_type']=='clone-voice' and config.params['voice_role']=='clone':
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
                 return
         if config.params['voice_role'] == 'No':
@@ -1464,7 +1475,7 @@ class SecWindow():
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(config.params['target_dir'])
             if self.main.task and self.main.task.video and self.main.task.video.source_mp4 and self.main.task.video.source_mp4 in self.main.processbtns:
-                self.main.processbtns[self.main.task.video.source_mp4].setTarget(self.main.task.video.target_dir)
+                self.main.processbtns[self.main.task.video.source_mp4].setTarget(self.main.task.video.target_dir if not config.params['only_video'] else config.params['target_dir'])
         elif d['type'] == "logs":
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
@@ -1480,6 +1491,7 @@ class SecWindow():
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
+            self.main.subtitle_area.setFocus()
             self.main.continue_compos.show()
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(d['text'])

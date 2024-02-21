@@ -70,6 +70,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 }
                 response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
                 if response.status_code != 200:
+                    config.logger.error(f'{response.text=}')
                     raise Exception(f'Google error_code={response.status_code}')
 
                 re_result = re.findall(
