@@ -176,6 +176,7 @@ params = {
     "video_autorate": False,
 
     "deepl_authkey": "",
+    "deepl_api":"",
     "deeplx_address": "",
     "ott_address": "",
 

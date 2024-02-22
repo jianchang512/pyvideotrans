@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shutil
 import threading
 import time
 from datetime import timedelta
@@ -15,21 +16,19 @@ from videotrans.util import tools
 
 
 # 统一入口
-def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None):
-    if config.params['model_type']=='openai':
-        rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst)
+def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None,model_type='faster',is_cuda=None):
+    if model_type=='openai':
+        rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     elif type == "all":
-        print(f'____{audio_file=}')
-        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst)
+        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     else:
-        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst)
+        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     except:
         pass
     return rs
-
 
 #
 def match_target_amplitude(sound, target_dBFS):
@@ -61,7 +60,7 @@ def shorten_voice(normalized_sound):
 
 
 # 预先分割识别
-def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
+def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'])
     if config.current_status != 'ing' and config.box_recogn!='ing':
@@ -86,7 +85,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
-        if config.current_status == 'stop':
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
             raise config.Myexcept("Has stop")
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
@@ -94,9 +93,8 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
-    start_t = time.time()
     try:
-        model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+        model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                          compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
                          cpu_threads=1,num_workers=1, local_files_only=True)
@@ -115,7 +113,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
 
-        if config.current_status != 'ing':
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             raise config.Myexcept("Has stop .")
         text = ""
@@ -128,13 +126,17 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
                                            language=detect_language,
                                            initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
             for t in segments:
+                if detect_language=='zh' and t.text==config.settings['initial_prompt_zh']:
+                    continue
                 text += t.text + " "
         except Exception as e:
             del model
             raise  Exception(str(e.args))
 
         text = f"{text.capitalize()}. ".replace('&#39;', "'")
-        text = re.sub(r'&#\d+;', '', text).strip()
+        text = re.sub(r'&#\d+;', '', text).strip().strip('.')
+        if detect_language=='zh' and text==config.settings['initial_prompt_zh']:
+            continue
         if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
             continue
         start = timedelta(milliseconds=start_time)
@@ -153,25 +155,28 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
-
-    print(f'用时 {time.time() - start_t}')
+        else:
+            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
     # 写入原语言字幕到目标文件夹
-    if os.path.exists(wavfile):
+    if audio_file.endswith('.m4a')  and os.path.exists(wavfile):
         os.unlink(wavfile)
+    try:
+        shutil.rmtree(tmp_path,True)
+    except:
+        pass
     return raw_subtitles
 
 
 # 整体识别，全部传给模型
-def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
+def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
     if set_p:
         tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
     down_root = os.path.normpath(config.rootdir + "/models")
     model=None
     try:
-        start_t = time.time()
-        model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
+        model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                              compute_type=config.settings['cuda_com_type'],
                              download_root=down_root,
                              num_workers=config.settings['whisper_worker'],
@@ -184,23 +189,24 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             wavfile=audio_file
         if not os.path.exists(wavfile):
             raise Exception(f'[error]not exists {wavfile}')
+        print(f"bbadas{bool(config.settings['vad'])}")
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
 
                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
-                                          vad_filter= True,#config.settings['vad'],
+                                          vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
                                               max_speech_duration_s=11.5
-                                           ), language=detect_language,
+                                           ),
+                                          language=detect_language,
                                           initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'])
 
         # 保留原始语言的字幕
         raw_subtitles = []
         sidx = -1
-        print(info.duration)
         for segment in segments:
             if config.current_status != 'ing' and config.box_recogn !='ing':
                 del model
@@ -213,6 +219,8 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             startTime = tools.ms_to_time_string(ms=start)
             endTime = tools.ms_to_time_string(ms=end)
             text = segment.text.strip().replace('&#39;', "'")
+            if detect_language=='zh' and text==config.settings['initial_prompt_zh']:
+                continue
             text = re.sub(r'&#\d+;', '', text)
             # 无有效字符
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text) or len(text) <= 1:
@@ -228,10 +236,6 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             else:
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
 
-
-        # 写入翻译前的原语言字幕到目标文件夹
-        print(f'用时 {time.time() - start_t}')
-
         if audio_file.endswith('.m4a') and os.path.exists(wavfile):
             os.unlink(wavfile)
         return raw_subtitles
@@ -246,7 +250,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
 
 
 # openai
-def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None):
+def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
     import whisper
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'])
@@ -272,7 +276,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
-        if config.current_status == 'stop':
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
             raise config.Myexcept("Has stop")
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
@@ -280,11 +284,10 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
-    start_t = time.time()
     try:
         model = whisper.load_model(model_name,
-                                   device="cuda" if config.params['cuda'] else "cpu",
-                                   download_root=config.rootdir + "/models"
+               device="cuda" if is_cuda else "cpu",
+               download_root=config.rootdir + "/models"
         )
     except Exception as e:
         raise Exception(str(e.args))
@@ -301,7 +304,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
 
-        if config.current_status != 'ing':
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             raise config.Myexcept("Has stop .")
         text = ""
@@ -313,6 +316,8 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
                         condition_on_previous_text=config.settings['condition_on_previous_text']
             )
             for t in tr['segments']:
+                if detect_language=='zh' and t['text'].strip()==config.settings['initial_prompt_zh']:
+                    continue
                 text += t['text'] + " "
         except Exception as e:
             del model
@@ -338,12 +343,16 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
             tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
-
-    print(f'用时 {time.time() - start_t}')
+        else:
+            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
     # 写入原语言字幕到目标文件夹
-    if os.path.exists(wavfile):
+    if audio_file.endswith('.m4a')  and os.path.exists(wavfile):
         os.unlink(wavfile)
+    try:
+        shutil.rmtree(tmp_path,True)
+    except:
+        pass
     return raw_subtitles
 

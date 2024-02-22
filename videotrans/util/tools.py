@@ -641,7 +641,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
     last_size = 0
     while True:
         if config.current_status != 'ing':
-            raise Exception("Had stop")
+            raise Exception("stop")
         if os.path.exists(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
             if last_size > 0 and current_size == last_size and t > 300:

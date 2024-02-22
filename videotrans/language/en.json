@@ -1,7 +1,8 @@
 {
   "translate_language": {
+    "import src error": "Error importing subtitles, please check if srt subtitle format content exists in the file",
 	"openaimodelnot": "You choose the openai {name} model , but the {name} model does not exist, please download and put the pt file in the models folder in the software directory, click on the menubar - Help Support - Download Model  ",
-    "recogn result is empty": "No subtitle was recognized, please check if it contains human voice and if the voice category matches the original language you chose, if both are normal, please select the 'Preserve background sound' option in the standard function mode and retry",
+    "recogn result is empty": "No subtitle was recognized, please check if it contains human voice and if the voice category matches the original {lang} language you chose, if both are normal, please select the 'Preserve background sound' option in the standard function mode and retry",
     "pianduan": " Partment ",
     "Download Models": "Download Models",
     "Start Separate": "Start separation",
@@ -126,7 +127,7 @@
     "xianqidongrenwu": "Firstly start the task, you can listen to it after the subtitle translation is completed, the dubbing speed and auto-acceleration take effect in real time",
     "juanzhu": " Please consider donating to the software to keep it updated and maintained! ",
     "nocuda": "Your device does not meet CUDA acceleration requirements, please confirm it is an NVIDIA graphics card and CUDA environment has been configured, click menubar-Help&support-CUDA help",
-    "nocudnn": "Your device does not have cuDNN installed and configured, please refer to the https://juejin.cn/post/7318704408727519270#heading-1 Install and then restart the software",
+    "nocudnn": "Your device does not have cuDNN installed and configured, please refer to the https://juejin.cn/post/7318704408727519270#heading-1 Install and then restart the software,or use openai model",
     "cudatips": "Enable if you have an NVIDIA graphics card and configured with a CUDA environment, will greatly improve execution speed",
     "noselectrole": "No role selected, cannot trial listening",
     "chongtingzhong": "Re-listening",

@@ -10,6 +10,7 @@ import warnings
 
 from videotrans.task.get_role_list import GetRoleWorker
 from videotrans.util import tools
+from videotrans.util.tools import delete_temp
 
 warnings.filterwarnings('ignore')
 
@@ -351,6 +352,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msg.addButton(QMessageBox.Yes)
             msg.setIcon(QMessageBox.Information)
             msg.exec()  # 显示消息框
+        try:
+            shutil.rmtree(config.rootdir+"/tmp",ignore_errors=True)
+            shutil.rmtree(config.homedir+"/tmp",ignore_errors=True)
+        except:
+            pass
         event.accept()
 
     def get_setting(self):
@@ -365,6 +371,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
         config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
+        config.params["deepl_api"] = self.settings.value("deepl_api", "")
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
         config.params["ott_address"] = self.settings.value("ott_address", "")
         config.params["clone_api"] = self.settings.value("clone_api", "")
