@@ -4,6 +4,7 @@ import os
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QVBoxLayout, QFileDialog, QPushButton, QPlainTextEdit
 
+from videotrans.configure import config
 from videotrans.configure.config import transobj
 
 
@@ -12,24 +13,35 @@ class DropButton(QPushButton):
         super(DropButton, self).__init__(text)
         self.setAcceptDrops(True)
         self.clicked.connect(self.get_file)
+        self.filelist=[]
 
     def get_file(self):
-        fname, _ = QFileDialog.getOpenFileName(self, transobj['xuanzeyinpinwenjian'],
-                                               os.path.expanduser('~') + "\\Videos",
+        fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
+                                               config.last_opendir,
                                                filter="Video/Audio files(*.mp4 *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
-        if fname:
-            self.setText(fname)
+        print(f'{fnames=}')
+        for (i, it) in enumerate(fnames):
+            fnames[i] = it.replace('\\', '/')
+        self.filelist=fnames
+        self.setText(f'{len(self.filelist)} files')
 
     def dragEnterEvent(self, event):
-        ext = event.mimeData().text().lower().split('.')[1]
-        if ext in ["mp4", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+        files = event.mimeData().text().strip().lower()
+        print(files.split("\n"))
+        allow=True
+        for it in files.split("\n"):
+            if it.split('.')[1] not in ["mp4", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+                allow=False
+                break
+        if allow:
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        filepath = event.mimeData().text()
-        self.setText(filepath.replace('file:///', ''))
+        filepath = event.mimeData().text().strip().split("\n")
+        self.filelist=[file.replace('file:///', '') for file in filepath]
+        self.setText(f'{len(self.filelist)} files')
 
 
 # 文本框 获取内容

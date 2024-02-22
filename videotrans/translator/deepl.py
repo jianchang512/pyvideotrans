@@ -45,7 +45,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
-        deepltranslator = deepl.Translator(config.params['deepl_authkey'])
+        deepltranslator = deepl.Translator(config.params['deepl_authkey'],server_url=None if not config.params['deepl_api'] else config.params['deepl_api'].rstrip('/'))
 
         for i,it in enumerate(split_source_text):
             if config.current_status != 'ing' and config.box_trans != 'ing':

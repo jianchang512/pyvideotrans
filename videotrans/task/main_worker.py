@@ -96,11 +96,12 @@ class Worker(QThread):
                 send_notification("Error",f"{str(e)}")
                 return
             finally:
+                delete_temp(noextname=self.video.noextname)
                 self.video=None
         # 全部完成
         set_process("", 'end')
-        time.sleep(3)
-        delete_temp(None)
+        # time.sleep(3)
+        # delete_temp(None)
 
 
 class Shiting(QThread):

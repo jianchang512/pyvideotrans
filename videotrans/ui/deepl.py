@@ -27,8 +27,13 @@ class Ui_deeplform(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        
+        
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+        
+        
+        
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
@@ -52,7 +57,37 @@ class Ui_deeplform(object):
         self.deepl_authkey.setMinimumSize(QtCore.QSize(210, 35))
         self.deepl_authkey.setObjectName("deepl_authkey")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deepl_authkey)
+        
+        self.formLayout_22 = QtWidgets.QFormLayout()
+        self.formLayout_22.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        self.formLayout_22.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_22.setObjectName("formLayout_22")
+        self.label22 = QtWidgets.QLabel(deeplform)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label22.sizePolicy().hasHeightForWidth())
+        self.label22.setSizePolicy(sizePolicy)
+        self.label22.setMinimumSize(QtCore.QSize(100, 35))
+        self.label22.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label22.setObjectName("label22")
+        self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label22)
+        self.deepl_api = QtWidgets.QLineEdit(deeplform)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.deepl_api.sizePolicy().hasHeightForWidth())
+        self.deepl_api.setSizePolicy(sizePolicy)
+        self.deepl_api.setMinimumSize(QtCore.QSize(210, 35))
+        self.deepl_api.setObjectName("deepl_api")
+        self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deepl_api)
+        
+        
+        self.verticalLayout.addLayout(self.formLayout_22)
         self.verticalLayout.addLayout(self.formLayout_2)
+        
+        
+        
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.set_deepl = QtWidgets.QPushButton(deeplform)
         self.set_deepl.setMinimumSize(QtCore.QSize(0, 35))
@@ -66,4 +101,6 @@ class Ui_deeplform(object):
     def retranslateUi(self, deeplform):
         deeplform.setWindowTitle("DeepL")
         self.label.setText( "密钥" if config.defaulelang=='zh' else "AUTH KEY")
+        self.label22.setText( "API地址" if config.defaulelang=='zh' else "API")
+        self.deepl_api.setPlaceholderText( "官方接口无需填写，如果使用第三方deepl接口在此填写" if config.defaulelang=='zh' else "No need to fill in the official interface, if you use a third-party deepl interface to fill in here")
         self.set_deepl.setText('保存' if config.defaulelang=='zh' else "Save")

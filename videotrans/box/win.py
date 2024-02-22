@@ -4,6 +4,8 @@ import json
 import os
 import re
 import time
+
+import torch
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSettings, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon, QTextCursor
@@ -25,6 +27,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.initSize=None
+        self.shibie_out_path=None
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898' if config.defaulelang=='zh' else ''}")
@@ -81,7 +84,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_language.addItems(config.langnamelist)
         self.shibie_model.addItems(["base", "small", "medium", "large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
-        self.shibie_savebtn.clicked.connect(self.shibie_save_fun)
+        self.shibie_opendir.clicked.connect(lambda :self.opendir_fn(self.shibie_out_path))
+        self.is_cuda.toggled.connect(self.check_cuda)
 
         # tab-4 语音合成
         self.hecheng_plaintext = Textedit()
@@ -267,19 +271,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 basename = os.path.basename(self.ysphb_videoinput.text())
                 if os.path.exists(config.rootdir + f"/{basename}.srt"):
                     os.unlink(config.rootdir + f"/{basename}.srt")
-        elif data['func_name'] == 'shibie_next':
-            #     转换wav完成，开始最终识别
-            self.shibie_start_next_fun()
         elif data['func_name'] == "shibie_end":
             # 识别执行完成
             self.disabled_shibie(False)
-            if data['type'] == 'end':
-                self.shibie_startbtn.setText(config.transobj["zhixingwc"])
+            if data['type'] == 'replace_subtitle':
                 self.shibie_text.clear()
-                self.shibie_text.insertPlainText(data['text'])
+                text,per=data['text'].split('@@@@@@')
+                self.shibie_text.insertPlainText(text)
+                self.shibie_startbtn.setText(config.transobj["ing"]+per)
+            elif data['type']=='allend':
+                self.shibie_startbtn.setText(config.transobj["zhixingwc"])
                 self.statuslabel.setText("Succeed")
+                self.shibie_dropbtn.setText(config.transobj['quanbuend']+". "+config.transobj['xuanzeyinshipin'])
+                if data['text']:
+                    self.label_shibie10.setText(data['text'])
+                    self.label_shibie10.setStyleSheet('''color:#ff0000''')
             else:
-                self.shibie_startbtn.setText(config.transobj["zhixinger"])
+                self.shibie_dropbtn.setText(data['text'])
         elif data['func_name'] == 'hecheng_end':
             if data['type'] == 'end':
                 self.hecheng_startbtn.setText(config.transobj["zhixingwc"])
@@ -445,8 +453,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map','[aout]','-ac', '2', tmp_a],
                     ['-y', '-i', videofile, '-i', tmp_a, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac','-shortest',
                      tmpname if srtfile else f'{savedir}/{basename}.mp4']
-                    #['-y', '-i', videofile, '-i', wavfile, '-filter_complex', #"[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map',
-                    # '0:v', '-map', "[aout]", '-c:v', 'copy', '-c:a', 'aac', tmpname if srtfile else #f'{savedir}/{basename}.mp4'],
                 ]
             else:
                 cmds = [
@@ -466,73 +472,91 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ysphb_out.setText(f"{savedir}/{basename}.mp4")
         self.ysphb_opendir.setDisabled(True)
 
+    def check_cuda(self, state):
+        # 选中如果无效，则取消
+        if state and not torch.cuda.is_available():
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nocuda'])
+            self.is_cuda.setChecked(False)
+            self.is_cuda.setDisabled(True)
+
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
-        if not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{model}"):
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['modellost'])
-        file = self.shibie_dropbtn.text()
-        if not file or not os.path.exists(file):
+        model_type="faster" if self.shibie_model_type.currentIndex()==0 else 'openai'
+        is_cuda=self.is_cuda.isChecked()
+        if is_cuda and model_type == 'faster':
+            allow=True
+            try:
+                from torch.backends import cudnn
+                if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
+                    allow=False
+            except:
+                allow=False
+            finally:
+                if not allow:
+                    self.is_cuda.setChecked(False)
+                    return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["nocudnn"])
+        if model_type=='faster' and not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{model}"):
+            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['downloadmodel'].replace('{name}',model))
+        elif model_type=='openai' and not os.path.exists(config.rootdir+f'/models/{model}.pt'):
+            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',model))
+        files = self.shibie_dropbtn.filelist
+        print(f'{files=}')
+        if not files or len(files)<1:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixuyinshipin'])
+        print('22')
 
-
-        basename = os.path.basename(file)
-        rs,newfile,base=tools.rename_move(file,is_dir=False)
-        if rs:
-            file=newfile
-            basename=base
-
+        wait_list=[]
         self.shibie_startbtn.setText(config.transobj["running"])
         self.disabled_shibie(True)
-        self.shibie_text.clear()
-
-        if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov"]:
-            out_file = f"{config.homedir}/tmp/{basename}.wav"
-            if not os.path.exists(f"{config.homedir}/tmp"):
-                os.makedirs(f"{config.homedir}/tmp")
+        self.label_shibie10.setText('')
+        print('33')
+        for file in files:
+            basename = os.path.basename(file)
+            print(f'{basename=}')
             try:
-
-                self.shibie_dropbtn.setText(out_file)
-                self.shibie_ffmpeg_task = Worker([
-                    ['-y', '-i', file,'-vn','-ac','1','-ar','8000', out_file]
-                ], "shibie_next", self)
-
-                self.shibie_ffmpeg_task.start()
+                rs,newfile,base=tools.rename_move(file,is_dir=False)
             except Exception as e:
-                config.logger.error("执行语音识别前，先从视频中分离出音频失败：" + str(e))
-                self.shibie_startbtn.setText("执行")
-                self.disabled_shibie(False)
-                QMessageBox.critical(self, config.transobj['anerror'], str(e))
-        else:
-            # 是音频，直接执行
-            self.shibie_dropbtn.setText(file)
-            self.shibie_start_next_fun()
+                print(f"removename {str(e)}")
+            if rs:
+                file=newfile
+                basename=base
+            self.shibie_text.clear()
+            print("aaaa")
+            if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov",".mp3",".flac",".m4a",".mov",".aac"]:
+                out_file = f"{config.homedir}/tmp/{basename}.wav"
+                if not os.path.exists(f"{config.homedir}/tmp"):
+                    os.makedirs(f"{config.homedir}/tmp")
+                try:
+                    self.shibie_ffmpeg_task = Worker([
+                        ['-y', '-i', file,'-vn','-ac','1','-ar','8000', out_file]
+                    ],"logs", self)
+                    self.shibie_ffmpeg_task.start()
+                    wait_list.append(out_file)
+                except Exception as e:
+                    config.logger.error("执行语音识别前，先从视频中分离出音频失败：" + str(e))
+                    self.shibie_startbtn.setText("执行")
+                    self.disabled_shibie(False)
+                    QMessageBox.critical(self, config.transobj['anerror'], str(e))
+            else:
+                print('66')
+                wait_list.append(file)
 
-    # 最终执行
-    def shibie_start_next_fun(self):
-        file = self.shibie_dropbtn.text()
-        if not os.path.exists(file):
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['chakanerror'])
-        model = self.shibie_model.currentText()
+        self.shibie_out_path=config.homedir+f"/recogn"
 
-        self.shibie_task = WorkerWhisper(file, model, translator.get_audio_code(show_source=self.shibie_language.currentText()),"shibie_end", self)
+        os.makedirs(self.shibie_out_path,exist_ok=True)
+        self.shibie_opendir.setDisabled(False)
+        self.shibie_task = WorkerWhisper(
+            audio_paths=wait_list,
+            model=model,
+            model_type=model_type,
+            language=translator.get_audio_code(show_source=self.shibie_language.currentText()),
+            func_name="shibie_end",
+            out_path=self.shibie_out_path,
+            is_cuda=is_cuda,
+            parent=self)
         self.shibie_task.start()
 
-    def shibie_save_fun(self):
-        srttxt = self.shibie_text.toPlainText().strip()
-        if not srttxt:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['srtisempty'])
-        dialog = QFileDialog()
-        dialog.setWindowTitle(config.transobj['savesrtto'])
-        dialog.setNameFilters(["subtitle files (*.srt)"])
-        dialog.setAcceptMode(QFileDialog.AcceptSave)
-        dialog.exec_()
-        if not dialog.selectedFiles():
-            return
-        else:
-            path_to_file = dialog.selectedFiles()[0]
-        with open(path_to_file + f"{'' if path_to_file.endswith('.srt') else '.srt'}", "w") as file:
-            file.write(srttxt)
 
     # 禁用启用按钮
     def disabled_shibie(self, type):
@@ -573,7 +597,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if rate >= 0:
             rate = f"+{rate}%"
         else:
-            rate = f"-{rate}%"
+            rate = f"{rate}%"
 
         issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,

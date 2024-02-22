@@ -376,7 +376,7 @@ class SecWindow():
         config.params['is_separate'] = False
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.only_video.setDisable(False)
+        self.main.only_video.setDisabled(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -774,14 +774,20 @@ class SecWindow():
     def set_deepL_key(self):
         def save():
             key = self.main.w.deepl_authkey.text()
+            api = self.main.w.deepl_api.text().strip()
             self.main.settings.setValue("deepl_authkey", key)
             config.params['deepl_authkey'] = key
+            if api:
+                self.main.settings.setValue("deepl_api", api)
+                config.params['deepl_api'] = api
             self.main.w.close()
 
         from videotrans.component import DeepLForm
         self.main.w = DeepLForm()
         if config.params['deepl_authkey']:
             self.main.w.deepl_authkey.setText(config.params['deepl_authkey'])
+        if config.params['deepl_api']:
+            self.main.w.deepl_api.setText(config.params['deepl_api'])
         self.main.w.set_deepl.clicked.connect(save)
         self.main.w.show()
 
@@ -1152,9 +1158,19 @@ class SecWindow():
         fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], config.last_opendir,
                                                "Srt files(*.srt *.txt)")
         if fname:
-            with open(fname, 'r', encoding='utf-8') as f:
-                self.main.subtitle_area.clear()
-                self.main.subtitle_area.insertPlainText(f.read().strip())
+            content=""
+            try:
+                with open(fname, 'r', encoding='utf-8') as f:
+                    content=f.read()
+            except:
+                with open(fname, 'r', encoding='gbk') as f:
+                    content=f.read()
+            finally:
+                if content:
+                    self.main.subtitle_area.clear()
+                    self.main.subtitle_area.insertPlainText(content.strip())
+                else:
+                    return QMessageBox.critical(self.main,config.transobj['anerror'],config.transobj['import src error'])
 
     # 保存目录
     def get_save_dir(self):
@@ -1361,9 +1377,19 @@ class SecWindow():
             if not torch.cuda.is_available():
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
                 return
-            from torch.backends import cudnn
-            if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                return
+            if config.params['model_type']=='faster':
+                allow=True
+                try:
+                    from torch.backends import cudnn
+                    if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
+                        allow=False
+                except:
+                    allow=False
+                finally:
+                    if not allow:
+                        self.main.enable_cuda.setChecked(False)
+                        config.params['cuda']=False
+                        return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
 
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
@@ -1374,8 +1400,7 @@ class SecWindow():
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
         config.queue_task = []
-        print(config.params['is_separate'])
-        
+
         config.params['back_audio']=self.main.back_audio.text().strip()
         
         # 存在视频
@@ -1414,7 +1439,7 @@ class SecWindow():
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
                 text = f'Time:[{duration}s] {config.transobj["endandopen"]}{text}'
                 self.main.processbtns[btnkey].progress_bar.setValue(100)
-            elif type == 'error':
+            elif type == 'error' or type=='stop':
                 self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
                 self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
             elif self.main.task and self.main.task.video:
@@ -1440,11 +1465,16 @@ class SecWindow():
                 self.main.subtitle_area.clear()
                 self.main.source_mp4.setText(config.transobj["No select videos"])
             else:
+                self.main.continue_compos.hide()
+                self.main.target_dir.clear()
+
+
                 #error or stop 出错
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')
                 # 清理输入
-
             if self.main.task:
+                if self.main.task.video and self.main.task.video.btnkey:
+                    self.set_process_btn_text("", self.main.task.video.btnkey, "stop")
                 self.main.task.requestInterruption()
                 self.main.task.quit()
                 self.main.task = None
@@ -1482,9 +1512,14 @@ class SecWindow():
             self.update_status(d['type'])
             self.main.continue_compos.hide()
             self.main.target_dir.clear()
+            print(f'{d=}')
             if d['type']=='error':
-                self.set_process_btn_text(d['text'], d['btnkey'], 'error')
+                self.set_process_btn_text(d['text'], d['btnkey'],d['type'])
                 QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
+            elif d['type']=='stop':
+                self.set_process_btn_text(config.transobj['stop'], d['btnkey'],d['type'])
+            elif d['type']!='end':
+                self.set_process_btn_text(d['text'], d['btnkey'], d['type'])
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
@@ -1497,7 +1532,7 @@ class SecWindow():
             self.main.continue_compos.setText(d['text'])
             self.main.stop_djs.show()
             # 允许试听
-            if self.main.task.video.step == 'dubbing_start':
+            if self.main.task and self.main.task.video.step == 'dubbing_start':
                 self.main.listen_peiyin.setDisabled(False)
         elif d['type']=='disabled_edit':
             #禁止修改字幕

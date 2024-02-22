@@ -221,6 +221,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.formLayout.setObjectName("formLayout")
@@ -243,18 +244,41 @@ class Ui_MainWindow(object):
         self.shibie_language.setObjectName("shibie_language")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_language)
         self.horizontalLayout.addLayout(self.formLayout)
+
+
+
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+
+
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label_9 = QtWidgets.QLabel(self.tab_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        # self.label_9 = QtWidgets.QLabel(self.tab_4)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
+        # self.label_9.setSizePolicy(sizePolicy)
+        # self.label_9.setMinimumSize(QtCore.QSize(0, 30))
+        # self.label_9.setObjectName("label_9")
+
+
+        self.is_cuda = QtWidgets.QCheckBox(self.tab_4)
+        self.is_cuda.setObjectName("is_cuda")
+        self.is_cuda.setText("启用CUDA?" if config.defaulelang=='zh' else 'Enable CUDA?')
+
+        self.shibie_model_type = QtWidgets.QComboBox(self.tab_4)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
-        self.label_9.setSizePolicy(sizePolicy)
-        self.label_9.setMinimumSize(QtCore.QSize(0, 30))
-        self.label_9.setObjectName("label_9")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_9)
+        sizePolicy.setHeightForWidth(self.shibie_model_type.sizePolicy().hasHeightForWidth())
+        self.shibie_model_type.setSizePolicy(sizePolicy)
+        self.shibie_model_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.shibie_model_type.setObjectName("shibie_model_type")
+        self.shibie_model_type.addItems([config.uilanglist['faster model'],config.uilanglist['openai model']])
+
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)
+
+
         self.shibie_model = QtWidgets.QComboBox(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -264,8 +288,25 @@ class Ui_MainWindow(object):
         self.shibie_model.setMinimumSize(QtCore.QSize(0, 30))
         self.shibie_model.setObjectName("shibie_model")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_model)
+
+
+        # self.horizontalLayout.addWidget(self.is_cuda)
+
+
+
+
+
+        self.horizontalLayout.addWidget(self.is_cuda)
+
         self.horizontalLayout.addLayout(self.formLayout_2)
+
+
+
         self.horizontalLayout_8.addLayout(self.horizontalLayout)
+
+
+
+
         self.shibie_startbtn = QtWidgets.QPushButton(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -274,6 +315,8 @@ class Ui_MainWindow(object):
         self.shibie_startbtn.setSizePolicy(sizePolicy)
         self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 30))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
+
+
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
         self.shibie_text = QtWidgets.QPlainTextEdit(self.tab_4)
@@ -284,6 +327,8 @@ class Ui_MainWindow(object):
         self.shibie_text.setSizePolicy(sizePolicy)
         self.shibie_text.setObjectName("shibie_text")
         self.verticalLayout_3.addWidget(self.shibie_text)
+
+
         self.shibie_savebtn = QtWidgets.QPushButton(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -291,7 +336,31 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.shibie_savebtn.sizePolicy().hasHeightForWidth())
         self.shibie_savebtn.setSizePolicy(sizePolicy)
         self.shibie_savebtn.setObjectName("shibie_savebtn")
-        self.verticalLayout_3.addWidget(self.shibie_savebtn)
+        self.shibie_savebtn.hide()
+
+        self.shibie_opendir = QtWidgets.QPushButton(self.tab_4)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.shibie_opendir.sizePolicy().hasHeightForWidth())
+        self.shibie_opendir.setSizePolicy(sizePolicy)
+        self.shibie_opendir.setFixedHeight(30)
+        self.shibie_opendir.setObjectName("shibie_opendir")
+        self.shibie_opendir.setText('打开识别结果保存目录' if config.defaulelang=='zh' else 'Open Output dir')
+        self.shibie_opendir.setDisabled(True)
+
+        self.horizontalLayout_shibie8 = QtWidgets.QHBoxLayout()
+
+        self.horizontalLayout_shibie8.addWidget(self.shibie_opendir)
+        self.horizontalLayout_shibie8.addWidget(self.shibie_savebtn)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_shibie8)
+
+        self.label_shibie10 = QtWidgets.QLabel(self.tab_4)
+        self.verticalLayout_3.addWidget(self.label_shibie10)
+
+
+
+
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
         self.tabWidget.addTab(self.tab_4, "")
         self.tab_2 = QtWidgets.QWidget()
@@ -708,7 +777,7 @@ class Ui_MainWindow(object):
         self.ysphb_opendir.setText(box_lang.get("Open output dir"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), box_lang.get("Video subtitle merging"))
         self.label_3.setText(box_lang.get("Source lang"))
-        self.label_9.setText(box_lang.get("Whisper model"))
+        # self.label_9.setText(box_lang.get("Whisper model"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
         self.shibie_savebtn.setText(box_lang.get("Save to srt.."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), box_lang.get("Voice recognition"))
