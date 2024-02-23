@@ -50,9 +50,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/dd3b6a33-2b64-4cab-b
 
 
 
-
-
-[Youtube demo](https://youtu.be/-S7jptiDdtc)
+[Youtube demo](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
 
 
 
@@ -482,9 +480,10 @@ if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.co
 
 # Software Preview Screenshots
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/06c4f47c-3f3d-4f01-a3a3-85077d4ba64d)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/38494396-1be7-4fbe-803a-624a208431f5)
 
-[Youtube](https://youtu.be/0Qo6nw2OCg4)
+
+[Youtube](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
 
 
 # Comparison of Videos Before and After
