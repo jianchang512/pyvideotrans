@@ -35,7 +35,6 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             speed=speed
         )
         response.stream_to_file(filename)
-        return True
     except Exception as e:
         error=str(e)
         if error and re.search(r'Rate limit',error,re.I) is not None:
@@ -44,4 +43,4 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             time.sleep(30)
             return get_voice(text=text, role=role, rate=rate, filename=filename)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        raise Exception(f"openaiTTS 合成失败：request error:" + str(e))
+        raise Exception(str(e))

@@ -17,6 +17,8 @@ from videotrans.util import tools
 
 # 统一入口
 def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None,model_type='faster',is_cuda=None):
+    if config.current_status != 'ing' and config.box_recogn!='ing':
+        return False
     if model_type=='openai':
         rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     elif type == "all":
@@ -104,7 +106,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("Has stop")
+            return None
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += 200
@@ -171,6 +173,8 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
 
 # 整体识别，全部传给模型
 def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
+    if config.current_status != 'ing' and config.box_recogn!='ing':
+        return False
     if set_p:
         tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
     down_root = os.path.normpath(config.rootdir + "/models")
@@ -182,6 +186,8 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(config.settings['whisper_threads']),
                              local_files_only=True)
+        if config.current_status != 'ing' and config.box_recogn!='ing':
+            return False
         if audio_file.endswith('.m4a'):
             wavfile = cache_folder + "/tmp.wav"
             tools.m4a2wav(audio_file, wavfile)
@@ -210,7 +216,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
         for segment in segments:
             if config.current_status != 'ing' and config.box_recogn !='ing':
                 del model
-                raise config.Myexcept("Had stop")
+                return None
             sidx += 1
             start = int(segment.start * 1000)
             end = int(segment.end * 1000)

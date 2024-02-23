@@ -13,20 +13,16 @@ def text_to_speech(*, text="", role="", rate='+0%',language=None, filename=None,
             tools.set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
             from .edgetts import get_voice
-            if not get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p):
-                raise Exception(f"edgeTTS error")
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
         elif tts_type == "openaiTTS":
             from .openaitts import get_voice
-            if not get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p):
-                raise Exception(f"openaiTTS error")
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
         elif tts_type == "clone-voice":
             from .clone import get_voice
-            if not get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p):
-                raise Exception(f"clone-voice error")
+            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
         elif tts_type == 'elevenlabsTTS':
             from .elevenlabs import get_voice
-            if not get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p):
-                raise Exception(f"elevenlabsTTS error")
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             if play:
                 threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
@@ -36,7 +32,7 @@ def text_to_speech(*, text="", role="", rate='+0%',language=None, filename=None,
             return False
     except Exception as e:
         err=str(e)
-        raise Exception(f'error:{err}')
+        raise Exception(f'{err}')
 
 
 def run(*, queue_tts=None, language=None,set_p=True,inst=None):
@@ -52,7 +48,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
     dub_nums=config.settings['dubbing_thread']
     while len(queue_tts) > 0:
         if config.current_status != 'ing' and config.box_tts != 'ing':
-            raise config.Myexcept('Had stop')
+            raise config.Myexcept('stop')
         try:
             tolist = []
             for i in range(dub_nums):
@@ -70,5 +66,5 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]')
                 t.join()
         except Exception as e:
-            raise config.Myexcept(f'[error]exec_tts:{str(e)}')
+            raise config.Myexcept(f'{str(e)}')
     return True

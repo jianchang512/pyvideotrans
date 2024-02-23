@@ -89,6 +89,18 @@ input("Press Enter for quit")
 #             print(a[i:]+a[:i])
 #         time.sleep(0.1)
 #     time.sleep(5)
-from faster_whisper import WhisperModel
+import threading
 
-model = WhisperModel("large-v2", download_root="./models")
+
+def ceshi():
+    try:
+        1/0
+    except:
+        pass
+        #raise Exception('yichang')
+
+
+try:
+    threading.Thread(target=ceshi).start()
+except Exception as e:
+    print(f'e={str(e)}')
