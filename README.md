@@ -48,7 +48,8 @@
 
 
 
-https://github.com/jianchang512/pyvideotrans/assets/3378335/7004ae61-37a8-4f33-9711-20fd4cc1a94a
+https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-ba24-7a95d2e13d58
+
 
 
 
@@ -62,7 +63,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/7004ae61-37a8-4f33-9
 
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
-5. [B站视频教程](https://space.bilibili.com/384089066/channel/series)
+5. [B站视频教程](https://www.bilibili.com/video/BV1Gr421s7cN/)
 
 
 
@@ -513,17 +514,17 @@ gemini_key=
 
 [用Gemini Api 给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
 
-[如何下载和安装](https://www.bilibili.com/video/BV1Gy42187PK/?vd_source=7ccebed8eb1a03b941620c1590dc1b0f)
+[如何下载和安装](https://www.bilibili.com/video/BV1Gr421s7cN/)
 
 
 
 
 # 软件预览截图
+![1](https://github.com/jianchang512/pyvideotrans/assets/3378335/63d4932c-4f96-4a8a-a420-ee0377a436d1)
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/d60407ca-3b17-43d9-9d13-5bcf5396dbce)
 
 
-[Youtube](https://youtu.be/0Qo6nw2OCg4)
+[Youtube](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
 
 
 # 相关联项目
