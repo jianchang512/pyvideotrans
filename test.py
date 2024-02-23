@@ -89,18 +89,9 @@ input("Press Enter for quit")
 #             print(a[i:]+a[:i])
 #         time.sleep(0.1)
 #     time.sleep(5)
-import threading
 
 
-def ceshi():
-    try:
-        1/0
-    except:
-        pass
-        #raise Exception('yichang')
+from videotrans.util import tools
 
 
-try:
-    threading.Thread(target=ceshi).start()
-except Exception as e:
-    print(f'e={str(e)}')
+tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\dev\0001.srt',is_file=True)

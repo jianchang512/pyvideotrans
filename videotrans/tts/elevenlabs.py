@@ -22,6 +22,6 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
     except Exception as e:
         error=str(e)
         if set_p:
-            tools.set_process(f'[error]elevenlabs:{error}')
+            tools.set_process(f'elevenlabs:{error}')
         config.logger.error(f"elevenlabsTTS 合成失败：request error:{error}")
-        raise Exception(f"elevenlabsTTS  合成失败：request error:{error}")
+        raise Exception(f"elevenlabsTTS:{error}")

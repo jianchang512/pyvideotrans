@@ -5,10 +5,14 @@ import time
 from videotrans.configure import config
 from videotrans.util import tools
 
+thread_err=[]
 
 # 文字合成
-def text_to_speech(*, text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
+def text_to_speech(stop_event,*, text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
+    global thread_err
     try:
+        if stop_event.is_set():
+            return
         if rate != '+0%' and set_p:
             tools.set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
@@ -32,10 +36,15 @@ def text_to_speech(*, text="", role="", rate='+0%',language=None, filename=None,
             return False
     except Exception as e:
         err=str(e)
+        stop_event.set()
+        thread_err.append(err)
         raise Exception(f'{err}')
 
 
 def run(*, queue_tts=None, language=None,set_p=True,inst=None):
+    global thread_err
+    thread_err=[]
+    stop_event = threading.Event()  # 停止事件
     def get_item(q):
         return {"text": q['text'], "role": q['role'], "rate": q["rate"],
                 "filename": q["filename"], "tts_type": q['tts_type'],"language":language}
@@ -55,10 +64,12 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                 if len(queue_tts) > 0:
                     p=get_item(queue_tts.pop(0))
                     p["set_p"]=set_p
-                    tolist.append(threading.Thread(target=text_to_speech, kwargs=p))
+                    tolist.append(threading.Thread(target=text_to_speech, kwargs=p,args=(stop_event,)))
             for t in tolist:
                 t.start()
             for t in tolist:
+                if len(thread_err)>0:
+                    raise Exception(thread_err.pop(0))
                 n += 1
                 if set_p:
                     if inst and inst.precent<90:

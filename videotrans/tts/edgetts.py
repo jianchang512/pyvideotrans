@@ -24,6 +24,8 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
             if set_p:
                 tools.set_process("edgeTTS过于频繁暂停5s后重试")
             config.settings['dubbing_thread']=1
-            time.sleep(5)
+            time.sleep(10)
             asyncio.run(communicate.save(filename))
+        else:
+            raise  Exception(err)
     return True

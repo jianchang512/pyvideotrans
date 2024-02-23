@@ -128,8 +128,11 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 target_text.append(result)
                 iter_num=0
             except Exception as e:
-                error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
-                err = error
+                error=str(e)
+                if source_code is not None:
+                    err =error+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
+                else:
+                    err=error
                 index = i
                 break
         else:
