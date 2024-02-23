@@ -460,10 +460,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                      tmpname if srtfile else f'{savedir}/{basename}.mp4']]
 
         if srtfile:
-            srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+            #srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+            basename=os.path.basename(srtfile)
+            shutil.copy2(srtfile, config.rootdir + f"/{basename}.srt")
+            os.chdir(config.rootdir)
             cmds.append(
-                ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={srtfile}", '-c:v', 'libx264',
-                 '-c:a', 'copy', f'{savedir}/{basename}.mp4'])
+                #['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={basename}.srt", '-c:v', 'libx264',
+                # '-c:a', 'copy', f'{savedir}/{basename}.mp4']
+                [
+                            "-y",
+                            "-i",
+                            os.path.normpath(tmpname if wavfile else videofile),
+                            
+                            "-c:v",
+                            "libx264",
+                            "-vf",
+                            f"subtitles={basename}.srt",
+                            "-shortest",
+                            f'{savedir}/{basename}.mp4'
+                ]
+                 
+                 )
         self.ysphb_task = Worker(cmds, "ysphb_end", self)
         self.ysphb_task.start()
 

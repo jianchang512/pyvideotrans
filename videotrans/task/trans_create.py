@@ -301,6 +301,7 @@ class TransCreate():
             return True
         # 分离未完成，需等待
         while not os.path.exists(self.targetdir_source_wav):
+            
             set_process(transobj["running"])
             time.sleep(1)
         # 识别为字幕
@@ -316,13 +317,15 @@ class TransCreate():
                 is_cuda=config.params['cuda'],
                 inst=self)
         except Exception as e:
+            if config.current_status != 'ing':
+                return None
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
             raise Exception(f'{msg}')
-        if not raw_subtitles or len(raw_subtitles) < 1:
-            if config.current_status != 'ing':
-                raise Myexcept('stop')
+        if config.current_status != 'ing':
+            return None
+        if not raw_subtitles or len(raw_subtitles) < 1:            
             raise Exception(self.noextname + config.transobj['recogn result is empty'].replace('{lang}', config.params[
                 'source_language']))
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
@@ -348,7 +351,7 @@ class TransCreate():
         config.task_countdown = config.settings['countdown_sec']
         while config.task_countdown > 0:
             if config.current_status!='ing':
-                raise Exception('stop')
+                return False
             if config.task_countdown <= config.settings['countdown_sec'] and config.task_countdown >= 0:
                 set_process(f"{config.task_countdown} {transobj['jimiaohoufanyi']}", 'show_djs')
             time.sleep(1)
@@ -415,7 +418,7 @@ class TransCreate():
         config.task_countdown = config.settings['countdown_sec']
         while config.task_countdown > 0:
             if config.current_status != 'ing':
-                raise Myexcept('stop')
+                return False
             # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
             time.sleep(1)
             # 倒计时中
@@ -434,6 +437,8 @@ class TransCreate():
             else:
                 raise Exception('no subtitles')
         except Exception as e:
+            if str(e)=='stop':
+                return False
             # delete_temp(self.noextname)
             raise Myexcept("TTS:" + str(e))
 
@@ -444,6 +449,8 @@ class TransCreate():
         try:
             self.compos_video()
         except Exception as e:
+            if str(e)=='stop':
+                return False
             delete_temp(self.noextname)
             raise Myexcept(f"[error]Compose:" + str(e))
 
@@ -718,7 +725,7 @@ class TransCreate():
     # 延长 novoice.mp4  duration_ms 毫秒
     def novoicemp4_add_time(self, duration_ms):
         if config.current_status != 'ing':
-            raise Myexcept('stop')
+            return False
         set_process(f'{transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
@@ -779,7 +786,7 @@ class TransCreate():
                 tmppert2 = f"{self.cache_folder}/tmppert2-{idx}.mp4"
                 tmppert3 = f"{self.cache_folder}/tmppert3-{idx}.mp4"
                 if config.current_status != 'ing':
-                    raise Myexcept("stop")
+                    return False
                 jd = round((idx + 1) / (last_index + 1), 1)
                 if self.precent < 85:
                     self.precent += jd

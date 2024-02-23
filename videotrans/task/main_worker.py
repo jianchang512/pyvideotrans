@@ -29,24 +29,28 @@ class Worker(QThread):
             config.params['line_roles'] = {}
             dur = int(time.time() - st)
             set_process(f"{self.video.target_dir}##{dur}", 'succeed')
+            print('srt succeed')
             send_notification(config.transobj["zhixingwc"],
                               f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
 
-            # 全部完成
-            set_process("", 'end')
-            time.sleep(10)
-            delete_temp(None)
+            
             try:
                 if os.path.exists(self.video.novoice_mp4):
                     time.sleep(1)
                     os.unlink(self.video.novoice_mp4)
             except:
                 pass
+            # 全部完成
+            print('beofre end')
+            set_process(f"", 'end')
         except Exception as e:
-            set_process(f"{str(e)}", 'stop' if str(e)=='stop' else 'error')
-            send_notification("Error",  str(e) )
+            print(f'srt e {str(e)}')
+            if str(e)!='stop':
+                set_process(f"{str(e)}", 'error')
+                send_notification("Error",  str(e) )
         finally:
-            self.video = None
+            
+            delete_temp(None)
 
 
     def run(self) -> None:
@@ -74,9 +78,9 @@ class Worker(QThread):
                 self.video = tasks.pop(0)
                 config.btnkey=self.video.btnkey
                 set_process(config.transobj['kaishichuli'])
-
                 self.video.run()
-
+                if config.current_status!='ing':
+                    return False
                 # 成功完成
                 config.params['line_roles'] = {}
                 dur=int(time.time() - st)
@@ -92,12 +96,14 @@ class Worker(QThread):
                     config.queue_mp4.pop(0)
             except Exception as e:
                 print(f"mainworker {str(e)}")
-                set_process(f"{str(e)}", 'stop' if str(e)=='stop' else 'error')
-                send_notification("Error",f"{str(e)}")
-                return
+                if str(e)!='stop':
+                    set_process(f"{str(e)}", 'error')
+                    send_notification("Error",f"{str(e)}")
+                return False
+
             finally:
                 delete_temp(noextname=self.video.noextname)
-                self.video=None
+                #self.video=None
         # 全部完成
         set_process("", 'end')
         # time.sleep(3)
@@ -129,7 +135,6 @@ class Shiting(QThread):
             if config.task_countdown <= 0 or self.stop:
                 return
             if config.current_status != 'ing':
-                set_process(config.transobj['tingzhile'], 'stop')
                 return True
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = config.params['voice_role']

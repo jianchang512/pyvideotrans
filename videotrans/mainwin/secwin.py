@@ -252,8 +252,8 @@ class SecWindow():
         
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.only_video.setDisable(True)
-        self.main.only_video.setCheck(False)
+        self.main.only_video.setDisabled(True)
+        self.main.only_video.setChecked(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -318,8 +318,8 @@ class SecWindow():
         
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.only_video.setDisable(True)
-        self.main.only_video.setCheck(False)
+        self.main.only_video.setDisabled(True)
+        self.main.only_video.setChecked(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -431,8 +431,8 @@ class SecWindow():
         config.params['is_separate'] = False
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
-        self.main.only_video.setDisable(True)
-        self.main.only_video.setCheck(False)
+        self.main.only_video.setDisabled(True)
+        self.main.only_video.setChecked(False)
         # cuda
         self.main.enable_cuda.show()
 
@@ -1427,19 +1427,23 @@ class SecWindow():
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
+        #print(f'{type=}')
         if self.main.task and self.main.task.video:
             # 有视频
             if type != 'succeed':
                 text = f'[{self.main.task.video.noextname[:10]}]: {text}'
 
+        #print(f'==========={text=},{type=},{btnkey=}')
         if btnkey and btnkey in self.main.processbtns:
             if type == 'succeed':
+                #print(f'succeed==={text},{btnkey=}')
                 text, duration = text.split('##')
                 self.main.processbtns[btnkey].setTarget(text)
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
                 text = f'Time:[{duration}s] {config.transobj["endandopen"]}{text}'
+                #print(f'{text=}')
                 self.main.processbtns[btnkey].progress_bar.setValue(100)
-            elif type == 'error' or type=='stop':
+            elif type == 'error' or type =='stop':
                 self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
                 self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
             elif self.main.task and self.main.task.video:
@@ -1467,14 +1471,12 @@ class SecWindow():
             else:
                 self.main.continue_compos.hide()
                 self.main.target_dir.clear()
-
-
                 #error or stop 出错
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(config.queue_mp4)<1 else f'{len(config.queue_mp4)} videos')
                 # 清理输入
             if self.main.task:
-                if self.main.task.video and self.main.task.video.btnkey:
-                    self.set_process_btn_text("", self.main.task.video.btnkey, "stop")
+                if self.main.task.video and self.main.task.video.btnkey and type !='end':
+                    self.set_process_btn_text("", self.main.task.video.btnkey, type)
                 self.main.task.requestInterruption()
                 self.main.task.quit()
                 self.main.task = None
@@ -1518,8 +1520,8 @@ class SecWindow():
                 QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
             elif d['type']=='stop':
                 self.set_process_btn_text(config.transobj['stop'], d['btnkey'],d['type'])
-            elif d['type']!='end':
-                self.set_process_btn_text(d['text'], d['btnkey'], d['type'])
+            #elif d['type']!='end':
+            #    self.set_process_btn_text(d['text'], d['btnkey'], d['type'])
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
