@@ -891,6 +891,25 @@ class SecWindow():
 
     # set chatgpt
     def set_chatgpt_key(self):
+        def trans():
+            try:
+                from videotrans.translator.chatgpt import trans as trans_chatgpt
+                text = trans_chatgpt("测试正确" if config.defaulelang != 'zh' else "Test is ok",
+                                     "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, inst=None)
+                self.main.w.test_chatgpt.setText(text)
+                self.main.w.test_chatgpt.setFixedWidth(90)
+            except Exception as e:
+                print(e)
+                # QMessageBox.critical(self.main.w, config.transobj['anerror'],str(e))
+                self.main.w.test_chatgpt.setText(str(e))
+                self.main.w.test_chatgpt.setStyleSheet("""color:#ff0000""")
+                self.main.w.test_chatgpt.setFixedWidth(400)
+        def test():
+            config.box_trans='ing'
+            threading.Thread(target=trans).start()
+            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
+
+
         def save_chatgpt():
             key = self.main.w.chatgpt_key.text()
             api = self.main.w.chatgpt_api.text()
@@ -920,6 +939,8 @@ class SecWindow():
         if config.params["chatgpt_template"]:
             self.main.w.chatgpt_template.setPlainText(config.params["chatgpt_template"])
         self.main.w.set_chatgpt.clicked.connect(save_chatgpt)
+        self.main.w.test_chatgpt.clicked.connect(test)
+        raw_text=self.main.w.test_chatgpt.text()
         self.main.w.show()
 
     def set_gemini_key(self):

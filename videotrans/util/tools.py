@@ -546,26 +546,36 @@ def format_srt(content):
     result=[]
     maxindex=len(content)-1
     # 时间格式
-    timepat = r'^\s*?\d+:\d+:\d+(\,\d+?)?\s*?-->\s*?\d+:\d+:\d+(\,\d+?)?\s*?$'
+    timepat = r'^\s*?\d+:\d+:\d+([\,\.]\d+?)?\s*?-->\s*?\d+:\d+:\d+([\,\.]\d+?)?\s*?$'
     textpat=r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
+    #print(content)
     for i,it in enumerate(content):
         #当前空行跳过
         if not it.strip():
             continue
         it=it.strip()
         is_time=re.match(timepat,it)
+        #print(f'{i=},{it=}')
         if is_time:
+            #print(f'\t是时间')
             #当前行是时间格式，则添加
             result.append({"time":it,"text":[]})
         elif i==0:
             #当前是第一行，并且不是时间格式，跳过
+            #print(f'\t是0行跳过')
             continue
-        elif re.match(r'^\s*?\d+\s*?$',it) and i<maxindex and re.match(timepat,content[i+1]):
+        elif re.match(r'^\s*?\d+\s*?$',it) and i< maxindex and re.match(timepat,content[i+1]):
             #当前不是时间格式，不是第一行，并且都是数字，并且下一行是时间格式，则当前是行号，跳过
+            #print(f'\t是行号')
             continue
         elif len(result)>0 and not re.match(textpat,it):
             #当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
+            #print(f'\t是text')
             result[-1]['text'].append(it)
+    #print(result)
+    #import sys
+    #sys.exit()
+    #return
     #再次遍历，去掉text为空的
     result=[it for it in result if len(it['text'])>0]
 
@@ -605,7 +615,9 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         content = srtfile.strip().splitlines()
     if len(content)<1:
         raise Exception("srt content is 0")
+    
     result=format_srt(content)
+    
     if len(result)<1:
         return []
 
@@ -625,6 +637,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
+    #print(new_result)
     return new_result
 
 

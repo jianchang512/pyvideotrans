@@ -37,17 +37,19 @@ class Ui_chatgptform(object):
         self.chatgpt_template.setReadOnly(True)
         self.label_4 = QtWidgets.QLabel(chatgptform)
         self.label_4.setGeometry(QtCore.QRect(10, 155, 571, 21))
-        # font = QtGui.QFont()
-        # font.setFamily("黑体")
-        # font.setPointSize(10)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.label_4.setFont(font)
+
         self.label_4.setObjectName("label_4")
         self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
         self.set_chatgpt.setGeometry(QtCore.QRect(10, 350, 93, 35))
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
+
+        self.test_chatgpt = QtWidgets.QPushButton(chatgptform)
+        self.test_chatgpt.setGeometry(QtCore.QRect(130, 353, 93, 30))
+        self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
+        self.test_chatgpt.setObjectName("test_chatgpt")
+
+
         self.chatgpt_api = QtWidgets.QLineEdit(chatgptform)
         self.chatgpt_api.setGeometry(QtCore.QRect(150, 10, 431, 35))
         self.chatgpt_api.setMinimumSize(QtCore.QSize(0, 35))
@@ -75,6 +77,7 @@ class Ui_chatgptform(object):
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/chatgpt.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/chatgpt.txt")
         self.set_chatgpt.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.test_chatgpt.setText('测试..' if config.defaulelang=='zh' else "Test..")
         self.chatgpt_api.setPlaceholderText("Api https://api.openai.com")
         self.chatgpt_api.setToolTip('若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang=='zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
         self.chatgpt_key.setPlaceholderText("Secret key")

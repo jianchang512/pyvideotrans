@@ -27,12 +27,12 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         res=res.json()
         if "code" not in res or res['code']!=0:
             raise Exception(f'[error]clone:{res}')
-        if api_url.find('127.0.0.1')>-1:
+        if api_url.find('127.0.0.1')>-1 or api_url.find('localhost'):
             shutil.copy2(res['filename'],filename)
         else:
             res=requests.get(res['url'])
             if res.status_code!=200:
-                raise Exception(f'[error]save {res["url"]}')
+                raise Exception(f'clonevoice:{res["url"]}')
             with open(filename,'wb') as f:
                 f.write(res.content)
         return True
@@ -41,4 +41,4 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         if set_p:
             tools.set_process(error)
         config.logger.error(f"cloneVoice合成失败:{error},{api_url=}")
-        raise Exception(f"cloneVoice 合成失败:{error}")
+        raise Exception(f"cloneVoice:{error}")
