@@ -8,10 +8,10 @@ from videotrans.util import tools
 thread_err=[]
 
 # 文字合成
-def text_to_speech(stop_event,*, text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
+def text_to_speech(stop_event=None,*, text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
     global thread_err
     try:
-        if stop_event.is_set():
+        if stop_event and stop_event.is_set():
             return
         if rate != '+0%' and set_p:
             tools.set_process(f'text to speech speed {rate}')
@@ -36,7 +36,8 @@ def text_to_speech(stop_event,*, text="", role="", rate='+0%',language=None, fil
             return False
     except Exception as e:
         err=str(e)
-        stop_event.set()
+        if stop_event:
+            stop_event.set()
         thread_err.append(err)
         raise Exception(f'{err}')
 
