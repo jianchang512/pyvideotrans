@@ -88,7 +88,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
             nonsilent_data = json.load(infile)
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("Has stop")
+            raise config.Myexcept("stop")
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -117,7 +117,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
 
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("Has stop .")
+            raise config.Myexcept("stop")
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
@@ -283,7 +283,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
             nonsilent_data = json.load(infile)
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("Has stop")
+            raise config.Myexcept("stop")
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -301,7 +301,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
         # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("Has stop")
+            raise config.Myexcept("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += 200
@@ -312,7 +312,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
 
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("Has stop .")
+            raise config.Myexcept("stop")
         text = ""
         try:
 
