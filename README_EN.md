@@ -160,6 +160,9 @@ windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then
 
 ```
 
+
+;####################
+;#######################
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
 ;If you are not sure of the impact of the modification, please do not modify it, please make a backup before modification, and restore it if something goes wrong.
 
@@ -190,6 +193,9 @@ video_rate=0
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
 trans_thread=15
 
+;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
+;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
+fontsize=0
 
 
 ;Number of translation error retries
@@ -225,6 +231,9 @@ no_decode=true
 ;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
 cuda_com_type=int8
 
+;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
+initial_prompt_zh=转录为简体中文。
+
 ; whisper thread 0 is equal cpu core, 
 ;字幕识别时，cpu进程
 whisper_threads=4
@@ -249,8 +258,6 @@ temperature=0
 ;Same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs.
 ;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
 condition_on_previous_text=false
-
-
 
 
 
@@ -365,6 +372,14 @@ If CUDA is enabled and the computer has installed the CUDA environment, but CUDN
 https://juejin.cn/post/7318704408727519270
 
 If cudnn crashes even after being installed according to the tutorial, there is a high probability that the GPU memory is insufficient. You can switch to using the medium model. When the memory is less than 8GB, try to avoid using the largev-3 model, especially when the video is larger than 20MB, otherwise it may run out of memory and crash
+
+
+
+
+17. How to adjust subtitle font size
+
+If you are embedding hard subtitles, you can adjust the font size by changing the fontsize=0 in videotrans/set.ini to an appropriate value. 0 is the default size, 20 means the font size is 20 pixels.
+
 
 
 # CLI Command Line Mode

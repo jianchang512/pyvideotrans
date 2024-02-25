@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-VERSION="v1.13  pyVideoTrans.com"
-VERSION_NUM=11013
+VERSION="v1.14  pyVideoTrans.com"
+VERSION_NUM=11014

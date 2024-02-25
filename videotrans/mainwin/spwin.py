@@ -203,6 +203,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             threading.Thread(target=tools.get_clone_role).start()
             config.params['is_separate'] = True
             self.is_separate.setChecked(True)
+        elif config.params['tts_type']=='TTS-API':
+            self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
+
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])
@@ -267,6 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepLX_address.triggered.connect(self.util.set_deepLX_address)
         self.actionott_address.triggered.connect(self.util.set_ott_address)
         self.actionclone_address.triggered.connect(self.util.set_clone_address)
+        self.actiontts_api.triggered.connect(self.util.set_ttsapi)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -380,7 +384,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
-        
+
         if self.settings.value("clone_voicelist", ""):
             config.clone_voicelist=self.settings.value("clone_voicelist", "").split(',')
 
@@ -389,6 +393,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params["chatgpt_model"] == 'large':
             config.params["chatgpt_model"] = 'large-v3'
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
+
+        config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
+        config.params["ttsapi_extra"] = self.settings.value("ttsapi_extra", "pyvideotrans")
+        config.params["ttsapi_voice_role"] = self.settings.value("ttsapi_voice_role", "")
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
 

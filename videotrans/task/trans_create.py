@@ -1036,6 +1036,7 @@ class TransCreate():
                 raise Myexcept(f"[error]not exist srt: {self.targetdir_target_sub}")
             if self.precent < 95:
                 self.precent += 1
+            fontsize=""
             if config.params['subtitle_type'] == 1:
                 # 硬字幕 重新整理字幕，换行
                 try:
@@ -1050,12 +1051,10 @@ class TransCreate():
                     subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
                 with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
                     f.write(subtitles.strip())
-                if sys.platform == 'win32':
-                    shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
-                    os.chdir(config.rootdir)
-                    hard_srt = "tmp.srt"
-                else:
-                    hard_srt = self.targetdir_target_sub
+                shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
+                os.chdir(config.rootdir)
+                hard_srt = "tmp.srt"
+                fontsize=f":force_style=Fontsize={config.settings['fontsize']}" if config.settings['fontsize']>0 else ""
             if self.precent < 99:
                 self.precent += 1
             # 有字幕有配音               
@@ -1083,7 +1082,7 @@ class TransCreate():
                             "-c:a",
                             "aac",
                             "-vf",
-                            f"subtitles={hard_srt}",
+                            f"subtitles={hard_srt}{fontsize}",
                             "-shortest",
                             os.path.normpath(self.targetdir_mp4),
                         ], de_format="nv12")
@@ -1096,16 +1095,11 @@ class TransCreate():
                             os.path.normpath(self.novoice_mp4),
                             "-i",
                             os.path.normpath(self.targetdir_target_wav),
-                            # "-sub_charenc",
-                            # "UTF-8",
-                            # "-f",
-                            # "srt",
                             "-i",
                             os.path.normpath(self.targetdir_target_sub),
                             '-filter_complex', "[1:a]apad",
                             "-c:v",
                             "copy",
-                            # "libx264",
                             "-c:a",
                             "aac",
                             "-c:s",
@@ -1134,7 +1128,7 @@ class TransCreate():
                         "-shortest",
                         os.path.normpath(self.targetdir_mp4)
                     ])
-                # 无配音 使用 novice.mp4 和 原始 wav合并
+                # 无配音硬字幕 使用 novice.mp4 和 原始 wav合并
                 elif config.params['subtitle_type'] == 1:
                     set_process(transobj['onlyyingzimu'])
                     cmd = [
@@ -1153,7 +1147,7 @@ class TransCreate():
                         cmd.append('aac')
                     cmd += [
                         "-vf",
-                        f"subtitles={hard_srt}",
+                        f"subtitles={hard_srt}{fontsize}",
                         os.path.normpath(self.targetdir_mp4),
                     ]
                     rs = runffmpeg(cmd, de_format="nv12")
@@ -1238,5 +1232,8 @@ Docs: https://pyvideotrans.com
             pass
         self.precent = 100
         if config.params['only_video']:
+            # 保留软字幕
+            if config.params['subtitle_type'] == 2 and os.path.exists(self.targetdir_target_sub):
+                shutil.copy2(self.targetdir_target_sub,config.params['target_dir'] + f"/{self.noextname}.srt")
             shutil.rmtree(self.target_dir, True)
         return True

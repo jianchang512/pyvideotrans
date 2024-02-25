@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "ttsapi_nourl": "必须填写自定义TTS-API的url后才可使用",
     "import src error": "导入字幕出错，请检查文件内是否存在srt字幕格式内容",
     "openaimodelnot": "你选择的是openai模型{name}，但该{name}模型不存在，请点击菜单栏-帮助支持-下载识别模型,下载后将pt文件放在models文件夹内",
 	
