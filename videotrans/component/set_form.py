@@ -16,6 +16,7 @@ from videotrans.ui.info import Ui_infoform
 from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
+from videotrans.ui.ttsapi import Ui_ttsapiform
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -66,6 +67,14 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
+    def __init__(self, parent=None):
+        super(TtsapiForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 
 class DeepLForm(QDialog, Ui_deeplform):  # <===

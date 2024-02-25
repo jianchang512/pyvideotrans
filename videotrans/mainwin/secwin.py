@@ -5,7 +5,7 @@ import threading
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QTextCursor, QDesktopServices
-from PySide6.QtCore import QUrl, Qt, QDir
+from PySide6.QtCore import QUrl, Qt, QDir, QThread, Signal
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
     QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QProgressBar
 import warnings
@@ -899,8 +899,6 @@ class SecWindow():
                 self.main.w.test_chatgpt.setText(text)
                 self.main.w.test_chatgpt.setFixedWidth(90)
             except Exception as e:
-                print(e)
-                # QMessageBox.critical(self.main.w, config.transobj['anerror'],str(e))
                 self.main.w.test_chatgpt.setText(str(e))
                 self.main.w.test_chatgpt.setStyleSheet("""color:#ff0000""")
                 self.main.w.test_chatgpt.setFixedWidth(400)
@@ -942,6 +940,72 @@ class SecWindow():
         self.main.w.test_chatgpt.clicked.connect(test)
         raw_text=self.main.w.test_chatgpt.text()
         self.main.w.show()
+
+    def set_ttsapi(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+            def __init__(self, *,parent=None,text=None,language=None,rate="+0%",role=None):
+                super().__init__(parent=parent)
+                self.text=text
+                self.language=language
+                self.rate=rate
+                self.role=role
+
+            def run(self):
+
+                from videotrans.tts.ttsapi import get_voice
+                try:
+
+                    get_voice(text=self.text,language=self.language,rate=self.rate,role=self.role,set_p=False,filename=config.homedir+"/test.mp3")
+
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+        def feed(d):
+            if d=="ok":
+                tools.pygameaudio(config.homedir+"/test.mp3")
+                QMessageBox.information(self.main.ttsapiw,"ok","Test Ok")
+            else:
+                QMessageBox.critical(self.main.ttsapiw,config.transobj['anerror'],d)
+            self.main.ttsapiw.test.setText('测试api' if config.defaulelang=='zh' else 'Test api')
+        def test():
+            task=TestTTS(parent=self.main.ttsapiw,
+                    text="你好啊我的朋友" if config.defaulelang=='zh' else 'hello,my friend',
+                    role=self.main.ttsapiw.voice_role.text().strip().split(',')[0],
+                    language="zh-cn" if config.defaulelang=='zh' else 'en')
+            self.main.ttsapiw.test.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+
+
+        def save():
+            url = self.main.ttsapiw.api_url.text()
+            extra = self.main.ttsapiw.extra.text()
+            role = self.main.ttsapiw.voice_role.text().strip()
+
+            self.main.settings.setValue("ttsapi_url", url)
+            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
+            self.main.settings.setValue("ttsapi_voice_role", role)
+
+            config.params["ttsapi_url"] = url
+            config.params["ttsapi_extra"] = extra
+            config.params["ttsapi_voice_role"] = role
+            self.main.ttsapiw.close()
+
+        from videotrans.component import TtsapiForm
+        self.main.ttsapiw = TtsapiForm()
+        if config.params["ttsapi_url"]:
+            self.main.ttsapiw.api_url.setText(config.params["ttsapi_url"])
+        if config.params["ttsapi_voice_role"]:
+            self.main.ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
+        if config.params["ttsapi_extra"]:
+            self.main.ttsapiw.extra.setText(config.params["ttsapi_extra"])
+
+        self.main.ttsapiw.save.clicked.connect(save)
+        self.main.ttsapiw.test.clicked.connect(test)
+        self.main.ttsapiw.show()
+
 
     def set_gemini_key(self):
         def save():
@@ -1040,6 +1104,12 @@ class SecWindow():
         if self.main.app_mode=='peiyin' and type=='clone-voice' and config.params['voice_role']=='clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.set_clone_address()
+            return
+        if type=='TTS-API' and not config.params['ttsapi_url']:
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['ttsapi_nourl'])
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.set_ttsapi()
             return
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
@@ -1062,6 +1132,10 @@ class SecWindow():
             threading.Thread(target=get_clone_role).start()
             config.params['is_separate'] = True
             self.main.is_separate.setChecked(True)
+        elif type=='TTS-API':
+            self.main.voice_role.clear()
+            self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
+            self.main.voice_role.addItems(self.main.current_rolelist)
 
 
     # 中英文下试听配音
@@ -1096,8 +1170,11 @@ class SecWindow():
             except:
                 QMessageBox.critical(self.main,config.transobj['anerror'],config.transobj['You must deploy and start the clone-voice service'])
                 return
+        def feed(d):
+            QMessageBox.critical(self.main,config.transobj['anerror'],d)
         from videotrans.task.play_audio import PlayMp3
         t = PlayMp3(obj, self.main)
+        t.mp3_ui.connect(feed)
         t.start()
 
     # 角色改变时 显示试听按钮
@@ -1293,7 +1370,7 @@ class SecWindow():
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
-
+        config.settings=config.parse_init()
         # 清理日志
         self.delete_process()
 

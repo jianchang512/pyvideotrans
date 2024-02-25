@@ -82,7 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # self.langauge_name = list(langlist.keys())
         self.shibie_language.addItems(config.langnamelist)
-        self.shibie_model.addItems(["base", "small", "medium", "large-v3"])
+        self.shibie_model.addItems(["base", "small", "medium", "large-v2","large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
         self.shibie_opendir.clicked.connect(lambda :self.opendir_fn(self.shibie_out_path))
         self.is_cuda.toggled.connect(self.check_cuda)
@@ -111,7 +111,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_startbtn.clicked.connect(self.hecheng_start_fun)
         self.hecheng_opendir.clicked.connect(lambda: self.opendir_fn(self.hecheng_out.text().strip()))
         # 设置 tts_type
-        self.tts_type.addItems([i for i in config.params['tts_type_list'] if i !='clone-voice'])
+        self.tts_type.addItems([i for i in config.params['tts_type_list']])
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
         self.tts_issrt.stateChanged.connect(self.tts_issrt_change)
@@ -648,6 +648,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.addItems(config.params['elevenlabstts_role'])
         elif type == 'edgeTTS':
             self.hecheng_language_fun(self.hecheng_language.currentText())
+        elif type=='clone-voice':
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems([it for it in config.clone_voicelist if it !='clone'])
+        elif type=='TTS-API':
+            if not config.params['ttsapi_url']:
+                QMessageBox.critical(self,config.transobj['anerror'],config.transobj['ttsapi_nourl'])
+                return
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(self, t):

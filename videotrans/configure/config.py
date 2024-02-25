@@ -48,7 +48,8 @@ def parse_init():
         "separate_sec":1800,
         "audio_rate":0,
         "video_rate":0,
-        "initial_prompt_zh":""
+        "initial_prompt_zh":"",
+        "fontsize":0
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -72,6 +73,8 @@ def parse_init():
                     settings[key] = False
                 else:
                     settings[key] = str(value.lower()) if value else None
+        if isinstance(settings['fontsize'],str) and settings['fontsize'].find('px')>0:
+            settings['fontsize']=int(settings['fontsize'].replace('px',''))
     return settings
 
 
@@ -163,7 +166,7 @@ params = {
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS", "clone-voice","openaiTTS", "elevenlabsTTS"],
+    "tts_type_list": ["edgeTTS", "clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "voice_silence": 500,
     "whisper_type": "all",
@@ -204,7 +207,13 @@ params = {
     "azure_template": "",
     "openaitts_role": openaiTTS_rolelist,
     "gemini_key": "",
-    "gemini_template": ""
+    "gemini_template": "",
+
+    "ttsapi_url":"",
+    "ttsapi_voice_role":"",
+    "ttsapi_extra":"pyvideotrans"
+
+
 }
 
 with open(os.path.join(rootdir,'videotrans/chatgpt.txt'),'r',encoding='utf-8') as f:

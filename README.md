@@ -5,11 +5,11 @@
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。
 >
-> 语音识别基于 `faster-whisper` 离线模型.
+> 语音识别使用 `faster-whisper` `openai-whisper` 离线模型.
 >
 > 文字翻译支持 `microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
+> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS` `自定义TTS服务器api` ,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
@@ -43,6 +43,7 @@
 
 【人声背景乐分离】将视频中的人声和背景音乐分别分离出来，生成2个音频文件
 
+【下载油管视频】可从youtube上下载视频
 
 ----
 
@@ -88,38 +89,44 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 9. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
 10. Ubuntu 下可能还需要安装 Libxcb 库，安装命令
+
 	```
+	
 	sudo apt-get update
 	sudo apt-get install libxcb-cursor0
+	
 	```
 
 11. Mac下可能需要执行`
+
 brew install libsndfile`安装libsndfile
 
 
 
 # 使用方法
 
-1. 原始视频：点击选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
+1. 选择视频：点击选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
-2. 输出视频目录：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
+2. 保存到..：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
 
-3. 选择翻译：可选 microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT 翻译渠道
+3. 翻译渠道：可选 microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT 翻译渠道
 
-4. 网络代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
+4. 代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 
-5. 视频原始语言：选择待翻译视频里的语言种类
+5. 原始语言：选择待翻译视频里的语言种类
 
-6. 翻译目标语言：选择希望翻译到的语言种类
+6. 目标语言：选择希望翻译到的语言种类
 
-7. 选择配音：选择翻译目标语言后，可从配音选项中，选择配音角色；
+7. TTS和配音角色：选择翻译目标语言后，可从配音选项中，选择配音角色；
    
-   硬字幕: 是指始终显示字幕，不可隐藏，如果希望网页中播放时也有字幕，请选择硬字幕嵌入
+   硬字幕: 
+   是指始终显示字幕，不可隐藏，如果希望网页中播放时也有字幕，请选择硬字幕嵌入，硬字幕时可通过videotrans/set.ini 中 fontsize设置字体大小
 
-   软字幕: 如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
+   软字幕: 
+   如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
 
 
-8. 语音识别模型: 选择 base/small/medium/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
+8. 语音识别模型: 选择 base/small/medium/large-v2/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
 
    整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
 
@@ -146,20 +153,20 @@ brew install libsndfile`安装libsndfile
 > 
 >     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
 > 
->
+> 可同时选中两种方式，将把各自的速度调整为单独使用时的一半
 
 
 11. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-13. TTS: 可用 edgeTTS 和 openai TTS模型中选择要合成语音的角色，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音
+13. TTS: 可用 edgeTTS 和 openai TTS-1模型、Elevenlabs、clone-voice、自定义TTS，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音。同时支持使用自己的tts服务，在设置菜单-自定义TTS-API中填写api地址
 
 14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
-15. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，60s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
+15. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，30s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
 
-16. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理
+16. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理.
 
 17. 设置行角色：可对字幕中的每行设定发音角色，首先左侧选好TTS类型和角色，然后点击字幕区右下方“设置行角色”，在每个角色名后面文本中中，填写要使用该角色配音的行编号，如下图：
     ![](./images/p2.png)
@@ -170,7 +177,7 @@ brew install libsndfile`安装libsndfile
 
 20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
 
-21. 添加背景音乐：该功能和“保留背景音”类似，但实现方式不同，只可在“标准功能模式”和“字幕创建配音”模式下使用。
+21.  添加背景音乐：该功能和“保留背景音”类似，但实现方式不同，只可在“标准功能模式”和“字幕创建配音”模式下使用。
 “添加背景音乐”是预先从本地计算机中选择一个作为背景声音的音频文件，文件路径显示在右侧文本框中，在处理结束输出结果视频时，将该音频混入，最终生成的视频里会播放该背景音频文件。
 
 如果同时也选中了“保留背景音”，那么原始视频里的背景音也会保留。
@@ -247,7 +254,34 @@ brew install libsndfile`安装libsndfile
 
 11. 怎样使用自定义音色
    
-   目前暂不支持该功能，如果有需要，可以选择使用[clone-voice进行原音色配音](https://github.com/jiangchang512/clone-voice)
+   设置菜单-自定义TTS-API，填写自己的tts服务器接口地址。
+   
+   将以POST请求向填写的API地址发送application/www-urlencode数据：
+```
+# 发送的请求数据：
+
+text:需要合成的文本/字符串
+
+language:文字所属语言代码(zh-cn,zh-tw,en,ja,ko,ru,de,fr,tr,th,vi,ar,hi,hu,es,pt,it)/字符串
+
+voice:配音角色名称/字符串
+
+rate:加减速值，0或者 '+数字%' '-数字%'，代表在正常速度基础上进行加减速的百分比/字符串
+
+ostype:win32或mac或linux操作系统类型/字符串
+
+extra:额外参数/字符串
+
+
+# 期待从接口返回json格式数据：
+{
+    code:0=合成成功时，>0的数字代表失败
+    msg:ok=合成成功时，其他为失败原因
+    data:在合成成功时，返回mp3文件的完整url地址，用于在软件内下载。失败时为空
+}   
+
+
+```
    
 13. 字幕语音无法对齐
 
@@ -292,9 +326,19 @@ https://juejin.cn/post/7318704408727519270
 如果cudnn按照教程安装好了仍闪退，那么极大概率是GPU显存不足，可以改为使用 medium模型，显存不足8G时，尽量避免使用largev-3模型，尤其是视频大于20M时，否则可能显存不足而崩溃
 
 
+17. 如何调节字幕字体大小
+
+如果嵌入硬字幕，可以通过修改 videotrans/set.ini 中的 fontsize=0为一个合适的值，来调节字体大小。0代表默认尺寸，20代表字体尺寸为20个像素
+
+
+
 # 高级设置 videotrans/set.ini
 
+
 **请勿随意调整，除非你知道将会发生什么**
+
+
+
 
 ```
 
@@ -328,6 +372,9 @@ video_rate=0
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
 trans_thread=15
 
+;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
+;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
+fontsize=0
 
 
 ;Number of translation error retries
@@ -363,6 +410,9 @@ no_decode=true
 ;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
 cuda_com_type=int8
 
+;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
+initial_prompt_zh=转录为简体中文。
+
 ; whisper thread 0 is equal cpu core, 
 ;字幕识别时，cpu进程
 whisper_threads=4
@@ -389,10 +439,8 @@ temperature=0
 condition_on_previous_text=false
 
 
-
-
-
 ```
+
 
 
 
@@ -435,7 +483,10 @@ cli.ini 里是各项完整参数，第一个参数`source_mp4`即代表待处理
 
 示例:`python cli.py -cuda -m D:/1.mp4`
 
+
 ## cli.ini内具体参数和说明
+
+
 
 ```
 ;命令行参数

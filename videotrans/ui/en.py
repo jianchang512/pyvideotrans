@@ -530,8 +530,13 @@ class Ui_MainWindow(object):
         self.actiondeepLX_address.setObjectName("actiondeepLX_address")
         self.actionott_address = QtGui.QAction(MainWindow)
         self.actionott_address.setObjectName("actionott_address")
+
         self.actionclone_address = QtGui.QAction(MainWindow)
         self.actionclone_address.setObjectName("actionclone_address")
+
+        self.actiontts_api = QtGui.QAction(MainWindow)
+        self.actiontts_api.setObjectName("actiontts_api")
+
         self.action_website = QtGui.QAction(MainWindow)
         self.action_website.setObjectName("action_website")
         self.action_discord = QtGui.QAction(MainWindow)
@@ -651,6 +656,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclone_address)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiontts_api)
+        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepLX_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionElevenlabs_key)
@@ -763,6 +770,7 @@ class Ui_MainWindow(object):
         self.actiondeepLX_address.setText("DeepLX Api")
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang=='zh' else "OTT Api")
         self.actionclone_address.setText("原音色克隆Api" if config.defaulelang=='zh' else "Clone-Voice Api")
+        self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
         self.action_models.setText(config.uilanglist["Download Models"])
