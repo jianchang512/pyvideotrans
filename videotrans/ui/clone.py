@@ -45,6 +45,7 @@ class Ui_cloneform(object):
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
+
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.clone_address = QtWidgets.QLineEdit(clone)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -67,10 +68,20 @@ class Ui_cloneform(object):
         self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
         self.set_clone.setObjectName("set_clone")
 
+        self.test = QtWidgets.QPushButton(clone)
+        self.test.setMinimumSize(QtCore.QSize(0, 30))
+        self.test.setObjectName("test")
+
         label=QLabel(config.transobj['The project at'])
         self.verticalLayout_2.addWidget(label)
-        
-        self.verticalLayout_2.addWidget(self.set_clone)
+
+        self.layout_btn = QtWidgets.QHBoxLayout()
+        self.layout_btn.setObjectName("layout_btn")
+
+        self.layout_btn.addWidget(self.set_clone)
+        self.layout_btn.addWidget(self.test)
+
+        self.verticalLayout_2.addLayout(self.layout_btn)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
         self.retranslateUi(clone)
@@ -81,3 +92,4 @@ class Ui_cloneform(object):
         self.label.setText("http地址" if config.defaulelang=='zh' else 'clone-voice url')
         self.clone_address.setPlaceholderText('填写clone-voice项目启动后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address after the clone voice program starts')
         self.set_clone.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.test.setText('测试' if config.defaulelang=='zh' else "Test")

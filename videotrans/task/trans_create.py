@@ -367,8 +367,7 @@ class TransCreate():
         if config.params['translate_type'].lower() == GOOGLE_NAME.lower():
             set_process(config.transobj['test google'])
             if not self.testgoogle():
-                switch_trans = '无法连接Google，已自动切换为Microsoft翻译'
-                config.params['translate_type'] = 'Microsoft'
+                raise Exception('无法连接Google,请填写有效代理地址，如果无代理，请查看菜单栏-帮助支持-无代理使用Google翻译')
 
         set_process(transobj['starttrans'] + switch_trans)
         # 开始翻译,从目标文件夹读取原始字幕
@@ -399,10 +398,11 @@ class TransCreate():
         result = False
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
+            print(response.text)
             if response.status_code == 200:
                 result = True
-        except:
-            pass
+        except Exception as e:
+            print(e)
         return result
 
     # 配音处理
@@ -440,7 +440,7 @@ class TransCreate():
             if str(e)=='stop':
                 return False
             # delete_temp(self.noextname)
-            raise Myexcept("TTS:" + str(e))
+            raise Myexcept("配音失败:" + str(e))
 
     # 合并操作
     def hebing(self):
@@ -1027,8 +1027,8 @@ class TransCreate():
                 raise Myexcept("not novoice mp4")
             # 需要配音,选择了角色，并且不是 提取模式 合并模式
             if config.params['voice_role'] != 'No' and self.app_mode not in ['hebing']:
-                if not os.path.exists(self.targetdir_target_wav):
-                    raise Myexcept(f"[error] not exists:{self.targetdir_target_wav}")
+                if not os.path.exists(self.targetdir_target_wav) or os.path.getsize(self.targetdir_target_wav)<1:
+                    raise Myexcept(f"{config.transobj['Dubbing..']}{config.transobj['anrror']}:{self.targetdir_target_wav}")
             if self.app_mode == 'hebing':
                 config.params['voice_role'] = 'No'
             # 需要字幕
@@ -1044,7 +1044,7 @@ class TransCreate():
                 except Exception as e:
                     raise Myexcept(f'[error]Subtitles error:{str(e)}')
 
-                maxlen = 36 if config.params['target_language'][:2] in ["zh", "ja", "jp", "ko"] else 80
+                maxlen = 36 if self.target_language_code[:2] in ["zh", "ja", "jp", "ko"] else 80
                 subtitles = ""
                 for it in subs:
                     it['text'] = textwrap.fill(it['text'], maxlen)

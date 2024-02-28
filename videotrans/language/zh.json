@@ -1,5 +1,6 @@
 {
   "translate_language": {
+	"miandailigoogle":"免代理使用Google翻译",
     "ttsapi_nourl": "必须填写自定义TTS-API的url后才可使用",
     "import src error": "导入字幕出错，请检查文件内是否存在srt字幕格式内容",
     "openaimodelnot": "你选择的是openai模型{name}，但该{name}模型不存在，请点击菜单栏-帮助支持-下载识别模型,下载后将pt文件放在models文件夹内",
@@ -133,7 +134,7 @@
     "wufapeiyin": "没有选择目标语言，无法进行配音哦，请选择目标语言或取消配音角色",
     "xuanzeyinpinwenjian": "选择音视频文件",
     "vlctips": "拖动视频到此或者双击选择视频",
-    "vlctips2": " 安装VLC解码器后可预览播放",
+    "vlctips2": " 文件不存在",
     "xuanzeyinshipin": "点击选择或拖拽一个或多个音频视频文件到此处",
     "tuodongdaoci": "拖动要转换的文件到此处松开",
     "tuodongfanyi": "拖动要翻译的文本文件或srt文件到此处松开",
