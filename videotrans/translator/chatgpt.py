@@ -132,7 +132,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 if source_code is not None:
                     err =error+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
                 else:
-                    err=error
+                    err=error+openai.base_url
                 index = i
                 break
         else:

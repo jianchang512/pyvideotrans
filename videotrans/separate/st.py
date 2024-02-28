@@ -154,14 +154,18 @@ def start(audio,path,source="logs"):
         concat_vocal=os.path.join(tmp_path,'vocal.txt')
         with open(concat_vocal,'w',encoding='utf-8') as f:
             f.write("\n".join(result_vocal))
+        if not os.path.exists(concat_vocal):
+            raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
         tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(path+'/vocal.wav')],disable_gpu=True,is_box=True)
 
         concat_instr=os.path.join(tmp_path,'instr.txt')
         with open(concat_instr,'w',encoding='utf-8') as f:
             f.write("\n".join(result_instr))
+        if not os.path.exists(concat_instr):
+            raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
         tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(path+'/instrument.wav')],disable_gpu=True,is_box=True)
     except Exception as e:
-        msg=f"separate vocal and background music:{str(e)}"
+        msg=f"分离背景音失败:{str(e)}"
         print(msg)
         raise Exception(msg)
 

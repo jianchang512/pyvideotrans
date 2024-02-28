@@ -276,6 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
         self.action_models.triggered.connect(lambda: self.util.open_url('models'))
         self.action_dll.triggered.connect(lambda: self.util.open_url('dll'))
+        self.action_gtrans.triggered.connect(lambda: self.util.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('xinshou'))

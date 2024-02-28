@@ -154,6 +154,10 @@ def runffmpeg(arg, *, noextname=None,
     arg_copy=copy.deepcopy(arg)
     cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", "vfr"]
     # 启用了CUDA 并且没有禁用GPU
+    for i, it in enumerate(arg):
+        if arg[i]=='-i' and i<len(arg)-1:
+            if not os.path.exists(arg[i+1]):
+                raise Exception(f'{arg[i+1]} {config.transobj["vlctips2"]}')
     if config.params['cuda'] and not disable_gpu:
         cmd.extend(["-hwaccel", config.settings['hwaccel'], "-hwaccel_output_format", de_format, "-extra_hw_frames", "2"])
         # 如果没有禁止硬件解码，则添加

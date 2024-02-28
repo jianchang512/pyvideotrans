@@ -191,7 +191,7 @@ class SecWindow():
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
-        self.main.only_video.setDisable(False)
+        self.main.only_video.setDisabled(False)
 
         # cuda
         self.main.enable_cuda.show()
@@ -545,6 +545,8 @@ class SecWindow():
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/0.0")
         elif title == 'dll':
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/v0.0.1")
+        elif title == 'gtrans':
+            webbrowser.open_new_tab("https://juejin.cn/post/7339210740454719523")
         elif title == 'cuda':
             webbrowser.open_new_tab("https://juejin.cn/post/7318704408727519270")
         elif title == 'website':
@@ -834,21 +836,61 @@ class SecWindow():
         self.main.w.show()
 
     def set_clone_address(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+            def __init__(self, *,parent=None,text=None,language=None,role=None):
+                super().__init__(parent=parent)
+                self.text=text
+                self.language=language
+                self.role=role
+
+            def run(self):
+                from videotrans.tts.clone import get_voice
+                try:
+                    get_clone_role(True)
+                    if config.clone_voicelist[-1]=='clone':
+                        raise Exception('没有可供测试的声音')
+                    get_voice(text=self.text,language=self.language,role=config.clone_voicelist[-1],set_p=False,filename=config.homedir+"/test.mp3")
+
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+        def feed(d):
+            if d=="ok":
+                tools.pygameaudio(config.homedir+"/test.mp3")
+                QMessageBox.information(self.main.clonw,"ok","Test Ok")
+            else:
+                QMessageBox.critical(self.main.clonw,config.transobj['anerror'],d)
+            self.main.clonw.test.setText('测试' if config.defaulelang=='zh' else 'Test')
+        def test():
+            if not self.main.clonw.clone_address.text().strip():
+                QMessageBox.critical(self.main.clonw,config.transobj['anerror'],'必须填写http地址')
+                return
+            config.params['clone_api']=self.main.clonw.clone_address.text().strip()
+            task=TestTTS(parent=self.main.clonw,
+                    text="你好啊我的朋友" if config.defaulelang=='zh' else 'hello,my friend'
+                    ,language="zh-cn" if config.defaulelang=='zh' else 'en')
+            self.main.clonw.test.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+
         def save():
-            key = self.main.w.clone_address.text().strip()
+            key = self.main.clonw.clone_address.text().strip()
             key=key.rstrip('/')
             if key:
                 key='http://'+key.replace('http://','')
             self.main.settings.setValue("clone_api", key)
             config.params["clone_api"] = key
-            self.main.w.close()
+            self.main.clonw.close()
 
         from videotrans.component import CloneForm
-        self.main.w = CloneForm()
+        self.main.clonw = CloneForm()
         if config.params["clone_api"]:
-            self.main.w.clone_address.setText(config.params["clone_api"])
-        self.main.w.set_clone.clicked.connect(save)
-        self.main.w.show()
+            self.main.clonw.clone_address.setText(config.params["clone_api"])
+        self.main.clonw.set_clone.clicked.connect(save)
+        self.main.clonw.test.clicked.connect(test)
+        self.main.clonw.show()
 
     # set baidu
     def set_baidu_key(self):
@@ -891,20 +933,32 @@ class SecWindow():
 
     # set chatgpt
     def set_chatgpt_key(self):
-        def trans():
-            try:
-                from videotrans.translator.chatgpt import trans as trans_chatgpt
-                text = trans_chatgpt("测试正确" if config.defaulelang != 'zh' else "Test is ok",
-                                     "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, inst=None)
-                self.main.w.test_chatgpt.setText(text)
-                self.main.w.test_chatgpt.setFixedWidth(90)
-            except Exception as e:
-                self.main.w.test_chatgpt.setText(str(e))
-                self.main.w.test_chatgpt.setStyleSheet("""color:#ff0000""")
-                self.main.w.test_chatgpt.setFixedWidth(400)
+        class TestChatgpt(QThread):
+            uito = Signal(str)
+            def __init__(self, *,parent=None):
+                super().__init__(parent=parent)
+
+            def run(self):
+                try:
+                    from videotrans.translator.chatgpt import trans as trans_chatgpt
+                    text = trans_chatgpt("测试正确" if config.defaulelang != 'zh' else "Test is ok",
+                                         "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, inst=None)
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+        def feed(d):
+            if d!="ok":
+                QMessageBox.critical(self.main.w,config.transobj['anerror'],d)
+            else:
+                QMessageBox.information(self.main.w,"OK","测试正常" if config.defaulelang=='zh' else "All right")
+            self.main.w.test_chatgpt.setText('测试' if config.defaulelang=='zh' else 'Test')
+
         def test():
             config.box_trans='ing'
-            threading.Thread(target=trans).start()
+            task = TestChatgpt(parent=self.main.w)
+            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
             self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
 
 
@@ -938,7 +992,6 @@ class SecWindow():
             self.main.w.chatgpt_template.setPlainText(config.params["chatgpt_template"])
         self.main.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.main.w.test_chatgpt.clicked.connect(test)
-        raw_text=self.main.w.test_chatgpt.text()
         self.main.w.show()
 
     def set_ttsapi(self):

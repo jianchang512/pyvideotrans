@@ -1,5 +1,6 @@
 {
   "translate_language" : {
+	"miandailigoogle":"Use Google translate when no proxy",
     "ttsapi_nourl": "The url of the customized TTS-API must be filled in before it can be used",
     "import src error": "Error importing subtitles, please check if srt subtitle format content exists in the file",
 	"openaimodelnot": "You choose the openai {name} model, but the {name} model does not exist, please download and put the pt file in the models folder in the software directory, click on the menubar - Help Support - Download Model ",
@@ -157,7 +158,7 @@
     "wufapeiyin" : "Ningún idioma de destino seleccionado, no puede doblarse, seleccione el idioma de destino o cancele el rol de doblaje ",
     "xuanzeyinpinwenjian" : "Seleccione archivos de audio y vídeo ",
     "vlctips" : "Arrastre el vídeo aquí o efectúe una doble pulsación para seleccionar el vídeo ",
-    "vlctips2" : "Puede previsualizar y reproducir después de instalar el decodificador VLC ",
+    "vlctips2" : " file is not exists ",
     "xuanzeyinshipin" : "Haga clic para seleccionar o arrastrar y soltar archivos de audio y vídeo aquí ",
     "tuodongdaoci" : "Arrastre el archivo que desea convertir aquí y libere ",
     "tuodongfanyi" : "Arrastre el archivo de texto o el archivo srt para que se traduzca aquí y suelte ",

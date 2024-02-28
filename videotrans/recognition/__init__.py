@@ -22,9 +22,9 @@ def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,m
     if model_type=='openai':
         rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     elif type == "all":
-        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+        rs= all_recogn_timestramp(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     else:
-        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+        rs=split_recogn_timestamp(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -42,7 +42,6 @@ def match_target_amplitude(sound, target_dBFS):
 def shorten_voice(normalized_sound):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
     max_interval = 10000
-    buffer = 500
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
                                     silence_thresh=-20 - 25)
@@ -53,7 +52,7 @@ def shorten_voice(normalized_sound):
         while end_time - start_time >= max_interval:
             n += 1
             # new_end = start_time + max_interval+buffer
-            new_end = start_time + max_interval + buffer
+            new_end = start_time + max_interval
             new_start = start_time
             nonsilent_data.append((new_start, new_end, True))
             start_time += max_interval
@@ -171,6 +170,119 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     return raw_subtitles
 
 
+def split_recogn_timestamp(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
+    if set_p:
+        tools.set_process(config.transobj['fengeyinpinshuju'])
+    if config.current_status != 'ing' and config.box_recogn!='ing':
+        return False
+    noextname=os.path.basename(audio_file)
+    tmp_path = f'{cache_folder}/{noextname}_tmp'
+    if not os.path.isdir(tmp_path):
+        try:
+            os.makedirs(tmp_path, 0o777, exist_ok=True)
+        except:
+            raise config.Myexcept(config.transobj["createdirerror"])
+    if audio_file.endswith('.m4a'):
+        wavfile = cache_folder + "/tmp.wav"
+        tools.m4a2wav(audio_file, wavfile)
+    else:
+        wavfile=audio_file
+    if not os.path.exists(wavfile):
+        raise Exception(f'[error]not exists {wavfile}')
+    normalized_sound = AudioSegment.from_wav(wavfile)  # -20.0
+    nonslient_file = f'{tmp_path}/detected_voice.json'
+    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+        with open(nonslient_file, 'r') as infile:
+            nonsilent_data = json.load(infile)
+    else:
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            raise config.Myexcept("stop")
+        nonsilent_data = shorten_voice(normalized_sound)
+        with open(nonslient_file, 'w') as outfile:
+            json.dump(nonsilent_data, outfile)
+
+    raw_subtitles = []
+    total_length = len(nonsilent_data)
+    try:
+        model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
+                         compute_type=config.settings['cuda_com_type'],
+                         download_root=config.rootdir + "/models",
+                         cpu_threads=1,num_workers=1, local_files_only=True)
+    except Exception as e:
+        raise Exception(str(e.args))
+    for i, duration in enumerate(nonsilent_data):
+        # config.temp = {}
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            del model
+            return None
+        start_time, end_time, buffered = duration
+
+        chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
+        audio_chunk = normalized_sound[start_time:end_time]
+        audio_chunk.export(chunk_filename, format="wav")
+
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            del model
+            raise config.Myexcept("stop")
+        text = ""
+        try:
+            segments, _ = model.transcribe(chunk_filename,
+                                           beam_size=config.settings['beam_size'],
+                                           best_of=config.settings['best_of'],
+                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
+                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
+                                           word_timestamps=True,
+                                           language=detect_language,
+                                           initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
+            word_list=[]
+            for t in segments:
+                word_list.extend(list(t.words))
+                if detect_language=='zh' and t.text==config.settings['initial_prompt_zh']:
+                    continue
+                text += t.text + " "
+            end_time=start_time+ int(word_list[-1].end*1000)
+            start_time+=int(word_list[0].start*1000)
+        except Exception as e:
+            del model
+            raise  Exception(str(e.args))
+
+        text = f"{text.capitalize()}. ".replace('&#39;', "'")
+        text = re.sub(r'&#\d+;', '', text).strip().strip('.')
+        if detect_language=='zh' and text==config.settings['initial_prompt_zh']:
+            continue
+        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+            continue
+        start = timedelta(milliseconds=start_time)
+        stmp = str(start).split('.')
+        if len(stmp) == 2:
+            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+        end = timedelta(milliseconds=end_time)
+        etmp = str(end).split('.')
+        if len(etmp) == 2:
+            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+        srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
+        raw_subtitles.append(srt_line)
+        if set_p:
+            if inst and inst.precent<55:
+                inst.precent += round(srt_line['line']*5  / total_length, 2)
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
+            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
+            tools.set_process(msg, 'subtitle')
+        else:
+            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
+    if set_p:
+        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
+    # 写入原语言字幕到目标文件夹
+    if audio_file.endswith('.m4a')  and os.path.exists(wavfile):
+        os.unlink(wavfile)
+    try:
+        shutil.rmtree(tmp_path,True)
+    except:
+        pass
+    return raw_subtitles
+
+
+
 # 整体识别，全部传给模型
 def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
     if config.current_status != 'ing' and config.box_recogn!='ing':
@@ -241,6 +353,125 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                 tools.set_process( f'{config.transobj["zimuhangshu"]} {s["line"]}')
             else:
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
+
+        if audio_file.endswith('.m4a') and os.path.exists(wavfile):
+            os.unlink(wavfile)
+        return raw_subtitles
+    except Exception as e:
+        raise Exception(f'whole all {str(e)}')
+    finally:
+        try:
+            if model:
+                del model
+        except:
+            pass
+
+
+# 按照时间戳处理
+def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
+    if config.current_status != 'ing' and config.box_recogn!='ing':
+        return False
+    if set_p:
+        tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
+    down_root = os.path.normpath(config.rootdir + "/models")
+    model=None
+    try:
+        model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
+                             compute_type=config.settings['cuda_com_type'],
+                             download_root=down_root,
+                             num_workers=config.settings['whisper_worker'],
+                             cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(config.settings['whisper_threads']),
+                             local_files_only=True)
+        if config.current_status != 'ing' and config.box_recogn!='ing':
+            return False
+        if audio_file.endswith('.m4a'):
+            wavfile = cache_folder + "/tmp.wav"
+            tools.m4a2wav(audio_file, wavfile)
+        else:
+            wavfile=audio_file
+        if not os.path.exists(wavfile):
+            raise Exception(f'[error]not exists {wavfile}')
+        print(f"bbadas{bool(config.settings['vad'])}")
+        segments, info = model.transcribe(wavfile,
+                                          beam_size=config.settings['beam_size'],
+                                          best_of=config.settings['best_of'],
+                                          condition_on_previous_text=config.settings['condition_on_previous_text'],
+
+                                          temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
+                                          word_timestamps=True,
+                                          vad_filter=bool(config.settings['vad']),
+                                          vad_parameters=dict(
+                                              min_silence_duration_ms=int(config.params['voice_silence']),
+                                              max_speech_duration_s=11.5
+                                           ),
+
+                                          language=detect_language,
+                                          initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'])
+        raw_subtitles = []
+        # 存储每个字的信息
+        word_list = []
+        for segment in segments:
+            word_list.extend(list(segment.words))
+            if set_p and inst and inst.precent<55:
+                inst.precent += round(segment.end*0.5  / info.duration, 2)
+        # 保留最后一句
+        last = []
+        # 首选分割符号
+        split_line = [".", "?", "!", "。", "？", "！"]
+        # 次级分割符号
+        split_second = [",", "，", " ", "、", "/"]
+        for i, word in enumerate(word_list):
+            if i > 0 and len(last) >= 30 and (
+                    word.word[-1].strip() in split_second or word.word in split_second):
+                last.append(word)
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = []
+            # 首选分割
+            elif i > 0 and (word.word[-1].strip() in split_line or word.word.strip() in split_line):
+                last.append(word)
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "text": "".join([t.word for t in last]),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = []
+            # 大于 300ms强制分割
+            elif i > 0 and (word.start - word_list[i - 1].end > 0.3):
+                if len(last) > 0:
+                    raw_subtitles.append({
+                        "start_time": last[0].start,
+                        "end_time": last[-1].end,
+                        "text": "".join([t.word for t in last]),
+                        "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                            seconds=last[-1].end),
+                        "line": len(raw_subtitles) + 1,
+                        "ditt": last[-1].end - last[0].start
+                    })
+                last = [word]
+            # 大于30个字符，并且在次级分割
+            else:
+                last.append(word)
+
+        for i, it in enumerate(raw_subtitles):
+            it['text'] = it['text'].replace('&#39;', "'")
+            raw_subtitles[i]=it
+            if set_p:
+                tools.set_process(f'{it["line"]}\n{it["time"]}\n{it["text"]}\n\n', 'subtitle')
+
+            else:
+                tools.set_process_box(f'{it["line"]}\n{it["time"]}\n{it["text"]}\n\n', func_name="set_subtitle")
 
         if audio_file.endswith('.m4a') and os.path.exists(wavfile):
             os.unlink(wavfile)
