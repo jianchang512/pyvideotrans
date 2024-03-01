@@ -41,7 +41,7 @@ def match_target_amplitude(sound, target_dBFS):
 # split audio by silence
 def shorten_voice(normalized_sound):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
-    max_interval = 10000
+    max_interval = 5000
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
                                     silence_thresh=-20 - 25)
@@ -391,7 +391,7 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
             wavfile=audio_file
         if not os.path.exists(wavfile):
             raise Exception(f'[error]not exists {wavfile}')
-        print(f"bbadas{bool(config.settings['vad'])}")
+
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
@@ -402,7 +402,7 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
-                                              max_speech_duration_s=11.5
+                                              max_speech_duration_s=5
                                            ),
 
                                           language=detect_language,
@@ -417,12 +417,20 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
         # 保留最后一句
         last = []
         # 首选分割符号
-        split_line = [".", "?", "!", "。", "？", "！"]
-        # 次级分割符号
-        split_second = [",", "，", " ", "、", "/"]
+        split_line = [".", "?", "!", "。", "？", "！",",", "，", "、", "/","》","”","’"]
+        maxlength=35
+        if detect_language in ['zh','ja','ko']:
+            maxlength=20
+            split_line.append(" ")
+        maxindex=len(word_list)-1
         for i, word in enumerate(word_list):
-            if i > 0 and len(last) >= 30 and (
-                    word.word[-1].strip() in split_second or word.word in split_second):
+            duration=0 if len(last)==0 else  last[-1].end-last[0].start
+            length=0 if len(last)==0 else len("".join([t.word for t in last]))
+            if len(last)>0 and duration<0.5:
+                print(f'\t01')
+                last.append(word)
+            elif duration>=0.5 and (word.word[-1] in split_line or word.word in split_line):
+                print(f'\t02')
                 last.append(word)
                 raw_subtitles.append({
                     "start_time": last[0].start,
@@ -434,34 +442,68 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
                     "ditt": last[-1].end - last[0].start
                 })
                 last = []
-            # 首选分割
-            elif i > 0 and (word.word[-1].strip() in split_line or word.word.strip() in split_line):
-                last.append(word)
+            elif duration>=0.5 and (word.word[0] in split_line):
                 raw_subtitles.append({
                     "start_time": last[0].start,
                     "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
                     "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
                         seconds=last[-1].end),
-                    "text": "".join([t.word for t in last]),
                     "line": len(raw_subtitles) + 1,
                     "ditt": last[-1].end - last[0].start
                 })
-                last = []
-            # 大于 300ms强制分割
-            elif i > 0 and (word.start - word_list[i - 1].end > 0.3):
-                if len(last) > 0:
-                    raw_subtitles.append({
-                        "start_time": last[0].start,
-                        "end_time": last[-1].end,
-                        "text": "".join([t.word for t in last]),
-                        "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
-                            seconds=last[-1].end),
-                        "line": len(raw_subtitles) + 1,
-                        "ditt": last[-1].end - last[0].start
-                    })
+                last = [word]            
+            
+            elif duration>=4 and i<maxindex and word.end+0.1<=word_list[i + 1].start :
+                print(f'\t04')
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
                 last = [word]
-            # 大于30个字符，并且在次级分割
+            elif duration>=3 and i<maxindex and word.end+0.1<=word_list[i + 1].start :
+                print(f'\t04')
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = [word]       
+            elif duration>=0.5 and i < maxindex and word.end+0.1<=word_list[i+1].start:
+                print(f'\t03')
+                last.append(word)
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = []
+            elif length>=maxlength or duration>=5:
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = [word]
             else:
+                print(f'\t05')
                 last.append(word)
 
         for i, it in enumerate(raw_subtitles):

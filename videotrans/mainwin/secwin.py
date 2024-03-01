@@ -848,9 +848,9 @@ class SecWindow():
                 from videotrans.tts.clone import get_voice
                 try:
                     get_clone_role(True)
-                    if config.clone_voicelist[-1]=='clone':
+                    if len(config.clone_voicelist)<2:
                         raise Exception('没有可供测试的声音')
-                    get_voice(text=self.text,language=self.language,role=config.clone_voicelist[-1],set_p=False,filename=config.homedir+"/test.mp3")
+                    get_voice(text=self.text,language=self.language,role=config.clone_voicelist[1],set_p=False,filename=config.homedir+"/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:

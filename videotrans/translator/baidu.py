@@ -71,6 +71,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     raise Exception("[error]百度翻译失败:" + res['error_msg'])
 
                 result = [tres['dst'].strip().replace('&#39;','"').replace('&quot;',"'") for tres in  res['trans_result']]
+                if not result or len(result)<1:
+                    raise Exception(f'百度翻译失败:{res}')
                 # if not isinstance(result,list):
                 #     result=result.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
                 if inst and inst.precent < 75:
@@ -102,6 +104,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
     max_i = len(target_text)
     for i, it in enumerate(text_list):
-        if i < max_i:
+        if i < max_i :
             text_list[i]['text'] = target_text[i]
     return text_list

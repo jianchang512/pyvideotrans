@@ -38,11 +38,19 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             source_text = text_list.strip().split("\n")
         else:
             source_text = [f"{t['text']}" for t in text_list]
-
+        
+        headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    
+        }
+        
         # 切割为每次翻译多少行，值在 set.ini中设定，默认10
         split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
-        auth=requests.get('https://edge.microsoft.com/translate/auth',proxies={"http":"","https":""})
+        try:
+            auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers,proxies={"http":"","https":""})
+        except:
+            raise Exception('连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang=='zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel')
         for i,it in enumerate(split_source_text):
             if config.current_status != 'ing' and config.box_trans != 'ing':
                 break
@@ -54,10 +62,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 source_length=len(it)
                 text = "\n".join(it)
                 url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={target_language}&api-version=3.0&includeSentenceLength=true"
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    "Authorization":f"Bearer {auth.text}"
-                }
+                headers['Authorization']=f"Bearer {auth.text}"
                 response = requests.post(url,  json=[{"Text":text}],headers=headers, timeout=300,proxies={"http":"","https":""})
                 if response.status_code != 200:
                     config.logger.info(f'Microsoft 返回响应:{response.text}\nurl={url}')

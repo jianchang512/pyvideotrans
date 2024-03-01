@@ -615,12 +615,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-
+        langcode = translator.get_code(show_text=language)
         issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
                                       text=txt,
                                       role=role,
                                       rate=rate,
+                                      langcode=langcode,
                                       filename=wavname,
                                       tts_type=self.tts_type.currentText(),
                                       func_name="hecheng_end",

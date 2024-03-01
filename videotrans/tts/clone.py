@@ -15,6 +15,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         print(f'{api_url=}')
 
         data={"text":text.strip(),"language":language}
+
         # role=clone是直接复制
         if role!='clone':
             #不是克隆，使用已有声音
@@ -26,7 +27,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies={"http":"","https":""})
         res=res.json()
         if "code" not in res or res['code']!=0:
-            raise Exception(f'[error]clone:{res}')
+            raise Exception(f'{res}')
         if api_url.find('127.0.0.1')>-1 or api_url.find('localhost'):
             shutil.copy2(res['filename'],filename)
         else:

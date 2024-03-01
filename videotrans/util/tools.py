@@ -331,7 +331,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname):
         f'{source_mp4}',
         "-an",
         "-c:v",
-        "copy",
+        "libx264",
         f'{novoice_mp4}'
     ]
     return runffmpeg(cmd, noextname=noextname)
@@ -345,7 +345,7 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
         source_mp4,
         "-vn",
         "-c:a",
-        "copy",
+        "aac",
         targe_audio
     ]
     if not is_separate:
