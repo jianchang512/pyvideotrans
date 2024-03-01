@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import time
-
+import os
 import edge_tts
 
 from videotrans.configure import config
@@ -17,6 +17,8 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
     communicate = edge_tts.Communicate(text, role, rate=rate)
     try:
         asyncio.run(communicate.save(filename))
+        if not os.path.exists(filename) or os.path.getsize(filename)<1:
+            raise Exception('edgeTTS dubbing error' if config.defaulelang !='zh' else 'edgeTTS配音失败')
     except Exception as e:
         err = str(e)
         config.logger.error(f'[edgeTTS]{err}')

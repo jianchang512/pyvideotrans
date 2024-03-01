@@ -73,25 +73,25 @@ class TransCreate():
 
             if self.app_mode not in ['tiqu', 'tiqu_no']:
                 # 不是mp4，先转为mp4
-                if ext.lower() != '.mp4':
-                    out_mp4 = re.sub(rf'{ext}$', '.mp4', self.source_mp4)
-                    self.wait_convermp4 = self.source_mp4
-                    self.source_mp4 = out_mp4
-                else:
-                    # 获取视频信息
-                    try:
-                        self.video_info = get_video_info(self.source_mp4)
-                    except Exception as e:
-                        print(f'e=={str(e)}')
+                #if ext.lower() != '.mp4':
+                #    out_mp4 = re.sub(rf'{ext}$', '.mp4', self.source_mp4)
+                #    self.wait_convermp4 = self.source_mp4
+                #    self.source_mp4 = out_mp4
+                #else:
+                # 获取视频信息
+                try:
+                    self.video_info = get_video_info(self.source_mp4)
+                except Exception as e:
+                    print(f'e=={str(e)}')
 
-                    if self.video_info is False:
-                        raise Myexcept("get video_info error")
+                if self.video_info is False:
+                    raise Myexcept("get video_info error")
                     # 不是标准mp4，先转码
-                    if self.video_info['video_codec_name'] != 'h264' or self.video_info['audio_codec_name'] != 'aac':
-                        # 不是标准mp4，则转换为 libx264
-                        out_mp4 = self.source_mp4[:-4] + "-libx264.mp4"
-                        self.wait_convermp4 = self.source_mp4
-                        self.source_mp4 = out_mp4
+                    #if self.video_info['video_codec_name'] != 'h264' or self.video_info['audio_codec_name'] != 'aac':
+                    #    # 不是标准mp4，则转换为 libx264
+                    #    out_mp4 = self.source_mp4[:-4] + "-libx264.mp4"
+                    #    self.wait_convermp4 = self.source_mp4
+                    #    self.source_mp4 = out_mp4
 
         if self.source_mp4:
             self.btnkey = self.source_mp4
@@ -207,12 +207,12 @@ class TransCreate():
                 raise Exception(str(e))
 
         self.precent += 1
-        if self.wait_convermp4:
-            # 需要转换格式
-            set_process(transobj['kaishiyuchuli'])
-            conver_mp4(self.wait_convermp4, self.source_mp4)
-            self.video_info = get_video_info(self.source_mp4)
-            self.precent += 5
+        #if self.wait_convermp4:
+        #    # 需要转换格式
+        #    set_process(transobj['kaishiyuchuli'])
+        #    conver_mp4(self.wait_convermp4, self.source_mp4)
+        #    self.video_info = get_video_info(self.source_mp4)
+        #    self.precent += 5
 
         set_process(self.target_dir, 'set_target_dir')
         ##### 开始分离
@@ -281,7 +281,10 @@ class TransCreate():
                 self.source_separate = self.source_back = self.source_vocal = None
                 config.params['is_separate'] = False
         elif not os.path.exists(self.targetdir_source_wav):
-            split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
+            try:
+                split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
+            except:
+                raise Exception('从视频中提取声音失败，请检查视频中是否含有音轨，或该视频是否存在编码问题' if config.defaulelang=='zh' else 'Failed to extract sound from video, please check if the video contains an audio track or if there is an encoding problem with that video')
         return True
 
     # 识别出字幕
@@ -451,7 +454,7 @@ class TransCreate():
         except Exception as e:
             if str(e)=='stop':
                 return False
-            delete_temp(self.noextname)
+            #delete_temp(self.noextname)
             raise Myexcept(f"[error]Compose:" + str(e))
 
     def merge_audio_segments(self, segments, start_times, total_duration):
@@ -640,12 +643,12 @@ class TransCreate():
                 diff = mp3len - wavlen
                 # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
                 if config.params["voice_autorate"]:
-                    if diff > 0:
+                    if diff >= 1000 and mp3len>=1000 and wavlen>0:
                         speed = round((wavlen + diff) / wavlen if wavlen > 0 else 1, 2)
                         if config.settings['audio_rate'] > 0 and speed > config.settings['audio_rate']:
                             speed = config.settings['audio_rate']
                         # 新的长度
-                        if speed < 100 and speed > 0 and os.path.exists(it['filename']) and os.path.getsize(
+                        if speed < 50 and speed > 0 and os.path.exists(it['filename']) and os.path.getsize(
                                 it['filename']) > 0:
                             tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
                             speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
@@ -702,14 +705,14 @@ class TransCreate():
                 # 新配音大于原字幕里设定时长
                 diff = mp3len - wavlen
                 # 如果设置了 音频自动加速 and 设置了视频降速,间距分为一半
-                if diff >= 2:
+                if diff >= 1000 and mp3len>1000:
                     diff = int(diff / 2)
                     # 需要加速并根据加速调整字幕时间 原时长时间不变,进行音频加速，如果同时视频慢速，则原时长延长diff的一半
                     speed = round((wavlen + diff) / wavlen if wavlen > 0 else 1, 2)
                     if config.settings['audio_rate'] > 0 and speed > config.settings['audio_rate']:
                         speed = config.settings['audio_rate']
                     # 新的长度
-                    if speed < 100 and speed > 0 and os.path.exists(it['filename']) and os.path.getsize(
+                    if speed < 50 and speed > 0 and os.path.exists(it['filename']) and os.path.getsize(
                             it['filename']) > 0:
                         tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}.{ext}')
                         speed_up_mp3(filename=it['filename'], speed=speed, out=tmp_mp3)
@@ -815,7 +818,7 @@ class TransCreate():
                 logger.info(f'\n\n{idx=},{mp3len=},{wavlen=},{diff=}')
                 # 新时长大于旧时长，视频需要降速播放
                 set_process(f"[{idx + 1}/{last_index + 1}] {transobj['shipinjiangsu']} {diff if diff > 0 else 0}ms")
-                if diff > 0 and mp3len > 0 and wavlen > 0:
+                if diff >= 1000 and mp3len >= 1000 and wavlen > 0:
                     it['end_time'] = it['start_time'] + mp3len
                     it['startraw'] = ms_to_time_string(ms=it['start_time'])
                     it['endraw'] = ms_to_time_string(ms=it['end_time'])
@@ -1099,7 +1102,7 @@ class TransCreate():
                             os.path.normpath(self.targetdir_target_sub),
                             '-filter_complex', "[1:a]apad",
                             "-c:v",
-                            "copy",
+                            "libx264",
                             "-c:a",
                             "aac",
                             "-c:s",
@@ -1120,7 +1123,7 @@ class TransCreate():
                         os.path.normpath(self.targetdir_target_wav),
                         '-filter_complex', "[1:a]apad",
                         "-c:v",
-                        "copy",
+                        "libx264",
                         # "libx264",
                         "-c:a",
                         "aac",
@@ -1166,7 +1169,7 @@ class TransCreate():
                         "-i",
                         os.path.normpath(self.targetdir_target_sub),
                         "-c:v",
-                        "copy"]
+                        "libx264"]
                     if os.path.exists(self.targetdir_source_wav):
                         cmd.append('-c:a')
                         cmd.append('aac')

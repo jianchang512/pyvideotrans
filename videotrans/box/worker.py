@@ -107,6 +107,7 @@ class WorkerTTS(QThread):
                  tts_type=None,
                  func_name=None,
                  voice_autorate=False,
+                 langcode=None,
                  tts_issrt=False):
         super(WorkerTTS, self).__init__(parent)
         self.func_name = func_name
@@ -116,6 +117,7 @@ class WorkerTTS(QThread):
         self.filename = filename
         self.tts_type = tts_type
         self.tts_issrt = tts_issrt
+        self.langcode=langcode
         self.voice_autorate = voice_autorate
         self.tmpdir = f'{homedir}/tmp'
         if not os.path.exists(self.tmpdir):
@@ -143,6 +145,7 @@ class WorkerTTS(QThread):
                     role=self.role,
                     rate=self.rate,
                     filename=mp3,
+                    language=self.langcode,
                     tts_type=self.tts_type,
                     set_p=False
                 )
@@ -188,6 +191,7 @@ class WorkerTTS(QThread):
                 "startraw": it['startraw'],
                 "endraw": it['endraw'],
                 "tts_type": self.tts_type,
+                "language":self.langcode,
                 "filename": f"{self.tmpdir}/tts-{it['start_time']}.mp3"})
         return queue_tts
 

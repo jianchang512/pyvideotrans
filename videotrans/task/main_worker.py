@@ -92,6 +92,8 @@ class Worker(QThread):
                         os.unlink(self.video.novoice_mp4)
                 except:
                     pass
+                finally:
+                    delete_temp(noextname=self.video.noextname)
                 if len(config.queue_mp4)>0:
                     config.queue_mp4.pop(0)
             except Exception as e:
@@ -101,9 +103,9 @@ class Worker(QThread):
                     send_notification("Error",f"{str(e)}")
                 return False
 
-            finally:
-                delete_temp(noextname=self.video.noextname)
-                #self.video=None
+            #finally:
+                
+            #self.video=None
         # 全部完成
         set_process("", 'end')
         # time.sleep(3)

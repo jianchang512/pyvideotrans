@@ -123,7 +123,7 @@ def start(audio,path,source="logs"):
         tmp_path=os.path.join(config.TEMP_DIR,f'separate{flag}')
         os.makedirs(tmp_path,exist_ok=True)
         for i in range(length):
-            #在tmp_path下创建新目录，存放各个 vocal.wav
+            #在 tmp_path 下创建新目录，存放各个 vocal.wav
             save_root=os.path.join(tmp_path,f'{i}')
             os.makedirs(save_root,exist_ok=True)
             #新音频存放
@@ -156,14 +156,14 @@ def start(audio,path,source="logs"):
             f.write("\n".join(result_vocal))
         if not os.path.exists(concat_vocal):
             raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(path+'/vocal.wav')],disable_gpu=True,is_box=True)
+        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(os.path.join(path,'vocal.wav'))],disable_gpu=True,is_box=True)
 
         concat_instr=os.path.join(tmp_path,'instr.txt')
         with open(concat_instr,'w',encoding='utf-8') as f:
             f.write("\n".join(result_instr))
         if not os.path.exists(concat_instr):
             raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(path+'/instrument.wav')],disable_gpu=True,is_box=True)
+        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(os.path.join(path,'instrument.wav'))],disable_gpu=True,is_box=True)
     except Exception as e:
         msg=f"分离背景音失败:{str(e)}"
         print(msg)
