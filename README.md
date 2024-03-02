@@ -9,7 +9,7 @@
 >
 > 文字翻译支持 `microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS` `自定义TTS服务器api` ,配合[clone-voice](https://github.com/jianchang512/clone-voice) 可实现原音色克隆配音
+> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
@@ -70,9 +70,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # 源码部署
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
-
-
 1. 配置好 python 3.10->3.11 环境，建议3.10
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
@@ -97,9 +94,7 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 	
 	```
 
-11. Mac下可能需要执行`
-
-brew install libsndfile`安装libsndfile
+11. Mac下可能需要执行 `brew install libsndfile` 安装libsndfile
 
 
 
@@ -173,7 +168,9 @@ brew install libsndfile`安装libsndfile
 
 18. 保留背景音：如果选择该项，则会先将视频中的人声和背景伴奏分离出来，其中背景伴奏最终再和配音音频合并，最后生成的结果视频中将保留背景伴奏。**注意**:该功能基于uvr5实现，如果你没有足够的N卡GPU显存，比如8G以上，建议慎重选择，可能非常慢并非常消耗资源。
 
-19. 原音色克隆配音：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
+19. 原音色克隆配音clone-voice：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
+
+20. 使用GPT-SoVITS配音：首先安装部署好GPT-SoVITS项目，然后启动 GPT-SoVITS的api.py，在视频翻译配音软件-设置菜单-GPT-SoVITS API 中填写接口地址、参考音频等， GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://raw.githubusercontent.com/jianchang512/pyvideotrans/main/%E8%8B%A5%E8%A6%81GPT-SoVITS%E7%9A%84api.py%E6%94%AF%E6%8C%81%E4%B8%AD%E8%8B%B1%E6%B7%B7%E5%90%88-%E4%BD%BF%E7%94%A8%E8%AF%A5%E6%96%87%E4%BB%B6%E6%9B%BF%E6%8D%A2GPT-SoVITS%E4%B8%8Bapi.py%E6%96%87%E4%BB%B6.py) ，另存为 api.py，覆盖 GPT-SoVITS 自带的api.py
 
 20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
 
