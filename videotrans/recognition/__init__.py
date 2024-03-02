@@ -22,9 +22,9 @@ def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,m
     if model_type=='openai':
         rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     elif type == "all":
-        rs= all_recogn_timestramp(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+        rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     else:
-        rs=split_recogn_timestamp(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -41,10 +41,9 @@ def match_target_amplitude(sound, target_dBFS):
 # split audio by silence
 def shorten_voice(normalized_sound):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
-    max_interval = 5000
+    max_interval = 60000
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
-                                    silence_thresh=-20 - 25)
+    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']), silence_thresh=-20 - 25)
     # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
         start_time, end_time = chunk
@@ -98,7 +97,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                          compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
-                         cpu_threads=1,num_workers=1, local_files_only=True)
+                         local_files_only=True)
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
@@ -124,40 +123,49 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
                                            best_of=config.settings['best_of'],
                                            condition_on_previous_text=config.settings['condition_on_previous_text'],
                                            temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
+                                           vad_filter=bool(config.settings['vad']),
+                                           vad_parameters=dict(
+                                               min_silence_duration_ms=100,
+                                               max_speech_duration_s=4
+                                           ),
+                                           word_timestamps=True,
                                            language=detect_language,
                                            initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
             for t in segments:
                 if detect_language=='zh' and t.text==config.settings['initial_prompt_zh']:
                     continue
-                text += t.text + " "
+                text = t.text
+                text = f"{text.capitalize()}. ".replace('&#39;', "'")
+                text = re.sub(r'&#\d+;', '', text).strip().strip('.')
+                if detect_language == 'zh' and text == config.settings['initial_prompt_zh']:
+                    continue
+                if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+                    continue
+                end_time=start_time+t.words[-1].end*1000
+                start_time+=t.words[0].start*1000
+                start = timedelta(milliseconds=start_time)
+                stmp = str(start).split('.')
+                if len(stmp) == 2:
+                    start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+                end = timedelta(milliseconds=end_time)
+                etmp = str(end).split('.')
+                if len(etmp) == 2:
+                    end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+                srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
+                raw_subtitles.append(srt_line)
+                if set_p:
+                    if inst and inst.precent < 55:
+                        inst.precent += 0.1
+                    tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}")
+                    msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
+                    tools.set_process(msg, 'subtitle')
+                else:
+                    tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
         except Exception as e:
             del model
             raise  Exception(str(e.args))
 
-        text = f"{text.capitalize()}. ".replace('&#39;', "'")
-        text = re.sub(r'&#\d+;', '', text).strip().strip('.')
-        if detect_language=='zh' and text==config.settings['initial_prompt_zh']:
-            continue
-        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-            continue
-        start = timedelta(milliseconds=start_time)
-        stmp = str(start).split('.')
-        if len(stmp) == 2:
-            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-        end = timedelta(milliseconds=end_time)
-        etmp = str(end).split('.')
-        if len(etmp) == 2:
-            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-        srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
-        raw_subtitles.append(srt_line)
-        if set_p:
-            if inst and inst.precent<55:
-                inst.precent += round(srt_line['line']*5  / total_length, 2)
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
-            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
-            tools.set_process(msg, 'subtitle')
-        else:
-            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
+
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
     # 写入原语言字幕到目标文件夹
@@ -202,7 +210,6 @@ def split_recogn_timestamp(*, detect_language=None, audio_file=None, cache_folde
             json.dump(nonsilent_data, outfile)
 
     raw_subtitles = []
-    total_length = len(nonsilent_data)
     try:
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                          compute_type=config.settings['cuda_com_type'],
@@ -210,8 +217,9 @@ def split_recogn_timestamp(*, detect_language=None, audio_file=None, cache_folde
                          cpu_threads=1,num_workers=1, local_files_only=True)
     except Exception as e:
         raise Exception(str(e.args))
+    word_list=[]
+    timelist=[]
     for i, duration in enumerate(nonsilent_data):
-        # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             return None
@@ -224,7 +232,6 @@ def split_recogn_timestamp(*, detect_language=None, audio_file=None, cache_folde
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             raise config.Myexcept("stop")
-        text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
                                            beam_size=config.settings['beam_size'],
@@ -233,45 +240,82 @@ def split_recogn_timestamp(*, detect_language=None, audio_file=None, cache_folde
                                            temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
                                            word_timestamps=True,
                                            language=detect_language,
+                                           vad_filter=True,
+                                           vad_parameters=dict(
+                                               min_silence_duration_ms=100
+                                           ),
                                            initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
-            word_list=[]
+
             for t in segments:
-                word_list.extend(list(t.words))
                 if detect_language=='zh' and t.text==config.settings['initial_prompt_zh']:
                     continue
-                text += t.text + " "
-            end_time=start_time+ int(word_list[-1].end*1000)
-            start_time+=int(word_list[0].start*1000)
+                sec=start_time/1000
+                print(f'@@@s {t.words[0].start},{t.words[-1].end}')
+                for w in t.words:
+                    word_list.append({"start":w.start+sec,"end":w.end+sec,"word":w.word})
+                if set_p:
+                    tools.set_process(f'{t.text}\n', 'subtitle')
+                else:
+                    tools.set_process_box(f"{t.text}\n",
+                                          func_name="set_subtitle")
+                timelist.append(start_time/1000)
         except Exception as e:
             del model
             raise  Exception(str(e.args))
-
-        text = f"{text.capitalize()}. ".replace('&#39;', "'")
-        text = re.sub(r'&#\d+;', '', text).strip().strip('.')
-        if detect_language=='zh' and text==config.settings['initial_prompt_zh']:
-            continue
-        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-            continue
-        start = timedelta(milliseconds=start_time)
-        stmp = str(start).split('.')
-        if len(stmp) == 2:
-            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-        end = timedelta(milliseconds=end_time)
-        etmp = str(end).split('.')
-        if len(etmp) == 2:
-            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-        srt_line = {"line": len(raw_subtitles)+1, "time": f"{start} --> {end}", "text": text}
-        raw_subtitles.append(srt_line)
-        if set_p:
-            if inst and inst.precent<55:
-                inst.precent += round(srt_line['line']*5  / total_length, 2)
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
-            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
-            tools.set_process(msg, 'subtitle')
+    return
+    # 保留最后一句
+    last = []
+    # 首选分割符号
+    split_line = [".", "?", "!", "。", "？", "！",",", "，", "、", "/","》","”","’"]
+    maxlength=30
+    if detect_language in ['zh','ja','ko']:
+        maxlength=12
+        split_line.append(" ")
+    maxindex=len(word_list)-1
+    for i, word in enumerate(word_list):
+        duration=0 if len(last)==0 else  last[-1]['end']-last[0]['start']
+        length=0 if len(last)==0 else len("".join([t['word'] for t in last]).strip())
+        if len(last)==0 or duration<0.5:
+            last.append(word)
+        # 时长大于2s 有 0.1s 间隔
+        elif i<maxindex and word['end']+0.2<=word_list[i + 1]['start']:
+            print(f'\t02')
+            last.append(word)
+            raw_subtitles.append({
+                "start_time": last[0]['start'],
+                "end_time": last[-1]['end'],
+                "text": "".join([t['word'] for t in last]),
+                "time": tools.ms_to_time_string(seconds=last[0]['start']) + " --> " + tools.ms_to_time_string(
+                    seconds=last[-1]['end']),
+                "line": len(raw_subtitles) + 1,
+                "ditt": last[-1]['end'] - last[0]['start']
+            })
+            last = []
+        elif length>=maxlength*1.5:
+            raw_subtitles.append({
+                "start_time": last[0]['start'],
+                "end_time": last[-1]['end'],
+                "text": "".join([t['word'] for t in last]),
+                "time": tools.ms_to_time_string(seconds=last[0]['start']) + " --> " + tools.ms_to_time_string(
+                    seconds=last[-1]['end']),
+                "line": len(raw_subtitles) + 1,
+                "ditt": last[-1]['end'] - last[0]['start']
+            })
+            last = [word]
         else:
-            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="set_subtitle")
-    if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
+            print(f'\t05')
+            last.append(word)
+
+    for i, it in enumerate(raw_subtitles):
+        it['text'] = it['text'].replace('&#39;', "'")
+        raw_subtitles[i]=it
+        if set_p:
+            tools.set_process(f'{it["line"]}\n{it["time"]}\n{it["text"]}\n\n', 'subtitle')
+
+        else:
+            tools.set_process_box(f'{it["line"]}\n{it["time"]}\n{it["text"]}\n\n', func_name="set_subtitle")
+
+    print(f'{raw_subtitles=}')
     # 写入原语言字幕到目标文件夹
     if audio_file.endswith('.m4a')  and os.path.exists(wavfile):
         os.unlink(wavfile)
@@ -316,9 +360,10 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
-                                              min_silence_duration_ms=int(config.params['voice_silence']),
-                                              max_speech_duration_s=11.5
+                                              min_silence_duration_ms=100,
+                                              max_speech_duration_s=4
                                            ),
+                                          word_timestamps=True,
                                           language=detect_language,
                                           initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'])
 
@@ -330,10 +375,10 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
                 del model
                 return None
             sidx += 1
-            start = int(segment.start * 1000)
-            end = int(segment.end * 1000)
-            if start == end:
-                end += 200
+            start = int(segment.words[0].start * 1000)
+            end = int(segment.words[-1].end * 1000)
+            # if start == end:
+            #     end += 200
             startTime = tools.ms_to_time_string(ms=start)
             endTime = tools.ms_to_time_string(ms=end)
             text = segment.text.strip().replace('&#39;', "'")
@@ -402,7 +447,7 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=int(config.params['voice_silence']),
-                                              max_speech_duration_s=5
+                                              max_speech_duration_s=12
                                            ),
 
                                           language=detect_language,
@@ -429,56 +474,7 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
             if len(last)>0 and duration<0.5:
                 print(f'\t01')
                 last.append(word)
-            elif duration>=0.5 and (word.word[-1] in split_line or word.word in split_line):
-                print(f'\t02')
-                last.append(word)
-                raw_subtitles.append({
-                    "start_time": last[0].start,
-                    "end_time": last[-1].end,
-                    "text": "".join([t.word for t in last]),
-                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
-                        seconds=last[-1].end),
-                    "line": len(raw_subtitles) + 1,
-                    "ditt": last[-1].end - last[0].start
-                })
-                last = []
-            elif duration>=0.5 and (word.word[0] in split_line):
-                raw_subtitles.append({
-                    "start_time": last[0].start,
-                    "end_time": last[-1].end,
-                    "text": "".join([t.word for t in last]),
-                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
-                        seconds=last[-1].end),
-                    "line": len(raw_subtitles) + 1,
-                    "ditt": last[-1].end - last[0].start
-                })
-                last = [word]            
-            
-            elif duration>=4 and i<maxindex and word.end+0.1<=word_list[i + 1].start :
-                print(f'\t04')
-                raw_subtitles.append({
-                    "start_time": last[0].start,
-                    "end_time": last[-1].end,
-                    "text": "".join([t.word for t in last]),
-                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
-                        seconds=last[-1].end),
-                    "line": len(raw_subtitles) + 1,
-                    "ditt": last[-1].end - last[0].start
-                })
-                last = [word]
-            elif duration>=3 and i<maxindex and word.end+0.1<=word_list[i + 1].start :
-                print(f'\t04')
-                raw_subtitles.append({
-                    "start_time": last[0].start,
-                    "end_time": last[-1].end,
-                    "text": "".join([t.word for t in last]),
-                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
-                        seconds=last[-1].end),
-                    "line": len(raw_subtitles) + 1,
-                    "ditt": last[-1].end - last[0].start
-                })
-                last = [word]       
-            elif duration>=0.5 and i < maxindex and word.end+0.1<=word_list[i+1].start:
+            elif duration>=0.5 and i < maxindex and word.end+0.2<=word_list[i+1].start:
                 print(f'\t03')
                 last.append(word)
                 raw_subtitles.append({
@@ -491,6 +487,43 @@ def all_recogn_timestramp(*, detect_language=None, audio_file=None, cache_folder
                     "ditt": last[-1].end - last[0].start
                 })
                 last = []
+            elif duration>=3 and i<maxindex and word.end+0.1<=word_list[i + 1].start:
+                print(f'\t04')
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = [word]
+            elif duration>=0.5 and i<maxindex and word.end+0.1<=word_list[i + 1].start and (word.word[-1] in split_line or word.word in split_line):
+                print(f'\t02')
+                last.append(word)
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = []
+            elif duration>=0.5 and i<maxindex and word.end+0.1<=word_list[i + 1].start and (word.word[0] in split_line):
+                raw_subtitles.append({
+                    "start_time": last[0].start,
+                    "end_time": last[-1].end,
+                    "text": "".join([t.word for t in last]),
+                    "time": tools.ms_to_time_string(seconds=last[0].start) + " --> " + tools.ms_to_time_string(
+                        seconds=last[-1].end),
+                    "line": len(raw_subtitles) + 1,
+                    "ditt": last[-1].end - last[0].start
+                })
+                last = [word]            
+            
             elif length>=maxlength or duration>=5:
                 raw_subtitles.append({
                     "start_time": last[0].start,

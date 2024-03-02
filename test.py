@@ -96,81 +96,14 @@ input("Press Enter for quit")
 
 #tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\dev\0001.srt',is_file=True)
 
+import httpx, json,requests
 
-# 整体识别，全部传给模型
-from faster_whisper import WhisperModel
+deeplx_api = "http://127.0.0.1:1188/translate"
 
-from videotrans.util import tools
-
-
-def all_recogn(wavfile,*, detect_language=None, model_name="base"):
-    try:
-        model = WhisperModel(model_name, device="cpu",
-                             download_root="./models",
-                             local_files_only=True)
-        segments, info = model.transcribe(wavfile,
-                                          word_timestamps=True,
-                                          language=detect_language,
-                                          initial_prompt="转录为中文简体。")
-
-        raw_subtitles=[]
-        # 存储每个字的信息
-        word_list=[]
-        for segment in segments:
-            word_list.extend(list(segment.words))
-            print(f'{segment.words[0].start},{segment.text}')
-
-        #保留最后一句
-        last=[]
-        #首选分割符号
-        split_line=[".","?","!","。","？","！"]
-        #次级分割符号
-        split_second=[",","，"," ","、","/"]
-        for i,word in enumerate(word_list):
-            if i>0 and len(last)>=30 and (word.word[-1].strip() in split_second or word.word.strip() in split_second):
-                last.append(word)
-                raw_subtitles.append({
-                    "start_time": last[0].start,
-                    "end_time": last[-1].end,
-                    "text": "".join([t.word for t in last]),
-                    "time":tools.ms_to_time_string(seconds=last[0].start)+" --> "+tools.ms_to_time_string(seconds=last[-1].end),
-                    "line":len(raw_subtitles)+1,
-                    "ditt":last[-1].end-last[0].start
-                })
-                last = []
-            # 首选分割
-            elif i>0 and (word.word[-1].strip() in split_line or word.word.strip() in split_line):
-                last.append(word)
-                raw_subtitles.append({
-                    "start_time":last[0].start,
-                    "end_time":last[-1].end,
-                    "time":tools.ms_to_time_string(seconds=last[0].start)+" --> "+tools.ms_to_time_string(seconds=last[-1].end),
-                    "text":"".join([t.word for t in last]),
-                    "line":len(raw_subtitles)+1,
-                    "ditt":last[-1].end-last[0].start
-                })
-                last=[]
-            # 大于 300ms强制分割
-            elif i>0 and (word.start - word_list[i-1].end>=0.3):
-                if len(last)>0:
-                    raw_subtitles.append({
-                        "start_time":last[0].start,
-                        "end_time":last[-1].end,
-                        "text":"".join([t.word for t in last]),
-                        "time":tools.ms_to_time_string(seconds=last[0].start)+" --> "+tools.ms_to_time_string(seconds=last[-1].end),
-                        "line":len(raw_subtitles)+1,
-                        "ditt":last[-1].end-last[0].start
-                    })
-                last=[word]
-            #大于30个字符，并且在次级分割
-            else:
-                last.append(word)
-
-        for i,it in enumerate(raw_subtitles):
-            raw_subtitles[i]['text']=it['text'].replace('&#39;',"'")
-
-        print(raw_subtitles)
-    except Exception as e:
-        raise Exception(f'whole all {str(e)}')
-
-all_recogn(r'C:\Users\c1\Videos\60.wav')
+data = {
+                    "text": "\n".join(["hello","china"]),
+                    "source_lang": "auto",
+                    "target_lang": "ZH"
+                }
+res=requests.post(url=deeplx_api, json=data, proxies={"http":"","https":""})
+print(res.json())

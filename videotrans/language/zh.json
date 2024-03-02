@@ -1,5 +1,7 @@
 {
   "translate_language": {
+    "nogptsovitsurl": "必须填写GPT-SoVITS的api地址",
+    "nogptsovitslanguage": "GPT-SoVITS仅支持中英日语言",
 	"miandailigoogle":"免代理使用Google翻译",
     "ttsapi_nourl": "必须填写自定义TTS-API的url后才可使用",
     "import src error": "导入字幕出错，请检查文件内是否存在srt字幕格式内容",

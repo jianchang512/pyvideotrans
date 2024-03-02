@@ -9,6 +9,7 @@ from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.gptsovits import Ui_gptsovitsform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
@@ -74,6 +75,14 @@ class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
+    def __init__(self, parent=None):
+        super(GPTSoVITSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 
 

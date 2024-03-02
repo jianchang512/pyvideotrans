@@ -27,6 +27,9 @@ def text_to_speech(stop_event=None,*, text="", role="", rate='+0%',language=None
         elif tts_type=='TTS-API':
             from .ttsapi import get_voice
             get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
+        elif tts_type=='GPT-SoVITS':
+            from .gptsovits import get_voice
+            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
         elif tts_type == 'elevenlabsTTS':
             from .elevenlabs import get_voice
             get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
