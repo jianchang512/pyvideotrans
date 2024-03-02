@@ -1309,7 +1309,8 @@ class SecWindow():
             voice_dir = voice_dir.replace('\\', '/') + "/pyvideotrans"
         if not os.path.exists(voice_dir):
             os.makedirs(voice_dir)
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{role}.mp3"
+        lujing_role=role.replace('/','-')
+        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}.mp3"
         if config.params['tts_type']=='GPT-SoVITS':
             voice_file+='.wav'
         obj = {

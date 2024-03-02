@@ -236,6 +236,8 @@ def runffmpeg(arg, *, noextname=None,
                     set_process(config.transobj['huituicpu'])
                 # disable_gpt=True禁用GPU，no_decode=True禁止h264_cuvid解码，
                 return runffmpeg(arg_copy,noextname=noextname, disable_gpu=True, is_box=is_box)
+            if noextname:
+                config.queue_novice[noextname] = "error"
             raise Exception(str(e))
 
 
@@ -687,7 +689,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
             raise Exception("stop")
         if os.path.exists(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
-            if last_size > 0 and current_size == last_size and t > 300:
+            if last_size > 0 and current_size == last_size and t > 600:
                 return True
             last_size = current_size
 
