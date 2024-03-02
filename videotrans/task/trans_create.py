@@ -263,7 +263,7 @@ class TransCreate():
 
         # 单独提前分离出 novice.mp4
         # 要么需要嵌入字幕 要么需要配音，才需要分离 tiqu tiqu_no 不需要
-        if not os.path.exists(self.novoice_mp4) and self.app_mode not in ['tiqu', 'tiqu_no']:
+        if self.app_mode not in ['tiqu', 'tiqu_no']:
             threading.Thread(target=split_novoice_byraw,
                              args=(self.source_mp4, self.novoice_mp4, self.noextname)).start()
         else:
@@ -559,7 +559,8 @@ class TransCreate():
                 voice_role = config.params['voice_role']
                 if line_roles and f'{it["line"]}' in line_roles:
                     voice_role = line_roles[f'{it["line"]}']
-                filename = f'{voice_role}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
+                newrole=voice_role.replace('/','-')
+                filename = f'{newrole}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
                 md5_hash = hashlib.md5()
                 md5_hash.update(f"{filename}".encode('utf-8'))
                 # 要保存到的文件

@@ -286,6 +286,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if data['text']:
                     self.label_shibie10.setText(data['text'])
                     self.label_shibie10.setStyleSheet('''color:#ff0000''')
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
             else:
                 self.shibie_dropbtn.setText(data['text'])
         elif data['func_name'] == 'hecheng_end':
@@ -297,6 +298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.hecheng_startbtn.setText(data['text'])
                 self.hecheng_startbtn.setToolTip(data['text'])
                 self.hecheng_startbtn.setStyleSheet("""color:#ff0000""")
+                QMessageBox.critical(self,config.transobj['anerror'],data['text'])
             self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
             config.geshi_num -= 1
@@ -329,6 +331,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statuslabel.setText(data['text'][:60])
             if data['type'] == 'error':
                 self.statuslabel.setStyle("""color:#ff0000""")
+                QMessageBox.critical(self,config.transobj['anerror'],data['text'])
         else:
             self.statuslabel.setText(data['text'])
 
@@ -658,22 +661,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
-
+        elif type=='GPT-SoVITS':
+            code=translator.get_code(show_text=self.hecheng_language.currentText())
+            if code and code !='-' and code[:2] not in ['zh','ja','en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                QMessageBox.critical(self,config.transobj['anerror'],config.transobj['nogptsovitslanguage'])
+                return
+            rolelist=tools.get_gptsovits_role()
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(self, t):
+        code = translator.get_code(show_text=t)
+        if code and code !='-' and self.tts_type.currentText()=='GPT-SoVITS' and code[:2] not in ['zh','ja','en']:
+            #除此指望不支持
+            self.tts_type.setCurrentText('edgeTTS')
         if self.tts_type.currentText() != "edgeTTS":
             return
         self.hecheng_role.clear()
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        code = translator.get_code(show_text=t)
         if not config.edgeTTS_rolelist:
             config.edgeTTS_rolelist = tools.get_edge_rolelist()
         if not config.edgeTTS_rolelist:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nojueselist'])
             return
+
         try:
             vt = code.split('-')[0]
             if vt not in config.edgeTTS_rolelist:

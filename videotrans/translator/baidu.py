@@ -73,8 +73,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 result = [tres['dst'].strip().replace('&#39;','"').replace('&quot;',"'") for tres in  res['trans_result']]
                 if not result or len(result)<1:
                     raise Exception(f'百度翻译失败:{res}')
-                # if not isinstance(result,list):
-                #     result=result.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
