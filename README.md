@@ -330,6 +330,14 @@ https://juejin.cn/post/7318704408727519270
 
 如果嵌入硬字幕，可以通过修改 videotrans/set.ini 中的 fontsize=0为一个合适的值，来调节字体大小。0代表默认尺寸，20代表字体尺寸为20个像素
 
+18. macos报错
+
+OSError: ctypes.util.find_library() did not manage to locate a library called 'sndfile'
+
+解决办法：
+
+找到libsndfile安装位置，通过brew安装的话一般在：/opt/homebrew/Cellar/libsndfile，
+然后将该路径添加到环境变量：export DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/libsndfile/1.2.2/lib:$DYLD_LIBRARY_PATH
 
 
 # 高级设置 videotrans/set.ini
