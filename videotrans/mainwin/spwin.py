@@ -10,7 +10,6 @@ import warnings
 
 from videotrans.task.get_role_list import GetRoleWorker
 from videotrans.util import tools
-from videotrans.util.tools import delete_temp
 
 warnings.filterwarnings('ignore')
 
@@ -44,7 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 608815898' if config.defaulelang=='zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 608815898 / 微信公众号 pyvideotrans' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
@@ -192,11 +191,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def bind_action(self):
         from videotrans.mainwin.secwin import SecWindow
         self.util = SecWindow(self)
-
+        # return
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
-        if config.params['tts_type']:
-            self.util.tts_type_change(config.params['tts_type'])
-            self.voice_role.addItems(['No'])
+
 
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
@@ -205,6 +202,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.is_separate.setChecked(True)
         elif config.params['tts_type']=='TTS-API':
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
+        elif config.params['tts_type']=='GPT-SoVITS':
+            rolelist=tools.get_gptsovits_role()
+            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'] )
+
+        if config.params['tts_type']:
+            self.util.tts_type_change(config.params['tts_type'])
+            self.voice_role.addItems(['No'])
 
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
@@ -258,6 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
         self.addbackbtn.clicked.connect(self.util.get_background)
 
+
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
         self.actionbaidu_key.triggered.connect(self.util.set_baidu_key)
@@ -271,6 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionott_address.triggered.connect(self.util.set_ott_address)
         self.actionclone_address.triggered.connect(self.util.set_clone_address)
         self.actiontts_api.triggered.connect(self.util.set_ttsapi)
+        self.actiontts_gptsovits.triggered.connect(self.util.set_gptsovits)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -346,6 +352,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
+        # config.exit_ffmpeg=True
         if configure.TOOLBOX is not None:
             configure.TOOLBOX.close()
         if config.current_status == 'ing':
@@ -398,6 +405,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
         config.params["ttsapi_extra"] = self.settings.value("ttsapi_extra", "pyvideotrans")
         config.params["ttsapi_voice_role"] = self.settings.value("ttsapi_voice_role", "")
+
+        config.params["gptsovits_url"] = self.settings.value("gptsovits_url", "")
+        config.params["gptsovits_extra"] = self.settings.value("gptsovits_extra", "pyvideotrans")
+        config.params["gptsovits_role"] = self.settings.value("gptsovits_role", "")
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
 

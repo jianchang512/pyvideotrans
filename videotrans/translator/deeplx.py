@@ -54,7 +54,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 data = {
                     "text": "\n".join(it),
                     "source_lang": "auto",
-                    "target_lang": target_language
+                    "target_lang": 'zh' if target_language.startswith('zh') else  target_language
                 }
                 config.logger.info(f'data,{i=}, {data}')
                 url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'

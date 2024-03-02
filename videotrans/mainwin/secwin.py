@@ -1022,6 +1022,8 @@ class SecWindow():
                 QMessageBox.critical(self.main.ttsapiw,config.transobj['anerror'],d)
             self.main.ttsapiw.test.setText('测试api' if config.defaulelang=='zh' else 'Test api')
         def test():
+            url = self.main.ttsapiw.api_url.text()
+            config.params["ttsapi_url"] = url
             task=TestTTS(parent=self.main.ttsapiw,
                     text="你好啊我的朋友" if config.defaulelang=='zh' else 'hello,my friend',
                     role=self.main.ttsapiw.voice_role.text().strip().split(',')[0],
@@ -1058,6 +1060,92 @@ class SecWindow():
         self.main.ttsapiw.save.clicked.connect(save)
         self.main.ttsapiw.test.clicked.connect(test)
         self.main.ttsapiw.show()
+
+    def set_gptsovits(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+            def __init__(self, *,parent=None,text=None,language=None,role=None):
+                super().__init__(parent=parent)
+                self.text=text
+                self.language=language
+                self.role=role
+
+            def run(self):
+                from videotrans.tts.gptsovits import get_voice
+                try:
+                    get_voice(text=self.text,language=self.language,set_p=False,role=self.role,filename=config.homedir+"/test.wav")
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+        def feed(d):
+            if d=="ok":
+                tools.pygameaudio(config.homedir+"/test.wav")
+                QMessageBox.information(self.main.gptsovitsw,"ok","Test Ok")
+            else:
+                QMessageBox.critical(self.main.gptsovitsw,config.transobj['anerror'],d)
+            self.main.gptsovitsw.test.setText('测试api')
+        def test():
+            url = self.main.gptsovitsw.api_url.text()
+            config.params["gptsovits_url"] = url
+            task=TestTTS(parent=self.main.gptsovitsw,
+                    text="你好啊我的朋友",
+                    role=getrole(),
+                    language="zh")
+            self.main.gptsovitsw.test.setText('测试中请稍等...')
+            task.uito.connect(feed)
+            task.start()
+        
+        def getrole():
+            tmp=self.main.gptsovitsw.role.toPlainText().strip()
+            role=None
+            if not tmp:
+                return role
+            
+            for it in tmp.split("\n"):
+                s=it.strip().split('#')
+                if len(s)!=3:
+                    QMessageBox.critical(self.main.gptsovitsw,config.transobj['anerror'],"每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
+                    return
+                if not s[0].endswith(".wav"):
+                    QMessageBox.critical(self.main.gptsovitsw,config.transobj['anerror'],"每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
+                    return
+                if s[2] not in ['zh','ja','en']:
+                    QMessageBox.critical(self.main.gptsovitsw,config.transobj['anerror'],"每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
+                    return
+                role=s[0]
+            config.params['gptsovits_role']=tmp
+            self.main.settings.setValue("gptsovits_rolel", tmp)
+            return role
+
+
+        def save():
+            url = self.main.gptsovitsw.api_url.text()
+            extra = self.main.gptsovitsw.extra.text()
+            role=self.main.gptsovitsw.role.toPlainText().strip()
+
+            self.main.settings.setValue("gptsovits_role", role)
+            self.main.settings.setValue("gptsovits_url", url)
+            self.main.settings.setValue("gptsovits_extra", extra if extra else "pyvideotrans")
+
+            config.params["gptsovits_url"] = url
+            config.params["gptsovits_extra"] = extra
+            config.params["gptsovits_role"] = role
+            
+            self.main.gptsovitsw.close()
+
+        from videotrans.component import GPTSoVITSForm
+        self.main.gptsovitsw = GPTSoVITSForm()
+        if config.params["gptsovits_url"]:
+            self.main.gptsovitsw.api_url.setText(config.params["gptsovits_url"])
+        if config.params["gptsovits_extra"]:
+            self.main.gptsovitsw.extra.setText(config.params["gptsovits_extra"])
+        if config.params["gptsovits_role"]:
+            self.main.gptsovitsw.role.setPlainText(config.params["gptsovits_role"])
+
+        self.main.gptsovitsw.save.clicked.connect(save)
+        self.main.gptsovitsw.test.clicked.connect(test)
+        self.main.gptsovitsw.show()
+
 
 
     def set_gemini_key(self):
@@ -1164,6 +1252,17 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             self.set_ttsapi()
             return
+        if type=='GPT-SoVITS' and not config.params['gptsovits_url']:
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitsurl'])
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.set_gptsovits()
+            return
+        lang = get_code(show_text=self.main.target_language.currentText())
+        if lang and lang !='-' and type=='GPT-SoVITS' and lang[:2] not in ['zh','ja','en']:
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+            return
+
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
         if type == "openaiTTS":
@@ -1189,9 +1288,14 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type=='GPT-SoVITS':
+            rolelist=tools.get_gptsovits_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
+            self.main.voice_role.addItems(self.main.current_rolelist)
 
 
-    # 中英文下试听配音
+    # 试听配音
     def listen_voice_fun(self):
         lang = get_code(show_text=self.main.target_language.currentText())
         text = config.params[f'listen_text_{lang}']
@@ -1206,6 +1310,8 @@ class SecWindow():
         if not os.path.exists(voice_dir):
             os.makedirs(voice_dir)
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{role}.mp3"
+        if config.params['tts_type']=='GPT-SoVITS':
+            voice_file+='.wav'
         obj = {
             "text": text,
             "rate": "+0%",
@@ -1214,6 +1320,7 @@ class SecWindow():
             "tts_type":config.params['tts_type'],
             "language":lang
         }
+        print(f'{obj=}')
         if config.params['tts_type']=='clone-voice' and role=='clone':
             return
         # 测试能否连接clone
@@ -1245,6 +1352,12 @@ class SecWindow():
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
         code = get_code(show_text=t)
+        if code and code !='-' and config.params['tts_type']=='GPT-SoVITS' and code[:2] not in ['zh','ja','en']:
+            #除此指望不支持
+            config.params['tts_type']='edgeTTS'
+            self.main.tts_type.setCurrentText('edgeTTS')
+            QMessageBox.critical(self.main,config.transobj['anerror'],config.transobj['nogptsovitslanguage'])
+
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] != 'edgeTTS':

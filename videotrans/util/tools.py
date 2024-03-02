@@ -18,6 +18,20 @@ from elevenlabs import voices, set_api_key
 from videotrans.separate import st
 from plyer import notification
 
+
+# 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
+
+def get_gptsovits_role():
+    if not config.params['gptsovits_role'].strip():
+        return None
+    rolelist={}
+    for it in config.params['gptsovits_role'].strip().split("\n"):
+        tmp=it.strip().split('#')
+        if len(tmp)!=3:
+            continue
+        rolelist[tmp[0]]={"refer_wav_path":tmp[0],"prompt_text":tmp[1],"prompt_language":tmp[2]}
+    return rolelist
+
 def pygameaudio(filepath):
     from videotrans.util.playmp3 import AudioPlayer
     player = AudioPlayer(filepath)
@@ -207,7 +221,7 @@ def runffmpeg(arg, *, noextname=None,
             raise Exception(f'ffmpeg error:{errs=}')
         except subprocess.TimeoutExpired as e:
             # 如果前台要求停止
-            if config.current_status != 'ing' and not is_box:
+            if config.exit_ffmpeg or  (config.current_status != 'ing' and not is_box):
                 try:
                     p.terminate()
                     p.kill()
@@ -412,6 +426,18 @@ def wav2m4a(wavfile, m4afile,extra=None):
         "-c:a",
         "aac",
         m4afile
+    ]
+    if extra:
+        cmd=cmd[:3]+extra+cmd[3:]
+    return runffmpeg(cmd)
+    
+# wav转为 mp3 cuda + h264_cuvid
+def wav2mp3(wavfile, mp3file,extra=None):
+    cmd = [
+        "-y",
+        "-i",
+        wavfile,
+        mp3file
     ]
     if extra:
         cmd=cmd[:3]+extra+cmd[3:]

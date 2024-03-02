@@ -166,7 +166,7 @@ params = {
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS", "clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
+    "tts_type_list": ["edgeTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "voice_silence": 500,
     "whisper_type": "all",
@@ -211,7 +211,11 @@ params = {
 
     "ttsapi_url":"",
     "ttsapi_voice_role":"",
-    "ttsapi_extra":"pyvideotrans"
+    "ttsapi_extra":"pyvideotrans",
+
+    "gptsovits_url":"",
+    "gptsovits_role":"",
+    "gptsovits_extra":"pyvideotrans"
 
 
 }
@@ -253,3 +257,4 @@ box_recogn='stop'
 separate_status='stop'
 # 最后一次打开的目录
 last_opendir=homedir if not os.path.exists(homedir+"/Videos") else homedir+"/Videos"
+exit_ffmpeg=False

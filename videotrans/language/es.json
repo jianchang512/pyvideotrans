@@ -1,5 +1,7 @@
 {
   "translate_language" : {
+    "nogptsovitsurl": "You must fill in the api address of GPT-SoVITS",
+   "nogptsovitslanguage": "GPT-SoVITS only supports Chinese, English and Japanese languages",
 	"miandailigoogle":"Use Google translate when no proxy",
     "ttsapi_nourl": "The url of the customized TTS-API must be filled in before it can be used",
     "import src error": "Error importing subtitles, please check if srt subtitle format content exists in the file",

@@ -280,7 +280,7 @@ class TransCreate():
                 self.targetdir_source_regcon = self.targetdir_source_vocal = self.targetdir_source_wav
                 self.source_separate = self.source_back = self.source_vocal = None
                 config.params['is_separate'] = False
-        elif not os.path.exists(self.targetdir_source_wav):
+        else:
             try:
                 split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
             except:
