@@ -170,11 +170,12 @@ windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y tor
 
 19. 原音色克隆配音clone-voice：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
 
-20. 使用GPT-SoVITS配音：首先安装部署好GPT-SoVITS项目，然后启动 GPT-SoVITS的api.py，在视频翻译配音软件-设置菜单-GPT-SoVITS API 中填写接口地址、参考音频等， GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://raw.githubusercontent.com/jianchang512/pyvideotrans/main/%E8%8B%A5%E8%A6%81GPT-SoVITS%E7%9A%84api.py%E6%94%AF%E6%8C%81%E4%B8%AD%E8%8B%B1%E6%B7%B7%E5%90%88-%E4%BD%BF%E7%94%A8%E8%AF%A5%E6%96%87%E4%BB%B6%E6%9B%BF%E6%8D%A2GPT-SoVITS%E4%B8%8Bapi.py%E6%96%87%E4%BB%B6.py) ，另存为 api.py，覆盖 GPT-SoVITS 自带的api.py
+20. 使用GPT-SoVITS配音：首先安装部署好GPT-SoVITS项目，然后启动 GPT-SoVITS的api.py，在视频翻译配音软件-设置菜单-GPT-SoVITS API 中填写接口地址、参考音频等。
+GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://github.com/jianchang512/stt/releases/download/0.0/GPT-SoVITS.api.py.zip) ，用该压缩包内的 api.py，覆盖 GPT-SoVITS 自带的api.py
 
-20. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
+21. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
 
-21.  添加背景音乐：该功能和“保留背景音”类似，但实现方式不同，只可在“标准功能模式”和“字幕创建配音”模式下使用。
+22.  添加背景音乐：该功能和“保留背景音”类似，但实现方式不同，只可在“标准功能模式”和“字幕创建配音”模式下使用。
 “添加背景音乐”是预先从本地计算机中选择一个作为背景声音的音频文件，文件路径显示在右侧文本框中，在处理结束输出结果视频时，将该音频混入，最终生成的视频里会播放该背景音频文件。
 
 如果同时也选中了“保留背景音”，那么原始视频里的背景音也会保留。
@@ -336,6 +337,10 @@ OSError: ctypes.util.find_library() did not manage to locate a library called 's
 找到libsndfile安装位置，通过brew安装的话一般在：/opt/homebrew/Cellar/libsndfile，
 然后将该路径添加到环境变量：export DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/libsndfile/1.2.2/lib:$DYLD_LIBRARY_PATH
 
+
+19. GPT-SoVITS API 不支持 中英 混合发音
+
+GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://github.com/jianchang512/stt/releases/download/0.0/GPT-SoVITS.api.py.zip) ，用该压缩包内的 api.py，覆盖 GPT-SoVITS 自带的api.py
 
 # 高级设置 videotrans/set.ini
 
