@@ -12,14 +12,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         api_url=config.params['ttsapi_url'].strip().rstrip('/')
         if not api_url:
             raise Exception("get_voice:"+config.transobj['ttsapi_nourl'])
-        api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'TTS-API:api={api_url}')
 
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
         # role=clone是直接复制
         #克隆声音
         # files={"audio":open(filename,'rb')} files=files,
-        resraw=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""})
+        print(f'{api_url=}')
+        resraw=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},verify=False)
         try:
             res=resraw.json()
             if "code" not in res or "msg" not in res:

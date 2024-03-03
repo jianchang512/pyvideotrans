@@ -1030,23 +1030,24 @@ class TransCreate():
             if not is_novoice_mp4(self.novoice_mp4, self.noextname):
                 raise Myexcept("not novoice mp4")
             # 需要配音,选择了角色，并且不是 提取模式 合并模式
+            if self.app_mode == 'hebing':
+                config.params['voice_role'] = 'No'
             if config.params['voice_role'] != 'No' and self.app_mode not in ['hebing']:
                 if not os.path.exists(self.targetdir_target_wav) or os.path.getsize(self.targetdir_target_wav)<1:
                     raise Myexcept(f"{config.transobj['Dubbing..']}{config.transobj['anrror']}:{self.targetdir_target_wav}")
-            if self.app_mode == 'hebing':
-                config.params['voice_role'] = 'No'
+            
             # 需要字幕
             if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub):
-                raise Myexcept(f"[error]not exist srt: {self.targetdir_target_sub}")
-            if self.precent < 95:
-                self.precent += 1
+                raise Myexcept(f"no srt: {self.targetdir_target_sub}")
+            if self.precent < 85:
+                self.precent = 85
             fontsize=""
             if config.params['subtitle_type'] == 1:
                 # 硬字幕 重新整理字幕，换行
                 try:
                     subs = get_subtitle_from_srt(self.targetdir_target_sub)
                 except Exception as e:
-                    raise Myexcept(f'[error]Subtitles error:{str(e)}')
+                    raise Myexcept(f'Subtitles error:{str(e)}')
 
                 maxlen = 36 if self.target_language_code[:2] in ["zh", "ja", "jp", "ko"] else 80
                 subtitles = ""
@@ -1059,8 +1060,8 @@ class TransCreate():
                 os.chdir(config.rootdir)
                 hard_srt = "tmp.srt"
                 fontsize=f":force_style=Fontsize={config.settings['fontsize']}" if config.settings['fontsize']>0 else ""
-            if self.precent < 99:
-                self.precent += 1
+            if self.precent < 90:
+                self.precent = 90
             # 有字幕有配音               
             self._back_music()
             self._separate()
