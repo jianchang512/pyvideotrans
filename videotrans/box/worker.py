@@ -120,6 +120,7 @@ class WorkerTTS(QThread):
         self.langcode=langcode
         self.voice_autorate = voice_autorate
         self.tmpdir = f'{homedir}/tmp'
+        print(f'{self.langcode=}')
         if not os.path.exists(self.tmpdir):
             os.makedirs(self.tmpdir, exist_ok=True)
 
@@ -138,7 +139,7 @@ class WorkerTTS(QThread):
             finally:
                 config.box_tts = 'stop'
         else:
-            mp3 = self.filename.replace('.wav', '.mp3')
+            mp3 = self.filename+".mp3"
             try:
                 text_to_speech(
                     text=self.text,
@@ -149,21 +150,24 @@ class WorkerTTS(QThread):
                     tts_type=self.tts_type,
                     set_p=False
                 )
+                print(f'{mp3=}')
+                print(f'{self.filename=}')
+                runffmpeg([
+                    '-y',
+                    '-i',
+                    f'{mp3}',
+                    "-c:a",
+                    "pcm_s16le",
+                    f'{self.filename}',
+                ], no_decode=True, use_run=True)
+                if os.path.exists(mp3):
+                    os.unlink(mp3)
             except Exception as e:
                 config.box_tts = 'stop'
                 self.post_message('error', f'srt create dubbing error:{str(e)}')
                 return
 
-            runffmpeg([
-                '-y',
-                '-i',
-                f'{mp3}',
-                "-c:a",
-                "pcm_s16le",
-                f'{self.filename}',
-            ], no_decode=True, is_box=True)
-            if os.path.exists(mp3):
-                os.unlink(mp3)
+
         config.box_tts = 'stop'
         self.post_message("end", "Succeed")
 
@@ -199,7 +203,7 @@ class WorkerTTS(QThread):
     def exec_tts(self, queue_tts):
         queue_copy = copy.deepcopy(queue_tts)
         try:
-            run_tts(queue_tts=queue_tts, set_p=False)
+            run_tts(queue_tts=queue_tts, language=self.langcode,set_p=False)
         except Exception as e:
             raise Exception(f'[error]tts error:{str(e)}')
         segments = []
@@ -288,7 +292,7 @@ class WorkerTTS(QThread):
 
         return merged_audio
 
-    def post_message(self, type, text):
+    def post_message(self, type, text=""):
         set_process_box(text, type, func_name=self.func_name)
 
 

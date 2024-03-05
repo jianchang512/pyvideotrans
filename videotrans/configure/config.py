@@ -49,7 +49,8 @@ def parse_init():
         "audio_rate":0,
         "video_rate":0,
         "initial_prompt_zh":"",
-        "fontsize":0
+        "fontsize":0,
+        "voice_silence":200
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -168,7 +169,6 @@ params = {
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
     "tts_type_list": ["edgeTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
-    "voice_silence": 500,
     "whisper_type": "all",
     "whisper_model": "base",
     "model_type":"faster",
