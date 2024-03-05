@@ -1,13 +1,13 @@
 import shutil
 import sys
-
+import os
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
 
 
 def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
-
+    print(f'{language=}')
     try:
         api_url=config.params['gptsovits_url'].strip().rstrip('/')
         if not api_url:
@@ -34,13 +34,15 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 raise Exception(data['message'])
             elif 'audio/wav' in content_type or 'audio/x-wav' in content_type:
                 # 如果是WAV音频流，获取原始音频数据
-                
                 with open(filename+".wav", 'wb') as f:
                     f.write(response.content)
+                print(f'{filename=},开始wav2mp3')
                 tools.wav2mp3(filename+".wav",filename)
+                if os.path.exists(filename+".wav"):
+                    os.unlink(filename+".wav")
                 return True
             else:
-                raise Exception("请求GPTSoVITS出现未知错误")
+                raise Exception(f"请求GPTSoVITS出现错误:{response.text}")
         except Exception as e:
             raise Exception(f"请求GPT-SoVITS出错：{str(e)}")
     except Exception as e:

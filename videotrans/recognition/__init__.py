@@ -45,7 +45,7 @@ def match_target_amplitude(sound, target_dBFS):
 def shorten_voice(normalized_sound,max_interval=60000):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']), silence_thresh=-20 - 25)
+    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']), silence_thresh=-20 - 25)
     for i, chunk in enumerate(audio_chunks):
         start_time, end_time = chunk
         n = 0
@@ -102,13 +102,14 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
+        print(f'{duration=}')
         # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             return None
         start_time, end_time, buffered = duration
-        if start_time == end_time:
-            end_time += 200
+        # if start_time == end_time:
+        #     end_time += 200
 
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
@@ -133,8 +134,10 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
                                            language=detect_language,
                                            initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
             for t in segments:
+
                 if detect_language=='zh' and t.text==config.settings['initial_prompt_zh']:
                     continue
+                start_time, end_time, buffered = duration
                 text = t.text
                 text = f"{text.capitalize()}. ".replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text).strip().strip('.')
@@ -382,8 +385,7 @@ def shorten_voice_old(normalized_sound):
     max_interval = 10000
     buffer = 500
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.params['voice_silence']),
-                                    silence_thresh=-20 - 25)
+    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),silence_thresh=-20 - 25)
     # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
         start_time, end_time = chunk

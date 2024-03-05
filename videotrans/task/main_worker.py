@@ -49,7 +49,6 @@ class Worker(QThread):
                 set_process(f"{str(e)}", 'error')
                 send_notification("Error",  str(e) )
         finally:
-            
             delete_temp(None)
 
 
@@ -80,7 +79,7 @@ class Worker(QThread):
                 set_process(config.transobj['kaishichuli'])
                 self.video.run()
                 if config.current_status!='ing':
-                    return False
+                    return None
                 # 成功完成
                 config.params['line_roles'] = {}
                 dur=int(time.time() - st)
@@ -92,8 +91,6 @@ class Worker(QThread):
                         os.unlink(self.video.novoice_mp4)
                 except:
                     pass
-                finally:
-                    delete_temp(noextname=self.video.noextname)
                 if len(config.queue_mp4)>0:
                     config.queue_mp4.pop(0)
             except Exception as e:
@@ -101,15 +98,15 @@ class Worker(QThread):
                 if str(e)!='stop':
                     set_process(f"{str(e)}", 'error')
                     send_notification("Error",f"{str(e)}")
-                return False
-
-            #finally:
-                
-            #self.video=None
+                return None
+            finally:
+                time.sleep(2)
+                #if self.video and self.video.noextname:
+                #    delete_temp(None)
+                if self.video and self.video.del_sourcemp4 and self.video.source_mp4 and os.path.exists(self.video.source_mp4):
+                    os.unlink(self.video.source_mp4)
         # 全部完成
         set_process("", 'end')
-        # time.sleep(3)
-        # delete_temp(None)
 
 
 class Shiting(QThread):

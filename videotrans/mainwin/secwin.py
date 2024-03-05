@@ -183,7 +183,7 @@ class SecWindow():
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, True)
         # 静音片段
-        self.hide_show_element(self.main.layout_voice_silence, True)
+        # self.hide_show_element(self.main.layout_voice_silence, True)
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
@@ -238,7 +238,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_rate, False)
         # self.main.voice_rate.setText('+0%')
         # 静音片段
-        self.hide_show_element(self.main.layout_voice_silence, False)
+        # self.hide_show_element(self.main.layout_voice_silence, False)
         # self.main.voice_silence.setText('500')
         # 配音自动加速
         self.main.voice_autorate.hide()
@@ -304,7 +304,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_rate, False)
         # self.main.voice_rate.setText('+0%')
         # 静音片段
-        self.hide_show_element(self.main.layout_voice_silence, False)
+        # self.hide_show_element(self.main.layout_voice_silence, False)
         # self.main.voice_silence.setText('500')
         # 配音自动加速
         self.main.voice_autorate.hide()
@@ -363,7 +363,7 @@ class SecWindow():
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, False)
         # 静音片段
-        self.hide_show_element(self.main.layout_voice_silence, False)
+        # self.hide_show_element(self.main.layout_voice_silence, False)
 
         # 配音自动加速
         self.main.voice_autorate.hide()
@@ -420,7 +420,7 @@ class SecWindow():
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, True)
         # 静音片段
-        self.hide_show_element(self.main.layout_voice_silence, False)
+        # self.hide_show_element(self.main.layout_voice_silence, False)
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
@@ -497,7 +497,7 @@ class SecWindow():
         self.main.whisper_model.setDisabled(type)
         self.main.whisper_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
-        self.main.voice_silence.setDisabled(type)
+        # self.main.voice_silence.setDisabled(type)
         self.main.video_autorate.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
@@ -1465,7 +1465,7 @@ class SecWindow():
             config.params['source_mp4'] = ''
             config.params['source_language'] = '-'
             config.params['subtitle_type'] = 0
-            config.params['voice_silence'] = '500'
+            # config.params['voice_silence'] = '500'
             config.params['video_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
@@ -1480,7 +1480,7 @@ class SecWindow():
             config.params['is_separate']=False
             config.params['target_language'] = '-'
             config.params['source_language'] = '-'
-            config.params['voice_silence'] = '500'
+            # config.params['voice_silence'] = '500'
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
@@ -1500,7 +1500,7 @@ class SecWindow():
             config.params['is_separate']=False
             config.params['subtitle_type'] = 0
             config.params['voice_role'] = 'No'
-            config.params['voice_silence'] = '500'
+            # config.params['voice_silence'] = '500'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
             config.params['video_autorate'] = False
@@ -1583,11 +1583,11 @@ class SecWindow():
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         except:
             config.params['voice_rate'] = '+0%'
-        try:
-            voice_silence = int(self.main.voice_silence.text().strip())
-            config.params['voice_silence'] = voice_silence
-        except:
-            config.params['voice_silence'] = '500'
+        # try:
+        #     voice_silence = int(self.main.voice_silence.text().strip())
+        #     config.params['voice_silence'] = voice_silence
+        # except:
+        #     config.params['voice_silence'] = '500'
 
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()

@@ -592,6 +592,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         role = self.hecheng_role.currentText()
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
+        langcode = translator.get_code(show_text=language)
+        print(f'{language=},{langcode=}')
 
         if not txt:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['neirongweikong'])
@@ -599,6 +601,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['yuyanjuesebixuan'])
         if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixutianxie'] + "chatGPT key")
+        if  tts_type =='GPT-SoVITS' and langcode[:2] not in ['zh','ja','en']:
+            #除此指望不支持
+            config.params['tts_type']='edgeTTS'
+            self.tts_type.setCurrentText('edgeTTS')
+            QMessageBox.critical(self,config.transobj['anerror'],config.transobj['nogptsovitslanguage'])
+            return
 
         # 文件名称
         filename = self.hecheng_out.text()
@@ -618,7 +626,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        langcode = translator.get_code(show_text=language)
+
         issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
                                       text=txt,

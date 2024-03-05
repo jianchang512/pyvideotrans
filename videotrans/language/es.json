@@ -107,6 +107,8 @@
     "nosubtitle" : "No Subtítulo ",
     "embedsubtitle" : "Subtítulo de inclusión ",
     "softsubtitle" : "Subtítulo blando ",
+    "embedsubtitle2": "Embed subtitle(double)",
+    "softsubtitle2": "Soft subtitle(double)",
     "modellost" : "Hay un error en la descarga del modelo o la descarga es incompleta.  Vuelva a descargarlo y almacenarlo en el directorio de modelos. ",
     "modelpathis" : "Ruta de almacenamiento del modelo: ",
     "downloadmodel" : "The {name} model does not exist. click on the menubar - Help Support - Download Model ",

@@ -96,14 +96,22 @@ input("Press Enter for quit")
 
 #tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\dev\0001.srt',is_file=True)
 
+
+
+
+
+
+
+
+
 import httpx, json,requests
 
-deeplx_api = "http://127.0.0.1:1188/translate"
+deeplx_api = "https://service-2rlyleme-1259515617.gz.tencentapigw.com.cn/translate"
 
 data = {
-                    "text": "\n".join(["hello","china"]),
-                    "source_lang": "auto",
-                    "target_lang": "ZH"
-                }
-res=requests.post(url=deeplx_api, json=data, proxies={"http":"","https":""})
+    "text": "你好我的朋友",
+    "source_lang": "auto",
+    "target_lang": "en"
+}
+res=requests.post(url=deeplx_api, json=data)
 print(res.json())

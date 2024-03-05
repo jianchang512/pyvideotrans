@@ -43,7 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 608815898 / 微信公众号 pyvideotrans' if config.defaulelang=='zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 905581228 / 微信公众号 pyvideotrans' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #
         self.voice_rate.setText(config.params['voice_rate'])
-        self.voice_silence.setText(config.params['voice_silence'])
+        # self.voice_silence.setText(config.params['voice_silence'])
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.video_autorate.setChecked(config.params['video_autorate'])
@@ -129,7 +129,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # subtitle 0 no 1=embed subtitle 2=softsubtitle
         self.subtitle_type.addItems(
-            [config.transobj['nosubtitle'], config.transobj['embedsubtitle'], config.transobj['softsubtitle']])
+            [
+                config.transobj['nosubtitle'],
+                config.transobj['embedsubtitle'],
+                config.transobj['softsubtitle'],
+                config.transobj['embedsubtitle2'],
+                config.transobj['softsubtitle2']
+            ])
         self.subtitle_type.setCurrentIndex(config.params['subtitle_type'])
 
         # 字幕编辑
@@ -422,7 +428,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
         config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'], str)
-        config.params['voice_silence'] = self.settings.value("voice_silence", config.params['voice_silence'], str)
+        # config.params['voice_silence'] = self.settings.value("voice_silence", config.params['voice_silence'], str)
         config.params['cuda'] = self.settings.value("cuda", False, bool)
         config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
@@ -443,7 +449,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("model_type", config.params['model_type'])
         self.settings.setValue("voice_rate", config.params['voice_rate'])
         self.settings.setValue("voice_role", config.params['voice_role'])
-        self.settings.setValue("voice_silence", config.params['voice_silence'])
+        # self.settings.setValue("voice_silence", config.params['voice_silence'])
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
         self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("subtitle_type", config.params['subtitle_type'])

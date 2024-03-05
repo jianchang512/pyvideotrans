@@ -325,12 +325,8 @@ class Ui_MainWindow(object):
         self.back_audio.setObjectName("back_audio")
         self.gaoji_layout_inner2.addWidget(self.back_audio)
 
-        self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
-        self.only_video.setMinimumSize(QtCore.QSize(0, 30))
-        self.only_video.setObjectName("only_video")
-        self.only_video.setText(config.uilanglist['onlyvideo'])
-        self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
-        self.gaoji_layout_inner2.addWidget(self.only_video)
+
+        # self.gaoji_layout_inner2.addWidget(self.only_video)
 
 
 
@@ -340,23 +336,25 @@ class Ui_MainWindow(object):
         
         
         
-        self.layout_voice_silence = QtWidgets.QFormLayout()
-        self.layout_voice_silence.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.layout_voice_silence.setObjectName("layout_voice_silence")
-        self.label_7 = QtWidgets.QLabel(self.layoutWidget)
-        self.label_7.setMinimumSize(QtCore.QSize(0, 30))
-        self.label_7.setObjectName("label_7")
-        self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_7)
-        self.voice_silence = QtWidgets.QLineEdit(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.voice_silence.sizePolicy().hasHeightForWidth())
-        self.voice_silence.setSizePolicy(sizePolicy)
-        self.voice_silence.setMinimumSize(QtCore.QSize(100, 30))
-        self.voice_silence.setObjectName("voice_silence")
-        self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_silence)
-        self.gaoji_layout_inner.addLayout(self.layout_voice_silence)
+        # self.layout_voice_silence = QtWidgets.QFormLayout()
+        # self.layout_voice_silence.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        # self.layout_voice_silence.setObjectName("layout_voice_silence")
+        # self.label_7 = QtWidgets.QLabel(self.layoutWidget)
+        # self.label_7.setMinimumSize(QtCore.QSize(0, 30))
+        # self.label_7.setObjectName("label_7")
+        # self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_7)
+        # self.voice_silence = QtWidgets.QLineEdit(self.layoutWidget)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.voice_silence.sizePolicy().hasHeightForWidth())
+        # self.voice_silence.setSizePolicy(sizePolicy)
+        # self.voice_silence.setMinimumSize(QtCore.QSize(100, 30))
+        # self.voice_silence.setObjectName("voice_silence")
+        # self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_silence)
+        # self.gaoji_layout_inner.addLayout(self.layout_voice_silence)
+
+
         self.layout_voice_rate = QtWidgets.QFormLayout()
         self.layout_voice_rate.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.layout_voice_rate.setObjectName("layout_voice_rate")
@@ -366,6 +364,7 @@ class Ui_MainWindow(object):
 
 
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_6)
+
         self.voice_rate = QtWidgets.QLineEdit(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -374,6 +373,7 @@ class Ui_MainWindow(object):
         self.voice_rate.setSizePolicy(sizePolicy)
         self.voice_rate.setMinimumSize(QtCore.QSize(100, 30))
         self.voice_rate.setObjectName("voice_rate")
+
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_rate)
         self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
 
@@ -396,6 +396,13 @@ class Ui_MainWindow(object):
         self.enable_cuda.setObjectName("enable_cuda")
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
+
+        self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
+        self.only_video.setMinimumSize(QtCore.QSize(0, 30))
+        self.only_video.setObjectName("only_video")
+        self.only_video.setText(config.uilanglist['onlyvideo'])
+        self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
+        self.gaoji_layout_inner.addWidget(self.only_video)
 
 
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
@@ -659,13 +666,13 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionott_address)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiondeepLX_address)
+        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclone_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_gptsovits)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_api)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiondeepLX_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionElevenlabs_key)
         self.menu_Key.addSeparator()
@@ -740,9 +747,9 @@ class Ui_MainWindow(object):
         self.whisper_type.setToolTip(config.uilanglist.get("Overall recognition is suitable for videos with or without background music and noticeable silence"))
         self.label_8.setText(config.uilanglist.get("Embed subtitles"))
         self.subtitle_type.setToolTip(config.uilanglist.get("shuoming02"))
-        self.label_7.setText(config.uilanglist.get("Silent duration"))
-        self.voice_silence.setToolTip(config.uilanglist.get("default 500ms"))
-        self.voice_silence.setPlaceholderText(config.uilanglist.get("Mute duration for segmented speech, in milliseconds"))
+        # self.label_7.setText(config.uilanglist.get("Silent duration"))
+        # self.voice_silence.setToolTip(config.uilanglist.get("default 500ms"))
+        # self.voice_silence.setPlaceholderText(config.uilanglist.get("Mute duration for segmented speech, in milliseconds"))
         self.label_6.setText(config.uilanglist.get("Dubbing speed"))
         self.voice_rate.setToolTip(config.uilanglist.get("Overall acceleration or deceleration of voice over playback"))
         self.voice_rate.setPlaceholderText(config.uilanglist.get("Positive numbers accelerate, negative numbers decelerate, -90 to+90"))
