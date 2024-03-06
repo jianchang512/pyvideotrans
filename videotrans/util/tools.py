@@ -569,10 +569,9 @@ def ms_to_time_string(*, ms=0, seconds=None):
     minutes, seconds = divmod(remainder, 60)
     milliseconds = td.microseconds // 1000
 
-    # 格式化为字符串
-    time_string = f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
-    return time_string
+    time_string = f"{hours}:{minutes}:{seconds},{milliseconds}"
+    return format_time(time_string,',')
 
 
 # 从字幕文件获取格式化后的字幕信息
@@ -691,7 +690,47 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     #print(new_result)
     return new_result
 
+# 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
+def format_time(s_time="",separate=','):
+    if not s_time.strip():
+        return f'00:00:00.000'
+    hou,min,sec="00","00","00.000"
+    tmp=s_time.split(':')
+    if len(tmp)>=3:
+        hou=tmp[-3]
+        min=tmp[-2]
+        sec=tmp[-1]
+    elif len(tmp)==2:
+        min=tmp[0]
+        sec=tmp[1]
+    elif len(tmp)==1:
+        sec=tmp[0]
 
+    if re.search(r',|\.',str(sec)):
+        sec,ms=re.split(r',|\.',str(sec))
+    else:
+        ms='000'
+    hou=hou if hou!="" else "00"
+    if len(hou)<2:
+        hou=f'0{hou}'
+    hou=hou[-2:]
+
+    min=min if min!="" else "00"
+    if len(min)<2:
+        min=f'0{min}'
+    min=min[-2:]
+
+    sec=sec if sec!="" else "00"
+    if len(sec)<2:
+        sec=f'0{sec}'
+    sec=sec[-2:]
+
+    ms_len=len(ms)
+    if ms_len<3:
+        for i in range(3-ms_len):
+            ms=f'0{ms}'
+    ms=ms[-3:]
+    return f"{hou}:{min}:{sec}{separate}{ms}"
 
 # 判断 novoice.mp4是否创建好
 def is_novoice_mp4(novoice_mp4, noextname):
@@ -733,10 +772,10 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     cmd1 = [
         "-y",
         "-ss",
-        ss.replace(",", '.').strip()]
+        format_time(ss,'.')]
     if to != '':
         cmd1.append("-to")
-        cmd1.append(to.replace(',', '.').strip())  # 如果开始结束时间相同，则强制持续时间1s)
+        cmd1.append(format_time(to,'.'))  # 如果开始结束时间相同，则强制持续时间1s)
     cmd1.append('-i')
     cmd1.append(source)
 
@@ -759,9 +798,9 @@ def cut_from_audio(*,ss,to,audio_file,out_file):
         "-i",
         audio_file,
         "-ss",
-        ss.replace(',','.').strip(),
+        format_time(ss,'.'),
         "-to",
-        to.replace(',','.').strip(),
+        format_time(to,'.'),
         "-ar",
         "8000",
         out_file

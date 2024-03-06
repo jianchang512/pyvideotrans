@@ -52,13 +52,14 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     set_p:
         是否实时输出日志，主界面中需要
     """
-
+    
     try:
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel('gemini-pro')
     except Exception as e:
         err = str(e)
         raise Exception(f'Gemini:请正确设置http代理,{err}')
+    
 
     # 翻译后的文本
     target_text = []
@@ -68,6 +69,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing':
             break
+        
         if iter_num>=config.settings['retries']:
             raise Exception(f'{iter_num}{"次重试后依然出错" if config.defaulelang=="zh" else " retries after error persists "}:{err}')
         iter_num+=1
@@ -115,8 +117,25 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
             except Exception as e:
                 error = str(e)
-                if response and response.candidates[0].finish_reason != 0:
-                    raise Exception(f'{get_error(response.candidates[0].finish_reason)}：目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕')
+                if response and response.candidates[0].finish_reason ==1 and response.candidates[0].content:
+                    try:
+                        result=response.candidates[0].content.parts[0].text.strip()
+                        result=result.replace('&#39;','"').replace('&quot;',"'")
+                        if inst and inst.precent < 75:
+                            inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
+                        if set_p:
+                            tools.set_process(result, 'subtitle')
+                            tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
+                        else:
+                            tools.set_process(result, func_name="set_fanyi")
+                        target_text.append(result)
+                        iter_num=0
+                        continue
+                    except:
+                        pass
+                
+                if response and response.candidates[0].finish_reason != 0:                    
+                    raise Exception(f'{get_error(response.candidates[0].finish_reason)}：目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕:{response.prompt_feedback}')
                 index=i
                 err=error
                 break

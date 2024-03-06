@@ -1216,8 +1216,11 @@ class SecWindow():
     def check_whisper_type(self, index):
         if index == 0:
             config.params['whisper_type'] = 'all'
-        else:
+        elif index==1:
             config.params['whisper_type'] = 'split'
+        else:
+            config.params['whisper_type'] = 'avg'
+
     #设定模型类型
     def model_type_change(self):
         if self.main.model_type.currentIndex()==0:

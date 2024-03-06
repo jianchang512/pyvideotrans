@@ -104,9 +104,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0])
 
         #         model
-        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split']])
+        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split'],config.transobj['whisper_type_avg']])
+        self.whisper_type.setToolTip(config.transobj['fenge_tips'])
         if config.params['whisper_type']:
-            self.whisper_type.setCurrentIndex(0 if config.params['whisper_type'] == 'all' else 1)
+            d={"all":0,'split':1,"avg":2,"":0}
+            self.whisper_type.setCurrentIndex(d[config.params['whisper_type']])
         self.whisper_model.addItems(['base', 'small', 'medium','large-v2','large-v3'])
         self.whisper_model.setCurrentText(config.params['whisper_model'])
         if config.params['model_type']=='openai':

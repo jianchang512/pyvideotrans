@@ -14,7 +14,11 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'clone-voice:api={api_url}')
-        data={"text":text.strip(),"language":language}
+        splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
+        text=text.strip()
+        if text[-1] not in splits:
+            text+='.'
+        data={"text":text,"language":language}
 
         # role=clone是直接复制
         if role!='clone':

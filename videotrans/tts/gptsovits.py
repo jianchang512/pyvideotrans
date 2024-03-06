@@ -14,8 +14,15 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             raise Exception("必须填写GPT-SoVITS 的 API 地址")
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'GPT-SoVITS API:{api_url}')
-
-        data={"text":text.strip(),"text_language": "zh" if language.startswith('zh') else language ,"extra":config.params['gptsovits_extra'],"ostype":sys.platform}
+        text=text.strip()
+        if not text:
+            return True
+        splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
+        if text[-1] not in splits:
+            text+='.'
+        if len(text)<4:
+            text=f'。{text}，。'
+        data={"text":text,"text_language": "zh" if language.startswith('zh') else language ,"extra":config.params['gptsovits_extra'],"ostype":sys.platform}
         if role:
             roledict=tools.get_gptsovits_role()
             if role in roledict:

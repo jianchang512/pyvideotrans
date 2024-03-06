@@ -19,15 +19,15 @@ from videotrans.util import tools
 def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None,model_type='faster',is_cuda=None):
     if config.current_status != 'ing' and config.box_recogn!='ing':
         return False
+    print(f'{model_type=},{type=}')
     if model_type=='openai':
         rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     elif type == "all":
         rs= all_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+    elif type=='avg' or os.path.exists(config.rootdir+"/old.txt"):
+        rs=split_recogn_old(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     else:
-        if not os.path.exists(config.rootdir+"/old.txt"):
-            rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
-        else:
-            rs=split_recogn_old(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
+        rs=split_recogn(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -298,7 +298,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             raise config.Myexcept("stop")
-        nonsilent_data = shorten_voice(normalized_sound,8000)
+        nonsilent_data = shorten_voice(normalized_sound,config.settings['interval_split']*1000)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
 
@@ -312,14 +312,12 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
-        # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             raise config.Myexcept("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += 200
-
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
@@ -382,8 +380,8 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
 # split audio by silence
 def shorten_voice_old(normalized_sound):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
-    max_interval = 10000
-    buffer = 500
+    max_interval = config.settings['interval_split']*1000
+    buffer = int(config.settings['voice_silence'])
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),silence_thresh=-20 - 25)
     # print(audio_chunks)
@@ -403,6 +401,7 @@ def shorten_voice_old(normalized_sound):
 
 # 预先分割识别
 def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None,model_name="base",set_p=True,inst=None,is_cuda=None):
+    print(f'avg分割==')
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'])
     if config.current_status != 'ing' and config.box_recogn!='ing':
@@ -440,7 +439,7 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
         model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
                          compute_type=config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
-                         cpu_threads=1,num_workers=1, local_files_only=True)
+                         local_files_only=True)
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
@@ -462,10 +461,9 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
-                                           beam_size=config.settings['beam_size'],
-                                           best_of=config.settings['best_of'],
-                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
-                                           temperature=0 if config.settings['temperature']==0 else [0.0,0.2,0.4,0.6,0.8,1.0],
+                                           beam_size=5,
+                                           best_of=5,
+                                           condition_on_previous_text=True,
                                            language=detect_language,
                                            initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],)
             for t in segments:
