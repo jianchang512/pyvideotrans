@@ -30,7 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_out_path=None
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898' if config.defaulelang=='zh' else ''}")
+        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
@@ -80,7 +80,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-        # self.langauge_name = list(langlist.keys())
+
         self.shibie_language.addItems(config.langnamelist)
         self.shibie_model.addItems(["base", "small", "medium", "large-v2","large-v3"])
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
@@ -153,10 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hun_startbtn.clicked.connect(self.hun_fun)
         self.hun_opendir.clicked.connect(lambda: self.opendir_fn(self.hun_out.text()))
 
-        # # 翻译
-        # proxy = set_proxy()
-        # if proxy:
-        #     self.fanyi_proxy.setText(proxy)
+
         self.fanyi_target.addItems(["-"] + config.langnamelist)
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
@@ -502,6 +499,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
+        split_type_index=self.shibie_whisper_type.currentIndex()
         model_type="faster" if self.shibie_model_type.currentIndex()==0 else 'openai'
         is_cuda=self.is_cuda.isChecked()
         if is_cuda and model_type == 'faster':
@@ -521,10 +519,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif model_type=='openai' and not os.path.exists(config.rootdir+f'/models/{model}.pt'):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',model))
         files = self.shibie_dropbtn.filelist
-        print(f'{files=}')
+
         if not files or len(files)<1:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixuyinshipin'])
-        print('22')
+
 
         wait_list=[]
         self.shibie_startbtn.setText(config.transobj["running"])
@@ -536,13 +534,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f'{basename=}')
             try:
                 rs,newfile,base=tools.rename_move(file,is_dir=False)
+                if rs:
+                    file=newfile
+                    basename=base
             except Exception as e:
                 print(f"removename {str(e)}")
-            if rs:
-                file=newfile
-                basename=base
             self.shibie_text.clear()
-            print("aaaa")
+
             if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov",".mp3",".flac",".m4a",".mov",".aac"]:
                 out_file = f"{config.homedir}/tmp/{basename}.wav"
                 if not os.path.exists(f"{config.homedir}/tmp"):
@@ -566,9 +564,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         os.makedirs(self.shibie_out_path,exist_ok=True)
         self.shibie_opendir.setDisabled(False)
+
         self.shibie_task = WorkerWhisper(
             audio_paths=wait_list,
             model=model,
+            split_type= ["all","split","avg"][split_type_index],
             model_type=model_type,
             language=translator.get_audio_code(show_source=self.shibie_language.currentText()),
             func_name="shibie_end",
@@ -615,7 +615,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if filename and re.search(r'[\\/]+', filename):
             filename = ""
         if not filename:
-            filename = f"tts-{role}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
+            newrole=role.replace('/','-').replace('\\','-')
+            filename = f"tts-{newrole}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
         else:
             filename = filename.replace('.wav', '') + ".wav"
         if not os.path.exists(f"{config.homedir}/tts"):

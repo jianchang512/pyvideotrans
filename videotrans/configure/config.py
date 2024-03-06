@@ -49,8 +49,11 @@ def parse_init():
         "audio_rate":0,
         "video_rate":0,
         "initial_prompt_zh":"",
-        "fontsize":0,
-        "voice_silence":200
+        "fontsize":14,
+        "voice_silence":200,
+        "interval_split":10,
+        "cjk_len":24,
+        "other_len":36
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):

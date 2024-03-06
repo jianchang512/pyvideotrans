@@ -35,10 +35,10 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 f.write(res.content)
             return True
         except:
-            raise Exception(f"返回数据不是标准json格式:{resraw.text}" if config.defaulelang=='zh' else f"The return data is not in standard json format:{resraw.text}")
+            raise Exception(f"返回非标准json数据:{resraw.text}" if config.defaulelang=='zh' else f"The return data is not in standard json format:{resraw.text}")
     except Exception as e:
         error=str(e)
         if set_p:
             tools.set_process(error)
         config.logger.error(f"TTS-API自定义失败:{error}")
-        raise Exception(f"TTS-API自定义:{error}")
+        raise Exception(f"TTS-API:{error}")

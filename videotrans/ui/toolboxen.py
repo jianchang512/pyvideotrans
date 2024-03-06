@@ -296,16 +296,20 @@ class Ui_MainWindow(object):
 
 
 
+
+
+        self.shibie_whisper_type = QtWidgets.QComboBox(self.tab_4)
+        self.shibie_whisper_type.addItems(
+            [config.transobj['whisper_type_all'],
+             config.transobj['whisper_type_split'],
+             config.transobj['whisper_type_avg']]
+        )
+        self.shibie_whisper_type.setToolTip(config.transobj['fenge_tips'])
         self.horizontalLayout.addWidget(self.is_cuda)
 
         self.horizontalLayout.addLayout(self.formLayout_2)
-
-
-
+        self.horizontalLayout.addWidget(self.shibie_whisper_type)
         self.horizontalLayout_8.addLayout(self.horizontalLayout)
-
-
-
 
         self.shibie_startbtn = QtWidgets.QPushButton(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)

@@ -44,8 +44,7 @@ class Worker(QThread):
 
 # 执行语音识别
 class WorkerWhisper(QThread):
-    def __init__(self, *, audio_paths=None, model=None, language=None, func_name=None, model_type='faster', parent=None,
-                 out_path=None,is_cuda=False):
+    def __init__(self, *, audio_paths=None, model=None, language=None, func_name=None, model_type='faster', parent=None,out_path=None,is_cuda=False,split_type='split'):
         super(WorkerWhisper, self).__init__(parent)
         self.func_name = func_name
         self.audio_paths = audio_paths
@@ -54,6 +53,7 @@ class WorkerWhisper(QThread):
         self.language = language
         self.out_path = out_path
         self.is_cuda=is_cuda
+        self.split_type=split_type
 
     def run(self):
         set_process_box(f'start {self.model} ')
@@ -77,7 +77,7 @@ class WorkerWhisper(QThread):
                 self.post_message("logs", f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
                 jindu = f'@@@@@@ {int((length - len(self.audio_paths)) * 49 / length)}%'
                 self.post_message("replace_subtitle", jindu)
-                srts = run_recogn(type="split", audio_file=audio_path, model_name=self.model,
+                srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
                                   detect_language=self.language, set_p=False, cache_folder=config.TEMP_DIR,
                                   model_type=self.model_type,
                                   is_cuda=self.is_cuda)

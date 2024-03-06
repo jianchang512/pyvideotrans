@@ -91,27 +91,81 @@ input("Press Enter for quit")
 #     time.sleep(5)
 
 
-#from videotrans.util import tools
+# from videotrans.util import tools
 
 
-#tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\dev\0001.srt',is_file=True)
+# tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\dev\0001.srt',is_file=True)
 
 
+# import re
+#
+# def format_time(s_time="",separate=','):
+#     if not s_time.strip():
+#         return f'00:00:00.000'
+#     hou,min,sec="00","00","00.000"
+#     tmp=s_time.split(':')
+#     if len(tmp)>=3:
+#         hou=tmp[-3]
+#         min=tmp[-2]
+#         sec=tmp[-1]
+#     elif len(tmp)==2:
+#         min=tmp[0]
+#         sec=tmp[1]
+#     elif len(tmp)==1:
+#         sec=tmp[0]
+#
+#     if re.search(r',|\.',str(sec)):
+#         sec,ms=re.split(r',|\.',str(sec))
+#     else:
+#         ms='000'
+#     hou=hou if hou!="" else "00"
+#     if len(hou)<2:
+#         hou=f'0{hou}'
+#     hou=hou[-2:]
+#
+#     min=min if min!="" else "00"
+#     if len(min)<2:
+#         min=f'0{min}'
+#     min=min[-2:]
+#
+#     sec=sec if sec!="" else "00"
+#     if len(sec)<2:
+#         sec=f'0{sec}'
+#     sec=sec[-2:]
+#
+#     ms_len=len(ms)
+#     if ms_len<3:
+#         for i in range(3-ms_len):
+#             ms=f'0{ms}'
+#     ms=ms[-3:]
+#     return f"{hou}:{min}:{sec}{separate}{ms}"
+#
+# print(format_time('',','))
 
 
+#
+# import httpx, json,requests
+#
+# deeplx_api = "https://service-2rlyleme-1259515617.gz.tencentapigw.com.cn/translate"
+#
+# data = {
+#     "text": "你好我的朋友",
+#     "source_lang": "auto",
+#     "target_lang": "en"
+# }
+# res=requests.post(url=deeplx_api, json=data)
+# print(res.json())
+import textwrap
 
+from videotrans.util.tools import get_subtitle_from_srt
 
+maxlen = 24
+source_sub = get_subtitle_from_srt(r'C:\Users\c1\Videos\_video_out\1\zh-cn.srt')
+source_length = len(source_sub)
+subtitles=''
 
-
-
-import httpx, json,requests
-
-deeplx_api = "https://service-2rlyleme-1259515617.gz.tencentapigw.com.cn/translate"
-
-data = {
-    "text": "你好我的朋友",
-    "source_lang": "auto",
-    "target_lang": "en"
-}
-res=requests.post(url=deeplx_api, json=data)
-print(res.json())
+for i, it in enumerate(source_sub):
+    if source_length > 0 and i < source_length:
+        subtitles += "\n" + textwrap.fill(source_sub[i]['text'], maxlen).strip()
+    subtitles += "\n\n"
+print(subtitles)

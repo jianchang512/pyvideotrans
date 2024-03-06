@@ -24,7 +24,7 @@ from videotrans.util import tools
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, \
     get_lastjpg_fromvideo, is_novoice_mp4, cut_from_video, get_video_duration, delete_temp, \
     get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, create_video_byimg, concat_multi_mp4, \
-    speed_up_mp3, backandvocal, cut_from_audio, get_clone_role, get_audio_time, concat_multi_audio
+    speed_up_mp3, backandvocal, cut_from_audio, get_clone_role, get_audio_time, concat_multi_audio, format_time
 
 
 class TransCreate():
@@ -171,7 +171,7 @@ class TransCreate():
                 'source_language'] != '-' and config.params['target_language'] != '-':
                 # 原始和目标语言都存在，并且不相等，需要翻译，作为待翻译字幕
                 sub_file = self.targetdir_source_sub
-            with open(sub_file, 'w', encoding="utf-8") as f:
+            with open(sub_file, 'w', encoding="utf-8",errors="ignore") as f:
                 f.write(obj['subtitles'].strip())
         if os.path.exists(self.targetdir_source_sub) and os.path.getsize(self.targetdir_source_sub) == 0:
             os.unlink(self.targetdir_source_sub)
@@ -277,7 +277,7 @@ class TransCreate():
         #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
         if not os.path.exists(self.targetdir_target_sub) and os.path.exists(self.targetdir_source_sub):
             # 通知前端替换字幕
-            with open(self.targetdir_source_sub, 'r', encoding="utf-8") as f:
+            with open(self.targetdir_source_sub, 'r', encoding="utf-8",errors="ignore") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
             return True
         # 如果不存在视频，或存在已识别过的，或存在目标语言字幕 或合并模式，不需要识别
@@ -322,7 +322,7 @@ class TransCreate():
         if self.source_mp4 and os.path.exists(self.targetdir_target_sub) and os.path.getsize(
                 self.targetdir_target_sub) > 0:
             # 通知前端替换字幕
-            with open(self.targetdir_target_sub, 'r', encoding="utf-8") as f:
+            with open(self.targetdir_target_sub, 'r', encoding="utf-8",errors="ignore") as f:
                 set_process(f.read().strip(), 'replace_subtitle')
         # 是否需要翻译，不是 tiqu_no/hebing，存在识别后字幕并且不存在目标语言字幕，并且原语言和目标语言不同，则需要翻译
         if self.app_mode in ['tiqu_no', 'hebing'] or \
@@ -493,17 +493,11 @@ class TransCreate():
                 startraw, endraw = it['time'].strip().split(" --> ")
                 startraw = startraw.strip().replace('.', ',')
                 endraw = endraw.strip().replace('.', ',')
-                if startraw.find(',') == -1:
-                    startraw += ',000'
-                if endraw.find(',') == -1:
-                    endraw += ',000'
-                if len(startraw.split(':')[0]) < 2:
-                    startraw = f'0{startraw}'
-                if len(endraw.split(':')[0]) < 2:
-                    endraw = f'0{endraw}'
+                startraw=format_time(startraw,',')
+                endraw=format_time(endraw,',')
                 txt += f"{it['line']}\n{startraw} --> {endraw}\n{it['text']}\n\n"
             try:
-                with open(file, 'w', encoding="utf-8") as f:
+                with open(file, 'w', encoding="utf-8",errors="ignore") as f:
                     f.write(txt.strip())
                     set_process(txt.strip(), 'replace_subtitle')
             except Exception as e:
@@ -541,7 +535,7 @@ class TransCreate():
             voice_role = config.params['voice_role']
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
-            newrole=voice_role.replace('/','-')
+            newrole=voice_role.replace('/','-').replace('\\','/')
             filename = f'{newrole}-{config.params["voice_rate"]}-{config.params["voice_autorate"]}-{it["text"]}'
             md5_hash = hashlib.md5()
             md5_hash.update(f"{filename}".encode('utf-8'))
@@ -742,7 +736,7 @@ class TransCreate():
         for (idx, it) in enumerate(queue_copy):
             srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
         # 字幕保存到目标文件夹
-        with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
+        with open(self.targetdir_target_sub, 'w', encoding="utf-8",errors="ignore") as f:
             f.write(srt.strip())
 
         # 不是 tiqu tiqu_no peiyin hebing
@@ -922,7 +916,7 @@ class TransCreate():
                     if last_endtime == 0:
                         logger.info(f'last_endtime=0,是第一个片段')
                         # 是第一个视频片段
-                        cut_from_video(ss="00:00:00",
+                        cut_from_video(ss="00:00:00.000",
                                        to=queue_raw[idx]['endraw'],
                                        source=self.novoice_mp4, out=novoice_mp4_tmp)
                     else:
@@ -934,8 +928,7 @@ class TransCreate():
                         concat_multi_mp4(filelist=[novoice_mp4_tmp, tmppert], out=tmppert2)
                         novoice_mp4_tmp = tmppert2
                     last_endtime = queue_raw[idx]['end_time']
-                # start_times.append(it['start_time'])
-                # segments.append(audio_data)
+
         except Exception as e:
             if config.current_status != 'ing':
                 raise Myexcept(f"{transobj['mansuchucuo']}:" + str(e))
@@ -947,30 +940,7 @@ class TransCreate():
         shutil.copy2(novoice_mp4_tmp, self.novoice_mp4)
         # 总长度，单位ms
         total_length = int(get_video_duration(self.novoice_mp4))
-        set_process(f'[1] {self.novoice_mp4=},,{total_length=}')
-        # if not total_length or total_length == 0:
-        #     total_length = source_mp4_total_length + offset
-        set_process(f'[2] {self.novoice_mp4=},,{total_length=}')
-        set_process(f'[3] {source_mp4_total_length=},,{offset=}')
         set_process(f"{transobj['xinshipinchangdu']}:{source_mp4_total_length + offset}ms")
-        # if total_length < source_mp4_total_length + offset:
-        #     try:
-        #         # 对视频末尾定格延长
-        #         self.novoicemp4_add_time(source_mp4_total_length + offset - total_length)
-        #     except Exception as e:
-        #         raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
-        # 重新修改字幕
-        # srt = ""
-        # for (idx, it) in enumerate(queue_params):
-        #     srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-        # # 修改目标文件夹字幕
-        # # shutil.copy2(self.targetdir_target_sub,f'{self.targetdir_target_sub}.raw.srt')
-        # with open(self.targetdir_target_sub, 'w',
-        #           encoding="utf-8") as f:
-        #     f.write(srt.strip())
-
-        # 视频降速，肯定存在视频，不需要额外处理
-        # return self.merge_audio_segments(segments, start_times, source_mp4_total_length + offset)
 
 
     def _back_music(self):
@@ -989,7 +959,7 @@ class TransCreate():
                     self.background_music = tmpm4a
                 if atime + 1 < vtime:
                     # 获取延长片段
-                    cmd = ['-y', '-i', self.background_music, '-ss', '00:00:00', '-t', f'{round(vtime - atime, 1)}',
+                    cmd = ['-y', '-i', self.background_music, '-ss', '00:00:00.000', '-t', f'{round(vtime - atime, 1)}',
                            self.cache_folder + "/yanchang.m4a"]
                     runffmpeg(cmd)
                     # 背景音频连接延长片段
@@ -1019,7 +989,7 @@ class TransCreate():
                 atime = get_audio_time(self.targetdir_source_instrument)
                 if atime + 1 < vtime:
                     # 延长背景音
-                    cmd = ['-y', '-i', self.targetdir_source_instrument, '-ss', '00:00:00', '-t',
+                    cmd = ['-y', '-i', self.targetdir_source_instrument, '-ss', '00:00:00.000', '-t',
                            f'{round(vtime - atime, 1)}', self.cache_folder + "/yanchang.m4a"]
                     runffmpeg(cmd)
                     # 背景音连接延长片段
@@ -1071,16 +1041,17 @@ class TransCreate():
                     source_sub = get_subtitle_from_srt(self.targetdir_source_sub)
                 except Exception as e:
                     raise Myexcept(f'Source Subtitles error:{str(e)}')
-            maxlen = 36 if self.target_language_code[:2] in ["zh", "ja", "jp", "ko"] else 80
+            maxlen = config.settings['cjk_len'] if self.target_language_code[:2] in ["zh", "ja", "jp", "ko"] else config.settings['other_len']
+            maxlen_source = config.settings['cjk_len'] if self.source_language_code[:2] in ["zh", "ja", "jp", "ko"] else config.settings['other_len']
             subtitles = ""
             source_length=len(source_sub)
             for i,it in enumerate(subs):
                 it['text'] = textwrap.fill(it['text'], maxlen)
-                subtitles += f"{it['line']}\n{it['time']}\n{it['text']}\n"
+                subtitles += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
                 if source_length>0 and i<source_length:
-                    subtitles+=textwrap.fill(source_sub[i]['text'],maxlen).strip()+"\n"
-                subtitles+="\n"
-            with open(self.targetdir_target_sub, 'w', encoding="utf-8") as f:
+                    subtitles+="\n"+textwrap.fill(source_sub[i]['text'],maxlen_source).strip()
+                subtitles+="\n\n"
+            with open(self.targetdir_target_sub, 'w', encoding="utf-8",errors="ignore") as f:
                 f.write(subtitles.strip())
             shutil.copy2(self.targetdir_target_sub, config.rootdir + "/tmp.srt")
 
@@ -1100,8 +1071,8 @@ class TransCreate():
                     text=""
                     for i,it in enumerate(target_subs):
                         if i < len(source_subs):
-                            text+= f"{source_subs[i]['line']}\n{it['time']}\n{source_subs[i]['text']}\n"
-                    with open(soft_subtitle_raw, 'w', encoding="utf-8") as f:
+                            text+= f"{source_subs[i]['line']}\n{it['time']}\n{source_subs[i]['text']}\n\n"
+                    with open(soft_subtitle_raw, 'w', encoding="utf-8",errors="ignore") as f:
                         f.write(text.strip())
                 except Exception as e:
                     raise Myexcept(f'Subtitles error:{str(e)}')
@@ -1297,8 +1268,7 @@ class TransCreate():
             if os.path.exists(config.rootdir + "/tmp.srt"):
                 os.unlink(config.rootdir + "/tmp.srt")
             if not config.params['only_video']:
-                with open(os.path.join(self.target_dir, f'{"readme" if config.defaulelang != "zh" else "文件说明"}.txt'),
-                          'w', encoding="utf-8") as f:
+                with open(os.path.join(self.target_dir, f'{"readme" if config.defaulelang != "zh" else "文件说明"}.txt'),'w', encoding="utf-8",errors="ignore") as f:
                     f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
 
 
