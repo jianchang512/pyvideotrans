@@ -160,7 +160,6 @@ windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then
 
 ```
 
-
 ;####################
 ;#######################
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
@@ -179,7 +178,7 @@ crf=13
 
 ;The number of simultaneous voiceovers, 1-10, it is recommended not to be greater than 5, otherwise it is easy to fail
 ;同时配音的数量，1-10，建议不要大于5，否则容易失败
-dubbing_thread=5
+dubbing_thread=2
 
 ;Maximum audio acceleration, default 0, i.e. no limitation, you need to set a number greater than 1-100, such as 1.5, representing the maximum acceleration of 1.5 times, pay attention to how to set the limit, then the subtitle sound will not be able to be aligned
 ;音频最大加速倍数，默认0，即不限制，需设置大于1-100的数字，比如1.5，代表最大加速1.5倍，注意如何设置了限制，则字幕声音将无法对齐
@@ -195,7 +194,7 @@ trans_thread=15
 
 ;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
 ;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
-fontsize=0
+fontsize=14
 
 
 ;Number of translation error retries
@@ -229,10 +228,10 @@ no_decode=true
 
 ;cuda data type when recognizing subtitles from video, int8 = consumes fewer resources, faster, lower precision, float32 = consumes more resources, slower, higher precision, int8_float16 = device of choice
 ;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
-cuda_com_type=int8
+cuda_com_type=float32
 
 ;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
-initial_prompt_zh=转录为简体中文。
+initial_prompt_zh=
 
 ; whisper thread 0 is equal cpu core, 
 ;字幕识别时，cpu进程
@@ -244,8 +243,8 @@ whisper_worker=1
 
 ;Subtitle recognition accuracy adjustment, 1-5, 1 = consume the lowest resources, 5 = consume the most, if the video memory is sufficient, can be set to 5, may achieve more accurate recognition results
 ;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
-beam_size=1
-best_of=1
+beam_size=5
+best_of=5
 
 ;Enable custom mute segmentation when in subtitle overall recognition mode, true=enable, can be set to false to disable when video memory is insufficient.
 ;字幕整体识别模式时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
@@ -253,13 +252,27 @@ vad=true
 
 ;0 = less GPU resources but slightly worse results, 1 = more GPU resources and better results
 ;0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好
-temperature=0
+temperature=1
 
 ;Same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs.
 ;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
-condition_on_previous_text=false
+condition_on_previous_text=true
 
+; For pre-split and equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
+;用于 预先分割 和 均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
+voice_silence=500
 
+;Seconds per slice for equal-division, default 10s, i.e. each subtitle is approximately 10s long.
+;用于均等分割时的每个切片时长 秒，默认 10s,即每个字幕时长大约都是10s
+interval_split=10
+
+;CJK subtitle number of characters in a line length, more than this will be line feed.
+;中日韩字幕一行长度字符个数，多于这个将换行
+cjk_len=30
+
+;Other language line breaks, more than this number of characters will be a line break.
+;其他语言换行长度，多于这个字符数量将换行
+other_len=60
 
 
 ```
