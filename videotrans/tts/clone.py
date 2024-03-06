@@ -35,7 +35,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         res=res.json()
         if "code" not in res or res['code']!=0:
             raise Exception(f'{res}')
-        if api_url.find('127.0.0.1')>-1 or api_url.find('localhost'):
+        if api_url.find('127.0.0.1')>-1 or api_url.find('localhost')>-1:
             tools.wav2mp3(re.sub(r'\\{1,}','/',res['filename']),filename)
         else:
             resb=requests.get(res['url'])
@@ -45,8 +45,8 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             with open(filename+".wav",'wb') as f:
                 f.write(resb.content)
                 tools.wav2mp3(filename+".wav",filename)
-                if os.path.exists(filename+".wav"):
-                    os.unlink(filename+".wav")
+            if os.path.exists(filename+".wav"):
+                os.unlink(filename+".wav")
         return True
     except Exception as e:
         error=str(e)
