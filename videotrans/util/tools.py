@@ -432,7 +432,7 @@ def backandvocal(backwav,peiyinm4a):
     tmpwav=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.wav')
     tmpm4a=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.m4a')
     # 背景转为m4a文件,音量降低为0.8
-    wav2m4a(backwav,tmpm4a,["-filter:a","volume=0.8"])
+    wav2m4a(backwav,tmpm4a,["-filter:a",f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',"[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', tmpwav])
     shutil.copy2(tmpwav,peiyinm4a)
     # 转为 m4a
@@ -621,7 +621,7 @@ def format_srt(content):
         elif len(result)>0 and not re.match(textpat,it):
             #当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
             #print(f'\t是text')
-            result[-1]['text'].append(it)
+            result[-1]['text'].append(it.capitalize())
     #print(result)
     #import sys
     #sys.exit()
@@ -632,7 +632,7 @@ def format_srt(content):
     if len(result)>0:
         for i,it in enumerate(result):
             result[i]['line']=i+1
-            result[i]['text']="\n".join(it['text'])
+            result[i]['text']="\n".join([tx.capitalize() for tx in it['text']])
             s,e=(it['time'].replace('.',',')).split('-->')
             s=s.strip()
             e=e.strip()

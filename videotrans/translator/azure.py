@@ -24,10 +24,15 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         }
 
     # 翻译后的文本
-    target_text = []
+    target_text = {"0":[]}
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    is_srt=False
+    prompt = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
+    if not isinstance(text_list, str):
+        is_srt = True
+        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing':
             break
@@ -44,10 +49,10 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
 
         # 整理待翻译的文字为 List[str]
-        if isinstance(text_list, str):
-            source_text = text_list.strip().split("\n")
+        if not is_srt:
+            source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
         else:
-            source_text = [f"{t['line']}\n{t['time']}\n{t['text']}" for t in text_list]
+            source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
@@ -65,11 +70,14 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 continue
             if stop>0:
                 time.sleep(stop)
+            lines=[]
+            if is_srt:
+                for get_line in it:
+                    lines.append(re.match(r'<(\d+)>\.',get_line).group(1))
             try:
-                source_length = len(it)
                 message = [
                     {'role': 'system',
-                     'content': config.params["azure_template"].replace('{lang}', target_language)},
+                     'content': prompt},
                     {'role': 'user', 'content': "\n".join(it)},
                 ]
 
@@ -89,13 +97,40 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                     raise Exception(f"[error]:Azure {response}")
                 result=result.strip().replace('&#39;','"').replace('&quot;',"'")
                 if inst and inst.precent < 75:
-                    inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
-                if set_p:
-                    tools.set_process( result, 'subtitle')
-                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
+                    inst.precent += 0.01
+                if not is_srt:
+                    target_text["0"].append(result)
+                    if not set_p:
+                        tools.set_process_box(result + "\n", func_name="set_fanyi")
+                    continue
+                if len(lines) == 1:
+                    result = re.sub(r'<\d+>\.?', "\n", result).strip()
+                    if set_p:
+                        tools.set_process(result + "\n", 'subtitle')
+                        tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
+                    else:
+                        tools.set_process_box(result + "\n", func_name="set_fanyi")
+                    target_text[lines[0]] = result
+                    continue
+                sep_res = re.findall(r'(<\d+>\.?.+)', result)
+                if len(sep_res) == len(lines):
+                    for result_item in sep_res:
+                        tmp = re.match(r'<(\d+)>\.?(.*)', result_item).groups()
+                        if len(tmp) >= 2:
+                            line = f'{tmp[0]}'
+                            result_text = f'{tmp[1]}'
+                            target_text[line] = result_text.strip()
+                        else:
+                            continue
+                        if set_p:
+                            tools.set_process(result_text + "\n", 'subtitle')
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
+                        else:
+                            tools.set_process_box(result_text + "\n", func_name="set_fanyi")
                 else:
-                    tools.set_process(result, func_name="set_fanyi")
-                target_text.append(result)
+                    sep_res = re.sub(r'<\d+>\.?', '', result).split("\n", len(lines) - 1)
+                    for num, txt in enumerate(sep_res):
+                        target_text[num] = txt.strip()
                 iter_num=0
             except Exception as e:
                 error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
@@ -106,8 +141,13 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             break
 
 
-    if isinstance(text_list, str):
-        return "\n".join(target_text)
+    if not is_srt:
+        return "\n".join(target_text["0"])
 
-    target = tools.get_subtitle_from_srt("\n\n".join(target_text),is_file=False)
-    return target
+    for i, it in enumerate(text_list):
+        line=str(it["line"])
+        if line in target_text:
+            text_list[i]['text'] = target_text[line]
+        else:
+            text_list[i]['text']=""
+    return text_list
