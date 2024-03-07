@@ -166,6 +166,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.fanyi_sourcetext.setSizePolicy(sizePolicy)
         self.fanyi_sourcetext.setMinimumSize(300, 0)
+        self.fanyi_proxy.setText(config.proxy)
 
         self.fanyi_sourcetext.setPlaceholderText(config.transobj['tuodongfanyi'])
 
@@ -312,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hun_out.setDisabled(False)
             self.statuslabel.setText("Succeed")
         elif data['func_name'] == 'fanyi_end':
+            print(f'翻译结束={data["text"]}')
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(config.transobj['starttrans'])
             self.fanyi_targettext.clear()
@@ -319,11 +321,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.daochu.setDisabled(False)
             self.statuslabel.setText("Translate end")
         elif data['func_name']=='set_fanyi':
+            print(f'翻译结果=={data=}')
             self.fanyi_targettext.moveCursor(QTextCursor.End)
-            self.fanyi_targettext.insertPlainText(data['text'])
+            self.fanyi_targettext.insertPlainText(data['text'].capitalize())
         elif data['func_name']=='set_subtitle':
             self.shibie_text.moveCursor(QTextCursor.End)
-            self.shibie_text.insertPlainText(data['text'])
+            self.shibie_text.insertPlainText(data['text'].capitalize())
         elif "func_name" not in data or not data['func_name']:
             self.statuslabel.setText(data['text'][:60])
             if data['type'] == 'error':
@@ -804,12 +807,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if target_language == '-':
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = self.fanyi_proxy.text()
+        print(f'{proxy=}')
         if proxy:
             tools.set_proxy(proxy)
+            self.settings.setValue('proxy',proxy)
         else:
             proxy = self.settings.value("proxy", "", str)
             if proxy:
                 tools.set_proxy(proxy)
+                self.settings.setValue('proxy',proxy)
                 if translate_type.lower()==GOOGLE_NAME:
                     self.fanyi_proxy.setText(proxy)
         issrt = self.fanyi_issrt.isChecked()

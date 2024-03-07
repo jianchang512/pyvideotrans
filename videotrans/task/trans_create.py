@@ -967,7 +967,7 @@ class TransCreate():
                                        out=self.cache_folder + "/background_music-2.m4a")
                     self.background_music = self.cache_folder + "/background_music-2.m4a"
                 # 背景音频降低音量
-                runffmpeg(['-y', '-i', self.background_music, "-filter:a", "volume=0.8", '-c:a', 'aac',
+                runffmpeg(['-y', '-i', self.background_music, "-filter:a", f"volume={config.settings['backaudio_volume']}", '-c:a', 'aac',
                            self.cache_folder + f"/background_music-3.m4a"])
                 # 背景音频和配音合并
                 cmd = ['-y', '-i', self.cache_folder + f"/background_music-3.m4a", '-i', self.targetdir_target_wav,

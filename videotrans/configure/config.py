@@ -53,7 +53,10 @@ def parse_init():
         "voice_silence":200,
         "interval_split":10,
         "cjk_len":24,
-        "other_len":36
+        "other_len":36,
+        "backaudio_volume":0.8,
+        "overall_silence":100,
+        "overall_maxsecs":4
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -70,7 +73,7 @@ def parse_init():
                 if re.match(r'^\d+$', value):
                     settings[key] = int(value)
                 elif re.match(r'^\d+\.\d$', value):
-                    settings[key] = float(value)
+                    settings[key] = round(float(value),1)
                 elif value.lower() == 'true':
                     settings[key] = True
                 elif value.lower() == 'false':
