@@ -185,5 +185,4 @@ input("Press Enter for quit")
 #     f.write(response.content)
 from videotrans.util import tools
 
-print(tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\en.srt'))
-
+tools.create_video_byimg(img="./101.jpg", fps=2, scale=[1116,628], totime="00:00:00.001", out="ceshi.mp4")

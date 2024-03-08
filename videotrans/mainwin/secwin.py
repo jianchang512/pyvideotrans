@@ -955,16 +955,10 @@ class SecWindow():
 
         def test():
             config.box_trans='ing'
-            task = TestChatgpt(parent=self.main.w)
-            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
-            task.uito.connect(feed)
-            task.start()
-            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
-
-
-        def save_chatgpt():
+            
             key = self.main.w.chatgpt_key.text()
-            api = self.main.w.chatgpt_api.text()
+            api = self.main.w.chatgpt_api.text().strip()
+            api=api if api else 'https://api.openai.com/v1'
             model = self.main.w.chatgpt_model.currentText()
             template = self.main.w.chatgpt_template.toPlainText()
             self.main.settings.setValue("chatgpt_key", key)
@@ -978,6 +972,33 @@ class SecWindow():
             config.params["chatgpt_api"] = api
             config.params["chatgpt_model"] = model
             config.params["chatgpt_template"] = template
+            
+            
+            task = TestChatgpt(parent=self.main.w)
+            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+            self.main.w.test_chatgpt.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
+
+
+        def save_chatgpt():
+            key = self.main.w.chatgpt_key.text()
+            api = self.main.w.chatgpt_api.text().strip()
+            api=api if api else 'https://api.openai.com/v1'
+            model = self.main.w.chatgpt_model.currentText()
+            template = self.main.w.chatgpt_template.toPlainText()
+            self.main.settings.setValue("chatgpt_key", key)
+            self.main.settings.setValue("chatgpt_api", api)
+
+            self.main.settings.setValue("chatgpt_model", model)
+            self.main.settings.setValue("chatgpt_template", template)
+
+            os.environ['OPENAI_API_KEY'] = key
+            config.params["chatgpt_key"] = key
+            config.params["chatgpt_api"] = api
+            config.params["chatgpt_model"] = model
+            config.params["chatgpt_template"] = template
+            
             self.main.w.close()
 
         from videotrans.component import ChatgptForm

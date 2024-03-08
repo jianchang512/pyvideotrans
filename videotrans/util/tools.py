@@ -287,7 +287,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             raise Exception(f'ffprobe error:dont get video information')
         out = json.loads(out)
         result = {
-            "video_fps": 0,
+            "video_fps": 30,
             "video_codec_name": "h264",
             "audio_codec_name": "aac",
             "width": 0,
@@ -307,13 +307,12 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
                 result['video_codec_name'] = it['codec_name']
                 result['width'] = int(it['width'])
                 result['height'] = int(it['height'])
-                fps, c = it['r_frame_rate'].split('/')
-                if not c or c == '0':
-                    c = 1
-                    fps = int(fps)
+                fps_split = it['r_frame_rate'].split('/')
+                if len(fps_split)!=2 or fps_split[1] == '0':
+                    fps = 30
                 else:
-                    fps = round(int(fps) / int(c))
-                result['video_fps'] = fps
+                    fps = int(int(fps_split[0]) / int(fps_split[1]))
+                result['video_fps'] = fps if fps >= 16 and fps <=60 else 30
             elif it['codec_type'] == 'audio':
                 result['streams_audio'] += 1
                 result['audio_codec_name'] = it['codec_name']
@@ -493,6 +492,8 @@ def get_lastjpg_fromvideo(file_path, img):
 
 # 根据图片创建一定时长的视频 nv12 +  not h264_cuvid
 def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
+    if not os.path.exists(config.rootdir+"/fps2.txt"):
+        fps=2
     return runffmpeg([
         '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
         '-crf', f'{config.settings["crf"]}', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12",use_run=True)
