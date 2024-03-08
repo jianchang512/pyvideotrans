@@ -564,6 +564,59 @@ class TransCreate():
         print('@@@@22')
         return (queue_tts, total_length)
 
+    # 将实际配音文件的时长ms 加入
+    def _add_time(self,queue_tts):
+        for i,it in enumerate(queue_tts):
+            if os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                queue_tts[i]['dubb_time']=len(AudioSegment.from_file(it['filename'], format="mp3"))
+            else:
+                queue_tts[i]['dubb_time']=0
+        return queue_tts
+
+    def _ajust_audio(self,queue_tts,is_half=False):
+        # 配音加速
+        for i,it in enumerate(queue_tts):
+            it['speed']=0
+            it['add_time']=0
+            if it['dubb_time']>0:
+                # 有配音文件
+                raw_duration=it['end_time']-it['start_time']
+                diff=it['dubb_time']-raw_duration
+                if raw_duration>0 and diff>0:
+                    # 存在原时长，并且新配音大于原时长，才需要加速,计算加速倍数, 原时长不变
+                    if not is_half:
+                        it['speed']=round(it['dubb_time']/raw_duration,1)
+                        it['add_time']=0
+                    else:
+                        # 加速一半
+                        half_diff=int(diff/2)
+                        it['speed']=round((raw_duration +half_diff)/raw_duration,1)
+                        # 需要更新时间
+                        it['add_time']=half_diff
+            queue_tts[i]=it
+        #再次遍历，调整字幕时间，调整音频长度
+        # 每次 start_time 和 end_time 需要添加的长度，为 add_time 之和
+        offset=0
+        for i,it in enumerate(queue_tts):
+            it['start_time']+=offset
+            it['end_time']+=offset+it['add_time']
+            offset+=it['add_time']
+            if it['speed']>0:
+                # 调整音频
+                tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}-speed.mp3')
+                speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
+                it['filename']=tmp_mp3
+            # 更改时间戳
+            it['startraw']=ms_to_time_string(ms=it['start_time'])
+            it['endraw']=ms_to_time_string(ms=it['end_time'])
+            queue_tts[i]=it
+        return queue_tts
+    # 视频慢速
+    def _ajust_video(self,queue_tts):
+        pass
+
+
+
     # 执行 tts配音，配音后根据条件进行视频降速或配音加速处理
     def exec_tts(self, queue_tts, total_length):
         total_length = int(total_length)

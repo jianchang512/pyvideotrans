@@ -1,6 +1,8 @@
 import shutil
 import sys
 import os
+import time
+
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
@@ -31,27 +33,27 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         # role=clone是直接复制
         #克隆声音
         response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""})
-        try:
-            # 获取响应头中的Content-Type
-            content_type = response.headers.get('Content-Type')
+        # 获取响应头中的Content-Type
+        content_type = response.headers.get('Content-Type')
 
-            if 'application/json' in content_type:
-                # 如果是JSON数据，使用json()方法解析
-                data = response.json()
-                raise Exception(data['message'])
-            elif 'audio/wav' in content_type or 'audio/x-wav' in content_type:
-                # 如果是WAV音频流，获取原始音频数据
-                with open(filename+".wav", 'wb') as f:
-                    f.write(response.content)
-                print(f'{filename=},开始wav2mp3')
-                tools.wav2mp3(filename+".wav",filename)
-                if os.path.exists(filename+".wav"):
-                    os.unlink(filename+".wav")
-                return True
-            else:
-                raise Exception(f"请求GPTSoVITS出现错误:{response.text}")
-        except Exception as e:
-            raise Exception(f"请求GPT-SoVITS出错：{str(e)}")
+        if 'application/json' in content_type:
+            # 如果是JSON数据，使用json()方法解析
+            data = response.json()
+            raise Exception(f"GPT-SoVITS返回错误信息-1:{data['message']}")
+        if 'audio/wav' in content_type or 'audio/x-wav' in content_type:
+            # 如果是WAV音频流，获取原始音频数据
+            with open(filename+".wav", 'wb') as f:
+                f.write(response.content)
+            print(f'{filename=},开始wav2mp3')
+            time.sleep(1)
+            if not os.path.exists(filename+".wav"):
+                return f'GPT-SoVITS合成声音失败-2:{text=}'
+            tools.wav2mp3(filename+".wav",filename)
+            if os.path.exists(filename+".wav"):
+                os.unlink(filename+".wav")
+            return True
+        else:
+            raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
     except Exception as e:
         error=str(e)
         if set_p:
