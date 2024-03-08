@@ -816,14 +816,16 @@ class TransCreate():
         # 取出最后一帧创建图片
         get_lastjpg_fromvideo(self.novoice_mp4, img)
         # 取出帧率
-        fps = self.video_info['video_fps']
-        if not fps:
+        
+        fps = int(self.video_info['video_fps'])
+        if not fps or fps<16 or fps > 60:
             fps = 30
         # 取出分辨率
         scale = [self.video_info['width'], self.video_info['height']]
 
         # 创建 ms 格式
         totime = ms_to_time_string(ms=duration_ms).replace(',', '.')
+        print(f'##############{fps=}')
         create_video_byimg(img=img, fps=fps, scale=scale, totime=totime, out=last_clip)
 
         # 开始将 novoice_mp4 和 last_clip 合并
