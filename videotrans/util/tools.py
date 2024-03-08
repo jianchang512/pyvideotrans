@@ -596,7 +596,7 @@ def format_srt(content):
     result=[]
     maxindex=len(content)-1
     # 时间格式
-    timepat = r'^\s*?\d+:\d+:\d+([\,\.]\d+?)?\s*?-->\s*?\d+:\d+:\d+([\,\.]\d+?)?\s*?$'
+    timepat = r'^\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?-->\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?$'
     textpat=r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
     #print(content)
     for i,it in enumerate(content):
@@ -620,12 +620,9 @@ def format_srt(content):
             continue
         elif len(result)>0 and not re.match(textpat,it):
             #当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
-            #print(f'\t是text')
+
             result[-1]['text'].append(it.capitalize())
-    #print(result)
-    #import sys
-    #sys.exit()
-    #return
+
     #再次遍历，去掉text为空的
     result=[it for it in result if len(it['text'])>0]
 
@@ -634,16 +631,8 @@ def format_srt(content):
             result[i]['line']=i+1
             result[i]['text']="\n".join([tx.capitalize() for tx in it['text']])
             s,e=(it['time'].replace('.',',')).split('-->')
-            s=s.strip()
-            e=e.strip()
-            if s.find(',')==-1:
-                s+=',000'
-            if len(s.split(':')[0])<2:
-                s=f'0{s}'
-            if e.find(',')==-1:
-                e+=',000'
-            if len(e.split(':')[0])<2:
-                e=f'0{e}'
+            s=format_time(s,',')
+            e=format_time(e,',')
             result[i]['time']=f'{s} --> {e}'
     return result
 
@@ -667,7 +656,6 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         raise Exception("srt content is 0")
     
     result=format_srt(content)
-    
     if len(result)<1:
         return []
 
@@ -677,8 +665,13 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         if "text" in it and len(it['text'].strip()) > 0:
             it['line'] = line
             startraw, endraw = it['time'].strip().split("-->")
-            start = startraw.strip().replace(',', '.').replace('，','.').replace('：',':').split(":")
-            end = endraw.strip().replace(',', '.').replace('，','.').replace('：',':').split(":")
+
+            startraw=format_time(startraw.strip().replace(',', '.').replace('，','.').replace('：',':'),'.')
+            start = startraw.split(":")
+
+            endraw=format_time(endraw.strip().replace(',', '.').replace('，','.').replace('：',':'),'.')
+            end = endraw.split(":")
+
             start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
             end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
             it['startraw'] = startraw
@@ -687,27 +680,30 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
-    #print(new_result)
+
     return new_result
 
 # 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
 def format_time(s_time="",separate=','):
     if not s_time.strip():
-        return f'00:00:00.000'
-    hou,min,sec="00","00","00.000"
+        return f'00:00:00{separate}000'
+    s_time=s_time.strip()
+    hou,min,sec="00","00",f"00{separate}000"
     tmp=s_time.split(':')
     if len(tmp)>=3:
-        hou=tmp[-3]
-        min=tmp[-2]
-        sec=tmp[-1]
+        hou=tmp[-3].strip()
+        min=tmp[-2].strip()
+        sec=tmp[-1].strip()
     elif len(tmp)==2:
-        min=tmp[0]
-        sec=tmp[1]
+        min=tmp[0].strip()
+        sec=tmp[1].strip()
     elif len(tmp)==1:
-        sec=tmp[0]
+        sec=tmp[0].strip()
 
     if re.search(r',|\.',str(sec)):
         sec,ms=re.split(r',|\.',str(sec))
+        sec=sec.strip()
+        ms=ms.strip()
     else:
         ms='000'
     hou=hou if hou!="" else "00"

@@ -158,31 +158,32 @@ input("Press Enter for quit")
 
 
 
-import requests
+# import requests
+#
+# data={
+#     "refer_wav_path": "wavs/mayun.wav",
+#     "prompt_text": "我记得我大学一年级的时候，我自，我从小自学的英文，我的英文是在西湖边上抓老外。",
+#     "prompt_language": "zh",
+#     "text": """GPT Sovits 是一个非常棒的少样本中文声音克隆项目，之前有一篇文章详细介绍过如何部署和训练自己的模型，并使用该模型在 web 界面中合成声音，可惜它自带的 api 在调用方面支持比较差，比如不能中英混合、无法按标点切分句子等，因此对原版 api 做了修改，详细使用说明如下。
+#
+# 和官方原版 api 一样都不支持动态模型切换，也不建议这样做，因为动态启动加载模型很慢，而且在失败时也不方便处理。
+#
+# 解决方法是:一个模型起一个 api 服务器，绑定不同的端口，在启动 api 时，指定当前服务所要使用的模型和绑定的端口。
+#
+# 比如起2个服务，一个使用默认模型，绑定 9880 端口，一个绑定自己训练的模型，绑定 9881 端口，命令如下。""",
+#     "text_language": "zh"
+# }
+#
+# response=requests.post("http://127.0.0.1:9881",json=data)
+#
+# if response.status_code==400:
+#     raise Exception(f"请求GPTSoVITS出现错误:{response.message}")
+#
+#
+# # 如果是WAV音频流，获取原始音频数据
+# with open("success.wav", 'wb') as f:
+#     f.write(response.content)
+from videotrans.util import tools
 
-data={
-    "refer_wav_path": "wavs/mayun.wav",
-    "prompt_text": "我记得我大学一年级的时候，我自，我从小自学的英文，我的英文是在西湖边上抓老外。",
-    "prompt_language": "zh",
-    "text": """GPT Sovits 是一个非常棒的少样本中文声音克隆项目，之前有一篇文章详细介绍过如何部署和训练自己的模型，并使用该模型在 web 界面中合成声音，可惜它自带的 api 在调用方面支持比较差，比如不能中英混合、无法按标点切分句子等，因此对原版 api 做了修改，详细使用说明如下。
-
-和官方原版 api 一样都不支持动态模型切换，也不建议这样做，因为动态启动加载模型很慢，而且在失败时也不方便处理。
-
-解决方法是:一个模型起一个 api 服务器，绑定不同的端口，在启动 api 时，指定当前服务所要使用的模型和绑定的端口。
-
-比如起2个服务，一个使用默认模型，绑定 9880 端口，一个绑定自己训练的模型，绑定 9881 端口，命令如下。""",
-    "text_language": "zh"
-}
-
-response=requests.post("http://127.0.0.1:9881",json=data)
-
-if response.status_code==400:
-    raise Exception(f"请求GPTSoVITS出现错误:{response.message}")
-
-
-# 如果是WAV音频流，获取原始音频数据
-with open("success.wav", 'wb') as f:
-    f.write(response.content)
-
-
+print(tools.get_subtitle_from_srt(r'C:\Users\c1\Videos\en.srt'))
 

@@ -1,6 +1,8 @@
 import os
 import re
 import shutil
+import time
+
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
@@ -29,8 +31,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             #克隆声音
             files={"audio":open(filename,'rb')}
         res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies={"http":"","https":""})
-        config.logger.info(f'clone-voice:{data=}')
-        config.logger.info(f'clone-voice:{res.text=}')
+        config.logger.info(f'clone-voice:{data=},{res.text=}')
 
         res=res.json()
         if "code" not in res or res['code']!=0:
@@ -44,7 +45,8 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             config.logger.info(f'clone-voice:resb={resb.status_code=}')
             with open(filename+".wav",'wb') as f:
                 f.write(resb.content)
-                tools.wav2mp3(filename+".wav",filename)
+            time.sleep(1)
+            tools.wav2mp3(filename+".wav",filename)
             if os.path.exists(filename+".wav"):
                 os.unlink(filename+".wav")
         return True
@@ -52,5 +54,5 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         error=str(e)
         if set_p:
             tools.set_process(error)
-        config.logger.error(f"cloneVoice合成失败:{error},{api_url=}")
+        config.logger.error(f"cloneVoice合成失败:{error}")
         raise Exception(f"cloneVoice:{error}")
