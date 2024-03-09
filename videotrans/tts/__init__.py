@@ -70,8 +70,12 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
             for i in range(dub_nums):
                 if len(queue_tts) > 0:
                     p=get_item(queue_tts.pop(0))
+                    if os.path.exists(p['filename']) and os.path.getsize(p['filename'])>0:
+                        continue
                     p["set_p"]=set_p
                     tolist.append(threading.Thread(target=text_to_speech, kwargs=p,args=(stop_event,)))
+            if len(tolist)<1:
+                continue
             for t in tolist:
                 t.start()
             for t in tolist:

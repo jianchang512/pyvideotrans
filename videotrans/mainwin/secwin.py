@@ -2,25 +2,18 @@ import json
 import os
 import re
 import threading
-
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QTextCursor, QDesktopServices
 from PySide6.QtCore import QUrl, Qt, QDir, QThread, Signal
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, \
-    QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QProgressBar
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QTextBrowser, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QScrollArea, QCheckBox, QProgressBar
 import warnings
-
 from videotrans import configure
-
 from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
-
 warnings.filterwarnings('ignore')
 from videotrans.translator import is_allow_translate, get_code
-from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt, \
-    get_clone_role
+from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role
 from videotrans.configure import config
-
 
 
 class ClickableProgressBar(QLabel):
@@ -84,7 +77,6 @@ class SecWindow():
     def __init__(self, main=None):
         self.main = main
         self.usetype=None
-        # QTimer.singleShot(100, self.open_toolbox)
 
     def openExternalLink(self, url):
         try:
@@ -113,8 +105,9 @@ class SecWindow():
 
     # 配音速度改变时，更改全局
     def voice_rate_changed(self, text):
-        text = int(str(text).replace('+', '').replace('%', ''))
-        text = f'+{text}%' if text >= 0 else f'-{text}%'
+        text = str(text).replace('+', '').replace('%', '').strip()
+        text=0 if not text else int(text)
+        text = f'+{text}%' if text >= 0 else f'{text}%'
         config.params['voice_rate'] = text
 
     # 字幕下方试听配音
@@ -446,8 +439,12 @@ class SecWindow():
     def autorate_changed(self, state, name):
         if name == 'voice':
             config.params['voice_autorate'] = state
-        else:
+        elif name=='auto_ajust':
+            config.params['auto_ajust'] = state
+        elif name=='video':
             config.params['video_autorate'] = state
+
+
 
     def open_dir(self, dirname=None):
         if not dirname:
@@ -531,8 +528,8 @@ class SecWindow():
 
     def open_url(self, title):
         import webbrowser
-        if title == 'vlc':
-            webbrowser.open_new_tab("https://www.videolan.org/vlc/")
+        if title == 'blog':
+            webbrowser.open_new_tab("https://juejin.cn/user/4441682704623992/columns")
         elif title == 'ffmpeg':
             webbrowser.open_new_tab("https://www.ffmpeg.org/download.html")
         elif title == 'git':
@@ -1489,7 +1486,6 @@ class SecWindow():
             config.params['source_mp4'] = ''
             config.params['source_language'] = '-'
             config.params['subtitle_type'] = 0
-            # config.params['voice_silence'] = '500'
             config.params['video_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
@@ -1504,9 +1500,9 @@ class SecWindow():
             config.params['is_separate']=False
             config.params['target_language'] = '-'
             config.params['source_language'] = '-'
-            # config.params['voice_silence'] = '500'
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
+            config.params['video_autorate'] = False
             config.params['voice_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
@@ -1524,7 +1520,6 @@ class SecWindow():
             config.params['is_separate']=False
             config.params['subtitle_type'] = 0
             config.params['voice_role'] = 'No'
-            # config.params['voice_silence'] = '500'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
             config.params['video_autorate'] = False
@@ -1598,20 +1593,15 @@ class SecWindow():
         config.params['video_autorate'] = self.main.video_autorate.isChecked()
         # 语音模型
         config.params['whisper_model'] = self.main.whisper_model.currentText()
-
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
 
         try:
-            voice_rate = int(self.main.voice_rate.text().strip().replace('+', '').replace('%', ''))
+            voice_rate = self.main.voice_rate.text().strip().replace('+', '').replace('%', '')
+            voice_rate=0 if not voice_rate else int(voice_rate)
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         except:
             config.params['voice_rate'] = '+0%'
-        # try:
-        #     voice_silence = int(self.main.voice_silence.text().strip())
-        #     config.params['voice_silence'] = voice_silence
-        # except:
-        #     config.params['voice_silence'] = '500'
 
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
@@ -1623,13 +1613,14 @@ class SecWindow():
         if len(config.queue_mp4) < 1 and not txt:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['bukedoubucunzai'])
             return False
+
         # tts类型
         if config.params['tts_type'] == 'openaiTTS' and not config.params["chatgpt_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['chatgptkeymust'])
             return False
         if config.params['tts_type'] == 'clone-voice' and not config.params["clone_api"]:
             config.logger.error(f"不存在clone-api:{config.params['tts_type']=},{config.params['clone_api']=}")
-            QMessageBox.critical(self.main, config.transobj['anerror'], 'check-'+config.transobj['bixutianxiecloneapi'])
+            QMessageBox.critical(self.main, config.transobj['anerror'],  config.transobj['bixutianxiecloneapi'])
             return False
         if config.params['tts_type'] == 'elevenlabsTTS' and not config.params["elevenlabstts_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], "no elevenlabs  key")
@@ -1638,16 +1629,14 @@ class SecWindow():
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
-        print(config.params['is_separate'])
+
         # 未主动选择模式，则判断设置情况应该属于什么模式
         if self.main.app_mode == 'biaozhun':
+            # tiqu 如果 存在视频但 无配音 无嵌入字幕，则视为提取
             if len(config.queue_mp4) > 0 and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No':
-                # tiqu 如果 存在视频但 无配音 无嵌入字幕，则视为提取
-                self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params[
-                    'target_language'] or config.params['target_language'] == '-' else 'tiqu'
+                self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params['target_language'] or config.params['target_language'] == '-' else 'tiqu'
                 config.params['is_separate']=False
-            elif len(config.queue_mp4) > 0 and txt and config.params['subtitle_type'] > 0 and config.params[
-                'voice_role'] == 'No':
+            elif len(config.queue_mp4) > 0 and txt and config.params['subtitle_type'] > 0 and config.params['voice_role'] == 'No':
                 # hebing 存在视频，存在字幕，字幕嵌入，不配音
                 self.main.app_mode = 'hebing'
                 config.params['is_separate']=False
@@ -1691,7 +1680,7 @@ class SecWindow():
         config.queue_task = []
 
         config.params['back_audio']=self.main.back_audio.text().strip()
-        
+        print(f'{config.params["voice_rate"]}')
         # 存在视频
         config.params['only_video']=False
         if len(config.queue_mp4) > 0:
@@ -1709,28 +1698,24 @@ class SecWindow():
             config.params['is_separate'] = False
         # return
         self.main.save_setting()
-        self.update_status("ing")
+        self.update_status('ing')
         from videotrans.task.main_worker import Worker
         self.main.task = Worker(parent=self.main,app_mode=self.main.app_mode,txt=txt)
         self.main.task.start()
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
-        #print(f'{type=}')
         if self.main.task and self.main.task.video:
             # 有视频
             if type != 'succeed':
                 text = f'[{self.main.task.video.noextname[:10]}]: {text}'
 
-        #print(f'==========={text=},{type=},{btnkey=}')
         if btnkey and btnkey in self.main.processbtns:
             if type == 'succeed':
-                #print(f'succeed==={text},{btnkey=}')
                 text, duration = text.split('##')
                 self.main.processbtns[btnkey].setTarget(text)
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
                 text = f'Time:[{duration}s] {config.transobj["endandopen"]}{text}'
-                #print(f'{text=}')
                 self.main.processbtns[btnkey].progress_bar.setValue(100)
             elif type == 'error' or type =='stop':
                 self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
@@ -1753,9 +1738,9 @@ class SecWindow():
             self.main.startbtn.setText(config.transobj[type])
             # 启用
             self.disabled_widget(False)
+            self.main.subtitle_area.clear()
             if type == 'end':
                 # 成功完成
-                self.main.subtitle_area.clear()
                 self.main.source_mp4.setText(config.transobj["No select videos"])
             else:
                 self.main.continue_compos.hide()
@@ -1780,13 +1765,15 @@ class SecWindow():
         else:
             # 重设为开始状态
             self.disabled_widget(True)
-            self.main.startbtn.setText(config.transobj['running'])
+            self.main.startbtn.setText(config.transobj["starting..."])
 
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
         # 一行一行插入字幕到字幕编辑区
-        if d['type'] == "subtitle":
+        if d['type']=='set_start_btn':
+            self.main.startbtn.setText(config.transobj["running"])
+        elif d['type'] == "subtitle":
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'add_process':
@@ -1800,17 +1787,21 @@ class SecWindow():
         elif d['type'] == "logs":
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
-            self.update_status(d['type'])
-            self.main.continue_compos.hide()
-            self.main.target_dir.clear()
-            print(f'{d=}')
+            # self.update_status(d['type'])
+            # self.main.continue_compos.hide()
+            # self.main.target_dir.clear()
             if d['type']=='error':
                 self.set_process_btn_text(d['text'], d['btnkey'],d['type'])
-                QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
+                #QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
             elif d['type']=='stop':
                 self.set_process_btn_text(config.transobj['stop'], d['btnkey'],d['type'])
-            #elif d['type']!='end':
-            #    self.set_process_btn_text(d['text'], d['btnkey'], d['type'])
+                self.main.subtitle_area.clear()
+            if d['type']=='stop' or d['type']=='end':
+                self.update_status(d['type'])
+                self.main.continue_compos.hide()
+                self.main.target_dir.clear()
+                self.main.stop_djs.hide()
+                self.main.continue_compos.hide()
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')

@@ -8,15 +8,14 @@ import sys
 import os
 from datetime import timedelta
 import json
-import edge_tts
+
 import requests
+
 
 from videotrans.configure import config
 import time
-from elevenlabs import voices, set_api_key
+
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-from videotrans.separate import st
-from plyer import notification
 
 
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
@@ -51,6 +50,7 @@ def get_elevenlabs_role(force=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     try:
+        from elevenlabs import voices, set_api_key
         print(config.params["elevenlabstts_key"])
         if config.params["elevenlabstts_key"]:
             set_api_key(config.params["elevenlabstts_key"])
@@ -136,6 +136,7 @@ def get_edge_rolelist():
         except:
             pass
     try:
+        import edge_tts
         import asyncio
         if sys.platform == 'win32':
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -185,7 +186,7 @@ def runffmpeg(arg, *, noextname=None,
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
-    print(f'{cmd=}')
+
     config.logger.info(f'{cmd=}')
     try:
         subprocess.run(cmd,
@@ -199,6 +200,7 @@ def runffmpeg(arg, *, noextname=None,
             config.queue_novice[noextname] = "end"
         return True
     except Exception as e:
+        print(f'{cmd=}')
         # 如果启用cuda时出错，则回退cpu
         if config.params['cuda'] and not disable_gpu:
             # 切换为cpu
@@ -211,54 +213,6 @@ def runffmpeg(arg, *, noextname=None,
             config.queue_novice[noextname] = "error"
         config.logger.error(f'cmd执行出错:{str(e)}')
         raise Exception(str(e))
-
-    # p = subprocess.Popen(cmd,
-    #                      stdout=subprocess.PIPE,
-    #                      stderr=subprocess.PIPE,
-    #                      encoding="utf-8",
-    #                      text=True,
-    #                      creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    # config.logger.info(f"runffmpeg: {' '.join(cmd)}")
-
-    # while True:
-        # try:
-        #     # 等待0.1未结束则异常
-        #     outs, errs = p.communicate(timeout=0.5)
-        #     errs = str(errs)
-        #     if errs:
-        #         errs = errs.replace('\\\\', '\\').replace('\r', ' ').replace('\n', ' ')
-        #         errs = errs[errs.find("Error"):]
-        #     # 如果结束从此开始执行
-        #     if p.returncode == 0:
-        #         if noextname:
-        #             config.queue_novice[noextname] = "end"
-        #         # 成功
-        #         return True
-        #     if noextname:
-        #         config.queue_novice[noextname] = "error"
-        #     # 失败
-        #     raise Exception(f'ffmpeg error:{errs=}')
-        # except subprocess.TimeoutExpired as e:
-        #     # 如果前台要求停止
-        #     if config.exit_ffmpeg or  (config.current_status != 'ing' and not is_box):
-        #         try:
-        #             p.terminate()
-        #             p.kill()
-        #         except:
-        #             pass
-        #         return False
-        # except Exception as e:
-        #     #如果启用cuda时出错，则回退cpu
-        #     if config.params['cuda'] and not disable_gpu:
-        #         # 切换为cpu
-        #         if not is_box:
-        #             set_process(config.transobj['huituicpu'])
-        #         # disable_gpt=True禁用GPU，no_decode=True禁止h264_cuvid解码，
-        #         return runffmpeg(arg_copy,noextname=noextname, disable_gpu=True, is_box=is_box)
-        #     if noextname:
-        #         config.queue_novice[noextname] = "error"
-        #     raise Exception(str(e))
-
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
@@ -396,6 +350,7 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
         "44100",
         targe_audio
     ])
+    from videotrans.separate import st
     try:
         path=os.path.dirname(targe_audio)
         vocal_file=os.path.join(path,'vocal.wav')
@@ -828,7 +783,7 @@ def set_process_box(text, type='logs',*,func_name=""):
     set_process(text, type, qname="box",func_name=func_name)
 
 # 综合写入日志，默认sp界面
-def set_process(text, type="logs",*,qname='sp',func_name=""):
+def set_process(text, type="logs",*,qname='sp',func_name="",btnkey=None):
     try:
         if text:
             log_msg = text.strip()
@@ -838,7 +793,7 @@ def set_process(text, type="logs",*,qname='sp',func_name=""):
                 config.logger.info(log_msg)
 
         if qname == 'sp':
-            config.queue_logs.put_nowait({"text": text, "type": type,"btnkey":config.btnkey})
+            config.queue_logs.put_nowait({"text": text, "type": type,"btnkey": btnkey if btnkey else config.btnkey})
         elif qname=='box':
             config.queuebox_logs.put_nowait({"text": text, "type": type,"func_name":func_name})
         else:
@@ -868,6 +823,7 @@ def delete_files(directory, ext):
 
 
 def send_notification(title, message):
+    from plyer import notification
     try:
         notification.notify(
             title=title,
@@ -917,3 +873,58 @@ def get_audio_time(audio_file):
         raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
     return float(out['format']['duration'])
+
+def kill_ffmpeg_processes():
+    import platform
+    import signal
+    import getpass
+    try:
+        system_platform = platform.system()
+        current_user = getpass.getuser()
+
+        if system_platform == "Windows":
+            subprocess.call(f"taskkill /F /FI \"USERNAME eq {current_user}\" /IM ffmpeg.exe", shell=True)
+        elif system_platform == "Linux" or system_platform == "Darwin":
+            process = subprocess.Popen(['ps', '-U', current_user], stdout=subprocess.PIPE)
+            out, err = process.communicate()
+
+            for line in out.splitlines():
+                if b'ffmpeg' in line:
+                    pid = int(line.split(None, 1)[0])
+                    os.kill(pid, signal.SIGKILL)
+    except:
+        pass
+
+
+
+def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10):
+    from pydub import AudioSegment
+    from pydub.silence import detect_nonsilent
+    """
+    Removes silence from the end of an audio file.
+
+    :param input_file_path: path to the input mp3 file
+    :param silence_threshold: the threshold in dBFS considered as silence
+    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
+    :return: an AudioSegment without silence at the end
+    """
+    # Load the audio file
+    audio = AudioSegment.from_file(input_file_path, format="mp3")
+
+    # Detect non-silent chunks
+    nonsilent_chunks = detect_nonsilent(
+        audio,
+        min_silence_len=chunk_size,
+        silence_thresh=silence_threshold
+    )
+
+    # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
+    if nonsilent_chunks:
+        start_index, end_index = nonsilent_chunks[-1]
+    else:
+        # If the whole audio is silent, just return it as is
+        return audio
+
+    # Remove the silence from the end by slicing the audio segment
+    trimmed_audio = audio[:end_index]
+    trimmed_audio.export(input_file_path,format="mp3")

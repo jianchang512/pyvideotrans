@@ -10,6 +10,7 @@ import warnings
 
 from videotrans.task.get_role_list import GetRoleWorker
 from videotrans.util import tools
+from videotrans.util.tools import kill_ffmpeg_processes
 
 warnings.filterwarnings('ignore')
 
@@ -123,6 +124,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.video_autorate.setChecked(config.params['video_autorate'])
+        self.auto_ajust.setChecked(config.params['auto_ajust'])
 
 
 
@@ -266,6 +268,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
         self.video_autorate.stateChanged.connect(
             lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.auto_ajust.stateChanged.connect(
+            lambda: self.util.autorate_changed(self.auto_ajust.isChecked(), "auto_ajust"))
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
         self.addbackbtn.clicked.connect(self.util.get_background)
@@ -293,6 +297,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_gtrans.triggered.connect(lambda: self.util.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
+        self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('xinshou'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
@@ -364,6 +369,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if configure.TOOLBOX is not None:
             configure.TOOLBOX.close()
         if config.current_status == 'ing':
+            kill_ffmpeg_processes()
             config.current_status = 'end'
             msg = QMessageBox()
             msg.setWindowTitle(config.transobj['exit'])
@@ -387,6 +393,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["voice_role"] = self.settings.value("voice_role", "")
         config.params["voice_autorate"] = self.settings.value("voice_autorate", False,bool)
         config.params["video_autorate"] = self.settings.value("video_autorate", False,bool)
+        config.params["auto_ajust"] = self.settings.value("auto_ajust", True,bool)
 
 
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
@@ -430,7 +437,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
         config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'], str)
-        # config.params['voice_silence'] = self.settings.value("voice_silence", config.params['voice_silence'], str)
         config.params['cuda'] = self.settings.value("cuda", False, bool)
         config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
@@ -454,6 +460,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.settings.setValue("voice_silence", config.params['voice_silence'])
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
         self.settings.setValue("video_autorate", config.params['video_autorate'])
+        self.settings.setValue("auto_ajust", config.params['auto_ajust'])
         self.settings.setValue("subtitle_type", config.params['subtitle_type'])
         self.settings.setValue("translate_type", config.params['translate_type'])
         self.settings.setValue("cuda", config.params['cuda'])
@@ -461,6 +468,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
-        self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
 

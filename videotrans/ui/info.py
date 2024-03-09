@@ -43,11 +43,11 @@ class Ui_infoform(object):
         self.textBrowser.setHtml(_translate("infoform", """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 <html><head><meta name="qrichtext" content="1" /><style type="text/css">
-p, li { white-space: pre-wrap; }
+p, li { white-space: pre-wrap; }a{text-decoration:none}
 </style></head><body style=" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;">
-<h1 style=" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:xx-large; font-weight:600;">捐助该软件以帮助开发者持续维护 Donate to this project and support</span></h1>
+<h1 style=" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:xx-large; font-weight:600;">捐助该软件以帮助开发者持续维护</span></h1>
 
-<p><a style="font-size:18px;color:#4caf50" href="https://ko-fi.com/jianchang512"> 👑 Donate buy me a coffee </a></p>
+<p><a style="font-size:18px;color:#4caf50" href="https://ko-fi.com/jianchang512"> 👑 Donate to this project and support </a></p>
 
 <hr />
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">本项目基于兴趣创建，在可预期的未来都没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。不用担心收费问题。</p>
@@ -57,18 +57,22 @@ p, li { white-space: pre-wrap; }
 
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Email:jianchang512@gmail.com</p>
 
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">微信公众号:pyvideotrans</p>
-
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">网站:pyvideotrans.com</p>
+
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">微信公众号:pyvideotrans</p>
 
 <hr />
 
 <h2 style="margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">如何捐助</span></h2>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">你可以向微信或支付宝二维码付款，备注你的github名称</p>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/png/wx.png" width="240" /></p>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/png/alipay.png" width="240" /></p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
+    <img src=":/png/wx.png" width="240" />
+    <img src=":/png/alipay.png" width="240" style="margin-left:8px" /></p>
 <hr />
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><img src=":/png/mp.jpg" width="300" /></p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
+<img src=":/png/mp.jpg" width="300" />
+</p>
+<p></p>
 <hr />
 <h1 style=" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600;color:#ffffff" href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">感谢所有捐助者，本项目的每一点改善都离不开您的帮助,点击查看所有捐助者</a></h1>
 

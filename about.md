@@ -1,29 +1,47 @@
 # 👑捐助该项目，助力项目持续维护
+
+Contribute to the project to help with its ongoing maintenance
   
 ---- 
 
-本项目基于兴趣创建，没有商业计划，也就是你可以一直免费使用，或者fork后自己修改。
-不用担心收费问题。如果你遇到需要付费购买的，请果断拒绝然后来此使用免费开源的正版。
+本开源项目基于兴趣创建，没有商业计划，也就是你可以一直免费使用，或者fork后自己修改(必须遵守GPL-v3开源协议),不用担心免费版功能受限或闭源安全问题。
 
-至于维护呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。
-当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎各位捐助。如果你不愿捐助，那也无妨，帮我点个star或提交个pr，或推荐有需要的朋友来使用，也是一种帮助。
+至于维护呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上了。
+
+当然了，如果觉得该项目对你有价值，希望该项目能一直稳定持续维护和优化，也欢迎各位小额捐助。
+
+如果不愿捐助或者没有能力捐助，也无妨欢迎继续使用，点个star、提交个pr或关注下公众号(内容均是本项目教程，搜一搜公众号`pyvideotrans` )，也是对开发者的一种帮助。
+
+> 
+> This project was created based on interest and has no business plan, which means you can always use it for free, or fork it and modify it yourself.
+> Don't worry about the charges. If you encounter the need to pay for the purchase, please decisively reject and then come here to use the free open source version.
+>
+> As for the maintenance , open source well are with love power, leisure time to spend more energy on this, busy time may be a period of time can not care.
+> Of course, if you think the project is valuable to you, and hope that the project has been stable and continuous maintenance, you are welcome to donate. If you don't want to donate, it doesn't matter, help me point a star or submit a pr, or recommend the need of friends to use, is also a kind of help.
+>
+> **Donate URL:** https://ko-fi.com/jianchang512
+>
+
+----
 
 
-
-## 如何捐助
+## 如何捐助 Donate Methods
 
 你可以向微信或支付宝二维码付款，备注你的github名称
 
-<img src="https://v.wonyes.org/images/wx.png" width="200">
+> Donate url:https://ko-fi.com/jianchang512
 
-<img src="https://v.wonyes.org/images/alipay.png" width="200">
+
+<img src="https://pyvideotrans.com/images/wx.png" width="200">
+
+<img src="https://pyvideotrans.com/images/alipay.png" width="200">
 
 
 ## 捐助者列表
 
 **感谢所有捐助者，您的支持是我坚持维护的动力**
 
--  wonyes  / 2023-11-20 捐助100元
+- wonyes  / 2023-11-20 捐助100元
 - yuppiesnotzhuhao / 2023-12-01 捐助10元
 - 9*9 / 2023-12-02 捐助10元
 - *s / 2023-12-7 捐助 10 元
@@ -92,9 +110,6 @@
 - *u / 2024-2-9 捐助 30 元
 - *许 / 2024-2-10 捐助 10 元
 - *伟(支付宝) / 2024-2-10 捐助 88.88 元
-
-
-
 - *明 / 2024-2-12 捐助 1 元
 - 好*_ / 2024-2-14 捐助 22.8 元
 - t*e / 2024-2-14 捐助 28 元
@@ -157,12 +172,8 @@
 - 兔宝宝(QQ) / 2024-3-6 捐助 6.66 元
 - 你De世界、只允许有(QQ) / 2024-3-6 捐助 10 元
 - *雨(solielune) / 2024-3-7 捐助 199 元
-
-
-
-
-
-
+- *式 / 2024-3-8 捐助 10 元
+- *) / 2024-3-8 捐助 10 元
 
 
 **未标注付款方式的即为微信支付，括号内标注为GitHub用户名，感谢所有支持者，软件的每一点进步都离不开您的支持和帮助。**
