@@ -1,4 +1,4 @@
-[English Readme](./README_EN.md)  /  [👑Donate to this project](./about.md) 
+[简体中文](./README.md)  /  [👑Donate to this project](./about.md) 
 
 # Video Translation and Dubbing Tool
 
