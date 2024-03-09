@@ -115,6 +115,7 @@ def start(audio,path,source="logs"):
             print(next(gr))
             print(next(gr))
             return
+
         length=math.ceil(sec/dist)
         result_vocal=[]
         result_instr=[]
@@ -149,24 +150,26 @@ def start(audio,path,source="logs"):
                 print(next(gr))
                         
             result_vocal.append(f"file '{file_vocal}'")
-
             result_instr.append(f"file '{file_instr}'")
         concat_vocal=os.path.join(tmp_path,'vocal.txt')
+
+
         with open(concat_vocal,'w',encoding='utf-8') as f:
             f.write("\n".join(result_vocal))
-        if not os.path.exists(concat_vocal):
-            raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(os.path.join(path,'vocal.wav'))],disable_gpu=True,is_box=True)
+
+        if not os.path.exists(concat_vocal) or os.path.getsize(concat_vocal)<1:
+            raise Exception('抽离背景音失败:'+('请取消 保留背景音 选项' if source=='logs' else "") )
+
+        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(os.path.join(path,'vocal.wav'))],disable_gpu=True)
 
         concat_instr=os.path.join(tmp_path,'instr.txt')
         with open(concat_instr,'w',encoding='utf-8') as f:
             f.write("\n".join(result_instr))
-        if not os.path.exists(concat_instr):
-            raise Exception('抽离背景音失败'+('请取消 保留背景音 选项' if source=='logs' else "") )
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(os.path.join(path,'instrument.wav'))],disable_gpu=True,is_box=True)
+        if not os.path.exists(concat_instr) or os.path.getsize(concat_instr)<1:
+            raise Exception('抽离背景音失败:'+('请取消 保留背景音 选项' if source=='logs' else "") )
+        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(os.path.join(path,'instrument.wav'))],disable_gpu=True)
     except Exception as e:
-        msg=f"分离背景音失败:{str(e)}"
-        print(msg)
+        msg=f"保留背景音:{str(e)}"
         raise Exception(msg)
 
 

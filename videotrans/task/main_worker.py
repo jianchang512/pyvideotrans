@@ -65,6 +65,7 @@ class Worker(QThread):
             tasks.append(obj)
             set_process(obj.btnkey, 'add_process')
         task_nums = len(tasks)
+        set_process('','set_start_btn')
 
 
         while len(tasks)>0:
@@ -75,6 +76,8 @@ class Worker(QThread):
                 if len(tasks)<1:
                     break
                 self.video = tasks.pop(0)
+                if not os.path.exists(self.video.source_mp4):
+                    raise Exception(self.video.source_mp4+config.transobj['vlctips2'])
                 config.btnkey=self.video.btnkey
                 set_process(config.transobj['kaishichuli'])
                 self.video.run()
@@ -93,20 +96,26 @@ class Worker(QThread):
                     pass
                 if len(config.queue_mp4)>0:
                     config.queue_mp4.pop(0)
+                # if self.video and self.video.noextname:
+                #     delete_temp(self.video.noextname)
             except Exception as e:
                 print(f"mainworker {str(e)}")
                 if str(e)!='stop':
-                    set_process(f"{str(e)}", 'error')
+                    set_process(f"{str(e)}", 'error', btnkey=self.video.btnkey if self.video and self.video.btnkey else "")
                     send_notification("Error",f"{str(e)}")
-                return None
+                else:
+                    return None
+                # return None
             finally:
                 time.sleep(2)
-                #if self.video and self.video.noextname:
-                #    delete_temp(None)
+                # if self.video and self.video.noextname:
+                #    delete_temp(self.video.noextname)
                 if self.video and self.video.del_sourcemp4 and self.video.source_mp4 and os.path.exists(self.video.source_mp4):
                     os.unlink(self.video.source_mp4)
         # 全部完成
         set_process("", 'end')
+        time.sleep(3)
+        delete_temp()
 
 
 class Shiting(QThread):

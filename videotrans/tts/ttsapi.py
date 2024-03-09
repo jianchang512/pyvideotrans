@@ -33,6 +33,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 raise Exception(f'TTS-API:{url}')
             with open(filename,'wb') as f:
                 f.write(res.content)
+            tools.remove_silence_from_end(filename)
             return True
         except:
             raise Exception(f"返回非标准json数据:{resraw.text}" if config.defaulelang=='zh' else f"The return data is not in standard json format:{resraw.text}")

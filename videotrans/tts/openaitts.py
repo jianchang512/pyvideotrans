@@ -35,6 +35,7 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             speed=speed
         )
         response.stream_to_file(filename)
+        tools.remove_silence_from_end(filename)
     except Exception as e:
         error=str(e)
         if error and re.search(r'Rate limit',error,re.I) is not None:

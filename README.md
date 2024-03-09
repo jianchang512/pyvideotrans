@@ -115,13 +115,23 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
    硬字幕: 
    是指始终显示字幕，不可隐藏，如果希望网页中播放时也有字幕，请选择硬字幕嵌入，硬字幕时可通过videotrans/set.ini 中 fontsize设置字体大小
 
+   硬字幕(双):
+   将上下两排分别显示目标语言字幕和原始语言字幕
+
    软字幕: 
    如果播放器支持字幕管理，可显示或者隐藏字幕，该方式网页中播放时不会显示字幕，某些国产播放器可能不支持,需要将生成的视频同名srt文件和视频放在一个目录下才会显示
+
+   软字幕(双):
+   将嵌入2种语言的字幕，可通过播放器的字幕显示/隐藏功能来切换不同语言字幕
 
 
 8. 语音识别模型: 选择 base/small/medium/large-v2/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
 
-   整体识别/预先分割: 整体识别是指直接发送整个语音文件给模型，由模型进行处理，分割可能更精确，但也可能造出30s长度的单字幕，适合有明确静音的音频;  预先分割时指先将音频按10s左右长度切割后再分别发送给模型处理。
+   整体识别:由模型自动对整个音频断句处理,多大的视频请勿选择整体识别，避免显存不足闪退
+
+   预先分割:适合很大的视频，事先切成1分钟的小片段逐次识别和断句
+
+   均等分割:按照固定秒数均等切割，每条字幕时长相等，时长由set.ini中interval_split控制
 
     [全部模型下载地址](https://github.com/jianchang512/stt/releases/tag/0.0)
 
@@ -135,21 +145,23 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 9. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 
-10. 音视频对齐: 分别是“配音自动加速”和“视频自动降速”
+10. 声音、画面、字幕对齐:  “配音语速” “配音自动加速” “视频自动降速” “语音前后延展”
 
 >
-> 翻译后不同语言下发音时长不同，比如一句话中文3s，翻译为英文可能5s，导致时长和视频不一致。
-> 
-> 2种解决方式:
+> 翻译后不同语言下发音时长不同，比如中文3s，翻译为英文可能5s，导致时长和视频不一致。
 >
->     1. 强制配音加速播放，以便缩短配音时长和视频对齐
-> 
->     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
-> 
-> 可同时选中两种方式，将把各自的速度调整为单独使用时的一半
-
-
-11. 静音片段: 填写100到2000的数字，代表毫秒，默认 500，即以大于等于 500ms 的静音片段为区间分割语音
+> 4种解决方式:
+>
+> 1. 设置配音语速，全局加速(某些TTS不支持)
+>
+> 2. 强制配音加速播放，以便缩短配音时长和视频对齐
+>
+> 3. 强制视频慢速播放，以便延长视频时长和配音对齐。
+>
+> 4. 如果前后有静音片段，则前后延展占据静音区\n实际使用中，结合此4项效果最佳
+>
+> 实现原理请查看博文 https://juejin.cn/post/7343691521601290240
+>
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
@@ -164,12 +176,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 17. 设置行角色：可对字幕中的每行设定发音角色，首先左侧选好TTS类型和角色，然后点击字幕区右下方“设置行角色”，在每个角色名后面文本中中，填写要使用该角色配音的行编号，如下图：
     ![](./images/p2.png)
 
-18. 保留背景音：如果选择该项，则会先将视频中的人声和背景伴奏分离出来，其中背景伴奏最终再和配音音频合并，最后生成的结果视频中将保留背景伴奏。**注意**:该功能基于uvr5实现，如果你没有足够的N卡GPU显存，比如8G以上，建议慎重选择，可能非常慢并非常消耗资源。
+18. 保留背景音：如果选择该项，则会先将视频中的人声和背景伴奏分离出来，其中背景伴奏最终再和配音音频合并，最后生成的结果视频中将保留背景伴奏。**注意**:该功能基于uvr5实现，如果你没有足够的N卡GPU显存，比如8G以上，建议慎重选择，可能非常慢并非常消耗资源。如果视频比较大， 建议选择单独的视频分离工具，比如 uvr5 或 vocal-separate https://juejin.cn/post/7341617163353341986
 
-19. 原音色克隆配音clone-voice：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，将强制进行“人声背景乐分离”。请注意此功能较慢，并且比较消耗系统资源。
+19. 原音色克隆配音clone-voice：首先安装部署[clone-voice](https://github.com/jianchang512/clone-voice)项目， 下载配置好“文字->声音”模型，然后在本软件中TTS类型中选择“clone-voice”,配音角色选择“clone”，即可实现使用原始视频中的声音进行配音。使用此方式时，为保证效果，建议选择“保留背景音”，以剔除背景噪声。
 
 20. 使用GPT-SoVITS配音：首先安装部署好GPT-SoVITS项目，然后启动 GPT-SoVITS的api.py，在视频翻译配音软件-设置菜单-GPT-SoVITS API 中填写接口地址、参考音频等。
-GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://github.com/jianchang512/stt/releases/download/0.0/GPT-SoVITS.api.py.zip) ，用该压缩包内的 api.py，覆盖 GPT-SoVITS 自带的api.py
+
+GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击去下载该文件](https://github.com/jianchang512/gptsovits-api/releases/tag/v0.1) ，将该压缩包内的 api2.py 复制到 GPT-SoVITS 根目录下，启动方法与自带的api.py一样，可参考使用教程 https://juejin.cn/post/7343138052973297702
+
 
 21. 在 `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` 文件中，可分别修改 chatGPT、AzureGPT、Gemini Pro 的提示词，必须注意里面的 `{lang}` 代表翻译到的目标语言，不要删除不要修改。提示词需要保证告知AI将按行发给它的内容翻译后按行返回，返回的行数需要同发给它的行数一致。
 
@@ -290,8 +304,6 @@ extra:额外参数/字符串
 >     2. 强制视频慢速播放，以便延长视频时长和配音对齐。
 > 
 
-
-
 14. 字幕不显示或显示乱码
 
 > 
@@ -340,16 +352,20 @@ OSError: ctypes.util.find_library() did not manage to locate a library called 's
 
 GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [点击下载该文件](https://github.com/jianchang512/stt/releases/download/0.0/GPT-SoVITS.api.py.zip) ，用该压缩包内的 api.py，覆盖 GPT-SoVITS 自带的api.py
 
+20. 是否有详细教程
+
+有文档网站 https://pyvideotrans.com ,不过这里传图不便，因此更新较慢，请查看掘金博客获取最新教程， https://juejin.cn/user/4441682704623992/columns
+
+或关注我的微信公众号，内容基本等同掘金博客，微信搜一搜查看公众号 `pyvideotrans`
+
+
+
 # 高级设置 videotrans/set.ini
 
 
 **请勿随意调整，除非你知道将会发生什么**
 
-
-
-
 ```
-
 ;####################
 ;#######################
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
@@ -372,7 +388,7 @@ dubbing_thread=2
 
 ;Maximum audio acceleration, default 0, i.e. no limitation, you need to set a number greater than 1-100, such as 1.5, representing the maximum acceleration of 1.5 times, pay attention to how to set the limit, then the subtitle sound will not be able to be aligned
 ;音频最大加速倍数，默认0，即不限制，需设置大于1-100的数字，比如1.5，代表最大加速1.5倍，注意如何设置了限制，则字幕声音将无法对齐
-audio_rate=0
+audio_rate=2.5
 
 ;Maximum permissible slowdown times of the video frequency, default 0, that is, no restriction, you need to set a number greater than 1-20, for example, 1 = on behalf of not slowing down, 20 = down to 1/20 = 0.05 the original speed, pay attention to how to set up the limit, then the subtitles and the screen will not be able to be aligned
 ;视频频最大允许慢速倍数，默认0，即不限制，需设置大于1-20的数字，比如1=代表不慢速，20=降为1/20=0.05原速度，注意如何设置了限制，则字幕和画面将无法对齐
@@ -380,12 +396,15 @@ video_rate=0
 
 ;Number of simultaneous translations, 1-20, not too large, otherwise it may trigger the translation api frequency limitation
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
-trans_thread=15
+trans_thread=10
 
 ;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
 ;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
 fontsize=14
 
+
+;背景声音音量降低或升高幅度，大于1升高，小于1降低
+backaudio_volume=0.5
 
 ;Number of translation error retries
 ;翻译出错重试次数
@@ -423,7 +442,7 @@ cuda_com_type=float32
 ;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
 initial_prompt_zh=
 
-; whisper thread 0 is equal cpu core, 
+; whisper thread 0 is equal cpu core,
 ;字幕识别时，cpu进程
 whisper_threads=4
 
@@ -448,8 +467,14 @@ temperature=1
 ;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
 condition_on_previous_text=true
 
-; For pre-split and equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
-;用于 预先分割 和 均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
+; For pre-split and overall , the minimum silence segment ms to be used as the basis for cutting, default 100ms, i.e., and max seconds.
+;用于 预先分割 和 整体识别 时，作为切割依据的最小静音片段ms，默认200ms 以及最大句子时长
+overall_silence=200
+overall_maxsecs=3
+
+
+; For  equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
+;用于   均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
 voice_silence=500
 
 ;Seconds per slice for equal-division, default 10s, i.e. each subtitle is approximately 10s long.
@@ -463,7 +488,6 @@ cjk_len=30
 ;Other language line breaks, more than this number of characters will be a line break.
 ;其他语言换行长度，多于这个字符数量将换行
 other_len=60
-
 
 ```
 
@@ -596,14 +620,12 @@ gemini_key=
 [如何下载和安装](https://www.bilibili.com/video/BV1Gr421s7cN/)
 
 
-
-
 # 软件预览截图
-![1](https://github.com/jianchang512/pyvideotrans/assets/3378335/63d4932c-4f96-4a8a-a420-ee0377a436d1)
+
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
 
 
 
-[Youtube](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
 
 
 # 相关联项目
@@ -616,6 +638,8 @@ gemini_key=
 
 [人声背景乐分离:人声和背景音乐分离工具](https://github.com/jianchang512/vocal-separate)
 
+[GPT-SoVITS的api.py改良版](https://github.com/jianchang512/gptsovits-api)
+
 
 ## 致谢
 
@@ -625,6 +649,8 @@ gemini_key=
 2. PySide6
 3. edge-tts
 4. faster-whisper
+5. openai-whisper
+6. pydub
 
 ## 关注作者微信公众号
 
@@ -636,7 +662,3 @@ gemini_key=
 <img width="200" src="https://github.com/jianchang512/pyvideotrans/raw/main/images/wx.png">
 
 <img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/fe1aa29d-c26d-46d3-b7f3-e9c030ef32c7">
-
-
-
-

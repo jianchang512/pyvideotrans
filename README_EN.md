@@ -1,165 +1,352 @@
-[简体中文](./README.md) / [👑 Donate buy me a coffee](https://ko-fi.com/jianchang512) / [Discord](https://discord.gg/TMCM2PfHzQ) / [Twitter](https://twitter.com/mortimer_wang)
+[English Readme](./README_EN.md)  /  [👑Donate to this project](./about.md) 
 
-# Video Translation and Dubbing Toolkit
+# Video Translation and Dubbing Tool
 
 >
-> This is a video translation and dubbing tool that can translate a video in one language into another language with dubbing and subtitles.
+> This is a video translation and dubbing tool that can translate a video from one language to a specified language, automatically generating and adding subtitles and dubbing in that language.
 >
-> Voice recognition is based on the `faster-whisper` offline model.
+> Voice recognition uses `faster-whisper` `openai-whisper` offline models.
 >
-> Text translation supports `google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT`.
+> Text translation supports `microsoft | google | baidu | tencent | chatGPT | Azure | Gemini | DeepL | DeepLX | Offline translation OTT`,
 >
-> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS`
+> Text-to-speech synthesis supports `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS` `Custom TTS server API` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
 >
-> Allows to keep background backing music etc. (based on uvr5) Turkish, Hungarian, Hindi
->
-> Supported languages: Chinese Simplified and Traditional, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi
->
+> Allows retaining background accompaniment music, etc. (based on uvr5)
+> 
+> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi
 
-<a href="https://www.producthunt.com/products/translation-of-the-video?utm_source=badge-follow&utm_medium=badge&utm_souce=badge-translation&#0045;of&#0045;the&#0045;video" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=557901&theme=light" alt="VideoTrans - video&#0032;translator&#0032;and&#0032;dubbing | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+# Main Uses and How to Use
 
+【Translate videos and dubbing】Set various options as needed, freely configure combinations, to achieve translation and dubbing, automatic acceleration/deceleration, merging, etc.
 
-# Main Use Cases and How to Use
+【Recognize subtitles without translation】Select a video file, choose the source language of the video, and then 【recognize text from video voice】and automatically export subtitle files to the target folder.
 
-【Translate Video and Dub】Set each option as needed, freely configure combinations to achieve translation and dubbing, automatic speed increase or decrease, merging, etc
+【Extract subtitles and translate】Select a video file, choose the source language, set the target language you want to translate to, then 【recognize text from video voice】and translate it to the target language, then export bilingual subtitle files to the target folder.
 
-【Extract Subtitles Without Translation】Select video files, select the video source language, then recognize the text from the video and automatically export subtitle files to the target folder
+【Combine subtitles and video】Select a video, then drag and drop existing subtitle files to the right-hand subtitle area, set both the source and target languages to the language used in the subtitles, then choose the dubbing type and character, and start execution.
 
-【Extract Subtitles and Translate】Select a video file, select the video source language, set the desired translation target language, then recognize the text from the video and translate it into the target language, then export bilingual subtitle files to the target folder
+【Create dubbing for subtitles】Drag and drop local subtitle files to the right-side subtitle editor, then choose the target language, dubbing type and character, to generate the dubbed audio file to the target folder.
 
-【Subtitles and Video Merging】Select the video, then drag the existing subtitle file to the right subtitle area, set both the source and target languages to the language used in the subtitles, then select the dubbing type and role, and start execution
+【Recognize text from audio and video】Drag and drop videos or audios to the recognition window, to recognize the text and export it in SRT subtitle format.
 
-【Creating Dubbing for Subtitles】Drag local subtitle files to the right subtitle editor, then select the target language, dubbing type and role, the dubbed audio file will be generated in the target folder
+【Synthesize speech from text】Take a section of text or subtitles, and use the specified dubbing character to generate dubbing.
 
-【Text Recognition for Audio and Video】Drag the video or audio to the recognition window, it will recognize the text and export it in the form of srt subtitles
+【Separate audio from video】Separate video files into audio files and silent videos.
 
-【Text to Speech Synthesis】Generate a dubbing for a piece of text or subtitle using a specified dubbing role
+【Combine audio, video, and subtitles】Merge audio files, video files, and subtitle files into one video file.
 
-【Separate Audio from Video】Separate video files into audio files and silent videos
+【Audio and video format conversion】Mutual conversion between various formats.
 
-【Audio, Video, and Subtitle Merging】Merge audio files, video files, and subtitle files into one video file
+【Text subtitle translation】Translate text or SRT subtitle files into other languages.
 
-【Audio and Video Format Conversion】Conversion between various formats
-【Text and srt Translation】Text and srt Translation to other language
+【Separate vocal and background music】Separate the human voice and background music in the video into two audio files.
 
+【Download YouTube videos】Download videos from YouTube.
 
-
-
+----
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/dd3b6a33-2b64-4cab-b556-79f768b111c5
-
 
 
 [Youtube demo](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
 
 
 
-# Usage of Precompiled EXE Version
+# Download precompiled exe version for Windows (other systems use source code deployment)
 
-0. Only available for win10 win11 systems/Mac needs to compile from source code
+0. [Click to download the precompiled version, unzip, then double-click sp.exe](https://github.com/jianchang512/pyvideotrans/releases)
 
-1. [Click to download the latest version from release](https://github.com/jianchang512/pyvideotrans/releases), decompress, double click sp.exe
+1. Unzip to an English path and ensure the path does not contain spaces. After unzipping, double-click sp.exe (if you encounter permission issues, you can right-click to open with administrator privileges)
+
+3. It is not anti-virus proof, false positives from anti-virus software may occur, which can be ignored or you can deploy from the source code
+
+4. Note: It must be used after unzipping, do not double-click to use it directly within the zip package, and do not move the sp.exe file to other locations after unzipping
+
 
 
 # Source Code Deployment
 
-1. Set up the Python 3.9->3.11 environment.
+1. Set up a Python environment from 3.10 to 3.11, recommended 3.10
 2. `git clone https://github.com/jianchang512/pyvideotrans`
 3. `cd pyvideotrans`
 4. `python -m venv venv`
-5. For Windows, run `%cd%/venv/scripts/activate`; for Linux and Mac, run `source ./venv/bin/activate`.
-6. `pip install -r requirements.txt`
- 
-windows & linux if want use cuda，continue exec `pip uninstall -y torch`，then `pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`
+5. On Win execute `%cd%/venv/scripts/activate`, on Linux and Mac execute `source ./venv/bin/activate`
+6. `pip install -r requirements.txt`, if you encounter version conflict errors, use `pip install -r requirements.txt --no-deps`
+7. If you want to enable CUDA acceleration on Windows and Linux, continue with `pip uninstall -y torch` to uninstall, then run `pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`. (Must have Nvidia card and CUDA environment configured)
+8. Additionally on Linux, if using CUDA acceleration, install with `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-7. For Windows, unzip ffmpeg.zip to the root directory (ffmpeg.exe file); for Linux and Mac, Manually installing ffmpeg on your own
-8. Open the software interface by running `python sp.py`.
-9. If CUDA acceleration support is needed, the device must have an NVIDIA GPU. For specific installation steps, see [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+9. Unzip ffmpeg.zip to the root directory on Win (ffmpeg.exe file), and on Linux and Mac, please install ffmpeg yourself, you can "Baidu or Google" for specific methods
 
+10. `python sp.py` to open the software interface
 
+11. If CUDA acceleration support is required, an NVIDIA graphics card is needed on the device. For specific installation precautions, see below [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-# Instructions for use
+12. On Ubuntu, you might also need to install the Libxcb library, use the following command:
 
-1. Original Video: Choose mp4/avi/mov/mkv/mpeg videos, you can select multiple videos;
+```	
+sudo apt-get update
+sudo apt-get install libxcb-cursor0	
+```
 
-2. Output Video Directory: If not selected, it will be generated in `_video_out` in the same directory by default, and two types of subtitle files in the source and target languages will be created in the srt folder in that directory
+13. On Mac, you might need to run `brew install libsndfile` to install libsndfile
 
-3. Select Translation: Google|Baidu|Tencent|ChatGPT|Azure|Gemini|DeepL|DeepLX translation channels can be selected
+# How to Use
 
-4. Network Proxy Address: If your region cannot directly access Google/ChatGPT, you need to set a proxy in the software interface network proxy. For example, if you use v2ray, fill in `http://127.0.0.1:10809`, if clash, fill in `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, fill it in as needed
+1. Choose video: Click to select mp4/avi/mov/mkv/mpeg videos, multiple videos can be selected;
 
-5. Video Original Language: Select the language type in the video to be translated
+2. Save to..: If not chosen, it defaults to generating in the `_video_out` in the same directory, and at the same time, bilingual subtitle files in the original and target languages will be created in the srt folder in that directory
 
-6. Translation Target Language: Select the language type you hope to translate into
+3. Translation channel: Choose from microsoft | google | baidu | tencent | chatGPT | Azure | Gemini | DeepL | DeepLX | OTT translation channels
 
-7. Select Dubbing: After selecting the translation target language, you can select the dubbing role from the dubbing options;
+4. Proxy address: If your region cannot directly access Google/chatGPT, you need to set up a proxy in the Network Proxy of the software interface, for example, if using v2ray, fill in `http://127.0.0.1:10809`, if clash, then fill in `http://127.0.0.1:7890`. If you have changed the default port or are using other proxy software, fill in as needed
+
+5. Original language: Choose the language category of the video to be translated
+
+6. Target language: Choose the language category into which you want to translate
+
+7. TTS and dubbing character: After choosing the target language for translation, you can choose from the dubbing options, the dubbing character;
    
-   Hard Subtitles: Permanently display subtitles that cannot be hidden, if you want subtitles when playing on the web page, please choose hard subtitles embedded
+   Hard subtitles:
+   Refers to subtitles that are always displayed and cannot be hidden, if you want subtitles to be displayed during web play, please choose hard subtitle embedding, which can be set through font size in videotrans/set.ini
 
-   Soft Subtitles: If the player supports subtitle management, it can display or hide subtitles, this method will not display subtitles when playing on the web page, some domestic players may not support it, need to put the generated video and the same name srt file and video in one directory to display
+   Hard subtitles (double):
+   Display target language subtitles and original language subtitles on separate lines
 
+   Soft subtitles:
+   If the player supports subtitle management, you can display or hide subtitles. This method will not show subtitles when playing on the web, and some domestic players may not support it. You need to place the generated video's name-matching srt file and video in one directory to display
 
-8. Voice recognition model: Select base/small/medium/large/large-v3, the recognition effect is getting better and better, but the recognition speed is getting slower and slower, and more memory is needed, the first time will need to download the model, default base, can download the model separately in advance Put it in the `current software directory/models` directory.
+   Soft subtitles (double):
+   Will embed subtitles in two languages, which can be switched via the subtitle display/hide function of the player
 
-   Whole recognition / pre-segmentation: whole recognition refers to directly sending the whole voice file to the model for processing, segmentation may be more accurate, but it may also make a single subtitle of 30s length, suitable for audio with clear silence; pre-segmentation refers to the audio in advance It is cut into about 10s length and then sent to the model for processing separately.
+8. Voice recognition model: Choose from base/small/medium/large-v2/large-v3, with recognition results getting better, but recognition speed getting slower and memory requirements getting larger each time; built-in base model, other models need to be downloaded separately, unzipped and put into the "current software directory/models" directory. If the GPU memory is less than 4G, do not use large-v3
 
-    [download models](https://github.com/jianchang512/stt/releases/tag/0.0)
+   Overall recognition: The model will automatically handle sentence segmentation for the entire audio. Do not choose overall recognition for large videos to avoid crashes due to insufficient video memory
 
-    **Special Note**
+   Pre-split: Suitable for very large videos, first cut into 1-minute segments for sequential recognition and segmentation
 
-    Master model: If you download the master model, unzip it after downloading and copy the "models--Systran--faster-whisper-xx" folder into the models directory, the list of folders in the models directory after unzipping and copying is as follows
+   Equal division: Split the video into equal seconds, with each subtitle being approximately equal in length, controlled by interval_split in set.ini
+
+    [Download all models](https://github.com/jianchang512/stt/releases/tag/0.0)
+
+    **Special Attention**
+
+    Faster models: If you have downloaded the faster model, after unzipping, copy the "models--Systran--faster-whisper-xx" folder inside the zip to the models directory. After unzipping and copying, the folder list under models directory should look like this
     ![](https://github.com/jianchang512/stt/assets/3378335/5c972f7b-b0bf-4732-a6f1-253f42c45087)
 
-    Openai models: If you download openai models, you can copy the .pt file directly to the models folder.
+    Openai models: If you have downloaded the openai model, after unzipping, directly copy the .pt files inside to the models folder. 
 
+9. Dubbing pace: Fill in a number between -90 and +90, the same sentence requires different amounts of time under different language voices, therefore dubbing may result in asynchrony of voice, picture, and subtitles. You can adjust the rate here, negative numbers mean decelerate, positive numbers mean accelerate playback.
 
-9. Dubbing speed: Fill in a number between -90 and +90, the same sentence under different language voices, the required time is different, so after dubbing, the sound and picture subtitles may be out of sync, you can adjust the language speed here, negative numbers represent Slow down, positive numbers represent accelerated playback.
+10. Aligning sound, picture, and subtitles: "Dubbing pace" "Automatic dubbing acceleration" "Automatic video deceleration" "Voice extension before and after"
 
-10. Audio and video alignment: They are "dubbing automatic acceleration" and "video automatic slowdown"
-
-> 
-> The pronunciation duration in different languages after translation is different. For example, a sentence in Chinese is 3s, which may be 5s when translated into English, leading to inconsistent duration and video.
-> 
-> 2 solutions:
 >
->     1. Forced dubbing to speed up and play, in order to shorten the dubbing duration and align with the video
-> 
->     2. Forced video to play slowly, in order to prolong the video duration and align with the dubbing.
-> 
-> Only one of the two can be chosen
->  
+> After translation, the pronunciation duration under different languages is different, for example, a sentence that takes 3s in Chinese might take 5s in English, leading to inconsistency in duration and video.
+>
+> 4 ways to solve this:
+>
+> 1. Set the dubbing rate, global acceleration (some TTS do not support)
+>
+> 2. Force dubbing acceleration to shorten the dubbing duration and align with the video
+>
+> 3. Force video slow down to extend the video duration and align with the dubbing.
+>
+> 4. If there are silent sections before and after, then extend to cover the silent area\n In actual use, the best effect is achieved by combining these 4 items
+>
+> For the principle implementation, please refer to the blog post https://juejin.cn/post/7343691521601290240
+>
 
-  
-11. Silent Segment: Fill in a number between 100 and 2000, in milliseconds, default is 500, that is, voice is divided into sections with silent segments of 500ms or more
+12. **CUDA Acceleration**: Confirm that your computer's graphics card is an Nvidia card, and you have configured the CUDA environment and driver, then select this option, the speed can be greatly improved. For specific configuration methods, see below [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-12. **CUDA Acceleration**: Confirm that your computer's graphics card is an N card and that the CUDA environment and drivers have been properly configured, then turn on this option for greatly improved speed. For the specific configuration method, see below [CUDA Acceleration Support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+13. TTS: You can use edgeTTS and openai TTS-1 models, Elevenlabs, clone-voice, custom TTS, openai requires using the official interface or a third-party interface that has activated the tts-1 model, or choose clone-voice for original timbre dubbing. Also supports using your own tts service, fill in the API address in Settings menu - Custom TTS-API
 
-13. TTS: Available in edgeTTS and openai TTS model, choose the role to synthesize the voice, openai needs to use the official interface or a third-party interface that has opened up the tts-1 model
+14. Click the Start button the current progress and log will be displayed at the bottom, and the subtitles will be displayed in the text box on the right 
 
-14. Click the start button to display the current progress and log at the bottom, and the subtitle is displayed in the right text box
+15. After the subtitle analysis is completed, it will pause awaiting editing of the subtitles, if no operation is performed, it will automatically continue to the next step after 30s. You can also edit the subtitles in the right subtitle area and then manually click to continue synthesis
 
-15. After the subtitle analysis is completed, it will pause and wait for the subtitle to be modified. If no operation is performed, it will automatically continue the next step after 60s. You can also edit the subtitle in the right subtitle area and then manually click to continue synthesis
+16. In the subdirectory of the target folder named after the video, separate srt files in both languages, the original voice and dubbed wav files will be generated for further processing.
 
-16. In the subfolder of the software directory, find the srt folder with the same name as the video file to generate two files, the suffix is the original language and the target language text subtitle file.
+17. Set the role for the line: You can set a dubbing role for each line in the subtitle, first choose the TTS type and character on the left, then click "Set role for the line" in the lower right corner of the subtitle area, in the text behind each character name, fill in the line number that will use that character for dubbing, as shown in the following picture:
+    ![](./images/p2.png)
 
-17. Set line role：You can set the pronunciation role for each line in the subtitle. First, select the TTS type and role on the left, and then click "Set line role" in the lower right corner of the subtitle area. In the text after each character name, fill in the line number that you want to use for dubbing, as shown in the following figure:
+18. Retain background music: If this option is selected, then the video's human voice and background accompaniment will first be separated, in which the background accompaniment will eventually be merged with the dubbing audio, and the final result video will retain the background accompaniment. **Note**: This function is based on uvr5. If you do not have enough Nvidia GPU memory, such as 8GB or more, it is recommended to choose carefully as it may be very slow and consume a lot of resources. If the video is relatively large, it is recommended to choose a separate video separation tool, such as uvr5 or vocal-separate https://juejin.cn/post/7341617163353341986
 
-    ![](./images/pen2.png)
-    
-18. Preserve Background Music: If this option is selected, the software will first separate the human voices and background accompaniment in the video. The background accompaniment will ultimately be merged with the voice-over audio. As a result, the final video will retain the background accompaniment. **Note**: This function is based on uvr5. If you do not have sufficient Nvidia GPU memory, such as 8GB or more, we recommend caution as this may be very slow and highly resource-intensive.
+19. Original timbre clone dubbing clone-voice: First install and deploy the [clone-voice](https://github.com/jianchang512/clone-voice) project, download and configure the "text-to-sound" model, then in this software's TTS type, choose "clone-voice" and the dubbing character selects "clone" to realize dubbing using the original video's voice. When using this method, it is recommended to select "Retain background music" to eliminate background noise for better effect.
 
-19.  Original voice clone dubbing: First install and deploy [clone voice](https://github.com/jianchang512/clone-voice) Project, download and configure the "text->speech" model, then select "clone-voice" in the TTS type in this software, and select "clone" for the dubbing role to achieve dubbing using the sound from the original video. When using this method, to ensure the effect, "separation of vocals and background music" will be mandatory. Please note that this feature is slow and consumes system resources.
+20. Using GPT-SoVITS for dubbing: First install and deploy the GPT-SoVITS project, then start the GPT-SoVITS's api.py, and fill in the interface address and reference audio, etc., in the video translation and dubbing software's settings menu - GPT-SoVITS API.
 
-20. You can modify the prompt words for chatGPT, AzureGPT, and Gemini Pro in the `videotrans/chatgpt.txt`, `videotrans/azure.txt`, and `videotrans/gemini.txt` files respectively. You must pay attention to the `{lang}` in the files, which represents the target language of translation. Do not delete or modify it. The prompt words should ensure that AI is informed to return the content after translation line by line, and the number of lines returned should be consistent with the number of lines given to it.
+GPT-SoVITS's own api.py does not support mixed Chinese and English pronunciation. If support is needed, please [click to download this file](https://github.com/jianchang512/gptsovits-api/releases/tag/v0.1), copy the api2.py inside the compressed package to the root directory of GPT-SoVITS, and start it the same way as the original api.py, you can refer to the usage tutorial https://juejin.cn/post/7343138052973297702
+
+21. In `videotrans/chatgpt.txt` `videotrans/azure.txt` `videotrans/gemini.txt` respectively, you can edit the chatGPT, AzureGPT, Gemini Pro prompts, you must pay attention to `{lang}` representing the target language for translation, do not delete or modify. Make sure the prompts tell AI to return content line by line after translating it, and the number of returned lines must match the number of lines sent.
+
+22. Adding Background Music: This function is similar to "Retaining Background Music," but the implementation method is different, it can only be used in "Standard Function Mode" and "Subtitles Create Dubbing" mode.
+"Adding Background Music" pre-selects an audio file from the local computer as the background sound, which is displayed in the text box on the right, and when processing the result video, the audio is mixed in, the final video will play the background audio file.
+
+If "Retain Background Music" is also selected, the original video's background music will also be retained.
+
+After adding background music, if you no longer want it, simply delete the content displayed in the text box on the right.
 
 
-# Advanced Settings videotrans/set.ini
+# Frequently Asked Questions
 
-**Please do not make arbitrary adjustments unless you know what will happen**
+1. Error prompted when using Google Translate or chatGPT
+
+   In China, both Google and the official chatGPT interface require a VPN.
+
+2. Global proxy is used, but it doesn't seem to work
+
+   You need to set the specific proxy address in the software interface "Network Proxy", formatted as http://127.0.0.1:port number
+
+3. FFmpeg does not exist prompt
+
+   First, check to make sure that the ffmpeg.exe, ffprobe.exe files exist in the root directory of the software
+   
+4. CUDA is activated on Windows but is showing errors
+
+   A: [First, check the detailed installation method](https://juejin.cn/post/7318704408727519270), to ensure that you have installed the required CUDA tools correctly. If errors persist, [download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z), unzip it, and copy the dll files to C:/Windows/System32.
+
+   B: If it is confirmed not related to A, then check if the video is encoded in H264 mp4. Some HD videos are encoded in H265, which is not supported. Try converting to H264 video in the "Video Toolbox".
+
+   C: Under GPU, hardware decoding and encoding of videos have strict requirements for data accuracy, with almost zero tolerance for errors. Even a slight mistake can lead to failure, and due to differences in graphics card models, driver versions, CUDA versions, ffmpeg versions, compatibility errors can easily occur. Currently, a fallback has been added; if the process fails on the GPU, it will automatically revert to CPU software codec. Error information will be recorded in the logs directory when a failure occurs.
+
+5. Getting a 'model does not exist' prompt?
+
+   [Download all models here](https://github.com/jianchang512/stt/releases/tag/0.0)
+
+   **Models are divided into two categories:**
+
+   One category is for the "faster models".
+
+   After downloading and unzipping, you will see folders in the format "models--Systran--faster-whisper-xxx", where xxx represents the model name, such as base/small/medium/large-v3, etc. Just copy that folder directly into this directory.
+
+   After downloading all faster models, the current models folder should contain these folders:
+
+   models--Systran--faster-whisper-base
+   models--Systran--faster-whisper-small
+   models--Systran--faster-whisper-medium
+   models--Systran--faster-whisper-large-v2
+   models--Systran--faster-whisper-large-v3
+
+   The other category is for "openai models", which after downloading and unzipping, give you .pt files directly, like base.pt/small.pt/medium.pt/large-v3.pt. Copy this pt file directly into this folder.
+
+   After downloading all openai models, the current models folder should show base.pt, small.pt, medium.pt, large-v1.pt, large-v3.pt directly.
+
+6. Prompt for 'directory does not exist or permission error'
+
+   Right-click on sp.exe and open with administrator privileges.
+
+7. Error prompt with no detailed error information
+
+   Open the logs directory, find the newest log file and scroll to the bottom to see the error information.
+
+8. The large-v3 model is very slow
+
+   If you do not have an Nvidia GPU, or the CUDA environment is not properly configured, or if the VRAM is less than 8GB, do not use this model as it will be very slow and may cause stuttering.
+
+9. Prompt for missing cublasxx.dll file
+
+   Sometimes an error that "cublasxx.dll does not exist" may be encountered, at which point cuBLAS needs to be downloaded, and then the dll files copied to the system directory.
+
+   [Click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z), then copy the dll files into C:/Windows/System32.
+   
+   [cuBLAS.and.cuDNN_win_v4](https://github.com/Purfview/whisper-standalone-win/releases/download/libs/cuBLAS.and.cuDNN_win_v4.7z)
+
+11. How to use custom timbre
+
+   Go to the settings menu - Custom TTS-API and fill in your tts server interface address.
+
+   A POST request will send application/www-urlencode data to the API address provided:
+
+```
+# Data sent in the request:
+
+text: The text/string to be synthesized
+
+language: The language code of the text (zh-cn, zh-tw, en, ja, ko, ru, de, fr, tr, th, vi, ar, hi, hu, es, pt, it)/string
+
+voice: The name of the voice actor/character/string
+
+rate: The value for speeding up or slowing down, 0 or '+' or '%' or '-' followed by a number, representing the percentage of the acceleration or deceleration based on the normal speed/string
+
+ostype: Operating system type win32 or mac or linux/string
+
+extra: Additional parameters/string
+
+# Expected JSON format data returned from the interface:
+{
+    code:0 when synthesis is successful, a number >0 represents failure
+    msg:ok when synthesis is successful, otherwise it is the reason for failure
+    data: On successful synthesis, returns the complete URL of the mp3 file, used for downloading within the software. Empty when there is a failure
+}
 
 
 ```
 
+
+13. Subtitles and voice unable to align
+
+> After translation, pronunciation duration varies in different languages, for example, a sentence that is 3s in Chinese might take 5s in English, resulting in inconsistency with the video length.
+>
+> Two solutions:
+>
+>     1. Force dubbing to play at a faster speed to shorten the dubbing duration and align with the video.
+>
+>     2. Force the video to play at a slower pace to extend the video's duration and align with the dubbing.
+
+14. Subtitles not displaying or are garbled
+
+> By using soft synthesized subtitles: subtitles are embedded as separate files into the video and can be extracted again. If supported by the player, subtitles can be enabled or disabled in the player's subtitle management.
+>
+> Note that many domestic players require the srt subtitle file to be in the same directory as the video with the same name in order to load soft subtitles. It may also be necessary to convert the srt file to GBK encoding to avoid garbled text.
+
+15. How to switch software interface language/Chinese or English
+
+Open the `videotrans/set.ini` file in the software directory, and then fill in the language code after `lang=`, where `zh` stands for Chinese and `en` stands for English. Restart the software after making the change.
+
+```
+
+;The default interface follows the system and can also be specified manually here, zh=Chinese interface, en=English interface.
+;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
+lang =
+
+
+```
+
+16. Crashes before completion
+
+If CUDA is enabled and the computer has installed the CUDA environment but cudnn has not been manually installed and configured, you will encounter this issue. Install cudnn that matches with CUDA. For example, if you have installed CUDA 12.3, you will need to download cudnn for cuda12.x package, then unzip it, and copy the three folders inside to the CUDA installation directory. For the specific tutorial, refer to 
+https://juejin.cn/post/7318704408727519270.
+
+If cudnn is installed according to the tutorial and still crashes, it is very likely due to insufficient GPU memory. You can switch to using the medium model. When VRAM is less than 8GB, try to avoid using the largev-3 model, especially when the video is larger than 20MB, otherwise, it may crash due to insufficient memory.
+
+17. How to adjust subtitle font size
+
+If embedding hard subtitles, you can adjust the font size by modifying the `fontsize=0` in `videotrans/set.ini` to a suitable value. 0 represents the default size, and 20 represents a font size of 20 pixels.
+
+18. Errors on macOS
+
+OSError: ctypes.util.find_library() did not manage to locate a library called 'sndfile'
+
+Solution:
+
+Find the libsndfile installation location. If installed via brew, it's generally located at `/opt/homebrew/Cellar/libsndfile`. Then add this path to the environment variable: `export DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/libsndfile/1.2.2/lib:$DYLD_LIBRARY_PATH`.
+
+19. GPT-SoVITS API does not support mixed Chinese and English pronunciation
+
+The api.py that comes with GPT-SoVITS does not support mixed Chinese and English pronunciation. If needed, please [click to download this file](https://github.com/jianchang512/stt/releases/download/0.0/GPT-SoVITS.api.py.zip), and replace the existing api.py of GPT-SoVITS with the one from the compressed package.
+
+20. Are there detailed tutorials?
+
+There is a documentation website at https://pyvideotrans.com, but since it's inconvenient to upload images there, updates are slow. Please check the Juejin blog for the latest tutorials at https://juejin.cn/user/4441682704623992/columns.
+
+Or you can follow my WeChat public account, which basically has the same content as the Juejin blog. Search WeChat to view the public account `pyvideotrans`.
+
+# Advanced Settings - videotrans/set.ini
+
+**Please do not adjust randomly unless you know what will happen**
+
+
+
+```
 ;####################
 ;#######################
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
@@ -182,7 +369,7 @@ dubbing_thread=2
 
 ;Maximum audio acceleration, default 0, i.e. no limitation, you need to set a number greater than 1-100, such as 1.5, representing the maximum acceleration of 1.5 times, pay attention to how to set the limit, then the subtitle sound will not be able to be aligned
 ;音频最大加速倍数，默认0，即不限制，需设置大于1-100的数字，比如1.5，代表最大加速1.5倍，注意如何设置了限制，则字幕声音将无法对齐
-audio_rate=0
+audio_rate=2.5
 
 ;Maximum permissible slowdown times of the video frequency, default 0, that is, no restriction, you need to set a number greater than 1-20, for example, 1 = on behalf of not slowing down, 20 = down to 1/20 = 0.05 the original speed, pay attention to how to set up the limit, then the subtitles and the screen will not be able to be aligned
 ;视频频最大允许慢速倍数，默认0，即不限制，需设置大于1-20的数字，比如1=代表不慢速，20=降为1/20=0.05原速度，注意如何设置了限制，则字幕和画面将无法对齐
@@ -190,12 +377,15 @@ video_rate=0
 
 ;Number of simultaneous translations, 1-20, not too large, otherwise it may trigger the translation api frequency limitation
 ;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
-trans_thread=15
+trans_thread=10
 
 ;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
 ;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
 fontsize=14
 
+
+;背景声音音量降低或升高幅度，大于1升高，小于1降低
+backaudio_volume=0.5
 
 ;Number of translation error retries
 ;翻译出错重试次数
@@ -233,7 +423,7 @@ cuda_com_type=float32
 ;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
 initial_prompt_zh=
 
-; whisper thread 0 is equal cpu core, 
+; whisper thread 0 is equal cpu core,
 ;字幕识别时，cpu进程
 whisper_threads=4
 
@@ -258,8 +448,14 @@ temperature=1
 ;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
 condition_on_previous_text=true
 
-; For pre-split and equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
-;用于 预先分割 和 均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
+; For pre-split and overall , the minimum silence segment ms to be used as the basis for cutting, default 100ms, i.e., and max seconds.
+;用于 预先分割 和 整体识别 时，作为切割依据的最小静音片段ms，默认200ms 以及最大句子时长
+overall_silence=200
+overall_maxsecs=3
+
+
+; For  equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
+;用于   均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
 voice_silence=500
 
 ;Seconds per slice for equal-division, default 10s, i.e. each subtitle is approximately 10s long.
@@ -274,194 +470,88 @@ cjk_len=30
 ;其他语言换行长度，多于这个字符数量将换行
 other_len=60
 
-
 ```
 
+# CUDA Acceleration Support
 
+**Install CUDA Tools** [Detailed installation method on Windows](https://juejin.cn/post/7318704408727519270)
 
-# Frequently Asked Questions
+It's essential to have both CUDA and cuDNN installed; otherwise, a crash may occur.
 
-1. Using Google Translation, error is prompted.
+On Linux, use `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`.
 
-   Domestically, using Google or the official interface of chatGPT requires a VPN.
+After installation, execute `python testcuda.py` or double-click on testcuda.exe. If all outputs are ok, it is confirmed to be working.
 
-2. Have used global proxy, but it doesn't seem to be going through proxy.
+Sometimes you might encounter an error saying "cublasxx.dll does not exist." If this error occurs and your CUDA configuration is correct but persistent recognition errors occur, you need to download cuBLAS and then copy the dll files to the system directory.
 
-   Need to set specific proxy address in software interface "network proxy", such as http://127.0.0.1:7890
-
-3. Prompting that FFmpeg does not exist.
-
-   First, make sure there are ffmpeg.exe and ffprobe.exe files in the root directory of the software. If not, unzip ffmpeg.7z and put these two files in the root directory of the software.
-
-4. CUDA is enabled on Windows, but errors are prompted.
-
-   A: Firstly, refer to the [detailed installation method](https://juejin.cn/post/7318704408727519270) and confirm that you have successfully installed the related cuda tools. If errors still exist, [click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). After unzipping it, copy the dll files to C:/Windows/System32.
-
-   B: If you are sure it is not related to A, check if the video is H264 encoded mp4. Some HD videos are H265 encoded, which is not supported. You can try to convert to H264 video in the "Video Toolbox".
-
-5. Prompting that the model does not exist.
-
-   [Address for all model downloads](https://github.com/jianchang512/stt/releases/tag/0.0)
-
-    **The models are divided into two categories:**
-
-    One is for "Faster Models".
-
-    After downloading and unzipping, you will see a folder like "models--Systran--faster-whisper-xxx", xxx stands for the model name, such as base/small/medium/large-v3, etc. After unzipping, you can directly copy the folder to this directory. After unzipping, copy the folder directly to this directory.
-
-    If all the master models are downloaded, you should see these folders under the current models folder
-
-    models--Systran--faster-whisper-base
-    models--Systran--faster-whisper-small
-    models--Systran--faster-whisper-medium
-    models--Systran--faster-whisper-large-v2
-    models--Systran-faster-whisper-large-v3
-
-
-    The other type is for "openai models", after downloading and unzipping, it is directly xx.pt file, such as base.pt/small.pt,/medium.pt/large-v3.pt, directly copy the pt file to this folder.
-
-    If all openai models are downloaded, you should see base.pt, small.pt, medium.pt, large-v1.pt, large-v3.pt directly in the current models folder.
-
-
-6. Prompting the directory does not exist or permission error.
-
-   Right-click on sp.exe and open with administrator permission.
-
-7. Prompting error, but no detailed error message.
-
-   Open logs directory, look for the latest log file, scroll to the bottom to see error messages.
-
-8. The large-v3 model is very slow.
-
-   If you do not have a GPU, or have not set up the CUDA environment properly, or your GPU memory is less than 4G, please do not use this model, otherwise it will be very slow and lagging.
-
-9. Prompting missing cublasxx.dll file.
-
-   Sometimes you may encounter an error saying "cublasxx.dll does not exist", then you need to download cuBLAS and copy the dll file to the system directory.
-
-   [Click here to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z). Extract it and copy the dll files to C:/Windows/System32.
-   
-   [cuBLAS.and.cuDNN_win_v4](https://github.com/Purfview/whisper-standalone-win/releases/download/libs/cuBLAS.and.cuDNN_win_v4.7z)
-
-
-11. How to use custom voice.
-
-   Currently, this feature is not supported. If needed, you can first recognize the subtitles, and then use another [voice cloning project](https://github.com/jiangchang512/clone-voice), enter the subtitle srt file, select the customized voice to synthesize the audio file, and then recreate the video.
-
-13. Subtitle voice cannot be aligned.
-
-> Duration of pronunciation in different languages may vary after translation. For example, a sentence in Chinese may take 3s, in English could take 5s, leading to inconsistency in duration with the video.
->
-> There are two solutions:
->
->     1. Force dubbing playback speeding up to shorten the duration to align with the video.
->
->     2. Force video to play at a slower speed to extend the duration to align with the dubbing.
->
-> Can only choose one of two.
-
-14. Subtitles do not display or display gibberish.
-
->
-> Using soft synthesized subtitles: Subtitles are embedded into the video as separate files and can be extracted again. If the player supports it, you can enable or disable subtitles in the player's subtitle management.
->
-> Note that many domestic players must put the srt subtitle file in the same directory as the video file and have the same name in order to load soft subtitles. Also, you might need to convert the srt file to GBK encoding, otherwise, gibberish will be displayed.
->
-
-15. How to switch the software interface language/Chinese or English.
-
-If there is no set.ini file in the software directory, create one first, then paste the following code into it, fill in the language code after `lang=`, `zh` stands for Chinese, `en` stands for English, then restart the software
-
-```
-[GUI]
-;GUI show language ,set en or zh  eg.  lang=en
-lang =
-
-```
-
-16. Crash before completion 
-
-If CUDA is enabled and the computer has installed the CUDA environment, but CUDNN has not been manually installed and configured, this issue will occur. Please install CUDNN that matches CUDA. For example, if you have installed cuda12.3, you need to download the cudnn for cuda12. x compressed package, and then unzip the three folders inside and copy them to the cuda installation directory. Specific tutorial reference
-https://juejin.cn/post/7318704408727519270
-
-If cudnn crashes even after being installed according to the tutorial, there is a high probability that the GPU memory is insufficient. You can switch to using the medium model. When the memory is less than 8GB, try to avoid using the largev-3 model, especially when the video is larger than 20MB, otherwise it may run out of memory and crash
-
-
-
-
-17. How to adjust subtitle font size
-
-If you are embedding hard subtitles, you can adjust the font size by changing the fontsize=0 in videotrans/set.ini to an appropriate value. 0 is the default size, 20 means the font size is 20 pixels.
-
-
+[Click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z), then unzip it and copy the dll files to C:/Windows/System32.
 
 # CLI Command Line Mode
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
 
-cli.py is a script executed from the command line and `python cli.py` is the simplest way to execute it.
+cli.py is a command-line execution script, and `python cli.py` is the simplest way to execute it.
 
-Received parameters:
+The parameters it accepts are:
 
-`-m absolute address of mp4 video`
+`-m mp4 video absolute address`
 
-The specific configuration parameters can be configured in cli.ini located in the same directory as cli.py. The address of other mp4 videos to be processed can also be configured by command line parameter `-m absolute address of mp4 video`, such as `python cli.py -m D:/1.mp4`.
+Detailed configuration parameters can be set in the cli.ini located in the same directory as cli.py. Other mp4 video addresses to be processed can also be configured through the command line parameter `-m mp4 video absolute address`, like `python cli.py -m D:/1.mp4`.
 
-The complete parameters are in cli.ini, the first parameter `source_mp4` represents the video to be processed. If the command line passes parameters through -m, the command line parameter will be used, otherwise, `source_mp4` will be used.
+Within cli.ini are the complete parameters, with the first parameter `source_mp4` representing the video to be processed. Command-line parameters will take precedence over `source_mp4` if passed using `-m`.
 
 `-c configuration file address`
 
-You can also copy cli.ini to another location and specify the configuration file to be used through `-c absolute path address of cli.ini` on the command line, such as `python cli.py -c E:/conf/cli.ini`, which will use the configuration information in this file and ignore the configuration file in the project directory.
+You can also copy cli.ini to another location, and then specify the configuration file to use with the `-c cli.ini absolute path address` command-line parameter, for example, `python cli.py -c E:/conf/cli.ini`, which will use the configuration information from that file, ignoring the project directory configuration file.
 
-`-cuda` does not need to follow the value, as long as it is added, it means to enable CUDA acceleration (if available) `python cli.py -cuda`
+`-cuda` does not need a value to follow; merely adding it signifies the enablement of CUDA acceleration (if available) `python cli.py -cuda`.
 
-Example:`python cli.py -cuda -m D:/1.mp4`
+Example: `python cli.py -cuda -m D:/1.mp4`.
 
 
-
-## Specific parameters and explanations within cli.ini
+## Specific Parameters and Descriptions in cli.ini
 
 ```
-;Command line parameters
-;Absolute address of the video to be processed. Forward slash as a path separator, can also be passed after -m in command line parameters
+;Command Line Arguments
+;Absolute address of the video to be processed, use forward slash as path separator, can also be passed after -m in the command line arguments
 source_mp4=
-;Network proxy address, google chatGPT official China needs to be filled in
+;Network proxy address, mandatory for Google chatGPT official China
 proxy=http://127.0.0.1:10809
-;Output result file to directory
+;Directory for output result files
 target_dir=
-;Video speech language, select from here zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+;Video pronunciation language, choose from here: zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
 source_language=zh-cn
-;Speech recognition language, no need to fill in
+;Language for speech recognition, no need to fill in
 detect_language=
-;Language to translate to zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
+;Language to translate into: zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
 target_language=en
-;Language when embedding soft subtitles, no need to fill in
+;Language for soft subtitles embedding, no need to fill in
 subtitle_language=
 ;true=Enable CUDA
 cuda=false
-;Role name, role names of openaiTTS "alloy,echo,fable,onyx,nova,shimmer", role names of edgeTTS can be found in the corresponding language roles in voice_list.json. Role names of elevenlabsTTS can be found in elevenlabs.json
+;Role name, find openaiTTS role names "alloy, echo, fable, onyx, nova, shimmer" from voice_list.json for corresponding language roles. Find elevenlabsTTS role names from elevenlabs.json
 voice_role=en-CA-ClaraNeural
-; Dubbing acceleration value, must start with + or -, + means acceleration, - means deceleration, ends with %
+; Dubbing acceleration value, must start with a + or - sign, + means accelerate, - means decelerate, ending with %
 voice_rate=+0%
-;Optional edgetTTS openaiTTS elevenlabsTTS
+;Options include edgetTTS openaiTTS elevenlabsTTS
 tts_type=edgeTTS
-;Silent segment, unit ms
+;Silent segment, unit in ms
 voice_silence=500
-;all=whole recognition, split=pre-split sound segment recognition
+;all=Overall recognition, split=Recognition after pre-splitting sound segments
 whisper_type=all
-;Speech recognition model optional, base small medium large-v3
+;Options for speech recognition model: base small medium large-v3
 whisper_model=base
-;Translation channel, optional google baidu chatGPT Azure Gemini tencent DeepL DeepLX
+;Translation channel, options include google baidu chatGPT Azure Gemini tencent DeepL DeepLX
 translate_type=google
 ;0=Do not embed subtitles, 1=Embed hard subtitles, 2=Embed soft subtitles
 subtitle_type=1
-;true=Automatic dubbing acceleration
+;true=Auto-accelerate dubbing
 voice_autorate=false
-;true=Automatic video slowdown
+;true=Auto-slow video
 video_autorate=false
-;deepl translation interface address
+;Interface address for deepl translation
 deepl_authkey=asdgasg
-;Interface address of own configured deeplx service
+;Address for configured deeplx service
 deeplx_address=http://127.0.0.1:1188
 ;Tencent translation id
 tencent_SecretId=
@@ -469,63 +559,50 @@ tencent_SecretId=
 tencent_SecretKey=
 ;Baidu translation id
 baidu_appid=
-;Baidu translation key
+;Baidu translation secret
 baidu_miyue=
-; key of elevenlabstts
+;Key for elevenlabstts
 elevenlabstts_key=
-;chatgpt api, ending with /v1, third party interface address can be filled in
+;chatGPT interface address, ending with /v1, third-party interface addresses can be filled in
 chatgpt_api=
-;key of chatGPT
+;Key for chatGPT
 chatgpt_key=
-;chatgpt model, optional gpt-3.5-turbo gpt-4
+;chatGPT model, options include gpt-3.5-turbo gpt-4
 chatgpt_model=gpt-3.5-turbo
-; Azure's api interface address
+;Azure's API interface address
 azure_api=
-;key of Azure
+;Key for Azure
 azure_key=
-; Azure model name, optional gpt-3.5-turbo gpt-4
+;Azure's model name, options include gpt-3.5-turbo gpt-4
 azure_model=gpt-3.5-turbo
-;key of google Gemini
+;Key for Google Gemini
 gemini_key=
 
 ```
 
-# CUDA Acceleration Support
-
-**[Install CUDA Toolkit article](https://juejin.cn/post/7318704408727519270)**
-
-
-Both cuda and cudnn must be installed properly, otherwise it may crash.
-After installing CUDA, if there are any issues, execute 'pip uninstall y torch', then execute 'pip install torch=2.1.2-- index URL' https://download.pytorch.org/whl/cu121 `.
-
-after installed，executable `python testcuda.py`, if output all is True, its ok, else reinstall
-
-if alert "not exists cublasxx.dll", [click to download cuBLAS](https://github.com/jianchang512/stt/releases/download/0.0/cuBLAS_win.7z)，extract and copy dll to C:/Windows/System32
+# Software Preview Screenshot
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/28cf7079-dc97-4666-abf3-abb030ae2ea2)
 
 
+# Related Projects
 
+[OTT: Local offline text translation tool](https://github.com/jianchang512/ott)
 
+[Clone Voice Tool: Synthesize speech with any timbre](https://github.com/jianchang512/clone-voice)
 
-# Software Preview Screenshots
+[STT: Local offline voice recognition to text tool](https://github.com/jianchang512/stt)
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/38494396-1be7-4fbe-803a-624a208431f5)
+[Vocal Separate: Vocal and background music separation tool](https://github.com/jianchang512/vocal-separate)
 
+[Improved version of GPT-SoVITS's api.py](https://github.com/jianchang512/gptsovits-api)
 
-[Youtube](https://www.youtube.com/playlist?list=PLVWPFvHklPATE7g3z18JWybF95-ODSDD9)
+## Acknowledgements
 
-
-# Comparison of Videos Before and After
-
-[Demo original video and translated video](https://www.wonyes.org/demo.html)
-
-
-
-
-# Acknowledgements
-
-> Some open source projects this program relies on (part of)
+> This program relies mainly on the following open-source projects
 
 1. ffmpeg
-2. PyQt5
+2. PySide6
 3. edge-tts
 4. faster-whisper
+5. openai-whisper
+6. pydub

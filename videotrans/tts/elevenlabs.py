@@ -18,6 +18,7 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
         )
         with open(filename,'wb') as f:
             f.write(audio)
+        tools.remove_silence_from_end(filename)
         return True
     except Exception as e:
         error=str(e)

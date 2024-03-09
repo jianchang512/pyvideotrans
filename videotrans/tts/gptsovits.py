@@ -51,6 +51,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             tools.wav2mp3(filename+".wav",filename)
             if os.path.exists(filename+".wav"):
                 os.unlink(filename+".wav")
+            tools.remove_silence_from_end(filename)
             return True
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")

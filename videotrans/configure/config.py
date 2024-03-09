@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import configparser
 import datetime
 import json
 import os
@@ -183,6 +182,7 @@ params = {
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
     "video_autorate": False,
+    "auto_ajust": True,
 
     "deepl_authkey": "",
     "deepl_api":"",
