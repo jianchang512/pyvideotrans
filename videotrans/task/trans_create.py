@@ -183,6 +183,8 @@ class TransCreate():
 
         if os.path.exists(self.targetdir_target_wav) and os.path.getsize(self.targetdir_target_wav) == 0:
             os.unlink(self.targetdir_target_wav)
+        
+        
 
     # 启动执行入口
     def run(self):
@@ -192,7 +194,8 @@ class TransCreate():
         if config.params['is_separate'] and config.params['tts_type'] == 'clone-voice':
             set_process(transobj['test clone voice'])
             try:
-                get_clone_role(True)
+                pass
+                #get_clone_role(True)
             except Exception as e:
                 raise Exception(str(e))
 
@@ -522,13 +525,11 @@ class TransCreate():
         queue_tts = []
         # 获取字幕
         try:
-            print('@@@@0')
             subs = get_subtitle_from_srt(self.targetdir_target_sub)
             if len(subs) < 1:
                 raise Exception(f"{os.path.basename(self.targetdir_target_sub)} 字幕格式不正确，请打开查看")
         except Exception as e:
             raise Myexcept(f'[error] tts srt:{str(e)}')
-        print('@@@@11')
         rate = int(str(config.params['voice_rate']).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
@@ -571,7 +572,6 @@ class TransCreate():
                 "endraw": it['endraw'],
                 "tts_type": config.params['tts_type'],
                 "filename": filename})
-        print('@@@@22')
         return queue_tts
 
     # 1. 将配音后文件的实际时长ms 以 dubb_time 加入 每条字幕信息中
@@ -788,12 +788,10 @@ class TransCreate():
 
         # 是否需要智能调整
         if "auto_ajust" in config.params and config.params['auto_ajust']:
-            print('1111111##########只能调整')
             queue_tts = self._auto_ajust(queue_tts)
 
         # 如果需要配音加速
         if config.params['voice_autorate']:
-            print('2221##########配音加速')
             queue_tts = self._ajust_audio(queue_tts, True if config.params['video_autorate'] else False)
 
         # 如果仅需配音
@@ -811,7 +809,6 @@ class TransCreate():
 
         # 如果需要视频慢速
         if config.params['video_autorate']:
-            print('23333########视频慢速')
             queue_tts = self._ajust_video(queue_tts)
 
         # 开始合并音频
@@ -824,12 +821,10 @@ class TransCreate():
 
         # 获取 novoice_mp4的长度
         video_time = get_video_duration(self.novoice_mp4)
-        print(f'{video_time=}')
         audio_length, queue_tts = self.merge_audio_segments(
             segments=segments,
             video_time=video_time,
             queue_tts=copy.deepcopy(queue_tts))
-        print(f'{audio_length=}')
         if audio_length > video_time:
             # 视频末尾延长
             try:
