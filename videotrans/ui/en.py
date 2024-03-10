@@ -572,81 +572,61 @@ class Ui_MainWindow(object):
         self.action_biaozhun = QtGui.QAction(MainWindow)
         self.action_biaozhun.setCheckable(True)
         self.action_biaozhun.setChecked(True)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_biaozhun.setFont(font)
+        
+        
         self.action_biaozhun.setObjectName("action_biaozhun")
         self.action_tiquzimu_no = QtGui.QAction(MainWindow)
         self.action_tiquzimu_no.setCheckable(True)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_tiquzimu_no.setFont(font)
+        
+        
         self.action_tiquzimu_no.setObjectName("action_tiquzimu_no")
         self.action_zimu_video = QtGui.QAction(MainWindow)
         self.action_zimu_video.setCheckable(True)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_zimu_video.setFont(font)
+        
+        
         self.action_zimu_video.setObjectName("action_zimu_video")
         self.action_zimu_peiyin = QtGui.QAction(MainWindow)
         self.action_zimu_peiyin.setCheckable(True)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_zimu_peiyin.setFont(font)
+       
+       
         self.action_zimu_peiyin.setObjectName("action_zimu_peiyin")
         self.action_yuyinshibie = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_yuyinshibie.setFont(font)
+    
+    
         self.action_yuyinshibie.setObjectName("action_yuyinshibie")
         self.action_yuyinhecheng = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_yuyinhecheng.setFont(font)
+   
+   
         self.action_yuyinhecheng.setObjectName("action_yuyinhecheng")
         self.action_tiquzimu = QtGui.QAction(MainWindow)
         self.action_tiquzimu.setCheckable(True)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_tiquzimu.setFont(font)
+ 
+ 
         self.action_tiquzimu.setObjectName("action_tiquzimu")
         self.action_yinshipinfenli = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_yinshipinfenli.setFont(font)
+    
+    
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_yingyinhebing.setFont(font)
+
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
         self.action_geshi = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_geshi.setFont(font)
+
         self.action_geshi.setObjectName("action_geshi")
         self.action_hun = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_hun.setFont(font)
+
         self.action_hun.setObjectName("action_hun")
 
         self.action_fanyi = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_fanyi.setFont(font)
+
         self.action_fanyi.setObjectName("action_fanyi")
 
         self.action_youtube = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_youtube.setFont(font)
+
         self.action_youtube.setObjectName("action_youtube")
 
         self.action_separate = QtGui.QAction(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Microsoft YaHei")
-        self.action_separate.setFont(font)
+
         self.action_separate.setObjectName("action_separate")
 
 

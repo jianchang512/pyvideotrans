@@ -9,7 +9,6 @@ from videotrans.util import tools
 
 
 def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
-
     try:
         api_url=config.params['clone_api'].strip().rstrip('/')
         if not api_url:

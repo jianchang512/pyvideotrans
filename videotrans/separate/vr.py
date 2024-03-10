@@ -55,6 +55,8 @@ class AudioPre:
         for d in range(bands_n, 0, -1):
             if self.source!='logs' and config.separate_status !='ing':
                 return
+            if self.source=='logs' and config.current_status!='ing':
+                return
             bp = self.mp.param["band"][d]
             print(f'{bp["sr"]=},{d=},{bands_n=}')
             if d == bands_n:  # high-end band
