@@ -61,7 +61,6 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
             wavfile=audio_file
         if not os.path.exists(wavfile):
             raise Exception(f'[error]not exists {wavfile}')
-        print(f"bbadas{bool(config.settings['vad'])}")
         segments, info = model.transcribe(wavfile,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
@@ -174,6 +173,9 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             raise config.Myexcept("stop")
+        if inst and inst.precent < 55:
+            inst.precent += 0.1
+        tools.set_process(config.transobj['qiegeshujuhaoshi'])
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -188,14 +190,10 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
-        print(f'{duration=}')
-        # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             return None
         start_time, end_time, buffered = duration
-        # if start_time == end_time:
-        #     end_time += 200
 
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
@@ -322,6 +320,9 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             raise config.Myexcept("stop")
+        if inst and inst.precent < 55:
+            inst.precent += 0.1
+        tools.set_process(config.transobj['qiegeshujuhaoshi'])
         nonsilent_data = shorten_voice_old(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)

@@ -12,6 +12,7 @@ TENCENT_NAME = "Tencent"
 CHATGPT_NAME = "chatGPT"
 AZUREGPT_NAME = "AzureGPT"
 GEMINI_NAME = "Gemini"
+TRANSAPI_NAME = "TransAPI"
 SRT_NAME = "srt"
 # 翻译通道
 TRANSNAMES = [
@@ -24,7 +25,8 @@ TRANSNAMES = [
     GEMINI_NAME,
     TENCENT_NAME,
     OTT_NAME,
-    DEEPLX_NAME
+    DEEPLX_NAME,
+    TRANSAPI_NAME
 ]
 #
 LANG_CODE = {
@@ -225,7 +227,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if show_target:
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if lower_translate_type == GOOGLE_NAME.lower():
+    if lower_translate_type in [GOOGLE_NAME.lower(), TRANSAPI_NAME.lower() ]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif lower_translate_type == BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -268,6 +270,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False)
         return config.transobj['deepl_authkey']
     if lower_translate_type == DEEPLX_NAME.lower() and not config.params["deeplx_address"]:
         return config.transobj['setdeeplx_address']
+
+    if lower_translate_type == TRANSAPI_NAME.lower() and not config.params["trans_api_url"]:
+        return "必须配置自定义翻译api的地址" if config.defaulelang=='zh' else "The address of the custom translation api must be configured"
 
     if lower_translate_type == OTT_NAME.lower() and not config.params["ott_address"]:
         return config.transobj['setott_address']
@@ -331,6 +336,8 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         from videotrans.translator.azure import trans
     elif lower_translate_type==MICROSOFT_NAME.lower():
         from videotrans.translator.microsoft import trans
+    elif lower_translate_type==TRANSAPI_NAME.lower():
+        from videotrans.translator.transapi import trans
     else:
         print(lower_translate_type == OTT_NAME.lower())
         raise Exception(f"[error]run {translate_type=},{target_language_name=}")

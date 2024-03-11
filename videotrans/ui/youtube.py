@@ -116,7 +116,7 @@ class Ui_youtubeform(object):
         self.verticalLayout_2.addWidget(self.outputdir)
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
         self.logs = QtWidgets.QLabel(youtubeform)
-        self.logs.setGeometry(QtCore.QRect(30, 250, 441, 16))
+        self.logs.setGeometry(QtCore.QRect(30, 250, 441, 35))
         self.logs.setText("")
         self.logs.setObjectName("logs")
 
@@ -126,7 +126,7 @@ class Ui_youtubeform(object):
     def retranslateUi(self, youtubeform):
         youtubeform.setWindowTitle( '下载Youtube视频' if config.defaulelang=='zh' else "Youtube Download")
         self.set.setText( '立即开始' if config.defaulelang=='zh' else "Start Download")
-        self.label.setText( '代理地址' if config.defaulelang=='zh' else "Proxy")
+        self.label.setText( '网络代理地址' if config.defaulelang=='zh' else "Proxy")
         self.label_2.setText( '视频播放页url' if config.defaulelang=='zh' else "Video URL")
         self.selectdir.setText( '保存目录' if config.defaulelang=='zh' else "Select Out Dir")
         self.proxy.setPlaceholderText( '填写代理地址，格式 http://127.0.0.1:端口号' if config.defaulelang=='zh' else "eg http://127.0.0.1:7890")

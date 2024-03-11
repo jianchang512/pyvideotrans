@@ -1,5 +1,7 @@
 {
   "translate_language": {
+    "qiegeshujuhaoshi": "If the video is very large, this step will be time-consuming, so please be patient.",
+    "youtubehasdown": "The download has begun, please check the progress in the pop-up download interface, WARNING: message do not need to pay attention to, just ignore it!",
     "starting...": "Processing will start and progress will be shown later",
     "dubbing speed up": "Dub speed up",
     "video speed down": "Video slowdown",
