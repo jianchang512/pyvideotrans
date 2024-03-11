@@ -697,7 +697,7 @@ class TransCreate():
                 concat_txt_arr.append(before_dst)
 
             it['filename_video'] = self.cache_folder + f'/{i}.mp4'
-            concat_txt_arr.append(it['filename_video'])
+            
             if it['speed_video'] > 1:
                 if 1 < config.settings['video_rate'] < it['speed_video']:
                     it['speed_video'] = config.settings['video_rate']
@@ -708,7 +708,11 @@ class TransCreate():
                                source=self.novoice_mp4,
                                pts=it['speed_video'],
                                out=it['filename_video'])
-            else:
+                concat_txt_arr.append(
+it['filename_video'])
+            elif it['end_time_source'] > it['start_time_source']:
+                concat_txt_arr.append(
+it['filename_video'])
                 # 直接截取原始片段，不慢放
                 cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
                                to=ms_to_time_string(ms=it['end_time_source']),
