@@ -826,8 +826,8 @@ def send_notification(title, message):
     from plyer import notification
     try:
         notification.notify(
-            title=title,
-            message=message,
+            title=title[:60],
+            message=message[:120],
             ticker="视频翻译与配音",
             app_name="视频翻译与配音",#config.uilanglist['SP-video Translate Dubbing'],
             app_icon=os.path.join(config.rootdir,'videotrans/styles/icon.ico'),

@@ -38,6 +38,15 @@ class Ui_separateform(object):
         sizePolicy.setHeightForWidth(separateform.sizePolicy().hasHeightForWidth())
         separateform.setSizePolicy(sizePolicy)
         separateform.setMaximumSize(QtCore.QSize(600, 300))
+
+
+        self.showtips = QtWidgets.QLabel(separateform)
+        self.showtips.setGeometry(QtCore.QRect(10, 130, 500, 50))
+        self.showtips.setStyleSheet("""color:#eeeeee""")
+        #开始分离
+        self.showtips.setObjectName("showtips")
+        self.showtips.setText("如果文件过大，或频繁分离出错，建议选择独立分离工具，比如uvr5或vocal-separate\ngithub.com/Anjok07/ultimatevocalremovergui/releases\ngithub.com/jianchang512/vocal-separate/releases")
+
         self.set = QtWidgets.QPushButton(separateform)
         self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -47,7 +56,7 @@ class Ui_separateform(object):
 
         # 创建一个布局
         self.layoutWidget = QtWidgets.QWidget(separateform)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 123))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 80))
         self.layoutWidget.setObjectName("layoutWidget")
         #创建表单布局
         self.formLayout = QtWidgets.QFormLayout(self.layoutWidget)

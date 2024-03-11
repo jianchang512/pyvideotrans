@@ -183,6 +183,15 @@ input("Press Enter for quit")
 # # 如果是WAV音频流，获取原始音频数据
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
-from videotrans.util import tools
 
-tools.create_video_byimg(img="./101.jpg", fps=2, scale=[1116,628], totime="00:00:00.001", out="ceshi.mp4")
+
+
+
+
+
+
+
+import requests
+response = requests.get(url="https://transapi.pyvideotrans.com/?text=你好啊我的朋友们&source_language=zh&target_language=en&secret=123456")
+
+print(response.json())

@@ -1,5 +1,7 @@
 {
   "translate_language": {
+    "qiegeshujuhaoshi": "若视频很大，此步会比较耗时，请耐心等待",
+    "youtubehasdown": "已开始下载，请在控制台界面中查看具体进度，WARNING:信息无需理会\n点击保存目录按钮后的文本框可打开下载文件保存目录",
     "starting...": "开始处理，稍后显示进度，请耐心等待",
     "dubbing speed up": "配音加速 ",
     "video speed down": "视频慢放 ",
@@ -41,7 +43,7 @@
     "Click to start the next step immediately": "点击立即开始执行下一步操作",
     "zimubianjitishi": "出现暂停按钮并点击暂停后,可在此修改字幕,以便处理更准确",
     "test google": "正在测试连接..",
-    "Select Out Dir": "下载到..",
+    "Select Out Dir": "选择保存目录",
     "downing...": "下载中...",
     "start download": "立即下载",
     "Down done succeed": "下载完成",

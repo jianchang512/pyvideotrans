@@ -11,7 +11,7 @@ from videotrans import configure
 from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
 warnings.filterwarnings('ignore')
-from videotrans.translator import is_allow_translate, get_code
+from videotrans.translator import is_allow_translate, get_code,  TRANSAPI_NAME
 from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role
 from videotrans.configure import config
 
@@ -744,8 +744,7 @@ class SecWindow():
             from videotrans.task.download_youtube import Download
             down = Download(proxy=proxy,url=url,out=outdir, parent=self.main)
             down.start()
-            self.main.youw.set.setDisabled(True)
-
+            self.main.youw.set.setText(config.transobj["downing..."])
         def selectdir():
             dirname = QFileDialog.getExistingDirectory(self.main, "Select Dir", outdir).replace('\\', '/')
             self.main.youw.outputdir.setText(dirname)
@@ -1041,7 +1040,17 @@ class SecWindow():
             self.main.ttsapiw.test.setText('测试api' if config.defaulelang=='zh' else 'Test api')
         def test():
             url = self.main.ttsapiw.api_url.text()
+            extra = self.main.ttsapiw.extra.text()
+            role = self.main.ttsapiw.voice_role.text().strip()
+
+            self.main.settings.setValue("ttsapi_url", url)
+            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
+            self.main.settings.setValue("ttsapi_voice_role", role)
+
             config.params["ttsapi_url"] = url
+            config.params["ttsapi_extra"] = extra
+            config.params["ttsapi_voice_role"] = role
+
             task=TestTTS(parent=self.main.ttsapiw,
                     text="你好啊我的朋友" if config.defaulelang=='zh' else 'hello,my friend',
                     role=self.main.ttsapiw.voice_role.text().strip().split(',')[0],
@@ -1078,6 +1087,66 @@ class SecWindow():
         self.main.ttsapiw.save.clicked.connect(save)
         self.main.ttsapiw.test.clicked.connect(test)
         self.main.ttsapiw.show()
+
+    def set_transapi(self):
+        class Test(QThread):
+            uito = Signal(str)
+            def __init__(self, *,parent=None,text=None):
+                super().__init__(parent=parent)
+                self.text=text
+
+            def run(self):
+                from videotrans.translator.transapi import trans
+                try:
+                    print('start')
+
+                    t=trans(self.text, target_language="en", set_p=False,source_code="zh",is_test=True)
+                    self.uito.emit(f"ok:{self.text}\n{t}")
+                except Exception as e:
+                    print(e)
+                    self.uito.emit(str(e))
+        def feed(d):
+            if d.startswith("ok:"):
+                QMessageBox.information(self.main.transapiw,"ok",d[3:])
+            else:
+                QMessageBox.critical(self.main.transapiw,config.transobj['anerror'],d)
+            self.main.transapiw.test.setText('测试api' if config.defaulelang=='zh' else 'Test api')
+        def test():
+            url = self.main.transapiw.api_url.text()
+            config.params["ttsapi_url"] = url
+            if not url:
+                return QMessageBox.critical(self.main.transapiw,config.transobj['anerror'],"必须填写自定义翻译的url" if config.defaulelang=='zh' else "The url of the custom translation must be filled in")
+            url = self.main.transapiw.api_url.text()
+            miyue = self.main.transapiw.miyue.text()
+            self.main.settings.setValue("trans_api_url", url)
+            self.main.settings.setValue("trans_secret", miyue)
+            config.params["trans_api_url"] = url
+            config.params["trans_secret"] = miyue
+            task=Test(parent=self.main.transapiw, text="你好啊我的朋友")
+            self.main.transapiw.test.setText('测试中请稍等...' if config.defaulelang=='zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+        def save():
+            url = self.main.transapiw.api_url.text()
+            miyue = self.main.transapiw.miyue.text()
+            self.main.settings.setValue("trans_api_url", url)
+            self.main.settings.setValue("trans_secret", miyue)
+            config.params["trans_api_url"] = url
+            config.params["trans_secret"] = miyue
+            self.main.transapiw.close()
+
+        from videotrans.component import TransapiForm
+        self.main.transapiw = TransapiForm()
+        if config.params["trans_api_url"]:
+            self.main.transapiw.api_url.setText(config.params["trans_api_url"])
+        if config.params["trans_secret"]:
+            self.main.transapiw.miyue.setText(config.params["trans_secret"])
+
+        self.main.transapiw.save.clicked.connect(save)
+        self.main.transapiw.test.clicked.connect(test)
+        self.main.transapiw.show()
+
 
     def set_gptsovits(self):
         class TestTTS(QThread):
@@ -1224,6 +1293,9 @@ class SecWindow():
             rs = is_allow_translate(translate_type=name, only_key=True)
             if rs is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
+                if name==TRANSAPI_NAME:
+                    self.set_transapi()
+
                 return
             config.params['translate_type'] = name
         except Exception as e:
@@ -1845,9 +1917,8 @@ class SecWindow():
             self.usetype.setText(d['text'])
 
         elif d['type'] == 'update_download' and self.main.youw is not None:
-            if d['text']=='ok' or d['text'].find('[error]')>-1:
-                self.main.youw.set.setDisabled(False)
-            self.main.youw.logs.setText(config.transobj['Down done succeed'] if d['text'] == 'ok' else f"{d['text']}")
+            self.main.youw.logs.setText(config.transobj['youtubehasdown'])
+            self.main.youw.set.setText(config.transobj['start download'])
         elif d['type'] == 'open_toolbox':
             self.open_toolbox(0, True)
         elif d['type']=='set_clone_role' and config.params['tts_type']=='clone-voice':

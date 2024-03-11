@@ -17,15 +17,13 @@ class Download(QThread):
 
     def run(self):
         set_process(config.transobj["downing..."],'update_download')
-        from you_get.extractors import  youtube
         try:
-            youtube.download(self.url,
-                output_dir=self.out,
-                merge=True,
-                extractor_proxy=self.proxy if self.proxy.startswith("http") or self.proxy.startswith('sock') else None
-            )
-        except Exception as e:
-            set_process("[error]"+str(e),'update_download')
+            pwd=config.rootdir+f"/ffmpeg/yt{sys.platform}"
+            proxy=self.proxy if self.proxy.startswith("http") or self.proxy.startswith('sock') else None
+            proxy="" if not proxy else f' --proxy {proxy} '
+            cmd=f'{pwd} -c -P {self.out}   {proxy} --windows-filenames --force-overwrites    --ignore-errors --merge-output-format mp4 {self.url}'
+            print(f'{cmd=}')
+            subprocess.run(cmd)
 
-            return
-        set_process('ok','update_download')
+        except Exception as e:
+            pass

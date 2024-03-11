@@ -548,6 +548,9 @@ class Ui_MainWindow(object):
         self.actiontts_api = QtGui.QAction(MainWindow)
         self.actiontts_api.setObjectName("actiontts_api")
 
+        self.actiontrans_api = QtGui.QAction(MainWindow)
+        self.actiontrans_api.setObjectName("actiontrans_api")
+
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
 
@@ -659,6 +662,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actiontts_gptsovits)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_api)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiontrans_api)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionElevenlabs_key)
         self.menu_Key.addSeparator()
@@ -777,6 +782,7 @@ class Ui_MainWindow(object):
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang=='zh' else "OTT Api")
         self.actionclone_address.setText("原音色克隆Api" if config.defaulelang=='zh' else "Clone-Voice Api")
         self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
+        self.actiontrans_api.setText("自定义翻译API" if config.defaulelang=='zh' else "TransateAPI")
         self.actiontts_gptsovits.setText("GPT-SoVITS API")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")

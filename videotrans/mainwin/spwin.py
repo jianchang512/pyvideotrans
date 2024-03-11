@@ -288,6 +288,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionott_address.triggered.connect(self.util.set_ott_address)
         self.actionclone_address.triggered.connect(self.util.set_clone_address)
         self.actiontts_api.triggered.connect(self.util.set_ttsapi)
+        self.actiontrans_api.triggered.connect(self.util.set_transapi)
         self.actiontts_gptsovits.triggered.connect(self.util.set_gptsovits)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
@@ -420,6 +421,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
         config.params["ttsapi_extra"] = self.settings.value("ttsapi_extra", "pyvideotrans")
         config.params["ttsapi_voice_role"] = self.settings.value("ttsapi_voice_role", "")
+
+        config.params["trans_api_url"] = self.settings.value("trans_api_url", "")
+        config.params["trans_secret"] = self.settings.value("trans_secret", "")
 
         config.params["gptsovits_url"] = self.settings.value("gptsovits_url", "")
         config.params["gptsovits_extra"] = self.settings.value("gptsovits_extra", "pyvideotrans")

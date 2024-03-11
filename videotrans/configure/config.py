@@ -85,7 +85,11 @@ def parse_init():
 
 
 # 语言
-defaulelang = locale.getdefaultlocale()[0][:2].lower()
+try:
+    defaulelang = locale.getdefaultlocale()[0][:2].lower()
+except:
+    defaulelang = "zh"
+
 # 初始化一个字典变量
 settings = parse_init()
 # default language 如果 ini中设置了，则直接使用，否则自动判断
@@ -218,6 +222,9 @@ params = {
     "ttsapi_url":"",
     "ttsapi_voice_role":"",
     "ttsapi_extra":"pyvideotrans",
+
+    "trans_api_url":"",
+    "trans_secret":"",
 
     "gptsovits_url":"",
     "gptsovits_role":"",

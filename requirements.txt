@@ -113,9 +113,9 @@ pyinstaller==6.3.0
 pyinstaller-hooks-contrib==2023.9
 pyparsing==3.1.1
 pyreadline3==3.4.1
-PySide6==6.6.1
-PySide6-Addons==6.6.1
-PySide6-Essentials==6.6.1
+PySide6==6.6.2
+PySide6-Addons==6.6.2
+PySide6-Essentials==6.6.2
 PySoundFile==0.9.0.post1
 python-dateutil==2.8.2
 pytz==2023.3.post1
@@ -158,4 +158,3 @@ websockets==12.0
 Werkzeug==3.0.1
 wrapt==1.15.0
 yarl==1.9.2
-you-get==0.4.1650
