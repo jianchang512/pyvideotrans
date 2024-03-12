@@ -89,7 +89,7 @@ def set_proxy(set_val=''):
     if http_proxy:
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
-        config.proxy=http_proxy
+        #config.proxy=http_proxy
         return http_proxy
     if sys.platform != 'win32':
         return None
@@ -105,7 +105,7 @@ def set_proxy(set_val=''):
                 # 是否需要设置代理
                 if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
-                config.proxy=proxy_server
+                #config.proxy=proxy_server
                 return proxy_server
     except Exception as e:
         print(f"Error accessing Windows registry: {e}")

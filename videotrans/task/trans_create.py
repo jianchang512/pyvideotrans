@@ -696,9 +696,9 @@ class TransCreate():
                                out=before_dst)
                 concat_txt_arr.append(before_dst)
 
-            it['filename_video'] = self.cache_folder + f'/{i}.mp4'
-            
+
             if it['speed_video'] > 1:
+                it['filename_video'] = self.cache_folder + f'/{i}.mp4'
                 if 1 < config.settings['video_rate'] < it['speed_video']:
                     it['speed_video'] = config.settings['video_rate']
                 set_process(f"{config.transobj['video speed down']} {it['speed_video']}")
@@ -708,11 +708,10 @@ class TransCreate():
                                source=self.novoice_mp4,
                                pts=it['speed_video'],
                                out=it['filename_video'])
-                concat_txt_arr.append(
-it['filename_video'])
+                concat_txt_arr.append(it['filename_video'])
             elif it['end_time_source'] > it['start_time_source']:
-                concat_txt_arr.append(
-it['filename_video'])
+                it['filename_video'] = self.cache_folder + f'/{i}.mp4'
+                concat_txt_arr.append(it['filename_video'])
                 # 直接截取原始片段，不慢放
                 cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
                                to=ms_to_time_string(ms=it['end_time_source']),
@@ -725,7 +724,12 @@ it['filename_video'])
                            out=last_v)
             concat_txt_arr.append(last_v)
         # 将所有视频片段连接起来
-        concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
+        new_arr=[]
+        for it in concat_txt_arr:
+            if os.path.exists(it) and os.path.getsize(it)>0:
+                new_arr.append(it)
+        if len(new_arr)>0:
+            concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
         return queue_tts
 
     # 自动后延或前延以对齐

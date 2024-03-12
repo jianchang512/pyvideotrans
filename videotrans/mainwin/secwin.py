@@ -1619,6 +1619,21 @@ class SecWindow():
         if self.main.subtitle_area.toPlainText().strip():
             return True
         return False
+    
+    def change_proxy(self,p):
+        # 设置或删除代理
+        config.proxy = p.strip()
+        print(f'{p=}')
+        try:
+            if config.proxy:
+                # 设置代理
+                set_proxy(config.proxy)
+            else:
+                # 删除代理
+                set_proxy('del')
+            self.main.settings.setValue('proxy',config.proxy)
+        except:
+            pass
 
     # 检测开始状态并启动
     def check_start(self):
