@@ -232,7 +232,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if config.params['voice_role'] and config.params['voice_role']!='No' and self.current_rolelist and config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.util.show_listen_btn(config.params['voice_role'])
-
+        
+        self.proxy.textChanged.connect(self.util.change_proxy)
+        
         # menubar
         self.import_sub.clicked.connect(self.util.import_sub_fun)
         self.import_sub.setCursor(Qt.PointingHandCursor)

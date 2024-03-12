@@ -157,7 +157,6 @@ input("Press Enter for quit")
 # print(res.json())
 
 
-
 # import requests
 #
 # data={
@@ -184,14 +183,53 @@ input("Press Enter for quit")
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
 
+import os
+import shutil
+import subprocess
+import sys
 
+if not shutil.which("ffmpeg"):
+    print('当前系统未安装ffmpeg，请下载ffmpeg.exe 放在当前目录下\n下载地址\nhttps://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z')
+    input("按回车退出")
+    sys.exit()
 
+root = os.getcwd()
+cfg = os.path.join(root, 'cfg.ini')
+sext = ['mp3', 'flac', 'mp4', 'mpeg', 'aac', 'mkv', 'avi']
+ext = 'wav'
+if os.path.exists(cfg):
+    with open(cfg, 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            it = line.strip()
+            if it:
+                it = it.replace('，', ',').split('=')
+                if len(it) == 2 and it[0].lower() == 'source_ext':
+                    sext = [x.lower().strip() for x in it[1].split(",")]
+                elif len(it) == 2 and it[0].lower() == 'target_ext':
+                    ext = it[1].lower().strip()
 
+files = []
+for it in os.listdir(root):
+    if it.split('.')[-1].lower() in sext:
+        files.append(it)
 
+print(f'当前将把格式为 {sext} 的文件转为 {ext}\n')
+if len(files) < 1:
+    print(f'没有需要转换的文件')
+else:
+    ok = 0
+    err = []
 
+    for it in files:
+        try:
+            subprocess.run(
+                ['ffmpeg', "-hide_banner", "-ignore_unknown", '-y', '-i', os.path.normpath(os.path.join(root, it)),
+                 f'{it}.{ext}'], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            print(f'[OK] {it} 转换成功')
+            ok += 1
+        except:
+            err.append(it)
+            print(f'[Error] {it} 转换失败')
 
-
-import requests
-response = requests.get(url="https://transapi.pyvideotrans.com/?text=你好啊我的朋友们&source_language=zh&target_language=en&secret=123456")
-
-print(response.json())
+    print(f"\n转换完毕，{ok} 个成功，{len(err)} 个失败,{err if len(err) > 0 else ''}\n")
+input("按回车退出")

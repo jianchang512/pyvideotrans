@@ -811,10 +811,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if proxy:
             tools.set_proxy(proxy)
             self.settings.setValue('proxy',proxy)
+            config.proxy=proxy
         else:
             proxy = self.settings.value("proxy", "", str)
             if proxy:
                 tools.set_proxy(proxy)
+                config.proxy=proxy
                 self.settings.setValue('proxy',proxy)
                 if translate_type.lower()==GOOGLE_NAME:
                     self.fanyi_proxy.setText(proxy)
