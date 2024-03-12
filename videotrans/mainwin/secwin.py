@@ -937,21 +937,19 @@ class SecWindow():
             def run(self):
                 try:
                     from videotrans.translator.chatgpt import trans as trans_chatgpt
-                    text = trans_chatgpt("测试正确" if config.defaulelang != 'zh' else "Test is ok",
-                                         "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, inst=None)
-                    self.uito.emit("ok")
+                    raw="你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
+                    text = trans_chatgpt(raw,"English" if config.defaulelang != 'zh' else "Chinese", set_p=False, inst=None,is_test=True)
+                    self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
         def feed(d):
-            if d!="ok":
+            if not d.startswith("ok:"):
                 QMessageBox.critical(self.main.w,config.transobj['anerror'],d)
             else:
-                QMessageBox.information(self.main.w,"OK","测试正常" if config.defaulelang=='zh' else "All right")
+                QMessageBox.information(self.main.w,"OK",d[3:])
             self.main.w.test_chatgpt.setText('测试' if config.defaulelang=='zh' else 'Test')
 
         def test():
-            config.box_trans='ing'
-            
             key = self.main.w.chatgpt_key.text()
             api = self.main.w.chatgpt_api.text().strip()
             api=api if api else 'https://api.openai.com/v1'
@@ -1822,10 +1820,10 @@ class SecWindow():
         if type != 'ing':
             # 结束或停止
             self.main.subtitle_area.setReadOnly(False)
+            self.main.subtitle_area.clear()
             self.main.startbtn.setText(config.transobj[type])
             # 启用
             self.disabled_widget(False)
-            self.main.subtitle_area.clear()
             if type == 'end':
                 # 成功完成
                 self.main.source_mp4.setText(config.transobj["No select videos"])
@@ -1874,12 +1872,8 @@ class SecWindow():
         elif d['type'] == "logs":
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type']=='error':
-            # self.update_status(d['type'])
-            # self.main.continue_compos.hide()
-            # self.main.target_dir.clear()
             if d['type']=='error':
                 self.set_process_btn_text(d['text'], d['btnkey'],d['type'])
-                #QMessageBox.critical(self.main,config.transobj['anerror'],d['text'])
             elif d['type']=='stop':
                 self.set_process_btn_text(config.transobj['stop'], d['btnkey'],d['type'])
                 self.main.subtitle_area.clear()
@@ -1888,7 +1882,6 @@ class SecWindow():
                 self.main.continue_compos.hide()
                 self.main.target_dir.clear()
                 self.main.stop_djs.hide()
-                self.main.continue_compos.hide()
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
@@ -1934,6 +1927,10 @@ class SecWindow():
         elif d['type'] == 'update_download' and self.main.youw is not None:
             self.main.youw.logs.setText(config.transobj['youtubehasdown'])
             self.main.youw.set.setText(config.transobj['start download'])
+        elif d['type']=='youtube_error':
+            QMessageBox.critical(self.main.youw,config.transobj['anerror'],d['text'][:900])
+        elif d['type']=='youtube_ok':
+            QMessageBox.information(self.main.youw,"OK",d['text'])
         elif d['type'] == 'open_toolbox':
             self.open_toolbox(0, True)
         elif d['type']=='set_clone_role' and config.params['tts_type']=='clone-voice':

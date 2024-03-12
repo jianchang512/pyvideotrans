@@ -53,7 +53,7 @@ def get_error(num=5, type='error'):
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
 
-def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None):
+def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None,is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -82,8 +82,23 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     if not isinstance(text_list, str):
         is_srt = True
         prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
+    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    split_size = int(config.settings['trans_thread'])
+    end_point="。 " if config.defaulelang=='zh' else ' . '
+    # 整理待翻译的文字为 List[str]
+    if not is_srt:
+        source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
+    else:
+        source_text=[]
+        for i,it in enumerate(text_list):
+            tmp=it['text'].strip().replace('\n',end_point)
+            if split_size>1:
+                source_text.append(f"<{it['line']}>.{tmp}{end_point}")
+            else:
+                source_text.append(f"{tmp}")
+    split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
     while 1:
-        if config.current_status != 'ing' and config.box_trans != 'ing':
+        if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
             break
 
         if iter_num >= config.settings['retries']:
@@ -98,25 +113,27 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             time.sleep(5)
 
         # 整理待翻译的文字为 List[str]
-        if not is_srt:
-            source_text = [t.strip() for t in text_list.strip().split("\n")]
-        else:
-            source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
-
         # 切割为每次翻译多少行，值在 set.ini中设定，默认10
-        split_size = int(config.settings['trans_thread'])
-        split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+        # split_size = int(config.settings['trans_thread'])
+        # if not is_srt:
+        #     source_text = [t.strip() for t in text_list.strip().split("\n")]
+        # elif split_size>1:
+        #     source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
+        # else:
+        #     source_text = [f"{t['text'].strip()}" for t in text_list]
+        #
+        # split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response = None
         for i, it in enumerate(split_source_text):
             print(f'{it=}')
-            if config.current_status != 'ing' and config.box_trans != 'ing':
+            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
                 break
             if i < index:
                 continue
             if stop > 0:
                 time.sleep(stop)
             lines = []
-            if is_srt:
+            if is_srt  and split_size>1:
                 for get_line in it:
                     lines.append(re.match(r'<(\d+)>\.', get_line).group(1))
             try:
@@ -134,7 +151,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 print(f'{result=}')
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
-                if not is_srt:
+                if not is_srt  or split_size==1:
                     target_text["0"].append(result)
                     if not set_p:
                         tools.set_process_box(result + "\n", func_name="set_fanyi")

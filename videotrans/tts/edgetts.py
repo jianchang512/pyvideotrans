@@ -3,7 +3,6 @@ import sys
 import time
 import os
 import edge_tts
-from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -35,12 +34,12 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
     except Exception as e:
         err = str(e)
         config.logger.error(f'[edgeTTS]{err}')
-        if err.find("Invalid response status") > 0:
+        if err.find("Invalid response status") > 0 or err.find('WinError 10054')>-1:
             if set_p:
                 tools.set_process("edgeTTS过于频繁暂停5s后重试")
             config.settings['dubbing_thread']=1
             time.sleep(10)
             asyncio.run(communicate.save(filename))
         else:
-            raise  Exception(err)
+            raise Exception(err)
     return True

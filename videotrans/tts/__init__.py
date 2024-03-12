@@ -79,7 +79,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
             for t in tolist:
                 t.start()
             for t in tolist:
-                if len(thread_err)>0:
+                if len(thread_err)>2:
                     raise Exception(thread_err.pop(0))
                 n += 1
                 if set_p:

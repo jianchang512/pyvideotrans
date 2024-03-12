@@ -67,7 +67,7 @@ class Worker(QThread):
         task_nums = len(tasks)
         set_process('','set_start_btn')
 
-
+        error_num=0
         while len(tasks)>0:
             num += 1
             set_process(f"Processing {num}/{task_nums}", 'statusbar')
@@ -96,26 +96,23 @@ class Worker(QThread):
                     pass
                 if len(config.queue_mp4)>0:
                     config.queue_mp4.pop(0)
-                # if self.video and self.video.noextname:
-                #     delete_temp(self.video.noextname)
             except Exception as e:
                 print(f"mainworker {str(e)}")
+                error_num+=1
                 if str(e)!='stop':
                     set_process(f"{str(e)}", 'error', btnkey=self.video.btnkey if self.video and self.video.btnkey else "")
                     send_notification("Error",f"{str(e)}")
                 else:
                     return None
-                # return None
             finally:
                 time.sleep(2)
-                # if self.video and self.video.noextname:
-                #    delete_temp(self.video.noextname)
                 if self.video and self.video.del_sourcemp4 and self.video.source_mp4 and os.path.exists(self.video.source_mp4):
                     os.unlink(self.video.source_mp4)
         # 全部完成
         set_process("", 'end')
-        time.sleep(3)
-        delete_temp()
+        if error_num==0:
+            time.sleep(3)
+            delete_temp()
 
 
 class Shiting(QThread):

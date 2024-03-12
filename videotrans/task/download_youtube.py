@@ -23,7 +23,11 @@ class Download(QThread):
             proxy="" if not proxy else f' --proxy {proxy} '
             cmd=f'{pwd} -c -P {self.out}   {proxy} --windows-filenames --force-overwrites    --ignore-errors --merge-output-format mp4 {self.url}'
             print(f'{cmd=}')
-            subprocess.run(cmd)
+            p=subprocess.run(cmd,check=True,stderr=subprocess.PIPE)
+            if p.returncode==0:
+                set_process(f'下载完成' if config.defaulelang=='zh' else 'Download succeed','youtube_ok')
 
+        except subprocess.CalledProcessError as e:
+            set_process(str(e.stderr),'youtube_error')
         except Exception as e:
-            pass
+            set_process(str(e),'youtube_error')
