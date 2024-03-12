@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 import requests
 from videotrans.configure import config
@@ -14,7 +15,19 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-
+    url=config.params['ott_address'].strip().rstrip('/').replace('/translate','')+'/translate'
+    url=url.replace('//translate','/translate')
+    if not url.startswith('http'):
+        url=f"http://{url}"
+    serv = tools.set_proxy()
+    proxies = None
+    if serv:
+        proxies = {
+            'http': serv,
+            'https': serv
+        }
+    if re.search(r'localhost',url) or re.match(r'https?://(\d+\.){3}\d+',url):
+        proxies={"http":"","https":""}
     # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
@@ -58,12 +71,9 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "target": target_language
                 }
 
-                url=config.params['ott_address'].strip().rstrip('/').replace('/translate','')+'/translate'
-                url=url.replace('//translate','/translate')
-                if not url.startswith('http'):
-                    url=f"http://{url}"
+
                 try:
-                    response = requests.post(url=url,json=data,proxies={"http":"","https":""})
+                    response = requests.post(url=url,json=data,proxies=proxies)
                     result = response.json()
                 except Exception as e:
                     msg = f"OTT出错了，请检查部署和地址: {str(e)}"

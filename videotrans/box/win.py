@@ -7,7 +7,7 @@ import time
 
 import torch
 from PySide6 import QtWidgets
-from PySide6.QtCore import QSettings, QUrl
+from PySide6.QtCore import QSettings, QUrl, Qt
 from PySide6.QtGui import QDesktopServices, QIcon, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
 from videotrans import VERSION
@@ -28,6 +28,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initSize=None
         self.shibie_out_path=None
+        self.hecheng_files=[]
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
@@ -99,9 +100,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.hecheng_importbtn = QtWidgets.QPushButton(self.tab_2)
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
-        self.hecheng_importbtn.setFixedWidth(100)
+        self.hecheng_importbtn.setFixedHeight(35)
+        self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
+
+
         self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
-        self.hecheng_importbtn.clicked.connect(lambda:self.fanyi_import_fun(self.hecheng_plaintext))
+        self.hecheng_importbtn.clicked.connect(self.hecheng_import_fun)
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
@@ -223,10 +227,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except:
                 with open(fname, 'r', encoding='GBK') as f:
                     content=f.read().strip()
-            if obj and not isinstance(obj,bool):
-                return obj.setPlainText(content)
-            else:
-                self.fanyi_sourcetext.setPlainText(content)
+            self.fanyi_sourcetext.setPlainText(content)
+
+    def hecheng_import_fun(self):
+        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.last_opendir,
+                                               "Text files(*.srt)")
+        if len(fnames) < 1:
+            return
+        for (i, it) in enumerate(fnames):
+            fnames[i] = it.replace('\\', '/').replace('file:///', '')
+
+        if len(fnames) > 0:
+            config.last_opendir=os.path.dirname(fnames[0])
+            self.settings.setValue("last_dir", config.last_opendir)
+            self.hecheng_files = fnames
+            content=""
+            try:
+                with open(fnames[0], 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+            except:
+                with open(fnames[0], 'r', encoding='GBK') as f:
+                    content = f.read().strip()
+            self.hecheng_plaintext.setPlainText(content)
+            self.tts_issrt.setChecked(True)
+            self.tts_issrt.setDisabled(True)
+            self.hecheng_importbtn.setText(f'导入{len(fnames)}个srt文件' if config.defaulelang=='zh' else  f'Import {len(fnames)} Subtitles' )
+
     def render_play(self, t):
         if t != 'ok':
             return
@@ -248,7 +274,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.isdir(dirname):
             dirname = os.path.dirname(dirname)
         QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
-        # QDesktopServices.openUrl(QUrl(f"file:{dirname.strip()}"))
 
     # 通知更新ui
     def receiver(self, json_data):
@@ -287,17 +312,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self,config.transobj['anerror'],data['text'])
             else:
                 self.shibie_dropbtn.setText(data['text'])
+
+        elif data['func_name'] == 'hecheng_set':
+            # 填充合成文本
+            self.hecheng_plaintext.setPlainText(data['text'])
         elif data['func_name'] == 'hecheng_end':
-            if data['type'] == 'end':
-                self.hecheng_startbtn.setText(config.transobj["zhixingwc"])
-                self.hecheng_startbtn.setToolTip(config.transobj["zhixingwc"])
-                self.statuslabel.setText("Succeed")
+            if data['type'] == 'ing':
+                self.hecheng_startbtn.setText(config.transobj["running"]+data['text'])
+            elif data['type']=='end':
+                self.hecheng_out.setDisabled(False)
+                self.hecheng_startbtn.setDisabled(False)
+                self.hecheng_startbtn.setText(config.uilanglist['Start'])
+                self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+                self.hecheng_plaintext.clear()
+                self.tts_issrt.setDisabled(False)
+                if data['text']!='Succeed':
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
             else:
-                self.hecheng_startbtn.setText(data['text'])
-                self.hecheng_startbtn.setToolTip(data['text'])
-                self.hecheng_startbtn.setStyleSheet("""color:#ff0000""")
                 QMessageBox.critical(self,config.transobj['anerror'],data['text'])
-            self.hecheng_startbtn.setDisabled(False)
         elif data['func_name'] == 'geshi_end':
             config.geshi_num -= 1
             self.geshi_result.moveCursor(QTextCursor.End)
@@ -366,7 +398,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pathdir = os.path.dirname(self.yspfl_videoinput.text())
         elif name == "wav":
             pathdir = os.path.dirname(self.yspfl_wavinput.text())
-        # QDesktopServices.openUrl(QUrl(f"file:{pathdir}"))
         QDesktopServices.openUrl(QUrl.fromLocalFile(pathdir))
 
     # tab-2音视频合并
@@ -494,10 +525,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def check_cuda(self, state):
         # 选中如果无效，则取消
-        if state and not torch.cuda.is_available():
-            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nocuda'])
-            self.is_cuda.setChecked(False)
-            self.is_cuda.setDisabled(True)
+        if state:
+            if not torch.cuda.is_available():
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nocuda'])
+                self.is_cuda.setChecked(False)
+                self.is_cuda.setDisabled(True)
+            else:
+                from torch.backends import cudnn
+                if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
+                    QMessageBox.critical(self, config.transobj['anerror'], config.transobj["nocudnn"])
+                    self.is_cuda.setChecked(False)
+                    self.is_cuda.setDisabled(True)
 
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
@@ -619,11 +657,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             filename = ""
         if not filename:
             newrole=role.replace('/','-').replace('\\','-')
-            filename = f"tts-{newrole}-{rate}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.wav"
+            filename = f"{newrole}-rate{rate}"
         else:
-            filename = filename.replace('.wav', '') + ".wav"
+            filename = filename.replace('.wav', '')
+
         if not os.path.exists(f"{config.homedir}/tts"):
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
+
         wavname = f"{config.homedir}/tts/{filename}"
         
         if rate >= 0:
@@ -633,11 +673,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
-                                      text=txt,
+                                      files=self.hecheng_files if len(self.hecheng_files)>0 else txt,
                                       role=role,
                                       rate=rate,
                                       langcode=langcode,
-                                      filename=wavname,
+                                      wavname=wavname,
                                       tts_type=self.tts_type.currentText(),
                                       func_name="hecheng_end",
                                       voice_autorate=issrt and self.voice_autorate.isChecked(),

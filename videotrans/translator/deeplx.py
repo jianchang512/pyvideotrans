@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 import requests
 from videotrans.configure import config
@@ -14,6 +15,18 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
+    url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'
+    if not url.startswith('http'):
+        url=f"http://{url}"
+    serv = tools.set_proxy()
+    proxies = None
+    if serv:
+        proxies = {
+            'http': serv,
+            'https': serv
+        }
+    if re.search(r'localhost',url) or re.match(r'https?://(\d+\.){3}\d+',url):
+        proxies={"http":"","https":""}
     # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
@@ -39,7 +52,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             source_text = [t['text'] for t in text_list]
 
         # 切割为每次翻译多少行，值在 set.ini 中设定，默认10
-        split_size = 1#int(config.settings['trans_thread'])
+        split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response=None
         for i,it in enumerate(split_source_text):
@@ -57,10 +70,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "target_lang": 'zh' if target_language.startswith('zh') else  target_language
                 }
                 config.logger.info(f'data,{i=}, {data}')
-                url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'
-                if not url.startswith('http'):
-                    url=f"http://{url}"
-                response = requests.post(url=url, json=data, proxies={"http":"","https":""})
+
+                response = requests.post(url=url, json=data, proxies=proxies)
                 if response.status_code!=200:
                     raise Exception(f'code={response.status_code}')
                 try:

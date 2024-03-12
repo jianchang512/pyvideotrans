@@ -6,7 +6,7 @@ from openai import AzureOpenAI
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -33,8 +33,23 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     if not isinstance(text_list, str):
         is_srt = True
         prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
+    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    split_size = int(config.settings['trans_thread'])
+    end_point="。 " if config.defaulelang=='zh' else ' . '
+    # 整理待翻译的文字为 List[str]
+    if not is_srt:
+        source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
+    else:
+        source_text=[]
+        for i,it in enumerate(text_list):
+            tmp=it['text'].strip().replace('\n',end_point)
+            if split_size>1:
+                source_text.append(f"<{it['line']}>.{tmp}{end_point}")
+            else:
+                source_text.append(f"{tmp}")
+    split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
     while 1:
-        if config.current_status!='ing' and config.box_trans!='ing':
+        if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
             break
         if iter_num >= config.settings['retries']:
             raise Exception(
@@ -49,10 +64,13 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
 
         # 整理待翻译的文字为 List[str]
-        if not is_srt:
-            source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
-        else:
-            source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
+        # split_size = int(config.settings['trans_thread'])
+        # if not is_srt:
+        #     source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
+        # elif split_size>1:
+        #     source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
+        # else:
+        #     source_text = [f"{t['text'].strip()}" for t in text_list]
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
@@ -60,18 +78,17 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             azure_endpoint=config.params["azure_api"],
             http_client=httpx.Client(proxies=proxies)
         )
-        split_size = int(config.settings['trans_thread'])
-        split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+        # split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing':
+            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
                 break
             if i<index:
                 continue
             if stop>0:
                 time.sleep(stop)
             lines=[]
-            if is_srt:
+            if is_srt  and split_size>1:
                 for get_line in it:
                     lines.append(re.match(r'<(\d+)>\.',get_line).group(1))
             try:
@@ -98,7 +115,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 result=result.strip().replace('&#39;','"').replace('&quot;',"'")
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
-                if not is_srt:
+                if not is_srt  or split_size==1:
                     target_text["0"].append(result)
                     if not set_p:
                         tools.set_process_box(result + "\n", func_name="set_fanyi")

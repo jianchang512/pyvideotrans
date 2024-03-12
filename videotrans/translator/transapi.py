@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 import urllib
 
@@ -17,6 +18,14 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         是否实时输出日志，主界面中需要
     """
     # 翻译后的文本
+    url=config.params['trans_api_url'].rstrip('/')
+    if not url.startswith('http'):
+        url=f"http://{url}"
+    print(f'{url=}')
+    if url.find('?')>0:
+        url+='&'
+    else:
+        url+='/?'
     serv = tools.set_proxy()
     proxies = None
     if serv:
@@ -24,6 +33,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             'http': serv,
             'https': serv
         }
+    if re.search(r'localhost',url) or re.match(r'https?://(\d+\.){3}\d+',url):
+        proxies={"http":"","https":""}
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
@@ -68,14 +79,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "target_language": 'zh' if target_language.startswith('zh') else  target_language
                 }
                 config.logger.info(f'data,{i=}, {data}')
-                url=config.params['trans_api_url'].rstrip('/')
-                if not url.startswith('http'):
-                    url=f"http://{url}"
-                print(f'{url=}')
-                if url.find('?')>0:
-                    url+='&'
-                else:
-                    url+='/?'
+
                 response = requests.get(url=f"{url}target_language={data['target_language']}&source_language={data['source_language']}&text={data['text']}&secret={data['secret']}",proxies=proxies)
                 if response.status_code!=200:
                     raise Exception(f'code={response.status_code},{response.text}')

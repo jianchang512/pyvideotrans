@@ -10,7 +10,7 @@ from videotrans.util import tools
 
 
 
-def create_openai_client(proxies):
+def create_openai_client():
     api_url = "https://api.openai.com/v1"
     
     if config.params['chatgpt_api']:
@@ -23,25 +23,25 @@ def create_openai_client(proxies):
         api_url=url.replace('chat.openai.com','api.openai.com')
         
     openai.base_url = api_url
-    config.logger.info(f'chatGPT:{api_url=}')
+    config.logger.info(f'当前chatGPT:{api_url=}')
+    proxies=None
+    if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
+        serv = tools.set_proxy()
+        if serv:
+            proxies = {
+                'http://': serv,
+                'https://': serv
+            }
     try:
         client = OpenAI(base_url=api_url,http_client=httpx.Client(proxies=proxies))
     except Exception as e:
-        raise Exception(f'API={api_url},{str(e)}')
+        raise Exception(f'chatGPT API={api_url},{str(e)}')
     return client,api_url
 
 
-def set_proxies(serv):
-    proxies = None
-    if serv:
-        proxies = {
-            'http://': serv,
-            'https://': serv
-        }
-    return proxies
 
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -50,8 +50,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     set_p:
         是否实时输出日志，主界面中需要
     """
-    serv = tools.set_proxy()
-    proxies = set_proxies(serv)
 
     # 翻译后的文本
     target_text = {"0":[]}
@@ -63,8 +61,23 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     if not isinstance(text_list, str):
         is_srt=True
         prompt=config.params['chatgpt_template'].replace('{lang}', target_language)
+    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    split_size = int(config.settings['trans_thread'])
+    end_point="。 " if config.defaulelang=='zh' else ' . '
+    # 整理待翻译的文字为 List[str]
+    if not is_srt:
+        source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
+    else:
+        source_text=[]
+        for i,it in enumerate(text_list):
+            tmp=it['text'].strip().replace('\n',end_point)
+            if split_size>1:
+                source_text.append(f"<{it['line']}>.{tmp}{end_point}")
+            else:
+                source_text.append(f"{tmp}")
+    split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
     while 1:
-        if config.current_status!='ing' and config.box_trans!='ing':
+        if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
             break
         if iter_num >= config.settings['retries']:
             raise Exception(
@@ -76,29 +89,19 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
             time.sleep(5)
-        # 整理待翻译的文字为 List[str]
-        if not is_srt:
-            source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
-        else:
-            source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
+        client,api_url = create_openai_client()
 
-        client,api_url = create_openai_client(proxies)
-        # 切割为每次翻译多少行，值在 set.ini中设定，默认10
-        split_size = int(config.settings['trans_thread'])
-        print(f'{split_size=}')
-        split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
         for i,it in enumerate(split_source_text):
             print(f'{it=}')
-
-            if config.current_status != 'ing' and config.box_trans != 'ing':
+            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
                 break
             if i < index:
                 continue
             if stop>0:
                 time.sleep(stop)
             lines=[]
-            if is_srt:
+            if is_srt and split_size>1:
                 for get_line in it:
                     lines.append(re.match(r'<(\d+)>\.',get_line).group(1))
             try:
@@ -125,13 +128,13 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 print(f'{result=}')
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
-                if not is_srt:
+                if not is_srt or split_size==1:
                     target_text["0"].append(result)
                     if not set_p:
                         tools.set_process_box(result + "\n", func_name="set_fanyi")
                     continue
                 if len(lines)==1:
-                    result = re.sub(r'<\d+>\.?', "\n", result).strip()
+                    result = re.sub(r'<\d+>\.?', "\n", result).strip().rstrip(end_point)
                     if set_p:
                         tools.set_process(result + "\n", 'subtitle')
                         tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
@@ -146,7 +149,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                         if len(tmp) >= 2:
                             line = f'{tmp[0]}'
                             result_text = f'{tmp[1]}'
-                            target_text[line] = result_text.strip()
+                            target_text[line] = result_text.strip().rstrip(end_point)
                         else:
                             continue
                         if set_p:
@@ -157,7 +160,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 else:
                     sep_res = re.sub(r'<\d+>\.?', '', result).split("\n", len(lines) - 1)
                     for num, txt in enumerate(sep_res):
-                        target_text[num] = txt.strip()
+                        target_text[num] = txt.strip().rstrip(end_point)
                 iter_num=0
             except Exception as e:
                 error=str(e)
