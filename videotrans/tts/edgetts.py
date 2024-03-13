@@ -41,5 +41,5 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
             time.sleep(10)
             asyncio.run(communicate.save(filename))
         else:
-            raise Exception(err)
+            raise Exception("edgeTTS->"+err)
     return True

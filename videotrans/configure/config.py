@@ -45,17 +45,19 @@ def parse_init():
         "retries":5,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4",
         "separate_sec":1800,
-        "audio_rate":0,
-        "video_rate":0,
+        "audio_rate":2.5,
         "initial_prompt_zh":"",
         "fontsize":14,
         "voice_silence":200,
         "interval_split":10,
         "cjk_len":24,
         "other_len":36,
-        "backaudio_volume":0.8,
+        "backaudio_volume":0.5,
         "overall_silence":100,
-        "overall_maxsecs":4
+        "overall_maxsecs":4,
+        "remove_srt_silence":False,
+        "remove_silence":True,
+        "remove_white_ms":0
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):
@@ -185,7 +187,6 @@ params = {
     "translate_type": "google",
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
-    "video_autorate": False,
     "auto_ajust": True,
 
     "deepl_authkey": "",

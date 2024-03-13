@@ -2,6 +2,7 @@ import copy
 import datetime
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -374,8 +375,14 @@ class TransCreate():
 
     # 测试google是否可用
     def testgoogle(self):
+        google_url='https://translate.google.com'
+        if os.path.exists(os.path.join(config.rootdir,'google.txt')):
+            with open(os.path.join(config.rootdir,'google.txt'),'r') as f:
+                t=f.read().strip().rstrip('/')
+                if t and re.match(r'https?://',t,re.I):
+                    google_url=t
         text = "你好"
-        url = f"https://translate.google.com/m?sl=auto&tl=en&hl=en&q={urllib.parse.quote(text)}"
+        url = f"{google_url}/m?sl=auto&tl=en&hl=en&q={urllib.parse.quote(text)}"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
@@ -454,18 +461,20 @@ class TransCreate():
         for i,it in enumerate(queue_tts):
             segment = segments[i]
             the_dur=len(segment)
-            it['start_time']+=offset
-            it['end_time']+=offset
-            raw_dur=it['end_time']-it['start_time']
-            
+            #字幕可用时间
+            raw_dur=it['raw_duration']
+
             diff=the_dur-raw_dur
-            if diff>0:
+            # 配音大于字幕时长，后延，延长时间
+            if diff>=0:
+                print(f'配音大于字幕时长{diff}ms, i={i+1}')
                 it['end_time']+=diff
                 offset+=diff
             else:
-                it['end_time']+=diff
-                offset+=diff
-                
+                #配音小于原时长，添加静音
+                merged_audio += AudioSegment.silent(duration=abs(diff))
+
+
             if i > 0:
                 silence_duration = it['start_time'] - queue_tts[i - 1]['end_time']
                 # 前面一个和当前之间存在静音区间
@@ -475,8 +484,8 @@ class TransCreate():
             it['startraw']=ms_to_time_string(ms=it['start_time'])
             it['endraw']=ms_to_time_string(ms=it['end_time'])
             queue_tts[i]=it
-
             merged_audio += segment
+
         if video_time > 0 and (len(merged_audio) < video_time):
             # 末尾补静音
             silence = AudioSegment.silent(duration=video_time - len(merged_audio))
@@ -574,9 +583,8 @@ class TransCreate():
                 "filename": filename})
         return queue_tts
 
-    # 1. 将配音后文件的实际时长ms 以 dubb_time 加入 每条字幕信息中
-    # 需要复制一份 start_time_source 用于记录每条字幕原始视频的开始时间戳
-    # 需要复制一份 end_time_source 用于记录每条字幕原始视频的结束时间戳
+    # 1. 将每个配音的实际长度加入 dubb_time
+    #
     def _add_dubb_time(self, queue_tts):
         for i, it in enumerate(queue_tts):
             # 防止开始时间比上个结束时间还小
@@ -585,179 +593,63 @@ class TransCreate():
             # 防止结束时间小于开始时间
             if it['end_time'] < it['start_time']:
                 it['end_time'] = it['start_time']
-
+            # 保存原始
             it['start_time_source'] = it['start_time']
             it['end_time_source'] = it['end_time']
+            #记录原字母区间时长
+            it['raw_duration']=it['end_time']-it['start_time']
 
             if it['end_time'] > it['start_time'] and os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
                 it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp3"))
             else:
+                #不存在配音
                 it['dubb_time'] = 0
             queue_tts[i] = it
+
         return queue_tts
 
-    # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
-    def _ajust_audio(self, queue_tts, is_half=False):
-        # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
-        max_speed = config.settings['audio_rate']
-        for i, it in enumerate(queue_tts):
-            it['speed'] = 0
-            it['add_time'] = 0
-            # 存在配音时进行处理
-            if it['dubb_time'] <= 0:
-                queue_tts[i] = it
-                continue
-            # 原时长
-            raw_duration = it['end_time_source'] - it['start_time_source']
-            # 配音时长-原时长
-            diff = it['dubb_time'] - raw_duration
-            # 存在原时长，并且新配音大于原时长，才需要加速,计算加速倍数 speed，并计算相对于原时长需要延长的时长add_time, 原时长不变
-            if raw_duration <= 0 or diff <= 0:
-                queue_tts[i] = it
-                continue
-            # 是否按照对齐的一半进行，用于音频加速和视频慢速同时起作用
-            it['speed'] = round(it['dubb_time'] / raw_duration, 2)
-            it['add_time'] = 0
-            if is_half:
-                # 加速一半
-                # 实际调整后配音时长
-                half = float(diff / 2)
-                it['speed'] = round((raw_duration + half) / raw_duration, 2)
-                # 需要更新时间
-                it['add_time'] = half
-                # 如果大于限制倍，则最大限制倍
-            if it['speed'] > max_speed:
-                it['speed'] = max_speed
-                it['add_time'] = float((it['dubb_time'] / it['speed']) - raw_duration)
-            queue_tts[i] = it
-        # 再次遍历，调整字幕开始结束时间对齐实际音频时长
-        # 每次 start_time 和 end_time 需要添加的长度 offset 为当前所有 add_time 之和
-        offset = 0
-        for i, it in enumerate(queue_tts):
-            it['start_time'] += offset
-            # 结束时间还需要额外添加
-            it['end_time'] += offset
-
-            offset += it['add_time']
-            jindu = (len(queue_tts) * 10) / (i + 1)
-            if self.precent + jindu < 95:
-                self.precent += jindu
-            if it['speed'] > 1:
-                # 调整音频
-                set_process(f"{config.transobj['dubbing speed up']} {it['speed']}")
-                tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}-speed.mp3')
-                speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
-                it['filename'] = tmp_mp3
-            # 更改时间戳
-            it['startraw'] = ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = ms_to_time_string(ms=it['end_time'])
-            queue_tts[i] = it
+    #2.  移除原字幕多于配音的时长，实际是字幕结束时间向前移动，和下一条之间的空白更加多了
+    def _remove_srt_silence(self,queue_tts):
+        #如果需要移除多出来的静音
+        for i,it in enumerate(queue_tts):
+            # 配音小于 原时长，移除默认静音
+            if it['dubb_time']>0 and it['dubb_time'] < it['raw_duration']:
+                diff=it['raw_duration']-it['dubb_time']
+                it['end_time']-=diff
+                it['raw_duration']=it['dubb_time']
+            queue_tts[i]=it
         return queue_tts
-
-    # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
-    def _ajust_video(self, queue_tts):
-        # 计算视频应该慢放的倍数，用当前实际的字幕时长/原始字幕时长得到倍数，如果当前时长小于等于原时长，不处理
-        for i, it in enumerate(queue_tts):
-            it['speed_video'] = 0
-            # 原始字幕时间长
-            raw_duration = it['end_time_source'] - it['start_time_source']
-            # 当前实际长度，配音加速后的
-            real_duration = it['end_time'] - it['start_time']
-            diff = real_duration - raw_duration
-            # 如果两者相等，或者实际长度小于原始长度，不处理 只有真实时长(可能经过了配音加速)大于原时长时处理
-            if raw_duration > 0 and real_duration > 0 and diff > 0:
-                # 将 end_time_source start_time_source 时间段的视频强制延长为 real
-                it['speed_video'] = round(real_duration / raw_duration, 2)
-                if config.settings['video_rate'] > 1 and it['speed_video'] > config.settings['video_rate']:
-                    it['speed_video'] = config.settings['video_rate']
-            queue_tts[i] = it
-        # 开始遍历每个时间段，如果需要视频加速，则截取 end_time_source start_time_source 时间段的视频，进行speed_video 处理
-        concat_txt_arr = []
-        last_time = get_video_duration(self.novoice_mp4)
-        for i, it in enumerate(queue_tts):
-            jindu = (len(queue_tts) * 10) / (i + 1)
-            if self.precent + jindu < 95:
-                self.precent += jindu
-            # 如果i==0即第一个视频，前面若是还有片段，需要截取
-            if i == 0:
-                if it['start_time_source'] > 0:
-                    before_dst = self.cache_folder + f'/{i}-before.mp4'
-                    cut_from_video(ss='00:00:00.000',
-                                   to=ms_to_time_string(ms=it['start_time_source']),
-                                   source=self.novoice_mp4,
-                                   out=before_dst)
-                    concat_txt_arr.append(before_dst)
-            elif it['start_time_source'] > queue_tts[i - 1]['end_time_source']:
-                # 否则如果距离前一个字幕结束之间还有空白，则将此空白视频段截取
-                before_dst = self.cache_folder + f'/{i}-before.mp4'
-                cut_from_video(ss=ms_to_time_string(ms=queue_tts[i - 1]['end_time_source']),
-                               to=ms_to_time_string(ms=it['start_time_source']),
-                               source=self.novoice_mp4,
-                               out=before_dst)
-                concat_txt_arr.append(before_dst)
-
-
-            if it['speed_video'] > 1:
-                it['filename_video'] = self.cache_folder + f'/{i}.mp4'
-                if 1 < config.settings['video_rate'] < it['speed_video']:
-                    it['speed_video'] = config.settings['video_rate']
-                set_process(f"{config.transobj['video speed down']} {it['speed_video']}")
-                # 截取原始视频
-                cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
-                               to=ms_to_time_string(ms=it['end_time_source']),
-                               source=self.novoice_mp4,
-                               pts=it['speed_video'],
-                               out=it['filename_video'])
-                concat_txt_arr.append(it['filename_video'])
-            elif it['end_time_source'] > it['start_time_source']:
-                it['filename_video'] = self.cache_folder + f'/{i}.mp4'
-                concat_txt_arr.append(it['filename_video'])
-                # 直接截取原始片段，不慢放
-                cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
-                               to=ms_to_time_string(ms=it['end_time_source']),
-                               source=self.novoice_mp4,
-                               out=it['filename_video'])
-        if queue_tts[-1]['end_time_source'] < last_time:
-            last_v = self.cache_folder + "/last_dur.mp4"
-            cut_from_video(ss=ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
-                           source=self.novoice_mp4,
-                           out=last_v)
-            concat_txt_arr.append(last_v)
-        # 将所有视频片段连接起来
-        new_arr=[]
-        for it in concat_txt_arr:
-            if os.path.exists(it) and os.path.getsize(it)>0:
-                new_arr.append(it)
-        if len(new_arr)>0:
-            concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
-        return queue_tts
-
-    # 自动后延或前延以对齐
+    # 3. 自动后延或前延以对齐
     def _auto_ajust(self, queue_tts):
         max_index = len(queue_tts) - 1
+
         for i, it in enumerate(queue_tts):
             # 如果存在配音文件并且时长大于0，才需要判断是否顺延
             if "dubb_time" not in it and it['dubb_time'] <= 0:
                 continue
             # 配音时长如果大于原时长，才需要两侧延伸
-            diff = it['dubb_time'] - (it['end_time_source'] - it['start_time_source'])
+            diff = it['dubb_time'] - it['raw_duration']
             if diff <= 0:
                 continue
             # 需要两侧延伸
-            # 先向后
+
+            # 最后一个，直接后延就可以
             if i == max_index:
                 # 如果是最后一个，直接延长
                 it['end_time'] += diff
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                #重新设定可用的字幕区间时长
+                it['raw_duration']=it['end_time']-it['start_time']
                 queue_tts[i] = it
                 continue
 
             # 判断后边的开始时间比当前结束时间是否大于
-            next_diff = queue_tts[i + 1]['start_time_source'] - it['end_time_source']
+            next_diff = queue_tts[i + 1]['start_time'] - it['end_time']
             if next_diff >= diff:
                 # 如果大于0，有空白，添加
                 it['end_time'] += diff
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                it['raw_duration']=it['end_time']-it['start_time']
                 queue_tts[i] = it
                 continue
 
@@ -766,17 +658,206 @@ class TransCreate():
             # 先向后延伸占完空白，然后再向前添加，
             it['end_time'] += next_diff
             # 判断是否存在前边偏移
-            if it['start_time_source'] > 0:
+            if it['start_time'] > 0:
                 # 前面空白
-                prev_diff = it['start_time_source'] if i == 0 else it['start_time_source'] - queue_tts[i - 1][
-                    'end_time_source']
+                prev_diff = it['start_time'] if i == 0 else it['start_time'] - queue_tts[i - 1]['end_time']
                 # 前面再添加最多 diff - next_diff
                 it['start_time'] -= min(prev_diff, diff - next_diff)
                 it['start_time'] = 0 if it['start_time'] < 0 else it['start_time']
+            it['raw_duration']=it['end_time']-it['start_time']
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
             it['endraw'] = ms_to_time_string(ms=it['end_time'])
             queue_tts[i] = it
         return queue_tts
+
+
+    #   移除2个字幕间的间隔 config.settings[remove_white_ms] ms
+    def _remove_white_ms(self,queue_tts):
+        offset=0
+        for i,it in enumerate(queue_tts):
+            if i>0:
+                it['start_time']-=offset
+                it['end_time']-=offset
+                # 配音小于 原时长，移除默认静音
+                dt=it['start_time']-queue_tts[i-1]['end_time']
+                if dt>config.settings['remove_white_ms']:
+                    diff=config.settings['remove_white_ms']
+                    it['end_time']-=diff
+                    it['start_time']-=diff
+                    offset+=diff
+                queue_tts[i]=it
+        return queue_tts
+
+
+    # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
+    def _ajust_audio(self, queue_tts):
+        # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
+        max_speed = config.settings['audio_rate']
+        if max_speed>=100:
+            max_speed=99
+
+        #设置加速倍数
+        for i, it in enumerate(queue_tts):
+            it['speed'] = 0
+            it['add_time'] = 0
+            # 存在配音时进行处理 没有配音
+            if it['dubb_time'] <= 0:
+                queue_tts[i] = it
+                continue
+            # 字幕可用时长
+            raw_duration = it['raw_duration']
+            # 配音时长大于可用字幕时长，需加速
+            diff = it['dubb_time'] - raw_duration
+            # 存在原时长，并且新配音大于原时长，才需要加速,计算加速倍数 speed，并计算相对于原时长需要延长的时长add_time, 原时长不变
+            # 配音时长 不大于 原时长，不处理
+            if raw_duration <= 0 or diff <= 0:
+                queue_tts[i] = it
+                continue
+            # 是否按照对齐的一半进行，用于音频加速和视频慢速同时起作用
+            # 倍数上浮
+            it['speed'] = round(it['dubb_time'] / raw_duration,2)
+            if it['speed']<=1:
+                it['speed']=0
+                queue_tts[i]=it
+                continue
+
+
+
+            #     # 如果大于限制倍，则最大限制倍
+            if max_speed> 1 and max_speed<it['speed']:
+                it['speed']=max_speed
+
+            if it['speed']<1:
+                it['speed']=0
+            print(f'[i={i+1}],配音时长={it["dubb_time"]},需加速{it["speed"]}')
+            queue_tts[i] = it
+
+        # 再次遍历，调整字幕开始结束时间对齐实际音频时长
+        # 每次 start_time 和 end_time 需要添加的长度 offset 为当前所有 add_time 之和
+        offset = 0
+        for i, it in enumerate(queue_tts):
+            jindu = (len(queue_tts) * 10) / (i + 1)
+            if self.precent + jindu < 95:
+                self.precent += jindu
+            #偏移增加
+            it['start_time'] += offset
+            # 结束时间还需要额外添加
+            it['end_time'] +=offset
+
+            if it['speed']<=1:
+                # 不需要加速
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
+                queue_tts[i] = it
+                continue
+
+
+            if it['speed'] >1:
+                # 调整音频
+                set_process(f"{config.transobj['dubbing speed up']} {it['speed']}")
+
+                tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}-speed.mp3')
+                speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
+                # 加速后时间
+                mp3_len=len(AudioSegment.from_file(tmp_mp3, format="mp3"))
+                raw_t=it['raw_duration']
+                #加速后如果仍大于原时长，再移除末尾静音
+                if mp3_len > raw_t:
+                    tools.remove_silence_from_end(tmp_mp3)
+                    add_time=len(AudioSegment.from_file(tmp_mp3, format="mp3"))-raw_t
+                    print(f'加速并移除静音后仍多出来 add_time={add_time=}')
+                    if add_time>0:
+                        # 需要延长结束时间，以便字幕 声音对齐
+                        it['end_time']+=add_time
+                        offset += add_time
+                it['raw_duration']=it['end_time']-it['start_time']
+                it['filename'] = tmp_mp3
+
+            # 更改时间戳
+            print(f'【i={i+1}】 加速{it["speed"]}')
+            it['startraw'] = ms_to_time_string(ms=it['start_time'])
+            it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            queue_tts[i] = it
+        return queue_tts
+
+    # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
+    # def _ajust_video(self, queue_tts):
+    #     # 计算视频应该慢放的倍数，用当前实际的字幕时长/原始字幕时长得到倍数，如果当前时长小于等于原时长，不处理
+    #     for i, it in enumerate(queue_tts):
+    #         it['speed_video'] = 0
+    #         # 原始字幕时间长
+    #         raw_duration = it['raw_duration']
+    #         # 当前实际长度，配音加速后的
+    #         real_duration = it['end_time'] - it['start_time']
+    #         diff = real_duration - raw_duration
+    #         # 如果两者相等，或者实际长度小于原始长度，不处理 只有真实时长(可能经过了配音加速)大于原时长时处理
+    #         if raw_duration > 0 and real_duration > 0 and diff > 0:
+    #             # 将 end_time_source start_time_source 时间段的视频强制延长为 real
+    #             it['speed_video'] = round(real_duration / raw_duration, 2)
+    #             if config.settings['video_rate'] > 1 and it['speed_video'] > config.settings['video_rate']:
+    #                 it['speed_video'] = config.settings['video_rate']
+    #         queue_tts[i] = it
+    #     # 开始遍历每个时间段，如果需要视频加速，则截取 end_time_source start_time_source 时间段的视频，进行speed_video 处理
+    #     concat_txt_arr = []
+    #     last_time = get_video_duration(self.novoice_mp4)
+    #     for i, it in enumerate(queue_tts):
+    #         jindu = (len(queue_tts) * 10) / (i + 1)
+    #         if self.precent + jindu < 95:
+    #             self.precent += jindu
+    #         # 如果i==0即第一个视频，前面若是还有片段，需要截取
+    #         if i == 0:
+    #             if it['start_time_source'] > 0:
+    #                 before_dst = self.cache_folder + f'/{i}-before.mp4'
+    #                 cut_from_video(ss='00:00:00.000',
+    #                                to=ms_to_time_string(ms=it['start_time_source']),
+    #                                source=self.novoice_mp4,
+    #                                out=before_dst)
+    #                 concat_txt_arr.append(before_dst)
+    #         elif it['start_time_source'] > queue_tts[i - 1]['end_time_source']:
+    #             # 否则如果距离前一个字幕结束之间还有空白，则将此空白视频段截取
+    #             before_dst = self.cache_folder + f'/{i}-before.mp4'
+    #             cut_from_video(ss=ms_to_time_string(ms=queue_tts[i - 1]['end_time_source']),
+    #                            to=ms_to_time_string(ms=it['start_time_source']),
+    #                            source=self.novoice_mp4,
+    #                            out=before_dst)
+    #             concat_txt_arr.append(before_dst)
+    #
+    #
+    #         if it['speed_video'] > 1:
+    #             it['filename_video'] = self.cache_folder + f'/{i}.mp4'
+    #             if 1 < config.settings['video_rate'] < it['speed_video']:
+    #                 it['speed_video'] = config.settings['video_rate']
+    #             set_process(f"{config.transobj['video speed down']} {it['speed_video']}")
+    #             # 截取原始视频
+    #             cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
+    #                            to=ms_to_time_string(ms=it['end_time_source']),
+    #                            source=self.novoice_mp4,
+    #                            pts=it['speed_video'],
+    #                            out=it['filename_video'])
+    #             concat_txt_arr.append(it['filename_video'])
+    #         elif it['end_time_source'] > it['start_time_source']:
+    #             it['filename_video'] = self.cache_folder + f'/{i}.mp4'
+    #             concat_txt_arr.append(it['filename_video'])
+    #             # 直接截取原始片段，不慢放
+    #             cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
+    #                            to=ms_to_time_string(ms=it['end_time_source']),
+    #                            source=self.novoice_mp4,
+    #                            out=it['filename_video'])
+    #     if queue_tts[-1]['end_time_source'] < last_time:
+    #         last_v = self.cache_folder + "/last_dur.mp4"
+    #         cut_from_video(ss=ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
+    #                        source=self.novoice_mp4,
+    #                        out=last_v)
+    #         concat_txt_arr.append(last_v)
+    #     # 将所有视频片段连接起来
+    #     new_arr=[]
+    #     for it in concat_txt_arr:
+    #         if os.path.exists(it) and os.path.getsize(it)>0:
+    #             new_arr.append(it)
+    #     if len(new_arr)>0:
+    #         concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
+    #     return queue_tts
+
 
     def exec_tts(self, queue_tts):
         if config.current_status != 'ing':
@@ -787,20 +868,29 @@ class TransCreate():
         try:
             run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.target_language_code, set_p=True, inst=self)
         except Exception as e:
-            raise Myexcept(str(e))
+            raise Myexcept("exectts:"+str(e))
         if config.current_status != 'ing':
             raise Myexcept('stop')
 
-        # 首先添加配音时间
+        # 1.首先添加配音时间
         queue_tts = self._add_dubb_time(queue_tts)
 
-        # 是否需要智能调整
+        # 2.移除字幕多于配音的时间，实际上是字幕结束时间前移，和下一条字幕空白更多
+        if config.settings['remove_srt_silence']:
+            queue_tts=self._remove_srt_silence(queue_tts)
+
+        # 3.是否需要 前后延展
         if "auto_ajust" in config.params and config.params['auto_ajust']:
             queue_tts = self._auto_ajust(queue_tts)
 
-        # 如果需要配音加速
+
+        # 4. 如果需要配音加速
         if config.params['voice_autorate']:
-            queue_tts = self._ajust_audio(queue_tts, True if config.params['video_autorate'] else False)
+            queue_tts = self._ajust_audio(queue_tts)
+
+        # 5.从字幕间隔移除多余的毫秒数
+        if config.settings['remove_white_ms']>0:
+            queue_tts=self._remove_white_ms(queue_tts)
 
         # 如果仅需配音
         if self.app_mode == 'peiyin':
@@ -815,17 +905,15 @@ class TransCreate():
             self.merge_audio_segments(segments=segments, queue_tts=queue_tts)
             return True
 
-        # 如果需要视频慢速
-        if config.params['video_autorate']:
-            queue_tts = self._ajust_video(queue_tts)
+
 
         # 开始合并音频
         segments = []
         for i, it in enumerate(queue_tts):
-            if it['dubb_time'] > 0:
+            if os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
                 segments.append(AudioSegment.from_file(it['filename'], format="mp3"))
             else:
-                segments.append(AudioSegment.silent(duration=it['end_time_source'] - it['start_time_source']))
+                segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
 
         # 获取 novoice_mp4的长度
         video_time = get_video_duration(self.novoice_mp4)
@@ -837,6 +925,7 @@ class TransCreate():
             # 视频末尾延长
             try:
                 # 对视频末尾定格延长
+                print(f'需要延长视频 {audio_length - video_time}')
                 self.novoicemp4_add_time(audio_length - video_time)
             except Exception as e:
                 raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
@@ -855,6 +944,7 @@ class TransCreate():
     def novoicemp4_add_time(self, duration_ms):
         if config.current_status != 'ing':
             return False
+        duration_ms=1000 if duration_ms<1000 else duration_ms
         set_process(f'{transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
@@ -874,7 +964,8 @@ class TransCreate():
 
         # 创建 ms 格式
         totime = ms_to_time_string(ms=duration_ms).replace(',', '.')
-        print(f'##############{fps=}')
+
+        print(f'##############{fps=}==={duration_ms=}')
         create_video_byimg(img=img, fps=fps, scale=scale, totime=totime, out=last_clip)
 
         # 开始将 novoice_mp4 和 last_clip 合并

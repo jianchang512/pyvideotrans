@@ -382,9 +382,6 @@ class Ui_MainWindow(object):
         self.voice_autorate.setObjectName("voice_autorate")
         self.gaoji_layout_inner.addWidget(self.voice_autorate)
 
-        self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
-        self.video_autorate.setObjectName("video_autorate")
-        self.gaoji_layout_inner.addWidget(self.video_autorate)
 
         self.auto_ajust = QtWidgets.QCheckBox(self.layoutWidget)
         self.auto_ajust.setObjectName("auto_ajust")
@@ -748,8 +745,6 @@ class Ui_MainWindow(object):
         self.voice_rate.setPlaceholderText(config.uilanglist.get("Positive numbers accelerate, negative numbers decelerate, -90 to+90"))
         self.voice_autorate.setToolTip(config.uilanglist.get("shuoming03"))
         self.voice_autorate.setText(config.uilanglist.get("Voice acceleration?"))
-        self.video_autorate.setToolTip(config.uilanglist.get("shuoming03"))
-        self.video_autorate.setText(config.uilanglist.get("Video slow"))
         self.auto_ajust.setText(config.transobj.get("auto_ajust"))
         self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
         # self.enable_cuda.setToolTip(config.uilanglist.get("It is necessary to ensure that there is an NVIDIA graphics card and that the CUDA environment is correctly configured, otherwise do not choose"))
