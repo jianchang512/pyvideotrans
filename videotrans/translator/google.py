@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import urllib
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
+
+def get_url():
+    google_url='https://translate.google.com'
+    if os.path.exists(os.path.join(config.rootdir,'google.txt')):
+        with open(os.path.join(config.rootdir,'google.txt'),'r') as f:
+            t=f.read().strip().rstrip('/')
+            if t and re.match(r'https?://',t,re.I):
+                google_url=t
+    return google_url
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None):
     """
@@ -28,6 +38,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    google_url=get_url()
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing':
             break
@@ -64,7 +75,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
                 source_length=len(it)
                 text = "\n".join(it)
-                url = f"https://translate.google.com/m?sl=auto&tl={urllib.parse.quote(target_language)}&hl={urllib.parse.quote(target_language)}&q={urllib.parse.quote(text)}"
+                url = f"{google_url}/m?sl=auto&tl={urllib.parse.quote(target_language)}&hl={urllib.parse.quote(target_language)}&q={urllib.parse.quote(text)}"
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
@@ -98,7 +109,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     raise Exception(f'Google no result:{re_result}')
             except Exception as e:
                 error = str(e)
-                config.logger.error(f'Google error:{str(error)}')
+                config.logger.error(f'Google error:{google_url} {str(error)}')
                 err=error
                 index=i
                 break

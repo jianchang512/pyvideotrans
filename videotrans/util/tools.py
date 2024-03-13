@@ -898,6 +898,8 @@ def kill_ffmpeg_processes():
 
 
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10):
+    if not config.settings['remove_silence']:
+        return False
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
     """

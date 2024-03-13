@@ -1,7 +1,5 @@
 import os
 import threading
-import time
-
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -45,7 +43,7 @@ def text_to_speech(stop_event=None,*, text="", role="", rate='+0%',language=None
         if stop_event:
             stop_event.set()
         thread_err.append(err)
-        raise Exception(f'{err}')
+        raise Exception(f'text->speech:{err}')
 
 
 def run(*, queue_tts=None, language=None,set_p=True,inst=None):
@@ -88,5 +86,5 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]')
                 t.join()
         except Exception as e:
-            raise config.Myexcept(f'{str(e)}')
+            raise config.Myexcept(f'runtts:{str(e)}')
     return True

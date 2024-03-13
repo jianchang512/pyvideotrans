@@ -180,7 +180,6 @@ class SecWindow():
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
-        self.main.video_autorate.show()
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
@@ -237,8 +236,6 @@ class SecWindow():
         self.main.voice_autorate.hide()
         self.main.voice_autorate.setChecked(False)
         # 视频自动降速
-        self.main.video_autorate.hide()
-        self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
@@ -303,8 +300,6 @@ class SecWindow():
         self.main.voice_autorate.hide()
         self.main.voice_autorate.setChecked(False)
         # 视频自动降速
-        self.main.video_autorate.hide()
-        self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
@@ -362,8 +357,6 @@ class SecWindow():
         self.main.voice_autorate.hide()
         self.main.voice_autorate.setChecked(False)
         # 视频自动降速
-        self.main.video_autorate.show()
-        self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
@@ -417,8 +410,6 @@ class SecWindow():
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
-        self.main.video_autorate.hide()
-        self.main.video_autorate.setChecked(False)
         self.main.is_separate.setDisabled(True)
         self.main.is_separate.setChecked(False)
         config.params['is_separate'] = False
@@ -435,15 +426,12 @@ class SecWindow():
         self.main.infofrom = InfoForm()
         self.main.infofrom.show()
 
-    # voice_autorate video_autorate 变化
+    # voice_autorate  变化
     def autorate_changed(self, state, name):
         if name == 'voice':
             config.params['voice_autorate'] = state
         elif name=='auto_ajust':
             config.params['auto_ajust'] = state
-        elif name=='video':
-            config.params['video_autorate'] = state
-
 
 
     def open_dir(self, dirname=None):
@@ -495,7 +483,6 @@ class SecWindow():
         self.main.whisper_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
         # self.main.voice_silence.setDisabled(type)
-        self.main.video_autorate.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
         self.main.model_type.setDisabled(type)
@@ -1556,7 +1543,6 @@ class SecWindow():
             config.params['source_mp4'] = ''
             config.params['source_language'] = '-'
             config.params['subtitle_type'] = 0
-            config.params['video_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
             config.params['is_separate']=False
@@ -1572,7 +1558,6 @@ class SecWindow():
             config.params['source_language'] = '-'
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
-            config.params['video_autorate'] = False
             config.params['voice_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
@@ -1592,7 +1577,6 @@ class SecWindow():
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
-            config.params['video_autorate'] = False
             if self.main.app_mode == 'tiqu_no':
                 config.params['target_language'] = '-'
         return True
@@ -1675,7 +1659,6 @@ class SecWindow():
         config.params['voice_autorate'] = self.main.voice_autorate.isChecked()
 
         # 视频自动减速
-        config.params['video_autorate'] = self.main.video_autorate.isChecked()
         # 语音模型
         config.params['whisper_model'] = self.main.whisper_model.currentText()
         # 字幕嵌入类型
