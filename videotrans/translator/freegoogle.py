@@ -6,6 +6,17 @@ import urllib
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
+import random
+
+urls=[
+"https://g.pyvideotrans.com",
+"https://g0.pyvideotrans.com",
+"https://g1.pyvideotrans.com",
+"https://g2.pyvideotrans.com",
+"https://g3.pyvideotrans.com",
+"https://g4.pyvideotrans.com",
+]
+
 
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None):
@@ -30,7 +41,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
-    google_url=tools.get_google_url()
+    google_url=random.choice(urls)
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing':
             break
@@ -74,7 +85,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
-                    raise Exception(f'Google error_code={response.status_code}')
+                    raise Exception(f'FreeGoogle {google_url} error_code={response.status_code}')
 
                 re_result = re.findall(
                     r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
@@ -98,10 +109,10 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     target_text.extend(result)
                     iter_num=0
                 else:
-                    raise Exception(f'Google no result:{re_result}')
+                    raise Exception(f'FreeGoogle {google_url} no result:{re_result}')
             except Exception as e:
                 error = str(e)
-                config.logger.error(f'Google error:{google_url} {str(error)}')
+                config.logger.error(f'FreeGoogle {google_url} error:{google_url} {str(error)}')
                 err=error
                 index=i
                 break

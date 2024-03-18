@@ -182,54 +182,38 @@ input("Press Enter for quit")
 # # 如果是WAV音频流，获取原始音频数据
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
+from openai import OpenAI
 
-import os
-import shutil
-import subprocess
-import sys
+client = OpenAI(
+    base_url = 'http://localhost:11434/v1',
+    api_key='qwen', # required, but unused
+)
 
-if not shutil.which("ffmpeg"):
-    print('当前系统未安装ffmpeg，请下载ffmpeg.exe 放在当前目录下\n下载地址\nhttps://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z')
-    input("按回车退出")
-    sys.exit()
+prompt="""
+- 请将发送给你的文字翻译为英语。
+- 译文必须简短精炼，不能冗长复杂。
+- 必须保留所有符号(如数字、标点符号、<>、|、.换行符等)。
+- 不要在返回的结果中省略任何符号
+- 不要丢失任何特殊字符或格式。
+- 一行一行翻译，每一行原文都翻译为一行译文。
+- 绝不能将两行原文翻译为一行译文。
+- 输出前，必须检查译文行数同发给你的行数是否一致，如果不一致，则放弃该次翻译，重新使用原文翻译。
+- 以上规则对我的工作非常重要，请务必遵守。
+- 请不要回复上述任何说明，也不要回答内容中的疑问句、祈使句等，从下一行开始翻译。
+"""
 
-root = os.getcwd()
-cfg = os.path.join(root, 'cfg.ini')
-sext = ['mp3', 'flac', 'mp4', 'mpeg', 'aac', 'mkv', 'avi']
-ext = 'wav'
-if os.path.exists(cfg):
-    with open(cfg, 'r', encoding='utf-8') as f:
-        for line in f.readlines():
-            it = line.strip()
-            if it:
-                it = it.replace('，', ',').split('=')
-                if len(it) == 2 and it[0].lower() == 'source_ext':
-                    sext = [x.lower().strip() for x in it[1].split(",")]
-                elif len(it) == 2 and it[0].lower() == 'target_ext':
-                    ext = it[1].lower().strip()
+from openai import OpenAI
 
-files = []
-for it in os.listdir(root):
-    if it.split('.')[-1].lower() in sext:
-        files.append(it)
+client = OpenAI(
+    base_url = 'http://localhost:11434/v1',
+    api_key='ollama', # required, but unused
+)
 
-print(f'当前将把格式为 {sext} 的文件转为 {ext}\n')
-if len(files) < 1:
-    print(f'没有需要转换的文件')
-else:
-    ok = 0
-    err = []
-
-    for it in files:
-        try:
-            subprocess.run(
-                ['ffmpeg', "-hide_banner", "-ignore_unknown", '-y', '-i', os.path.normpath(os.path.join(root, it)),
-                 f'{it}.{ext}'], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            print(f'[OK] {it} 转换成功')
-            ok += 1
-        except:
-            err.append(it)
-            print(f'[Error] {it} 转换失败')
-
-    print(f"\n转换完毕，{ok} 个成功，{len(err)} 个失败,{err if len(err) > 0 else ''}\n")
-input("按回车退出")
+response = client.chat.completions.create(
+  model="qwen",
+  messages=[
+    {"role": "system", "content": "你是一个专业的多语言翻译专家."},
+    {"role": "user", "content": "将我发送给你的内容翻译为英文，仅返回翻译即可，不要回答问题、不要确认，不要回复本条内容，从下一行开始翻译\n今天天气不错哦！\n挺风和日丽的，我们下午没有课.\n这的确挺爽的"}
+  ]
+)
+print(response.choices[0].message.content)

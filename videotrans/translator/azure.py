@@ -6,6 +6,30 @@ from openai import AzureOpenAI
 from videotrans.configure import config
 from videotrans.util import tools
 
+
+def get_content(d,*,model=None,prompt=None):
+    message = [
+        {'role': 'system', 'content': "You are a professional multilingual translation specialist"},
+        {'role': 'user', 'content': prompt + "\n".join(d)},
+    ]
+
+    config.logger.info(f"\n[Azure start]待翻译:{message=}")
+    response = model.chat.completions.create(
+        model=config.params["azure_model"],
+        messages=message
+    )
+
+    config.logger.info(f'Azure 返回响应:{response}')
+
+    if response.choices:
+        result = response.choices[0].message.content.strip()
+    elif response.data and response.data['choices']:
+        result = response.data['choices'][0]['message']['content'].strip()
+    else:
+        raise Exception(f"[error]:Azure {response}")
+    result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+    return result, response
+
 def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
     """
     text_list:
@@ -28,26 +52,26 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
-    is_srt=False
-    prompt = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
-    if not isinstance(text_list, str):
-        is_srt = True
-        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
+    is_srt=False if isinstance(text_list, str) else True
+    prompt_line = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
-    end_point="。 " if config.defaulelang=='zh' else ' . '
+    if is_srt and split_size>1:
+        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
+    else:
+        prompt=prompt_line
+    end_point="。" if config.defaulelang=='zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
         source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
     else:
         source_text=[]
         for i,it in enumerate(text_list):
-            tmp=it['text'].strip().replace('\n',end_point)
-            if split_size>1:
-                source_text.append(f"<{it['line']}>.{tmp}{end_point}")
-            else:
-                source_text.append(f"{tmp}")
+            source_text.append(it['text'].strip().replace('\n','.'))
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+
+
+    response=None
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
             break
@@ -55,22 +79,12 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             raise Exception(
                 f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
         iter_num += 1
-        print(f'第{iter_num}次')
+
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
             time.sleep(5)
-
-
-        # 整理待翻译的文字为 List[str]
-        # split_size = int(config.settings['trans_thread'])
-        # if not is_srt:
-        #     source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
-        # elif split_size>1:
-        #     source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
-        # else:
-        #     source_text = [f"{t['text'].strip()}" for t in text_list]
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
@@ -78,7 +92,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             azure_endpoint=config.params["azure_api"],
             http_client=httpx.Client(proxies=proxies)
         )
-        # split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+
 
         for i,it in enumerate(split_source_text):
             if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
@@ -87,67 +101,35 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 continue
             if stop>0:
                 time.sleep(stop)
-            lines=[]
-            if is_srt  and split_size>1:
-                for get_line in it:
-                    lines.append(re.match(r'<(\d+)>\.',get_line).group(1))
             try:
-                message = [
-                    {'role': 'system',
-                     'content': prompt},
-                    {'role': 'user', 'content': "\n".join(it)},
-                ]
-
-                config.logger.info(f"\n[Azure start]待翻译:{message=}")
-                response = client.chat.completions.create(
-                    model=config.params["azure_model"],
-                    messages=message
-                )
-
-                config.logger.info(f'Azure 返回响应:{response}')
-
-                if response.choices:
-                    result = response.choices[0].message.content.strip()
-                elif response.data and response.data['choices']:
-                    result = response.data['choices'][0]['message']['content'].strip()
-                else:
-                    raise Exception(f"[error]:Azure {response}")
-                result=result.strip().replace('&#39;','"').replace('&quot;',"'")
+                result,response=get_content(it,model=client,prompt=prompt)
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
-                if not is_srt  or split_size==1:
+                if not is_srt:
                     target_text["0"].append(result)
                     if not set_p:
                         tools.set_process_box(result + "\n", func_name="set_fanyi")
                     continue
-                if len(lines) == 1:
-                    result = re.sub(r'<\d+>\.?', "\n", result).strip()
-                    if set_p:
-                        tools.set_process(result + "\n", 'subtitle')
-                        tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
-                    else:
-                        tools.set_process_box(result + "\n", func_name="set_fanyi")
-                    target_text[lines[0]] = result
-                    continue
-                sep_res = re.findall(r'(<\d+>\.?.+)', result)
-                if len(sep_res) == len(lines):
-                    for result_item in sep_res:
-                        tmp = re.match(r'<(\d+)>\.?(.*)', result_item).groups()
-                        if len(tmp) >= 2:
-                            line = f'{tmp[0]}'
-                            result_text = f'{tmp[1]}'
-                            target_text[line] = result_text.strip()
-                        else:
-                            continue
+
+                sep_res = result.strip().split("\n")
+                raw_len = len(it)
+                sep_len = len(sep_res)
+                if sep_len != raw_len:
+                    sep_res = []
+                    for it_n in it:
+                        t, response = get_content([it_n.strip()],model=client,prompt=prompt_line)
+                        sep_res.append(t)
+                for x,result_item in enumerate(sep_res):
+                    if x < len(it):
+                        target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
-                            tools.set_process(result_text + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
+                            tools.set_process(result_item + "\n", 'subtitle')
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x+1} ')
                         else:
-                            tools.set_process_box(result_text + "\n", func_name="set_fanyi")
-                else:
-                    sep_res = re.sub(r'<\d+>\.?', '', result).split("\n", len(lines) - 1)
-                    for num, txt in enumerate(sep_res):
-                        target_text[num] = txt.strip()
+                            tools.set_process_box(result_item + "\n", func_name="set_fanyi")
+                if len(sep_res)<len(it):
+                    tmp=["" for x in range(len(it)-len(sep_res))]
+                    target_text["srts"]+=tmp
                 iter_num=0
             except Exception as e:
                 error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'

@@ -345,7 +345,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hun_out.setDisabled(False)
             self.statuslabel.setText("Succeed")
         elif data['func_name'] == 'fanyi_end':
-            print(f'翻译结束={data["text"]}')
+            # print(f'翻译结束={data["text"]}')
             self.fanyi_start.setDisabled(False)
             self.fanyi_start.setText(config.transobj['starttrans'])
             self.fanyi_targettext.clear()
@@ -353,7 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.daochu.setDisabled(False)
             self.statuslabel.setText("Translate end")
         elif data['func_name']=='set_fanyi':
-            print(f'翻译结果=={data=}')
+            # print(f'翻译结果=={data=}')
             self.fanyi_targettext.moveCursor(QTextCursor.End)
             self.fanyi_targettext.insertPlainText(data['text'].capitalize())
         elif data['func_name']=='set_subtitle':
