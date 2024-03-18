@@ -13,6 +13,7 @@ CHATGPT_NAME = "chatGPT"
 AZUREGPT_NAME = "AzureGPT"
 GEMINI_NAME = "Gemini"
 TRANSAPI_NAME = "TransAPI"
+FREEGOOGLE_NAME = "FreeGoogle"
 SRT_NAME = "srt"
 # 翻译通道
 TRANSNAMES = [
@@ -26,7 +27,8 @@ TRANSNAMES = [
     TENCENT_NAME,
     OTT_NAME,
     DEEPLX_NAME,
-    TRANSAPI_NAME
+    TRANSAPI_NAME,
+    FREEGOOGLE_NAME
 ]
 #
 LANG_CODE = {
@@ -227,7 +229,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if show_target:
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if lower_translate_type in [GOOGLE_NAME.lower(), TRANSAPI_NAME.lower() ]:
+    if lower_translate_type in [GOOGLE_NAME.lower(), TRANSAPI_NAME.lower(),FREEGOOGLE_NAME.lower() ]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif lower_translate_type == BAIDU_NAME.lower():
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -318,6 +320,8 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
     lower_translate_type = translate_type.lower()
     if lower_translate_type == GOOGLE_NAME.lower():
         from videotrans.translator.google import trans
+    elif lower_translate_type==FREEGOOGLE_NAME.lower():
+        from videotrans.translator.freegoogle import trans
     elif lower_translate_type == BAIDU_NAME.lower():
         from videotrans.translator.baidu import trans
     elif lower_translate_type == DEEPL_NAME.lower():

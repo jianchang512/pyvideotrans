@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
         self.source_mp4 = QtWidgets.QLineEdit(self.layoutWidget)
         self.source_mp4.setMinimumSize(QtCore.QSize(0, 30))
         self.source_mp4.setInputMask("")
-        self.source_mp4.setText("No select videos")
+        self.source_mp4.setText("Select the video to be processed" if config.defaulelang !='zh' else '选择要处理的视频')
         self.source_mp4.setReadOnly(False)
         self.source_mp4.setDisabled(True)
         self.source_mp4.setPlaceholderText("")
@@ -75,6 +75,8 @@ class Ui_MainWindow(object):
         self.target_dir.setObjectName("target_dir")
         self.layout_target_dir.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.target_dir)
         self.horizontalLayout_6.addLayout(self.layout_target_dir)
+        
+        '''
         self.open_targetdir = QtWidgets.QPushButton(self.layoutWidget)
         self.open_targetdir.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -84,7 +86,14 @@ class Ui_MainWindow(object):
         self.open_targetdir.setSizePolicy(sizePolicy)
         self.open_targetdir.setMinimumSize(QtCore.QSize(50, 30))
         self.open_targetdir.setObjectName("open_targetdir")
-        self.horizontalLayout_6.addWidget(self.open_targetdir)
+        '''
+        self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
+        self.only_video.setMinimumSize(QtCore.QSize(0, 30))
+        self.only_video.setObjectName("only_video")
+        self.only_video.setText(config.uilanglist['onlyvideo'])
+        self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
+        
+        self.horizontalLayout_6.addWidget(self.only_video)
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -106,12 +115,14 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.translate_type.sizePolicy().hasHeightForWidth())
         self.translate_type.setSizePolicy(sizePolicy)
-        self.translate_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.translate_type.setMinimumSize(QtCore.QSize(200, 30))
         self.translate_type.setObjectName("translate_type")
         self.layout_translate_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.translate_type)
         self.horizontalLayout_5.addLayout(self.layout_translate_type)
+        self.horizontalLayout_5.addStretch()
         self.layout_proxy = QtWidgets.QFormLayout()
         self.layout_proxy.setObjectName("layout_proxy")
+        
         self.label = QtWidgets.QLabel(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -127,10 +138,14 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.proxy.sizePolicy().hasHeightForWidth())
         self.proxy.setSizePolicy(sizePolicy)
-        self.proxy.setMinimumSize(QtCore.QSize(0, 30))
+        self.proxy.setMaximumSize(QtCore.QSize(220, 30))
         self.proxy.setObjectName("proxy")
         self.layout_proxy.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.proxy)
         self.horizontalLayout_5.addLayout(self.layout_proxy)
+        
+        self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
+        self.listen_btn.setEnabled(False)
+        '''
         self.listen_layout = QtWidgets.QVBoxLayout()
         self.listen_layout.setObjectName("listen_layout")
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
@@ -143,6 +158,8 @@ class Ui_MainWindow(object):
         self.listen_btn.setObjectName("listen_btn")
         self.listen_layout.addWidget(self.listen_btn)
         self.horizontalLayout_5.addLayout(self.listen_layout)
+        '''
+        
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -235,6 +252,9 @@ class Ui_MainWindow(object):
         self.voice_role.setObjectName("voice_role")
         self.layout_voice_role.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_role)
         self.horizontalLayout.addLayout(self.layout_voice_role)
+        self.horizontalLayout.addWidget(self.listen_btn)
+        
+        
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
@@ -398,12 +418,8 @@ class Ui_MainWindow(object):
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
 
-        self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
-        self.only_video.setMinimumSize(QtCore.QSize(0, 30))
-        self.only_video.setObjectName("only_video")
-        self.only_video.setText(config.uilanglist['onlyvideo'])
-        self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
-        self.gaoji_layout_inner.addWidget(self.only_video)
+        
+        #self.gaoji_layout_inner.addWidget(self.only_video)
 
 
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
@@ -718,8 +734,8 @@ class Ui_MainWindow(object):
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
-        self.open_targetdir.setToolTip(config.uilanglist.get("Open target dir"))
-        self.open_targetdir.setText(config.uilanglist.get("Open"))
+        #self.open_targetdir.setToolTip(config.uilanglist.get("Open target dir"))
+        #self.open_targetdir.setText(config.uilanglist.get("Open"))
         self.label_9.setText(config.uilanglist.get("Translate channel"))
         self.label.setText(config.uilanglist.get("Proxy"))
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))

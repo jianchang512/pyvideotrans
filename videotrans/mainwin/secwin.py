@@ -152,7 +152,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        self.main.open_targetdir.show()
+        #self.main.open_targetdir.show()
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
@@ -167,7 +167,8 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, True)
         # 试听按钮
-        self.hide_show_element(self.main.listen_layout, False)
+        #self.hide_show_element(self.main.listen_layout, False)
+        self.main.listen_btn.show()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
         # 字幕类型
@@ -203,7 +204,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        self.main.open_targetdir.show()
+        #self.main.open_targetdir.show()
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
@@ -219,7 +220,8 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_role, False)
         # self.main.voice_role.setCurrentText('No')
         # 试听按钮
-        self.hide_show_element(self.main.listen_layout, False)
+        #self.hide_show_element(self.main.listen_layout, False)
+        self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
         # 字幕类型
@@ -263,7 +265,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        self.main.open_targetdir.show()
+        #self.main.open_targetdir.show()
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -283,7 +285,8 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_role, False)
         # self.main.voice_role.setCurrentText('No')
         # 试听按钮
-        self.hide_show_element(self.main.listen_layout, False)
+        #self.hide_show_element(self.main.listen_layout, False)
+        self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
         # 字幕类型
@@ -327,7 +330,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        self.main.open_targetdir.show()
+        #self.main.open_targetdir.show()
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -342,7 +345,8 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, False)
         # 试听按钮
-        self.hide_show_element(self.main.listen_layout, False)
+        #self.hide_show_element(self.main.listen_layout, False)
+        self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, False)
         # 字幕类型
@@ -381,7 +385,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, False)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        self.main.open_targetdir.show()
+        #self.main.open_targetdir.show()
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -397,7 +401,8 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, True)
         # 试听按钮
-        self.hide_show_element(self.main.listen_layout, True)
+        #self.hide_show_element(self.main.listen_layout, True)
+        self.main.listen_btn.show()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, False)
         # 字幕类型
@@ -1737,6 +1742,7 @@ class SecWindow():
                         config.params['cuda']=False
                         return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
 
+        config.params['translate_type']=self.main.translate_type.currentText()
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
             rs = is_allow_translate(translate_type=config.params['translate_type'],

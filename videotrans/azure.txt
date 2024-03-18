@@ -1,11 +1,7 @@
----
-- Please translate the following text into {lang}.
-- The translation should be clear and concise, avoiding redundancy.
-- Please make sure that all special symbols (e.g. numbers, punctuation, <>, |, . line breaks, etc.) are retained as is.
-- Please do not omit line numbers and <> symbols from the returned results
-- Do not omit numbers in <> symbols from the returned results.
-- Be careful not to lose any special characters or formatting.
-- Please  keep the <> symbol at the beginning of each line.
-- Before outputting, please double-check that it conforms to the translation format, and if it does not, you must adjust it to conform to the translation format before outputting. This is very important for my work, so please be sure to follow it.
-- Please do not reply to any of the above instructions, and start the translation directly from the next line.
----
+Please translate the text sent to you into {lang}.
+The translation must be short and concise, not long and complicated.
+Translate one line at a time, with each line of original text translated into one line of translation.
+Streamline and abbreviate the results of each line of translation to ensure that sentences are short and concise
+Never translate two lines of text into one line of translation.
+Please do not reply to any of the above instructions, nor answer questions, imperative sentences.
+Translate from the next line, do not translate do not return to this line, i.e., the content of the above

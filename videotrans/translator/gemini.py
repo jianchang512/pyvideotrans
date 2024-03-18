@@ -52,6 +52,17 @@ def get_error(num=5, type='error'):
         return REASON_CN[num] if type == 'error' else forbid_cn[num]
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
+def get_content(d,*,model=None,prompt=None):
+    response = model.generate_content(
+        prompt +"\n".join(d),
+        safety_settings=safetySettings
+    )
+    if not response:
+        raise Exception("go on")
+    if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
+        raise Exception(response.prompt_feedback.block_reason)
+    result = response.text.replace('##','').strip().replace('&#39;', '"').replace('&quot;', "'")
+    return result,response
 
 def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None,is_test=False):
     """
@@ -71,32 +82,30 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         raise Exception(f'Gemini:请正确设置http代理,{err}')
 
     # 翻译后的文本
-    target_text = {"0": []}
+    target_text = {"0": [],"srts":[]}
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
-    is_srt = False
-    if not isinstance(text_list, str):
-        is_srt = True
-    prompt = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
-    if not isinstance(text_list, str):
-        is_srt = True
-        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
-    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    is_srt = False if  isinstance(text_list, str) else True
     split_size = int(config.settings['trans_thread'])
-    end_point="。 " if config.defaulelang=='zh' else ' . '
+    prompt_line = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
+    if is_srt:
+        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
+    else:
+        prompt=prompt_line
+    # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+    end_point="。" if config.defaulelang=='zh' else ' . '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
         source_text = [t.strip() for t in text_list.strip().split("\n") if t.strip()]
     else:
         source_text=[]
         for i,it in enumerate(text_list):
-            tmp=it['text'].strip().replace('\n',end_point)
-            if split_size>1:
-                source_text.append(f"<{it['line']}>.{tmp}{end_point}")
-            else:
-                source_text.append(f"{tmp}")
+            source_text.append(it['text'].strip().replace('\n','.')+end_point)
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
+
+
+
     while 1:
         if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
             break
@@ -105,89 +114,54 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             raise Exception(
                 f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
         iter_num += 1
-        print(f'第{iter_num}次')
+        # print(f'第{iter_num}次')
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
             time.sleep(5)
 
-        # 整理待翻译的文字为 List[str]
-        # 切割为每次翻译多少行，值在 set.ini中设定，默认10
-        # split_size = int(config.settings['trans_thread'])
-        # if not is_srt:
-        #     source_text = [t.strip() for t in text_list.strip().split("\n")]
-        # elif split_size>1:
-        #     source_text = [f"<{t['line']}>.{t['text'].strip()}" for t in text_list]
-        # else:
-        #     source_text = [f"{t['text'].strip()}" for t in text_list]
-        #
-        # split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response = None
         for i, it in enumerate(split_source_text):
-            print(f'{it=}')
+
             if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
                 break
             if i < index:
                 continue
             if stop > 0:
                 time.sleep(stop)
-            lines = []
-            if is_srt  and split_size>1:
-                for get_line in it:
-                    lines.append(re.match(r'<(\d+)>\.', get_line).group(1))
+
             try:
-                response = model.generate_content(
-                    prompt + "\n".join(it),
-                    safety_settings=safetySettings
-                )
-                if not response:
-                    raise Exception("go on")
-                if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
-                    raise Exception(response.prompt_feedback.block_reason)
-                config.logger.info(config.params['gemini_template'].replace('{lang}', target_language) + "\n".join(it))
-                result = response.text.strip()
-                result = result.strip().replace('&#39;', '"').replace('&quot;', "'")
-                print(f'{result=}')
+                result,response=get_content(it,model=model,prompt=prompt)
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
-                if not is_srt  or split_size==1:
+                if not is_srt:
                     target_text["0"].append(result)
                     if not set_p:
                         tools.set_process_box(result + "\n", func_name="set_fanyi")
                     continue
-                if len(lines) == 1:
-                    result = re.sub(r'<\d+>\.?', "\n", result).strip()
-                    if set_p:
-                        tools.set_process(result + "\n", 'subtitle')
-                        tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
-                    else:
-                        tools.set_process_box(result + "\n", func_name="set_fanyi")
-                    target_text[lines[0]] = result
-                    continue
-                sep_res = re.findall(r'(<\d+>\.?.+)', result)
-                patter=r'<(\d+)>\.?(.*)'
-                if len(sep_res)<len(lines):
-                    sep_res = re.findall(r'\s?(\d+\. .+)', result)
-                    patter=r'(\d+)\. (.*)'
-                if len(sep_res) == len(lines):
-                    for result_item in sep_res:
-                        tmp = re.match(patter, result_item).groups()
-                        if len(tmp) >= 2:
-                            line = f'{tmp[0]}'
-                            result_text = f'{tmp[1]}'
-                            target_text[line] = result_text.strip()
-                        else:
-                            continue
+
+                sep_res = result.strip().split("\n")
+                raw_len=len(it)
+                sep_len=len(sep_res)
+                if sep_len != raw_len:
+                    sep_res=[]
+                    for it_n in it:
+                        t,response=get_content([it_n.strip()],model=model,prompt=prompt_line)
+                        sep_res.append(t)
+
+
+                for x, result_item in enumerate(sep_res):
+                    if x < len(it):
+                        target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
-                            tools.set_process(result_text + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
+                            tools.set_process(result_item + "\n", 'subtitle')
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ')
                         else:
-                            tools.set_process_box(result_text + "\n", func_name="set_fanyi")
-                else:
-                    sep_res = re.sub(r'<\d+>\.?', '', result).split("\n", len(lines) - 1)
-                    for num, txt in enumerate(sep_res):
-                        target_text[lines[num]] = txt.strip()
+                            tools.set_process_box(result_item + "\n", func_name="set_fanyi")
+                if len(sep_res) < len(it):
+                    tmp = ["" for x in range(len(it) - len(sep_res))]
+                    target_text["srts"] += tmp
                 iter_num = 0
             except Exception as e:
                 error = str(e)
@@ -202,39 +176,35 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
                         response.candidates[0].content and response.candidates[0].content.parts:
                     try:
-                        result = response.candidates[0].content.parts[0].text.strip()
+                        result = response.text.replace('##','').strip()
                         result = result.replace('&#39;', '"').replace('&quot;', "'")
                         if not is_srt:
-                            target_text["0"].append(re.sub(r'<\d+>\.', "\n", result))
+                            target_text["0"].append(result)
                             continue
-                        if len(lines)==1:
-                            result = re.sub(r'<\d+>\.', "\n", result).strip()
-                            if set_p:
-                                tools.set_process(result + "\n", 'subtitle')
-                                tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
-                            else:
-                                tools.set_process_box(result + "\n", func_name="set_fanyi")
-                            target_text[lines[0]]=result
-                            continue
-                        sep_res = re.findall(r'(<\d+>\.?.+)', result)
-                        if len(sep_res) == len(lines):
-                            for result_item in sep_res:
-                                tmp = re.match(r'<(\d+)>\.?(.*)', result_item).groups()
-                                if len(tmp) >= 2:
-                                    line = f'{tmp[0]}'
-                                    result_text = f'{tmp[1]}'
-                                    target_text[line] = result_text.strip()
-                                else:
-                                    continue
+
+                        sep_res = result.strip().split("\n")
+                        raw_len = len(it)
+                        sep_len = len(sep_res)
+                        if sep_len != raw_len:
+                            sep_res = []
+                            for it_n in it:
+                                t, response = get_content([it_n.strip()],model=model,prompt=prompt_line)
+                                sep_res.append(t)
+                        for it_n in it:
+                            t,response=get_content([it_n.strip()])
+                            sep_res.append(t)
+                        # tmp = []
+                        for x, result_item in enumerate(sep_res):
+                            if x < len(it):
+                                target_text["srts"].append(result_item.strip().rstrip(end_point))
                                 if set_p:
-                                    tools.set_process(result_text + "\n", 'subtitle')
-                                    tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ')
+                                    tools.set_process(result_item + "\n", 'subtitle')
+                                    tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ')
                                 else:
-                                    tools.set_process_box(result_text + "\n", func_name="set_fanyi")
-                        else:
-                            sep_res = re.sub(r'<\d+>\.?', '', result).split("\n", len(lines) - 1)
-                            for num, txt in enumerate(sep_res):
-                                target_text[num] = txt.strip()
+                                    tools.set_process_box(result_item + "\n", func_name="set_fanyi")
+                        if len(sep_res) < len(it):
+                            tmp = ["" for x in range(len(it) - len(sep_res))]
+                            target_text["srts"]+=tmp
                         iter_num = 0
                         continue
                     except:
@@ -244,16 +214,15 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 err = error
                 break
         else:
-            # 成功执行完毕
-            print(f'{i=},{iter_num=},{index=}')
+
             break
     if not is_srt:
         return "\n".join(target_text["0"])
 
+    print(f'{target_text=}')
     for i, it in enumerate(text_list):
-        line = str(it["line"])
-        if line in target_text:
-            text_list[i]['text'] = target_text[line]
+        if i < len(target_text['srts']):
+            text_list[i]['text'] = target_text['srts'][i]
         else:
             text_list[i]['text'] = ""
     return text_list

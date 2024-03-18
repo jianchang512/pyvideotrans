@@ -255,7 +255,7 @@
     "Dubbing speed": "配音整体语速",
     "Overall acceleration or deceleration of voice over playback": "对配音语速整体加速或降速播放，正数加速，负数减速",
     "Positive numbers accelerate, negative numbers decelerate, -90 to+90": "正数则加速，负数则减速，-90到+90",
-    "shuoming03": "翻译后不同语言下发音时长不同，比如中文3s，翻译为英文可能5s，导致时长和视频不一致。\n4种解决方式:\n1. 设置配音语速，全局加速(某些TTS不支持)\n2. 强制配音加速播放，以便缩短配音时长和视频对齐\n3. 强制视频慢速播放，以便延长视频时长和配音对齐。\n4. 如果前后有静音片段，则前后延展占据静音区\n实际使用中，结合此4项效果最佳",
+    "shuoming03": "翻译后不同语言下发音时长不同，比如中文3s，翻译为英文可能5s，导致时长和视频不一致。\n4种解决方式:\n1. 设置配音语速，全局加速(某些TTS不支持)\n2. 强制配音加速播放，以便缩短配音时长和视频对齐\n3. 如果前后有静音片段，则前后延展占据静音区\n实际使用中，结合此3项效果最佳",
     "Voice acceleration?": "配音自动加速",
     "Video slow": "视频自动慢速",
     "shuoming05": "必须确定有NVIDIA显卡且正确配置了CUDA环境，否则勿选",

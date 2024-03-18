@@ -79,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        self.open_targetdir.setCursor(Qt.PointingHandCursor)
+        #self.open_targetdir.setCursor(Qt.PointingHandCursor)
 
         self.source_mp4.setAcceptDrops(True)
         self.target_dir.setAcceptDrops(True)
@@ -254,7 +254,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.clicked.connect(self.util.set_djs_timeout)
         self.btn_get_video.clicked.connect(self.util.get_mp4)
         self.btn_save_dir.clicked.connect(self.util.get_save_dir)
-        self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
+        #self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
         self.show_tips.clicked.connect(lambda: self.util.open_dir(self.show_tips.text().split('#')[-1]))
         self.target_language.currentTextChanged.connect(self.util.set_voice_role)
         self.voice_role.currentTextChanged.connect(self.util.show_listen_btn)

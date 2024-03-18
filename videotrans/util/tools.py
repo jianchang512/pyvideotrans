@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import random
 
 import re
 import shutil
@@ -186,12 +187,10 @@ def runffmpeg(arg, *, noextname=None,
     cmd = cmd + arg
     if noextname:
         config.queue_novice[noextname] = 'ing'
-
-    config.logger.info(f'{cmd=}')
     try:
         subprocess.run(cmd,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
+                         stderr=subprocess.PIPE,
                          encoding="utf-8",
                          check=True,
                          text=True,
@@ -199,8 +198,7 @@ def runffmpeg(arg, *, noextname=None,
         if noextname:
             config.queue_novice[noextname] = "end"
         return True
-    except Exception as e:
-        print(f'{cmd=}')
+    except subprocess.CalledProcessError as e:
         # 如果启用cuda时出错，则回退cpu
         if config.params['cuda'] and not disable_gpu:
             # 切换为cpu
@@ -211,21 +209,28 @@ def runffmpeg(arg, *, noextname=None,
             return runffmpeg(arg_copy, noextname=noextname, disable_gpu=True, is_box=is_box)
         if noextname:
             config.queue_novice[noextname] = "error"
-        config.logger.error(f'cmd执行出错:{str(e)}')
+        config.logger.error(f'cmd执行出错:{str(e.stderr)}')
+        raise Exception(str(e.stderr))
+    except Exception as e:
+        config.logger.error(f'执行出错:{cmd=},{str(e)}')
         raise Exception(str(e))
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        cmd[-1]=os.path.normpath(rf'{cmd[-1]}')
-        p = subprocess.Popen(['ffprobe']+cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,encoding="utf-8", text=True,
-                             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-        out, errs = p.communicate()
-        if p.returncode == 0:
-            return out.strip()
-        raise Exception(f'ffprobe error:{str(errs)}')
+        cmd[-1]=os.path.normpath(cmd[-1])
+        p = subprocess.run(['ffprobe']+cmd,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           encoding="utf-8",
+                           text=True,
+                           check=True,
+                           creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+        if p.stdout:
+            return p.stdout
+        raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
-        raise Exception(f'ffprobe call error:{str(e)}')
+        raise Exception(f'ffprobe call error:{str(e.stderr)}')
     except Exception as e:
         raise Exception(f'ffprobe except error:{str(e)}')
 
@@ -307,6 +312,7 @@ def conver_mp4(source_file, out_mp4,*,is_box=False):
         'libx264',
         "-c:a",
         "aac",
+        '-crf', f'{config.settings["crf"]}',
         out_mp4
     ], no_decode=True, de_format=config.settings['hwaccel_output_format'],is_box=is_box)
 
@@ -320,6 +326,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname):
         "-an",
         "-c:v",
         "libx264",
+        '-crf', f'{config.settings["crf"]}',
         f'{novoice_mp4}'
     ]
     return runffmpeg(cmd, noextname=noextname)
@@ -447,8 +454,7 @@ def get_lastjpg_fromvideo(file_path, img):
 
 # 根据图片创建一定时长的视频 nv12 +  not h264_cuvid
 def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
-    if not os.path.exists(config.rootdir+"/fps2.txt"):
-        fps=2
+
     return runffmpeg([
         '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
         '-crf', f'{config.settings["crf"]}', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12",use_run=True)
@@ -929,4 +935,30 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 
     # Remove the silence from the end by slicing the audio segment
     trimmed_audio = audio[:end_index]
+    if nonsilent_chunks[0] and nonsilent_chunks[0][0]>50:
+        trimmed_audio = audio[nonsilent_chunks[0][0]-50:end_index]
     trimmed_audio.export(input_file_path,format="mp3")
+
+# 从 google_url 中获取可用地址
+def get_google_url():
+    google_url='https://translate.google.com'
+    if os.path.exists(os.path.join(config.rootdir,'google.txt')):
+        with open(os.path.join(config.rootdir,'google.txt'),'r') as f:
+            t=f.read().strip().splitlines()
+            urls=[x for x in t if x.strip() and x.startswith('http')]
+            if len(urls)>0:
+                n=0
+                while n<5:
+                    google_url=random.choice(urls).rstrip('/')
+                    try:
+                        res=requests.head(google_url,proxies={"http":"","https":""})
+                        if res.status_code==200:
+                            return google_url
+                    except:
+                        msg=(f'测试失败: {google_url}')
+                        config.logger.error(msg)
+                        continue
+                    finally:
+                        n+=1
+                raise Exception(f'从google.txt中随机获取5次url，均未找到可用的google翻译反代地址，请检查')
+    return google_url
