@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
+from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
@@ -113,6 +114,13 @@ class ElevenlabsForm(QDialog, Ui_elevenlabsform):  # <===
 class InfoForm(QDialog, Ui_infoform):  # <===
     def __init__(self, parent=None):
         super(InfoForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class ArticleForm(QDialog, Ui_articleform):  # <===
+    def __init__(self, parent=None):
+        super(ArticleForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))

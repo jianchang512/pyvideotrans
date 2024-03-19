@@ -24,22 +24,24 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         # print(f'开始配音:{text=},{filename=}')
         asyncio.run(communicate.save(filename))
         # print(f'结束配音:{text=},exists={os.path.exists(filename)}')
-        tools.remove_silence_from_end(filename)
+        
         # audio=AudioSegment.from_file(filename, format="mp3")
         # audio[:-100].export(filename,format="mp3")
         # 可能非该类语言，比如英语配音中出现中文等
         if not os.path.exists(filename) or os.path.getsize(filename)<1:
             config.logger.error( f'edgeTTS配音失败:{text=},{filename=}')
             return True
+        if os.path.exists(filename) and os.path.getsize(filename)>0:
+            tools.remove_silence_from_end(filename)
     except Exception as e:
         err = str(e)
-        config.logger.error(f'[edgeTTS]{err}')
+        config.logger.error(f'[edgeTTS]{text=}{err=},')
         if err.find("Invalid response status") > 0 or err.find('WinError 10054')>-1:
             if set_p:
                 tools.set_process("edgeTTS过于频繁暂停5s后重试")
             config.settings['dubbing_thread']=1
             time.sleep(10)
             asyncio.run(communicate.save(filename))
-        else:
-            raise Exception("edgeTTS->"+err)
+        elif set_p:
+            tools.set_process("有一个配音出错")
     return True

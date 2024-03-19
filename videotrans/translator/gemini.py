@@ -7,6 +7,8 @@ from videotrans.util import tools
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
+
+
 safetySettings = [
     {
         "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -53,16 +55,32 @@ def get_error(num=5, type='error'):
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
 def get_content(d,*,model=None,prompt=None):
-    response = model.generate_content(
-        prompt +"\n".join(d),
-        safety_settings=safetySettings
-    )
-    if not response:
-        raise Exception("go on")
-    if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
-        raise Exception(response.prompt_feedback.block_reason)
-    result = response.text.replace('##','').strip().replace('&#39;', '"').replace('&quot;', "'")
-    return result,response
+    response=None
+    try:
+        response = model.generate_content(
+            prompt.replace('{text}',"\n".join(d))
+        )
+
+        result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+        print(f'{d=},{result=}')
+        return result, response
+    except Exception as e:
+        error=str(e)
+        if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
+            return get_error(response.prompt_feedback.block_reason, "forbid"),None
+
+        if error.find('User location is not supported') > -1 or error.find('time out') > -1:
+            return error,None
+        if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
+            return get_error(response.candidates[0].finish_reason),None
+
+        if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
+                response.candidates[0].content and response.candidates[0].content.parts:
+            print(response.text)
+            result = response.text.replace('##','').strip().replace('&#39;', '"').replace('&quot;', "'")
+            return result,response
+    return "",None
+
 
 def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None,is_test=False):
     """
@@ -76,7 +94,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     try:
         genai.configure(api_key=config.params['gemini_key'])
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-pro', safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
         raise Exception(f'Gemini:请正确设置http代理,{err}')
@@ -88,11 +106,14 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     err = ""
     is_srt = False if  isinstance(text_list, str) else True
     split_size = int(config.settings['trans_thread'])
-    prompt_line = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
-    if is_srt:
-        prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
-    else:
-        prompt=prompt_line
+    #prompt_line = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
+    #if is_srt:
+    prompt = config.params['gemini_template']
+    with open(config.rootdir+"/videotrans/gemini.txt",'r',encoding="utf-8") as f:
+        prompt=f.read()
+    prompt=prompt.replace('{lang}', target_language)
+    #else:
+    #    prompt=prompt_line
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     end_point="。" if config.defaulelang=='zh' else ' . '
     # 整理待翻译的文字为 List[str]
@@ -144,12 +165,18 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 sep_res = result.strip().split("\n")
                 raw_len=len(it)
                 sep_len=len(sep_res)
+                if sep_len>raw_len:
+                    sep_res[raw_len-1]=".".join(sep_len[raw_len-1:])
+                    sep_res=sep_res[:raw_len]
                 if sep_len != raw_len:
                     sep_res=[]
                     for it_n in it:
-                        t,response=get_content([it_n.strip()],model=model,prompt=prompt_line)
+                        try:
+                            t,response=get_content([it_n.strip()],model=model,prompt=prompt)
+                        except Exception as e:
+                            config.logger.error(f'触发安全限制，{t=},{it_n=}')
+                            t="-"
                         sep_res.append(t)
-
 
                 for x, result_item in enumerate(sep_res):
                     if x < len(it):
@@ -159,57 +186,14 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ')
                         else:
                             tools.set_process_box(result_item + "\n", func_name="set_fanyi")
+
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
                 iter_num = 0
             except Exception as e:
                 error = str(e)
-                if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
-                    raise Exception(get_error(response.prompt_feedback.block_reason, "forbid") + f"\n{it}")
-
-                if error.find('User location is not supported') > -1 or error.find('time out') > -1:
-                    raise Exception(f'{error}')
-                if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
-                    raise Exception(f'{get_error(response.candidates[0].finish_reason)}：{it}')
-                # 可能还会存在正常返回
-                if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
-                        response.candidates[0].content and response.candidates[0].content.parts:
-                    try:
-                        result = response.text.replace('##','').strip()
-                        result = result.replace('&#39;', '"').replace('&quot;', "'")
-                        if not is_srt:
-                            target_text["0"].append(result)
-                            continue
-
-                        sep_res = result.strip().split("\n")
-                        raw_len = len(it)
-                        sep_len = len(sep_res)
-                        if sep_len != raw_len:
-                            sep_res = []
-                            for it_n in it:
-                                t, response = get_content([it_n.strip()],model=model,prompt=prompt_line)
-                                sep_res.append(t)
-                        for it_n in it:
-                            t,response=get_content([it_n.strip()])
-                            sep_res.append(t)
-                        # tmp = []
-                        for x, result_item in enumerate(sep_res):
-                            if x < len(it):
-                                target_text["srts"].append(result_item.strip().rstrip(end_point))
-                                if set_p:
-                                    tools.set_process(result_item + "\n", 'subtitle')
-                                    tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ')
-                                else:
-                                    tools.set_process_box(result_item + "\n", func_name="set_fanyi")
-                        if len(sep_res) < len(it):
-                            tmp = ["" for x in range(len(it) - len(sep_res))]
-                            target_text["srts"]+=tmp
-                        iter_num = 0
-                        continue
-                    except:
-                        pass
-
+                print(f'\n\n{error=}')
                 index = i
                 err = error
                 break
@@ -219,7 +203,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     if not is_srt:
         return "\n".join(target_text["0"])
 
-    print(f'{target_text=}')
+    #print(f'{target_text=}')
     for i, it in enumerate(text_list):
         if i < len(target_text['srts']):
             text_list[i]['text'] = target_text['srts'][i]

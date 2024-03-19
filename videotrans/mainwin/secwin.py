@@ -431,6 +431,12 @@ class SecWindow():
         self.main.infofrom = InfoForm()
         self.main.infofrom.show()
 
+    def helparticle(self):
+        from videotrans.component import ArticleForm
+        print("hi")
+        self.main.articleform = ArticleForm()
+        self.main.articleform.show()
+
     # voice_autorate  变化
     def autorate_changed(self, state, name):
         if name == 'voice':
@@ -1630,6 +1636,7 @@ class SecWindow():
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
+        config.task_countdown = config.settings['countdown_sec']
         config.settings=config.parse_init()
         # 清理日志
         self.delete_process()

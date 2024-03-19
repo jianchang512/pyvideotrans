@@ -6,11 +6,8 @@ from videotrans.util import tools
 thread_err=[]
 
 # 文字合成
-def text_to_speech(stop_event=None,*, text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
-    global thread_err
+def text_to_speech(text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
     try:
-        if stop_event and stop_event.is_set():
-            return
         if rate != '+0%' and set_p:
             tools.set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
@@ -40,16 +37,12 @@ def text_to_speech(stop_event=None,*, text="", role="", rate='+0%',language=None
             return False
     except Exception as e:
         err=str(e)
-        if stop_event:
-            stop_event.set()
-        thread_err.append(err)
         raise Exception(f'text->speech:{err}')
 
 
 def run(*, queue_tts=None, language=None,set_p=True,inst=None):
-    global thread_err
-    thread_err=[]
-    stop_event = threading.Event()  # 停止事件
+
+
     def get_item(q):
         return {"text": q['text'], "role": q['role'], "rate": q["rate"],
                 "filename": q["filename"], "tts_type": q['tts_type'],"language":language}
@@ -71,14 +64,12 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                     if p['tts_type']!='clone-voice' and os.path.exists(p['filename']) and os.path.getsize(p['filename'])>0:
                         continue
                     p["set_p"]=set_p
-                    tolist.append(threading.Thread(target=text_to_speech, kwargs=p,args=(stop_event,)))
+                    tolist.append(threading.Thread(target=text_to_speech, kwargs=p))
             if len(tolist)<1:
                 continue
             for t in tolist:
                 t.start()
             for t in tolist:
-                if len(thread_err)>2:
-                    raise Exception(thread_err.pop(0))
                 n += 1
                 if set_p:
                     if inst and inst.precent<90:

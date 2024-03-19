@@ -298,7 +298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
         self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
-        self.statusLabel.clicked.connect(lambda: self.util.open_url('xinshou'))
+        self.statusLabel.clicked.connect(self.util.helparticle)
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.util.open_youtube)
