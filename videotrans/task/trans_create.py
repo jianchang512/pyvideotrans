@@ -221,11 +221,12 @@ class TransCreate():
         ##### 翻译阶段
         self.step = 'translate_start'
         # 翻译暂停时允许修改字幕，翻译开始后禁止修改
+        config.task_countdown = config.settings['countdown_sec']
         self.trans()
         self.step = 'translate_end'
         if self.app_mode == 'tiqu':
             return True
-
+        config.task_countdown = config.settings['countdown_sec']
         # 如果存在目标语言字幕，并且存在 配音角色，则需要配音
         self.step = "dubbing_start"
         # 配音开始前允许修改，开始后禁止修改
@@ -340,7 +341,7 @@ class TransCreate():
 
         # 等待编辑原字幕后翻译,允许修改字幕
         set_process(transobj["xiugaiyuanyuyan"], 'edit_subtitle')
-        config.task_countdown = config.settings['countdown_sec']
+        
         while config.task_countdown > 0:
             if config.current_status != 'ing':
                 return False
@@ -348,6 +349,7 @@ class TransCreate():
                 set_process(f"{config.task_countdown} {transobj['jimiaohoufanyi']}", 'show_djs')
             time.sleep(1)
             config.task_countdown -= 1
+        
         # 禁止修改字幕
         set_process('', 'timeout_djs')
         time.sleep(2)
@@ -361,7 +363,7 @@ class TransCreate():
         #     if not self.testgoogle():
         #         raise Exception('无法连接Google,请填写有效代理地址，如果无代理，请查看菜单栏-帮助支持-无代理使用Google翻译')
 
-        # set_process(transobj['starttrans'] + switch_trans)
+        set_process(transobj['starttrans'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
         if not rawsrt or len(rawsrt) < 1:
@@ -384,7 +386,7 @@ class TransCreate():
             return True
         # 允许修改字幕
         set_process(transobj["xiugaipeiyinzimu"], "edit_subtitle")
-        config.task_countdown = config.settings['countdown_sec']
+        
         while config.task_countdown > 0:
             if config.current_status != 'ing':
                 return False
@@ -395,6 +397,8 @@ class TransCreate():
             if config.task_countdown <= config.settings['countdown_sec'] and config.task_countdown >= 0:
                 set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
         # 禁止修改字幕
+        #config.task_countdown = config.settings['countdown_sec']
+        set_process(config.transobj['kaishipeiyin'])
         set_process('', 'timeout_djs')
         time.sleep(3)
         try:
@@ -435,6 +439,8 @@ class TransCreate():
             the_dur=len(segment)
             #字幕可用时间
             raw_dur=it['raw_duration']
+            it['start_time']+=offset
+            it['end_time']+=offset
 
             diff=the_dur-raw_dur
             # 配音大于字幕时长，后延，延长时间
@@ -887,7 +893,7 @@ class TransCreate():
                 segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
 
         # 处理视频慢速
-        if config.settings['video_rate']>1:
+        if config.params['voice_autorate'] and config.settings['video_rate']>1:
             self._ajust_video(queue_tts)
 
         # 获取 novoice_mp4的长度
@@ -896,6 +902,7 @@ class TransCreate():
             segments=segments,
             video_time=video_time,
             queue_tts=copy.deepcopy(queue_tts))
+        '''
         if audio_length > video_time:
             # 视频末尾延长
             try:
@@ -904,7 +911,7 @@ class TransCreate():
                 self.novoicemp4_add_time(audio_length - video_time)
             except Exception as e:
                 raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
-
+        '''
             # 更新字幕
         srt = ""
         for (idx, it) in enumerate(queue_tts):
@@ -923,30 +930,37 @@ class TransCreate():
         set_process(f'{transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
-        # 截取最后一帧图片
-        img = f'{self.cache_folder}/last.jpg'
-        # 截取的图片组成 时长 duration_ms的视频
-        last_clip = f'{self.cache_folder}/last_clip.mp4'
-        # 取出最后一帧创建图片
-        get_lastjpg_fromvideo(self.novoice_mp4, img)
-        # 取出帧率
 
-        fps = int(self.video_info['video_fps'])
-        if not fps or fps < 16 or fps > 60:
-            fps = 30
-        # 取出分辨率
-        scale = [self.video_info['width'], self.video_info['height']]
-
-        # 创建 ms 格式
-        totime = ms_to_time_string(ms=duration_ms).replace(',', '.')
-
-        print(f'##############{fps=}==={duration_ms=}')
-        create_video_byimg(img=img, fps=fps, scale=scale, totime=totime, out=last_clip)
-
+        video_time = get_video_duration(self.novoice_mp4)
+        print(f'##############={duration_ms=}')
         # 开始将 novoice_mp4 和 last_clip 合并
         shutil.copy2(self.novoice_mp4, f'{self.novoice_mp4}.raw.mp4')
-        concat_multi_mp4(filelist=[f'{self.novoice_mp4}.raw.mp4', last_clip], out=self.novoice_mp4)
-        try:
+        
+        cut_from_video(
+            source=self.novoice_mp4, 
+            ss=ms_to_time_string(ms=video_time-100).replace(',', '.'),
+            out=self.cache_folder+"/last-clip-novoice.mp4",
+            pts=10
+        )
+        
+        clip_time=get_video_duration(self.cache_folder+"/last-clip-novoice.mp4")
+                
+        #shutil.copy2(self.cache_folder+"/last-clip-novoice.mp4", f'{self.novoice_mp4}.lastclip.mp4')       
+        nums=math.ceil(duration_ms/clip_time)  
+        nums+=int(nums/3)
+        concat_multi_mp4(
+            filelist=[self.cache_folder+"/last-clip-novoice.mp4" for x in range(nums)], 
+            out=self.cache_folder+"/last-clip-novoice-all.mp4"
+        )
+        
+        #shutil.copy2(self.cache_folder+"/last-clip-novoice-all.mp4", f'{self.novoice_mp4}.last-clip-novoice-all.mp4')
+        
+        concat_multi_mp4(
+            filelist=[f'{self.novoice_mp4}.raw.mp4',self.cache_folder+"/last-clip-novoice-all.mp4"], 
+            out=self.novoice_mp4,
+            maxsec=round((video_time+duration_ms)/1000,2)
+        )
+        try:            
             os.unlink(f'{self.novoice_mp4}.raw.mp4')
         except:
             pass
@@ -1027,7 +1041,20 @@ class TransCreate():
         if config.params['voice_role'] != 'No':
             if not os.path.exists(self.targetdir_target_wav) or os.path.getsize(self.targetdir_target_wav) < 1:
                 raise Myexcept(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.targetdir_target_wav}")
-
+        
+        if config.params['voice_role'] != 'No':
+            video_time = get_video_duration(self.novoice_mp4)
+            audio_length=len(AudioSegment.from_file(self.targetdir_target_wav, format="m4a"))
+            if audio_length > video_time:
+                # 视频末尾延长
+                try:
+                    # 对视频末尾定格延长
+                    print(f'需要延长视频 {audio_length - video_time}')
+                    self.novoicemp4_add_time(audio_length - video_time)
+                except Exception as e:
+                    raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
+        
+        
         # 需要字幕
         if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub) or os.path.getsize(
                 self.targetdir_target_sub) < 1:
@@ -1329,7 +1356,7 @@ Docs: https://pyvideotrans.com
                 """)
             if os.path.exists(self.targetdir_source_regcon):
                 os.unlink(self.targetdir_source_regcon)
-            shutil.rmtree(self.cache_folder, True)
+            #shutil.rmtree(self.cache_folder, True)
         except:
             pass
         self.precent = 100

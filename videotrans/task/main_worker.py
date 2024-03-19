@@ -49,7 +49,8 @@ class Worker(QThread):
                 set_process(f"{str(e)}", 'error')
                 send_notification("Error",  str(e) )
         finally:
-            delete_temp(None)
+            pass
+            #delete_temp(None)
 
 
     def run(self) -> None:

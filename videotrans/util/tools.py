@@ -266,11 +266,20 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
                 result['video_codec_name'] = it['codec_name']
                 result['width'] = int(it['width'])
                 result['height'] = int(it['height'])
+                
+                
                 fps_split = it['r_frame_rate'].split('/')
                 if len(fps_split)!=2 or fps_split[1] == '0':
-                    fps = 30
+                    fps1 = 30
                 else:
-                    fps = int(int(fps_split[0]) / int(fps_split[1]))
+                    fps1 = round(int(fps_split[0]) / int(fps_split[1]),2)
+                    
+                fps_split = it['avg_frame_rate'].split('/')
+                if len(fps_split)!=2 or fps_split[1] == '0':
+                    fps = fps1
+                else:
+                    fps = round(int(fps_split[0]) / int(fps_split[1]),2)
+                
                 result['video_fps'] = fps if fps >= 16 and fps <=60 else 30
             elif it['codec_type'] == 'audio':
                 result['streams_audio'] += 1
@@ -471,10 +480,12 @@ def create_concat_txt(filelist, filename):
 
 
 # 多个视频片段连接 cuda + h264_cuvid
-def concat_multi_mp4(*, filelist=[], out=None):
+def concat_multi_mp4(*, filelist=[], out=None,maxsec=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
+    if maxsec:
+        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy",'-t', f"{maxsec}", '-crf', f'{config.settings["crf"]}', '-an',out],use_run=True)
     return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', f'{config.settings["crf"]}', '-an',out],use_run=True)
     
 # 多个音频片段连接 
@@ -744,6 +755,7 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
                   "libx264",
                   "-crf",
                   f'{config.settings["crf"]}',
+                  '-an',
                   f'{out}'
                   ]
     return runffmpeg(cmd,use_run=True)

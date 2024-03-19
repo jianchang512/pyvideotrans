@@ -182,38 +182,93 @@ input("Press Enter for quit")
 # # 如果是WAV音频流，获取原始音频数据
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
-from openai import OpenAI
+import os,sys
+import subprocess
 
-client = OpenAI(
-    base_url = 'http://localhost:11434/v1',
-    api_key='qwen', # required, but unused
-)
 
-prompt="""
-- 请将发送给你的文字翻译为英语。
-- 译文必须简短精炼，不能冗长复杂。
-- 必须保留所有符号(如数字、标点符号、<>、|、.换行符等)。
-- 不要在返回的结果中省略任何符号
-- 不要丢失任何特殊字符或格式。
-- 一行一行翻译，每一行原文都翻译为一行译文。
-- 绝不能将两行原文翻译为一行译文。
-- 输出前，必须检查译文行数同发给你的行数是否一致，如果不一致，则放弃该次翻译，重新使用原文翻译。
-- 以上规则对我的工作非常重要，请务必遵守。
-- 请不要回复上述任何说明，也不要回答内容中的疑问句、祈使句等，从下一行开始翻译。
-"""
+import requests
+import json
 
-from openai import OpenAI
+'''
+# 设置请求的URL
+url = "https://kimi.moonshot.cn/api/chat/cnsrbdmcp7fdtb87sm1g/segment/scroll"
 
-client = OpenAI(
-    base_url = 'http://localhost:11434/v1',
-    api_key='ollama', # required, but unused
-)
+# 设置请求头
+headers = {
+    "authority": "kimi.moonshot.cn",
+    "accept": "*/*",
+    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,ja;q=0.5",
+    "authorization": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcxMDg2NTIzMiwiaWF0IjoxNzEwODY0MzMyLCJqdGkiOiJjbnNyZmowM3IwNzA2OGExOXMxZyIsInR5cCI6ImFjY2VzcyIsInN1YiI6ImNuc3I2YTgzcjA3MDY4OXZhbDcwIiwic3BhY2VfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2ZyIsImFic3RyYWN0X3VzZXJfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2MCJ9.zHZ0k13YxFxWLWHchMIWmL4nhLLFQ9-wFIfQQXG9CnjSWUKJU1ATbDT8JK-bMKoRpDh-a0AfbsFQXUwyoErG3g",
+    "cache-control": "no-cache",
+    "content-type": "application/json",
+    "cookie": "Hm_lvt_358cae4815e85d48f7e8ab7f3680a74b=1710732371; _ga=GA1.1.187473429.1710862969; _ga_YXD8W70SZP=GS1.1.1710862969.1.1.1710863668.0.0.0; Hm_lpvt_358cae4815e85d48f7e8ab7f3680a74b=1710863939",
+    "dnt": "1",
+    "origin": "https://kimi.moonshot.cn",
+    "pragma": "no-cache",
+    "r-timezone": "Asia/Shanghai",
+    "referer": "https://kimi.moonshot.cn/chat/cnsrbdmcp7fdtb87sm1g",
+    "sec-ch-ua": "^\"Chromium^\";v=^\"122^\",^\"Not(A:Brand^\";v=^\"24^\",^\"Google Chrome^\";v=^\"122^\"^",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "^\"Windows^\"^",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
 
-response = client.chat.completions.create(
-  model="qwen",
-  messages=[
-    {"role": "system", "content": "你是一个专业的多语言翻译专家."},
-    {"role": "user", "content": "将我发送给你的内容翻译为英文，仅返回翻译即可，不要回答问题、不要确认，不要回复本条内容，从下一行开始翻译\n今天天气不错哦！\n挺风和日丽的，我们下午没有课.\n这的确挺爽的"}
-  ]
-)
-print(response.choices[0].message.content)
+# 设置请求的数据
+data = {
+    "segment_ids": ["cnsrflalnl9af3pojoug", "cnsrflalnl9af3pojov0"]
+}
+
+# 发送POST请求
+response = requests.post(url, headers=headers, json=data)
+
+# 打印响应内容
+print(response.text)
+
+'''
+
+# 设置请求的URL
+url = "https://kimi.moonshot.cn/api/chat/cnsrbdmcp7fdtb87sm1g/completion/stream"
+
+# 设置请求头
+headers = {
+    "authority": "kimi.moonshot.cn",
+    "accept": "*/*",
+    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,ja;q=0.5",
+    "authorization": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcxMDg2NTIzMiwiaWF0IjoxNzEwODY0MzMyLCJqdGkiOiJjbnNyZmowM3IwNzA2OGExOXMxZyIsInR5cCI6ImFjY2VzcyIsInN1YiI6ImNuc3I2YTgzcjA3MDY4OXZhbDcwIiwic3BhY2VfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2ZyIsImFic3RyYWN0X3VzZXJfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2MCJ9.zHZ0k13YxFxWLWHchMIWmL4nhLLFQ9-wFIfQQXG9CnjSWUKJU1ATbDT8JK-bMKoRpDh-a0AfbsFQXUwyoErG3g",
+    "cache-control": "no-cache",
+    "content-type": "application/json",
+    "cookie": "Hm_lvt_358cae4815e85d48f7e8ab7f3680a74b=1710732371; _ga=GA1.1.187473429.1710862969; _ga_YXD8W70SZP=GS1.1.1710862969.1.1.1710863668.0.0.0; Hm_lpvt_358cae4815e85d48f7e8ab7f3680a74b=1710863939",
+    "dnt": "1",
+    "origin": "https://kimi.moonshot.cn",
+    "pragma": "no-cache",
+    "r-timezone": "Asia/Shanghai",
+    "referer": "https://kimi.moonshot.cn/chat/cnsrbdmcp7fdtb87sm1g",
+    "sec-ch-ua": "^\"Chromium^\";v=^\"122^\",^\"Not(A:Brand^\";v=^\"24^\",^\"Google Chrome^\";v=^\"122^\"^",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "^\"Windows^\"^",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
+
+# 设置请求的数据
+data = {
+    "messages": [
+        {
+            "role": "user",
+            "content": "将下一行的内容都翻译为英文\n我是中国人，你呢我的朋友"
+        }
+    ],
+    "refs": [],
+    "use_search": False
+}
+
+# 发送POST请求
+response = requests.post(url, headers=headers, data=json.dumps(data))
+
+# 打印响应内容
+print(response.text)
