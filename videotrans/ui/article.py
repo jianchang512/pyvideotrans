@@ -49,7 +49,14 @@ a{text-decoration:none;color:#fff;font-size:14px}
 a:hover{color:#ff0}
 </style></head>
 <body style="font-size:9pt; font-weight:400; font-style:normal;">
+<h2>
+<a  href="https://juejin.cn/user/4441682704623992/posts"> 
+最新教程更新在掘金博客或微信公众号(pyvideotrans)
+</a>
+</h2>
+
 <ul>
+
 <li><a  href="https://juejin.cn/post/7331558973657251840">一文搞懂“视频翻译与配音工具”</a></li>
 
 <li><a  href="https://juejin.cn/post/7338335869709123636">详解软件各个功能及界面设置</a></li>
@@ -57,6 +64,7 @@ a:hover{color:#ff0}
 <li><a  href="https://juejin.cn/post/7337853478113804325">选择faster-whisper还是openai-whisper</a></li>
 
 <li><a  href="https://juejin.cn/post/7337517508151705635">提高视频翻译质量的几个方法</a></li>
+<li><a  href="https://juejin.cn/post/7348280739262398516">ChatGPT和DeepLx在API调用中的设置方法和常见错误</a></li>
 <li><a  href="https://juejin.cn/post/7343447701948645428">翻译Api申请和使用：百度/腾讯/DeepL/Gemini/chatGPT</a></li>
 <li><a  href="https://juejin.cn/post/7345312252478275624">视频翻译配音中几个高频问题解析与应对</a></li>
 <li><a  href="https://juejin.cn/post/7346427641350996020">视频翻译配音时几个常见错误与解决方法</a></li>
@@ -89,11 +97,7 @@ a:hover{color:#ff0}
 顺畅使用Google翻译渠道的简单方法<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span>
 </a>
 </li>
-<li>
-<a  href="https://juejin.cn/user/4441682704623992/posts"> 
-新教程更新在掘金博客或公众号(pyvideotrans)
-</a>
-</li>
+
 </ul>
 
 <p style="padding:8px;margin-top:15px;margin-bottom:20px">

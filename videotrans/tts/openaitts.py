@@ -1,3 +1,4 @@
+import os
 import re
 import time
 import httpx
@@ -6,7 +7,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 def get_url(url=""):
-    if not url:
+    if not url or url.find(".openai.com")>-1:
         return "https://api.openai.com/v1"
     m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?',url)
     if m is not None and len(m.groups())==1:
@@ -35,7 +36,8 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             speed=speed
         )
         response.stream_to_file(filename)
-        tools.remove_silence_from_end(filename)
+        if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
+            tools.remove_silence_from_end(filename)
     except Exception as e:
         error=str(e)
         if error and re.search(r'Rate limit',error,re.I) is not None:

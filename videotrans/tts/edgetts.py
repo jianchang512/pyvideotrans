@@ -31,7 +31,7 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         if not os.path.exists(filename) or os.path.getsize(filename)<1:
             config.logger.error( f'edgeTTS配音失败:{text=},{filename=}')
             return True
-        if os.path.exists(filename) and os.path.getsize(filename)>0:
+        if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
     except Exception as e:
         err = str(e)

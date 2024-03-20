@@ -579,7 +579,7 @@ class TransCreate():
             it['raw_duration']=it['end_time']-it['start_time']
 
             if it['end_time'] > it['start_time'] and os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
-                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp3"))
+                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format=it['filename'].split('.')[-1] ))
             else:
                 #不存在配音
                 it['dubb_time'] = 0
@@ -739,12 +739,18 @@ class TransCreate():
                 tmp_mp3 = os.path.join(self.cache_folder, f'{it["filename"]}-speed.mp3')
                 speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
                 # 加速后时间
-                mp3_len=len(AudioSegment.from_file(tmp_mp3, format="mp3"))
+                if os.path.exists(tmp_mp3) and os.path.getsize(tmp_mp3)>0:
+                    mp3_len=len(AudioSegment.from_file(tmp_mp3, format="mp3"))
+                else:
+                    mp3_len=0
                 raw_t=it['raw_duration']
                 #加速后如果仍大于原时长，再移除末尾静音
-                if mp3_len > raw_t:
+                if mp3_len > raw_t and config.settings['remove_silence']:
                     tools.remove_silence_from_end(tmp_mp3)
-                    add_time=len(AudioSegment.from_file(tmp_mp3, format="mp3"))-raw_t
+                    if os.path.exists(tmp_mp3) and os.path.getsize(tmp_mp3)>0:
+                        add_time=len(AudioSegment.from_file(tmp_mp3, format="mp3"))-raw_t
+                    else:
+                        add_time=0
                     print(f'加速并移除静音后仍多出来 add_time={add_time=}')
                     if add_time>0:
                         # 需要延长结束时间，以便字幕 声音对齐
@@ -874,8 +880,8 @@ class TransCreate():
             segments = []
             start_times = []
             for i, it in enumerate(queue_tts):
-                if it['dubb_time'] > 0:
-                    segments.append(AudioSegment.from_file(it['filename'], format="mp3"))
+                if it['dubb_time'] > 0 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                    segments.append(AudioSegment.from_file( it['filename'], format=it['filename'].split('.')[-1]) )
                     start_times.append(it['start_time'])
                 else:
                     segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
@@ -888,7 +894,10 @@ class TransCreate():
         segments = []
         for i, it in enumerate(queue_tts):
             if os.path.exists(it['filename']) and os.path.getsize(it['filename']) > 0:
-                segments.append(AudioSegment.from_file(it['filename'], format="mp3"))
+                segments.append(AudioSegment.from_file(
+                    it['filename'],
+                    format=it['filename'].split('.')[-1] )
+                )
             else:
                 segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
 
@@ -1041,10 +1050,9 @@ class TransCreate():
         if config.params['voice_role'] != 'No':
             if not os.path.exists(self.targetdir_target_wav) or os.path.getsize(self.targetdir_target_wav) < 1:
                 raise Myexcept(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.targetdir_target_wav}")
-        
-        if config.params['voice_role'] != 'No':
+
             video_time = get_video_duration(self.novoice_mp4)
-            audio_length=len(AudioSegment.from_file(self.targetdir_target_wav, format="m4a"))
+            audio_length=len(AudioSegment.from_file(self.targetdir_target_wav, format=self.targetdir_target_wav.split('.')[-1]))
             if audio_length > video_time:
                 # 视频末尾延长
                 try:

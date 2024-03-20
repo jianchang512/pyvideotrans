@@ -54,7 +54,8 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             tools.wav2mp3(filename+".wav",filename)
             if os.path.exists(filename+".wav"):
                 os.unlink(filename+".wav")
-            tools.remove_silence_from_end(filename)
+            if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
+                tools.remove_silence_from_end(filename)
         return True
     except Exception as e:
         error=str(e)
