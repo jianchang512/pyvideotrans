@@ -929,7 +929,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     :return: an AudioSegment without silence at the end
     """
     # Load the audio file
-    audio = AudioSegment.from_file(input_file_path, format="mp3")
+    audio = AudioSegment.from_file(input_file_path, format=input_file_path.split('.')[-1])
 
     # Detect non-silent chunks
     nonsilent_chunks = detect_nonsilent(
