@@ -38,6 +38,12 @@ class Ui_youtubeform(object):
         sizePolicy.setHeightForWidth(youtubeform.sizePolicy().hasHeightForWidth())
         youtubeform.setSizePolicy(sizePolicy)
         youtubeform.setMaximumSize(QtCore.QSize(500, 300))
+        
+        
+        self.formatname=QtWidgets.QCheckBox(youtubeform)
+        self.formatname.setText("使用VID作为视频名称/防出错" if config.defaulelang=='zh' else 'Use VID for video name') 
+        self.formatname.setGeometry(QtCore.QRect(120, 140, 200, 35))
+        
         self.set = QtWidgets.QPushButton(youtubeform)
         self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -111,9 +117,13 @@ class Ui_youtubeform(object):
         self.outputdir.installEventFilter(self.click_filter)
 
 
-
+        
 
         self.verticalLayout_2.addWidget(self.outputdir)
+        
+        
+        
+        
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
         self.logs = QtWidgets.QLabel(youtubeform)
         self.logs.setGeometry(QtCore.QRect(30, 250, 441, 35))

@@ -7,21 +7,17 @@ from openai import OpenAI
 from videotrans.configure import config
 from videotrans.util import tools
 
-
+def get_url(url=""):
+    if not url or url.find(".openai.com")>-1:
+        return "https://api.openai.com/v1"
+    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?',url)
+    if m is not None and len(m.groups())==1:
+        return f'{m.groups()[0]}/v1'
+    return "https://api.openai.com/v1"
 
 
 def create_openai_client():
-    api_url = "https://api.openai.com/v1"
-    
-    if config.params['chatgpt_api']:
-        url=config.params['chatgpt_api'].strip().rstrip('/')
-        url=re.sub(r'/v1/.*?$','/v1',url)
-        if not url.startswith('http'):
-            url=f'https://{url}'
-        if not url.endswith('/v1'):
-            url+='/v1'            
-        api_url=url.replace('chat.openai.com','api.openai.com')
-        
+    api_url = get_url(config.params['chatgpt_api'])
     openai.base_url = api_url
     config.logger.info(f'当前chatGPT:{api_url=}')
     proxies=None

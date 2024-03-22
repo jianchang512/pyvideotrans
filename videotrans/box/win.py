@@ -83,7 +83,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         self.shibie_language.addItems(config.langnamelist)
-        self.shibie_model.addItems(["base", "small", "medium", "large-v2","large-v3"])
+        self.shibie_model.addItems(config.model_list)
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
         self.shibie_opendir.clicked.connect(lambda :self.opendir_fn(self.shibie_out_path))
         self.is_cuda.toggled.connect(self.check_cuda)

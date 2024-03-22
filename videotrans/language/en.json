@@ -1,5 +1,8 @@
 {
   "translate_language": {
+    "enmodelerror": "Models with the .en suffix can only be used if the original language is English",
+    "openaimodelerror": "Models starting with distil-whisper cannot be selected when using openai models.",
+
     "qiegeshujuhaoshi": "If the video is very large, this step will be time-consuming, so please be patient.",
     "youtubehasdown": "The download has begun, please check the progress in the pop-up download interface, WARNING: message do not need to pay attention to, just ignore it!",
     "starting...": "Processing will start and progress will be shown later",
@@ -255,7 +258,7 @@
     "Dubbing speed": "Dubbing speed",
     "Overall acceleration or deceleration of voice over playback": "Overall acceleration or deceleration of voice over playback",
     "Positive numbers accelerate, negative numbers decelerate, -90 to+90": "Positive numbers accelerate, negative numbers decelerate, -90 to+90",
-    "shuoming03": "The length of pronunciation is different in different languages after translation, for example, a sentence in Chinese is 3s, and the translation to English may be 5s, resulting in inconsistent length and video.\n4 solutions: 1.\n set the dubbing speed, global acceleration (some TTS don't support it).\n2. force the dubbing to speed up playback, so as to shorten the dubbing duration and video alignment.\n3. if there are muted clips before and after, then the front and back extensions occupy the muted area\nIn practice, combining these 3 items works best!",
+    "shuoming03": "After the translation of different languages under the pronunciation of different lengths, there is bound to be alignment problems, through the dubbing of the overall speed of speech, the dubbing of the automatic acceleration, the voice before and after the extension can be slightly alleviated, more methods and principles, please check the lower left corner of the relevant tutorials",
     "Voice acceleration?": "Voice acceleration",
     "shuoming04": "The duration of pronunciation varies in different languages after translation, for example, if a sentence is in Chinese for 3 seconds, it may take 5 seconds to translate it into English, resulting in inconsistency between the duration and the video.\nTwo solutions:\n1. Force voice over to accelerate playback, in order to shorten the duration of voice over and align with the video\n2. Force the video to play slowly in order to extend the video duration and align the voice over.\nChoose only one of the two options",
     "Video slow": "Video slow",

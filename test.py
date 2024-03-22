@@ -189,6 +189,8 @@ import subprocess
 import requests
 import json
 
+from videotrans.configure import config
+
 '''
 # 设置请求的URL
 url = "https://kimi.moonshot.cn/api/chat/cnsrbdmcp7fdtb87sm1g/segment/scroll"
@@ -228,47 +230,17 @@ response = requests.post(url, headers=headers, json=data)
 print(response.text)
 
 '''
+from videotrans.recognition import run as run_recogn
+config.current_status='ing'
+a=run_recogn(
+                type='all',
+                audio_file=r"C:/Users/c1/Videos/20.wav",
+                detect_language="en",
+                cache_folder="./tmp",
+                model_name="distil-small.en",
+                model_type='faster',
+                is_cuda=False,
+                inst=None)
 
-# 设置请求的URL
-url = "https://kimi.moonshot.cn/api/chat/cnsrbdmcp7fdtb87sm1g/completion/stream"
 
-# 设置请求头
-headers = {
-    "authority": "kimi.moonshot.cn",
-    "accept": "*/*",
-    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,ja;q=0.5",
-    "authorization": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcxMDg2NTIzMiwiaWF0IjoxNzEwODY0MzMyLCJqdGkiOiJjbnNyZmowM3IwNzA2OGExOXMxZyIsInR5cCI6ImFjY2VzcyIsInN1YiI6ImNuc3I2YTgzcjA3MDY4OXZhbDcwIiwic3BhY2VfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2ZyIsImFic3RyYWN0X3VzZXJfaWQiOiJjbnNyNmE4M3IwNzA2ODl2YWw2MCJ9.zHZ0k13YxFxWLWHchMIWmL4nhLLFQ9-wFIfQQXG9CnjSWUKJU1ATbDT8JK-bMKoRpDh-a0AfbsFQXUwyoErG3g",
-    "cache-control": "no-cache",
-    "content-type": "application/json",
-    "cookie": "Hm_lvt_358cae4815e85d48f7e8ab7f3680a74b=1710732371; _ga=GA1.1.187473429.1710862969; _ga_YXD8W70SZP=GS1.1.1710862969.1.1.1710863668.0.0.0; Hm_lpvt_358cae4815e85d48f7e8ab7f3680a74b=1710863939",
-    "dnt": "1",
-    "origin": "https://kimi.moonshot.cn",
-    "pragma": "no-cache",
-    "r-timezone": "Asia/Shanghai",
-    "referer": "https://kimi.moonshot.cn/chat/cnsrbdmcp7fdtb87sm1g",
-    "sec-ch-ua": "^\"Chromium^\";v=^\"122^\",^\"Not(A:Brand^\";v=^\"24^\",^\"Google Chrome^\";v=^\"122^\"^",
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": "^\"Windows^\"^",
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-}
-
-# 设置请求的数据
-data = {
-    "messages": [
-        {
-            "role": "user",
-            "content": "将下一行的内容都翻译为英文\n我是中国人，你呢我的朋友"
-        }
-    ],
-    "refs": [],
-    "use_search": False
-}
-
-# 发送POST请求
-response = requests.post(url, headers=headers, data=json.dumps(data))
-
-# 打印响应内容
-print(response.text)
+print(a)

@@ -110,7 +110,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['whisper_type']:
             d={"all":0,'split':1,"avg":2,"":0}
             self.whisper_type.setCurrentIndex(d[config.params['whisper_type']])
-        self.whisper_model.addItems(['base', 'small', 'medium','large-v2','large-v3'])
+        self.whisper_model.addItems(config.model_list)
         self.whisper_model.setCurrentText(config.params['whisper_model'])
         if config.params['model_type']=='openai':
             self.model_type.setCurrentIndex(1)

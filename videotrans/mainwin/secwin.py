@@ -732,6 +732,7 @@ class SecWindow():
             proxy = self.main.youw.proxy.text().strip()
             outdir = self.main.youw.outputdir.text()
             url = self.main.youw.url.text().strip()
+            vid = self.main.youw.formatname.isChecked()
             if not url or not re.match(r'^https://(www.)?(youtube.com/watch\?v=\w|youtu.be/\w)',url,re.I):
                 QMessageBox.critical(self.main.youw, config.transobj['anerror'], config.transobj['You must fill in the YouTube video playback page address'])
                 return
@@ -740,7 +741,7 @@ class SecWindow():
                 config.proxy = proxy
                 self.main.settings.setValue("proxy", proxy)
             from videotrans.task.download_youtube import Download
-            down = Download(proxy=proxy,url=url,out=outdir, parent=self.main)
+            down = Download(proxy=proxy,url=url,out=outdir, parent=self.main,vid=vid)
             down.start()
             self.main.youw.set.setText(config.transobj["downing..."])
         def selectdir():
@@ -1316,15 +1317,26 @@ class SecWindow():
         self.check_whisper_model(self.main.whisper_model.currentText())
     # 判断模型是否存在
     def check_whisper_model(self, name):
+        slang=self.main.source_language.currentText()
+        if name.endswith('.en') and get_code(show_text=slang) !='en':
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['enmodelerror'])
+            return False
         if config.params['model_type']=='openai':
+            if name.startswith('distil'):
+                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['openaimodelerror'])
+                return False
             if not os.path.exists(config.rootdir+f"/models/{name}.pt"):
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',name))
                 return False
             return True
         file=f'{config.rootdir}/models/models--Systran--faster-whisper-{name}/snapshots'
+        if name.startswith('distil'):
+            file=f'{config.rootdir}/models/models--Systran--faster-{name}/snapshots'
+
         if not os.path.exists(file):
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['downloadmodel'].replace('{name}',name))
             return False
+
         return True
 
 
@@ -1922,10 +1934,13 @@ class SecWindow():
 
         elif d['type'] == 'update_download' and self.main.youw is not None:
             self.main.youw.logs.setText(config.transobj['youtubehasdown'])
-            self.main.youw.set.setText(config.transobj['start download'])
+            #self.main.youw.set.setText(config.transobj['start download'])
         elif d['type']=='youtube_error':
+            self.main.youw.set.setText(config.transobj['start download'])
             QMessageBox.critical(self.main.youw,config.transobj['anerror'],d['text'][:900])
+            
         elif d['type']=='youtube_ok':
+            self.main.youw.set.setText(config.transobj['start download'])
             QMessageBox.information(self.main.youw,"OK",d['text'])
         elif d['type'] == 'open_toolbox':
             self.open_toolbox(0, True)

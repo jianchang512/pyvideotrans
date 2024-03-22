@@ -13,6 +13,11 @@ from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.util import tools
+import logging
+
+logging.basicConfig()
+logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
+
 
 
 # 统一入口
