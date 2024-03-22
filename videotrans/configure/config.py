@@ -129,6 +129,22 @@ queue_logs = Queue(1000)
 # box窗口
 queuebox_logs = Queue(1000)
 
+model_list=[
+    "tiny",
+    "tiny.en",
+    "base",
+    "base.en",
+    "small",
+    "small.en",
+    "medium",
+    "medium.en",
+    "large-v1",
+    "large-v2",
+    "large-v3",
+    "distil-whisper-small.en",
+    "distil-whisper-medium.en",
+    "distil-whisper-large-v2"]
+
 # 开始按钮状态
 current_status = "stop"
 # video toolbox 状态

@@ -15,19 +15,21 @@ def get_url(url=""):
     return "https://api.openai.com/v1"
 
 def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True):
-    proxies = None
-    serv = tools.set_proxy()
-    if serv:
-        proxies = {
-            'http://': serv,
-            'https://': serv
-        }
+    api_url=get_url(config.params['chatgpt_api'])
+    proxies=None
+    if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
+        serv = tools.set_proxy()
+        if serv:
+            proxies = {
+                'http://': serv,
+                'https://': serv
+            }
     try:
         speed=1.0
         if rate:
             rate=float(rate.replace('%',''))/100
             speed+=rate
-        api_url=get_url(config.params['chatgpt_api'])
+        print(f'{api_url=}')
         client = OpenAI(base_url=api_url, http_client=httpx.Client(proxies=proxies))
         response = client.audio.speech.create(
             model="tts-1",

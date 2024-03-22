@@ -1,5 +1,8 @@
 {
   "translate_language": {
+    "enmodelerror": "只有当原始语言是英语时才可使用后缀为.en的模型",
+    "openaimodelerror": "使用openai模型时, distil-whisper 开头的模型不可使用，请使用其他模型或切换到 faster模型",
+
     "qiegeshujuhaoshi": "若视频很大，此步会比较耗时，请耐心等待",
     "youtubehasdown": "已开始下载，请在控制台界面中查看具体进度，WARNING:信息无需理会\n点击保存目录按钮后的文本框可打开下载文件保存目录",
     "starting...": "开始处理，稍后显示进度，请耐心等待",
@@ -255,7 +258,7 @@
     "Dubbing speed": "配音整体语速",
     "Overall acceleration or deceleration of voice over playback": "对配音语速整体加速或降速播放，正数加速，负数减速",
     "Positive numbers accelerate, negative numbers decelerate, -90 to+90": "正数则加速，负数则减速，-90到+90",
-    "shuoming03": "翻译后不同语言下发音时长不同，比如中文3s，翻译为英文可能5s，导致时长和视频不一致。\n4种解决方式:\n1. 设置配音语速，全局加速(某些TTS不支持)\n2. 强制配音加速播放，以便缩短配音时长和视频对齐\n3. 如果前后有静音片段，则前后延展占据静音区\n实际使用中，结合此3项效果最佳",
+    "shuoming03": "翻译后不同语言下发音时长不同，必然会出现对齐问题，通过配音整体语速、配音自动加速、语音前后延展可稍缓解，更多方法和原理请查看左下角相关教程",
     "Voice acceleration?": "配音自动加速",
     "Video slow": "视频自动慢速",
     "shuoming05": "必须确定有NVIDIA显卡且正确配置了CUDA环境，否则勿选",

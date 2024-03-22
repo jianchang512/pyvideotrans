@@ -509,6 +509,35 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
     ],use_run=True)
 
 
+def precise_speed_up_audio(*,file_path=None, out=None, target_duration_ms=None,max_rate=100):
+    from pydub import AudioSegment
+    audio = AudioSegment.from_file(file_path)
+
+    # 首先确保原时长和目标时长单位一致（毫秒）
+    current_duration_ms = len(audio)
+    # 计算音频变速比例
+    # current_duration_ms = len(audio)
+    # speedup_ratio = current_duration_ms / target_duration_ms
+    # 计算速度变化率
+    speedup_ratio = current_duration_ms / target_duration_ms
+    if speedup_ratio<=1:
+        return True
+    rate=min(max_rate,speedup_ratio)
+    # 变速处理
+    fast_audio = audio.speedup(playback_speed=rate)
+    print(f'实际变速:{rate=}')
+    # 如果处理后的音频时长稍长于目标时长，进行剪裁
+    if len(fast_audio) > target_duration_ms:
+        fast_audio = fast_audio[:target_duration_ms]
+
+
+    if out:
+        fast_audio.export(out,format=out.split('.')[-1])
+        return True
+    fast_audio.export(file_path,format=file_path.split('.')[-1])
+    # 返回速度调整后的音频
+    return True
+
 
 
 def show_popup(title, text):
@@ -915,7 +944,7 @@ def kill_ffmpeg_processes():
 
 
 
-def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10):
+def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10,is_start=True):
     if not config.settings['remove_silence']:
         return False
     from pydub import AudioSegment
@@ -929,7 +958,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     :return: an AudioSegment without silence at the end
     """
     # Load the audio file
-    audio = AudioSegment.from_file(input_file_path, format=input_file_path.split('.')[-1])
+    audio = AudioSegment.from_file(input_file_path, format=input_file_path.split('.')[-1]) if isinstance(input_file_path,str) else input_file_path
 
     # Detect non-silent chunks
     nonsilent_chunks = detect_nonsilent(
@@ -941,15 +970,19 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
     if nonsilent_chunks:
         start_index, end_index = nonsilent_chunks[-1]
+    elif isinstance(input_file_path,str):
+        return True
     else:
         # If the whole audio is silent, just return it as is
-        return audio
+        return input_file_path
 
     # Remove the silence from the end by slicing the audio segment
     trimmed_audio = audio[:end_index]
-    if nonsilent_chunks[0] and nonsilent_chunks[0][0]>50:
-        trimmed_audio = audio[nonsilent_chunks[0][0]-50:end_index]
-    trimmed_audio.export(input_file_path,format="mp3")
+    if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0]>0:
+        trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
+    if isinstance(input_file_path,str):
+        return trimmed_audio.export(input_file_path,format=input_file_path.split('.')[-1])
+    return trimmed_audio
 
 # 从 google_url 中获取可用地址
 def get_google_url():
