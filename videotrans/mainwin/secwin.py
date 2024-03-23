@@ -136,14 +136,85 @@ class SecWindow():
         from videotrans.task.main_worker import Shiting
         self.main.shitingobj = Shiting(obj, self.main)
         self.main.shitingobj.start()
+    # 简单新手模式
+    def set_xinshoujandann(self):
+        self.main.app_mode = 'biaozhun_jd'
+        self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
+        self.main.startbtn.setText(config.transobj['kaishichuli'])
+        self.main.action_xinshoujandan.setChecked(True)
+        self.main.action_tiquzimu_no.setChecked(False)
+        self.main.action_biaozhun.setChecked(False)
+        self.main.action_tiquzimu.setChecked(False)
+        self.main.action_zimu_video.setChecked(False)
+        self.main.action_zimu_peiyin.setChecked(False)
+
+        # 选择视频
+        self.hide_show_element(self.main.layout_source_mp4, True)
+        # 保存目标
+        self.hide_show_element(self.main.layout_target_dir, False)
+
+
+        # 翻译渠道
+        self.main.translate_type.setCurrentText('FreeGoogle' if config.defaulelang=='zh' else 'Google')
+        self.hide_show_element(self.main.layout_translate_type, False)
+        # 代理
+        self.hide_show_element(self.main.layout_proxy, False)
+        # 原始语言
+        self.hide_show_element(self.main.layout_source_language, True)
+        # 目标语言
+        self.hide_show_element(self.main.layout_target_language, True)
+        # tts类型
+        self.hide_show_element(self.main.layout_tts_type, False)
+        # 配音角色
+        self.main.tts_type.setCurrentText('edgeTTS')
+        self.main.tts_type.hide()
+        # 试听按钮
+
+        self.main.listen_btn.show()
+        # 语音模型
+        self.main.whisper_type.setCurrentIndex(0)
+        self.main.whisper_model.setCurrentIndex(0)
+        self.main.subtitle_type.setCurrentIndex(1)
+
+        self.hide_show_element(self.main.layout_whisper_model, False)
+        # 字幕类型
+        self.hide_show_element(self.main.layout_subtitle_type, False)
+
+        # 配音语速
+
+        self.hide_show_element(self.main.layout_voice_rate, False)
+        # 静音片段
+        # 配音自动加速
+        self.main.voice_autorate.setChecked(True)
+        self.main.voice_autorate.hide()
+        self.main.auto_ajust.setChecked(True)
+        self.main.auto_ajust.hide()
+
+        self.main.splitter.setSizes([self.main.width, 0])
+        self.hide_show_element(self.main.subtitle_layout,False)
+
+        # 视频自动降速
+        self.main.is_separate.setDisabled(False)
+        self.main.addbackbtn.setDisabled(False)
+        self.main.back_audio.setReadOnly(False)
+        self.main.only_video.setDisabled(False)
+        self.main.is_separate.hide()
+        self.main.addbackbtn.hide()
+        self.main.back_audio.hide()
+        self.main.only_video.hide()
+
+        # cuda
+        self.main.enable_cuda.setChecked(False)
+        self.main.enable_cuda.hide()
 
     # 启用标准模式
     def set_biaozhun(self):
         self.main.app_mode = 'biaozhun'
         self.main.show_tips.setText("")
         self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_biaozhun.setChecked(True)
+        self.main.action_xinshoujandan.setChecked(False)
+        self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
         self.main.action_zimu_video.setChecked(False)
         self.main.action_zimu_peiyin.setChecked(False)
@@ -176,8 +247,6 @@ class SecWindow():
 
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, True)
-        # 静音片段
-        # self.hide_show_element(self.main.layout_voice_silence, True)
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
@@ -185,6 +254,9 @@ class SecWindow():
         self.main.addbackbtn.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
         self.main.only_video.setDisabled(False)
+        self.hide_show_element(self.main.subtitle_layout,True)
+        self.main.splitter.setSizes([self.main.width-400, 400])
+        self.main.auto_ajust.show()
 
         # cuda
         self.main.enable_cuda.show()
@@ -194,12 +266,16 @@ class SecWindow():
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
-        self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_tiquzimu.setChecked(True)
+        self.main.action_xinshoujandan.setChecked(False)
+        self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_zimu_video.setChecked(False)
         self.main.action_zimu_peiyin.setChecked(False)
 
+        self.hide_show_element(self.main.subtitle_layout,True)
+        self.main.splitter.setSizes([self.main.width-400, 400])
+        self.main.auto_ajust.hide()
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
@@ -255,11 +331,15 @@ class SecWindow():
         self.main.app_mode = 'tiqu_no'
         self.main.show_tips.setText(config.transobj['tiquzimuno'])
         self.main.startbtn.setText(config.transobj['kaishitiquzimu'])
-        self.main.action_tiquzimu.setChecked(False)
         self.main.action_tiquzimu_no.setChecked(True)
+        self.main.action_xinshoujandan.setChecked(False)
+        self.main.action_tiquzimu.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_zimu_video.setChecked(False)
         self.main.action_zimu_peiyin.setChecked(False)
+        self.hide_show_element(self.main.subtitle_layout,True)
+        self.main.splitter.setSizes([self.main.width-400, 400])
+        self.main.auto_ajust.hide()
 
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
@@ -320,12 +400,16 @@ class SecWindow():
         self.main.app_mode = 'hebing'
         self.main.show_tips.setText(config.transobj['zimu_video'])
         self.main.startbtn.setText(config.transobj['kaishihebing'])
+        self.main.action_zimu_video.setChecked(True)
+        self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
-        self.main.action_zimu_video.setChecked(True)
         self.main.action_zimu_peiyin.setChecked(False)
 
+        self.hide_show_element(self.main.subtitle_layout,True)
+        self.main.splitter.setSizes([self.main.width-400, 400])
+        self.main.auto_ajust.hide()
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
@@ -375,17 +459,22 @@ class SecWindow():
     def set_zimu_peiyin(self):
         self.main.show_tips.setText(config.transobj['zimu_peiyin'])
         self.main.startbtn.setText(config.transobj['kaishipeiyin'])
+        self.main.action_zimu_peiyin.setChecked(True)
+        self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu_no.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
         self.main.action_zimu_video.setChecked(False)
-        self.main.action_zimu_peiyin.setChecked(True)
         self.main.app_mode = 'peiyin'
+
+
+        self.hide_show_element(self.main.subtitle_layout,True)
+        self.main.splitter.setSizes([self.main.width-400, 400])
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, False)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        #self.main.open_targetdir.show()
+
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -401,7 +490,7 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, True)
         # 试听按钮
-        #self.hide_show_element(self.main.listen_layout, True)
+
         self.main.listen_btn.show()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, False)
@@ -411,7 +500,7 @@ class SecWindow():
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, True)
         # 静音片段
-        # self.hide_show_element(self.main.layout_voice_silence, False)
+
         # 配音自动加速
         self.main.voice_autorate.show()
         # 视频自动降速
@@ -422,6 +511,7 @@ class SecWindow():
         self.main.back_audio.setReadOnly(False)
         self.main.only_video.setDisabled(True)
         self.main.only_video.setChecked(False)
+        self.main.auto_ajust.show()
         # cuda
         self.main.enable_cuda.show()
 
@@ -480,11 +570,8 @@ class SecWindow():
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
         self.main.import_sub.setDisabled(type)
-        # self.main.export_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
-        # self.main.source_mp4.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
-        # self.main.target_dir.setDisabled(type)
         self.main.translate_type.setDisabled(type)
         self.main.proxy.setDisabled(type)
         self.main.source_language.setDisabled(type)
@@ -493,13 +580,13 @@ class SecWindow():
         self.main.whisper_model.setDisabled(type)
         self.main.whisper_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
-        # self.main.voice_silence.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.is_separate.setDisabled(type)
         self.main.model_type.setDisabled(type)
         self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
+        self.main.auto_ajust.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
 
     def export_sub_fun(self):
         srttxt = self.main.subtitle_area.toPlainText().strip()
@@ -1723,7 +1810,7 @@ class SecWindow():
             return False
 
         # 未主动选择模式，则判断设置情况应该属于什么模式
-        if self.main.app_mode == 'biaozhun':
+        if self.main.app_mode.startswith('biaozhun'):
             # tiqu 如果 存在视频但 无配音 无嵌入字幕，则视为提取
             if len(config.queue_mp4) > 0 and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No':
                 self.main.app_mode = 'tiqu_no' if config.params['source_language'] == config.params['target_language'] or config.params['target_language'] == '-' else 'tiqu'
@@ -1816,8 +1903,8 @@ class SecWindow():
             elif self.main.task and self.main.task.video:
                 jindu = f' {round(self.main.task.video.precent, 1)}% ' if self.main.task and self.main.task.video else ""
                 self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
-                text = f'{config.transobj["running"]}{jindu} {text}'
-            self.main.processbtns[btnkey].setText(text[:90])
+                text = f'{config.transobj["running"].replace("..","")},{config.transobj["endopendir"]} [{jindu}] / {text}'
+            self.main.processbtns[btnkey].setText(text[:180])
             self.main.processbtns[btnkey].setToolTip(config.transobj['mubiao'])
 
     # 更新执行状态

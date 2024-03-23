@@ -222,12 +222,12 @@ class TransCreate():
         ##### 翻译阶段
         self.step = 'translate_start'
         # 翻译暂停时允许修改字幕，翻译开始后禁止修改
-        config.task_countdown = config.settings['countdown_sec']
+        config.task_countdown = 0 if self.app_mode=='biaozhun_jd' else config.settings['countdown_sec']
         self.trans()
         self.step = 'translate_end'
         if self.app_mode == 'tiqu':
             return True
-        config.task_countdown = config.settings['countdown_sec']
+        config.task_countdown = 0 if self.app_mode=='biaozhun_jd' else  config.settings['countdown_sec']
         # 如果存在目标语言字幕，并且存在 配音角色，则需要配音
         self.step = "dubbing_start"
         # 配音开始前允许修改，开始后禁止修改
@@ -398,7 +398,6 @@ class TransCreate():
             if config.task_countdown <= config.settings['countdown_sec'] and config.task_countdown >= 0:
                 set_process(f"{config.task_countdown}{transobj['zidonghebingmiaohou']}", 'show_djs')
         # 禁止修改字幕
-        #config.task_countdown = config.settings['countdown_sec']
         set_process(config.transobj['kaishipeiyin'])
         set_process('', 'timeout_djs')
         time.sleep(3)
@@ -739,7 +738,7 @@ class TransCreate():
                     offset += add_time
                     it['video_add'] = add_time
                 it['raw_duration']=it['end_time']-it['start_time']
-                os.unlink(it['filename'])
+                # os.unlink(it['filename'])
                 it['filename'] = tmp_mp3
 
             # 更改时间戳
@@ -808,6 +807,7 @@ class TransCreate():
                                to=ms_to_time_string(ms=it['end_time_source']),
                                source=self.novoice_mp4,
                                out=filename_video)
+            set_process(f"{config.transobj['video speed down']}")
         if queue_tts[-1]['end_time_source'] < last_time:
             last_v = self.cache_folder + "/last_dur.mp4"
             cut_from_video(ss=ms_to_time_string(ms=queue_tts[-1]['end_time_source']),

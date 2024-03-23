@@ -11,7 +11,7 @@ from videotrans.util import tools
 def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
     print(f'{language=}')
     try:
-        api_url=config.params['gptsovits_url'].strip().rstrip('/')
+        api_url=config.params['gptsovits_url'].strip().rstrip('/').lower()
         if not api_url:
             raise Exception("必须填写GPT-SoVITS 的 API 地址")
         api_url='http://'+api_url.replace('http://','')
@@ -19,6 +19,8 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         text=text.strip()
         if not text:
             return True
+        if config.current_status != 'ing' and config.box_tts != 'ing':
+            return False
         splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
         if text[-1] not in splits:
             text+='.'

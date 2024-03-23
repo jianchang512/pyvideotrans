@@ -10,9 +10,11 @@ from videotrans.util import tools
 def get_url(url=""):
     if not url or url.find(".openai.com")>-1:
         return "https://api.openai.com/v1"
-    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?',url)
-    if m is not None and len(m.groups())==1:
-        return f'{m.groups()[0]}/v1'
+    url=url.rstrip('/').lower()
+    if not url.startswith('http'):
+        url='http://'+url
+    if not url.endswith('/v1'):
+        return url+"/v1"
     return "https://api.openai.com/v1"
 
 

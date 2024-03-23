@@ -145,20 +145,8 @@ class Ui_MainWindow(object):
         
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
         self.listen_btn.setEnabled(False)
-        '''
-        self.listen_layout = QtWidgets.QVBoxLayout()
-        self.listen_layout.setObjectName("listen_layout")
-        self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
-        self.listen_btn.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.listen_btn.sizePolicy().hasHeightForWidth())
-        self.listen_btn.setSizePolicy(sizePolicy)
-        self.listen_btn.setObjectName("listen_btn")
-        self.listen_layout.addWidget(self.listen_btn)
-        self.horizontalLayout_5.addLayout(self.listen_layout)
-        '''
+        self.listen_btn.setMaximumWidth(200)
+
         
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -346,35 +334,6 @@ class Ui_MainWindow(object):
         self.gaoji_layout_inner2.addWidget(self.back_audio)
 
 
-        # self.gaoji_layout_inner2.addWidget(self.only_video)
-
-
-
-
-
-        
-        
-        
-        
-        # self.layout_voice_silence = QtWidgets.QFormLayout()
-        # self.layout_voice_silence.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        # self.layout_voice_silence.setObjectName("layout_voice_silence")
-        # self.label_7 = QtWidgets.QLabel(self.layoutWidget)
-        # self.label_7.setMinimumSize(QtCore.QSize(0, 30))
-        # self.label_7.setObjectName("label_7")
-        # self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_7)
-        # self.voice_silence = QtWidgets.QLineEdit(self.layoutWidget)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.voice_silence.sizePolicy().hasHeightForWidth())
-        # self.voice_silence.setSizePolicy(sizePolicy)
-        # self.voice_silence.setMinimumSize(QtCore.QSize(100, 30))
-        # self.voice_silence.setObjectName("voice_silence")
-        # self.layout_voice_silence.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_silence)
-        # self.gaoji_layout_inner.addLayout(self.layout_voice_silence)
-
-
         self.layout_voice_rate = QtWidgets.QFormLayout()
         self.layout_voice_rate.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.layout_voice_rate.setObjectName("layout_voice_rate")
@@ -430,11 +389,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
         self.show_tips.setText("")
-        self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent""")
-
+        self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent;color:#aaaaaa""")
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.addSpacing(5)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -585,12 +544,19 @@ class Ui_MainWindow(object):
         self.actiontencent_key.setObjectName("actiontencent_key")
         self.action_about = QtGui.QAction(MainWindow)
         self.action_about.setObjectName("action_about")
+
+
         self.action_biaozhun = QtGui.QAction(MainWindow)
         self.action_biaozhun.setCheckable(True)
         self.action_biaozhun.setChecked(True)
-        
-        
         self.action_biaozhun.setObjectName("action_biaozhun")
+
+        self.action_xinshoujandan = QtGui.QAction(MainWindow)
+        self.action_xinshoujandan.setCheckable(True)
+        self.action_xinshoujandan.setChecked(False)
+        self.action_xinshoujandan.setObjectName("action_xinshoujandan")
+
+
         self.action_tiquzimu_no = QtGui.QAction(MainWindow)
         self.action_tiquzimu_no.setCheckable(True)
         
@@ -710,6 +676,7 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menu_Key.menuAction())
         self.menuBar.addAction(self.menu.menuAction())
         self.menuBar.addAction(self.menu_H.menuAction())
+        self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
         self.toolBar.addAction(self.action_tiquzimu_no)
@@ -806,6 +773,8 @@ class Ui_MainWindow(object):
         self.action_about.setText(config.uilanglist.get("Donating developers"))
         self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
         self.action_biaozhun.setToolTip(config.uilanglist.get("Display all options for video translation and dubbing"))
+        self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
+        self.action_xinshoujandan.setToolTip(config.uilanglist.get("action_xinshoujandan"))
         self.action_tiquzimu_no.setText(config.uilanglist.get("Export  Srt  From Videos"))
         self.action_tiquzimu_no.setToolTip(config.uilanglist.get("Extracting SRT subtitles in the original language from local videos"))
         self.action_zimu_video.setText(config.uilanglist.get("Merging Subtitle  Video"))

@@ -11,6 +11,8 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
             jsondata=json.loads(f.read())
         if config.params['elevenlabstts_key']:
             set_api_key(config.params['elevenlabstts_key'])
+        if config.current_status != 'ing' and config.box_tts != 'ing':
+            return False
         audio = generate(
             text=text,
             voice=Voice(voice_id=jsondata[role]['voice_id']),

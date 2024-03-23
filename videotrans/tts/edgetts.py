@@ -19,8 +19,12 @@ else:
 # trimmed_audio.export("1_trimmed.mp3", format="mp3")
 
 def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,set_p=True):
+    if config.current_status != 'ing' and config.box_tts != 'ing':
+        return False
     communicate = edge_tts.Communicate(text, role, rate=rate)
     try:
+        if config.current_status != 'ing' and config.box_tts != 'ing':
+            return False
         # print(f'开始配音:{text=},{filename=}')
         asyncio.run(communicate.save(filename))
         # print(f'结束配音:{text=},exists={os.path.exists(filename)}')

@@ -1,5 +1,8 @@
 {
   "translate_language": {
+    "endopendir": "Click to open the save directory when done",
+    "xinshoumoshitips": "Select the video you want to translate and set the original language of the video and the language you want to translate to",
+
     "enmodelerror": "Models with the .en suffix can only be used if the original language is English",
     "openaimodelerror": "Models starting with distil-whisper cannot be selected when using openai models.",
 
@@ -220,6 +223,8 @@
     "shezhijuese": "Set Role"
   },
   "ui_lang": {
+    "action_xinshoujandan": "Minimalist Newbie Mode",
+    "action_xinshoujandan_tools": "Simple to use without configuration, suitable for short videos, less accurate, for more control use standard function mode",
     "onlyvideo": "Save only video",
     "onlyvideo_tips": "If this item is checked, subtitles, audio and other material will not be kept, only the final video file will be saved",
     "model_type_tips": "The master model is faster and more resource-efficient, but requires the installation and configuration of cudnn and cublas in addition to cuda.\nThe openai model is slower and more resource-intensive, but only requires cuda to be installed.",

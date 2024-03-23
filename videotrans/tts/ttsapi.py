@@ -14,7 +14,8 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         if not api_url:
             raise Exception("get_voice:"+config.transobj['ttsapi_nourl'])
         config.logger.info(f'TTS-API:api={api_url}')
-
+        if config.current_status != 'ing' and config.box_tts != 'ing':
+            return False
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
         # role=clone是直接复制
         #克隆声音

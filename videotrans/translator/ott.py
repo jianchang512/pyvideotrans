@@ -15,7 +15,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-    url=config.params['ott_address'].strip().rstrip('/').replace('/translate','')+'/translate'
+    url=config.params['ott_address'].strip().rstrip('/').lower().replace('/translate','')+'/translate'
     url=url.replace('//translate','/translate')
     if not url.startswith('http'):
         url=f"http://{url}"
