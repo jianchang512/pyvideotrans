@@ -62,6 +62,7 @@ a:hover{color:#ff0}
 <li><a  href="https://juejin.cn/post/7338335869709123636">详解软件各个功能及界面设置</a></li>
 
 <li><a  href="https://juejin.cn/post/7337853478113804325">选择faster-whisper还是openai-whisper</a></li>
+<li><a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447805126&idx=1&sn=c9d6a206922a620ba6fa4be9cfa902e2">3个分类共14个模型，下载和使用说明<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span></a></li>
 
 <li><a  href="https://juejin.cn/post/7337517508151705635">提高视频翻译质量的几个方法</a></li>
 <li><a  href="https://juejin.cn/post/7348280739262398516">ChatGPT和DeepLx在API调用中的设置方法和常见错误</a></li>

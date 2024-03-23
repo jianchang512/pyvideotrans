@@ -24,6 +24,8 @@ logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
 def run(*, type="all", detect_language=None, audio_file=None,cache_folder=None,model_name=None,set_p=True,inst=None,model_type='faster',is_cuda=None):
     if config.current_status != 'ing' and config.box_recogn!='ing':
         return False
+    if model_name.startswith('distil-'):
+        model_name=model_name.replace('-whisper','')
     print(f'{model_type=},{type=}')
     if model_type=='openai':
         rs=split_recogn_openai(detect_language=detect_language, audio_file=audio_file,cache_folder=cache_folder,model_name=model_name,set_p=set_p,inst=inst,is_cuda=is_cuda)
@@ -52,7 +54,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None,model
     model=None
     try:
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
-                             compute_type=config.settings['cuda_com_type'],
+                             compute_type= "float32" if model_name.startswith('distil-') else  config.settings['cuda_com_type'],
                              download_root=down_root,
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(config.settings['whisper_threads']),
@@ -189,7 +191,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None,mod
     total_length = len(nonsilent_data)
     try:
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
-                         compute_type=config.settings['cuda_com_type'],
+                         compute_type="float32" if model_name.startswith('distil-') else config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
                          local_files_only=True)
     except Exception as e:
@@ -446,7 +448,7 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
     start_t = time.time()
     try:
         model = WhisperModel(model_name, device="cuda" if config.params['cuda'] else "cpu",
-                         compute_type=config.settings['cuda_com_type'],
+                         compute_type="float32" if model_name.startswith('distil-') else config.settings['cuda_com_type'],
                          download_root=config.rootdir + "/models",
                          local_files_only=True)
     except Exception as e:

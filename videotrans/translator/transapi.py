@@ -18,7 +18,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         是否实时输出日志，主界面中需要
     """
     # 翻译后的文本
-    url=config.params['trans_api_url'].rstrip('/')
+    url=config.params['trans_api_url'].strip().rstrip('/').lower()
     if not url.startswith('http'):
         url=f"http://{url}"
     print(f'{url=}')

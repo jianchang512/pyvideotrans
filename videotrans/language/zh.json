@@ -1,5 +1,8 @@
 {
   "translate_language": {
+    "endopendir": "完成后点击打开保存目录",
+    "xinshoumoshitips": "选择要翻译的视频，并设置视频原始语言和想翻译到的语言, 更完整功能更准确翻译, 请使用 标准功能模式，若翻译出错请切换到标准功能模式，使用其他翻译渠道 ",
+
     "enmodelerror": "只有当原始语言是英语时才可使用后缀为.en的模型",
     "openaimodelerror": "使用openai模型时, distil-whisper 开头的模型不可使用，请使用其他模型或切换到 faster模型",
 
@@ -222,6 +225,9 @@
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },
   "ui_lang": {
+    "action_xinshoujandan": "简单新手模式",
+    "action_xinshoujandan_tools": "无需配置使用简单，适合短视频，准确度较低，更多控制请使用标准功能模式",
+
     "onlyvideo": "仅保存视频",
     "onlyvideo_tips": "如果选中该项，将不保留字幕、音频等素材，仅保存最终生成的视频文件",
     "model_type_tips": "faster模型更快更节省资源，但除cuda外还需要再安装配置cudnn和cublas\nopenai模型执行较慢也更耗资源，但仅需安装cuda",
@@ -308,8 +314,8 @@
     "Translate text or subtitles": "将文字或者字幕进行翻译",
     "Download from Youtube": "下载油管视频",
     "Whisper model": "语音模型",
-    "faster model": "faster模型",
-    "openai model": "openai模型"
+    "faster model": "faster模式",
+    "openai model": "openai模式"
   },
   "toolbox_lang": {
     "import audio or video": "导入音视频文件",

@@ -9,9 +9,11 @@ from videotrans.util import tools
 def get_url(url=""):
     if not url or url.find(".openai.com")>-1:
         return "https://api.openai.com/v1"
-    m=re.match(r'(https?://(?:[_\w-]+\.)+[a-zA-Z]+)/?',url)
-    if m is not None and len(m.groups())==1:
-        return f'{m.groups()[0]}/v1'
+    url=url.rstrip('/').lower()
+    if not url.startswith('http'):
+        url='http://'+url
+    if not url.endswith('/v1'):
+        return url+"/v1"
     return "https://api.openai.com/v1"
 
 def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True):
@@ -25,6 +27,8 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
                 'https://': serv
             }
     try:
+        if config.current_status != 'ing' and config.box_tts != 'ing':
+            return False
         speed=1.0
         if rate:
             rate=float(rate.replace('%',''))/100

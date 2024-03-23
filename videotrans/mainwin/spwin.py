@@ -33,6 +33,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shitingobj = None
         self.youw = None
         self.sepw=None
+        self.app_mode="biaozhun_jd"
         self.processbtns = {}
         screen=QGuiApplication.primaryScreen()
         screen_resolution = screen.geometry()
@@ -62,10 +63,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.last_opendir = self.settings.value("last_dir", config.last_opendir, str)
         # language code
         self.languagename = config.langnamelist
-        self.app_mode = 'biaozhun'
+        self.get_setting()
+
+
         self.splitter.setSizes([self.width - 400, 400])
         # start
-        self.get_setting()
 
         # 隐藏倒计时
         self.stop_djs.hide()
@@ -79,7 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        #self.open_targetdir.setCursor(Qt.PointingHandCursor)
+
 
         self.source_mp4.setAcceptDrops(True)
         self.target_dir.setAcceptDrops(True)
@@ -117,20 +119,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['only_video']:
             self.only_video.setChecked(True)
 
-
-        #
         self.voice_rate.setText(config.params['voice_rate'])
-        # self.voice_silence.setText(config.params['voice_silence'])
+
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.auto_ajust.setChecked(config.params['auto_ajust'])
 
 
-
         if config.params['cuda']:
             self.enable_cuda.setChecked(True)
 
-        # subtitle 0 no 1=embed subtitle 2=softsubtitle
         self.subtitle_type.addItems(
             [
                 config.transobj['nosubtitle'],
@@ -194,7 +192,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 设置QToolBar的大小，影响其中的QAction的大小
         self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
         # time.sleep(2)
-        # self.show()
+
         self.bind_action()
 
     def bind_action(self):
@@ -254,7 +252,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.continue_compos.clicked.connect(self.util.set_djs_timeout)
         self.btn_get_video.clicked.connect(self.util.get_mp4)
         self.btn_save_dir.clicked.connect(self.util.get_save_dir)
-        #self.open_targetdir.clicked.connect(lambda: self.util.open_dir(self.target_dir.text()))
+
         self.show_tips.clicked.connect(lambda: self.util.open_dir(self.show_tips.text().split('#')[-1]))
         self.target_language.currentTextChanged.connect(self.util.set_voice_role)
         self.voice_role.currentTextChanged.connect(self.util.show_listen_btn)
@@ -305,20 +303,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.util.about)
         
 
+        self.action_xinshoujandan.triggered.connect(self.util.set_xinshoujandann)
+
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
-        # self.action_biaozhun.setCursor(Qt.PointingHandCursor)
+
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
-        # self.action_tiquzimu.setCursor(Qt.PointingHandCursor)
+
         self.action_tiquzimu_no.triggered.connect(self.util.set_tiquzimu_no)
-        # self.action_tiquzimu_no.setCursor(Qt.PointingHandCursor)
+
         self.action_zimu_video.triggered.connect(self.util.set_zimu_video)
-        # self.action_zimu_video.setCursor(Qt.PointingHandCursor)
+
         self.action_zimu_peiyin.triggered.connect(self.util.set_zimu_peiyin)
-        # self.action_zimu_peiyin.setCursor(Qt.PointingHandCursor)
+
+        if self.app_mode=='biaozhun_jd':
+            self.util.set_xinshoujandann()
+        elif self.app_mode=='biaozhun':
+            self.util.set_biaozhun()
+        elif self.app_mode=='tiqu':
+            self.util.set_tiquzimu()
+        elif self.app_mode=='tiqu_no':
+            self.util.set_tiquzimu_no()
+        elif self.app_mode=='hebing':
+            self.util.set_zimu_video()
+        elif self.app_mode=='peiyin':
+            self.util.set_zimu_peiyin()
+
+
+
+
         self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(2, False))
-        # self.action_yuyinshibie.setCursor(Qt.PointingHandCursor)
+
         self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3, False))
-        # self.action_yuyinhecheng.setCursor(Qt.PointingHandCursor)
+
         self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0, False))
         # self.action_yinshipinfenli.setCursor(Qt.PointingHandCursor)
         self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1, False))
@@ -386,6 +402,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         event.accept()
 
     def get_setting(self):
+        self.app_mode=self.settings.value("init_model_functional", "biaozhun_jd")
         # 从缓存获取默认配置
         config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
         config.params["source_language"] = self.settings.value("source_language", "")
@@ -450,6 +467,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 存储本地数据
     def save_setting(self):
+        self.settings.setValue("init_model_functional", self.app_mode)
         self.settings.setValue("target_dir", config.params['target_dir'])
         self.settings.setValue("source_language", config.params['source_language'])
         self.settings.setValue("target_language", config.params['target_language'])
@@ -459,7 +477,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("model_type", config.params['model_type'])
         self.settings.setValue("voice_rate", config.params['voice_rate'])
         self.settings.setValue("voice_role", config.params['voice_role'])
-        # self.settings.setValue("voice_silence", config.params['voice_silence'])
+
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
         self.settings.setValue("auto_ajust", config.params['auto_ajust'])
         self.settings.setValue("subtitle_type", config.params['subtitle_type'])
