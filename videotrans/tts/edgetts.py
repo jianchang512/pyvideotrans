@@ -48,4 +48,5 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
             asyncio.run(communicate.save(filename))
         elif set_p:
             tools.set_process("有一个配音出错")
+            config.logger.error( f'edgeTTS配音有一个失败:{text=},{filename=}')
     return True

@@ -463,15 +463,20 @@ class TransCreate():
                 if silence_duration > 0:
                     silence = AudioSegment.silent(duration=silence_duration)
                     merged_audio += silence
-            it['startraw']=ms_to_time_string(ms=it['start_time'])
-            it['endraw']=ms_to_time_string(ms=it['end_time'])
+            if not config.settings['force_edit_srt']:
+                it['startraw']=ms_to_time_string(ms=it['start_time'])
+                it['endraw']=ms_to_time_string(ms=it['end_time'])
+            else:
+                it['startraw']=ms_to_time_string(ms=it['start_time_source'])
+                it['endraw']=ms_to_time_string(ms=it['end_time_source'])
             queue_tts[i]=it
             merged_audio += segment
 
         # 移除尾部静音
-        merged_audio=tools.remove_silence_from_end(merged_audio,silence_threshold=-50.0, chunk_size=10,is_start=False)
+        if config.settings['remove_silence']:
+            merged_audio=tools.remove_silence_from_end(merged_audio,silence_threshold=-50.0, chunk_size=10,is_start=False)
 
-        if video_time > 0 and (len(merged_audio) < video_time):
+        if video_time > 0 and merged_audio and (len(merged_audio) < video_time):
             # 末尾补静音
             silence = AudioSegment.silent(duration=video_time - len(merged_audio))
             merged_audio += silence
@@ -716,7 +721,7 @@ class TransCreate():
                 continue
 
 
-            if it['speed'] >=1:
+            if it['speed'] >=1 and os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
                 # 调整音频
                 set_process(f"{config.transobj['dubbing speed up']} {it['speed']}")
                 print(f'[{i+1}] 音频需要加速，配音时长:{it["dubb_time"]},需要调整到时长:{it["raw_duration"]}')
@@ -877,7 +882,7 @@ class TransCreate():
 
 
         # 6.处理视频慢速
-        if config.params['voice_autorate'] and config.settings['video_rate']>1:
+        if config.settings['video_rate']>1:
             print('6.处理视频慢速')
             self._ajust_video(queue_tts)
 

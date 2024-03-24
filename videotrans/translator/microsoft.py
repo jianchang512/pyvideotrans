@@ -19,6 +19,13 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    serv = tools.set_proxy()
+    proxies = None
+    if serv:
+        proxies = {
+            'http': serv,
+            'https': serv
+        }
     while 1:
         if config.current_status!='ing' and config.box_trans!='ing':
             break
@@ -48,7 +55,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         try:
-            auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers,proxies={"http":"","https":""})
+            auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers,proxies=proxies)
         except:
             raise Exception('连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang=='zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel')
         for i,it in enumerate(split_source_text):
@@ -63,7 +70,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 text = "\n".join(it)
                 url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={target_language}&api-version=3.0&includeSentenceLength=true"
                 headers['Authorization']=f"Bearer {auth.text}"
-                response = requests.post(url,  json=[{"Text":text}],headers=headers, timeout=300,proxies={"http":"","https":""})
+                response = requests.post(url,  json=[{"Text":text}],headers=headers, timeout=300,proxies=proxies)
                 if response.status_code != 200:
                     config.logger.info(f'Microsoft 返回响应:{response.text}\nurl={url}')
                     raise Exception(f'{response.status_code=}')
@@ -104,4 +111,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]
+        else:
+            text_list[i]['text'] = ""
     return text_list

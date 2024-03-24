@@ -182,14 +182,7 @@ input("Press Enter for quit")
 # # 如果是WAV音频流，获取原始音频数据
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
-import os,sys
-import subprocess
 
-
-import requests
-import json
-
-from videotrans.configure import config
 
 '''
 # 设置请求的URL
@@ -230,17 +223,130 @@ response = requests.post(url, headers=headers, json=data)
 print(response.text)
 
 '''
-from videotrans.recognition import run as run_recogn
+from videotrans.translator.google import trans
+import os,time,json
+os.environ['HTTP_PROXY']='http://127.0.0.1:10809'
+os.environ['HTTPS_PROXY']='http://127.0.0.1:10809'
+from videotrans.configure import config
+from videotrans.tts.edgetts import get_voice
 config.current_status='ing'
-a=run_recogn(
-                type='all',
-                audio_file=r"C:/Users/c1/Videos/20.wav",
-                detect_language="en",
-                cache_folder="./tmp",
-                model_name="distil-small.en",
-                model_type='faster',
-                is_cuda=False,
-                inst=None)
+#text=trans("你好啊亲爱的朋友", target_language="en")
+#print(f'{text=}')
+
+#    "zh":"你好啊亲爱的朋友",
+lang={
+    "en":"",
+    "af":"",
+    "am":"",
+    "ar":"",
+    "az":"",
+    "bg":"",
+    "bn":"",
+    "bs":"",
+    "ca":"",
+    "cs":"",
+    "cy":"",
+    "da":"",
+    "de":"",
+    "el":"",
+    "es":"",
+    "et":"",
+    "fa":"",
+    "fi":"",
+    "fil":"",
+    "fr":"",
+    "ga":"",
+    "gl":"",
+    "gu":"",
+    "he":"",
+    "hi":"",
+    "hr":"",
+    "hu":"",
+    "id":"",
+    "is":"",
+    "it":"",
+    "ja":"",
+    "jv":"",
+    "ka":"",
+    "kk":"",
+    "km":"",
+    "kn":"",
+    "ko":"",
+    "lo":"",
+    "lt":"",
+    "lv":"",
+    "mk":"",
+    "ml":"",
+    "mn":"",
+    "mr":"",
+    "ms":"",
+    "mt":"",
+    "my":"",
+    "nb":"",
+    "ne":"",
+    "nl":"",
+    "pl":"",
+    "ps":"",
+    "pt":"",
+    "ro":"",
+    "ru":"",
+    "si":"",
+    "sk":"",
+    "sl":"",
+    "so":"",
+    "sq":"",
+    "sr":"",
+    "su":"",
+    "sv":"",
+    "sw":"",
+    "ta":"",
+    "te":"",
+    "th":"",
+    "tr":"",
+    "uk":"",
+    "ur":"",
+    "uz":"",
+    "vi":"",
+    "zu":"",
+    
+    
+}
+
+'''
+d={}
+
+for code,it in lang.items():
+    print(code)
+    try:
+        text=trans("你好啊亲爱的朋友", target_language=code)
+        d[code]=text
+    except:
+        print('error')
+        time.sleep(10)
+        text=trans("你好啊亲爱的朋友", target_language=code)
+        d[code]=text
+
+with open("./lang.txt",'w',encoding='utf-8') as f:
+    f.write(json.dumps(d))
+    
+'''    
 
 
-print(a)
+d=json.load(open("./lang.txt",'r',encoding="utf-8"))
+ttslist=json.load(open("./voice_list.json",'r',encoding="utf-8"))
+
+for code,rolelist in ttslist.items():
+    
+    if code in d and code=='zh':
+        for it in rolelist:
+            if it !='No':
+                try:
+                    get_voice(text=d[code], role=it, filename=f"./tmp/{it}.mp3",rate='+0%')
+                except Exception as e:
+                    print(f'{it=},{str(e)}')
+                    time.sleep(10)
+                    get_voice(text=d[code], role=it, filename=f"./tmp/{it}.mp3",rate='+0%')
+        exit()
+    else:
+        print(f'{code}不存在翻译')
+        

@@ -174,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
-        self.statusLabel.setStyleSheet("background-color:#455364;color:#ffffff")
+        self.statusLabel.setStyleSheet("background-color:#455364;color:#ffff00")
 
 
         self.statusBar.addWidget(self.statusLabel)

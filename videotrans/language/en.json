@@ -140,7 +140,7 @@
     "proxyerrortitle": "Proxy Error",
     "shoundselecttargetlanguage": "Must select a target language ",
     "proxyerrorbody": "Failed to access Google services. Please set up the proxy correctly.",
-    "softname": "VideoTrans-Video Translation and Dubbing",
+    "softname": "pyVideoTrans Translation and Dubbing",
     "anerror": "An error occurred",
     "selectvideodir": "You must select the video to be translated",
     "sourenotequaltarget": "Source language and target language must not be the same",
