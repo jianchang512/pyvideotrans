@@ -5,7 +5,7 @@ import os
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 from PySide6.QtWidgets import QApplication, QWidget
-from videotrans.mainwin.spwin import MainWindow
+
 
 
 
@@ -33,6 +33,7 @@ class StartWindow(QWidget):
     def run(self):
         # 创建并显示窗口B
         try:
+            from videotrans.mainwin.spwin import MainWindow
             main = MainWindow()
             import qdarkstyle
             with open(os.path.join(os.getcwd(),'videotrans/styles/style.qss'),'r',encoding="utf-8") as f:

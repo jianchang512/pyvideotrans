@@ -58,7 +58,9 @@ def parse_init():
         "overall_maxsecs":3,
         "remove_srt_silence":False,
         "remove_silence":True,
-        "remove_white_ms":100
+        "remove_white_ms":100,
+        "vsync":"passthrough",
+        "force_edit_srt":True
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):

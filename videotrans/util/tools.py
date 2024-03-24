@@ -168,7 +168,7 @@ def runffmpeg(arg, *, noextname=None,
               is_box=False,
               use_run=True):
     arg_copy=copy.deepcopy(arg)
-    cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", "vfr"]
+    cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", config.settings['vsync']]
     # 启用了CUDA 并且没有禁用GPU
     for i, it in enumerate(arg):
         if arg[i]=='-i' and i<len(arg)-1:
@@ -946,7 +946,7 @@ def kill_ffmpeg_processes():
 
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10,is_start=True):
     if not config.settings['remove_silence']:
-        return False
+        return False if isinstance(input_file_path,str) else ""
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
     """

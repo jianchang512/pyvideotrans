@@ -75,7 +75,7 @@
     "selectsavedir": "选择翻译后存储目录",
     "proxyerrortitle": "网络代理错误",
     "proxyerrorbody": "无法访问google服务，请正确设置网络代理",
-    "softname": "VideoTrans视频翻译配音",
+    "softname": "pyVideoTrans视频翻译配音",
     "anerror": "出错了",
     "selectvideodir": "必须选择视频",
     "sourenotequaltarget": "源语言和目标语言不得相同",

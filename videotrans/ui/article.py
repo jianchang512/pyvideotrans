@@ -50,54 +50,41 @@ a:hover{color:#ff0}
 </style></head>
 <body style="font-size:9pt; font-weight:400; font-style:normal;">
 <h2>
-<a  href="https://juejin.cn/user/4441682704623992/posts"> 
-最新教程更新在掘金博客或微信公众号(pyvideotrans)
+<a  href="https://pyvideotrans.com"> 
+最新教程请查看文档网站 pyvideotrans.com 或微信公众号(pyvideotrans)
 </a>
 </h2>
 
 <ul>
 
-<li><a  href="https://juejin.cn/post/7331558973657251840">一文搞懂“视频翻译与配音工具”</a></li>
+<li><a href="https://pyvideotrans.com/guide">使用方法</a></li>
+<li><a href="https://pyvideotrans.com/01">新手快速入门</a></li>
+<li><a href="https://pyvideotrans.com/02">模型使用与说明</a></li>
+<li><a href="https://pyvideotrans.com/setting">界面选项与相关设置</a></li>
+<li><a href="https://pyvideotrans.com/duojuese">多角色配音</a></li>
+<li><a href="https://pyvideotrans.com/shiting">试听配音</a></li>         
+<li><a href="https://pyvideotrans.com/model">模型下载</a></li>
+<li><a href="https://pyvideotrans.com/faq">常见问题</a></li>
 
-<li><a  href="https://juejin.cn/post/7338335869709123636">详解软件各个功能及界面设置</a></li>
+<li><a href="https://pyvideotrans.com/vocal">人声和背景音乐分离</a></li>   
+<li><a href="https://pyvideotrans.com/gpu">CUDA安装配置</a></li>
+<li><a href="https://pyvideotrans.com/cache">如何彻底删除缓存</a></li>
+<li><a href="https://pyvideotrans.com/chongshi">频繁出现重试5次失败</a></li>
+<li><a href="https://pyvideotrans.com/10">百度翻译/腾讯翻译/Gemini等API申请</a></li>
+<li><a href="https://pyvideotrans.com/openai">ChatGPT接口使用</a></li>          
+<li><a href="https://pyvideotrans.com/deeplx">部署DeepLX</a></li>
+<li><a href="https://pyvideotrans.com/06">在cloudflare上创建免费翻译API</a></li>
+<li><a href="https://pyvideotrans.com/13">FreeGoogle翻译使用</a></li>
+<li><a href="https://pyvideotrans.com/15">无需代理使用Google翻译的方法</a></li>
+<li><a href="https://pyvideotrans.com/ott">部署OTT文字翻译</a></li>
 
-<li><a  href="https://juejin.cn/post/7337853478113804325">选择faster-whisper还是openai-whisper</a></li>
-<li><a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447805126&idx=1&sn=c9d6a206922a620ba6fa4be9cfa902e2">3个分类共14个模型，下载和使用说明<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span></a></li>
-
-<li><a  href="https://juejin.cn/post/7337517508151705635">提高视频翻译质量的几个方法</a></li>
-<li><a  href="https://juejin.cn/post/7348280739262398516">ChatGPT和DeepLx在API调用中的设置方法和常见错误</a></li>
-<li><a  href="https://juejin.cn/post/7343447701948645428">翻译Api申请和使用：百度/腾讯/DeepL/Gemini/chatGPT</a></li>
-<li><a  href="https://juejin.cn/post/7345312252478275624">视频翻译配音中几个高频问题解析与应对</a></li>
-<li><a  href="https://juejin.cn/post/7346427641350996020">视频翻译配音时几个常见错误与解决方法</a></li>
-<li><a  href="https://juejin.cn/post/7347513259132682280">视频翻译并配音后声音、字幕、画面同步问题与应对方法</a></li>
-
-<li><a  href="https://juejin.cn/post/7344697321799073832">在cloudflare上基于m2m100创建完全免费的翻译API服务</a></li>
-<li><a  href="https://juejin.cn/post/7342327642852999168">ChatGPT接入指南：快速获取与配置API密钥并填写到软件/工具中使用</a></li>
-<li><a  href="https://juejin.cn/post/7318704408727519270">windows操作系统安装配置CUDA12.3和cuDNN</a></li>
-<li><a  href="https://juejin.cn/post/7341401110631350324">在软件中使用GPT-SoVITS将文字合成语音</a></li>
-<li><a  href="https://juejin.cn/post/7343138052973297702"> GPT-SoVITS项目的API改良与使用 </a></li>
-<li><a  href="https://juejin.cn/post/7341617163353341986">2个分离人声和背景伴奏的工具：urv5和vocal-separate</a></li>
-<li><a  href="https://juejin.cn/post/7339746416930062351">在软件中使用clone-voice实现原音色克隆</a></li>
-<li><a  href="https://juejin.cn/post/7346610589986226176">在本地部署Qwen通义千问大模型的超简单方法-兼容OpenAi接口</a></li>
-
-<li><a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447805024&idx=2&sn=da6b27f38a175138547fa1bb3f678109">小白必看：跟随我一步步将中文视频翻译为英文视频并配音<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span>
-</a></li>
-
-<li>
-<a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447804998&idx=1&sn=e06a426db6ee28d95ffb9ee03f8411ef"> 
-视频翻译配音工具中的高级设置解说<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span>
-</a>
-</li>
-<li>
-<a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447804969&idx=2&sn=9cdd192919424a90f391d9f3856a391b"> 
-新增一个无需key无需代理的免费翻译渠道-仅限小白使用<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span>
-</a>
-</li>
-<li>
-<a  href="https://mp.weixin.qq.com/s?__biz=MzA5MDgyNjgxOA==&mid=2447804942&idx=2&sn=12db325d141ee7e586b6a10d4984d6a9"> 
-顺畅使用Google翻译渠道的简单方法<span style="font-size:12px;color:#aaa">(链接地址若失效请关注公众号 pyvideotrans 查看)</span>
-</a>
-</li>
+<li><a href="https://pyvideotrans.com/adv">高级设置参数说明</a></li>
+<li><a href="https://pyvideotrans.com/09">声音字幕画面对齐方法</a></li>
+<li><a href="https://pyvideotrans.com/03">faster模式与openai模式的区别</a></li>
+<li><a href="https://pyvideotrans.com/04">提高翻译质量的技巧</a></li>
+<li><a href="https://pyvideotrans.com/cli">CLI命令行使用</a></li>
+<li><a href="https://pyvideotrans.com/12">在软件中使用GPT-SoVITS配音</a></li>
+<li><a href="https://pyvideotrans.com/14">本地部署Qwen通义千问大模型</a></li>
 
 </ul>
 

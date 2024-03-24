@@ -120,4 +120,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]
+        else:
+            text_list[i]['text'] = ""
     return text_list

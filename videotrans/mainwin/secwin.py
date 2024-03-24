@@ -187,21 +187,22 @@ class SecWindow():
         # 配音自动加速
         self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.hide()
-        self.main.auto_ajust.setChecked(True)
-        self.main.auto_ajust.hide()
 
         self.main.splitter.setSizes([self.main.width, 0])
         self.hide_show_element(self.main.subtitle_layout,False)
 
         # 视频自动降速
-        self.main.is_separate.setDisabled(False)
-        self.main.addbackbtn.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)
-        self.main.only_video.setDisabled(False)
+        self.main.is_separate.setDisabled(True)
+        self.main.addbackbtn.setDisabled(True)
+        self.main.only_video.setDisabled(True)
+        self.main.back_audio.setReadOnly(True)
+        self.main.auto_ajust.setDisabled(True)
+        
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
         self.main.only_video.hide()
+        self.main.auto_ajust.hide()
 
         # cuda
         self.main.enable_cuda.setChecked(False)
@@ -223,7 +224,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        #self.main.open_targetdir.show()
+
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
@@ -238,7 +239,7 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, True)
         # 试听按钮
-        #self.hide_show_element(self.main.listen_layout, False)
+
         self.main.listen_btn.show()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
@@ -252,11 +253,18 @@ class SecWindow():
         # 视频自动降速
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)
         self.main.only_video.setDisabled(False)
+        self.main.back_audio.setReadOnly(False)
+        self.main.auto_ajust.setDisabled(False)
         self.hide_show_element(self.main.subtitle_layout,True)
         self.main.splitter.setSizes([self.main.width-400, 400])
+        
         self.main.auto_ajust.show()
+        
+        self.main.is_separate.show()
+        self.main.addbackbtn.show()
+        self.main.back_audio.show()
+        self.main.only_video.show()
 
         # cuda
         self.main.enable_cuda.show()
@@ -275,12 +283,11 @@ class SecWindow():
 
         self.hide_show_element(self.main.subtitle_layout,True)
         self.main.splitter.setSizes([self.main.width-400, 400])
-        self.main.auto_ajust.hide()
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        #self.main.open_targetdir.show()
+
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
@@ -294,34 +301,33 @@ class SecWindow():
         self.hide_show_element(self.main.layout_tts_type, False)
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, False)
-        # self.main.voice_role.setCurrentText('No')
+
         # 试听按钮
-        #self.hide_show_element(self.main.listen_layout, False)
+
         self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, False)
-        # self.main.subtitle_type.setCurrentIndex(0)
+
 
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, False)
-        # self.main.voice_rate.setText('+0%')
-        # 静音片段
-        # self.hide_show_element(self.main.layout_voice_silence, False)
-        # self.main.voice_silence.setText('500')
+
         # 配音自动加速
         self.main.voice_autorate.hide()
-        self.main.voice_autorate.setChecked(False)
         # 视频自动降速
-        self.main.is_separate.setDisabled(True)
-        self.main.is_separate.setChecked(False)
-        config.params['is_separate'] = False
-        
+        self.main.is_separate.setDisabled(True)       
         self.main.addbackbtn.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
         self.main.only_video.setDisabled(True)
-        self.main.only_video.setChecked(False)
+        self.main.back_audio.setReadOnly(True)
+        self.main.auto_ajust.setDisabled(True)
+        
+        self.main.is_separate.hide()
+        self.main.addbackbtn.hide()
+        self.main.back_audio.hide()
+        self.main.only_video.hide()
+        self.main.auto_ajust.hide()
         # cuda
         self.main.enable_cuda.show()
 
@@ -339,7 +345,6 @@ class SecWindow():
         self.main.action_zimu_peiyin.setChecked(False)
         self.hide_show_element(self.main.subtitle_layout,True)
         self.main.splitter.setSizes([self.main.width-400, 400])
-        self.main.auto_ajust.hide()
 
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
@@ -363,34 +368,35 @@ class SecWindow():
 
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, False)
-        # self.main.voice_role.setCurrentText('No')
+
         # 试听按钮
-        #self.hide_show_element(self.main.listen_layout, False)
+
         self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, False)
-        # self.main.subtitle_type.setCurrentIndex(0)
+
 
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, False)
-        # self.main.voice_rate.setText('+0%')
-        # 静音片段
-        # self.hide_show_element(self.main.layout_voice_silence, False)
-        # self.main.voice_silence.setText('500')
+
         # 配音自动加速
         self.main.voice_autorate.hide()
-        self.main.voice_autorate.setChecked(False)
-        # 视频自动降速
-        self.main.is_separate.setDisabled(True)
-        self.main.is_separate.setChecked(False)
-        config.params['is_separate'] = False
-        
+
+        self.main.is_separate.setDisabled(True)        
         self.main.addbackbtn.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
         self.main.only_video.setDisabled(True)
-        self.main.only_video.setChecked(False)
+        self.main.back_audio.setReadOnly(True)
+        self.main.auto_ajust.setDisabled(True)
+        
+        self.main.is_separate.hide()
+        self.main.addbackbtn.hide()
+        self.main.back_audio.hide()
+        self.main.only_video.hide()
+        
+        self.main.auto_ajust.hide()
+
         # cuda
         self.main.enable_cuda.show()
 
@@ -409,7 +415,7 @@ class SecWindow():
 
         self.hide_show_element(self.main.subtitle_layout,True)
         self.main.splitter.setSizes([self.main.width-400, 400])
-        self.main.auto_ajust.hide()
+
         # 选择视频
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
@@ -429,7 +435,7 @@ class SecWindow():
         # 配音角色
         self.hide_show_element(self.main.layout_voice_role, False)
         # 试听按钮
-        #self.hide_show_element(self.main.listen_layout, False)
+
         self.main.listen_btn.hide()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, False)
@@ -438,19 +444,22 @@ class SecWindow():
 
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, False)
-        # 静音片段
-        # self.hide_show_element(self.main.layout_voice_silence, False)
+
 
         # 配音自动加速
         self.main.voice_autorate.hide()
-        self.main.voice_autorate.setChecked(False)
-        # 视频自动降速
+
         self.main.is_separate.setDisabled(True)
-        self.main.is_separate.setChecked(False)
-        config.params['is_separate'] = False
         self.main.addbackbtn.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
+        self.main.back_audio.setReadOnly(True)        
         self.main.only_video.setDisabled(False)
+        self.main.auto_ajust.setDisabled(True)
+        
+        self.main.is_separate.hide()
+        self.main.addbackbtn.hide()
+        self.main.back_audio.hide()
+        self.main.only_video.show()
+        self.main.auto_ajust.hide()
         # cuda
         self.main.enable_cuda.show()
 
@@ -505,13 +514,17 @@ class SecWindow():
         self.main.voice_autorate.show()
         # 视频自动降速
         self.main.is_separate.setDisabled(True)
-        self.main.is_separate.setChecked(False)
-        config.params['is_separate'] = False
+
         self.main.addbackbtn.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)
+        self.main.back_audio.setReadOnly(False)        
         self.main.only_video.setDisabled(True)
-        self.main.only_video.setChecked(False)
+        self.main.auto_ajust.setDisabled(False)
         self.main.auto_ajust.show()
+        
+        self.main.is_separate.hide()
+        self.main.addbackbtn.show()
+        self.main.back_audio.show()
+        self.main.only_video.hide()
         # cuda
         self.main.enable_cuda.show()
 
@@ -581,12 +594,14 @@ class SecWindow():
         self.main.whisper_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
-        self.main.is_separate.setDisabled(type)
         self.main.model_type.setDisabled(type)
         self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
+        self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
         self.main.auto_ajust.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
+        
+        
 
     def export_sub_fun(self):
         srttxt = self.main.subtitle_area.toPlainText().strip()
@@ -861,9 +876,8 @@ class SecWindow():
             api = self.main.w.deepl_api.text().strip()
             self.main.settings.setValue("deepl_authkey", key)
             config.params['deepl_authkey'] = key
-            if api:
-                self.main.settings.setValue("deepl_api", api)
-                config.params['deepl_api'] = api
+            self.main.settings.setValue("deepl_api", api)
+            config.params['deepl_api'] = api
             self.main.w.close()
 
         from videotrans.component import DeepLForm
@@ -960,8 +974,7 @@ class SecWindow():
         def save():
             key = self.main.clonw.clone_address.text().strip()
             key=key.rstrip('/')
-            if key:
-                key='http://'+key.replace('http://','')
+            key='http://'+key.replace('http://','')
             self.main.settings.setValue("clone_api", key)
             config.params["clone_api"] = key
             self.main.clonw.close()
@@ -1671,6 +1684,7 @@ class SecWindow():
             config.params['voice_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
+            config.params['back_audio']=''
             return True
         if self.main.app_mode == 'tiqu_no' or self.main.app_mode == 'tiqu':
             # 提取字幕模式，必须有视频、有原始语言，语音模型
@@ -1687,8 +1701,15 @@ class SecWindow():
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
+            config.params['back_audio']=''
             if self.main.app_mode == 'tiqu_no':
                 config.params['target_language'] = '-'
+        if self.main.app_mode=='biaozhun_jd':
+            config.params['voice_autorate'] = True
+            config.params['auto_ajust'] = True
+            config.params['is_separate']=False
+            config.params['back_audio']=''
+            
         return True
 
     #
@@ -1781,7 +1802,8 @@ class SecWindow():
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         except:
             config.params['voice_rate'] = '+0%'
-
+        
+        config.params['back_audio']=self.main.back_audio.text().strip()
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?',txt):
@@ -1808,6 +1830,7 @@ class SecWindow():
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
+            
 
         # 未主动选择模式，则判断设置情况应该属于什么模式
         if self.main.app_mode.startswith('biaozhun'):
@@ -1823,6 +1846,8 @@ class SecWindow():
                 # peiyin
                 self.main.app_mode = 'peiyin'
                 config.params['is_separate']=False
+                
+                
         if not self.check_mode(txt=txt):
             return False
         # 除了 peiyin  hebing模式，其他均需要检测模型是否存在
@@ -1859,13 +1884,13 @@ class SecWindow():
                 return False
         config.queue_task = []
 
-        config.params['back_audio']=self.main.back_audio.text().strip()
-        print(f'{config.params["voice_rate"]}')
+        
+
         # 存在视频
         config.params['only_video']=False
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
-            if self.main.only_video.isChecked():
+            if self.main.app_mode not in ['tiqu','tiqu_no','peiyin','biaozhun_jd'] and self.main.only_video.isChecked():
                 config.params['only_video']=True
         elif txt:
             self.main.source_mp4.setText(config.transobj["No select videos"])
@@ -1876,7 +1901,7 @@ class SecWindow():
                 return
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
-        # return
+
         self.main.save_setting()
         self.update_status('ing')
         from videotrans.task.main_worker import Worker
