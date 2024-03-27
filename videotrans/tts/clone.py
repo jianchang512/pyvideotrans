@@ -8,12 +8,12 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
     try:
         api_url=config.params['clone_api'].strip().rstrip('/').lower()
         if not api_url:
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'clone-voice:api={api_url}')

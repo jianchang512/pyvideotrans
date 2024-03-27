@@ -8,7 +8,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
     print(f'{language=}')
     try:
         api_url=config.params['gptsovits_url'].strip().rstrip('/').lower()
@@ -19,7 +19,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         text=text.strip()
         if not text:
             return True
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
         if text[-1] not in splits:

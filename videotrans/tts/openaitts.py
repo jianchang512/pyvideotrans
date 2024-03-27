@@ -16,7 +16,7 @@ def get_url(url=""):
         return url+"/v1"
     return "https://api.openai.com/v1"
 
-def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True):
+def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True,is_test=False):
     api_url=get_url(config.params['chatgpt_api'])
     proxies=None
     if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
@@ -27,7 +27,7 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
                 'https://': serv
             }
     try:
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         speed=1.0
         if rate:

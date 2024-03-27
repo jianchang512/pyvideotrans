@@ -7,14 +7,14 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True):
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
 
     try:
         api_url=config.params['ttsapi_url'].strip().rstrip('/')
         if not api_url:
             raise Exception("get_voice:"+config.transobj['ttsapi_nourl'])
         config.logger.info(f'TTS-API:api={api_url}')
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
         # role=clone是直接复制

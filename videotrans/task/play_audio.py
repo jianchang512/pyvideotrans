@@ -16,7 +16,8 @@ class PlayMp3(QThread):
     def run(self):
         try:
             if not os.path.exists(self.obj['voice_file']) or os.path.getsize(self.obj['voice_file'])==0:
-                text_to_speech(text=self.obj['text'],role=self.obj['role'],tts_type=config.params['tts_type'],filename=self.obj['voice_file'], play=True,language=self.obj['language'])
+                text_to_speech(text=self.obj['text'],role=self.obj['role'],tts_type=config.params['tts_type'],filename=self.obj['voice_file'], play=True,language=self.obj['language'],is_test=True)
+                print('@')
             else:
                 pygameaudio(self.obj['voice_file'])
         except Exception as e:

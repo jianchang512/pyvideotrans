@@ -758,6 +758,8 @@ class TransCreate():
         # 计算视频应该慢放的倍数，用当前实际的字幕时长/原始字幕时长得到倍数，如果当前时长小于等于原时长，不处理
         # 开始遍历每个时间段，如果需要视频加速，则截取 end_time_source start_time_source 时间段的视频，进行speed_video 处理
         concat_txt_arr = []
+        if not is_novoice_mp4(self.novoice_mp4, self.noextname):
+            raise Myexcept("not novoice mp4")
         last_time = get_video_duration(self.novoice_mp4)
         for i, it in enumerate(queue_tts):
             jindu = (len(queue_tts) * 10) / (i + 1)
@@ -887,6 +889,8 @@ class TransCreate():
             self._ajust_video(queue_tts)
 
         # 获取 novoice_mp4的长度
+        if not is_novoice_mp4(self.novoice_mp4, self.noextname):
+            raise Myexcept("not novoice mp4")
         video_time = get_video_duration(self.novoice_mp4)
         audio_length, queue_tts = self.merge_audio_segments(
             video_time=video_time,

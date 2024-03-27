@@ -5,13 +5,13 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set_p=True):
+def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set_p=True,is_test=False):
     try:
         with open(os.path.join(config.rootdir,'elevenlabs.json'),'r',encoding="utf-8") as f:
             jsondata=json.loads(f.read())
         if config.params['elevenlabstts_key']:
             set_api_key(config.params['elevenlabstts_key'])
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         audio = generate(
             text=text,

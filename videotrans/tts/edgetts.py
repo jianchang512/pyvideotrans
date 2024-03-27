@@ -18,12 +18,14 @@ else:
 # trimmed_audio = remove_silence_from_end("1.mp3")
 # trimmed_audio.export("1_trimmed.mp3", format="mp3")
 
-def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,set_p=True):
-    if config.current_status != 'ing' and config.box_tts != 'ing':
+def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,set_p=True,is_test=False):
+    if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
         return False
+    text=text.replace('<','&#60;').replace('>','&#62;').replace('&','&#38;').replace('\'','&#39;').replace('"','&#34;').replace('‘','&#8216;').replace('’','&#8217;').replace('“','&#8220;').replace('”','&#8221;').replace('\(','&#40;').replace('\)','&#41;').replace('\[','&#91;').replace('\]','&#93;').replace('\{','&#123;').replace('\}','&#125;').replace('`','&#96;')
+    print(f'{text=}')
     communicate = edge_tts.Communicate(text, role, rate=rate)
     try:
-        if config.current_status != 'ing' and config.box_tts != 'ing':
+        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         # print(f'开始配音:{text=},{filename=}')
         asyncio.run(communicate.save(filename))
