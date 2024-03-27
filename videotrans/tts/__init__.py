@@ -6,28 +6,28 @@ from videotrans.util import tools
 thread_err=[]
 
 # 文字合成
-def text_to_speech(text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True):
+def text_to_speech(text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True,is_test=False):
     try:
         if rate != '+0%' and set_p:
             tools.set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
             from .edgetts import get_voice
-            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type == "openaiTTS":
             from .openaitts import get_voice
-            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type == "clone-voice":
             from .clone import get_voice
-            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type=='TTS-API':
             from .ttsapi import get_voice
-            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type=='GPT-SoVITS':
             from .gptsovits import get_voice
-            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type == 'elevenlabsTTS':
             from .elevenlabs import get_voice
-            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p)
+            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test)
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             if play:
                 threading.Thread(target=tools.pygameaudio, args=(filename,)).start()

@@ -126,6 +126,7 @@ else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
 os.environ['QT_API'] = 'pyside6'
+os.environ['SOFT_NAME'] = 'pyvideotrans'
 # spwin主窗口
 queue_logs = Queue(1000)
 # box窗口

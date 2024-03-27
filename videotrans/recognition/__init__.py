@@ -359,7 +359,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
             raise config.Myexcept("stop")
         text = ""
         try:
-
+            print('1111111111')
             tr=model.transcribe(chunk_filename,
                         language=detect_language,
                         initial_prompt=None if detect_language!='zh' else config.settings['initial_prompt_zh'],

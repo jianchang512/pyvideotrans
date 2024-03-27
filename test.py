@@ -223,6 +223,8 @@ response = requests.post(url, headers=headers, json=data)
 print(response.text)
 
 '''
+'''
+
 from videotrans.translator.google import trans
 import os,time,json
 os.environ['HTTP_PROXY']='http://127.0.0.1:10809'
@@ -311,7 +313,7 @@ lang={
     
     
 }
-
+'''
 '''
 d={}
 
@@ -330,7 +332,7 @@ with open("./lang.txt",'w',encoding='utf-8') as f:
     f.write(json.dumps(d))
     
 '''    
-
+'''
 
 d=json.load(open("./lang.txt",'r',encoding="utf-8"))
 ttslist=json.load(open("./voice_list.json",'r',encoding="utf-8"))
@@ -350,3 +352,10 @@ for code,rolelist in ttslist.items():
     else:
         print(f'{code}不存在翻译')
         
+'''        
+
+#https://google-trans-b58y1tvia-jianchang512s-projects.vercel.app/?sl=zh-CN&tl=en&text=%E5%8F%AA%E5%9C%A8%E4%B8%AD%E5%9B%BD.a&op=translate
+
+import requests
+res=requests.get('https://google-trans-b58y1tvia-jianchang512s-projects.vercel.app/?sl=zh-CN&tl=en&text=%E5%8F%AA%E5%9C%A8%E4%B8%AD%E5%9B%BD.a&op=translate',proxies={"http":"http://127.0.0.1:10809","https":"http://127.0.0.1:10809"})
+print(res.text)

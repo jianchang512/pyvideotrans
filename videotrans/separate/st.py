@@ -110,11 +110,11 @@ def start(audio,path,source="logs"):
     try:
         # 获取总时长秒
         sec=tools.get_audio_time(audio)
-        if sec<=dist:
-            gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source)
-            print(next(gr))
-            print(next(gr))
-            return
+        #if sec<=dist:
+        gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source)
+        print(next(gr))
+        print(next(gr))
+        return
 
         length=math.ceil(sec/dist)
         result_vocal=[]

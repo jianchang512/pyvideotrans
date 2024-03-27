@@ -835,7 +835,7 @@ class SecWindow():
             outdir = self.main.youw.outputdir.text()
             url = self.main.youw.url.text().strip()
             vid = self.main.youw.formatname.isChecked()
-            if not url or not re.match(r'^https://(www.)?(youtube.com/watch\?v=\w|youtu.be/\w)',url,re.I):
+            if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)',url,re.I):
                 QMessageBox.critical(self.main.youw, config.transobj['anerror'], config.transobj['You must fill in the YouTube video playback page address'])
                 return
             self.main.settings.setValue("youtube_outdir", outdir)

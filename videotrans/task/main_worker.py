@@ -152,7 +152,8 @@ class Shiting(QThread):
                            rate=rate,
                            filename=filename,
                            tts_type=config.params['tts_type'],
-                           set_p=False
+                           set_p=False,
+                           is_test=True
                            )
             audio_data = AudioSegment.from_file(filename, format="mp3")
             mp3len = len(audio_data)
