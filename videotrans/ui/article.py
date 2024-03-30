@@ -49,11 +49,17 @@ a{text-decoration:none;color:#fff;font-size:14px}
 a:hover{color:#ff0}
 </style></head>
 <body style="font-size:9pt; font-weight:400; font-style:normal;">
-<h2>
-<a  href="https://pyvideotrans.com"> 
-最新教程请查看文档网站 pyvideotrans.com 或微信公众号(pyvideotrans)
+<div>
+<a  href="https://www.pyvideotrans.com" style="font-size:18px"> 
+最新教程请查看文档网站 pyvideotrans.com
 </a>
-</h2>
+<br>
+<a  href="https://tool.pyvideotrans.com/trans.html" style="font-size:14px;color:#aaa;display:block;margin-top:12px"> 
+在线免费视频翻译:使用更简单，无需注册无需登录，点击打开
+</a>
+</div>
+
+
 
 <ul>
 

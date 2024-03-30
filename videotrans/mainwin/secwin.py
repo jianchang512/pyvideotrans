@@ -643,17 +643,19 @@ class SecWindow():
         elif title == 'dll':
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/v0.0.1")
         elif title == 'gtrans':
-            webbrowser.open_new_tab("https://juejin.cn/post/7339210740454719523")
+            webbrowser.open_new_tab("https://www.pyvideotrans.com/15.html")
         elif title == 'cuda':
-            webbrowser.open_new_tab("https://juejin.cn/post/7318704408727519270")
+            webbrowser.open_new_tab("https://www.pyvideotrans.com/gpu.html")
         elif title == 'website':
-            webbrowser.open_new_tab("https://pyvideotrans.com")
+            webbrowser.open_new_tab("https://www.pyvideotrans.com")
         elif title == 'xinshou':
-            webbrowser.open_new_tab("https://pyvideotrans.com/guide.html" if config.defaulelang!='zh' else 'https://juejin.cn/post/7331558973657251840')
+            webbrowser.open_new_tab("https://www.pyvideotrans.com/guide.html")
         elif title == "about":
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
         elif title == 'download':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
+        elif title == 'online':
+            webbrowser.open_new_tab("https://tool.pyvideotrans.com/trans.html")
 
     # 工具箱
     def open_toolbox(self, index=0, is_hide=True):
