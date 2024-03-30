@@ -294,6 +294,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_dll.triggered.connect(lambda: self.util.open_url('dll'))
         self.action_gtrans.triggered.connect(lambda: self.util.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
+        self.action_online.triggered.connect(lambda: self.util.open_url('online'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
         self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
         self.statusLabel.clicked.connect(self.util.helparticle)

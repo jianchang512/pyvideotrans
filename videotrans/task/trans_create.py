@@ -435,6 +435,7 @@ class TransCreate():
         # join
         offset=0
         for i,it in enumerate(queue_tts):
+            it['raw_duration']=it['end_time']-it['start_time']
             if it['raw_duration']==0:
                 continue
             if not os.path.exists(it['filename']) or os.path.getsize(it['filename'])<1:
@@ -463,7 +464,7 @@ class TransCreate():
                 if silence_duration > 0:
                     silence = AudioSegment.silent(duration=silence_duration)
                     merged_audio += silence
-            if not config.settings['force_edit_srt']:
+            if config.settings['force_edit_srt']:
                 it['startraw']=ms_to_time_string(ms=it['start_time'])
                 it['endraw']=ms_to_time_string(ms=it['end_time'])
             else:
@@ -473,13 +474,15 @@ class TransCreate():
             merged_audio += segment
 
         # 移除尾部静音
-        if config.settings['remove_silence']:
+        if config.settings['remove_silence'] or (video_time>0 and merged_audio and (len(merged_audio) > video_time)):
             merged_audio=tools.remove_silence_from_end(merged_audio,silence_threshold=-50.0, chunk_size=10,is_start=False)
-
+        
         if video_time > 0 and merged_audio and (len(merged_audio) < video_time):
             # 末尾补静音
             silence = AudioSegment.silent(duration=video_time - len(merged_audio))
             merged_audio += silence
+        
+            
         # 创建配音后的文件
         try:
             wavfile = self.cache_folder + "/target.wav"
@@ -493,7 +496,7 @@ class TransCreate():
             else:
                 wav2m4a(wavfile, self.targetdir_target_wav)
         except Exception as e:
-            raise Exception(f'[error]merge_audio:{str(e)}')
+            raise Exception(f'[error]merged_audio:{str(e)}')
 
         return len(merged_audio), queue_tts
 
@@ -741,9 +744,7 @@ class TransCreate():
                     # 需要延长结束时间，以便字幕 声音对齐
                     it['end_time'] += add_time
                     offset += add_time
-                    it['video_add'] = add_time
                 it['raw_duration']=it['end_time']-it['start_time']
-                # os.unlink(it['filename'])
                 it['filename'] = tmp_mp3
 
             # 更改时间戳
@@ -782,13 +783,18 @@ class TransCreate():
                                source=self.novoice_mp4,
                                out=before_dst)
                 concat_txt_arr.append(before_dst)
-
-
+            # 当前可用时间段
+            duration=it['end_time']-it['start_time']
+            audio_length=duration
+            # 实际配音长度
+            if os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
+                audio_length=len(AudioSegment.from_file(it['filename'], format="mp3"))
+            print(f'{duration=}============={audio_length=}')
             # 需要延长视频
-            if 'video_add' in it   and it['video_add'] > 0:
+            if audio_length>duration:
                 filename_video = self.cache_folder + f'/{i}.mp4'
 
-                speed =round( (it['end_time']-it['start_time'])/(it['end_time_source']-it['start_time_source']),2)
+                speed =round(audio_length/duration,3)
                 print(f'视频慢速 {speed=}')
                 if speed<=1:
                     speed=1
@@ -798,26 +804,26 @@ class TransCreate():
                 if speed>config.settings['video_rate']:
                     speed=config.settings['video_rate']
 
-                set_process(f"{config.transobj['video speed down']} {speed}")
+                set_process(f"{config.transobj['video speed down']}[{i}] {speed=}")
                 # 截取原始视频
-                cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
-                               to=ms_to_time_string(ms=it['end_time_source']),
+                cut_from_video(ss=ms_to_time_string(ms=it['start_time']),
+                               to=ms_to_time_string(ms=it['end_time'] if it['end_time'] < last_time else last_time),
                                source=self.novoice_mp4,
                                pts= "" if speed<=1 else speed,
                                out=filename_video)
                 concat_txt_arr.append(filename_video)
-            elif it['end_time_source'] > it['start_time_source']:
+            elif it['end_time'] > it['start_time']:
                 filename_video = self.cache_folder + f'/{i}.mp4'
                 concat_txt_arr.append(filename_video)
                 # 直接截取原始片段，不慢放
-                cut_from_video(ss=ms_to_time_string(ms=it['start_time_source']),
-                               to=ms_to_time_string(ms=it['end_time_source']),
+                cut_from_video(ss=ms_to_time_string(ms=it['start_time']),
+                               to=ms_to_time_string(ms=it['end_time'] if it['end_time'] < last_time else last_time),
                                source=self.novoice_mp4,
                                out=filename_video)
-            set_process(f"{config.transobj['video speed down']}")
-        if queue_tts[-1]['end_time_source'] < last_time:
+                set_process(f"{config.transobj['video speed down']}[{i}] speed=1")
+        if queue_tts[-1]['end_time'] < last_time:
             last_v = self.cache_folder + "/last_dur.mp4"
-            cut_from_video(ss=ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
+            cut_from_video(ss=ms_to_time_string(ms=queue_tts[-1]['end_time']),
                            source=self.novoice_mp4,
                            out=last_v)
             concat_txt_arr.append(last_v)
@@ -910,7 +916,7 @@ class TransCreate():
     def novoicemp4_add_time(self, duration_ms):
         if config.current_status != 'ing':
             return False
-        duration_ms=1000 if duration_ms<1000 else duration_ms
+        duration_ms=100 if duration_ms<100 else duration_ms
         set_process(f'{transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
@@ -929,15 +935,13 @@ class TransCreate():
         
         clip_time=get_video_duration(self.cache_folder+"/last-clip-novoice.mp4")
                 
-        #shutil.copy2(self.cache_folder+"/last-clip-novoice.mp4", f'{self.novoice_mp4}.lastclip.mp4')       
         nums=math.ceil(duration_ms/clip_time)  
-        nums+=int(nums/3)
+        nums+=math.ceil(nums/3)
         concat_multi_mp4(
             filelist=[self.cache_folder+"/last-clip-novoice.mp4" for x in range(nums)], 
             out=self.cache_folder+"/last-clip-novoice-all.mp4"
         )
         
-        #shutil.copy2(self.cache_folder+"/last-clip-novoice-all.mp4", f'{self.novoice_mp4}.last-clip-novoice-all.mp4')
         
         concat_multi_mp4(
             filelist=[f'{self.novoice_mp4}.raw.mp4',self.cache_folder+"/last-clip-novoice-all.mp4"], 
