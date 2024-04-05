@@ -45,7 +45,7 @@ def parse_init():
         "retries":5,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen",
         "separate_sec":600,
-        "audio_rate":1.8,
+        "audio_rate":1.5,
         "video_rate":20,
         "initial_prompt_zh":"",
         "fontsize":14,
@@ -60,7 +60,8 @@ def parse_init():
         "remove_silence":True,
         "remove_white_ms":100,
         "vsync":"passthrough",
-        "force_edit_srt":True
+        "force_edit_srt":True,
+        "append_video":True
     }
     file = os.path.join(rootdir, 'videotrans/set.ini')
     if os.path.exists(file):

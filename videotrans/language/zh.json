@@ -1,5 +1,10 @@
 {
   "translate_language": {
+    "yidaorujigewenjian": "已导入字幕文件:",
+    "dakaizimubaocunmulu": "打开翻译结果保存目录",
+    "quanbuwanbi": "全部翻译完毕",
+    "srtgeshierror": "格式化字幕时出错，请检查字幕文件是否符合srt格式",
+
     "endopendir": "完成后点击打开保存目录",
     "xinshoumoshitips": "选择要翻译的视频，并设置视频原始语言和想翻译到的语言, 更完整功能更准确翻译, 请使用 标准功能模式，若翻译出错请切换到标准功能模式，使用其他翻译渠道 ",
 
@@ -163,7 +168,7 @@
     "vlctips2": " 文件不存在",
     "xuanzeyinshipin": "点击选择或拖拽一个或多个音频视频文件到此处",
     "tuodongdaoci": "拖动要转换的文件到此处松开",
-    "tuodongfanyi": "拖动要翻译的文本文件或srt文件到此处松开",
+    "tuodongfanyi": "请导入要翻译的srt字幕文件",
     "zhixingwc": "执行完成/点击开始",
     "zhixinger": "执行出错",
     "starttrans": "开始翻译",
@@ -298,7 +303,7 @@
     "Local existing SRT subtitle generation dubbing WAV files": "本地已有的srt字幕生成配音文件",
     "Speech Recognition Text": "音视频转文字",
     "Recognize the sound in audio or video and output SRT text": "将音频或视频中的声音识别后输出srt字幕",
-    "From  Text  Into  Speech": "文字合成语音",
+    "From  Text  Into  Speech": "字幕合成语音",
     "Generate audio WAV from text or SRT subtitle files": "将文字或srt字幕文件生成音频wav",
     "Extract Srt And Translate": "识别字幕翻译",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "从本地视频的语音中识别出文字并生成srt字幕,同时翻译为目标语言",
@@ -310,7 +315,7 @@
     "Convert various formats to each other": "各种格式互相转换",
     "Mixing 2 Audio Streams": "两个音频混流",
     "Mix two audio files into one audio file": "将两个音频文件混流为一个音频文件",
-    "Text  Or Srt  Translation": "文本字幕翻译",
+    "Text  Or Srt  Translation": "字幕批量翻译",
     "Translate text or subtitles": "将文字或者字幕进行翻译",
     "Download from Youtube": "下载油管视频",
     "Whisper model": "语音模型",
@@ -336,7 +341,7 @@
 	"Source lang":"发音语言",
 	"Whisper model":"语音识别模型",
 	"Save to srt..":"保存为srt文件..",
-	"Voice recognition":"声音识别为文字",
+	"Voice recognition":"音视频转文字",
 	"Subtitle lang":"字幕语言",
 	"Select role":"选择角色",
 	"Speed change":"速度变化百分比",
@@ -346,7 +351,7 @@
 	"Automatic acceleration?":"自动加速?",
 	"Output audio name":"输出音频名称",
 	"Set the name of the generated audio file here. If not filled in, use the time and date command":"在这里设置生成的音频文件名称，不填写则使用时间日期命令",
-	"Text to speech":"文字合成为语音",
+	"Text to speech":"文字字幕合成为语音",
 	"Convert mp4->":"转为mp4->",
 	"Convert avi->":"转为avi->",
 	"Convert mov->":"转为mov->",
@@ -367,12 +372,12 @@
 	"Target lang":"目标语言",
 	"Proxy":"网络代理地址",
 	"Failed to access Google services. Please set up the proxy correctly":"Goole或chaGPT官方api国内无法访问，必须填写网络代理地址(不是填写api地址)",
-	"Import text to be translated from a file..":"从文件导入文本...",
-	"shuoming1":"如果只是纯文字，无需选中。\n如果是srt字幕格式，需选中，将不翻译字幕中的行号和时间值，并按字幕原格式返回。\n不选则一次性将全部内容发给翻译引擎处理，标点、符号、格式可能有变化。\n",
+	"Import text to be translated from a file..":"从srt文件导入字幕/1或多个",
+	"shuoming1":"只允许翻译srt格式的字幕文件，不符号该格式的请勿导入翻译，否则将报错",
 	"export..":"导出结果..",
 	"Start>":"立即翻译>",
 	"The translation result is displayed here":"这里显示翻译结果",
-	"Text subtitle translation":"文本字幕翻译"	
+	"Text subtitle translation":"批量字幕翻译"
   },
   "language_code_list": {
     "zh-cn":"中文简",
