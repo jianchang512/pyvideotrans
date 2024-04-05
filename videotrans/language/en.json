@@ -1,5 +1,11 @@
 {
   "translate_language": {
+    "yidaorujigewenjian": "Imported subtitle files:",
+    "dakaizimubaocunmulu": "Open directory where translation saved",
+    "quanbuwanbi": "All translated.",
+    "srtgeshierror": "Error while formatting subtitle, please check if the subtitle file conforms to the srt format",
+
+
     "endopendir": "Click to open the save directory when done",
     "xinshoumoshitips": "Select the video you want to translate and set the original language of the video and the language you want to translate to",
 
@@ -186,7 +192,7 @@
     "vlctips2": "file is not exists",
     "xuanzeyinshipin": "Click to select or drag and drop audio, video files here",
     "tuodongdaoci": "Drag the file to be converted here and release",
-    "tuodongfanyi": "Drag the text file or srt file to be translated here and release",
+    "tuodongfanyi": "import subtitles  srt file",
     "zhixingwc": "Execution completed",
     "zhixinger": "Execution error",
     "starttrans": "Start translating",
@@ -310,7 +316,7 @@
     "Convert various formats to each other": "Convert various formats to each other",
     "Mixing 2 Audio Streams": "Mixing 2 Audio Streams",
     "Mix two audio files into one audio file": "Mix two audio files into one audio file",
-    "Text  Or Srt  Translation": "Text  Or Srt  Translation",
+    "Text  Or Srt  Translation": "Batch translation subtitles",
     "Translate text or subtitles": "Translate text or subtitles",
     "Download from Youtube": "Download from Youtube",
     "Whisper model": "Whisper model"
@@ -367,7 +373,7 @@
 	"Proxy":"Proxy",
 	"Failed to access Google services. Please set up the proxy correctly":"set up the proxy",
 	"Import text to be translated from a file..":"Import text to be translated from a file..",
-	"shuoming1":"If it is only pure text, there is no need to select it.\nIf it is in SRT subtitle format, it needs to be selected to not translate the line numbers and time values in the subtitles, and return them in the original subtitle format.\nIf not selected, all content will be sent to the translation engine for processing at once, and punctuation, symbols, and formatting may change.\n",
+	"shuoming1":"Only srt format subtitle files are allowed to be translated, please do not import and translate files that do not symbolize this format, otherwise an error will be reported.",
 	"export..":"export..",
 	"Start>":"Start>",
 	"The translation result is displayed here":"The translation result is displayed here",

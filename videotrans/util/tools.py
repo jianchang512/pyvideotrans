@@ -166,9 +166,13 @@ def runffmpeg(arg, *, noextname=None,
               no_decode=config.settings['no_decode'], # False=禁止 h264_cuvid 解码，True=尽量使用硬件解码
               de_format=config.settings['hwaccel_output_format'], # 硬件输出格式，模型cuda兼容性差，可选nv12
               is_box=False,
-              use_run=True):
+              use_run=True,
+              fps=None):
     arg_copy=copy.deepcopy(arg)
-    cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", config.settings['vsync']]
+    if fps:
+        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", 'cfr','-r',f'{fps}']
+    else:
+        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown","-vsync", config.settings['vsync']]
     # 启用了CUDA 并且没有禁用GPU
     for i, it in enumerate(arg):
         if arg[i]=='-i' and i<len(arg)-1:
@@ -183,8 +187,9 @@ def runffmpeg(arg, *, noextname=None,
             cmd.append("h264_cuvid")
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
-                arg[i] = it.replace('libx264', "h264_nvenc").replace('copy', 'h264_nvenc')
+                arg[i] = it.replace('libx264', "h264_nvenc")
     cmd = cmd + arg
+    print(f'{" ".join(cmd)}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
@@ -247,7 +252,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         out = json.loads(out)
         result = {
             "video_fps": 30,
-            "video_codec_name": "h264",
+            "video_codec_name": "",
             "audio_codec_name": "aac",
             "width": 0,
             "height": 0,
@@ -322,6 +327,7 @@ def conver_mp4(source_file, out_mp4,*,is_box=False):
         "-c:a",
         "aac",
         '-crf', f'{config.settings["crf"]}',
+        '-preset','slow',
         out_mp4
     ], no_decode=True, de_format=config.settings['hwaccel_output_format'],is_box=is_box)
 
@@ -334,8 +340,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname):
         f'{source_mp4}',
         "-an",
         "-c:v",
-        "libx264",
-        '-crf', f'{config.settings["crf"]}',
+        "copy",
         f'{novoice_mp4}'
     ]
     return runffmpeg(cmd, noextname=noextname)
@@ -454,19 +459,7 @@ def m4a2wav(m4afile, wavfile):
     return runffmpeg(cmd,disable_gpu=True)
 
 
-# 取出最后一帧图片 nv12 + h264_cuvid
-def get_lastjpg_fromvideo(file_path, img):
-    return runffmpeg(
-        ['-y', '-sseof', '-3', '-i', f'{file_path}', '-q:v', '1', '-qmin:v', '1', '-qmax:v', '1', '-update', 'true',
-         f'{img}'], de_format="nv12",use_run=True)
 
-
-# 根据图片创建一定时长的视频 nv12 +  not h264_cuvid
-def create_video_byimg(*, img=None, fps=30, scale=None, totime=None, out=None):
-
-    return runffmpeg([
-        '-loop', '1', '-i', f'{img}', '-vf', f'fps={fps},scale={scale[0]}:{scale[1]}', '-c:v', "libx264",
-        '-crf', f'{config.settings["crf"]}', '-to', f'{totime}', '-y', out], no_decode=True,de_format="nv12",use_run=True)
 
 
 # 创建 多个视频的连接文件
@@ -480,13 +473,13 @@ def create_concat_txt(filelist, filename):
 
 
 # 多个视频片段连接 cuda + h264_cuvid
-def concat_multi_mp4(*, filelist=[], out=None,maxsec=None):
+def concat_multi_mp4(*, filelist=[], out=None,maxsec=None,fps=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
     if maxsec:
-        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy",'-t', f"{maxsec}", '-crf', f'{config.settings["crf"]}', '-an',out],use_run=True)
-    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "copy", '-crf', f'{config.settings["crf"]}', '-an',out],use_run=True)
+        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "libx264",'-t', f"{maxsec}",'-crf', f'{config.settings["crf"]}','-preset','slow','-an',out],fps=fps)
+    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "libx264", '-an','-crf', f'{config.settings["crf"]}','-preset','slow',out],fps=fps)
     
 # 多个音频片段连接 
 def concat_multi_audio(*, filelist=[], out=None):
@@ -766,7 +759,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
 
 
 # 从视频中切出一段时间的视频片段 cuda + h264_cuvid
-def cut_from_video(*, ss="", to="", source="", pts="", out=""):
+def cut_from_video(*, ss="", to="", source="", pts="", out="",fps=None):
     cmd1 = [
         "-y",
         "-ss",
@@ -782,12 +775,12 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
         cmd1.append(f'setpts={pts}*PTS')
     cmd = cmd1 + ["-c:v",
                   "libx264",
-                  "-crf",
-                  f'{config.settings["crf"]}',
                   '-an',
+                  '-crf', f'{config.settings["crf"]}',
+                  '-preset','slow',
                   f'{out}'
                   ]
-    return runffmpeg(cmd,use_run=True)
+    return runffmpeg(cmd,fps=fps)
 
 
 # 从音频中截取一个片段
@@ -943,10 +936,8 @@ def kill_ffmpeg_processes():
         pass
 
 
-
+#input_file_path 可能是字符串：文件路径，也可能是音频数据
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10,is_start=True):
-    if not config.settings['remove_silence']:
-        return False if isinstance(input_file_path,str) else ""
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
     """

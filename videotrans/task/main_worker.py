@@ -89,12 +89,7 @@ class Worker(QThread):
                 dur=int(time.time() - st)
                 set_process(f"{self.video.target_dir if not config.params['only_video'] else config.params['target_dir']}##{dur}", 'succeed')
                 send_notification(config.transobj["zhixingwc"],f'{dur}s: {self.video.source_mp4}')
-                try:
-                    if os.path.exists(self.video.novoice_mp4):
-                        time.sleep(1)
-                        os.unlink(self.video.novoice_mp4)
-                except:
-                    pass
+
                 if len(config.queue_mp4)>0:
                     config.queue_mp4.pop(0)
             except Exception as e:

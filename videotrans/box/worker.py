@@ -517,37 +517,36 @@ class WorkerTTS(QThread):
 
 class FanyiWorker(QThread):
 
-    def __init__(self, type, target_language, text, issrt, parent=None):
+    def __init__(self, type, target_language, files, parent=None):
         super(FanyiWorker, self).__init__(parent)
         self.type = type
         self.target_language = target_language
-        self.text = text
-        self.issrt = issrt
+        self.files = files
         self.srts = ""
 
     def run(self):
         # 开始翻译,从目标文件夹读取原始字幕
         set_process_box(f'start translate')
         config.box_trans = "ing"
-        try:
-            if not self.issrt:
-                self.srts = run_trans(text_list=self.text, translate_type=self.type,
-                                      target_language_name=self.target_language, set_p=False)
-            else:
-                try:
-                    rawsrt = get_subtitle_from_srt(self.text, is_file=False)
-                except Exception as e:
-                    set_process_box(f"整理格式化原始字幕信息出错:" + str(e), 'error')
-                    return ""
-                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,
-                                set_p=False)
+        target=os.path.join(os.path.dirname(self.files[0]),'_translate')
+        os.makedirs(target,exist_ok=True)
+        for f in self.files:
+            try:
+                rawsrt = get_subtitle_from_srt(f, is_file=True)
+            except Exception as e:
+                set_process_box(f"\n{config.transobj['srtgeshierror']}:{f}" + str(e), 'error',func_name='fanyi_oneerror')
+                continue
+            try:
+                set_process_box(f'正在翻译字幕{f}',func_name='fanyi_set_source')
+                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language, set_p=False)
                 srts_tmp = ""
                 for it in srt:
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                self.srts = srts_tmp
-        except Exception as e:
-            set_process_box(str(e), "error", func_name="fanyi_end")
-            return
-        finally:
-            config.box_trans = "stop"
-        set_process_box(self.srts, "end", func_name="fanyi_end")
+                with open(os.path.join(target,os.path.basename(f)),'w',encoding='utf-8') as f:
+                    f.write(srts_tmp)
+                set_process_box(srts_tmp, "end", func_name="fanyi_end")
+
+            except Exception as e:
+                set_process_box(f'翻译字幕{f}出错:{str(e)}', "error", func_name="fanyi_end")
+        config.box_trans = "stop"
+        set_process_box("", "end", func_name="fanyi_all")

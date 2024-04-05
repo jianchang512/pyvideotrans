@@ -9,7 +9,7 @@ import torch
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSettings, QUrl, Qt
 from PySide6.QtGui import QDesktopServices, QIcon, QTextCursor
-from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel
+from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QLabel, QPlainTextEdit
 from videotrans import VERSION
 from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
 from videotrans.box.logs_worker import LogsWorker
@@ -29,6 +29,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initSize=None
         self.shibie_out_path=None
         self.hecheng_files=[]
+        self.fanyi_files=[]
+        self.fanyi_errors=""
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
@@ -163,7 +165,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_start.clicked.connect(self.fanyi_start_fun)
         self.fanyi_translate_type.addItems(translator.TRANSNAMES)
 
-        self.fanyi_sourcetext = Textedit()
+        self.fanyi_sourcetext = QPlainTextEdit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -173,6 +175,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_proxy.setText(config.proxy)
 
         self.fanyi_sourcetext.setPlaceholderText(config.transobj['tuodongfanyi'])
+        self.fanyi_sourcetext.setToolTip(config.transobj['tuodongfanyi'])
+        self.fanyi_sourcetext.setReadOnly(True)
 
         self.fanyi_layout.insertWidget(0, self.fanyi_sourcetext)
         self.daochu.clicked.connect(self.fanyi_save_fun)
@@ -215,19 +219,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 文本翻译，导入文本文件
     def fanyi_import_fun(self, obj=None):
-        fname, _ = QFileDialog.getOpenFileName(self, "Select txt or srt", config.last_opendir,
-                                               "Text files(*.srt *.txt)")
-        if fname:
-            fname=fname.replace('file:///', '')
-            config.last_opendir=os.path.dirname(fname)
+        fnames, _ = QFileDialog.getOpenFileNames(self,
+                                                 config.transobj['tuodongfanyi'],
+                                                 config.last_opendir,
+                                               "Subtitles files(*.srt)")
+        if len(fnames) < 1:
+            return
+        for (i, it) in enumerate(fnames):
+            fnames[i] = it.replace('\\', '/').replace('file:///', '')
+        if fnames:
+            self.fanyi_files=fnames
+            config.last_opendir=os.path.dirname(fnames[0])
             self.settings.setValue("last_dir", config.last_opendir)
-            try:
-                with open(fname, 'r', encoding='utf-8') as f:
-                    content=f.read().strip()
-            except:
-                with open(fname, 'r', encoding='GBK') as f:
-                    content=f.read().strip()
-            self.fanyi_sourcetext.setPlainText(content)
+            self.fanyi_sourcetext.setPlainText(f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}')
 
     def hecheng_import_fun(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.last_opendir,
@@ -344,18 +348,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hun_startbtn.setDisabled(False)
             self.hun_out.setDisabled(False)
             self.statuslabel.setText("Succeed")
+        # 完成一个字幕文件翻译
         elif data['func_name'] == 'fanyi_end':
-            # print(f'翻译结束={data["text"]}')
-            self.fanyi_start.setDisabled(False)
-            self.fanyi_start.setText(config.transobj['starttrans'])
             self.fanyi_targettext.clear()
             self.fanyi_targettext.setPlainText(data['text'])
+        #设置源文本框字幕
+        elif data['func_name']=='fanyi_set_source':
+            self.fanyi_sourcetext.clear()
+            self.fanyi_sourcetext.setPlainText(data['text'])
+        #全部翻译结束
+        elif data['func_name']=='fanyi_all':
+            self.fanyi_start.setDisabled(False)
+            self.fanyi_start.setText(config.transobj['starttrans'])
             self.daochu.setDisabled(False)
-            self.statuslabel.setText("Translate end")
+            self.fanyi_sourcetext.clear()
+            self.statuslabel.clear()
+            if self.fanyi_errors:
+                self.fanyi_sourcetext.setPlainText(self.fanyi_errors)
+            else:
+                self.fanyi_sourcetext.setPlainText(config.transobj['quanbuwanbi'])
+        # 设置翻译结果文本框，每行更新
         elif data['func_name']=='set_fanyi':
-            # print(f'翻译结果=={data=}')
             self.fanyi_targettext.moveCursor(QTextCursor.End)
             self.fanyi_targettext.insertPlainText(data['text'].capitalize())
+        #翻译出错了
+        elif data['func_name']=='fanyi_oneerror':
+            self.fanyi_errors+=data['text'] if data['text'] else ""
+            self.statuslabel.setText(data['text'])
         elif data['func_name']=='set_subtitle':
             self.shibie_text.moveCursor(QTextCursor.End)
             self.shibie_text.insertPlainText(data['text'].capitalize())
@@ -849,7 +868,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if target_language == '-':
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = self.fanyi_proxy.text()
-        print(f'{proxy=}')
+
         if proxy:
             tools.set_proxy(proxy)
             self.settings.setValue('proxy',proxy)
@@ -862,10 +881,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.settings.setValue('proxy',proxy)
                 if translate_type.lower()==GOOGLE_NAME:
                     self.fanyi_proxy.setText(proxy)
-        issrt = self.fanyi_issrt.isChecked()
-        source_text = self.fanyi_sourcetext.toPlainText().strip()
-        if not source_text:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["wenbenbukeweikong"])
+
 
         config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
@@ -884,7 +900,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if rs is not True:
             QMessageBox.critical(self, config.transobj['anerror'], rs)
             return
-        self.fanyi_task = FanyiWorker(translate_type, target_language, source_text, issrt, self)
+        self.fanyi_sourcetext.clear()
+        self.fanyi_task = FanyiWorker(translate_type, target_language, self.fanyi_files, self)
         self.fanyi_task.start()
         self.fanyi_start.setDisabled(True)
         self.fanyi_start.setText(config.transobj["running"])
@@ -892,23 +909,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.daochu.setDisabled(True)
 
     def fanyi_save_fun(self):
-        srttxt = self.fanyi_targettext.toPlainText().strip()
-        if not srttxt:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['srtisempty'])
-        issrt = self.fanyi_issrt.isChecked()
-        dialog = QFileDialog()
-        dialog.setWindowTitle(config.transobj['savesrtto'])
-        dialog.setNameFilters(["subtitle files (*.srt)" if issrt else "text files (*.txt)"])
-        dialog.setAcceptMode(QFileDialog.AcceptSave)
-        dialog.exec_()
-        if not dialog.selectedFiles():  # If the user closed the choice window without selecting anything.
+        target=os.path.join(os.path.dirname(self.fanyi_files[0]),'_translate')
+        if len(self.fanyi_files)<1 or not os.path.exists(target):
             return
-        else:
-            path_to_file = dialog.selectedFiles()[0]
-        ext = ".srt" if issrt else ".txt"
-        if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
-            path_to_file = path_to_file[:-4] + ext
-        else:
-            path_to_file += ext
-        with open(path_to_file, "w",encoding='utf-8') as file:
-            file.write(srttxt)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(target))
+

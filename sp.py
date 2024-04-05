@@ -35,11 +35,10 @@ class StartWindow(QWidget):
         try:
             from videotrans.mainwin.spwin import MainWindow
             main = MainWindow()
-            import qdarkstyle
-            with open(os.path.join(os.getcwd(),'videotrans/styles/style.qss'),'r',encoding="utf-8") as f:
-                main.setStyleSheet(f.read())
-            app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside6"))
-
+            if not os.path.exists("nostyle.txt"):
+                import videotrans.ui.dark.darkstyle_rc
+                with open(os.path.join(os.getcwd(),'videotrans/styles/style.qss'),'r',encoding="utf-8") as f:
+                    app.setStyleSheet(f.read())
             main.show()
             self.close()
         except Exception as e:
