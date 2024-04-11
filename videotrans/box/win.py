@@ -33,7 +33,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_errors=""
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 608815898 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
+        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 905857759 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭

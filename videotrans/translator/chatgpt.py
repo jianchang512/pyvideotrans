@@ -13,9 +13,11 @@ def get_url(url=""):
     url=url.rstrip('/').lower()
     if not url.startswith('http'):
         url='http://'+url
-    if not url.endswith('/v1'):
+    if re.match(r'.*/v1/(chat/)?completions/?$',url):
+        return re.sub(r'/v1/.*$','/v1',url)
+    if re.match(r'^https?://[^/]+?$',url):
         return url+"/v1"
-    return "https://api.openai.com/v1"
+    return url
 
 
 def create_openai_client():

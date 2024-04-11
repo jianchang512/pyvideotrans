@@ -359,7 +359,13 @@ class Ui_MainWindow(object):
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setMinimumSize(QtCore.QSize(0, 30))
         self.voice_autorate.setObjectName("voice_autorate")
+        
+        self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
+        self.video_autorate.setMinimumSize(QtCore.QSize(0, 30))
+        self.video_autorate.setObjectName("videoe_autorate")
+        
         self.gaoji_layout_inner.addWidget(self.voice_autorate)
+        self.gaoji_layout_inner.addWidget(self.video_autorate)
 
 
         self.auto_ajust = QtWidgets.QCheckBox(self.layoutWidget)
@@ -733,6 +739,8 @@ class Ui_MainWindow(object):
         self.voice_rate.setToolTip(config.uilanglist.get("Overall acceleration or deceleration of voice over playback"))
         self.voice_rate.setPlaceholderText(config.uilanglist.get("Positive numbers accelerate, negative numbers decelerate, -90 to+90"))
         self.voice_autorate.setToolTip(config.uilanglist.get("shuoming03"))
+        self.video_autorate.setToolTip('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
+        self.video_autorate.setText('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
         self.voice_autorate.setText(config.uilanglist.get("Voice acceleration?"))
         self.auto_ajust.setText(config.transobj.get("auto_ajust"))
         self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
