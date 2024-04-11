@@ -45,7 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 905581228 / 微信公众号 pyvideotrans' if config.defaulelang=='zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 905857759 / 微信公众号 pyvideotrans' if config.defaulelang=='zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
@@ -123,6 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
+        self.video_autorate.setChecked(config.params['video_autorate'])
         self.auto_ajust.setChecked(config.params['auto_ajust'])
 
 
@@ -263,10 +264,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
         self.model_type.currentTextChanged.connect(self.util.model_type_change)
         self.voice_rate.textChanged.connect(self.util.voice_rate_changed)
-        self.voice_autorate.stateChanged.connect(
-            lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.auto_ajust.stateChanged.connect(
-            lambda: self.util.autorate_changed(self.auto_ajust.isChecked(), "auto_ajust"))
+        self.voice_autorate.stateChanged.connect(lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
+        self.video_autorate.stateChanged.connect(lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.auto_ajust.stateChanged.connect(lambda: self.util.autorate_changed(self.auto_ajust.isChecked(), "auto_ajust"))
         # tts_type 改变时，重设角色
         self.tts_type.currentTextChanged.connect(self.util.tts_type_change)
         self.addbackbtn.clicked.connect(self.util.get_background)
@@ -410,6 +410,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["target_language"] = self.settings.value("target_language", "")
         config.params["voice_role"] = self.settings.value("voice_role", "")
         config.params["voice_autorate"] = self.settings.value("voice_autorate", False,bool)
+        config.params["video_autorate"] = self.settings.value("video_autorate", False,bool)
         config.params["auto_ajust"] = self.settings.value("auto_ajust", True,bool)
 
 
@@ -487,6 +488,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("only_video", config.params['only_video'])
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
-        self.settings.setValue("voice_autorate", config.params['voice_autorate'])
+        self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist) )
 

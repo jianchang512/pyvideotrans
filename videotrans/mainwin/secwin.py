@@ -12,7 +12,7 @@ from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
 warnings.filterwarnings('ignore')
 from videotrans.translator import is_allow_translate, get_code,  TRANSAPI_NAME
-from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role
+from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role,send_notification
 from videotrans.configure import config
 
 
@@ -138,6 +138,10 @@ class SecWindow():
         self.main.shitingobj.start()
     # 简单新手模式
     def set_xinshoujandann(self):
+        if config.current_status=='ing':
+            self.main.action_xinshoujandan.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.app_mode = 'biaozhun_jd'
         self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
         self.main.startbtn.setText(config.transobj['kaishichuli'])
@@ -186,7 +190,9 @@ class SecWindow():
         # 静音片段
         # 配音自动加速
         self.main.voice_autorate.setChecked(True)
+        self.main.video_autorate.setChecked(True)
         self.main.voice_autorate.hide()
+        self.main.video_autorate.hide()
 
         self.main.splitter.setSizes([self.main.width, 0])
         self.hide_show_element(self.main.subtitle_layout,False)
@@ -210,6 +216,10 @@ class SecWindow():
 
     # 启用标准模式
     def set_biaozhun(self):
+        if config.current_status=='ing':
+            self.main.action_biaozhun.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.app_mode = 'biaozhun'
         self.main.show_tips.setText("")
         self.main.startbtn.setText(config.transobj['kaishichuli'])
@@ -250,6 +260,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_rate, True)
         # 配音自动加速
         self.main.voice_autorate.show()
+        self.main.video_autorate.show()
         # 视频自动降速
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
@@ -271,6 +282,10 @@ class SecWindow():
 
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
+        if config.current_status=='ing':
+            self.main.action_tiquzimu.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
@@ -316,6 +331,7 @@ class SecWindow():
 
         # 配音自动加速
         self.main.voice_autorate.hide()
+        self.main.video_autorate.hide()
         # 视频自动降速
         self.main.is_separate.setDisabled(True)       
         self.main.addbackbtn.setDisabled(True)
@@ -334,6 +350,10 @@ class SecWindow():
     # 从视频提取字幕，不翻译
     # 只显示 选择视频、保存目标、原始语言、语音模型，其他不需要
     def set_tiquzimu_no(self):
+        if config.current_status=='ing':
+            self.main.action_tiquzimu_no.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.app_mode = 'tiqu_no'
         self.main.show_tips.setText(config.transobj['tiquzimuno'])
         self.main.startbtn.setText(config.transobj['kaishitiquzimu'])
@@ -383,6 +403,7 @@ class SecWindow():
 
         # 配音自动加速
         self.main.voice_autorate.hide()
+        self.main.video_autorate.hide()
 
         self.main.is_separate.setDisabled(True)        
         self.main.addbackbtn.setDisabled(True)
@@ -403,6 +424,10 @@ class SecWindow():
     # 启用字幕合并模式, 仅显示 选择视频、保存目录、字幕类型、自动视频降速 cuda
     # 不配音、不识别，
     def set_zimu_video(self):
+        if config.current_status=='ing':
+            self.main.action_zimu_video.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.app_mode = 'hebing'
         self.main.show_tips.setText(config.transobj['zimu_video'])
         self.main.startbtn.setText(config.transobj['kaishihebing'])
@@ -448,6 +473,7 @@ class SecWindow():
 
         # 配音自动加速
         self.main.voice_autorate.hide()
+        self.main.video_autorate.hide()
 
         self.main.is_separate.setDisabled(True)
         self.main.addbackbtn.setDisabled(True)
@@ -466,6 +492,10 @@ class SecWindow():
     # 仅仅对已有字幕配音，显示目标语言、tts相关，自动加速相关，
     # 不翻译不识别
     def set_zimu_peiyin(self):
+        if config.current_status=='ing':
+            self.main.action_zimu_peiyin.setChecked(False)
+            send_notification("该模式执行中不可切换",  '请等待结束后再切换该模式' if config.defaulelang=='zh' else 'Please wait until the end of the execution before switching modes.' )
+            return
         self.main.show_tips.setText(config.transobj['zimu_peiyin'])
         self.main.startbtn.setText(config.transobj['kaishipeiyin'])
         self.main.action_zimu_peiyin.setChecked(True)
@@ -512,6 +542,7 @@ class SecWindow():
 
         # 配音自动加速
         self.main.voice_autorate.show()
+        self.main.video_autorate.show()
         # 视频自动降速
         self.main.is_separate.setDisabled(True)
 
@@ -546,6 +577,9 @@ class SecWindow():
             config.params['voice_autorate'] = state
         elif name=='auto_ajust':
             config.params['auto_ajust'] = state
+        elif name=='video':
+            config.params['video_autorate'] = state
+        
 
 
     def open_dir(self, dirname=None):
@@ -595,6 +629,10 @@ class SecWindow():
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.model_type.setDisabled(type)
+        self.main.voice_autorate.setDisabled(type)
+        self.main.video_autorate.setDisabled(type)
+        self.main.voice_role.setDisabled(type)
+        self.main.voice_rate.setDisabled(type)
         self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
         self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','peiyin'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu','tiqu_no','hebing'] else type)
@@ -1684,6 +1722,7 @@ class SecWindow():
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
+            config.params['video_autorate'] = False
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
             config.params['back_audio']=''
@@ -1703,11 +1742,13 @@ class SecWindow():
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
+            config.params['video_autorate'] = False
             config.params['back_audio']=''
             if self.main.app_mode == 'tiqu_no':
                 config.params['target_language'] = '-'
         if self.main.app_mode=='biaozhun_jd':
             config.params['voice_autorate'] = True
+            config.params['video_autorate'] = True
             config.params['auto_ajust'] = True
             config.params['is_separate']=False
             config.params['back_audio']=''
@@ -1740,10 +1781,7 @@ class SecWindow():
         config.proxy = p.strip()
         print(f'{p=}')
         try:
-            if config.proxy:
-                # 设置代理
-                set_proxy(config.proxy)
-            else:
+            if not config.proxy:
                 # 删除代理
                 set_proxy('del')
             self.main.settings.setValue('proxy',config.proxy)
@@ -1758,6 +1796,19 @@ class SecWindow():
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
+        proxy=self.main.proxy.text().strip().replace('：',':')
+        if proxy:
+            if not re.match(r'^(http|sock)',proxy,re.I):
+                proxy=f'http://{proxy}'
+            if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+',proxy,re.I):
+                question = show_popup('请确认代理地址是否正确？' if config.defaulelang=='zh' else 'Please make sure the proxy address is correct', """你填写的网络代理地址似乎不正确
+一般代理/vpn格式为 http://127.0.0.1:数字端口号 
+如果不知道什么是代理请勿随意填写
+ChatGPT等api地址请填写在菜单-设置-对应配置内。
+如果确认代理地址无误，请点击 Yes 继续执行""" if config.defaulelang=='zh' else 'The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.')
+                if question != QMessageBox.Yes:
+                    self.update_status('stop')
+                    return
         config.task_countdown = config.settings['countdown_sec']
         config.settings=config.parse_init()
         # 清理日志
@@ -1768,8 +1819,9 @@ class SecWindow():
         if target_dir:
             config.params['target_dir'] = target_dir
 
+        
         # 设置或删除代理
-        config.proxy = self.main.proxy.text().strip()
+        config.proxy = proxy
         try:
             if config.proxy:
                 # 设置代理
@@ -1791,6 +1843,7 @@ class SecWindow():
 
         # 配音自动加速
         config.params['voice_autorate'] = self.main.voice_autorate.isChecked()
+        config.params['video_autorate'] = self.main.video_autorate.isChecked()
 
         # 视频自动减速
         # 语音模型

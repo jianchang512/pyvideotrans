@@ -563,14 +563,19 @@ class TransCreate():
             filename = self.cache_folder + "/" + md5_hash.hexdigest() + ".mp3"
             # 如果是clone-voice类型， 需要截取对应片段
             # 如果是clone-voice类型， 需要截取对应片段
+            if it['end_time']<=it['start_time']:
+                continue
             if config.params['tts_type'] == 'clone-voice':
                 if config.params['is_separate'] and not os.path.exists(self.targetdir_source_vocal):
                     raise Exception(f'背景分离出错 {self.targetdir_source_vocal}')
                     # clone 方式文件为wav格式
                 if self.app_mode !='peiyin' and self.targetdir_source_wav and os.path.exists(self.targetdir_source_wav):
-                    cut_from_audio(audio_file=self.targetdir_source_vocal if config.params[
-                        'is_separate'] else self.targetdir_source_wav, ss=it['startraw'], to=it['endraw'],
-                                   out_file=filename)
+                    cut_from_audio(
+                        audio_file=self.targetdir_source_vocal if config.params['is_separate'] else self.targetdir_source_wav, 
+                        ss=it['startraw'], 
+                        to=it['endraw'],
+                        out_file=filename
+                    )
 
             queue_tts.append({
                 "text": it['text'],
@@ -761,7 +766,7 @@ class TransCreate():
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self, queue_tts):
-        if config.settings['video_rate']<=1:
+        if  not config.params['video_autorate'] or config.settings['video_rate']<=1:
             return queue_tts
         # 计算视频应该慢放的倍数，用当前实际的字幕时长/原始字幕时长得到倍数，如果当前时长小于等于原时长，不处理
         # 开始遍历每个时间段，如果需要视频加速，则截取 end_time_source start_time_source 时间段的视频，进行speed_video 处理
@@ -810,12 +815,13 @@ class TransCreate():
 
                 set_process(f"{config.transobj['video speed down']}[{i}] {speed=}")
                 # 截取原始视频
-                cut_from_video(ss=ms_to_time_string(ms=it['start_time']),
-                               to=ms_to_time_string(ms=it['end_time'] if it['end_time'] < last_time else last_time),
-                               source=self.novoice_mp4,
-                               pts= "" if speed<=1 else speed,
-                               out=filename_video)
-                concat_txt_arr.append(filename_video)
+                if it['end_time']>it['start_time']:
+                    cut_from_video(ss=ms_to_time_string(ms=it['start_time']),
+                                   to=ms_to_time_string(ms=it['end_time'] if it['end_time'] < last_time else last_time),
+                                   source=self.novoice_mp4,
+                                   pts= "" if speed<=1 else speed,
+                                   out=filename_video)
+                    concat_txt_arr.append(filename_video)
             elif it['end_time'] > it['start_time']:
                 filename_video = self.cache_folder + f'/{i}.mp4'
                 concat_txt_arr.append(filename_video)
@@ -894,7 +900,7 @@ class TransCreate():
 
 
         # 6.处理视频慢速
-        if config.settings['video_rate']>1:
+        if config.params['video_autorate'] and config.settings['video_rate']>1:
             print('6.处理视频慢速')
             queue_tts=self._ajust_video(queue_tts)
 
@@ -920,7 +926,8 @@ class TransCreate():
     def novoicemp4_add_time(self, duration_ms):
         if config.current_status != 'ing':
             return False
-        duration_ms=100 if duration_ms<100 else duration_ms
+        if duration_ms<100:
+            return
         set_process(f'{transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not is_novoice_mp4(self.novoice_mp4, self.noextname):
             raise Myexcept("not novoice mp4")
@@ -932,7 +939,7 @@ class TransCreate():
         
         cut_from_video(
             source=self.novoice_mp4, 
-            ss=ms_to_time_string(ms=video_time-100).replace(',', '.'),
+            ss=ms_to_time_string(ms=video_time-duration_ms).replace(',', '.'),
             out=self.cache_folder+"/last-clip-novoice.mp4",
             pts=10,
             fps=None if not self.video_info or not self.video_info['video_fps'] else self.video_info['video_fps']
@@ -1033,21 +1040,26 @@ class TransCreate():
         # 需要配音,选择了角色，并且不是 提取模式 合并模式
         if self.app_mode == 'hebing':
             config.params['voice_role'] = 'No'
+        # 有字幕有配音
+        if self.app_mode != 'hebing':
+            self._back_music()
+            self._separate()
         if config.params['voice_role'] != 'No':
             if not os.path.exists(self.targetdir_target_wav) or os.path.getsize(self.targetdir_target_wav) < 1:
                 raise Myexcept(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.targetdir_target_wav}")
-            if config.settings['append_video']:
-                video_time = get_video_duration(self.novoice_mp4)
-                audio_length=len(AudioSegment.from_file(self.targetdir_target_wav, format=self.targetdir_target_wav.split('.')[-1]))
-                if audio_length > video_time:
-                    # 视频末尾延长
-                    try:
-                        # 对视频末尾定格延长
-                        print(f'需要延长视频 {audio_length - video_time}')
-                        self.novoicemp4_add_time(audio_length - video_time)
-                    except Exception as e:
-                        raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
-        
+            video_time = get_video_duration(self.novoice_mp4)
+            audio_length=len(AudioSegment.from_file(self.targetdir_target_wav, format=self.targetdir_target_wav.split('.')[-1]))
+            if config.settings['append_video'] and audio_length > video_time:
+                # 视频末尾延长
+                try:
+                    # 对视频末尾定格延长
+                    print(f'需要延长视频 {audio_length - video_time}')
+                    self.novoicemp4_add_time(audio_length - video_time)
+                except Exception as e:
+                    raise Myexcept(f'[novoicemp4_add_time]{transobj["moweiyanchangshibai"]}:{str(e)}')
+            if  video_time>audio_length:
+                m=AudioSegment.from_file(self.targetdir_target_wav, format=self.targetdir_target_wav.split('.')[-1])+AudioSegment.silent(duration=video_time - audio_length)
+                m.export(self.targetdir_target_wav,format=self.targetdir_target_wav.split('.')[-1])
         
         # 需要字幕
         if config.params['subtitle_type'] > 0 and not os.path.exists(self.targetdir_target_sub) or os.path.getsize(
@@ -1114,10 +1126,7 @@ class TransCreate():
 
         if self.precent < 90:
             self.precent = 90
-        # 有字幕有配音
-        if self.app_mode != 'hebing':
-            self._back_music()
-            self._separate()
+        
         if config.params['only_video']:
             self.targetdir_mp4 = config.params['target_dir'] + f"/{self.noextname}.mp4"
 
