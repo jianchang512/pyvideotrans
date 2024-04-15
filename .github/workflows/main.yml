@@ -5,7 +5,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Versatile PyInstaller
-        uses: sayyid5416/pyinstaller@v1.6.0
+        uses: sayyid5416/pyinstaller@v1.6.0    
         with: 
          python_ver: '3.10'
          pyinstaller_ver: '==6.3.0'
