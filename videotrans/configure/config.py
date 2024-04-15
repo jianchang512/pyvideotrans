@@ -8,7 +8,16 @@ import re
 import sys
 from queue import Queue
 
-rootdir = os.getcwd().replace('\\', '/')
+def get_executable_path():
+    # 这个函数会返回可执行文件所在的目录
+    if getattr(sys, 'frozen', False):
+        # 如果程序是被“冻结”打包的，使用这个路径
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+rootdir = get_executable_path().replace('\\', '/')
+print(f'{rootdir=}')
 TEMP_DIR = os.path.join(rootdir, "tmp").replace('\\', '/')
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR, exist_ok=True)
@@ -293,3 +302,4 @@ separate_status='stop'
 # 最后一次打开的目录
 last_opendir=homedir if not os.path.exists(homedir+"/Videos") else homedir+"/Videos"
 exit_ffmpeg=False
+exit_soft=False

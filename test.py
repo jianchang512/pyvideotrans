@@ -356,6 +356,4 @@ for code,rolelist in ttslist.items():
 
 #https://google-trans-b58y1tvia-jianchang512s-projects.vercel.app/?sl=zh-CN&tl=en&text=%E5%8F%AA%E5%9C%A8%E4%B8%AD%E5%9B%BD.a&op=translate
 
-import requests
-res=requests.get('https://google-trans-b58y1tvia-jianchang512s-projects.vercel.app/?sl=zh-CN&tl=en&text=%E5%8F%AA%E5%9C%A8%E4%B8%AD%E5%9B%BD.a&op=translate',proxies={"http":"http://127.0.0.1:10809","https":"http://127.0.0.1:10809"})
-print(res.text)
+

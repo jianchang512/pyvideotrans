@@ -9,6 +9,8 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtCore import Qt
+
 from videotrans.configure import config
 
 class Ui_MainWindow(object):
@@ -115,10 +117,20 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.translate_type.sizePolicy().hasHeightForWidth())
         self.translate_type.setSizePolicy(sizePolicy)
-        self.translate_type.setMinimumSize(QtCore.QSize(200, 30))
+        self.translate_type.setMinimumSize(QtCore.QSize(150, 30))
         self.translate_type.setObjectName("translate_type")
         self.layout_translate_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.translate_type)
         self.horizontalLayout_5.addLayout(self.layout_translate_type)
+
+        self.translate_label1 = QtWidgets.QPushButton(self.layoutWidget)
+        self.translate_label1.setCursor(Qt.PointingHandCursor)
+        self.translate_label1.setText(config.transobj['freechatgpt_tips'])
+        self.translate_label1.setToolTip(config.transobj['freechatgpt_tips'])
+        self.translate_label1.setStyleSheet("""border:0;background-color:transparent;font-size:12px;color:#999""")
+        self.horizontalLayout_5.addWidget(self.translate_label1)
+
+        self.translate_label1.hide()
+
         self.horizontalLayout_5.addStretch()
         self.layout_proxy = QtWidgets.QFormLayout()
         self.layout_proxy.setObjectName("layout_proxy")
@@ -261,6 +273,7 @@ class Ui_MainWindow(object):
         self.layout_whisper_model.addWidget(self.model_type, 0, 0, 1, 1)
         self.model_type.addItems([config.uilanglist['faster model'],config.uilanglist['openai model']])
         self.model_type.setToolTip(config.uilanglist['model_type_tips'])
+
 
         self.whisper_model = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)

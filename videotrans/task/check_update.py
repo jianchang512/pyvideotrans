@@ -5,6 +5,7 @@ import requests
 from PySide6.QtCore import QThread
 
 import videotrans
+from videotrans.configure import config
 from videotrans.util.tools import  set_process
 from videotrans.configure.config import transobj
 
@@ -23,6 +24,8 @@ class CheckUpdateWorker(QThread):
                     msg = f"{transobj['newversion']}:{d['version']}"
                     length = len(msg)
                     while 1:
+                        if config.exit_soft:
+                            return
                         tmp=""
                         for i in range(length):
                             if i == 0:
@@ -41,4 +44,6 @@ class CheckUpdateWorker(QThread):
 
     def run(self):
         while not self.get():
+            if config.exit_soft:
+                return
             time.sleep(60)

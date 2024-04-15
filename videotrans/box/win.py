@@ -36,6 +36,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 905857759 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
+        if config.exit_soft:
+            self.close()
+            event.accept()
+            return
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
         self.hide()
         event.ignore()
@@ -189,7 +193,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs = LogsWorker(self)
         self.task_logs.post_logs.connect(self.receiver)
         self.task_logs.start()
-        # self.show()
 
     def geshi_import_fun(self,obj):
         fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['selectmp4'], config.last_opendir,
