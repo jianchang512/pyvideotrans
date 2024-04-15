@@ -52,7 +52,6 @@ def get_elevenlabs_role(force=False):
         return namelist
     try:
         from elevenlabs import voices, set_api_key
-        print(config.params["elevenlabstts_key"])
         if config.params["elevenlabstts_key"]:
             set_api_key(config.params["elevenlabstts_key"])
         voiceslist = voices()
@@ -106,7 +105,6 @@ def set_proxy(set_val=''):
                 # 是否需要设置代理
                 if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
-                #config.proxy=proxy_server
                 return proxy_server
     except Exception as e:
         print(f"Error accessing Windows registry: {e}")
@@ -397,7 +395,6 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
             os.path.join(path,'vocal8000.wav'),
         ])
     except Exception as e:
-        print("end")
         msg=f"separate vocal and background music:{str(e)}"
         set_process(msg)
         raise Exception(msg)
@@ -513,15 +510,18 @@ def precise_speed_up_audio(*,file_path=None, out=None, target_duration_ms=None,m
     # speedup_ratio = current_duration_ms / target_duration_ms
     # 计算速度变化率
     speedup_ratio = current_duration_ms / target_duration_ms
-    if speedup_ratio<=1:
+    if target_duration_ms<=0 or speedup_ratio<=1:
         return True
     rate=min(max_rate,speedup_ratio)
     # 变速处理
-    fast_audio = audio.speedup(playback_speed=rate)
-    print(f'实际变速:{rate=}')
-    # 如果处理后的音频时长稍长于目标时长，进行剪裁
-    if len(fast_audio) > target_duration_ms:
-        fast_audio = fast_audio[:target_duration_ms]
+    try:
+        fast_audio = audio.speedup(playback_speed=rate)
+        print(f'实际变速:{rate=}')
+        # 如果处理后的音频时长稍长于目标时长，进行剪裁
+        if len(fast_audio) > target_duration_ms:
+            fast_audio = fast_audio[:target_duration_ms]
+    except Exception:
+        fast_audio = audio[:target_duration_ms]
 
 
     if out:
@@ -552,8 +552,6 @@ def show_popup(title, text):
 print(ms_to_time_string(ms=12030))
 -> 00:00:12,030
 '''
-
-
 def ms_to_time_string(*, ms=0, seconds=None):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
@@ -593,25 +591,20 @@ def format_srt(content):
     # 时间格式
     timepat = r'^\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?-->\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?$'
     textpat=r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
-    #print(content)
     for i,it in enumerate(content):
         #当前空行跳过
         if not it.strip():
             continue
         it=it.strip()
         is_time=re.match(timepat,it)
-        #print(f'{i=},{it=}')
         if is_time:
-            #print(f'\t是时间')
             #当前行是时间格式，则添加
             result.append({"time":it,"text":[]})
         elif i==0:
             #当前是第一行，并且不是时间格式，跳过
-            #print(f'\t是0行跳过')
             continue
         elif re.match(r'^\s*?\d+\s*?$',it) and i< maxindex and re.match(timepat,content[i+1]):
             #当前不是时间格式，不是第一行，并且都是数字，并且下一行是时间格式，则当前是行号，跳过
-            #print(f'\t是行号')
             continue
         elif len(result)>0 and not re.match(textpat,it):
             #当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
@@ -677,6 +670,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             line += 1
 
     return new_result
+
+
 
 # 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
 def format_time(s_time="",separate=','):
@@ -853,7 +848,6 @@ def delete_files(directory, ext):
             # 如果是文件，且是 mp3 文件，删除之
             if os.path.isfile(item_path) and item.lower().endswith(ext):
                 os.remove(item_path)
-                print(f"Deleted: {item_path}")
 
             # 如果是子目录，递归调用删除函数
             elif os.path.isdir(item_path):

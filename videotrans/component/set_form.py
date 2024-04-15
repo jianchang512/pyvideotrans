@@ -169,3 +169,4 @@ class AzureForm(QDialog, Ui_azureform):  # <===
         self.azure_model.addItems(config.chatgpt_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+

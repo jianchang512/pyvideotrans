@@ -29,7 +29,6 @@ class Worker(QThread):
             config.params['line_roles'] = {}
             dur = int(time.time() - st)
             set_process(f"{self.video.target_dir}##{dur}", 'succeed')
-            print('srt succeed')
             send_notification(config.transobj["zhixingwc"],
                               f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
 
@@ -41,10 +40,8 @@ class Worker(QThread):
             except:
                 pass
             # 全部完成
-            print('beofre end')
             set_process(f"", 'end')
         except Exception as e:
-            print(f'srt e {str(e)}')
             if str(e)!='stop':
                 set_process(f"{str(e)}", 'error')
                 send_notification("Error",  str(e) )
@@ -70,6 +67,8 @@ class Worker(QThread):
 
         error_num=0
         while len(tasks)>0:
+            if config.exit_soft:
+                return
             num += 1
             set_process(f"Processing {num}/{task_nums}", 'statusbar')
             try:

@@ -19,7 +19,10 @@ from videotrans.recognition import run as run_recogn
 from videotrans.tts import run as run_tts
 from videotrans.translator import run as  run_trans, get_audio_code, get_subtitle_code
 from videotrans.util import tools
-from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt,  is_novoice_mp4, cut_from_video, get_video_duration, get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, concat_multi_mp4, backandvocal, cut_from_audio, get_audio_time, concat_multi_audio, format_time, precise_speed_up_audio
+from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, is_novoice_mp4, \
+    cut_from_video, get_video_duration, get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, \
+    concat_multi_mp4, backandvocal, cut_from_audio, get_audio_time, concat_multi_audio, format_time, \
+    precise_speed_up_audio, get_clone_role
 
 
 class TransCreate():
@@ -182,21 +185,20 @@ class TransCreate():
 
     # 启动执行入口
     def run(self):
+
         config.settings = config.parse_init()
+
         if config.current_status != 'ing':
             raise Myexcept("stop")
-        if config.params['is_separate'] and config.params['tts_type'] == 'clone-voice':
+        if config.params['tts_type'] == 'clone-voice':
             set_process(transobj['test clone voice'])
             try:
-                pass
-                #get_clone_role(True)
+                get_clone_role(True)
             except Exception as e:
                 raise Exception(str(e))
 
         self.precent += 1
-        with open("./ceshi.json",'w',encoding='utf-8') as f:
-            f.write(json.dumps(self.video_info))
-        if self.app_mode not in ['tiqu', 'tiqu_no'] and self.video_info['video_codec_name']!='h264':
+        if self.app_mode not in ['tiqu', 'tiqu_no','peiyin'] and self.video_info['video_codec_name']!='h264':
             # 开始转为 h264
             try:
                 tmpmp4=os.path.join(self.cache_folder,f'{time.time()}.mp4')
@@ -205,19 +207,19 @@ class TransCreate():
             except Exception as e:
                 raise Exception(f'转换原视频为mp4.h264失败，请重新选择h264格式的mp4视频{str(e)}')
 
-
         set_process(self.target_dir, 'set_target_dir')
         ##### 开始分离
         # 禁止修改字幕
         set_process("", "disabled_edit")
         self.step = 'split_start'
         self.split_wav_novicemp4()
-        # self.precent += 5
+
         self.step = 'split_end'
 
         #### 开始识别
         self.step = 'regcon_start'
         self.recogn()
+
         self.step = 'regcon_end'
         if self.app_mode == 'tiqu_no':
             return True
@@ -227,14 +229,17 @@ class TransCreate():
         # 翻译暂停时允许修改字幕，翻译开始后禁止修改
         config.task_countdown = 0 if self.app_mode=='biaozhun_jd' else config.settings['countdown_sec']
         self.trans()
+
         self.step = 'translate_end'
         if self.app_mode == 'tiqu':
             return True
         config.task_countdown = 0 if self.app_mode=='biaozhun_jd' else  config.settings['countdown_sec']
         # 如果存在目标语言字幕，并且存在 配音角色，则需要配音
         self.step = "dubbing_start"
+
         # 配音开始前允许修改，开始后禁止修改
         self.dubbing()
+
         self.step = 'dubbing_end'
         if self.app_mode == 'peiyin':
             return True
@@ -801,7 +806,7 @@ class TransCreate():
             # 实际配音长度
             if os.path.exists(it['filename']) and os.path.getsize(it['filename'])>0:
                 audio_length=len(AudioSegment.from_file(it['filename'], format="mp3"))
-            print(f'{duration=}============={audio_length=}')
+
             # 需要延长视频
             if duration>0 and audio_length>duration:
                 filename_video = self.cache_folder + f'/{i}.mp4'
@@ -933,7 +938,7 @@ class TransCreate():
             raise Myexcept("not novoice mp4")
 
         video_time = get_video_duration(self.novoice_mp4)
-        print(f'##############={duration_ms=}')
+
         # 开始将 novoice_mp4 和 last_clip 合并
         shutil.copy2(self.novoice_mp4, f'{self.novoice_mp4}.raw.mp4')
         

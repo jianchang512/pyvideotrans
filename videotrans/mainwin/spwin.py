@@ -1,6 +1,7 @@
 import os
 import shutil
 import threading
+import time
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QIcon, QGuiApplication
@@ -14,7 +15,7 @@ from videotrans.util.tools import kill_ffmpeg_processes
 
 warnings.filterwarnings('ignore')
 
-from videotrans.translator import TRANSNAMES
+from videotrans.translator import TRANSNAMES, FREECHATGPT_NAME
 from videotrans.configure import config
 from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
@@ -50,11 +51,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 检查窗口是否打开
         self.initUI()
         # 打开工具箱
-        configure.TOOLBOX = win.MainWindow()
-        configure.TOOLBOX.resize(int(width*0.7), int(height*0.8))
-        qtRect=configure.TOOLBOX.frameGeometry()
-        qtRect.moveCenter(screen.availableGeometry().center())
-        configure.TOOLBOX.move(qtRect.topLeft())
+        try:
+            configure.TOOLBOX = win.MainWindow()
+            configure.TOOLBOX.resize(int(width*0.7), int(height*0.8))
+            qtRect=configure.TOOLBOX.frameGeometry()
+            qtRect.moveCenter(screen.availableGeometry().center())
+            configure.TOOLBOX.move(qtRect.topLeft())
+        except Exception as e:
+            print('ext box')
 
     def initUI(self):
 
@@ -103,8 +107,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #  translation type
         self.translate_type.addItems(TRANSNAMES)
-        self.translate_type.setCurrentText(
-            config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0])
+        translate_name=config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0]
+        if translate_name==FREECHATGPT_NAME:
+            self.translate_label1.show()
+
+        self.translate_type.setCurrentText(translate_name)
 
         #         model
         self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split'],config.transobj['whisper_type_avg']])
@@ -174,7 +181,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
-        self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
+        # self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
         self.statusLabel.setStyleSheet("background-color:#455364;color:#ffff00")
 
 
@@ -242,6 +249,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.export_sub.clicked.connect(self.util.export_sub_fun)
         self.export_sub.setCursor(Qt.PointingHandCursor)
         self.export_sub.setToolTip(config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
+
+        self.translate_label1.clicked.connect(lambda :self.util.open_url('freechatgpt'))
 
         self.listen_peiyin.clicked.connect(self.util.shiting_peiyin)
         self.listen_peiyin.setCursor(Qt.PointingHandCursor)
@@ -337,13 +346,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3, False))
 
         self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0, False))
-        # self.action_yinshipinfenli.setCursor(Qt.PointingHandCursor)
+
         self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1, False))
-        # self.action_yingyinhebing.setCursor(Qt.PointingHandCursor)
+
         self.action_geshi.triggered.connect(lambda: self.util.open_toolbox(4, False))
-        # self.action_geshi.setCursor(Qt.PointingHandCursor)
+
         self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
-        # self.action_hun.setCursor(Qt.PointingHandCursor)
+
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
         self.action_youtube.triggered.connect(self.util.open_youtube)
         self.action_separate.triggered.connect(self.util.open_separate)
@@ -368,37 +377,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     日志
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.logs_worker import LogsWorker
-        update_role = GetRoleWorker(self)
-        update_role.start()
+        try:
+            update_role = GetRoleWorker(self)
+            update_role.start()
 
-        self.task_logs = LogsWorker(self)
-        self.task_logs.post_logs.connect(self.util.update_data)
-        self.task_logs.start()
-        self.check_update = CheckUpdateWorker(self)
-        self.check_update.start()
+            self.task_logs = LogsWorker(self)
+            self.task_logs.post_logs.connect(self.util.update_data)
+            self.task_logs.start()
+            self.check_update = CheckUpdateWorker(self)
+            self.check_update.start()
+        except Exception as e:
+            print('threaqd-----'+str(e))
 
 
 
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
-        # config.exit_ffmpeg=True
+        config.exit_soft=True
+        config.current_status = 'end'
+        self.hide()
+        time.sleep(1)
+        try:
+            kill_ffmpeg_processes()
+        except Exception:
+            pass
         if configure.TOOLBOX is not None:
             configure.TOOLBOX.close()
-        if config.current_status == 'ing':
-            kill_ffmpeg_processes()
-            config.current_status = 'end'
-            msg = QMessageBox()
-            msg.setWindowTitle(config.transobj['exit'])
-            msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-            msg.setText(config.transobj['waitclear'])
-            msg.addButton(QMessageBox.Yes)
-            msg.setIcon(QMessageBox.Information)
-            msg.exec()  # 显示消息框
         try:
             shutil.rmtree(config.rootdir+"/tmp",ignore_errors=True)
             shutil.rmtree(config.homedir+"/tmp",ignore_errors=True)
-        except:
+        except Exception:
             pass
         event.accept()
 

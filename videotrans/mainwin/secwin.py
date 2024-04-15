@@ -11,7 +11,7 @@ from videotrans import configure
 from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
 warnings.filterwarnings('ignore')
-from videotrans.translator import is_allow_translate, get_code,  TRANSAPI_NAME
+from videotrans.translator import is_allow_translate, get_code, TRANSAPI_NAME, FREECHATGPT_NAME
 from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role,send_notification
 from videotrans.configure import config
 
@@ -52,7 +52,6 @@ class ClickableProgressBar(QLabel):
             self.progress_bar.setFormat(f' {text}')  # set text format
 
     def mousePressEvent(self, event):
-        print(f"Progress bar clicked! {self.target_dir},{event.button()}")
         if self.target_dir and event.button() == Qt.LeftButton:
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
 
@@ -259,23 +258,25 @@ class SecWindow():
         # 配音语速
         self.hide_show_element(self.main.layout_voice_rate, True)
         # 配音自动加速
-        self.main.voice_autorate.show()
-        self.main.video_autorate.show()
         # 视频自动降速
         self.main.is_separate.setDisabled(False)
         self.main.addbackbtn.setDisabled(False)
         self.main.only_video.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
         self.main.auto_ajust.setDisabled(False)
+        self.main.video_autorate.setDisabled(False)
+        self.main.voice_autorate.setDisabled(False)
+        
         self.hide_show_element(self.main.subtitle_layout,True)
         self.main.splitter.setSizes([self.main.width-400, 400])
         
-        self.main.auto_ajust.show()
-        
+        self.main.voice_autorate.show()
+        self.main.auto_ajust.show()        
         self.main.is_separate.show()
         self.main.addbackbtn.show()
         self.main.back_audio.show()
         self.main.only_video.show()
+        self.main.video_autorate.show()
 
         # cuda
         self.main.enable_cuda.show()
@@ -330,20 +331,23 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_rate, False)
 
         # 配音自动加速
-        self.main.voice_autorate.hide()
-        self.main.video_autorate.hide()
         # 视频自动降速
         self.main.is_separate.setDisabled(True)       
         self.main.addbackbtn.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
         self.main.auto_ajust.setDisabled(True)
+        self.main.video_autorate.setDisabled(True)
+        self.main.voice_autorate.setDisabled(True)
         
+        self.main.voice_autorate.hide()
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
         self.main.only_video.hide()
         self.main.auto_ajust.hide()
+        self.main.video_autorate.hide()
+        
         # cuda
         self.main.enable_cuda.show()
 
@@ -402,26 +406,28 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_rate, False)
 
         # 配音自动加速
-        self.main.voice_autorate.hide()
-        self.main.video_autorate.hide()
 
         self.main.is_separate.setDisabled(True)        
         self.main.addbackbtn.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
         self.main.auto_ajust.setDisabled(True)
+        self.main.video_autorate.setDisabled(True)
+        self.main.voice_autorate.setDisabled(True)
         
+        self.main.voice_autorate.hide()
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
         self.main.only_video.hide()
+        self.main.video_autorate.hide()
         
         self.main.auto_ajust.hide()
 
         # cuda
         self.main.enable_cuda.show()
 
-    # 启用字幕合并模式, 仅显示 选择视频、保存目录、字幕类型、自动视频降速 cuda
+    # 启用字幕合并模式, 仅显示 选择视频、保存目录、字幕类型、 cuda
     # 不配音、不识别，
     def set_zimu_video(self):
         if config.current_status=='ing':
@@ -472,24 +478,27 @@ class SecWindow():
 
 
         # 配音自动加速
-        self.main.voice_autorate.hide()
-        self.main.video_autorate.hide()
 
+        self.main.only_video.setDisabled(False)
         self.main.is_separate.setDisabled(True)
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)        
-        self.main.only_video.setDisabled(False)
         self.main.auto_ajust.setDisabled(True)
+        self.main.video_autorate.setDisabled(True)
+        self.main.voice_autorate.setDisabled(True)
         
+        self.main.only_video.show()
+        self.main.voice_autorate.hide()
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
-        self.main.only_video.show()
         self.main.auto_ajust.hide()
+        self.main.video_autorate.hide()
+        
         # cuda
         self.main.enable_cuda.show()
 
-    # 仅仅对已有字幕配音，显示目标语言、tts相关，自动加速相关，
+    # 仅仅对已有字幕配音，
     # 不翻译不识别
     def set_zimu_peiyin(self):
         if config.current_status=='ing':
@@ -541,21 +550,23 @@ class SecWindow():
         # 静音片段
 
         # 配音自动加速
-        self.main.voice_autorate.show()
-        self.main.video_autorate.show()
         # 视频自动降速
         self.main.is_separate.setDisabled(True)
-
-        self.main.addbackbtn.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)        
         self.main.only_video.setDisabled(True)
+        self.main.video_autorate.setDisabled(True)
+        self.main.voice_autorate.setDisabled(True)
         self.main.auto_ajust.setDisabled(False)
-        self.main.auto_ajust.show()
+        self.main.back_audio.setReadOnly(False)        
+        self.main.addbackbtn.setDisabled(False)
         
+        self.main.voice_autorate.show()
         self.main.is_separate.hide()
-        self.main.addbackbtn.show()
-        self.main.back_audio.show()
+        self.main.video_autorate.hide()
         self.main.only_video.hide()
+        self.main.auto_ajust.show()        
+        self.main.back_audio.show()
+        self.main.addbackbtn.show()
+        
         # cuda
         self.main.enable_cuda.show()
 
@@ -567,7 +578,6 @@ class SecWindow():
 
     def helparticle(self):
         from videotrans.component import ArticleForm
-        print("hi")
         self.main.articleform = ArticleForm()
         self.main.articleform.show()
 
@@ -694,6 +704,8 @@ class SecWindow():
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
         elif title == 'online':
             webbrowser.open_new_tab("https://tool.pyvideotrans.com/trans.html")
+        elif title=='freechatgpt':
+            webbrowser.open_new_tab("https://apiskey.top")
 
     # 工具箱
     def open_toolbox(self, index=0, is_hide=True):
@@ -866,7 +878,6 @@ class SecWindow():
             self.main.sepw.set.clicked.connect(start)
             self.main.sepw.show()
         except:
-            print('err')
             pass
 
     def open_youtube(self):
@@ -1235,12 +1246,9 @@ class SecWindow():
             def run(self):
                 from videotrans.translator.transapi import trans
                 try:
-                    print('start')
-
                     t=trans(self.text, target_language="en", set_p=False,source_code="zh",is_test=True)
                     self.uito.emit(f"ok:{self.text}\n{t}")
                 except Exception as e:
-                    print(e)
                     self.uito.emit(str(e))
         def feed(d):
             if d.startswith("ok:"):
@@ -1432,9 +1440,12 @@ class SecWindow():
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 if name==TRANSAPI_NAME:
                     self.set_transapi()
-
                 return
             config.params['translate_type'] = name
+            if name==FREECHATGPT_NAME:
+                self.main.translate_label1.show()
+            else:
+                self.main.translate_label1.hide()
         except Exception as e:
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
 
@@ -1562,7 +1573,6 @@ class SecWindow():
             "tts_type":config.params['tts_type'],
             "language":lang
         }
-        print(f'{obj=}')
         if config.params['tts_type']=='clone-voice' and role=='clone':
             return
         # 测试能否连接clone
@@ -1709,6 +1719,7 @@ class SecWindow():
             config.params['whisper_model'] = 'base'
             config.params['whisper_type'] = 'all'
             config.params['is_separate']=False
+            config.params['video_autorate']=False
             return True
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         # 不需要翻译
@@ -1779,7 +1790,6 @@ class SecWindow():
     def change_proxy(self,p):
         # 设置或删除代理
         config.proxy = p.strip()
-        print(f'{p=}')
         try:
             if not config.proxy:
                 # 删除代理
@@ -2121,7 +2131,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.voice_role.setCurrentText(current)
         elif d['type']=='win':
             #小窗口背景音分离
-            print(f'{d["text"]=}')
             if self.main.sepw is not None:
                 self.main.sepw.set.setText(d['text'])
             

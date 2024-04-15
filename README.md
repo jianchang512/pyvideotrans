@@ -54,7 +54,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 
 
-# 下载windowns预编译exe版本(其他系统使用源码部署)
+# 下载windowns预编译exe版本(仅win10/win11可用，Mac和Linux系统使用源码部署)
 
 0. [点击去下载预编译版,解压后双击sp.exe](https://github.com/jianchang512/pyvideotrans/releases)
 
@@ -68,31 +68,34 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 
 
-# 源码部署
+# 源码部署/MacOS和Linux系统只可源码部署
 
-1. 配置好 python 3.10->3.11 环境，建议3.10
-2. `git clone https://github.com/jianchang512/pyvideotrans`
-3. `cd pyvideotrans`
-4. `python -m venv venv`
-5. win下执行 `%cd%/venv/scripts/activate`,linux和mac执行 `source ./venv/bin/activate`
-6. `pip install -r requirements.txt`，如果遇到版本冲突报错，请使用 `pip install -r requirements.txt --no-deps`
-7. windows 和 linux 如果要启用cuda加速，继续执行 `pip uninstall -y torch` 卸载，然后执行`pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`。(必须有N卡并且配置好CUDA环境)
-8. Linux 如果要使用 CUDA 加速，还需要额外执行安装 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
+1. 安装好 python 3.10 环境，安装好 git
+2. 找个不含空格和中文的文件夹，Linux和Mac下从终端打开该文件夹。Window下地址栏中输入 `cmd`回车。
+3. 终端中执行命令 `git clone https://github.com/jianchang512/pyvideotrans`
+4. 继续执行命令 `cd pyvideotrans`
+5. 继续执行 `python -m venv venv`，如果你的 python 指向的不行 python3，需要改成 `python3 -m venv venv`,下同
+6. Linux和Mac继续执行命令 `source ./venv/bin/activate`，Window执行命令 `.\venv\scripts\activate`
+7. Linux下如果要使用CUDA加速，执行 `pip install -r requirements-linux-gpu.txt --no-deps`,如果不需要CUDA加速，执行 `pip install -r requirements-cpu-or-mac.txt --no-deps`
+8. Mac执行 `pip install -r requirements-cpu-or-mac.txt --no-deps`
+9. Window下如果要使用CUDA加速，执行 `pip install -r requirements-win-gpu.txt --no-deps`,如果不需要CUDA加速，执行 `pip install -r requirements-cpu-or-mac.txt --no-deps`
 
-9. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，linux和mac 请自行安装 ffmpeg，具体方法可"百度 or Google"
+10. windows 和 linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-10. `python sp.py` 打开软件界面
+11. Linux 如果要使用 CUDA 加速，还需要额外执行安装 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-11. 如果需要支持CUDA加速，需要设备具有 NVIDIA 显卡，具体安装防范见下方 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+12. win下解压 ffmpeg.zip 到根目录下 (ffmpeg.exe文件)，Linux和Mac 请自行安装 ffmpeg，具体方法可搜索 “MacOS 安装 ffmpeg” 或 “Linux 安装ffmpeg”
 
-12. Ubuntu 下可能还需要安装 Libxcb 库，安装命令
+13. `python sp.py` 打开软件界面
+
+14. Ubuntu 下可能还需要安装 Libxcb 库，安装命令
 
 	```	
 	sudo apt-get update
 	sudo apt-get install libxcb-cursor0	
 	```
 
-13. Mac下可能需要执行 `brew install libsndfile` 安装libsndfile
+15. Mac下可能需要执行 `brew install libsndfile` 安装libsndfile
 
 
 
