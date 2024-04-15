@@ -1,0 +1,15 @@
+name: Compile Python
+on: [push]
+jobs:
+  pyinstaller-build:
+    runs-on: windows-latest
+    steps:
+      - name: Versatile PyInstaller
+        uses: sayyid5416/pyinstaller@v1.6.0    
+        with: 
+         python_ver: '3.10'
+         pyinstaller_ver: '==6.3.0'
+         spec: 'sp.spec'
+         requirements: 'requirements-win-gpu.txt'
+         upload_exe_with_name: 'sp1.5'
+         options: --name "sp"--windowed
