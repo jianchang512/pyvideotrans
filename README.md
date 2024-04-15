@@ -54,21 +54,20 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 
 
-# 下载windowns预编译exe版本(仅win10/win11可用，Mac和Linux系统使用源码部署)
+# 下载预打包版本(仅win10/win11/MacOS可用，Linux系统使用源码部署)
 
-0. [点击去下载预编译版,解压后双击sp.exe](https://github.com/jianchang512/pyvideotrans/releases)
+0. [点击去下载预打包版,解压后双击sp.exe，MacOS下双击start.app](https://github.com/jianchang512/pyvideotrans/releases)
 
-1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe (若遇到权限问题可右键使用管理员权限打开)
+1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe,MacOS下双击start.app (若遇到权限问题可右键使用管理员权限打开)
 
 3. 未做免杀，杀软可能误报，可忽略或使用源码部署
 
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
-5. [B站视频教程](https://www.bilibili.com/video/BV1Gr421s7cN/)
 
 
 
-# 源码部署/MacOS和Linux系统只可源码部署
+# 源码部署/Linux系统只可源码部署
 
 1. 安装好 python 3.10 环境，安装好 git
 2. 找个不含空格和中文的文件夹，Linux和Mac下从终端打开该文件夹。Window下地址栏中输入 `cmd`回车。
