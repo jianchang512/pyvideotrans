@@ -157,6 +157,18 @@ def get_edge_rolelist():
         print('获取edgeTTS角色失败' + str(e))
 
 
+def get_azure_rolelist():
+    voice_list = {}
+    if os.path.exists(config.rootdir + "/azure_voice_list.json"):
+        try:
+            voice_list = json.load(open(config.rootdir + "/azure_voice_list.json", "r", encoding="utf-8"))
+            if len(voice_list) > 0:
+                config.AzureTTS_rolelist = voice_list
+                return voice_list
+        except:
+            pass
+    return voice_list
+
 
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None,

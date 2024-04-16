@@ -285,6 +285,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_cuda.toggled.connect(self.util.check_cuda)
         self.actionbaidu_key.triggered.connect(self.util.set_baidu_key)
         self.actionazure_key.triggered.connect(self.util.set_azure_key)
+        self.actionazure_tts.triggered.connect(self.util.set_auzuretts_key)
         self.actiongemini_key.triggered.connect(self.util.set_gemini_key)
         self.actiontencent_key.triggered.connect(self.util.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.util.set_chatgpt_key)
@@ -434,6 +435,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["azure_speech_key"] = self.settings.value("azure_speech_key", "")
+        config.params["azure_speech_region"] = self.settings.value("azure_speech_region", "")
 
         if self.settings.value("clone_voicelist", ""):
             config.clone_voicelist=self.settings.value("clone_voicelist", "").split(',')

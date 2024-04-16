@@ -20,6 +20,7 @@ from videotrans.translator import GOOGLE_NAME
 from videotrans.util  import tools
 import shutil
 from videotrans.ui.toolboxen import Ui_MainWindow
+from videotrans.util.tools import get_azure_rolelist, get_edge_rolelist
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -335,8 +336,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.tts_issrt.setDisabled(False)
                 if data['text']!='Succeed':
                     QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+                    self.hecheng_startbtn.setDisabled(False)
+                    self.hecheng_startbtn.setText(config.uilanglist['Start'])
             else:
                 QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+                self.hecheng_startbtn.setDisabled(False)
+                self.hecheng_startbtn.setText(config.uilanglist['Start'])
         elif data['func_name'] == 'geshi_end':
             config.geshi_num -= 1
             self.geshi_result.moveCursor(QTextCursor.End)
@@ -656,6 +661,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
         langcode = translator.get_code(show_text=language)
+        print(f"{language=},{langcode=}")
 
         if not txt:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['neirongweikong'])
@@ -726,7 +732,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif type == 'elevenlabsTTS':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['elevenlabstts_role'])
-        elif type == 'edgeTTS':
+        elif type in ['edgeTTS','AzureTTS']:
             self.hecheng_language_fun(self.hecheng_language.currentText())
         elif type=='clone-voice':
             self.hecheng_role.clear()
@@ -752,29 +758,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if code and code !='-' and self.tts_type.currentText()=='GPT-SoVITS' and code[:2] not in ['zh','ja','en']:
             #除此指望不支持
             self.tts_type.setCurrentText('edgeTTS')
-        if self.tts_type.currentText() != "edgeTTS":
+        if self.tts_type.currentText() not in ["edgeTTS","AzureTTS"]:
             return
         self.hecheng_role.clear()
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
-        if not config.edgeTTS_rolelist:
-            config.edgeTTS_rolelist = tools.get_edge_rolelist()
-        if not config.edgeTTS_rolelist:
+
+        show_rolelist= get_edge_rolelist() if config.params['tts_type']=='edgeTTS' else get_azure_rolelist()
+        if not show_rolelist:
+            show_rolelist = get_edge_rolelist()
+        if not show_rolelist:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nojueselist'])
             return
 
         try:
             vt = code.split('-')[0]
-            if vt not in config.edgeTTS_rolelist:
+            if vt not in show_rolelist:
                 self.hecheng_role.addItems(['No'])
                 return
-            if len(config.edgeTTS_rolelist[vt]) < 2:
+            if len(show_rolelist[vt]) < 2:
                 self.hecheng_language.setCurrentText('-')
                 QMessageBox.critical(self, config.transobj['anerror'], config.transobj['waitrole'])
                 return
-            self.hecheng_role.addItems(config.edgeTTS_rolelist[vt])
+            self.hecheng_role.addItems(show_rolelist[vt])
         except:
             self.hecheng_role.addItems(['No'])
 
