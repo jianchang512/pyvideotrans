@@ -355,9 +355,13 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
         "aac",
         targe_audio
     ]
+    rs=runffmpeg(cmd)
     if not is_separate:
-        return runffmpeg(cmd)
+        return rs
     # 继续人声分离
+    tmpdir=config.TEMP_DIR+f"/{time.time()}"
+    os.makedirs(tmpdir,exist_ok=True)
+    tmpfile=tmpdir+"/raw.wav"
     runffmpeg([
         "-y",
         "-i",
@@ -367,7 +371,9 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
         "2",
         "-ar",
         "44100",
-        targe_audio
+        "-c:a",
+        "pcm_s16le",
+        tmpfile
     ])
     from videotrans.separate import st
     try:
@@ -376,36 +382,37 @@ def split_audio_byraw(source_mp4, targe_audio,is_separate=False):
         if not os.path.exists(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
-                st.start(targe_audio,path)
+                st.start(audio=tmpfile,path=path)
             except Exception as e:
                 msg=f"separate vocal and background music:{str(e)}"
                 set_process(msg)
                 raise Exception(msg)
         if not os.path.exists(vocal_file):
             return False
-        # 再将 vocal.wav 转为1通道，8000采样率，方便识别
-        runffmpeg([
-            "-y",
-            "-i",
-            vocal_file,
-            "-ac",
-            "1",
-            "-ar",
-            "8000",
-            os.path.join(path,'vocal8000.wav'),
-        ])
     except Exception as e:
         msg=f"separate vocal and background music:{str(e)}"
         set_process(msg)
         raise Exception(msg)
 
+def conver_to_8k(audio,target_audio):
+    return runffmpeg([
+            "-y",
+            "-i",
+            audio,
+            "-ac",
+            "1",
+            "-ar",
+            "8000",
+            target_audio,
+        ])
+
 #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
 def backandvocal(backwav,peiyinm4a):
-    tmpwav=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.wav')
+    tmpwav=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}-1.m4a')
     tmpm4a=os.path.join(os.environ["TEMP"] or os.environ['temp'],f'{time.time()}.m4a')
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav,tmpm4a,["-filter:a",f"volume={config.settings['backaudio_volume']}"])
-    runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',"[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', tmpwav])
+    runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',"[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2','-c:a','aac', tmpwav])
     shutil.copy2(tmpwav,peiyinm4a)
     # 转为 m4a
 

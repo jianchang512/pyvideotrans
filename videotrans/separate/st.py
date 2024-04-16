@@ -34,7 +34,8 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
             if channels == 2 and sr == 44100:
                 need_reformat = 0
                 pre_fun._path_audio_(
-                    inp_path, save_root
+                    inp_path,
+                    ins_root=save_root
                 )
                 done = 1
             else:
@@ -59,7 +60,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
         try:
             if done == 0:
                 pre_fun._path_audio_(
-                    inp_path, save_root
+                    inp_path, ins_root=save_root
                 )
             infos.append("%s->Success" % (os.path.basename(inp_path)))
             yield "\n".join(infos)
@@ -67,7 +68,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
             try:
                 if done == 0:
                     pre_fun._path_audio_(
-                        inp_path, save_root
+                        inp_path, ins_root=save_root
                     )
                 infos.append("%s->Success" % (os.path.basename(inp_path)))
                 yield "\n".join(infos)

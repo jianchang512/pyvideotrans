@@ -22,7 +22,7 @@ from videotrans.util import tools
 from videotrans.util.tools import runffmpeg, set_process, ms_to_time_string, get_subtitle_from_srt, is_novoice_mp4, \
     cut_from_video, get_video_duration, get_video_info, conver_mp4, split_novoice_byraw, split_audio_byraw, wav2m4a, \
     concat_multi_mp4, backandvocal, cut_from_audio, get_audio_time, concat_multi_audio, format_time, \
-    precise_speed_up_audio, get_clone_role
+    precise_speed_up_audio, get_clone_role, conver_to_8k
 
 
 class TransCreate():
@@ -137,7 +137,7 @@ class TransCreate():
         self.novoice_mp4 = f"{self.target_dir}/novoice.mp4"
         self.targetdir_source_sub = f"{self.target_dir}/{self.source_language_code}.srt"
         self.targetdir_target_sub = f"{self.target_dir}/{self.target_language_code}.srt"
-        # 原wav和目标音频
+        # 原wav
         self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.m4a"
         # 配音后的音频文件
         self.targetdir_target_wav = f"{self.target_dir}/{self.target_language_code}.m4a"
@@ -150,18 +150,20 @@ class TransCreate():
         # 分离出的原始音频文件
         if config.params['is_separate']:
             # 如果保留背景，则转为 wav格式， 以便后续分离
-            self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.wav"
+            # self.targetdir_source_wav = f"{self.target_dir}/{self.source_language_code}.wav"
             # 背景音乐
             self.targetdir_source_instrument = f"{self.target_dir}/instrument.wav"
             # 转为8k采样率，降低文件
             self.targetdir_source_vocal = f"{self.target_dir}/vocal.wav"
-            self.targetdir_source_regcon = f"{self.target_dir}/vocal8000.wav"
-            if os.path.exists(self.targetdir_source_regcon) and os.path.getsize(self.targetdir_source_regcon) == 0:
-                os.unlink(self.targetdir_source_regcon)
+            # self.targetdir_source_regcon = f"{self.target_dir}/vocal8000.wav"
+            # if os.path.exists(self.targetdir_source_regcon) and os.path.getsize(self.targetdir_source_regcon) == 0:
+            #     os.unlink(self.targetdir_source_regcon)
         else:
-            self.targetdir_source_vocal = self.targetdir_source_wav
-            self.source_separate = self.source_back = self.source_vocal = None
+            self.targetdir_source_vocal = None
+            self.targetdir_source_instrument=None
+            # self.source_separate = self.source_back = self.source_vocal = None
 
+        self.shibie_audio=f"{self.target_dir}/shibie.wav"
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
         if "subtitles" in obj and obj['subtitles'].strip():
             sub_file = self.targetdir_target_sub
@@ -270,17 +272,26 @@ class TransCreate():
 
         # 如果不存在音频，则分离出音频
         # 添加是否保留背景选项
-        if config.params['is_separate'] and config.params['voice_role'] != 'No' and not os.path.exists(
-                self.targetdir_source_regcon):
-            split_audio_byraw(self.source_mp4, self.targetdir_source_wav, True)
-            if not os.path.exists(self.targetdir_source_vocal):
-                # 分离失败
-                self.targetdir_source_regcon = self.targetdir_source_vocal = self.targetdir_source_wav
-                self.source_separate = self.source_back = self.source_vocal = None
-                config.params['is_separate'] = False
-        else:
+
+        if config.params['is_separate'] and not os.path.exists(self.targetdir_source_vocal):
+            # 背景分离
+            try:
+                split_audio_byraw(self.source_mp4, self.targetdir_source_wav, True)
+            except Exception:
+                pass
+            finally:
+                if not os.path.exists(self.targetdir_source_vocal):
+                    self.targetdir_source_instrument=None
+                    self.targetdir_source_vocal=None
+                    config.params['is_separate'] = False
+                else:
+                    #分离成功后转为8k待识别音频
+                    conver_to_8k(self.targetdir_source_vocal,self.shibie_audio)
+
+        if not config.params['is_separate']:
             try:
                 split_audio_byraw(self.source_mp4, self.targetdir_source_wav)
+                conver_to_8k(self.targetdir_source_wav,self.shibie_audio)
             except:
                 raise Exception(
                     '从视频中提取声音失败，请检查视频中是否含有音轨，或该视频是否存在编码问题' if config.defaulelang == 'zh' else 'Failed to extract sound from video, please check if the video contains an audio track or if there is an encoding problem with that video')
@@ -310,8 +321,7 @@ class TransCreate():
             self.precent += 5
             raw_subtitles = run_recogn(
                 type=config.params['whisper_type'],
-                audio_file=self.targetdir_source_wav if not config.params[
-                    'is_separate'] else self.targetdir_source_regcon,
+                audio_file=self.shibie_audio,
                 detect_language=self.detect_language,
                 cache_folder=self.cache_folder,
                 model_name=config.params['whisper_model'],
@@ -331,6 +341,10 @@ class TransCreate():
             raise Exception(self.noextname + config.transobj['recogn result is empty'].replace('{lang}', config.params[
                 'source_language']))
         self.save_srt_target(raw_subtitles, self.targetdir_source_sub)
+        try:
+            os.unlink(self.shibie_audio)
+        except Exception:
+            pass
 
     # 翻译字幕
     def trans(self):
@@ -365,13 +379,6 @@ class TransCreate():
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
         if not os.path.exists(self.targetdir_source_sub) or os.path.exists(self.targetdir_target_sub):
             return True
-        # 测试翻译
-        # switch_trans = ""
-        # if config.params['translate_type'].lower() == GOOGLE_NAME.lower():
-        #     set_process(config.transobj['test google'])
-        #     if not self.testgoogle():
-        #         raise Exception('无法连接Google,请填写有效代理地址，如果无代理，请查看菜单栏-帮助支持-无代理使用Google翻译')
-
         set_process(transobj['starttrans'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = get_subtitle_from_srt(self.targetdir_source_sub, is_file=True)
