@@ -96,6 +96,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 15. Mac下可能需要执行 `brew install libsndfile` 安装libsndfile
 
+[Mac下详细部署方案](https://pyvideotrans.com/mac.html)
 
 
 # 使用方法
