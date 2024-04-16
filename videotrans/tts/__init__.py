@@ -12,7 +12,10 @@ def text_to_speech(text="", role="", rate='+0%',language=None, filename=None, tt
             tools.set_process(f'text to speech speed {rate}')
         if tts_type == "edgeTTS":
             from .edgetts import get_voice
-            get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test)
+            get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test)
+        elif tts_type == "AzureTTS":
+            from .azuretts import get_voice
+            get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test)
         elif tts_type == "openaiTTS":
             from .openaitts import get_voice
             get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test)

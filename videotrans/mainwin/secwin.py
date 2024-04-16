@@ -12,7 +12,8 @@ from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
 warnings.filterwarnings('ignore')
 from videotrans.translator import is_allow_translate, get_code, TRANSAPI_NAME, FREECHATGPT_NAME
-from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt,   get_clone_role,send_notification
+from videotrans.util.tools import show_popup, set_proxy, get_edge_rolelist, get_elevenlabs_role, get_subtitle_from_srt, \
+    get_clone_role, send_notification, get_azure_rolelist
 from videotrans.configure import config
 
 
@@ -939,6 +940,26 @@ class SecWindow():
             self.main.w.deepl_api.setText(config.params['deepl_api'])
         self.main.w.set_deepl.clicked.connect(save)
         self.main.w.show()
+        
+    def set_auzuretts_key(self):
+        def save():
+            key = self.main.aztw.speech_key.text()
+            region = self.main.aztw.speech_region.text().strip()
+            self.main.settings.setValue("azure_speech_key", key)
+            self.main.settings.setValue("azure_speech_region", region)
+            
+            config.params['azure_speech_key'] = key
+            config.params['azure_speech_region'] = region
+            self.main.aztw.close()
+
+        from videotrans.component import AzurettsForm
+        self.main.aztw = AzurettsForm()
+        if config.params['azure_speech_region']:
+            self.main.aztw.speech_region.setText(config.params['azure_speech_region'])
+        if config.params['azure_speech_key']:
+            self.main.aztw.speech_key.setText(config.params['azure_speech_key'])
+        self.main.aztw.save.clicked.connect(save)
+        self.main.aztw.show()
 
     def set_elevenlabs_key(self):
         def save():
@@ -1527,7 +1548,7 @@ class SecWindow():
             if len(self.main.current_rolelist) < 1:
                 self.main.current_rolelist = get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == 'edgeTTS':
+        elif type in ['edgeTTS','AzureTTS']:
             self.set_voice_role(self.main.target_language.currentText())
         elif type=='clone-voice':
             self.main.voice_role.clear()
@@ -1612,7 +1633,7 @@ class SecWindow():
 
 
         # 除 edgeTTS外，其他的角色不会随语言变化
-        if config.params['tts_type'] != 'edgeTTS':
+        if config.params['tts_type'] not in ['edgeTTS','AzureTTS']:
             if role != 'No':
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
@@ -1626,23 +1647,25 @@ class SecWindow():
         if t == '-':
             self.main.voice_role.addItems(['No'])
             return
-        if not config.edgeTTS_rolelist:
-            config.edgeTTS_rolelist = get_edge_rolelist()
-        if not config.edgeTTS_rolelist:
+        show_rolelist= get_edge_rolelist() if config.params['tts_type']=='edgeTTS' else get_azure_rolelist()
+
+        if not show_rolelist:
+            show_rolelist = get_edge_rolelist()
+        if not show_rolelist:
             self.main.target_language.setCurrentText('-')
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
             return
         try:
             vt = code.split('-')[0]
-            if vt not in config.edgeTTS_rolelist:
+            if vt not in show_rolelist:
                 self.main.voice_role.addItems(['No'])
                 return
-            if len(config.edgeTTS_rolelist[vt]) < 2:
+            if len(show_rolelist[vt]) < 2:
                 self.main.target_language.setCurrentText('-')
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
                 return
-            self.main.current_rolelist = config.edgeTTS_rolelist[vt]
-            self.main.voice_role.addItems(config.edgeTTS_rolelist[vt])
+            self.main.current_rolelist = show_rolelist[vt]
+            self.main.voice_role.addItems(show_rolelist[vt])
         except:
             self.main.voice_role.addItems(['No'])
 

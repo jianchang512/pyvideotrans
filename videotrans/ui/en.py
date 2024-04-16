@@ -522,6 +522,9 @@ class Ui_MainWindow(object):
         self.action_tool = QtGui.QAction(MainWindow)
         self.action_tool.setObjectName("action_tool")
 
+        self.actionazure_tts = QtGui.QAction(MainWindow)
+        self.actionazure_tts.setObjectName("actionazure_tts")
+
         self.action_ffmpeg = QtGui.QAction(MainWindow)
         self.action_ffmpeg.setObjectName("action_ffmpeg")
         self.action_git = QtGui.QAction(MainWindow)
@@ -669,6 +672,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionElevenlabs_key)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionazure_tts)
+        self.menu_Key.addSeparator()
         self.menu.addAction(self.action_tool)
         self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
@@ -726,8 +731,7 @@ class Ui_MainWindow(object):
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
-        #self.open_targetdir.setToolTip(config.uilanglist.get("Open target dir"))
-        #self.open_targetdir.setText(config.uilanglist.get("Open"))
+
         self.label_9.setText(config.uilanglist.get("Translate channel"))
         self.label.setText(config.uilanglist.get("Proxy"))
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
@@ -740,14 +744,12 @@ class Ui_MainWindow(object):
         self.tts_text.setText("TTS")
         self.label_4.setText(config.uilanglist.get("Dubbing role"))
         self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
-        # self.label_5.setText(config.uilanglist.get("Whisper model"))
+
         self.whisper_model.setToolTip(config.uilanglist.get("From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
         self.whisper_type.setToolTip(config.uilanglist.get("Overall recognition is suitable for videos with or without background music and noticeable silence"))
         self.label_8.setText(config.uilanglist.get("Embed subtitles"))
         self.subtitle_type.setToolTip(config.uilanglist.get("shuoming02"))
-        # self.label_7.setText(config.uilanglist.get("Silent duration"))
-        # self.voice_silence.setToolTip(config.uilanglist.get("default 500ms"))
-        # self.voice_silence.setPlaceholderText(config.uilanglist.get("Mute duration for segmented speech, in milliseconds"))
+
         self.label_6.setText(config.uilanglist.get("Dubbing speed"))
         self.voice_rate.setToolTip(config.uilanglist.get("Overall acceleration or deceleration of voice over playback"))
         self.voice_rate.setPlaceholderText(config.uilanglist.get("Positive numbers accelerate, negative numbers decelerate, -90 to+90"))
@@ -830,6 +832,7 @@ class Ui_MainWindow(object):
         self.action_separate.setToolTip(config.uilanglist.get("Separate vocal voice"))
 
         self.actionazure_key.setText("AzureGPT AI")
+        self.actionazure_tts.setText("AzureAI TTS")
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs Key")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))

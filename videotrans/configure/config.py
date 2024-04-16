@@ -171,6 +171,7 @@ openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
+AzureTTS_rolelist = None
 proxy = None
 # 配置
 params = {
@@ -208,7 +209,7 @@ params = {
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
+    "tts_type_list": ["edgeTTS","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "whisper_type": "all",
     "whisper_model": "base",
@@ -256,6 +257,9 @@ params = {
 
     "trans_api_url":"",
     "trans_secret":"",
+    
+    "azure_speech_region":"",
+    "azure_speech_key":"",
 
     "gptsovits_url":"",
     "gptsovits_role":"",

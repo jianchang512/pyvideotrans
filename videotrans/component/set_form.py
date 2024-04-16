@@ -22,6 +22,7 @@ from videotrans.ui.transapi import Ui_transapiform
 from videotrans.ui.ttsapi import Ui_ttsapiform
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
+from videotrans.ui.azuretts import Ui_azurettsform
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
     def __init__(self, parent=None):
         super(SetLineRole, self).__init__(parent)
@@ -99,6 +100,13 @@ class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
 class DeepLForm(QDialog, Ui_deeplform):  # <===
     def __init__(self, parent=None):
         super(DeepLForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+        
+class AzurettsForm(QDialog, Ui_azurettsform):  # <===
+    def __init__(self, parent=None):
+        super(AzurettsForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
