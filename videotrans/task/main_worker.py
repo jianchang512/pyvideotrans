@@ -1,172 +1,116 @@
 # -*- coding: utf-8 -*-
+import copy
 import os
+import shutil
 import time
 from PySide6.QtCore import QThread
-from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.task.trans_create import TransCreate
-from videotrans.tts import text_to_speech
-from videotrans.util.tools import set_process, delete_temp, get_subtitle_from_srt, pygameaudio, speed_up_mp3,send_notification
+from videotrans.util import tools
+from videotrans.util.tools import set_process, delete_temp, send_notification
+from pathlib import Path
 
 
 class Worker(QThread):
-    def __init__(self, *,parent=None,app_mode=None,txt=None):
+    def __init__(self, *, parent=None, app_mode=None, txt=None):
         super().__init__(parent=parent)
         self.video = None
-        self.app_mode=app_mode
-        self.txt=txt
+        self.app_mode = app_mode
+        self.tasklist = {}
+        self.tasknums = 0
+        self.txt = txt
 
     def srt2audio(self):
         try:
-            config.btnkey="srt2wav"
-            set_process('srt2wav', 'add_process')
-            self.video = TransCreate({"subtitles": self.txt, 'app_mode': self.app_mode})
-            st = time.time()
-            set_process(config.transobj['kaishichuli'])
-            self.video.run()
+            config.btnkey = "srt2wav"
+            # 添加进度按钮
+            set_process('srt2wav', 'add_process', btnkey="srt2wav")
+            config.params.update({"is_batch": False, 'subtitles': self.txt, 'app_mode': self.app_mode})
+            try:
+                self.video = TransCreate(copy.deepcopy(config.params), None)
+                set_process(config.transobj['kaishichuli'], btnkey="srt2wav")
+                self.video.prepare()
+            except Exception as e:
+                raise Exception(f'{config.transobj["yuchulichucuo"]}:'+str(e))
+            try:
+                self.video.dubbing()
+            except Exception as e:
+                raise Exception(f'{config.transobj["peiyinchucuo"]}:'+str(e))
             # 成功完成
             config.params['line_roles'] = {}
-            dur = int(time.time() - st)
-            set_process(f"{self.video.target_dir}##{dur}", 'succeed')
-            send_notification(config.transobj["zhixingwc"],
-                              f'{self.video.source_mp4 if self.video.source_mp4 else "subtitles -> audio"}, {dur}s')
-
-            
-            try:
-                if os.path.exists(self.video.novoice_mp4):
-                    time.sleep(1)
-                    os.unlink(self.video.novoice_mp4)
-            except:
-                pass
+            set_process(f"{self.video.target_dir}##srt2wav", 'succeed', btnkey="srt2wav")
+            send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
             # 全部完成
-            set_process(f"", 'end')
+            set_process("", 'end')
         except Exception as e:
-            if str(e)!='stop':
-                set_process(f"{str(e)}", 'error')
-                send_notification("Error",  str(e) )
+            set_process(f"{str(e)}", 'error')
+            send_notification("Error", str(e))
         finally:
             pass
-            #delete_temp(None)
-
 
     def run(self) -> None:
         # 字幕配音
-        if self.app_mode=='peiyin':
+        if self.app_mode == 'peiyin':
             return self.srt2audio()
 
-        #多个视频处理
-        num = 0
-        tasks=[]
+        # 多个视频处理
+        videolist = []
         for it in config.queue_mp4:
-            obj=TransCreate({'subtitles': self.txt, "source_mp4": it, 'app_mode': self.app_mode})
-            tasks.append(obj)
-            set_process(obj.btnkey, 'add_process')
-        task_nums = len(tasks)
-        set_process('','set_start_btn')
+            if config.exit_soft or config.current_status != 'ing':
+                return self.stop()
+            # 格式化每个视频信息
+            obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
+            videolist.append(obj_format)
+            # 添加进度按钮 unid
+            set_process(obj_format['unid'], 'add_process', btnkey=obj_format['unid'])
+        # 如果是批量，则不允许中途暂停修改字幕
+        config.params.update(
+            {"is_batch": True if len(videolist) > 1 else False, 'subtitles': self.txt, 'app_mode': self.app_mode})
+        # 开始
+        for it in videolist:
+            if config.exit_soft or config.current_status != 'ing':
+                return self.stop()
+            if Path(it['raw_name']).exists() and not Path(it['source_mp4']).exists():
+                shutil.copy2(it['raw_name'], it['source_mp4'])
+            self.tasklist[it['unid']] = TransCreate(copy.deepcopy(config.params), it)
+            set_process(it['raw_basename'], 'logs', btnkey=it['unid'])
 
-        error_num=0
-        while len(tasks)>0:
-            if config.exit_soft:
-                return
-            num += 1
-            set_process(f"Processing {num}/{task_nums}", 'statusbar')
+        self.tasknums = len(self.tasklist.keys())
+
+        # 预先处理
+        for idx, video in self.tasklist.items():
+            if config.exit_soft or config.current_status != 'ing':
+                return self.stop()
             try:
-                st = time.time()
-                if len(tasks)<1:
-                    break
-                self.video = tasks.pop(0)
-                if not os.path.exists(self.video.source_mp4):
-                    raise Exception(self.video.source_mp4+config.transobj['vlctips2'])
-                config.btnkey=self.video.btnkey
-                set_process(config.transobj['kaishichuli'])
-                self.video.run()
-                if config.current_status!='ing':
-                    return None
-                # 成功完成
-                config.params['line_roles'] = {}
-                dur=int(time.time() - st)
-                set_process(f"{self.video.target_dir if not config.params['only_video'] else config.params['target_dir']}##{dur}", 'succeed')
-                send_notification(config.transobj["zhixingwc"],f'{dur}s: {self.video.source_mp4}')
-
-                if len(config.queue_mp4)>0:
-                    config.queue_mp4.pop(0)
+                video.prepare()
+                set_process(config.transobj['kaishichuli'], btnkey=video.btnkey)
+                config.regcon_queue.append(self.tasklist[video.btnkey])
             except Exception as e:
-                print(f"mainworker {str(e)}")
-                error_num+=1
-                if str(e)!='stop':
-                    set_process(f"{str(e)}", 'error', btnkey=self.video.btnkey if self.video and self.video.btnkey else "")
-                    send_notification("Error",f"{str(e)}")
-                else:
-                    return None
-            finally:
-                time.sleep(2)
-                if self.video and self.video.del_sourcemp4 and self.video.source_mp4 and os.path.exists(self.video.source_mp4):
-                    os.unlink(self.video.source_mp4)
+                set_process(f'{config.transobj["yuchulichucuo"]}:' + str(e), 'error', btnkey=video.btnkey)
+        try:
+            config.unidlist = []
+            while 1:
+                for idx, video in self.tasklist.items():
+                    if config.exit_soft or config.current_status != 'ing':
+                        return self.stop()
+                    if video.compose_end and video.btnkey not in config.unidlist:
+                        config.unidlist.append(video.btnkey)
+                        video.move_at_end()
+                        send_notification(config.transobj["zhixingwc"], f'{video.obj["raw_basename"]}')
+                        if len(config.queue_mp4) > 0:
+                            config.queue_mp4.pop(0)
+                    time.sleep(1)
+                if len(config.unidlist) == self.tasknums:
+                    break
+        except Exception as e:
+            print(f'{e=}#######################')
         # 全部完成
         set_process("", 'end')
-        if error_num==0:
-            time.sleep(3)
-            delete_temp()
+        time.sleep(3)
+        delete_temp()
 
-
-class Shiting(QThread):
-    def __init__(self, obj, parent=None):
-        super().__init__(parent=parent)
-        self.obj = obj
-        self.stop = False
-
-    def run(self):
-        # 获取字幕
-        try:
-            subs = get_subtitle_from_srt(self.obj['sub_name'])
-        except Exception as e:
-            set_process(f'{config.transobj["geshihuazimuchucuo"]}:{str(e)}')
-            return False
-        rate = int(str(config.params["voice_rate"]).replace('%', ''))
-        if rate >= 0:
-            rate = f"+{rate}%"
-        else:
-            rate = f"{rate}%"
-        # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
-        # 取出设置的每行角色
-        line_roles = config.params["line_roles"] if "line_roles" in config.params else None
-        for it in subs:
-            if config.task_countdown <= 0 or self.stop:
-                return
-            if config.current_status != 'ing':
-                return True
-            # 判断是否存在单独设置的行角色，如果不存在则使用全局
-            voice_role = config.params['voice_role']
-            if line_roles and f'{it["line"]}' in line_roles:
-                voice_role = line_roles[f'{it["line"]}']
-            filename = self.obj['cache_folder'] + f"/{time.time()}.mp3"
-            text_to_speech(text=it['text'],
-                           role=voice_role,
-                           rate=rate,
-                           filename=filename,
-                           tts_type=config.params['tts_type'],
-                           set_p=False,
-                           is_test=True
-                           )
-            audio_data = AudioSegment.from_file(filename, format="mp3")
-            mp3len = len(audio_data)
-
-            wavlen = it['end_time'] - it['start_time']
-            # 新配音大于原字幕里设定时长
-            diff = mp3len - wavlen
-            if diff > 0 and config.params["voice_autorate"]:
-                speed = mp3len / wavlen if wavlen>0 else 1
-                speed = round(speed, 2)
-                set_process(f"dubbing speed {speed} ")
-                tmp_mp3 = filename + "-speedup.mp3"
-                speed_up_mp3(filename=filename, speed=speed, out=tmp_mp3)
-                filename = tmp_mp3
-
-            set_process(f'Listening:{it["text"]}')
-            pygameaudio(filename)
-            try:
-                if os.path.exists(filename):
-                    os.unlink(filename)
-            except:
-                pass
+    def stop(self):
+        set_process("", 'stop')
+        self.tasklist = {}
+        self.tasknums = 0

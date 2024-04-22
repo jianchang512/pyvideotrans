@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 
 import requests
@@ -7,7 +6,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
 
     try:
         api_url=config.params['ttsapi_url'].strip().rstrip('/')
@@ -17,10 +16,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
-        # role=clone是直接复制
-        #克隆声音
-        # files={"audio":open(filename,'rb')} files=files,
-        print(f'{api_url=}')
+
         resraw=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},verify=False)
         try:
             res=resraw.json()
@@ -37,12 +33,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 f.write(res.content)
             if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
                 tools.remove_silence_from_end(filename)
-            return True
+            if set_p and inst and inst.precent < 80:
+                inst.precent += 0.1
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
         except:
             raise Exception(f"返回非标准json数据:{resraw.text}" if config.defaulelang=='zh' else f"The return data is not in standard json format:{resraw.text}")
     except Exception as e:
         error=str(e)
         if set_p:
-            tools.set_process(error)
+            tools.set_process(error,btnkey=inst.btnkey if inst else "")
         config.logger.error(f"TTS-API自定义失败:{error}")
         raise Exception(f"TTS-API:{error}")

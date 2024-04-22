@@ -2,7 +2,7 @@
 import re
 import time
 import httpx
-from openai import AzureOpenAI
+from openai import AzureOpenAI, APIError
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -14,12 +14,16 @@ def get_content(d,*,model=None,prompt=None):
     ]
 
     config.logger.info(f"\n[Azure start]待翻译:{message=}")
-    response = model.chat.completions.create(
-        model=config.params["azure_model"],
-        messages=message
-    )
-
-    config.logger.info(f'Azure 返回响应:{response}')
+    try:
+        response = model.chat.completions.create(
+            model=config.params["azure_model"],
+            messages=message
+        )
+        config.logger.info(f'Azure 返回响应:{response}')
+    except APIError as e:
+        raise Exception(f'{e.message=}')
+    except Exception as e:
+        raise Exception(e)
 
     if response.choices:
         result = response.choices[0].message.content.strip()
@@ -85,7 +89,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
             time.sleep(5)
 
         client = AzureOpenAI(
@@ -126,7 +130,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x+1} ')
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x+1} ',btnkey=inst.btnkey if inst else "")
                         else:
                             tools.set_process_box(result_item + "\n", func_name="set_fanyi")
                 if len(sep_res)<len(it):
@@ -135,6 +139,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 iter_num=0
             except Exception as e:
                 error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
+                if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
+                    raise Exception(f'无法连接到Azure，请正确填写代理地址:{error}')
                 err = error
                 index = i
                 break

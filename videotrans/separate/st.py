@@ -31,7 +31,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
             y, sr = librosa.load(inp_path, sr=None)
             info = sf.info(inp_path)
             channels = info.channels
-            if channels == 2 and sr == 44100:
+            if channels == 2 and sr == 16000:
                 need_reformat = 0
                 pre_fun._path_audio_(
                     inp_path,
@@ -84,7 +84,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
         try:
             del pre_fun.model
             del pre_fun
-        except:
+        except Exception:
             traceback.print_exc()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -115,60 +115,6 @@ def start(audio,path,source="logs"):
         gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source)
         print(next(gr))
         print(next(gr))
-        return
-
-        length=math.ceil(sec/dist)
-        result_vocal=[]
-        result_instr=[]
-        #创建临时文件
-        flag=convert_to_pure_eng_num(f'{audio}-{path}-{source}-{dist}-{sec}')
-        tmp_path=os.path.join(config.TEMP_DIR,f'separate{flag}')
-        os.makedirs(tmp_path,exist_ok=True)
-        for i in range(length):
-            #在 tmp_path 下创建新目录，存放各个 vocal.wav
-            save_root=os.path.join(tmp_path,f'{i}')
-            os.makedirs(save_root,exist_ok=True)
-            #新音频存放
-            inp_path=os.path.join(tmp_path,f'{i}.wav')
-            if not os.path.exists(inp_path):
-                print(f'{inp_path=}')
-                cmd=['-y','-i',audio,'-ss',tools.ms_to_time_string(seconds=i*dist).replace(',','.')]
-                if i<length-1:
-                    #不是最后一个
-                    cmd+=['-t',f'{dist}']
-                cmd.append(inp_path)
-                print(f'{cmd=}')
-                tools.runffmpeg(cmd)
-
-            
-            file_vocal=os.path.join(save_root,'vocal.wav').replace('\\','/')
-            file_instr= os.path.join(save_root,'instrument.wav').replace('\\','/')
-
-            tools.set_process(f'{config.transobj["Start Separate"]}{config.transobj["pianduan"]} {i+1}/{length}',source)
-            if not os.path.exists(file_vocal) or not os.path.exists(file_instr):
-                gr = uvr(model_name="HP2", save_root=save_root, inp_path=inp_path,source=source)
-                print(next(gr))
-                print(next(gr))
-                        
-            result_vocal.append(f"file '{file_vocal}'")
-            result_instr.append(f"file '{file_instr}'")
-        concat_vocal=os.path.join(tmp_path,'vocal.txt')
-
-
-        with open(concat_vocal,'w',encoding='utf-8') as f:
-            f.write("\n".join(result_vocal))
-
-        if not os.path.exists(concat_vocal) or os.path.getsize(concat_vocal)<1:
-            raise Exception('抽离背景音失败:'+('请取消 保留背景音 选项' if source=='logs' else "") )
-
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',concat_vocal,os.path.normpath(os.path.join(path,'vocal.wav'))],disable_gpu=True)
-
-        concat_instr=os.path.join(tmp_path,'instr.txt')
-        with open(concat_instr,'w',encoding='utf-8') as f:
-            f.write("\n".join(result_instr))
-        if not os.path.exists(concat_instr) or os.path.getsize(concat_instr)<1:
-            raise Exception('抽离背景音失败:'+('请取消 保留背景音 选项' if source=='logs' else "") )
-        tools.runffmpeg(['-y','-f','concat','-safe','0','-i',os.path.normpath(concat_instr),os.path.normpath(os.path.join(path,'instrument.wav'))],disable_gpu=True)
     except Exception as e:
         msg=f"保留背景音:{str(e)}"
         raise Exception(msg)

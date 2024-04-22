@@ -15,7 +15,13 @@ class GetRoleWorker(QThread):
     def run(self):
         try:
             get_edge_rolelist()
+        except Exception as e:
+            print(e)
+        try:
             get_elevenlabs_role()
+        except Exception as e:
+            print(e)
+        try:
             get_clone_role()
         except Exception as e:
             print(e)

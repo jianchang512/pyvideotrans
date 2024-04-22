@@ -274,7 +274,11 @@ class Ui_MainWindow(object):
         self.shibie_model_type.setSizePolicy(sizePolicy)
         self.shibie_model_type.setMinimumSize(QtCore.QSize(0, 30))
         self.shibie_model_type.setObjectName("shibie_model_type")
-        self.shibie_model_type.addItems([config.uilanglist['faster model'],config.uilanglist['openai model']])
+        self.shibie_model_type.addItems([
+            config.uilanglist['faster model'],
+            config.uilanglist['openai model'],
+            "GoogleSpeech"
+        ])
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)
 

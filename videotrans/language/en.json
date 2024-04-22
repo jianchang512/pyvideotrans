@@ -1,5 +1,12 @@
 {
   "translate_language": {
+    "azureinfo": "Did you set the speech resource key and region values",
+
+    "yuchulichucuo": "Error in preprocessing stage",
+    "shibiechucuo": "Error in speech recognition",
+    "fanyichucuo": "Error in subtitle translation",
+    "peiyinchucuo": "Error in dubbing",
+
     "freechatgpt_tips": "apiskey.top sponsored ChatGPT, free to use",
 
     "yidaorujigewenjian": "Imported subtitle files:",

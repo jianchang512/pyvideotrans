@@ -63,23 +63,27 @@ def get_content(d,*,model=None,prompt=None):
 
         result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
         print(f'{d=},{result=}')
+        if not result:
+            raise Exception("fail")
         return result, response
     except Exception as e:
         error=str(e)
-        if response and response.prompt_feedback.block_reason != response.prompt_feedback.BlockReason.BLOCK_REASON_UNSPECIFIED:
-            return get_error(response.prompt_feedback.block_reason, "forbid"),None
+        print(f'{error=}')
+        if response and response.prompt_feedback.block_reason:
+            raise Exception(get_error(response.prompt_feedback.block_reason, "forbid"))
 
         if error.find('User location is not supported') > -1 or error.find('time out') > -1:
-            return error,None
+            raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
+
         if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
-            return get_error(response.candidates[0].finish_reason),None
+            raise Exception(get_error(response.candidates[0].finish_reason))
 
         if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
                 response.candidates[0].content and response.candidates[0].content.parts:
-            print(response.text)
             result = response.text.replace('##','').strip().replace('&#39;', '"').replace('&quot;', "'")
             return result,response
-    return "",None
+        raise Exception(error)
+
 
 
 def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None,is_test=False):
@@ -139,7 +143,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
             time.sleep(5)
 
         response = None
@@ -183,7 +187,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ')
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',btnkey=inst.btnkey if inst else "")
                         else:
                             tools.set_process_box(result_item + "\n", func_name="set_fanyi")
 
@@ -193,7 +197,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 iter_num = 0
             except Exception as e:
                 error = str(e)
-                print(f'\n\n{error=}')
+                if error.lower().find('timeout')>-1 or err.lower().find('timed out')>-1 or error.lower().find('ConnectTimeoutError')>-1:
+                    raise Exception(f'无法连接到Google，请正确填写代理地址:{error}')
                 index = i
                 err = error
                 break

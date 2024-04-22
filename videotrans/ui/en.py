@@ -16,14 +16,11 @@ from videotrans.configure import config
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        #MainWindow.resize(1488, 771)
-        MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
-        self.splitter.setToolTip("")
         self.splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.splitter.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.splitter.setLineWidth(2)
@@ -47,16 +44,13 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btn_get_video.sizePolicy().hasHeightForWidth())
         self.btn_get_video.setSizePolicy(sizePolicy)
         self.btn_get_video.setMinimumSize(QtCore.QSize(120, 30))
-        self.btn_get_video.setStyleSheet("")
         self.btn_get_video.setObjectName("btn_get_video")
         self.layout_source_mp4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.btn_get_video)
         self.source_mp4 = QtWidgets.QLineEdit(self.layoutWidget)
         self.source_mp4.setMinimumSize(QtCore.QSize(0, 30))
-        self.source_mp4.setInputMask("")
         self.source_mp4.setText("Select the video to be processed" if config.defaulelang !='zh' else '选择要处理的视频')
         self.source_mp4.setReadOnly(False)
         self.source_mp4.setDisabled(True)
-        self.source_mp4.setPlaceholderText("")
         self.source_mp4.setObjectName("source_mp4")
         self.layout_source_mp4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.source_mp4)
         self.horizontalLayout_6.addLayout(self.layout_source_mp4)
@@ -64,31 +58,16 @@ class Ui_MainWindow(object):
         self.layout_target_dir.setObjectName("layout_target_dir")
         self.btn_save_dir = QtWidgets.QPushButton(self.layoutWidget)
         self.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
-        self.btn_save_dir.setStyleSheet("")
         self.btn_save_dir.setObjectName("btn_save_dir")
         self.layout_target_dir.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.btn_save_dir)
         self.target_dir = QtWidgets.QLineEdit(self.layoutWidget)
         self.target_dir.setMinimumSize(QtCore.QSize(0, 30))
-        self.target_dir.setInputMask("")
-        self.target_dir.setText("")
         self.target_dir.setReadOnly(False)
         self.target_dir.setDisabled(True)
-        self.target_dir.setPlaceholderText("")
         self.target_dir.setObjectName("target_dir")
         self.layout_target_dir.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.target_dir)
         self.horizontalLayout_6.addLayout(self.layout_target_dir)
-        
-        '''
-        self.open_targetdir = QtWidgets.QPushButton(self.layoutWidget)
-        self.open_targetdir.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.open_targetdir.sizePolicy().hasHeightForWidth())
-        self.open_targetdir.setSizePolicy(sizePolicy)
-        self.open_targetdir.setMinimumSize(QtCore.QSize(50, 30))
-        self.open_targetdir.setObjectName("open_targetdir")
-        '''
+
         self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
         self.only_video.setMinimumSize(QtCore.QSize(0, 30))
         self.only_video.setObjectName("only_video")
@@ -271,7 +250,11 @@ class Ui_MainWindow(object):
         self.model_type.setMinimumSize(QtCore.QSize(0, 30))
         self.model_type.setObjectName("label_5")
         self.layout_whisper_model.addWidget(self.model_type, 0, 0, 1, 1)
-        self.model_type.addItems([config.uilanglist['faster model'],config.uilanglist['openai model']])
+        self.model_type.addItems([
+            config.uilanglist['faster model'],
+            config.uilanglist['openai model'],
+            "GoogleSpeech"
+        ])
         self.model_type.setToolTip(config.uilanglist['model_type_tips'])
 
 
@@ -313,7 +296,6 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.subtitle_type.sizePolicy().hasHeightForWidth())
         self.subtitle_type.setSizePolicy(sizePolicy)
         self.subtitle_type.setMinimumSize(QtCore.QSize(0, 30))
-        self.subtitle_type.setCurrentText("")
         self.subtitle_type.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLengthWithIcon)
         self.subtitle_type.setObjectName("subtitle_type")
         self.layout_subtitle_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.subtitle_type)
@@ -396,9 +378,6 @@ class Ui_MainWindow(object):
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
 
-        
-        #self.gaoji_layout_inner.addWidget(self.only_video)
-
 
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner2)
@@ -407,7 +386,6 @@ class Ui_MainWindow(object):
         
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
-        self.show_tips.setText("")
         self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent;color:#aaaaaa""")
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
@@ -431,7 +409,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.continue_compos.sizePolicy().hasHeightForWidth())
         self.continue_compos.setSizePolicy(sizePolicy)
         self.continue_compos.setMinimumSize(QtCore.QSize(260, 30))
-        self.continue_compos.setText("")
+
         self.continue_compos.setObjectName("continue_compos")
         self.horizontalLayout_3.addWidget(self.continue_compos)
         self.stop_djs = QtWidgets.QPushButton(self.layoutWidget)
@@ -475,10 +453,6 @@ class Ui_MainWindow(object):
         self.layout_sub_bottom.addWidget(self.export_sub)
 
 
-        self.listen_peiyin = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.listen_peiyin.setMinimumSize(QtCore.QSize(0, 30))
-        self.listen_peiyin.setObjectName("listen_peiyin")
-        self.layout_sub_bottom.addWidget(self.listen_peiyin)
         self.set_line_role = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.set_line_role.setMinimumSize(QtCore.QSize(0, 30))
         self.set_line_role.setObjectName("set_line_role")
@@ -550,6 +524,8 @@ class Ui_MainWindow(object):
 
         self.action_website = QtGui.QAction(MainWindow)
         self.action_website.setObjectName("action_website")
+        self.action_aihelp = QtGui.QAction(MainWindow)
+        self.action_aihelp.setObjectName("self.action_aihelp")
         self.action_blog = QtGui.QAction(MainWindow)
         self.action_blog.setObjectName("action_blog")
         self.action_discord = QtGui.QAction(MainWindow)
@@ -583,11 +559,6 @@ class Ui_MainWindow(object):
         self.action_xinshoujandan.setObjectName("action_xinshoujandan")
 
 
-        self.action_tiquzimu_no = QtGui.QAction(MainWindow)
-        self.action_tiquzimu_no.setCheckable(True)
-        
-        
-        self.action_tiquzimu_no.setObjectName("action_tiquzimu_no")
         self.action_zimu_video = QtGui.QAction(MainWindow)
         self.action_zimu_video.setCheckable(True)
         
@@ -629,9 +600,9 @@ class Ui_MainWindow(object):
 
         self.action_fanyi.setObjectName("action_fanyi")
 
-        self.action_youtube = QtGui.QAction(MainWindow)
 
-        self.action_youtube.setObjectName("action_youtube")
+        self.action_clearcache = QtGui.QAction(MainWindow)
+        self.action_clearcache.setObjectName("action_clearcache")
 
         self.action_separate = QtGui.QAction(MainWindow)
 
@@ -662,24 +633,30 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepLX_address)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiontrans_api)
+
+        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclone_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_gptsovits)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontts_api)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontrans_api)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionElevenlabs_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionazure_tts)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiontts_api)
+
+        self.menu_Key.addSeparator()
         self.menu.addAction(self.action_tool)
         self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_clearcache)
+        self.menu.addSeparator()
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_website)
+        self.menu_H.addSeparator()
+        self.menu_H.addAction(self.action_aihelp)
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_blog)
         self.menu_H.addSeparator()
@@ -709,7 +686,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
-        self.toolBar.addAction(self.action_tiquzimu_no)
         self.toolBar.addAction(self.action_zimu_video)
         self.toolBar.addAction(self.action_zimu_peiyin)
         self.toolBar.addAction(self.action_yuyinshibie)
@@ -719,14 +695,12 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_geshi)
         self.toolBar.addAction(self.action_hun)
         self.toolBar.addAction(self.action_fanyi)
-        self.toolBar.addAction(self.action_youtube)
-        self.toolBar.addAction(self.action_separate)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(config.uilanglist.get("SP-video Translate Dubbing"))
+        MainWindow.setWindowTitle(config.uilanglist.get("pyVideoTrans & Dubbing"))
         self.btn_get_video.setToolTip(config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
@@ -768,14 +742,14 @@ class Ui_MainWindow(object):
         self.back_audio.setToolTip(config.uilanglist.get("back_audio_place"))
         self.stop_djs.setText(config.uilanglist.get("Pause"))
         self.import_sub.setText(config.uilanglist.get("Import srt"))
-        self.listen_peiyin.setText(config.uilanglist.get("Train voice"))
+
         self.set_line_role.setText(config.uilanglist.get("Set role by line"))
         self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
         self.menu.setTitle(config.uilanglist.get("&Tools"))
         self.menu_H.setTitle(config.uilanglist.get( "&Help"))
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译设置" if config.defaulelang=='zh' else "Baidu Key")
-        self.actionchatgpt_key.setText("OpenAI/ChatGPT Key")
+        self.actionchatgpt_key.setText("OpenAI ChatGPT")
         self.actiondeepL_key.setText("DeepL Key")
         self.action_tool.setText(config.uilanglist.get("Video Toolbox"))
         self.action_tool.setToolTip(config.uilanglist.get("Video Toolbox"))
@@ -786,11 +760,12 @@ class Ui_MainWindow(object):
         self.action_issue.setText(config.uilanglist.get("Post issue"))
         self.actiondeepLX_address.setText("DeepLX Api")
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang=='zh' else "OTT Api")
-        self.actionclone_address.setText("原音色克隆Api" if config.defaulelang=='zh' else "Clone-Voice Api")
+        self.actionclone_address.setText("原音色克隆TTS" if config.defaulelang=='zh' else "Clone-Voice TTS")
         self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang=='zh' else "TransateAPI")
-        self.actiontts_gptsovits.setText("GPT-SoVITS API")
+        self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.action_website.setText(config.uilanglist.get("Documents"))
+        self.action_aihelp.setText('AI文档问答助手')
         self.action_discord.setText("Discord")
         self.action_blog.setText("博客教程" if config.defaulelang=='zh' else 'My Blog')
         self.action_models.setText(config.uilanglist["Download Models"])
@@ -804,8 +779,6 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setToolTip(config.uilanglist.get("Display all options for video translation and dubbing"))
         self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
         self.action_xinshoujandan.setToolTip(config.uilanglist.get("action_xinshoujandan"))
-        self.action_tiquzimu_no.setText(config.uilanglist.get("Export  Srt  From Videos"))
-        self.action_tiquzimu_no.setToolTip(config.uilanglist.get("Extracting SRT subtitles in the original language from local videos"))
         self.action_zimu_video.setText(config.uilanglist.get("Merging Subtitle  Video"))
         self.action_zimu_video.setToolTip(config.uilanglist.get("Embed locally existing SRT subtitles into the video"))
         self.action_zimu_peiyin.setText(config.uilanglist.get("Subtitle Create Dubbing"))
@@ -826,13 +799,13 @@ class Ui_MainWindow(object):
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
-        self.action_youtube.setText(config.uilanglist.get("Download from Youtube"))
-        self.action_youtube.setToolTip(config.uilanglist.get("Download from Youtube"))
+
+        self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存')
         self.action_separate.setText(config.uilanglist.get("Separate vocal voice"))
         self.action_separate.setToolTip(config.uilanglist.get("Separate vocal voice"))
 
-        self.actionazure_key.setText("AzureGPT AI")
+        self.actionazure_key.setText("AzureGPT Translation")
         self.actionazure_tts.setText("AzureAI TTS")
         self.actiongemini_key.setText("Gemini Pro")
-        self.actionElevenlabs_key.setText("ElevenLabs Key")
+        self.actionElevenlabs_key.setText("ElevenLabs TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))

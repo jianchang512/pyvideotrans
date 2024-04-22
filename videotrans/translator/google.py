@@ -4,6 +4,8 @@ import re
 import time
 import urllib
 import requests
+from requests import Timeout
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -42,7 +44,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
             time.sleep(5)
 
         # 整理待翻译的文字为 List[str]
@@ -74,7 +76,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
-                    raise Exception(f'Google error_code={response.status_code}')
+                    raise Exception(f'Google {response.status_code},{response.reason}')
 
                 re_result = re.findall(
                     r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
@@ -86,7 +88,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                         inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                     if set_p:
                         tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
-                        tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
+                        tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.btnkey if inst else "")
                     else:
                         tools.set_process("\n\n".join(result), func_name="set_fanyi")
                     result_length=len(result)
@@ -99,8 +101,12 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     iter_num=0
                 else:
                     raise Exception(f'Google no result:{re_result}')
+            except ConnectionError or Timeout as e:
+                raise Exception(f'无法连接到Google，请正确填写代理地址')
             except Exception as e:
                 error = str(e)
+                if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
+                    raise Exception(f'无法连接到Google，请正确填写代理地址:{error}')
                 config.logger.error(f'Google error:{google_url} {str(error)}')
                 err=error
                 index=i
