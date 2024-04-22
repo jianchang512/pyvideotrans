@@ -136,10 +136,10 @@ if __name__ == '__main__':
         set_proxy(config.proxy)
     config.current_status = 'ing'
 
-    try:
-        task = TransCreate({"source_mp4": config.params['source_mp4'], 'app_mode': "biaozhun","mode":"cli"})
-        set_process(config.transobj['kaishichuli'])
-        res = task.run()
-        print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {task.targetdir_mp4}')
-    except Exception as e:
-        print(f'\nException:{str(e)}\n')
+    # try:
+    #     task = TransCreate({"source_mp4": config.params['source_mp4'], 'app_mode': "biaozhun","mode":"cli"})
+    #     set_process(config.transobj['kaishichuli'])
+    #     res = task.run()
+    #     print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {task.targetdir_mp4}')
+    # except Exception as e:
+    #     print(f'\nException:{str(e)}\n')

@@ -29,6 +29,9 @@ def run(*, type="all", detect_language=None, audio_file=None, cache_folder=None,
     if model_type == 'openai':
         rs = split_recogn_openai(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
                                  model_name=model_name, set_p=set_p, inst=inst, is_cuda=is_cuda)
+    elif model_type == 'GoogleSpeech':
+        rs = google_recogn(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
+                           set_p=set_p, inst=None)
     elif type == "all":
         rs = all_recogn(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
                         model_name=model_name, set_p=set_p, inst=inst, is_cuda=is_cuda)
@@ -47,14 +50,15 @@ def run(*, type="all", detect_language=None, audio_file=None, cache_folder=None,
 
 
 # 整体识别，全部传给模型
-def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, model_name="base", set_p=True, inst=None,
-               is_cuda=None):
+def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, model_name="base", set_p=True, inst=None, is_cuda=None):
+    print('11111111111')
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     if set_p:
-        tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}")
+        tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}",btnkey=inst.btnkey if inst else "")
     down_root = os.path.normpath(config.rootdir + "/models")
     model = None
+    print('222')
     try:
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                              compute_type="float32" if model_name.startswith('distil-') else config.settings[
@@ -64,10 +68,12 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(
                                  config.settings['whisper_threads']),
                              local_files_only=True)
+        print('3333')
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             return False
         if not os.path.exists(audio_file):
             raise Exception(f'[error]not exists {audio_file}')
+        print('44444')
         segments, info = model.transcribe(audio_file,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
@@ -88,7 +94,9 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
         # 保留原始语言的字幕
         raw_subtitles = []
         sidx = -1
+        print(f'5555{config.current_status=}')
         for segment in segments:
+            print(f'{segment.words=}')
             if config.current_status != 'ing' and config.box_recogn != 'ing':
                 del model
                 return None
@@ -113,11 +121,12 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                 tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
                 if inst and inst.precent < 55:
                     inst.precent += round(segment.end * 0.5 / info.duration, 2)
-                tools.set_process(f'{config.transobj["zimuhangshu"]} {s["line"]}')
+                tools.set_process(f'{config.transobj["zimuhangshu"]} {s["line"]}',btnkey=inst.btnkey if inst else "")
             else:
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
         return raw_subtitles
     except Exception as e:
+        print('666')
         raise Exception(f'whole all {str(e)}')
     finally:
         try:
@@ -157,7 +166,7 @@ def shorten_voice(normalized_sound, max_interval=60000):
 def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, model_name="base", set_p=True, inst=None,
                  is_cuda=None):
     if set_p:
-        tools.set_process(config.transobj['fengeyinpinshuju'])
+        tools.set_process(config.transobj['fengeyinpinshuju'],btnkey=inst.btnkey if inst else "")
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     noextname = os.path.basename(audio_file)
@@ -166,7 +175,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
         try:
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
-            raise config.Myexcept(config.transobj["createdirerror"])
+            raise Exception(config.transobj["createdirerror"])
     if not os.path.exists(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
@@ -179,7 +188,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
             raise config.Myexcept("stop")
         if inst and inst.precent < 55:
             inst.precent += 0.1
-        tools.set_process(config.transobj['qiegeshujuhaoshi'])
+        tools.set_process(config.transobj['qiegeshujuhaoshi'],btnkey=inst.btnkey if inst else "")
         nonsilent_data = shorten_voice(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -207,7 +216,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
 
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
@@ -252,7 +261,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
                 if set_p:
                     if inst and inst.precent < 55:
                         inst.precent += 0.1
-                    tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}")
+                    tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}",btnkey=inst.btnkey if inst else "")
                     msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
                     tools.set_process(msg, 'subtitle')
                 else:
@@ -263,7 +272,7 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
             raise Exception(str(e.args))
 
     if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
+        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.btnkey if inst else "")
     # 写入原语言字幕到目标文件夹
     return raw_subtitles
 
@@ -296,7 +305,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
                         inst=None, is_cuda=None):
     import whisper
     if set_p:
-        tools.set_process(config.transobj['fengeyinpinshuju'])
+        tools.set_process(config.transobj['fengeyinpinshuju'],btnkey=inst.btnkey if inst else "")
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     noextname = os.path.basename(audio_file)
@@ -315,10 +324,10 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
             nonsilent_data = json.load(infile)
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         if inst and inst.precent < 55:
             inst.precent += 0.1
-        tools.set_process(config.transobj['qiegeshujuhaoshi'])
+        tools.set_process(config.transobj['qiegeshujuhaoshi'],btnkey=inst.btnkey if inst else "")
         nonsilent_data = shorten_voice_old(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -339,14 +348,14 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
             raise config.Myexcept("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
-            end_time += 200
+            end_time += int(config.settings['voice_silence'])
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
 
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         text = ""
         try:
             tr = model.transcribe(chunk_filename,
@@ -380,14 +389,14 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
         if set_p:
             if inst and inst.precent < 55:
                 inst.precent += round(srt_line['line'] * 5 / total_length, 2)
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",btnkey=inst.btnkey if inst else "")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
         else:
             tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n",
                                   func_name="set_subtitle")
     if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
+        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.btnkey if inst else "")
     # 写入原语言字幕到目标文件夹
     return raw_subtitles
 
@@ -396,7 +405,7 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
 def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None, model_name="base", set_p=True,
                      inst=None, is_cuda=None):
     if set_p:
-        tools.set_process(config.transobj['fengeyinpinshuju'])
+        tools.set_process(config.transobj['fengeyinpinshuju'],btnkey=inst.btnkey if inst else "")
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     noextname = os.path.basename(audio_file)
@@ -415,7 +424,7 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
             nonsilent_data = json.load(infile)
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         nonsilent_data = shorten_voice_old(normalized_sound)
         with open(nonslient_file, 'w') as outfile:
             json.dump(nonsilent_data, outfile)
@@ -438,7 +447,7 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
             raise config.Myexcept("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
-            end_time += 200
+            end_time += int(config.settings['voice_silence'])
 
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
@@ -446,7 +455,7 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
 
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
@@ -479,10 +488,114 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
         if set_p:
             if inst and inst.precent < 55:
                 inst.precent += round(srt_line['line'] * 5 / total_length, 2)
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",btnkey=inst.btnkey if inst else "")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
             tools.set_process(msg, 'subtitle')
+        else:
+            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n",
+                                  func_name="set_subtitle")
     if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs')
+        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.btnkey if inst else "")
+    # 写入原语言字幕到目标文件夹
+    return raw_subtitles
+
+
+def google_recogn(*, detect_language=None, audio_file=None, cache_folder=None, set_p=True, inst=None):
+    if set_p:
+        tools.set_process(config.transobj['fengeyinpinshuju'],btnkey=inst.btnkey if inst else "")
+    if config.current_status != 'ing' and config.box_recogn != 'ing':
+        return False
+    proxy = tools.set_proxy()
+    if proxy:
+        os.environ['http_proxy'] = proxy
+        os.environ['https_proxy'] = proxy
+    noextname = os.path.basename(audio_file)
+    tmp_path = f'{cache_folder}/{noextname}_tmp'
+    if not os.path.isdir(tmp_path):
+        try:
+            os.makedirs(tmp_path, 0o777, exist_ok=True)
+        except:
+            raise config.Myexcept(config.transobj["createdirerror"])
+    if not os.path.exists(audio_file):
+        raise Exception(f'[error]not exists {audio_file}')
+    normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
+    nonslient_file = f'{tmp_path}/detected_voice.json'
+    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+        with open(nonslient_file, 'r') as infile:
+            nonsilent_data = json.load(infile)
+    else:
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            raise Exception("stop")
+        nonsilent_data = shorten_voice_old(normalized_sound)
+        with open(nonslient_file, 'w') as outfile:
+            json.dump(nonsilent_data, outfile)
+
+    raw_subtitles = []
+    total_length = len(nonsilent_data)
+    start_t = time.time()
+
+    import speech_recognition as sr
+    try:
+        recognizer = sr.Recognizer()
+    except Exception as e:
+        raise Exception(f'使用Google识别需要设置代理')
+
+    for i, duration in enumerate(nonsilent_data):
+        # config.temp = {}
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            raise config.Myexcept("stop")
+        start_time, end_time, buffered = duration
+        if start_time == end_time:
+            end_time += int(config.settings['voice_silence'])
+
+        chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
+        audio_chunk = normalized_sound[start_time:end_time]
+        audio_chunk.export(chunk_filename, format="wav")
+
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            raise Exception("stop")
+        text = ""
+        try:
+            print(f'{chunk_filename=},{text=}')
+            with sr.AudioFile(chunk_filename) as source:
+                # Record the audio data
+                audio_data = recognizer.record(source)
+                try:
+                    # Recognize the speech
+                    text = recognizer.recognize_google(audio_data, language=detect_language)
+                    print(f'{text=}')
+                except sr.UnknownValueError:
+                    text = ""
+                    print("Speech recognition could not understand the audio.")
+                except sr.RequestError as e:
+                    raise Exception(f"Google识别出错，请检查代理是否正确：{e}")
+        except Exception as e:
+            raise Exception('Google识别出错：' + str(e.args))
+
+        text = f"{text.capitalize()}. ".replace('&#39;', "'")
+        text = re.sub(r'&#\d+;', '', text).strip()
+        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+            continue
+        start = timedelta(milliseconds=start_time)
+        stmp = str(start).split('.')
+        if len(stmp) == 2:
+            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
+        end = timedelta(milliseconds=end_time)
+        etmp = str(end).split('.')
+        if len(etmp) == 2:
+            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+        srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
+        raw_subtitles.append(srt_line)
+        if set_p:
+            if inst and inst.precent < 55:
+                inst.precent += round(srt_line['line'] * 5 / total_length, 2)
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",btnkey=inst.btnkey if inst else "")
+            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
+            tools.set_process(msg, 'subtitle')
+        else:
+            tools.set_process_box(f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n",
+                                  func_name="set_subtitle")
+    if set_p:
+        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.btnkey if inst else "")
     # 写入原语言字幕到目标文件夹
     return raw_subtitles

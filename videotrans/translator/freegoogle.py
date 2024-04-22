@@ -4,17 +4,19 @@ import re
 import time
 import urllib
 import requests
+from requests import Timeout
+
 from videotrans.configure import config
 from videotrans.util import tools
 import random
 
 urls=[
-"https://g.pyvideotrans.com",
 "https://g0.pyvideotrans.com",
 "https://g1.pyvideotrans.com",
 "https://g2.pyvideotrans.com",
 "https://g3.pyvideotrans.com",
 "https://g4.pyvideotrans.com",
+"https://translate.google.com"
 ]
 
 
@@ -53,7 +55,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error')
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
             time.sleep(5)
 
         # 整理待翻译的文字为 List[str]
@@ -97,7 +99,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                         inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                     if set_p:
                         tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
-                        tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ')
+                        tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.btnkey if inst else "")
                     else:
                         tools.set_process("\n\n".join(result), func_name="set_fanyi")
                     result_length=len(result)
@@ -110,6 +112,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     iter_num=0
                 else:
                     raise Exception(f'FreeGoogle {google_url} no result:{re_result}')
+            except ConnectionError or Timeout as e:
+                raise Exception(f'无法连接到 {google_url}，请正确填写代理地址')
             except Exception as e:
                 error = str(e)
                 config.logger.error(f'FreeGoogle {google_url} error:{google_url} {str(error)}')

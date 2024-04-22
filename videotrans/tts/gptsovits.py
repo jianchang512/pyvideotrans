@@ -8,8 +8,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
-    print(f'{language=}')
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
     try:
         api_url=config.params['gptsovits_url'].strip().rstrip('/').lower()
         if not api_url:
@@ -31,7 +30,6 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             roledict=tools.get_gptsovits_role()
             if role in roledict:
                 data.update(roledict[role])
-        print(f'{data=}')
         # role=clone是直接复制
         #克隆声音
         response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""})
@@ -46,7 +44,6 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             # 如果是WAV音频流，获取原始音频数据
             with open(filename+".wav", 'wb') as f:
                 f.write(response.content)
-            print(f'{filename=},开始wav2mp3')
             time.sleep(1)
             if not os.path.exists(filename+".wav"):
                 return f'GPT-SoVITS合成声音失败-2:{text=}'
@@ -55,12 +52,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 os.unlink(filename+".wav")
             if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
                 tools.remove_silence_from_end(filename)
-            return True
+            if set_p and inst and inst.precent < 80:
+                inst.precent += 0.1
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
     except Exception as e:
         error=str(e)
         if set_p:
-            tools.set_process(error)
+            tools.set_process(error,btnkey=inst.btnkey if inst else "")
         config.logger.error(f"{error}")
         raise Exception(f"{error}")

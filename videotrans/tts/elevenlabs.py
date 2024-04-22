@@ -5,7 +5,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set_p=True,is_test=False):
+def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set_p=True,is_test=False,inst=None):
     try:
         with open(os.path.join(config.rootdir,'elevenlabs.json'),'r',encoding="utf-8") as f:
             jsondata=json.loads(f.read())
@@ -22,10 +22,13 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
             f.write(audio)
         if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
+        if set_p and inst and inst.precent<80:
+            inst.precent+=0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.btnkey if inst else "")
         return True
     except Exception as e:
         error=str(e)
         if set_p:
-            tools.set_process(f'elevenlabs:{error}')
+            tools.set_process(f'elevenlabs:{error}',btnkey=inst.btnkey if inst else "")
         config.logger.error(f"elevenlabsTTS：request error:{error}")
         raise Exception(f"elevenlabsTTS:{error}")

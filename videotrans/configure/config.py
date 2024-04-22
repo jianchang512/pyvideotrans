@@ -6,35 +6,39 @@ import locale
 import logging
 import re
 import sys
+import time
 from queue import Queue
+from pathlib import Path
 
 def get_executable_path():
     # 这个函数会返回可执行文件所在的目录
     if getattr(sys, 'frozen', False):
         # 如果程序是被“冻结”打包的，使用这个路径
-        return os.path.dirname(sys.executable)
+        return sys.executable.replace('\\','/')
     else:
-        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        return str(Path.cwd()).replace('\\','/')
 
-rootdir = get_executable_path().replace('\\', '/')
-print(f'{rootdir=}')
-TEMP_DIR = os.path.join(rootdir, "tmp").replace('\\', '/')
-if not os.path.exists(TEMP_DIR):
-    os.makedirs(TEMP_DIR, exist_ok=True)
-homedir = os.path.join(os.path.expanduser('~'), 'Videos/pyvideotrans').replace('\\', '/')
-if not os.path.exists(f"{rootdir}/logs"):
-    os.makedirs(f"{rootdir}/logs", exist_ok=True)
+rootdir = get_executable_path()
+root_path=Path(rootdir)
+
+temp_path=root_path/"tmp"
+temp_path.mkdir(parents=True, exist_ok=True)
+TEMP_DIR = temp_path.as_posix()
+
+homepath=Path.home()/'Videos/pyvideotrans'
+homepath.mkdir(parents=True, exist_ok=True)
+homedir = homepath.as_posix()
+
+logs_path=root_path/"logs"
+LOGS_DIR = logs_path.as_posix()
+logs_path.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     filename=f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',
     encoding="utf-8",
     filemode="a")
 logger = logging.getLogger('VideoTrans')
-
-
-class Myexcept(Exception):
-    pass
-
 
 def parse_init():
     settings = {
@@ -51,15 +55,15 @@ def parse_init():
         "temperature":1,
         "condition_on_previous_text":False,
         "crf":13,
-        "retries":5,
+        "retries":2,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen",
         "separate_sec":600,
         "audio_rate":1.5,
         "video_rate":20,
         "initial_prompt_zh":"",
         "fontsize":14,
-        "voice_silence":500,
-        "interval_split":10,
+        "voice_silence":200,
+        "interval_split":6,
         "cjk_len":24,
         "other_len":36,
         "backaudio_volume":0.5,
@@ -70,11 +74,12 @@ def parse_init():
         "remove_white_ms":100,
         "vsync":"passthrough",
         "force_edit_srt":True,
-        "append_video":True
+        "append_video":True,
+        "loop_backaudio":False
     }
-    file = os.path.join(rootdir, 'videotrans/set.ini')
-    if os.path.exists(file):
-        with open(file, 'r', encoding="utf-8") as f:
+    file = root_path/'videotrans/set.ini'
+    if file.exists():
+        with file.open('r', encoding="utf-8") as f:
             # 遍历.ini文件中的每个section
             for it in f.readlines():
                 it = it.strip()
@@ -111,11 +116,12 @@ settings = parse_init()
 if settings['lang']:
     defaulelang = settings['lang'].lower()
 # 语言代码文件是否存在
-if not os.path.exists(os.path.join(rootdir, f'videotrans/language/{defaulelang}.json')):
+lang_path=root_path/f'videotrans/language/{defaulelang}.json'
+if not lang_path.exists():
     defaulelang = "en"
+    lang_path=root_path/f'videotrans/language/{defaulelang}.json'
 
-obj = json.load(open(os.path.join(rootdir, f'videotrans/language/{defaulelang}.json'), 'r', encoding='utf-8'))
-
+obj = json.load(lang_path.open('r', encoding='utf-8'))
 # 交互语言代码
 transobj = obj["translate_language"]
 # 软件界面
@@ -212,7 +218,7 @@ params = {
     "tts_type_list": ["edgeTTS","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "whisper_type": "all",
-    "whisper_model": "base",
+    "whisper_model": "tiny",
     "model_type":"faster",
     "only_video":False,
     "translate_type": "google",
@@ -268,12 +274,13 @@ params = {
 
 }
 
-with open(os.path.join(rootdir,'videotrans/chatgpt.txt'),'r',encoding='utf-8') as f:
-    params['chatgpt_template']=f.read().strip()+"\n"
-with open(os.path.join(rootdir,'videotrans/azure.txt'),'r',encoding='utf-8') as f:
-    params['azure_template']=f.read().strip()+"\n"
-with open(os.path.join(rootdir,'videotrans/gemini.txt'),'r',encoding='utf-8') as f:
-    params['gemini_template']=f.read().strip()+"\n"
+chatgpt_path=root_path/'videotrans/chatgpt.txt'
+azure_path=root_path/'videotrans/azure.txt'
+gemini_path=root_path/'videotrans/gemini.txt'
+
+params['chatgpt_template']=chatgpt_path.read_text(encoding='utf-8').strip()+"\n"
+params['azure_template']=azure_path.read_text(encoding='utf-8').strip()+"\n"
+params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
 
 # 存放一次性多选的视频
 queue_mp4 = []
@@ -304,6 +311,12 @@ box_recogn='stop'
 # 中断win背景分离
 separate_status='stop'
 # 最后一次打开的目录
-last_opendir=homedir if not os.path.exists(homedir+"/Videos") else homedir+"/Videos"
+last_opendir=homedir
 exit_ffmpeg=False
 exit_soft=False
+
+trans_queue=[]
+dubb_queue=[]
+regcon_queue=[]
+compose_queue=[]
+unidlist=[]

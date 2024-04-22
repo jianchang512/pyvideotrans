@@ -8,7 +8,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False):
+def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
     try:
         api_url=config.params['clone_api'].strip().rstrip('/').lower()
         if not api_url:
@@ -58,10 +58,12 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 os.unlink(filename+".wav")
             if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
                 tools.remove_silence_from_end(filename)
-        return True
+            if set_p and inst and inst.precent < 80:
+                inst.precent += 0.1
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
     except Exception as e:
         error=str(e)
         if set_p:
-            tools.set_process(error)
+            tools.set_process(error,btnkey=inst.btnkey if inst else  "")
         config.logger.error(f"cloneVoice合成失败:{error}")
         raise Exception(f"cloneVoice:{error}")

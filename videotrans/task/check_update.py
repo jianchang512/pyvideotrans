@@ -36,14 +36,11 @@ class CheckUpdateWorker(QThread):
                                 tmp=msg[i:] + msg[:i]
                             set_process(tmp,"check_soft_update")
                             time.sleep(0.2)
-                        time.sleep(5)
+                        time.sleep(1)
                 return True
         except Exception as e:
             pass
         return False
 
     def run(self):
-        while not self.get():
-            if config.exit_soft:
-                return
-            time.sleep(60)
+        self.get()

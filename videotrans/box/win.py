@@ -34,12 +34,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_errors=""
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"VideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 905857759 微信公众号 pyvideotrans ' if config.defaulelang=='zh' else ''}")
+        self.setWindowTitle(f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 905857759 ' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
         if config.exit_soft:
-            self.close()
             event.accept()
+            self.close()
             return
         # 拦截窗口关闭事件，隐藏窗口而不是真正关闭
         self.hide()
@@ -94,6 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
         self.shibie_opendir.clicked.connect(lambda :self.opendir_fn(self.shibie_out_path))
         self.is_cuda.toggled.connect(self.check_cuda)
+        self.shibie_model_type.currentIndexChanged.connect(self.model_type_change)
 
         # tab-4 语音合成
         self.hecheng_plaintext = Textedit()
@@ -383,6 +384,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif data['func_name']=='fanyi_oneerror':
             self.fanyi_errors+=data['text'] if data['text'] else ""
             self.statuslabel.setText(data['text'])
+            self.fanyi_start.setDisabled(False)
+            self.fanyi_start.setText(config.transobj['starttrans'])
+            self.daochu.setDisabled(False)
         elif data['func_name']=='set_subtitle':
             self.shibie_text.moveCursor(QTextCursor.End)
             self.shibie_text.insertPlainText(data['text'].capitalize())
@@ -564,11 +568,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.is_cuda.setChecked(False)
                     self.is_cuda.setDisabled(True)
 
+
+    #设定模型类型
+    def model_type_change(self):
+        if self.shibie_model_type.currentIndex()==1:
+            model_type='openai'
+            self.shibie_whisper_type.setDisabled(False)
+            self.shibie_model.setDisabled(False)
+        elif self.shibie_model_type.currentIndex()==2:
+            model_type='GoogleSpeech'
+            self.shibie_whisper_type.setDisabled(True)
+            self.shibie_model.setDisabled(True)
+        else:
+            self.shibie_whisper_type.setDisabled(False)
+            self.shibie_model.setDisabled(False)
+            model_type='faster'
+
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
         split_type_index=self.shibie_whisper_type.currentIndex()
-        model_type="faster" if self.shibie_model_type.currentIndex()==0 else 'openai'
+        if self.shibie_model_type.currentIndex()==1:
+            model_type='openai'
+        elif self.shibie_model_type.currentIndex()==2:
+            model_type='GoogleSpeech'
+        else:
+            model_type="faster"
         is_cuda=self.is_cuda.isChecked()
         if is_cuda and model_type == 'faster':
             allow=True
@@ -596,10 +621,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_startbtn.setText(config.transobj["running"])
         self.disabled_shibie(True)
         self.label_shibie10.setText('')
-        print('33')
         for file in files:
             basename = os.path.basename(file)
-            print(f'{basename=}')
+
             try:
                 rs,newfile,base=tools.rename_move(file,is_dir=False)
                 if rs:
