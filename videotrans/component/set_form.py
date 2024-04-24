@@ -57,7 +57,6 @@ class SeparateForm(QDialog, Ui_separateform):  # <===
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
     def closeEvent(self, event):
         config.separate_status='stop'
-        print('退出worker')
         if self.task:
             self.task.finish_event.emit("end")
             self.task=None

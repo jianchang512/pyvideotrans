@@ -29,7 +29,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             raise Exception(
                 f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
         iter_num += 1
-        print(f'第{iter_num}次')
         if iter_num > 1:
             if set_p:
                 tools.set_process(

@@ -55,7 +55,6 @@ class TransCreate():
         self.output = obj['output'] if obj else ""
 
         self.h264 = True
-
         # 识别是否结束
         self.regcon_end = False
         # 翻译是否结束
@@ -72,6 +71,7 @@ class TransCreate():
 
         # 原始视频
         self.source_mp4 = self.obj['source_mp4'] if self.obj else ""
+
         # 视频信息
         '''
         result={
@@ -167,7 +167,6 @@ class TransCreate():
 
         # 作为识别音频
         self.shibie_audio = f"{self.target_dir}/shibie.wav"
-
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
         if "subtitles" in self.config_params and self.config_params['subtitles'].strip():
             sub_file = self.targetdir_target_sub
@@ -177,9 +176,8 @@ class TransCreate():
                 sub_file = self.targetdir_source_sub
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
                 f.write(self.config_params['subtitles'].strip())
-
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
-        if self.app_mode!='srt2wav' and self.obj['output'] != self.obj['linshi_output']:
+        if self.app_mode!='peiyin' and self.obj['output'] != self.obj['linshi_output']:
             raw_source_srt=self.obj['output']+f'/{self.source_language_code}.srt'
             
             if Path(raw_source_srt).is_file():
@@ -241,9 +239,8 @@ class TransCreate():
     # 收尾，根据 output和 linshi_output是否相同，不相同，则移动
     def move_at_end(self):
         output = self.obj['output']
-
         # 需要移动
-        if self.obj['output'] != self.obj['linshi_output']:
+        if self.obj and self.obj['output'] != self.obj['linshi_output']:
             target_mp4=Path(self.targetdir_mp4)
             if target_mp4.exists():
                 target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
@@ -251,11 +248,10 @@ class TransCreate():
 
         # 仅保存视频
         if self.config_params['only_video']:
-            # 硬字幕，移动到上一级
             output=Path(self.obj["output"])
             for it in output.iterdir():
-                # 软字幕时也需要保存字幕
                 ext = it.suffix.lower()
+                # 软字幕时也需要保存字幕
                 if int(self.config_params['subtitle_type']) in [2, 4]:
                     if ext not in ['.mp4', '.srt']:
                         it.unlink(missing_ok=True)
@@ -273,6 +269,10 @@ class TransCreate():
                 shutil.rmtree(self.obj["output"], ignore_errors=True)
         self.precent = 100
         self.output = output
+        # 如果移动了，删除移动后的文件
+        if self.obj and self.obj['output'] != self.obj['linshi_output']:
+            shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
+        #删除临时文件
         shutil.rmtree(self.cache_folder, ignore_errors=True)
         # 批量不允许编辑字幕
         if not self.config_params['is_batch']:
@@ -280,7 +280,7 @@ class TransCreate():
         tools.set_process(f"{output}##{self.obj['raw_basename']}",
                           'succeed',
                           btnkey=self.btnkey
-                          )
+        )
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self):
@@ -327,7 +327,16 @@ class TransCreate():
             except Exception as e:
                 raise Exception(
                     '从视频中提取声音失败，请检查视频中是否含有音轨，或该视频是否存在编码问题' if config.defaulelang == 'zh' else 'Failed to extract sound from video, please check if the video contains an audio track or if there is an encoding problem with that video')
+        if self.obj and self.obj['output'] != self.obj['linshi_output'] and Path(self.targetdir_source_wav).exists():
+            shutil.copy2(self.targetdir_source_wav, f'{self.obj["output"]}/{Path(self.targetdir_source_wav).name}')
         return True
+
+    def _unlink(self,file):
+        try:
+            Path(file).unlink(missing_ok=True)
+        except Exception:
+            pass
+
 
     # 开始识别出字幕
     def recogn(self):
@@ -336,24 +345,29 @@ class TransCreate():
         # 如果不存在视频，或存在已识别过的，或存在目标语言字幕 或合并模式，不需要识别
         if self.app_mode in ['hebing', 'peiyin']:
             self.regcon_end = True
+            self._unlink(self.shibie_audio)
             return True
-        print(f'{self.targetdir_source_sub=}')
         if Path(self.targetdir_source_sub).exists():
             self.regcon_end = True
+            if self.obj and self.obj['output']!=self.obj['linshi_output']:
+                shutil.copy2(self.targetdir_source_sub,f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
+            self._unlink(self.shibie_audio)
             return True
         #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
         if Path(self.targetdir_target_sub).exists():
             # 通知前端替换字幕
-            with open(self.targetdir_source_sub, 'r', encoding="utf-8", errors="ignore") as f:
+            with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
                 tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
             self.regcon_end = True
+            if self.obj and self.obj['output']!=self.obj['linshi_output']:
+                shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
+            self._unlink(self.shibie_audio)
             return True
 
         # 分离未完成，需等待
         while not Path(self.targetdir_source_wav).exists():
             tools.set_process(config.transobj["running"], btnkey=self.btnkey)
             time.sleep(1)
-        print(f'{self.targetdir_target_sub=}')
         # 识别为字幕
         try:
             self.precent += 5
@@ -376,18 +390,23 @@ class TransCreate():
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
             self.regcon_end = True
             raise Exception(f'{msg}')
+        finally:
+            self._unlink(self.shibie_audio)
 
         if not raw_subtitles or len(raw_subtitles) < 1:
             self.regcon_end = True
+            self._unlink(self.shibie_audio)
             raise Exception(self.obj['raw_basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                         self.config_params[
-                                                                                                             'source_language']))
+                                                                                                         self.config_params['source_language']))
         self._save_srt_target(raw_subtitles, self.targetdir_source_sub)
+        if self.obj and self.obj['output'] != self.obj['linshi_output']:
+            shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
         # 删除识别音频
         try:
             os.unlink(self.shibie_audio)
         except Exception:
             pass
+        self._unlink(self.shibie_audio)
         self.regcon_end = True
         return True
 
@@ -409,6 +428,9 @@ class TransCreate():
             with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
                 tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
                 self.trans_end = True
+                if self.obj and self.obj['output'] != self.obj['linshi_output']:
+                    shutil.copy2(self.targetdir_target_sub,
+                                 f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
                 return True
 
         # 批量不允许修改字幕
@@ -430,6 +452,8 @@ class TransCreate():
             if self.app_mode == 'tiqu':
                 self.compose_end = True
             self.trans_end = True
+            if self.obj and self.obj['output']!=self.obj['linshi_output'] and Path(self.targetdir_target_sub).exists():
+                shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
             return True
         tools.set_process(config.transobj['starttrans'], btnkey=self.btnkey)
         # 开始翻译,从目标文件夹读取原始字幕
@@ -452,6 +476,8 @@ class TransCreate():
         if self.app_mode == 'tiqu':
             self.compose_end = True
         self.trans_end = True
+        if self.obj and self.obj['output'] != self.obj['linshi_output']:
+            shutil.copy2(self.targetdir_target_sub, f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
         return True
 
     # 配音处理
@@ -469,6 +495,8 @@ class TransCreate():
             if self.app_mode == 'peiyin':
                 self.compose_end = True
             self.dubb_end = True
+            if self.obj and self.obj['output']!=self.obj['linshi_output']:
+                shutil.copy2(self.targetdir_target_wav,f'{self.obj["output"]}/{Path(self.targetdir_target_wav).name}')
             return True
         # 允许修改字幕
         if not self.config_params['is_batch']:
@@ -493,6 +521,8 @@ class TransCreate():
         if self.app_mode == 'peiyin':
             self.compose_end = True
         self.dubb_end = True
+        if self.obj and self.obj['output'] != self.obj['linshi_output'] and Path(self.targetdir_target_wav).exists():
+            shutil.copy2(self.targetdir_target_wav, f'{self.obj["output"]}/{Path(self.targetdir_target_wav).name}')
         return True
 
     # 合并操作
@@ -1128,6 +1158,7 @@ class TransCreate():
         # 软字幕 完整路径
         soft_srt = os.path.normpath(self.targetdir_target_sub)
 
+
         # 硬字幕仅名字 需要和视频在一起
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath/hard_srt)
@@ -1148,6 +1179,7 @@ class TransCreate():
                 text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
             hard_srt_path.write_text(text,encoding='utf-8',errors="ignore")
             os.chdir(mp4_dirpath)
+
 
         # 如果是合并字幕模式
         if self.app_mode == 'hebing':
@@ -1207,6 +1239,7 @@ class TransCreate():
                     text += "\n\n"
                 hard_srt_path.write_text(text.strip(),encoding="utf-8", errors="ignore")
                 os.chdir(mp4_dirpath)
+                shutil.copy2(hard_srt_path.as_posix(),f'{self.obj["output"]}/shuang.srt')
 
             # 双字幕 软字幕
             elif self.config_params['subtitle_type'] == 4:
@@ -1216,8 +1249,12 @@ class TransCreate():
                     if i < len(source_sub_list):
                         text += f"\n{source_sub_list[i]['text'].strip()}"
                     text += "\n\n"
+                # 软字幕双
+                soft_srt=self.obj['linshi_output']+"/shuang.srt"
+                shutil.copy2(self.targetdir_target_sub,soft_srt)
                 with open(soft_srt, 'w', encoding="utf-8", errors="ignore") as f:
                     f.write(text.strip())
+                soft_srt=os.path.normpath(soft_srt)
 
         # 分离背景音和添加背景音乐
         self._back_music()
@@ -1365,8 +1402,7 @@ class TransCreate():
             raise Exception(f'compose srt + video + audio:{str(e)}')
         self.precent = 99
         try:
-            if Path(mp4_dirpath + "/tmp.srt").exists():
-                Path(mp4_dirpath + "/tmp.srt").unlink(missing_ok=True)
+
             if not self.config_params['only_video']:
                 with open(self.target_dir+f'/{"readme" if config.defaulelang != "zh" else "文件说明"}.txt','w', encoding="utf-8", errors="ignore") as f:
                     f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
@@ -1377,6 +1413,7 @@ class TransCreate():
 {self.target_language_code}.m4a = 配音后的音频文件(若选择了保留背景音乐则已混入)
 {self.source_language_code}.srt = 原始视频中根据声音识别出的字幕文件
 {self.target_language_code}.srt = 翻译为目标语言后字幕文件
+shuang.srt = 双语字幕
 vocal.wav = 原始视频中分离出的人声音频文件
 instrument.wav = 原始视频中分离出的背景音乐音频文件
 
@@ -1393,6 +1430,7 @@ Here are the descriptions of all possible files that might exist. Depending on t
 {self.target_language_code}.m4a = The dubbed audio file (if you choose to keep the background music, it is already mixed in)
 {self.source_language_code}.srt = Subtitles recognized in the original video
 {self.target_language_code}.srt = Subtitles translated into the target language
+shuang.srt = Source language and target language subtitles srt 
 vocal.wav = The vocal audio file separated from the original video
 instrument.wav = The background music audio file separated from the original video
 
@@ -1407,7 +1445,9 @@ Github: https://github.com/jianchang512/pyvideotrans
 Docs: https://pyvideotrans.com
 
                 """)
+
             novoice_mp4_path.unlink(missing_ok=True)
+            Path(mp4_dirpath.as_posix() + "/tmp.srt").unlink(missing_ok=True)
         except:
             pass
         self.precent = 100

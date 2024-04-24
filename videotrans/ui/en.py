@@ -9,11 +9,13 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 
 from videotrans.configure import config
 
 class Ui_MainWindow(object):
+
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -463,6 +465,8 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
+
+
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1488, 26))
         self.menuBar.setObjectName("menuBar")
@@ -695,12 +699,12 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_geshi)
         self.toolBar.addAction(self.action_hun)
         self.toolBar.addAction(self.action_fanyi)
+        # QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        QTimer.singleShot(200, lambda: self.retranslateUi(MainWindow))
+
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(config.uilanglist.get("pyVideoTrans & Dubbing"))
         self.btn_get_video.setToolTip(config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))

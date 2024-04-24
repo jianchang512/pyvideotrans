@@ -18,9 +18,7 @@ from videotrans.configure import config
 class LineEditClickFilter(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.MouseButtonPress:
-            print(obj.text())
             # 在这里处理点击事件
-            print("LineEdit 被点击了！")
             if obj.text().strip():
                 QDesktopServices.openUrl(QUrl.fromLocalFile(obj.text().strip()))
             # 可以在这里执行任何函数或方法

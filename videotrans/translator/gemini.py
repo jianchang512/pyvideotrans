@@ -62,13 +62,11 @@ def get_content(d,*,model=None,prompt=None):
         )
 
         result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        print(f'{d=},{result=}')
         if not result:
             raise Exception("fail")
         return result, response
     except Exception as e:
         error=str(e)
-        print(f'{error=}')
         if response and response.prompt_feedback.block_reason:
             raise Exception(get_error(response.prompt_feedback.block_reason, "forbid"))
 

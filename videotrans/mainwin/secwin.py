@@ -19,9 +19,11 @@ from pathlib import Path
 
 
 class ClickableProgressBar(QLabel):
-    def __init__(self):
+    def __init__(self,parent=None):
         super().__init__()
         self.target_dir = None
+        self.msg=None
+        self.parent=parent
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -37,7 +39,6 @@ class ClickableProgressBar(QLabel):
                 border-radius:3px;                
             }
             QProgressBar::chunk {
-                background-color: #009688;
                 width: 8px;
                 border-radius:0;           
             }
@@ -47,6 +48,8 @@ class ClickableProgressBar(QLabel):
 
     def setTarget(self, url):
         self.target_dir = url
+    def setMsg(self, text):
+        self.msg = text
 
     def setText(self, text):
         if self.progress_bar:
@@ -55,6 +58,8 @@ class ClickableProgressBar(QLabel):
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
+        elif not self.target_dir and self.msg:
+            QMessageBox.critical(self,config.transobj['anerror'],self.msg)
 
 
 # primary ui
@@ -892,7 +897,7 @@ class SecWindow():
 
     # 添加进度条
     def add_process_btn(self):
-        clickable_progress_bar = ClickableProgressBar()
+        clickable_progress_bar = ClickableProgressBar(self)
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(config.transobj["waitforstart"])
         clickable_progress_bar.setMinimumSize(500, 50)
@@ -911,7 +916,7 @@ class SecWindow():
             config.params['source_mp4'] = ''
             config.params['source_language'] = '-'
             config.params['subtitle_type'] = 0
-            config.params['whisper_model'] = 'base'
+            config.params['whisper_model'] = 'tiny'
             config.params['whisper_type'] = 'all'
             config.params['is_separate'] = False
             config.params['video_autorate'] = False
@@ -929,7 +934,7 @@ class SecWindow():
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
             config.params['video_autorate'] = False
-            config.params['whisper_model'] = 'base'
+            config.params['whisper_model'] = 'tiny'
             config.params['whisper_type'] = 'all'
             config.params['back_audio'] = ''
             return True
@@ -1137,15 +1142,17 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 # 不是True，有错误
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
-        config.queue_task = []
 
         # 存在视频
         config.params['only_video'] = False
+        if config.params['voice_role'] == 'No':
+            config.params['is_separate'] = False
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
             if self.main.app_mode not in ['tiqu', 'peiyin',
                                           'biaozhun_jd'] and self.main.only_video.isChecked():
                 config.params['only_video'] = True
+            start_thread(self.main)
         elif txt:
             self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.app_mode = 'peiyin'
@@ -1154,16 +1161,14 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
                     'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
                 return
-        if config.params['voice_role'] == 'No':
-            config.params['is_separate'] = False
+
 
         self.main.save_setting()
         self.update_status('ing')
         self.delete_process()
-        print('测试删除')
         # return
         from videotrans.task.main_worker import Worker
-        start_thread(self.main)
+
         self.main.task = Worker(parent=self.main, app_mode=self.main.app_mode, txt=txt)
         self.main.task.start()
 
@@ -1183,6 +1188,11 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             elif type == 'error' or type == 'stop':
                 self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
                 self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
+                if type=='error':
+                    self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
+                    self.main.processbtns[btnkey].setMsg(
+                        text+f'{config.errorlist[btnkey] if btnkey in config.errorlist else "" }'
+                    )
                 self.main.processbtns[btnkey].setText(text[:180])
             elif btnkey != 'srt2wav':
                 jindu = ""
@@ -1335,15 +1345,18 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         txt = self.main.subtitle_area.toPlainText().strip()
         if not btnkey:
             return
+        srtfile=None
         if btnkey == 'srt2wav':
             srtfile = self.main.task.video.targetdir_target_sub
-        elif step == 'translate_start':
-            srtfile = self.main.task.tasklist[btnkey].targetdir_source_sub
-        else:
-            srtfile = self.main.task.tasklist[btnkey].targetdir_target_sub
-        with open(srtfile, 'w', encoding='utf-8') as f:
-            f.write(txt)
-        if step == 'translate_start':
-            self.main.subtitle_area.clear()
+        elif btnkey in self.main.task.tasklist:
+            if step == 'translate_start':
+                srtfile = self.main.task.tasklist[btnkey].targetdir_source_sub
+            else:
+                srtfile = self.main.task.tasklist[btnkey].targetdir_target_sub
+        if srtfile:
+            with open(srtfile, 'w', encoding='utf-8') as f:
+                f.write(txt)
+            if step == 'translate_start':
+                self.main.subtitle_area.clear()
         config.task_countdown = 0
         return True

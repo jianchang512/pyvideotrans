@@ -29,7 +29,9 @@ class WorkerRegcon(QThread):
             except Exception as e:
                 if trk.btnkey not in config.unidlist:
                     config.unidlist.append(trk.btnkey)
-                set_process(f'{config.transobj["shibiechucuo"]}:'+str(e),'error',btnkey=trk.btnkey)
+                msg=f'{config.transobj["shibiechucuo"]}:'+str(e)
+                set_process(msg,'error',btnkey=trk.btnkey)
+                config.errorlist[trk.btnkey]=msg
 
 
 class WorkerTrans(QThread):
@@ -62,7 +64,10 @@ class WorkerTrans(QThread):
             except Exception as e:
                 if trk.btnkey not in config.unidlist:
                     config.unidlist.append(trk.btnkey)
-                set_process(f'{config.transobj["fanyichucuo"]}:'+str(e),'error',btnkey=trk.btnkey)
+                msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
+                set_process(msg, 'error', btnkey=trk.btnkey)
+                config.errorlist[trk.btnkey] = msg
+
 class WorkerDubb(QThread):
     def __init__(self, *,parent=None):
         super().__init__(parent=parent)
@@ -99,7 +104,9 @@ class WorkerDubb(QThread):
             except Exception as e:
                 if trk.btnkey not in config.unidlist:
                     config.unidlist.append(trk.btnkey)
-                set_process(f'{config.transobj["peiyinchucuo"]}:'+str(e),'error',btnkey=trk.btnkey)
+                msg=f'{config.transobj["peiyinchucuo"]}:'+str(e)
+                set_process(msg,'error',btnkey=trk.btnkey)
+                config.errorlist[trk.btnkey]=msg
 
 class WorkerCompose(QThread):
     def __init__(self, *,parent=None):
@@ -134,10 +141,15 @@ class WorkerCompose(QThread):
             try:
                 trk.hebing()
                 trk.move_at_end()
+                config.errorlist[trk.btnkey]=""
             except Exception as e:
+                msg=f'{config.transobj["hebingchucuo"]}:'+str(e)
+                set_process(msg,'error',btnkey=trk.btnkey)
+                config.errorlist[trk.btnkey]=msg
+            finally:
                 if trk.btnkey not in config.unidlist:
                     config.unidlist.append(trk.btnkey)
-                set_process(f'{config.transobj["hebingchucuo"]}:'+str(e),'error',btnkey=trk.btnkey)
+
 
 def start_thread(parent):
     regcon_thread = WorkerRegcon(parent=parent)

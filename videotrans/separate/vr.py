@@ -41,7 +41,6 @@ class AudioPre:
     def _path_audio_(
         self, music_file, ins_root=None, format="wav", is_hp3=False
     ):
-        print(f'{music_file=}, {ins_root=}, {format=},{is_hp3=}')
         if ins_root is None:
             return "No save root."
         name = os.path.splitext(os.path.basename(music_file))[0]
@@ -59,7 +58,6 @@ class AudioPre:
             if self.source=='logs' and config.current_status!='ing':
                 return
             bp = self.mp.param["band"][d]
-            print(f'{bp["sr"]=},{d=},{bands_n=}')
             if d == bands_n:  # high-end band
                 (
                     X_wave[d],

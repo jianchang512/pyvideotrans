@@ -182,7 +182,7 @@ input("Press Enter for quit")
 # # 如果是WAV音频流，获取原始音频数据
 # with open("success.wav", 'wb') as f:
 #     f.write(response.content)
-
+import shutil
 
 '''
 # 设置请求的URL
@@ -400,7 +400,7 @@ for code,rolelist in ttslist.items():
 #
 #     return obj
 
-from pathlib import Path,PurePosixPath,PurePath
 
-p=Path("./tmp").resolve().as_posix()
-print(p)
+from pathlib import Path
+
+Path("./tmp/1/2/3").mkdir(parents=True,exist_ok=True)

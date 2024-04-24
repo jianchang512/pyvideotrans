@@ -34,7 +34,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fanyi_errors=""
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION}  {' Q群 905857759 ' if config.defaulelang=='zh' else ''}")
+        self.setWindowTitle(f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION} pyvideotrans.com {' Q群 905857759 ' if config.defaulelang=='zh' else ''}")
 
     def closeEvent(self, event):
         if config.exit_soft:
@@ -649,7 +649,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.disabled_shibie(False)
                     QMessageBox.critical(self, config.transobj['anerror'], str(e))
             else:
-                print('66')
                 wait_list.append(file)
 
         self.shibie_out_path=config.homedir+f"/recogn"
@@ -685,7 +684,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
         langcode = translator.get_code(show_text=language)
-        print(f"{language=},{langcode=}")
 
         if not txt:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['neirongweikong'])

@@ -19,7 +19,6 @@ class DropButton(QPushButton):
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
                                                config.last_opendir,
                                                filter="Video/Audio files(*.mp4 *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
-        print(f'{fnames=}')
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
         self.filelist=fnames
@@ -27,7 +26,6 @@ class DropButton(QPushButton):
 
     def dragEnterEvent(self, event):
         files = event.mimeData().text().strip().lower()
-        print(files.split("\n"))
         allow=True
         for it in files.split("\n"):
             if it.split('.')[1] not in ["mp4", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
@@ -62,7 +60,6 @@ class Textedit(QPlainTextEdit):
         with open(filepath, 'r', encoding="utf-8") as f:
             self.setPlainText(f.read().strip())
     def setText(self,filepath=None):
-        print(f'{filepath=}')
         try:
             with open(filepath, 'r', encoding="utf-8") as f:
                 self.setPlainText(f.read().strip())
