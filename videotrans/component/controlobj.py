@@ -17,7 +17,6 @@ class TextGetdir(QPlainTextEdit):
 
     def dropEvent(self, event):
         file = event.mimeData().text().replace('file:///', '')
-        print(file)
         if file.endswith(".srt") and os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 self.setPlainText(f.read().strip())

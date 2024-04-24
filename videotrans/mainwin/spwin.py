@@ -4,8 +4,8 @@ import threading
 import time
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QIcon, QGuiApplication
-from PySide6.QtCore import QSettings, Qt, QSize, QTimer
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSettings, Qt, QSize, QTimer, QPoint
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 import warnings
 
@@ -13,7 +13,6 @@ warnings.filterwarnings('ignore')
 
 from videotrans.task.get_role_list import GetRoleWorker
 from videotrans.util import tools
-from videotrans.util.tools import kill_ffmpeg_processes
 
 from videotrans.translator import TRANSNAMES, FREECHATGPT_NAME
 from videotrans.configure import config
@@ -27,9 +26,17 @@ from pathlib import Path
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,width=1200,height=700):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.width = int(width * 0.8)
+        self.height = int(height * 0.8)
+        self.bwidth=int(width*0.7)
+        self.bheight=int(height*0.7)
+        self.lefttopx=int(width*0.15)
+        self.lefttopy=int(height*0.15)
+        self.resize(self.width, self.height)
+        self.show()
         self.task = None
         self.shitingobj = None
         self.youw = None
@@ -37,34 +44,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.util = None
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
-        self.screen = QGuiApplication.primaryScreen()
-        screen_resolution = self.screen.geometry()
-        width, height = screen_resolution.width(), screen_resolution.height()
-        self.width = int(width * 0.8)
-        self.height = int(height * 0.8)
-        self.resize(self.width, self.height)
+
         # 当前所有可用角色列表
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION}   {' Q群 905857759 ' if config.defaulelang == 'zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION} pyvideotrans.com {' Q群 905857759 ' if config.defaulelang == 'zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
-        self.show()
-        QTimer.singleShot(500, self.bind_action)
+        QTimer.singleShot(100, self.bind_action)
         QTimer.singleShot(500, self.start_box)
 
     def start_box(self):
         # 打开工具箱
-        try:
-            configure.TOOLBOX = win.MainWindow(self)
-            configure.TOOLBOX.resize(int(self.width * 0.8), int(self.height * 0.8))
-            qtRect = configure.TOOLBOX.frameGeometry()
-            qtRect.moveCenter(self.screen.availableGeometry().center())
-            configure.TOOLBOX.move(qtRect.topLeft())
-        except Exception as e:
-            print('ext box')
+        configure.TOOLBOX = win.MainWindow(self)
+        configure.TOOLBOX.resize(self.bwidth, self.bheight)
+        configure.TOOLBOX.move(QPoint(self.lefttopx,self.lefttopy))
 
     def initUI(self):
 
@@ -393,7 +389,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception:
             pass
         try:
-            kill_ffmpeg_processes()
+            tools.kill_ffmpeg_processes()
         except Exception:
             pass
         time.sleep(1)

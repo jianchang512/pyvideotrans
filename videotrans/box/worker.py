@@ -61,7 +61,6 @@ class WorkerWhisper(QThread):
         errs = []
         length = len(self.audio_paths)
         time_dur = 1
-        print('111')
         while len(self.audio_paths) > 0:
             try:
                 config.box_recogn = 'ing'
@@ -338,7 +337,6 @@ class WorkerTTS(QThread):
 
             if it['speed']<1:
                 it['speed']=0
-            print(f'[i={i+1}],配音时长={it["dubb_time"]},需加速{it["speed"]}')
             queue_tts[i] = it
 
         # 再次遍历，调整字幕开始结束时间对齐实际音频时长
@@ -361,7 +359,6 @@ class WorkerTTS(QThread):
 
             if it['speed'] >1:
                 # 调整音频
-                print(f'音频加速 speed={it["speed"]}')
                 tmp_mp3 = os.path.join(self.tmpdir, f'{it["filename"]}-speed.mp3')
                 speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
                 # 加速后时间
@@ -371,7 +368,6 @@ class WorkerTTS(QThread):
                 if mp3_len > raw_t:
                     tools.remove_silence_from_end(tmp_mp3)
                     add_time=len(AudioSegment.from_file(tmp_mp3, format="mp3"))-raw_t
-                    print(f'加速并移除静音后仍多出来 add_time={add_time=}')
                     if add_time>0:
                         # 需要延长结束时间，以便字幕 声音对齐
                         it['end_time']+=add_time
@@ -381,7 +377,6 @@ class WorkerTTS(QThread):
                 it['filename'] = tmp_mp3
 
             # 更改时间戳
-            print(f'【i={i+1}】 加速{it["speed"]}')
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
             it['endraw'] = ms_to_time_string(ms=it['end_time'])
             queue_tts[i] = it
@@ -481,7 +476,6 @@ class WorkerTTS(QThread):
             diff=the_dur-raw_dur
             # 配音大于字幕时长，后延，延长时间
             if diff>=0:
-                print(f'配音大于字幕时长{diff}ms, i={i+1}')
                 it['end_time']+=diff
                 offset+=diff
             else:

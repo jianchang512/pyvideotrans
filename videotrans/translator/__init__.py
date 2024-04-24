@@ -238,8 +238,8 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
     elif lower_translate_type == TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    #elif lower_translate_type in [FREECHATGPT_NAME.lower(),CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower()]:
-    #    return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
+    elif lower_translate_type in [FREECHATGPT_NAME.lower(),CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower()]:
+       return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif lower_translate_type == OTT_NAME.lower():
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     elif lower_translate_type==MICROSOFT_NAME.lower():
@@ -336,7 +336,7 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
     elif lower_translate_type == CHATGPT_NAME.lower():
         from videotrans.translator.chatgpt import trans
     #elif lower_translate_type == FREECHATGPT_NAME.lower():
-    #   from videotrans.translator.freechatgpt import trans
+    #  from videotrans.translator.freechatgpt import trans
     elif lower_translate_type == GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
     elif lower_translate_type == AZUREGPT_NAME.lower():

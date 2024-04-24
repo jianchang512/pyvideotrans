@@ -314,7 +314,7 @@
     "Local existing SRT subtitle generation dubbing WAV files": "根据srt字幕文件创建配音文件",
     "Speech Recognition Text": "音视频转字幕",
     "Recognize the sound in audio or video and output SRT text": "将音频或视频中的声音识别后输出srt字幕文件",
-    "From  Text  Into  Speech": "根据字幕配音",
+    "From  Text  Into  Speech": "批量字幕配音",
     "Generate audio WAV from text or SRT subtitle files": "根据srt字幕文件创建配音文件",
     "Extract Srt And Translate": "语音转为字幕",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "识别视频中的语音为srt字幕",

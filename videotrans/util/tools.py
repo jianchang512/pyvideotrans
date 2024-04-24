@@ -206,7 +206,6 @@ def runffmpeg(arg, *, noextname=None,
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = it.replace('libx264', "h264_nvenc")
     cmd = cmd + arg
-    print(f'{" ".join(cmd)}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
@@ -255,7 +254,6 @@ def runffprobe(cmd):
     except subprocess.CalledProcessError as e:
         msg = f'ffprobe call error:{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
-        print(f'{msg=},{cmd=}')
         raise Exception(msg)
     except Exception as e:
         raise Exception(f'ffprobe except error:{str(e)}')
@@ -552,7 +550,6 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None,
     # 变速处理
     try:
         fast_audio = audio.speedup(playback_speed=rate)
-        print(f'实际变速:{rate=}')
         # 如果处理后的音频时长稍长于目标时长，进行剪裁
         if len(fast_audio) > target_duration_ms:
             fast_audio = fast_audio[:target_duration_ms]
@@ -872,8 +869,7 @@ def set_process(text, type="logs", *, qname='sp', func_name="", btnkey=""):
                 if m and len(m) > 0:
                     text = m[0].strip()
                 text = text.replace("\n", ' ')[:180]
-            elif type == 'logs':
-                text = text.strip().split("\n")[0]
+
 
         if qname == 'sp':
             config.queue_logs.put_nowait({"text": text, "type": type, "btnkey": btnkey})
@@ -1088,12 +1084,10 @@ def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
         # Check if the config file exists and remove it
         if os.path.isfile(config_file_path):
             os.remove(config_file_path)
-            print(f"Config file removed: {config_file_path}")
         # If the whole directory for the organization should be removed, you would use shutil.rmtree as follows
         # Warning: This will remove all settings for all applications under this organization
         elif os.path.isdir(config_dir):
             shutil.rmtree(config_dir, ignore_errors=True)
-            print(f"Organization config directory removed: {config_dir}")
     except Exception:
         pass
 
@@ -1154,7 +1148,6 @@ def format_video(name, out=None):
         # 目标存放位置，完成后再复制
         obj['linshi_output'] = config.TEMP_DIR + f'/{obj["noextname"]}/_video_out'
         Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
-    print(obj)
     return obj
 
 

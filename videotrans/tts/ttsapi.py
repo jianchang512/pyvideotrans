@@ -43,4 +43,5 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         if set_p:
             tools.set_process(error,btnkey=inst.btnkey if inst else "")
         config.logger.error(f"TTS-API自定义失败:{error}")
-        raise Exception(f"TTS-API:{error}")
+        if inst and inst.btnkey:
+            config.errorlist[inst.btnkey]=error

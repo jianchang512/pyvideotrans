@@ -43,4 +43,6 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         elif set_p:
             tools.set_process("有一个配音出错",btnkey=inst.btnkey if inst else "")
             config.logger.error( f'edgeTTS配音有一个失败:{text=},{filename=}')
+        if inst and inst.btnkey:
+            config.errorlist[inst.btnkey]=err
     return True

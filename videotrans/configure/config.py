@@ -6,7 +6,6 @@ import locale
 import logging
 import re
 import sys
-import time
 from queue import Queue
 from pathlib import Path
 
@@ -14,7 +13,7 @@ def get_executable_path():
     # 这个函数会返回可执行文件所在的目录
     if getattr(sys, 'frozen', False):
         # 如果程序是被“冻结”打包的，使用这个路径
-        return sys.executable.replace('\\','/')
+        return os.path.dirname(sys.executable).replace('\\','/')
     else:
         return str(Path.cwd()).replace('\\','/')
 
@@ -75,7 +74,8 @@ def parse_init():
         "vsync":"passthrough",
         "force_edit_srt":True,
         "append_video":True,
-        "loop_backaudio":False
+        "loop_backaudio":False,
+        "cors_run":True
     }
     file = root_path/'videotrans/set.ini'
     if file.exists():
@@ -107,7 +107,7 @@ def parse_init():
 # 语言
 try:
     defaulelang = locale.getdefaultlocale()[0][:2].lower()
-except:
+except Exception:
     defaulelang = "zh"
 
 # 初始化一个字典变量
@@ -287,19 +287,11 @@ queue_mp4 = []
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice = {}
 
-# 任务队列
-queue_task = []
 # 倒计时
 task_countdown = 60
-# 全局错误信息
-errors = ""
-# 获取的视频信息
+# 获取的视频信息 全局缓存
 video_cache = {}
-# 软件界面当前正在执行的进度条key
-btnkey = ""
 
-# 临时全局变量
-temp = []
 #youtube是否取消了下载
 canceldown=False
 #工具箱翻译进行状态,ing进行中，其他停止
@@ -312,11 +304,18 @@ box_recogn='stop'
 separate_status='stop'
 # 最后一次打开的目录
 last_opendir=homedir
-exit_ffmpeg=False
+# 软件退出
 exit_soft=False
 
+# 翻译队列
 trans_queue=[]
+# 配音队列
 dubb_queue=[]
+#识别队列
 regcon_queue=[]
+#合成队列
 compose_queue=[]
+#全局任务id列表
 unidlist=[]
+# 全局错误
+errorlist={}

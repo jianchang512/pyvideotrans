@@ -61,5 +61,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         error=str(e)
         if set_p:
             tools.set_process(error,btnkey=inst.btnkey if inst else "")
+        if inst and inst.btnkey:
+            config.errorlist[inst.btnkey]=error
         config.logger.error(f"{error}")
-        raise Exception(f"{error}")
+

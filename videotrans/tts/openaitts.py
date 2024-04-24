@@ -56,11 +56,15 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
     except Exception as e:
         error=str(e)
         if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
-            raise Exception(f'无法连接到 {api_url}，请正确填写代理地址:{error}')
+            if inst and inst.btnkey:
+                config.errorlist[inst.btnkey]=f'无法连接到 {api_url}，请正确填写代理地址:{error}'
+            return False
         if error and re.search(r'Rate limit',error,re.I) is not None:
             if set_p:
                 tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试',btnkey=inst.btnkey if inst else "")
             time.sleep(30)
             return get_voice(text=text, role=role, rate=rate, filename=filename)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        raise Exception(f" openaiTTS:" + str(e))
+        if inst and inst.btnkey:
+            config.errorlist[inst.btnkey]=error
+

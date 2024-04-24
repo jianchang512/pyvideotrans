@@ -34,7 +34,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 err=f'{iter_num}次重试后依然出错,请尝试挂代理并填写代理地址，或者更换其他翻译渠道'
             raise Exception(f'{err}')
         iter_num += 1
-        print(f'第{iter_num}次')
         if iter_num > 1:
             if set_p:
                 tools.set_process(

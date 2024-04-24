@@ -51,14 +51,12 @@ def run(*, type="all", detect_language=None, audio_file=None, cache_folder=None,
 
 # 整体识别，全部传给模型
 def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, model_name="base", set_p=True, inst=None, is_cuda=None):
-    print('11111111111')
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     if set_p:
         tools.set_process(f"{config.params['whisper_model']} {config.transobj['kaishishibie']}",btnkey=inst.btnkey if inst else "")
     down_root = os.path.normpath(config.rootdir + "/models")
     model = None
-    print('222')
     try:
         model = WhisperModel(model_name, device="cuda" if is_cuda else "cpu",
                              compute_type="float32" if model_name.startswith('distil-') else config.settings[
@@ -68,12 +66,10 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(
                                  config.settings['whisper_threads']),
                              local_files_only=True)
-        print('3333')
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             return False
         if not os.path.exists(audio_file):
             raise Exception(f'[error]not exists {audio_file}')
-        print('44444')
         segments, info = model.transcribe(audio_file,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
@@ -94,9 +90,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
         # 保留原始语言的字幕
         raw_subtitles = []
         sidx = -1
-        print(f'5555{config.current_status=}')
         for segment in segments:
-            print(f'{segment.words=}')
             if config.current_status != 'ing' and config.box_recogn != 'ing':
                 del model
                 return None
@@ -126,7 +120,6 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                 tools.set_process_box(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', func_name="set_subtitle")
         return raw_subtitles
     except Exception as e:
-        print('666')
         raise Exception(f'whole all {str(e)}')
     finally:
         try:
@@ -556,14 +549,12 @@ def google_recogn(*, detect_language=None, audio_file=None, cache_folder=None, s
             raise Exception("stop")
         text = ""
         try:
-            print(f'{chunk_filename=},{text=}')
             with sr.AudioFile(chunk_filename) as source:
                 # Record the audio data
                 audio_data = recognizer.record(source)
                 try:
                     # Recognize the speech
                     text = recognizer.recognize_google(audio_data, language=detect_language)
-                    print(f'{text=}')
                 except sr.UnknownValueError:
                     text = ""
                     print("Speech recognition could not understand the audio.")

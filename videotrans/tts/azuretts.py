@@ -14,11 +14,15 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
         else:
             language=role.split('-',maxsplit=2)
         language=language[0].lower()+("" if len(language)<2 else '-'+language[1].upper())
-        print(f'{language=}')
+        print(f"{config.params['azure_speech_key']=},{config.params['azure_speech_region']=}")
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-        speech_config = speechsdk.SpeechConfig(
+        try:
+            speech_config = speechsdk.SpeechConfig(
             subscription=config.params['azure_speech_key'],
             region=config.params['azure_speech_region'])
+        except Exception as e:
+            raise Exception(f'{str(e)=}')
+
         # The neural multilingual voice can speak different languages based on the input text.
         # speech_config.speech_synthesis_voice_name=role
         audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True,filename=filename+".wav")
@@ -37,8 +41,8 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
                 </prosody>
             </voice>
         </speak>""".format(language,role,rate,text)
+        config.logger.info(f'{ssml=}')
         speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
-        print(f'{ssml=}')
 
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             tools.wav2mp3(filename+".wav",filename)
@@ -51,14 +55,15 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
+                    tools.set_process(f"{config.transobj['azureinfo']}", btnkey=inst.btnkey if inst else "")
                     raise Exception(config.transobj['azureinfo'])
             raise Exception("Speech synthesis canceled: {},text={}".format(cancellation_details.reason,text))
         else:
             raise Exception('配音出错，请检查 Azure TTS')
     except Exception as e:
-        print(e)
         error=str(e)
+        if inst and inst.btnkey:
+            config.errorlist[inst.btnkey]=error
         config.logger.error(f"Azure TTS合成失败" + str(e))
         if set_p:
             tools.set_process(error,btnkey=inst.btnkey if inst else "")
-        raise Exception(f" Azure TTS:{error}" )

@@ -112,7 +112,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             raise Exception(
                 f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
         iter_num += 1
-        print(f'第{iter_num}次')
         if iter_num > 1:
             if set_p:
                 tools.set_process(
@@ -122,7 +121,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
 
         for i,it in enumerate(split_source_text):
-            print(f'{it=}')
             if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
                 break
             if i < index:
