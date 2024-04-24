@@ -23,10 +23,10 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
             return False
         asyncio.run(communicate.save(filename))
-        if not os.path.exists(filename) or os.path.getsize(filename)<1:
+        if not tools.vail_file(filename):
             config.logger.error( f'edgeTTS配音失败:{text=},{filename=}')
             return True
-        if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
+        if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1

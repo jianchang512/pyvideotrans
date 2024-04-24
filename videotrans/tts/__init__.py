@@ -27,7 +27,7 @@ def text_to_speech(inst=None,text="", role="", rate='+0%',language=None, filenam
     elif tts_type == 'elevenlabsTTS':
         from .elevenlabs import get_voice
         get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
+    if tools.vail_file(filename):
         if play:
             threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
         return True
@@ -58,7 +58,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
             for i in range(dub_nums):
                 if len(queue_tts) > 0:
                     p=get_item(queue_tts.pop(0))
-                    if p['tts_type']!='clone-voice' and os.path.exists(p['filename']) and os.path.getsize(p['filename'])>0:
+                    if p['tts_type']!='clone-voice' and tools.vail_file(p['filename']):
                         continue
                     p["set_p"]=set_p
                     p['inst']=inst
@@ -77,7 +77,7 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
             raise Exception(f'runtts:{str(e)}')
     err=0
     for it in queue_tts_copy:
-        if not os.path.exists(it['filename']) or os.path.getsize(it['filename'])==0:
+        if not tools.vail_file(it['filename']):
             err+=1
     if err>=(n_total/3):
         raise Exception(f'配音出错数量大于1/3，请检查')

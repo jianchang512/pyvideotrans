@@ -52,7 +52,6 @@ class TransCreate():
         # 原始视频信息
         self.video_info = None
         self.obj = obj
-        self.output = obj['output'] if obj else ""
 
         self.h264 = True
         # 识别是否结束
@@ -85,7 +84,7 @@ class TransCreate():
         '''
 
         # 存在添加的背景音乐
-        if self.config_params['back_audio'] and Path(self.config_params['back_audio']).exists():
+        if tools.vail_file(self.config_params['back_audio']):
             self.background_music = self.config_params['back_audio']
 
         # 如果是字幕创建配音模式
@@ -242,14 +241,14 @@ class TransCreate():
         # 需要移动
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             target_mp4=Path(self.targetdir_mp4)
-            if target_mp4.exists():
+            if target_mp4.exists() and target_mp4.stat().st_size>0:
                 target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
             shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
 
         # 仅保存视频
         if self.config_params['only_video']:
-            output=Path(self.obj["output"])
-            for it in output.iterdir():
+            outputpath=Path(self.obj["output"])
+            for it in outputpath.iterdir():
                 ext = it.suffix.lower()
                 # 软字幕时也需要保存字幕
                 if int(self.config_params['subtitle_type']) in [2, 4]:
@@ -266,9 +265,14 @@ class TransCreate():
                             pass
             # 硬字幕删除文件夹
             if int(self.config_params['subtitle_type']) in [1, 3]:
-                shutil.rmtree(self.obj["output"], ignore_errors=True)
+                try:
+                    output=outputpath.parent.resolve().as_posix()
+                    shutil.rmtree(self.obj["output"], ignore_errors=True)
+                    outputpath.rmdir()
+                except Exception:
+                    pass
+
         self.precent = 100
-        self.output = output
         # 如果移动了，删除移动后的文件
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
@@ -304,7 +308,7 @@ class TransCreate():
 
         # 添加是否保留背景选项
         self.precent += 3
-        if self.config_params['is_separate'] and not Path(self.targetdir_source_vocal).exists():
+        if self.config_params['is_separate'] and not tools.vail_file(self.targetdir_source_vocal):
             # 背景分离音
             try:
                 tools.set_process(config.transobj['Separating background music'], btnkey=self.btnkey)
@@ -312,7 +316,7 @@ class TransCreate():
             except Exception as e:
                 pass
             finally:
-                if not Path(self.targetdir_source_vocal).exists():
+                if not tools.vail_file(self.targetdir_source_vocal):
                     self.targetdir_source_instrument = None
                     self.targetdir_source_vocal = None
                     self.config_params['is_separate'] = False
@@ -327,7 +331,7 @@ class TransCreate():
             except Exception as e:
                 raise Exception(
                     '从视频中提取声音失败，请检查视频中是否含有音轨，或该视频是否存在编码问题' if config.defaulelang == 'zh' else 'Failed to extract sound from video, please check if the video contains an audio track or if there is an encoding problem with that video')
-        if self.obj and self.obj['output'] != self.obj['linshi_output'] and Path(self.targetdir_source_wav).exists():
+        if self.obj and self.obj['output'] != self.obj['linshi_output'] and tools.vail_file(self.targetdir_source_wav):
             shutil.copy2(self.targetdir_source_wav, f'{self.obj["output"]}/{Path(self.targetdir_source_wav).name}')
         return True
 
@@ -347,14 +351,14 @@ class TransCreate():
             self.regcon_end = True
             self._unlink(self.shibie_audio)
             return True
-        if Path(self.targetdir_source_sub).exists():
+        if tools.vail_file(self.targetdir_source_sub):
             self.regcon_end = True
             if self.obj and self.obj['output']!=self.obj['linshi_output']:
                 shutil.copy2(self.targetdir_source_sub,f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
             self._unlink(self.shibie_audio)
             return True
         #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
-        if Path(self.targetdir_target_sub).exists():
+        if tools.vail_file(self.targetdir_target_sub):
             # 通知前端替换字幕
             with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
                 tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
@@ -365,7 +369,7 @@ class TransCreate():
             return True
 
         # 分离未完成，需等待
-        while not Path(self.targetdir_source_wav).exists():
+        while not tools.vail_file(self.targetdir_source_wav):
             tools.set_process(config.transobj["running"], btnkey=self.btnkey)
             time.sleep(1)
         # 识别为字幕
@@ -416,14 +420,14 @@ class TransCreate():
         # 是否需要翻译，不是 hebing，存在识别后字幕并且不存在目标语言字幕，并且原语言和目标语言不同，则需要翻译
         if self.app_mode in ['hebing'] or \
                 self.config_params['target_language'] == '-' or \
-                self.config_params['target_language'] == self.config_params['source_language'] or not Path(self.targetdir_source_sub).exists():
+                self.config_params['target_language'] == self.config_params['source_language'] or not tools.vail_file(self.targetdir_source_sub):
             self.trans_end = True
             return True
 
         config.task_countdown = 0 if self.app_mode == 'biaozhun_jd' else config.settings['countdown_sec']
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
-        if Path(self.targetdir_target_sub).exists():
+        if tools.vail_file(self.targetdir_target_sub):
             # 通知前端替换字幕
             with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
                 tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
@@ -448,11 +452,11 @@ class TransCreate():
             tools.set_process('translate_start', 'timeout_djs', btnkey=self.btnkey)
             time.sleep(2)
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
-        if not Path(self.targetdir_source_sub).exists() or Path(self.targetdir_target_sub).exists():
+        if not tools.vail_file(self.targetdir_source_sub) or tools.vail_file(self.targetdir_target_sub):
             if self.app_mode == 'tiqu':
                 self.compose_end = True
             self.trans_end = True
-            if self.obj and self.obj['output']!=self.obj['linshi_output'] and Path(self.targetdir_target_sub).exists():
+            if self.obj and self.obj['output']!=self.obj['linshi_output'] and tools.vail_file(self.targetdir_target_sub):
                 shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
             return True
         tools.set_process(config.transobj['starttrans'], btnkey=self.btnkey)
@@ -488,10 +492,10 @@ class TransCreate():
         # 不需要配音
         if self.app_mode in ['tiqu', 'hebing'] or \
                 self.config_params['voice_role'] == 'No' or \
-                not Path(self.targetdir_target_sub).exists():
+                not tools.vail_file(self.targetdir_target_sub):
             self.dubb_end = True
             return True
-        if Path(self.targetdir_target_wav).exists():
+        if tools.vail_file(self.targetdir_target_wav):
             if self.app_mode == 'peiyin':
                 self.compose_end = True
             self.dubb_end = True
@@ -521,7 +525,7 @@ class TransCreate():
         if self.app_mode == 'peiyin':
             self.compose_end = True
         self.dubb_end = True
-        if self.obj and self.obj['output'] != self.obj['linshi_output'] and Path(self.targetdir_target_wav).exists():
+        if self.obj and self.obj['output'] != self.obj['linshi_output'] and tools.vail_file(self.targetdir_target_wav):
             shutil.copy2(self.targetdir_target_wav, f'{self.obj["output"]}/{Path(self.targetdir_target_wav).name}')
         return True
 
@@ -554,7 +558,7 @@ class TransCreate():
             it['raw_duration'] = it['end_time'] - it['start_time']
             if it['raw_duration'] == 0:
                 continue
-            if not Path(it['filename']).exists():
+            if not tools.vail_file(it['filename']):
                 merged_audio += AudioSegment.silent(duration=it['raw_duration'])
                 continue
             segment = AudioSegment.from_file(it['filename'], format=it['filename'].split('.')[-1])
@@ -606,7 +610,7 @@ class TransCreate():
             wavfile = self.cache_folder + "/target.wav"
             merged_audio.export(wavfile, format="wav")
 
-            if not self.source_mp4 and self.background_music and Path(self.background_music).exists():
+            if not self.source_mp4 and tools.vail_file(self.background_music):
                 cmd = ['-y', '-i', wavfile, '-i', self.background_music, '-filter_complex',
                        "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2',
                        self.targetdir_target_wav]
@@ -673,11 +677,10 @@ class TransCreate():
             if it['end_time'] <= it['start_time']:
                 continue
             if self.config_params['tts_type'] == 'clone-voice':
-                if self.config_params['is_separate'] and not Path(self.targetdir_source_vocal).exists():
+                if self.config_params['is_separate'] and not tools.vail_file(self.targetdir_source_vocal):
                     raise Exception(f'背景分离出错 {self.targetdir_source_vocal}')
                     # clone 方式文件为wav格式
-                if self.app_mode != 'peiyin' and self.targetdir_source_wav and Path(self.targetdir_source_wav).exists(
-                        ):
+                if self.app_mode != 'peiyin' and tools.vail_file(self.targetdir_source_wav):
                     tools.cut_from_audio(
                         audio_file=self.targetdir_source_vocal if self.config_params[
                             'is_separate'] else self.targetdir_source_wav,
@@ -714,7 +717,7 @@ class TransCreate():
             # 记录原字母区间时长
             it['raw_duration'] = it['end_time'] - it['start_time']
 
-            if it['end_time'] > it['start_time'] and Path(it['filename']).exists():
+            if it['end_time'] > it['start_time'] and tools.vail_file(it['filename']):
                 it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format=it['filename'].split('.')[-1]))
             else:
                 # 不存在配音
@@ -841,7 +844,7 @@ class TransCreate():
                 queue_tts[i] = it
                 continue
 
-            if Path(it['filename']).exists():
+            if tools.vail_file(it['filename']):
                 # 如果同时有视频加速，则配音压缩为原时长 + 差额的一半
                 if config.settings['video_rate'] > 1:
                     half = int((it['dubb_time'] - it['raw_duration']) / 2)
@@ -855,7 +858,7 @@ class TransCreate():
                                              max_rate=min(config.settings['audio_rate'], 100))
 
                 # 加速后时间
-                if Path(tmp_mp3).exists():
+                if tools.vail_file(tmp_mp3):
                     mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
                 else:
                     mp3_len = 0
@@ -903,7 +906,7 @@ class TransCreate():
             duration = it['end_time_source'] - it['start_time_source']
             audio_length = duration
             # 实际配音长度
-            if Path(it['filename']).exists():
+            if tools.vail_file(it['filename']):
                 audio_length = len(AudioSegment.from_file(it['filename'], format="mp3"))
 
             # 需要延长视频
@@ -944,7 +947,7 @@ class TransCreate():
         # 将所有视频片段连接起来
         new_arr = []
         for it in concat_txt_arr:
-            if Path(it).exists():
+            if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
             tools.concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
@@ -983,7 +986,7 @@ class TransCreate():
             segments = []
             start_times = []
             for i, it in enumerate(queue_tts):
-                if it['dubb_time'] > 0 and Path(it['filename']).exists():
+                if it['dubb_time'] > 0 and tools.vail_file(it['filename']):
                     segments.append(AudioSegment.from_file(it['filename'], format=it['filename'].split('.')[-1]))
                     start_times.append(it['start_time'])
                 else:
@@ -1059,8 +1062,7 @@ class TransCreate():
     # 添加背景音乐
     def _back_music(self):
         if self.app_mode not in ["hebing", "tiqu", "peiyin"] and self.config_params[
-            'voice_role'] != 'No' and Path(self.targetdir_target_wav).exists(
-            ) and self.background_music and Path(self.background_music).exists():
+            'voice_role'] != 'No' and tools.vail_file(self.targetdir_target_wav)  and tools.vail_file(self.background_music):
             try:
                 # 获取视频长度
                 vtime = tools.get_video_info(self.novoice_mp4, video_time=True)
@@ -1095,7 +1097,7 @@ class TransCreate():
                 config.logger.error(f'添加背景音乐失败:{str(e)}')
 
     def _separate(self):
-        if self.config_params['is_separate'] and Path(self.targetdir_target_wav).exists():
+        if self.config_params['is_separate'] and tools.vail_file(self.targetdir_target_wav):
             try:
                 # 原始背景音乐 wav,和配音后的文件m4a合并
                 # 获取视频长度
@@ -1128,7 +1130,7 @@ class TransCreate():
             raise Exception(config.transobj['fenlinoviceerror'])
 
         # 需要字幕
-        if self.config_params['subtitle_type'] > 0 and not Path(self.targetdir_target_sub).exists():
+        if self.config_params['subtitle_type'] > 0 and not tools.vail_file(self.targetdir_target_sub):
             raise Exception(f"{config.transobj['No subtitles file']}: {self.targetdir_target_sub}")
 
         if self.precent < 90:
@@ -1142,8 +1144,7 @@ class TransCreate():
                 target_sub_list = tools.get_subtitle_from_srt(self.targetdir_target_sub)
             except Exception as e:
                 raise Exception(f'{config.transobj["Subtitles error"]}-1 :{str(e)}')
-        if self.config_params['subtitle_type'] in [3, 4] and Path(self.targetdir_source_sub).exists(
-                ):
+        if self.config_params['subtitle_type'] in [3, 4] and tools.vail_file(self.targetdir_source_sub):
             try:
                 source_sub_list = tools.get_subtitle_from_srt(self.targetdir_source_sub)
             except Exception as e:
@@ -1222,7 +1223,7 @@ class TransCreate():
                 pass
             return True
         # 需要配音但没有配音文件
-        if self.config_params['voice_role'] != 'No' and not Path(self.targetdir_target_wav).exists():
+        if self.config_params['voice_role'] != 'No' and not tools.vail_file(self.targetdir_target_wav):
             raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.targetdir_target_wav}")
 
         # 需要双字幕
@@ -1345,13 +1346,13 @@ class TransCreate():
                     "-i",
                     novoice_mp4
                 ]
-                if Path(self.targetdir_source_wav).exists():
+                if tools.vail_file(self.targetdir_source_wav):
                     cmd.append('-i')
                     cmd.append(os.path.normpath(self.targetdir_source_wav))
 
                 cmd.append('-c:v')
                 cmd.append('libx264')
-                if Path(self.targetdir_source_wav).exists():
+                if tools.vail_file(self.targetdir_source_wav):
                     cmd.append('-c:a')
                     cmd.append('aac')
                 cmd += [
@@ -1374,7 +1375,7 @@ class TransCreate():
                     novoice_mp4
                 ]
                 # 原配音流
-                if Path(self.targetdir_source_wav).exists():
+                if tools.vail_file(self.targetdir_source_wav):
                     cmd.append("-i")
                     cmd.append(os.path.normpath(self.targetdir_source_wav))
                 # 目标字幕流
@@ -1384,7 +1385,7 @@ class TransCreate():
                     "-c:v",
                     "copy"
                 ]
-                if Path(self.targetdir_source_wav).exists():
+                if tools.vail_file(self.targetdir_source_wav):
                     cmd.append('-c:a')
                     cmd.append('aac')
                 cmd += [

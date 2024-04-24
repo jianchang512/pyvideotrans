@@ -130,6 +130,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
 
     while 1:
+        if config.exit_soft:
+            return False
         if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
             break
 

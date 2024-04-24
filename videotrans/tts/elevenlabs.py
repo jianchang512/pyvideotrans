@@ -20,7 +20,7 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
         )
         with open(filename,'wb') as f:
             f.write(audio)
-        if os.path.exists(filename) and os.path.getsize(filename)>0 and config.settings['remove_silence']:
+        if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1

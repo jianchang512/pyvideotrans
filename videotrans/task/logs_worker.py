@@ -17,7 +17,6 @@ class LogsWorker(QThread):
         while True:
             if config.exit_soft:
                 return
-
             try:
                 obj = queue_logs.get(True, 0.5)
                 if config.current_status!='ing':

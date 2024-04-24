@@ -19,6 +19,7 @@ SRT_NAME = "srt"
 # 翻译通道
 TRANSNAMES = [
     MICROSOFT_NAME,
+    # FREECHATGPT_NAME,
     GOOGLE_NAME,
     BAIDU_NAME,
     DEEPL_NAME,
@@ -335,8 +336,8 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         from videotrans.translator.tencent import trans
     elif lower_translate_type == CHATGPT_NAME.lower():
         from videotrans.translator.chatgpt import trans
-    #elif lower_translate_type == FREECHATGPT_NAME.lower():
-    #  from videotrans.translator.freechatgpt import trans
+    # elif lower_translate_type == FREECHATGPT_NAME.lower():
+    #   from videotrans.translator.freechatgpt import trans
     elif lower_translate_type == GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
     elif lower_translate_type == AZUREGPT_NAME.lower():

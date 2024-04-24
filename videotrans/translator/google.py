@@ -34,6 +34,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     err = ""
     google_url=tools.get_google_url()
     while 1:
+        if config.exit_soft:
+            return False
         if config.current_status!='ing' and config.box_trans!='ing':
             break
         if iter_num >= config.settings['retries']:
