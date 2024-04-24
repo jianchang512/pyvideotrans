@@ -22,22 +22,7 @@ class CheckUpdateWorker(QThread):
                 d=res.json()
                 if d['version_num']>videotrans.VERSION_NUM:
                     msg = f"{transobj['newversion']}:{d['version']}"
-                    length = len(msg)
-                    while 1:
-                        if config.exit_soft:
-                            return
-                        tmp=""
-                        for i in range(length):
-                            if i == 0:
-                                tmp=msg
-                            elif i == length - 1:
-                                tmp=msg
-                            else:
-                                tmp=msg[i:] + msg[:i]
-                            set_process(tmp,"check_soft_update")
-                            time.sleep(0.2)
-                        time.sleep(1)
-                return True
+                    set_process(msg,"check_soft_update")
         except Exception as e:
             pass
         return False

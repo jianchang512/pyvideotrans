@@ -428,7 +428,7 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
-        self.main.voice_autorate.setDisabled(True)
+        self.main.voice_autorate.setDisabled(False)
         self.main.auto_ajust.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
         self.main.addbackbtn.setDisabled(False)
@@ -1353,10 +1353,11 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 srtfile = self.main.task.tasklist[btnkey].targetdir_source_sub
             else:
                 srtfile = self.main.task.tasklist[btnkey].targetdir_target_sub
-        if srtfile:
+        # 不是批量才允许更新字幕
+        if  not self.main.task.is_batch and srtfile and txt:
             with open(srtfile, 'w', encoding='utf-8') as f:
                 f.write(txt)
-            if step == 'translate_start':
-                self.main.subtitle_area.clear()
+        if step == 'translate_start':
+            self.main.subtitle_area.clear()
         config.task_countdown = 0
         return True

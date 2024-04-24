@@ -5,6 +5,7 @@ from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure import config
 from videotrans.tts import text_to_speech
+from videotrans.util import tools
 from videotrans.util.tools import pygameaudio
 from pathlib import Path
 
@@ -15,7 +16,7 @@ class PlayMp3(QThread):
         self.obj=obj
     def run(self):
         try:
-            if not Path(self.obj['voice_file']).exists():
+            if not tools.vail_file(self.obj['voice_file']):
                 text_to_speech(text=self.obj['text'],role=self.obj['role'],tts_type=config.params['tts_type'],filename=self.obj['voice_file'], play=True,language=self.obj['language'],is_test=True)
             else:
                 pygameaudio(self.obj['voice_file'])

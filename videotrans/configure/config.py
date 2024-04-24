@@ -79,26 +79,29 @@ def parse_init():
     }
     file = root_path/'videotrans/set.ini'
     if file.exists():
-        with file.open('r', encoding="utf-8") as f:
-            # 遍历.ini文件中的每个section
-            for it in f.readlines():
-                it = it.strip()
-                if not it or it.startswith(';') or it.startswith('['):
-                    continue
-                key,value = it.split('=', 1)
-                # 遍历每个section中的每个option
-                key = key.strip()
-                value = value.strip()
-                if re.match(r'^\d+$', value):
-                    settings[key] = int(value)
-                elif re.match(r'^\d+\.\d$', value):
-                    settings[key] = round(float(value),1)
-                elif value.lower() == 'true':
-                    settings[key] = True
-                elif value.lower() == 'false':
-                    settings[key] = False
-                else:
-                    settings[key] = str(value.lower()) if value else None
+        try:
+            with file.open('r', encoding="utf-8") as f:
+                # 遍历.ini文件中的每个section
+                for it in f.readlines():
+                    it = it.strip()
+                    if not it or it.startswith(';'):
+                        continue
+                    key,value = it.split('=', maxsplit=1)
+                    # 遍历每个section中的每个option
+                    key = key.strip()
+                    value = value.strip()
+                    if re.match(r'^\d+$', value):
+                        settings[key] = int(value)
+                    elif re.match(r'^\d+\.\d$', value):
+                        settings[key] = round(float(value),1)
+                    elif value.lower() == 'true':
+                        settings[key] = True
+                    elif value.lower() == 'false':
+                        settings[key] = False
+                    else:
+                        settings[key] = str(value.lower()) if value else None
+        except Exception as e:
+            logger.error(f'set.ini 中有语法错误:{str(e)}')
         if isinstance(settings['fontsize'],str) and settings['fontsize'].find('px')>0:
             settings['fontsize']=int(settings['fontsize'].replace('px',''))
     return settings

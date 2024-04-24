@@ -109,7 +109,7 @@ class Subform():
                 return
             # 开始处理分离，判断是否选择了源文件
             file = self.main.sepw.fromfile.text()
-            if not file or not os.path.exists(file):
+            if not tools.vail_file(file):
                 QtWidgets.QMessageBox.critical(self.main.sepw, config.transobj['anerror'],
                                      config.transobj['must select audio or video file'])
                 return

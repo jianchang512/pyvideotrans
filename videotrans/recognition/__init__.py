@@ -22,6 +22,8 @@ logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
 # 统一入口
 def run(*, type="all", detect_language=None, audio_file=None, cache_folder=None, model_name=None, set_p=True, inst=None,
         model_type='faster', is_cuda=None):
+    if config.exit_soft :
+        return False
     if config.current_status != 'ing' and config.box_recogn != 'ing':
         return False
     if model_name.startswith('distil-'):
@@ -68,7 +70,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                              local_files_only=True)
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             return False
-        if not os.path.exists(audio_file):
+        if not tools.vail_file(audio_file):
             raise Exception(f'[error]not exists {audio_file}')
         segments, info = model.transcribe(audio_file,
                                           beam_size=config.settings['beam_size'],
@@ -91,6 +93,9 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
         raw_subtitles = []
         sidx = -1
         for segment in segments:
+            if config.exit_soft :
+                del model
+                return False
             if config.current_status != 'ing' and config.box_recogn != 'ing':
                 del model
                 return None
@@ -125,7 +130,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
         try:
             if model:
                 del model
-        except:
+        except Exception:
             pass
 
 
@@ -169,16 +174,16 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
             raise Exception(config.transobj["createdirerror"])
-    if not os.path.exists(audio_file):
+    if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
-    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+    if tools.vail_file(nonslient_file):
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         if inst and inst.precent < 55:
             inst.precent += 0.1
         tools.set_process(config.transobj['qiegeshujuhaoshi'],btnkey=inst.btnkey if inst else "")
@@ -198,6 +203,9 @@ def split_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mo
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
+        if config.exit_soft :
+            del model
+            return False
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
             return None
@@ -280,6 +288,7 @@ def shorten_voice_old(normalized_sound):
                                     silence_thresh=-20 - 25)
     # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
+
         start_time, end_time = chunk
         n = 0
         while end_time - start_time >= max_interval:
@@ -307,12 +316,12 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
         try:
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
-            raise config.Myexcept(config.transobj["createdirerror"])
-    if not os.path.exists(audio_file):
+            raise Exception(config.transobj["createdirerror"])
+    if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
-    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+    if tools.vail_file(nonslient_file):
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
@@ -336,9 +345,12 @@ def split_recogn_openai(*, detect_language=None, audio_file=None, cache_folder=N
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
+        if config.exit_soft :
+            del model
+            return False
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += int(config.settings['voice_silence'])
@@ -407,12 +419,12 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
         try:
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
-            raise config.Myexcept(config.transobj["createdirerror"])
-    if not os.path.exists(audio_file):
+            raise Exception(config.transobj["createdirerror"])
+    if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
-    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+    if tools.vail_file(nonslient_file):
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
@@ -434,10 +446,12 @@ def split_recogn_old(*, detect_language=None, audio_file=None, cache_folder=None
     except Exception as e:
         raise Exception(str(e.args))
     for i, duration in enumerate(nonsilent_data):
+        if config.exit_soft:
+            return False
         # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             del model
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += int(config.settings['voice_silence'])
@@ -508,12 +522,12 @@ def google_recogn(*, detect_language=None, audio_file=None, cache_folder=None, s
         try:
             os.makedirs(tmp_path, 0o777, exist_ok=True)
         except:
-            raise config.Myexcept(config.transobj["createdirerror"])
-    if not os.path.exists(audio_file):
+            raise Exception(config.transobj["createdirerror"])
+    if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
-    if os.path.exists(nonslient_file) and os.path.getsize(nonslient_file):
+    if tools.vail_file(nonslient_file):
         with open(nonslient_file, 'r') as infile:
             nonsilent_data = json.load(infile)
     else:
@@ -534,9 +548,11 @@ def google_recogn(*, detect_language=None, audio_file=None, cache_folder=None, s
         raise Exception(f'使用Google识别需要设置代理')
 
     for i, duration in enumerate(nonsilent_data):
+        if config.exit_soft :
+            return False
         # config.temp = {}
         if config.current_status != 'ing' and config.box_recogn != 'ing':
-            raise config.Myexcept("stop")
+            raise Exception("stop")
         start_time, end_time, buffered = duration
         if start_time == end_time:
             end_time += int(config.settings['voice_silence'])

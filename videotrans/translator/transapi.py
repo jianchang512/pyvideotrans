@@ -39,6 +39,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     while 1:
+        if config.exit_soft:
+            return False
         if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
             break
         if iter_num >= config.settings['retries']:

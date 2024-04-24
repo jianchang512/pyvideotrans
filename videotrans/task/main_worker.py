@@ -19,10 +19,12 @@ class Worker(QThread):
         self.tasklist = {}
         self.unidlist = []
         self.txt = txt
+        self.is_batch=False
 
     def srt2audio(self):
         try:
             # 添加进度按钮
+            self.is_batch=False
             set_process('srt2wav', 'add_process', btnkey="srt2wav")
             config.params.update({"is_batch": False, 'subtitles': self.txt, 'app_mode': self.app_mode})
             try:
@@ -73,14 +75,16 @@ class Worker(QThread):
             # 添加进度按钮 unid
             set_process(obj_format['unid'], 'add_process', btnkey=obj_format['unid'])
         # 如果是批量，则不允许中途暂停修改字幕
+        if len(videolist) > 1 and config.settings['cors_run']:
+            self.is_batch=True
         config.params.update(
-            {"is_batch": True if len(videolist) > 1 and config.settings['cors_run'] else False, 'subtitles': self.txt, 'app_mode': self.app_mode})
+            {"is_batch": self.is_batch, 'subtitles': self.txt, 'app_mode': self.app_mode})
         # 开始
         for it in videolist:
             if config.exit_soft or config.current_status != 'ing':
                 return self.stop()
             # 需要移动mp4位置
-            if Path(it['raw_name']).exists() and not Path(it['source_mp4']).exists():
+            if tools.vail_file(it['raw_name']) and not tools.vail_file(it['source_mp4']):
                 shutil.copy2(it['raw_name'], it['source_mp4'])
             self.tasklist[it['unid']] = TransCreate(copy.deepcopy(config.params), it)
             set_process(it['raw_basename'], 'logs', btnkey=it['unid'])
@@ -98,16 +102,18 @@ class Worker(QThread):
                 err=f'{config.transobj["yuchulichucuo"]}:' + str(e)
                 config.errorlist[video.btnkey]=err
                 set_process(err, 'error', btnkey=video.btnkey)
-                if config.settings['cors_run']:
+                if self.is_batch:
                     self.unidlist.remove(video.btnkey)
                 continue
 
-            if config.settings['cors_run']:
+            if self.is_batch:
                 # 压入识别队列开始执行
                 config.regcon_queue.append(self.tasklist[video.btnkey])
                 continue
-
+            # 非批量并发
             try:
+                if config.exit_soft or config.current_status != 'ing':
+                    return self.stop()
                 video.recogn()
             except Exception as e:
                 err=f'{config.transobj["shibiechucuo"]}:' + str(e)
@@ -115,6 +121,8 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
             try:
+                if config.exit_soft or config.current_status != 'ing':
+                    return self.stop()
                 video.trans()
             except Exception as e:
                 err=f'{config.transobj["fanyichucuo"]}:' + str(e)
@@ -122,6 +130,8 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
             try:
+                if config.exit_soft or config.current_status != 'ing':
+                    return self.stop()
                 video.dubbing()
             except Exception as e:
                 err=f'{config.transobj["peyinchucuo"]}:' + str(e)
@@ -129,6 +139,8 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
             try:
+                if config.exit_soft or config.current_status != 'ing':
+                    return self.stop()
                 video.hebing()
             except Exception as e:
                 err=f'{config.transobj["hebingchucuo"]}:' + str(e)
@@ -136,6 +148,8 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
             try:
+                if config.exit_soft or config.current_status != 'ing':
+                    return self.stop()
                 video.move_at_end()
             except Exception as e:
                 err=f'{config.transobj["hebingchucuo"]}:' + str(e)
@@ -143,7 +157,7 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
         # 批量进入等待
-        if config.settings['cors_run']:
+        if self.is_batch:
             return self.wait_end()
         # 非批量直接结束
         set_process("", 'end')

@@ -22,8 +22,6 @@ class SeparateWorker(QThread):
         try:
             # 如果不是wav，需要先转为wav
             if not self.file.lower().endswith('.wav'):
-                if not os.path.exists(config.homedir + "/tmp"):
-                    os.makedirs(config.homedir + "/tmp", exist_ok=True)
                 newfile = os.path.join(config.homedir, f'tmp/{self.basename}.wav').replace('\\', '/')
                 cmd = [
                     "-y",

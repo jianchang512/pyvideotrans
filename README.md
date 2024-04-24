@@ -1,15 +1,15 @@
 [English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / Q群 905857759 / 微信公众号：搜一搜“ pyvideotrans ”
 
-# 视频翻译和配音工具
+# 视频翻译配音工具
 
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。
 >
-> 语音识别使用 `faster-whisper` `openai-whisper` 离线模型.
+> 语音识别支持 `faster-whisper`模型 `openai-whisper`模型 和 `GoogleSpeech` .
 >
-> 文字翻译支持 `microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|离线翻译OTT` ，
+> 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|离线翻译OTT`,并内置免费ChatGPT API翻译接口(apiskey.top赞助)
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Openai TTS-1` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
+> 文字合成语音支持 `Microsoft Edge tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
@@ -19,27 +19,19 @@
 
 # 主要用途和使用方式
 
-【翻译视频并配音】根据需要设置各个选项，自由配置组合，实现翻译和配音、自动加减速、合并等
+【翻译视频并配音】将视频中的声音翻译为另一种语言的配音，并嵌入该语言字幕
 
-【识别字幕不翻译】选择视频文件，选择视频源语言，则从视频【语音中识别出文字】并自动导出字幕文件到目标文件夹
+【音频或视频转为字幕】将音频、视频文件中的人类说话声，识别为文字并导出为srt字幕文件
 
-【提取字幕并翻译】选择视频文件，选择视频源语言，设置想翻译到的目标语言，则从【视频语音中识别出文字】并翻译为目标语言，然后导出双语字幕文件到目标文件夹
+【批量字幕创建配音】根据本地已有的srt字幕文件创建配音，支持单个或批量字幕
 
-【字幕和视频合并】选择视频，然后将已有的字幕文件拖拽到右侧字幕区，将源语言和目标语言都设为字幕所用语言、然后选择配音类型和角色，开始执行
+【批量字幕翻译】将一个或多个srt字幕文件翻译为其他语言的字幕文件
 
-【为字幕创建配音】将本地的字幕文件拖拽到右侧字幕编辑器，然后选择目标语言、配音类型和角色，将生成配音后的音频文件到目标文件夹
+【音频、视频、字幕合并】音频文件、视频文件、字幕文件合并为一个视频文件
 
-【音视频识别文字】将视频或音频拖拽到识别窗口，将识别出文字并导出为srt字幕格式
+【从视频中分离出音频】从视频中分离为音频文件和无声视频
 
-【将文字合成语音】将一段文字或者字幕，使用指定的配音角色生成配音
-
-【从视频分离音频】将视频文件分离为音频文件和无声视频
-
-【音视频字幕合并】音频文件、视频文件、字幕文件合并为一个视频文件
-
-【音视频格式转换】各种格式之间的相互转换
-
-【文字字幕翻译】将文字或srt字幕文件翻译为其他语言
+【音频、视频格式转换】各种格式之间的相互转换
 
 【人声背景乐分离】将视频中的人声和背景音乐分别分离出来，生成2个音频文件
 
@@ -52,13 +44,11 @@
 https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-ba24-7a95d2e13d58
 
 
+# 下载预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
 
+0. [点击去下载预打包版,解压到无空格的英文目录后，双击 sp.exe (https://github.com/jianchang512/pyvideotrans/releases)
 
-# 下载预打包版本(仅win10/win11/MacOS可用，Linux系统使用源码部署)
-
-0. [点击去下载预打包版,解压后双击sp.exe，MacOS下双击start.app](https://github.com/jianchang512/pyvideotrans/releases)
-
-1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe,MacOS下双击start.app (若遇到权限问题可右键使用管理员权限打开)
+1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe  (若遇到权限问题可右键使用管理员权限打开)
 
 3. 未做免杀，杀软可能误报，可忽略或使用源码部署
 
@@ -66,8 +56,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 
 
-
-# 源码部署/Linux系统只可源码部署
+# 源码部署/MacOS Linux系统可源码部署
 
 1. 安装好 python 3.10 环境，安装好 git
 2. 找个不含空格和中文的文件夹，Linux和Mac下从终端打开该文件夹。Window下地址栏中输入 `cmd`回车。
@@ -94,18 +83,18 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 	sudo apt-get install libxcb-cursor0	
 	```
 
-15. Mac下可能需要执行 `brew install libsndfile` 安装libsndfile
+15. Mac下需要执行 `brew install libsndfile` 安装libsndfile
 
 [Mac下详细部署方案](https://pyvideotrans.com/mac.html)
 
 
-# 使用方法
+# 使用方法 / [更多文档请查看 pyvideotrans.com](https://pyvideotrans.com/guide.html)
 
 1. 选择视频：点击选择mp4/avi/mov/mkv/mpeg视频,可选择多个视频；
 
 2. 保存到..：如果不选择，则默认生成在同目录下的 `_video_out`，同时在该目录下的srt文件夹中将创建原语言和目标语言的两种字幕文件
 
-3. 翻译渠道：可选 microsoft|google|baidu|tencent|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT 翻译渠道
+3. 翻译渠道：可选 microsoft|google|baidu|tencent|freeChatGPT|chatGPT|Azure|Gemini|DeepL|DeepLX|OTT 翻译渠道
 
 4. 代理地址：如果你所在地区无法直接访问 google/chatGPT，需要在软件界面 网络代理 中设置代理，比如若使用 v2ray ，则填写 `http://127.0.0.1:10809`,若clash，则填写 `http://127.0.0.1:7890`. 如果你修改了默认端口或使用的其他代理软件，则按需填写
 
@@ -128,7 +117,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
    将嵌入2种语言的字幕，可通过播放器的字幕显示/隐藏功能来切换不同语言字幕
 
 
-8. 语音识别模型: 选择 base/small/medium/large-v2/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
+8. 语音识别模型: 选择 tiny/base/small/medium/large-v2/large-v3, 识别效果越来越好，但识别速度越来越慢，所需内存越来越大，内置base模型，其他模型请单独下载后，解压放到 `当前软件目录/models`目录下.如果GPU显存低于4G，不要使用 large-v3
 
    整体识别:由模型自动对整个音频断句处理,多大的视频请勿选择整体识别，避免显存不足闪退
 
@@ -145,17 +134,19 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
     openai模型：如果下载的是openai模型，下载后直接将里面的 .pt 文件复制到 models文件夹下即可。
 
+    GoogleSpeech:使用google提供的语音识别服务生成字幕，需要填写代理，确保可连接到google
+
 
 9. 配音语速：填写 -90到+90 之间的数字，同样一句话在不同语言语音下，所需时间是不同的，因此配音后可能声画字幕不同步，可以调整此处语速，负数代表降速，正数代表加速播放。
 
-10. 声音、画面、字幕对齐:  “配音语速” “配音自动加速” “视频自动降速” “语音前后延展”
+10. 声音、画面、字幕对齐:  “配音整体语速” “配音自动加速” “视频自动慢速” “语音前后延展”
 
 >
 > 翻译后不同语言下发音时长不同，比如中文3s，翻译为英文可能5s，导致时长和视频不一致。
 >
 > 4种解决方式:
 >
-> 1. 设置配音语速，全局加速(某些TTS不支持)
+> 1. 设置配音整体语速，全局加速(某些TTS不支持)
 >
 > 2. 强制配音加速播放，以便缩短配音时长和视频对齐
 >
@@ -168,11 +159,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-13. TTS: 可用 edgeTTS 和 openai TTS-1模型、Elevenlabs、clone-voice、自定义TTS，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音。同时支持使用自己的tts服务，在设置菜单-自定义TTS-API中填写api地址
+13. TTS: 可用 edgeTTS 、AzureTTS、 openai TTS-1、Elevenlabs、clone-voice、自定义TTS，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音。同时支持使用自己的tts服务，在设置菜单-自定义TTS-API中填写api地址
 
 14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
-15. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，30s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
+15. 字幕解析完成后，将暂停等待修改字幕，如果不做任何操作，15s后将自动继续下一步。也可以在右侧字幕区编辑字幕，然后手动点击继续合成
 
 16. 将在目标文件夹中视频同名的子目录内，分别生成两种语言的字幕srt文件、原始语音和配音后的wav文件，以方便进一步处理.
 
@@ -199,7 +190,7 @@ GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [�
 
 
 
-# 常见问题
+# 常见问题 / [更多文档请查看 pyvideotrans.com](https://pyvideotrans.com/guide.html)
 
 1. 使用google翻译或者chatGPT，提示出错
 
@@ -209,7 +200,7 @@ GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [�
 
    需要在软件界面“网络代理”中设置具体的代理地址，格式为 http://127.0.0.1:端口号
 
-3. 提示 FFmepg 不存在
+3. 提示 FFmpeg 不存在
 
    首先查看确定软件根目录下存在 ffmpeg.exe, ffprobe.exe 文件或是否存在ffmpeg目录，如果不存在，解压 ffmpeg.7z，将这2个文件放到软件根目录下
 
@@ -233,6 +224,7 @@ GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [�
 
     如果所有faster模型下载后，当前models文件夹下应该能看到这几个文件夹
 
+    models--Systran--faster-whisper-tiny
     models--Systran--faster-whisper-base
     models--Systran--faster-whisper-small
     models--Systran--faster-whisper-medium
@@ -370,127 +362,190 @@ GPT-SoVITS 自带的 api.py 不支持中英混合发音，若需支持，请 [�
 
 ```
 ;####################
-;#######################
 ;如果你不确定修改后将会带来什么影响，请勿随意修改，修改前请做好备份， 如果出问题请恢复
-;If you are not sure of the impact of the modification, please do not modify it, please make a backup before modification, and restore it if something goes wrong.
-
 ;升级前请做好备份，升级后按照原备份重新修改。请勿直接用备份文件覆盖，因为新版本可能有新增配置
-;Please make a backup before upgrading, and re-modify according to the original backup after upgrading. Please don't overwrite the backup file directly, because the new version may have added
+;If you are not sure what effect the modification will bring, please don't modify it arbitrarily, please make a good backup before modification, and restore it if something goes wrong.
+;Please make a backup before upgrading, and then modify it according to the original backup after upgrading. Please do not overwrite the backup file directly, because the new version may have new configurations.
 
-;The default interface follows the system and can also be specified manually here, zh=Chinese interface, en=English interface.
+;##############界面语言文字#############################
+;Interface language text #############################
 ;默认界面跟随系统，也可以在此手动指定，zh=中文界面，en=英文界面
+;Default interface follows the system, you can also specify it manually here, zh=Chinese interface, en=English interface.
 lang =
 
-;Video processing quality, integer 0-51, 0 = lossless processing with large size is very slow, 51 = lowest quality with smallest size is the fastest processing speed
+;##################视频质量############################
+;Video quality ############################
 ;视频处理质量，0-51的整数，0=无损处理尺寸较大速度很慢，51=质量最低尺寸最小处理速度最快
+;Video processing quality, integer 0-51, 0=lossless processing with large size is very slow, 51=lowest quality with smallest size is fastest processing speed
 crf=13
 
-;The number of simultaneous voiceovers, 1-10, it is recommended not to be greater than 5, otherwise it is easy to fail
-;同时配音的数量，1-10，建议不要大于5，否则容易失败
-dubbing_thread=2
-
-;Maximum audio acceleration, default 0, i.e. no limitation, you need to set a number greater than 1-100, such as 1.5, representing the maximum acceleration of 1.5 times, pay attention to how to set the limit, then the subtitle sound will not be able to be aligned
-;音频最大加速倍数，默认0，即不限制，需设置大于1-100的数字，比如1.5，代表最大加速1.5倍，注意如何设置了限制，则字幕声音将无法对齐
-audio_rate=2.5
-
-;Maximum permissible slowdown times of the video frequency, default 0, that is, no restriction, you need to set a number greater than 1-20, for example, 1 = on behalf of not slowing down, 20 = down to 1/20 = 0.05 the original speed, pay attention to how to set up the limit, then the subtitles and the screen will not be able to be aligned
-;视频频最大允许慢速倍数，默认0，即不限制，需设置大于1-20的数字，比如1=代表不慢速，20=降为1/20=0.05原速度，注意如何设置了限制，则字幕和画面将无法对齐
-video_rate=0
-
-;Number of simultaneous translations, 1-20, not too large, otherwise it may trigger the translation api frequency limitation
-;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
-trans_thread=10
-
-;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
-;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
-fontsize=14
-
-
-;背景声音音量降低或升高幅度，大于1升高，小于1降低
-backaudio_volume=0.5
-
-;Number of translation error retries
-;翻译出错重试次数
-retries=5
-
-;chatGPT model list
+;#################模型名字列表#################################
+;List of model names #################################
 ;可供选择的chatGPT模型，以英文逗号分隔
-chatgpt_model=gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview
+;Available chatGPT models, separated by English commas
+chatgpt_model=gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen,moonshot-v1-8k
 
-;When separating the background sound, cut the clip, too long audio will exhaust the memory, so cut it and separate it, unit s, default 1800s, i.e. half an hour.
-;背景音分离时切分片段，太长的音频会耗尽显存，因此切分后分离，单位s,默认 600s
-separate_sec=600
 
-;The number of seconds to pause before subtitle recognition is completed and waiting for translation, and the number of seconds to pause after translation and waiting for dubbing.
-;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
-countdown_sec=30
+;################声画字幕对齐相关#################################
+;Sound and picture subtitle alignment related #################################
 
-;Accelerator cuvid or cuda
-;硬件编码设备，cuvid或cuda
-hwaccel=cuvid
+;音频最大加速倍数，默认1.5，即最大加速到 1.5倍速度，需设置1-100的数字，比如1.5，代表最大加速1.5倍
+;Maximum audio acceleration, default 1.5, that is, the maximum acceleration to 1.5 times the speed, need to set the number of 1-100, such as 1.5, represents the maximum acceleration 1.5 times
+audio_rate=1.5
 
-; Accelerator output format = cuda or nv12
-;硬件输出格式，nv12或cuda
-hwaccel_output_format=nv12
+; 设为大于1的数，代表最大允许慢速多少倍，0或1代表不进行视频慢放
+; set to a number greater than 1, representing the maximum number of times allowed to slow down, 0 or 1 represents no video slowdown
+video_rate=20
 
-;not decode video before use -c:v h264_cuvid,false=use -c:v h264_cuvid, true=dont use
-;Whether to disable hardware decoding, true=disable, good compatibility; false=enable, there may be compatibility errors on some hardware.
-;是否禁用硬件解码，true=禁用，兼容性好；false=启用，可能某些硬件上有兼容错误
-no_decode=true
+;是否移除配音末尾空白，true=移除，false=不移除
+;Whether to remove voiceover end blanks, true=remove, false=don't remove
+remove_silence=true
 
-;cuda data type when recognizing subtitles from video, int8 = consumes fewer resources, faster, lower precision, float32 = consumes more resources, slower, higher precision, int8_float16 = device of choice
-;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
-cuda_com_type=float32
+;是否移除原始字幕时长大于配音时长 的静音，比如原时长5s，配音后3s，是否移除这2s静音，true=移除，false=不移除
+;If or not remove the silence when the original duration of subtitle is longer than the dubbing duration, for example, if the original duration is 5s and the dubbing duration is 3s, if or not remove the 2s of silence, true=remove, false=don't remove.
+remove_srt_silence=false
 
-;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
-initial_prompt_zh=
+;移除2条字幕间的静音长度ms，比如100ms，即如果两条字幕间的间隔大于100ms时，将移除100ms
+; Remove the mute length of ms between 2 subtitles, e.g. 100ms, i.e. if the interval between two subtitles is greater than 100ms, 100ms will be removed
+remove_white_ms=0
 
-; whisper thread 0 is equal cpu core,
-;字幕识别时，cpu进程
-whisper_threads=4
 
-;whisper num_worker
-;字幕识别时，同时工作进程
-whisper_worker=1
+;true=强制修改字幕时间轴以便匹配声音，false=不修改，保持原始字幕时间轴，不修改可能导致字幕和声音不匹配
+;true=Forces the subtitle timeline to be modified in order to match the sound, false=Does not modify it, keeps the original subtitle timeline, not modifying it may result in a mismatch between the subtitle and the sound
+force_edit_srt=true
 
-;Subtitle recognition accuracy adjustment, 1-5, 1 = consume the lowest resources, 5 = consume the most, if the video memory is sufficient, can be set to 5, may achieve more accurate recognition results
-;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
-beam_size=5
-best_of=5
+; ###############语句分割相关##################################
+; statement segmentation related ##################################
 
-;Enable custom mute segmentation when in subtitle overall recognition mode, true=enable, can be set to false to disable when video memory is insufficient.
-;字幕整体识别模式时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
-vad=true
-
-;0 = less GPU resources but slightly worse results, 1 = more GPU resources and better results
-;0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好
-temperature=1
-
-;Same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs.
-;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
-condition_on_previous_text=true
-
-; For pre-split and overall , the minimum silence segment ms to be used as the basis for cutting, default 100ms, i.e., and max seconds.
-;用于 预先分割 和 整体识别 时，作为切割依据的最小静音片段ms，默认200ms 以及最大句子时长
+;用于 预先分割 和 整体识别 时，作为切割依据的最小静音片段ms，默认200ms 以及最大句子时长3s
+;The minimum silent segmentation ms, default 200ms, and the maximum sentence length 3s are used for pre-segmentation and overall recognition as the basis for segmentation.
 overall_silence=200
 overall_maxsecs=3
 
+;用于均等分割时，作为切割依据的最小静音片段ms，默认200ms，即只有大于等于200ms的静音处才分割
+; used for equal segmentation, as the basis for cutting the minimum silence segment ms, the default 200ms, that is, only greater than or equal to 200ms silence at the split
+voice_silence=200
+;用于均等分割时的每个切片时长 秒，默认 6s,即每个字幕时长大约都是6s
+;seconds per slice for equalization, default 6s, i.e. each subtitle is about 6s.
+interval_split=6
 
-; For  equal-division, the minimum silence segment ms to be used as the basis for cutting, default 500ms, i.e., only silence greater than or equal to 500ms will be segmented.
-;用于   均等分割时，作为切割依据的最小静音片段ms，默认500ms，即只有大于等于500ms的静音处才分割
-voice_silence=500
 
-;Seconds per slice for equal-division, default 10s, i.e. each subtitle is approximately 10s long.
-;用于均等分割时的每个切片时长 秒，默认 10s,即每个字幕时长大约都是10s
-interval_split=10
+;################翻译配音速度#############################
+;Translation dubbing speed #############################
 
-;CJK subtitle number of characters in a line length, more than this will be line feed.
+;同时翻译的数量，1-20，不要太大，否则可能触发翻译api频率限制
+;Translation dubbing speed #############################
+trans_thread=15
+
+;翻译出错重试次数
+;Number of retries for translation errors
+retries=2
+
+;同时配音的数量，1-10，建议不要大于5，否则容易失败
+; The number of simultaneous voiceovers, 1-10, it is recommended not to be greater than 5, otherwise it will be easy to fail
+dubbing_thread=5
+
+
+;字幕识别完成等待翻译前的暂停秒数，和翻译完等待配音的暂停秒数
+; seconds of pause before subtitle recognition is completed and waiting for translation, and seconds of pause after translation and waiting for dubbing.
+countdown_sec=15
+
+
+;#####################背景声音########################################
+;Background sound ########################################
+
+;背景声音音量降低或升高幅度，大于1升高，小于1降低
+; Background sound volume is lowered or raised, greater than 1 raised, less than 1 lowered
+backaudio_volume=0.5
+
+;背景音分离时切分片段，太长的音频会耗尽显存，因此切分后分离，单位s,默认 600s
+;Background sound is separated by a slice, if the audio is too long, it will exhaust the memory, so it is separated by a slice, the unit is s, default is 600s.
+separate_sec=600
+
+; 如果背景音频时长短于视频，是否重复播放背景音，默认否
+;Background sound is separated by a slice, if the audio is too long, it will exhaust the memory, so it is separated by a slice, the unit is s, default is 600s.
+loop_backaudio=false
+
+
+;####################GPU FFmpeg #####################################
+
+;硬件编码设备，cuvid或cuda
+; Hardware encoding device, cuvid or cuda
+hwaccel=cuvid
+
+;硬件输出格式，nv12或cuda
+; Hardware encoding device, cuvid or cuda
+hwaccel_output_format=nv12
+
+;是否禁用硬件解码，true=禁用，兼容性好；false=启用，可能某些硬件上有兼容错误
+;Whether to disable hardware decoding, true=disable, good compatibility; false=enable, there may be compatibility errors on some hardware.
+no_decode=true
+
+
+
+; ##################字幕识别-GPU提高降低性能相关############################################
+;Subtitle Recognition - GPU Improvement Reduced Performance Related
+;从视频中识别字幕时的cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选
+; cuda data type when recognizing subtitles from video, int8=consumes fewer resources, faster, lower precision, float32=consumes more resources, slower, higher precision, int8_float16=device of choice
+cuda_com_type=float32
+
+;中文语言的视频时，用于识别的提示词，可解决简体识别为繁体问题。但注意，有可能直接会将提示词作为识别结果返回
+;The prompt words used to recognize videos in Chinese language can solve the problem of recognizing simplified Chinese as traditional Chinese. But note that there is a possibility that the prompt word will be returned directly as the result of the recognition.
+initial_prompt_zh=
+
+;字幕识别时，cpu进程
+;cpu process during subtitle recognition
+whisper_threads=4
+
+;字幕识别时，同时工作进程
+; Simultaneous work processes during subtitle recognition
+whisper_worker=1
+
+;字幕识别时精度调整，1-5，1=消耗资源最低，5=消耗最多，如果显存充足，可以设为5，可能会取得更精确的识别结果
+;Subtitle recognition accuracy adjustment, 1-5, 1 = consume the lowest resources, 5 = consume the most, if the video memory is sufficient, you can set it to 5, you may get more accurate recognition results.
+beam_size=5
+best_of=5
+
+;faster-whisper字幕整体识别模式时启用自定义静音分割片段，true=启用，显存不足时，可以设为false禁用
+;Enable custom mute segmentation when subtitles are in overall recognition mode, true=enable, can be set to false to disable when video memory is insufficient.
+vad=true
+
+;0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好
+;0 = less GPU resources but slightly worse results, 1 = more GPU resources and better results at the same time
+temperature=1
+
+;同 temperature, true=占用更多GPU效果更好，false=占用更少GPU效果略差
+; same as temperature, true=better with more GPUs, false=slightly worse with fewer GPUs
+condition_on_previous_text=false
+
+
+
+
+; ###################字幕设置相关 Subtitle Settings######################################
+
+;硬字幕时可在这里设置字幕字体大小，填写整数数字，比如12，代表字体12px大小，20代表20px大小，0等于默认大小
+;Hard subtitles can be set here when the subtitle font size, fill in the integer numbers, such as 12, on behalf of the font size of 12px, 20 on behalf of the size of 20px, 0 is equal to the default size
+fontsize=16
+
 ;中日韩字幕一行长度字符个数，多于这个将换行
+;CJK subtitle line length character count, more than this will be line feeds.
 cjk_len=30
 
-;Other language line breaks, more than this number of characters will be a line break.
 ;其他语言换行长度，多于这个字符数量将换行
+;Other language line breaks, more than this number of characters will be a line break.
 other_len=60
+
+;用于兼容ffmpeg，如果出现ffmpeg报错，错误中含有 vysnc字样，可改为 vsync=vfr
+; used for ffmpeg compatibility, if ffmpeg error, the error contains the word vysnc, can be changed to vsync=vfr
+vsync=passthrough
+
+;当配音长度大于视频长度时，是否延长视频,true=延长，false=不延长，将截断音频
+;If or not extend the video when the dubbing length is greater than the video length, true=extend, false=don't extend, the audio will be truncated.
+append_video=true
+
+;true=批量任务时分为 识别、翻译、配音、合并 多阶段交叉执行，加快速度，false=前面全部完成后才开始下一个
+;true=The batch task is divided into recognition, translation, dubbing, merging, and multi-stage cross-execution to accelerate the speed, false=The next one starts after all the previous ones are completed.
+cors_run=true
 
 ```
 
@@ -515,105 +570,6 @@ Linux上 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
 
 
-# CLI 命令行模式
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yDGPWRyXeZ1GWqkOpdJDv4nA_88HNm01?usp=sharing)
-
-
-cli.py 是命令行执行脚本，`python cli.py` 是最简单的执行方式
-
-接收的参数:
-
-`-m mp4视频的绝对地址`
-
-具体各项配置参数可在 位于 cli.py 同目录的 cli.ini 中配置，其他待处理的mp4视频地址，也可以通过命令行参数 `-m mp4视频绝对地址` 方式来配置，比如 `python cli.py -m D:/1.mp4`.
-
-cli.ini 里是各项完整参数，第一个参数`source_mp4`即代表待处理的视频，如果命令行通过 -m 传参，则使用命令行参数，否则使用此`source_mp4`.
-
-`-c 配置文件地址`
-
-你也可以复制 cli.ini 到其他位置后，通过命令行上 `-c cli.ini的绝对路径地址` 来指定要使用的配置文件，比如 `python cli.py -c E:/conf/cli.ini`, 则会使用该文件里的配置信息，而忽略项目目录下的配置文件。
-
-`-cuda`无需后跟值，只要添加即代表启用CUDA加速(如果可用) `python cli.py -cuda`
-
-示例:`python cli.py -cuda -m D:/1.mp4`
-
-
-## cli.ini内具体参数和说明
-
-
-
-```
-;命令行参数
-;待处理的视频绝对地址，正斜杠做路径分隔符，也可在命令行参数中 -m 后传递
-source_mp4=
-;网络代理地址，google  chatGPT官方china必填
-proxy=http://127.0.0.1:10809
-;输出结果文件到目录
-target_dir=
-;视频发音语言，从这里选择 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
-source_language=zh-cn
-;语音识别语言 无需填写
-detect_language=
-;翻译到的语言 zh-cn zh-tw en fr de ja ko ru es th it pt vi ar tr
-target_language=en
-;软字幕嵌入时的语言，不填写
-subtitle_language=
-;true=启用CUDA
-cuda=false
-;角色名称，openaiTTS角色名称“alloy,echo,fable,onyx,nova,shimmer”，edgeTTS角色名称从 voice_list.json 中对应语言的角色中寻找。elevenlabsTTS 的角色名称从 elevenlabs.json 中寻找
-voice_role=en-CA-ClaraNeural
-; 配音加速值，必须以 + 号或 - 号开头，+代表加速，-代表减速，以%结尾
-voice_rate=+0%
-;可选 edgetTTS  openaiTTS elevenlabsTTS
-tts_type=edgeTTS
-;静音片段，单位ms
-voice_silence=500
-;all=整体识别，split=预先分割声音片段后识别
-whisper_type=all
-;语音识别模型可选，base small medium large-v3
-whisper_model=base
-;翻译渠道，可选 google baidu  chatGPT Azure  Gemini  tencent DeepL DeepLX
-translate_type=google
-;0=不嵌入字幕，1=嵌入硬字幕，2=嵌入软字幕
-subtitle_type=1
-;true=配音自动加速
-voice_autorate=false
-;true=视频自动慢速
-video_autorate=false
-;deepl翻译的接口地址
-deepl_authkey=asdgasg
-;自己配置的deeplx服务的接口地址
-deeplx_address=http://127.0.0.1:1188
-;腾讯翻译id
-tencent_SecretId=
-;腾讯翻译key
-tencent_SecretKey=
-;百度翻译id
-baidu_appid=
-;百度翻译密钥
-baidu_miyue=
-; elevenlabstts的key
-elevenlabstts_key=
-;chatGPT 接口地址，以 /v1 结尾，可填写第三方接口地址
-chatgpt_api=
-;chatGPT的key
-chatgpt_key=
-;chatGPT模型，可选 gpt-3.5-turbo gpt-4
-chatgpt_model=gpt-3.5-turbo
-; Azure 的api接口地址
-azure_api=
-;Azure的key
-azure_key=
-; Azure的模型名，可选 gpt-3.5-turbo gpt-4
-azure_model=gpt-3.5-turbo
-;google Gemini 的key
-gemini_key=
-
-```
-
-
-
 # 视频教程(第三方)
 
 [Mac下源码部署/b站](https://www.bilibili.com/video/BV1tK421y7rd/)
@@ -626,9 +582,6 @@ gemini_key=
 # 软件预览截图
 
 ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
-
-
-
 
 
 # 相关联项目

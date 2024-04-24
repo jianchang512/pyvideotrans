@@ -10,6 +10,7 @@ import sys
 import os
 from datetime import timedelta
 import json
+from pathlib import Path
 
 import requests
 
@@ -45,7 +46,7 @@ def pygameaudio(filepath):
 def get_elevenlabs_role(force=False):
     jsonfile = os.path.join(config.rootdir, 'elevenlabs.json')
     namelist = []
-    if os.path.exists(jsonfile) and os.path.getsize(jsonfile) > 0:
+    if vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
             cache = json.loads(f.read())
             for it in cache.values():
@@ -132,7 +133,7 @@ def delete_temp(noextname=None):
 #  get role by edge tts
 def get_edge_rolelist():
     voice_list = {}
-    if os.path.exists(config.rootdir + "/voice_list.json"):
+    if vail_file(config.rootdir + "/voice_list.json"):
         try:
             voice_list = json.load(open(config.rootdir + "/voice_list.json", "r", encoding="utf-8"))
             if len(voice_list) > 0:
@@ -165,7 +166,7 @@ def get_edge_rolelist():
 
 def get_azure_rolelist():
     voice_list = {}
-    if os.path.exists(config.rootdir + "/azure_voice_list.json"):
+    if vail_file(config.rootdir + "/azure_voice_list.json"):
         try:
             voice_list = json.load(open(config.rootdir + "/azure_voice_list.json", "r", encoding="utf-8"))
             if len(voice_list) > 0:
@@ -193,7 +194,7 @@ def runffmpeg(arg, *, noextname=None,
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
             arg[i + 1] = os.path.normpath(arg[i + 1])
-            if not os.path.exists(arg[i + 1]):
+            if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
     if config.params['cuda'] and not disable_gpu:
         cmd.extend(
@@ -401,7 +402,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False):
     try:
         path = os.path.dirname(targe_audio)
         vocal_file = os.path.join(path, 'vocal.wav')
-        if not os.path.exists(vocal_file):
+        if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
                 st.start(audio=tmpfile, path=path)
@@ -409,7 +410,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False):
                 msg = f"separate vocal and background music:{str(e)}"
                 set_process(msg)
                 raise Exception(msg)
-        if not os.path.exists(vocal_file):
+        if not vail_file(vocal_file):
             return False
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
@@ -756,7 +757,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
     # 预先创建好的
     # 判断novoice_mp4是否完成
     t = 0
-    if noextname not in config.queue_novice and os.path.exists(novoice_mp4) and os.path.getsize(novoice_mp4) > 0:
+    if noextname not in config.queue_novice and vail_file(novoice_mp4):
         return True
     if noextname in config.queue_novice and config.queue_novice[noextname] == 'end':
         return True
@@ -764,7 +765,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
     while True:
         if config.current_status != 'ing':
             raise Exception("stop")
-        if os.path.exists(novoice_mp4):
+        if vail_file(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
             if last_size > 0 and current_size == last_size and t > 600:
                 return True
@@ -1039,7 +1040,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 # 从 google_url 中获取可用地址
 def get_google_url():
     google_url = 'https://translate.google.com'
-    if os.path.exists(os.path.join(config.rootdir, 'google.txt')):
+    if vail_file(config.rootdir+'/google.txt'):
         with open(os.path.join(config.rootdir, 'google.txt'), 'r') as f:
             t = f.read().strip().splitlines()
             urls = [x for x in t if x.strip() and x.startswith('http')]
@@ -1162,3 +1163,15 @@ def open_dir(self, dirname=None):
     if not dirname or not os.path.isdir(dirname):
         return
     QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+
+
+
+def vail_file(file=None):
+    if not file:
+        return False
+    p=Path(file)
+    if not p.exists() or not p.is_file():
+        return False
+    if p.stat().st_size<1:
+        return False
+    return True
