@@ -41,8 +41,8 @@ LANG_CODE = {
         "ZH",  # deepl deeplx通道
         "zh",  # 腾讯通道
         "zh",  # OTT通道
-        "zh-Hans",
-        "Simplified Chinese"
+        "zh-Hans",# 微软翻译
+        "Simplified Chinese" #AI翻译
     ],
     "zh-tw": [
         "zh-tw",
@@ -203,15 +203,59 @@ LANG_CODE = {
         "No",
         "hu",
         "Hungarian language"
-    ]
+    ],
+    "uk":[
+        "uk",
+        "ukr",
+        "ukr",#百度
+        "No",#deepl
+        "No",#腾讯
+        "No",#ott
+        "uk",#微软
+        "Ukrainian language"
+    ],
+    "id":[
+        "id",
+        "ind",
+        "id",
+        "No",
+        "id",
+        "No",
+        "id",
+        "Indonesian language"
+    ],
+    "ms":[
+        "ms",
+        "may",
+        "may",
+        "No",
+        "ms",
+        "No",
+        "ms",
+        "Malay language"
+    ],
+    "kk":[
+        "kk",
+        "kaz",
+        "No",
+        "No",
+        "No",
+        "No",
+        "kk",
+        "Kazakh language"
+    ],
 }
 
 
 # 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
 def get_code(*, show_text=None):
-    if show_text == '-':
+    if not show_text or show_text == '-' :
         return None
-    return config.langlist[show_text] if show_text in config.langlist else config.rev_langlist[show_text]
+    if show_text in LANG_CODE:
+        return show_text
+    if show_text in config.rev_langlist:
+        return config.rev_langlist[show_text]
+    return None
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码

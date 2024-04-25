@@ -19,10 +19,10 @@ class LogsWorker(QThread):
                 return
             try:
                 obj = queue_logs.get(True, 0.5)
-                if config.current_status!='ing':
-                    continue
                 if "type" not in obj:
                     obj['type'] = 'logs'
+                if config.current_status!='ing' and obj['type'] in ['logs','error','stop','end','succeed']:
+                    continue
                 self.post_logs.emit(json.dumps(obj))
             except Exception as e:
                 pass

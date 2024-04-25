@@ -1305,8 +1305,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'show_djs':
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'check_soft_update':
+            print(d)
             if not self.usetype:
-                self.usetype = QPushButton("")
+                self.usetype = QPushButton()
                 self.usetype.setStyleSheet('color:#ffff00;border:0')
                 self.usetype.setCursor(QtCore.Qt.PointingHandCursor)
                 self.usetype.clicked.connect(lambda: self.open_url('download'))
