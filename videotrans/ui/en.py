@@ -608,9 +608,6 @@ class Ui_MainWindow(object):
         self.action_clearcache = QtGui.QAction(MainWindow)
         self.action_clearcache.setObjectName("action_clearcache")
 
-        self.action_separate = QtGui.QAction(MainWindow)
-
-        self.action_separate.setObjectName("action_separate")
 
 
         self.actionazure_key = QtGui.QAction(MainWindow)
@@ -633,9 +630,9 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepL_key)
         self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionott_address)
-        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepLX_address)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionott_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontrans_api)
 
@@ -753,7 +750,7 @@ class Ui_MainWindow(object):
         self.menu_H.setTitle(config.uilanglist.get( "&Help"))
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译设置" if config.defaulelang=='zh' else "Baidu Key")
-        self.actionchatgpt_key.setText("OpenAI ChatGPT")
+        self.actionchatgpt_key.setText("ChatGPT及兼容API" if config.defaulelang=='zh' else "ChatGPT API")
         self.actiondeepL_key.setText("DeepL Key")
         self.action_tool.setText(config.uilanglist.get("Video Toolbox"))
         self.action_tool.setToolTip(config.uilanglist.get("Video Toolbox"))
@@ -805,8 +802,6 @@ class Ui_MainWindow(object):
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
 
         self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存')
-        self.action_separate.setText(config.uilanglist.get("Separate vocal voice"))
-        self.action_separate.setToolTip(config.uilanglist.get("Separate vocal voice"))
 
         self.actionazure_key.setText("AzureGPT Translation")
         self.actionazure_tts.setText("AzureAI TTS")

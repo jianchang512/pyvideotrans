@@ -406,6 +406,10 @@
     "ar" : "Árabe ",
     "tr" : "Turquía ",
     "hi" : "Hindi",
-    "hu": "Hungarian"
+    "hu": "Hungarian",
+    "uk": "Ukrainian",
+    "id": "Indonesian",
+    "ms": "Malay",
+    "kk": "Kazakh"
   }
 }

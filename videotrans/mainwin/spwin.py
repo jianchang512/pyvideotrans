@@ -179,13 +179,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
-
-        self.statusLabel.setStyleSheet("background-color:#455364;color:#ffff00")
+        self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
+        # self.statusLabel.setStyleSheet("background-color:#455364;color:#ffff00")
 
         self.statusBar.addWidget(self.statusLabel)
 
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        self.rightbottom.setStyleSheet("background-color:#455364;color:#ffffff;border:0")
+        # self.rightbottom.setStyleSheet("background-color:#455364;color:#ffffff;border:0")
         self.rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.container = QToolBar()
@@ -344,7 +344,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
-        self.action_separate.triggered.connect(self.subform.open_separate)
         # 禁止随意移动sp.exe
         if not Path(config.rootdir+'/videotrans').exists() or not Path(config.rootdir+ '/models').exists():
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['sp.exeerror'])
@@ -358,6 +357,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.util.about)
         #     日志
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['installffmpeg'])
             self.startbtn.setText(config.transobj['installffmpeg'])
             self.startbtn.setDisabled(True)
             self.startbtn.setStyleSheet("""color:#ff0000""")
