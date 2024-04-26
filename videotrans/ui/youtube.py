@@ -110,6 +110,7 @@ class Ui_youtubeform(object):
         self.outputdir.setReadOnly(True)
         self.outputdir.setObjectName("outputdir")
         self.outputdir.setToolTip(config.uilanglist['Open target dir'])
+        self.outputdir.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.click_filter = LineEditClickFilter()
         self.outputdir.installEventFilter(self.click_filter)

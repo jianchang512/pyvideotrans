@@ -4,29 +4,35 @@ import threading
 from videotrans.configure import config
 from videotrans.util import tools
 
+lasterror=""
 # 文字合成
 def text_to_speech(inst=None,text="", role="", rate='+0%',language=None, filename=None, tts_type=None, play=False, set_p=True,is_test=False):
+    global lasterror
     if tts_type == "edgeTTS":
         from .edgetts import get_voice
-        get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type == "AzureTTS":
         from .azuretts import get_voice
-        get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type == "openaiTTS":
         from .openaitts import get_voice
-        get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type == "clone-voice":
         from .clone import get_voice
-        get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type=='TTS-API':
         from .ttsapi import get_voice
-        get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type=='GPT-SoVITS':
         from .gptsovits import get_voice
-        get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
     elif tts_type == 'elevenlabsTTS':
         from .elevenlabs import get_voice
-        get_voice(text=text, role=role, rate=rate, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+        lasterror=get_voice(text=text, role=role, rate=rate,language=language, filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+    elif tts_type =='gtts':
+        from .gtts import get_voice
+        lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,is_test=is_test,inst=inst)
+
     if tools.vail_file(filename):
         if play:
             threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
@@ -41,7 +47,6 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
         return {"text": q['text'], "role": q['role'], "rate": q["rate"],
                 "filename": q["filename"], "tts_type": q['tts_type'],
                 "language":language
-
                 }
     queue_tts_copy=copy.deepcopy(queue_tts)
     # 需要并行的数量3
@@ -72,7 +77,6 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                 if set_p and inst:
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',btnkey=inst.btnkey)
                 t.join()
-
         except Exception as e:
             raise Exception(f'runtts:{str(e)}')
     err=0
@@ -80,5 +84,5 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
         if not tools.vail_file(it['filename']):
             err+=1
     if err>=(n_total/3):
-        raise Exception(f'配音出错数量大于1/3，请检查')
+        raise Exception(f'配音出错数量大于1/3，请检查:{lasterror if lasterror is not True else ""}')
     return True

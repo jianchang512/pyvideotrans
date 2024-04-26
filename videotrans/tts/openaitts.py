@@ -53,8 +53,11 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.btnkey if inst else "")
+        return True
     except Exception as e:
         error=str(e)
+        if is_test:
+            raise Exception(error)
         if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
             if inst and inst.btnkey:
                 config.errorlist[inst.btnkey]=f'无法连接到 {api_url}，请正确填写代理地址:{error}'
@@ -67,4 +70,6 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
         if inst and inst.btnkey:
             config.errorlist[inst.btnkey]=error
+        return error
+
 

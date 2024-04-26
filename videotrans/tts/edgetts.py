@@ -31,8 +31,11 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.btnkey if inst else "")
+        return True
     except Exception as e:
         err = str(e)
+        if is_test:
+            raise Exception(err)
         config.logger.error(f'[edgeTTS]{text=}{err=},')
         if err.find("Invalid response status") > 0 or err.find('WinError 10054')>-1:
             if set_p:
@@ -45,4 +48,4 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
             config.logger.error( f'edgeTTS配音有一个失败:{text=},{filename=}')
         if inst and inst.btnkey:
             config.errorlist[inst.btnkey]=err
-    return True
+        return err

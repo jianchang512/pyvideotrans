@@ -709,7 +709,11 @@ class SecWindow():
 
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
-        if type == "openaiTTS":
+        if type=='gtts':
+            self.main.voice_role.clear()
+            self.main.current_rolelist = ["gtts"]
+            self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == "openaiTTS":
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
@@ -806,7 +810,7 @@ class SecWindow():
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+            return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:

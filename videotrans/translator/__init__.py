@@ -381,7 +381,7 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
     elif lower_translate_type == CHATGPT_NAME.lower():
         from videotrans.translator.chatgpt import trans
     # elif lower_translate_type == FREECHATGPT_NAME.lower():
-    #   from videotrans.translator.freechatgpt import trans
+    #     from videotrans.translator.freechatgpt import trans
     elif lower_translate_type == GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
     elif lower_translate_type == AZUREGPT_NAME.lower():

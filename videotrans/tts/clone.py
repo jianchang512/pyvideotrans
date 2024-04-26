@@ -61,10 +61,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             if set_p and inst and inst.precent < 80:
                 inst.precent += 0.1
                 tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
+        return True
     except Exception as e:
         error=str(e)
+        if is_test:
+            raise Exception(error)
         if set_p:
             tools.set_process(error,btnkey=inst.btnkey if inst else  "")
         config.logger.error(f"cloneVoice合成失败:{error}")
         if inst and inst.btnkey:
             config.errorlist[inst.btnkey]=error
+        return error

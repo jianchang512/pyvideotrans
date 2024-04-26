@@ -9,7 +9,7 @@
 >
 > 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|离线翻译OTT`,并内置免费ChatGPT API翻译接口(apiskey.top赞助)
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
+> 文字合成语音支持 `Microsoft Edge tts` `Google tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
@@ -44,11 +44,11 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # 下载预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
 
+> 使用pyinstaller打包，未做免杀和签名，杀软可能报毒，请加入信任名单或使用源码部署
+
 0. [点击去下载预打包版,解压到无空格的英文目录后，双击 sp.exe (https://github.com/jianchang512/pyvideotrans/releases)
 
 1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe  (若遇到权限问题可右键使用管理员权限打开)
-
-3. 使用pyinstaller打包，未做免杀和数字签名，杀软可能报毒，请加入信任名单或使用源码部署
 
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
@@ -156,7 +156,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 12. **CUDA加速**：确认你的电脑显卡为 N卡，并且已配置好CUDA环境和驱动，则开启选择此项，速度能极大提升，具体配置方法见下方[CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-13. TTS: 可用 edgeTTS 、AzureTTS、 openai TTS-1、Elevenlabs、clone-voice、自定义TTS，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音。同时支持使用自己的tts服务，在设置菜单-自定义TTS-API中填写api地址
+13. TTS: 可用 edgeTTS(免费) 、gtts(免费需代理)、AzureTTS、 openai TTS-1、Elevenlabs、clone-voice(免费需自建)、GPT-SoVITS(免费需自建)、自定义TTS，openai需要使用官方接口或者开通了tts-1模型的三方接口,也可选择clone-voice进行原音色配音。同时支持使用自己的tts服务，在设置菜单-自定义TTS-API中填写api地址
 
 14. 点击 开始按钮 底部会显示当前进度和日志，右侧文本框内显示字幕
 
