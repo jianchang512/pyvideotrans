@@ -226,7 +226,7 @@ class Subform():
                     tools.get_clone_role(True)
                     if len(config.clone_voicelist) < 2:
                         raise Exception('没有可供测试的声音')
-                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False,
+                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False,is_test=True,
                               filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
@@ -407,8 +407,7 @@ class Subform():
                 from videotrans.tts.ttsapi import get_voice
                 try:
 
-                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
-                              filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False, is_test=True,  filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -544,7 +543,7 @@ class Subform():
                 from videotrans.tts.gptsovits import get_voice
                 try:
                     get_voice(text=self.text, language=self.language, set_p=False, role=self.role,
-                              filename=config.homedir + "/test.wav")
+                              filename=config.homedir + "/test.wav",is_test=True)
                     self.uito.emit("ok")
                 except Exception as e:
                     self.uito.emit(str(e))

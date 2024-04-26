@@ -218,7 +218,7 @@ params = {
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
+    "tts_type_list": ["edgeTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "whisper_type": "all",
     "whisper_model": "tiny",

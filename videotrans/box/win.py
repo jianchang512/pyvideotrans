@@ -607,8 +607,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if not allow:
                     self.is_cuda.setChecked(False)
                     return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["nocudnn"])
-        if model_type=='faster' and not os.path.exists(config.rootdir + f"/models/models--Systran--faster-whisper-{model}"):
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['downloadmodel'].replace('{name}',model))
+        if model_type=='faster':
+            file = f'{config.rootdir}/models/models--Systran--faster-whisper-{model}/snapshots'
+            if model.startswith('distil'):
+                file=f'{config.rootdir}/models/models--Systran--faster-{model}/snapshots'
+            if not os.path.exists(file):
+                QMessageBox.critical(self.main, config.transobj['anerror'],
+                                 config.transobj['downloadmodel'].replace('{name}', model))
+                return
         elif model_type=='openai' and not os.path.exists(config.rootdir+f'/models/{model}.pt'):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',model))
         files = self.shibie_dropbtn.filelist
@@ -748,7 +754,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tts类型改变
     def tts_type_change(self, type):
-        if type == "openaiTTS":
+        if type == 'gtts':
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(['gtts'])
+        elif type == "openaiTTS":
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
         elif type == 'elevenlabsTTS':
@@ -779,6 +788,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         code = translator.get_code(show_text=t)
         if code and code !='-' and self.tts_type.currentText()=='GPT-SoVITS' and code[:2] not in ['zh','ja','en']:
             #除此指望不支持
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             self.tts_type.setCurrentText('edgeTTS')
         if self.tts_type.currentText() not in ["edgeTTS","AzureTTS"]:
             return

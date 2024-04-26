@@ -57,11 +57,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
+        return True
     except Exception as e:
         error=str(e)
+        if is_test:
+            raise Exception(error)
         if set_p:
             tools.set_process(error,btnkey=inst.btnkey if inst else "")
         if inst and inst.btnkey:
             config.errorlist[inst.btnkey]=error
         config.logger.error(f"{error}")
-
+        return error

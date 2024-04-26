@@ -28,8 +28,11 @@ def get_voice(*,text=None, role=None, rate=None,language=None, filename=None,set
         return True
     except Exception as e:
         error=str(e)
+        if is_test:
+            raise Exception(error)
         if set_p:
             tools.set_process(f'elevenlabs:{error}',btnkey=inst.btnkey if inst else "")
         config.logger.error(f"elevenlabsTTS：request error:{error}")
         if inst and inst.btnkey:
             config.errorlist[inst.btnkey]=error
+        return error

@@ -47,6 +47,7 @@ google-pasta==0.2.0
 googleapis-common-protos==1.62.0
 grpcio==1.60.0
 grpcio-status==1.60.0
+gTTS==2.5.1
 h11==0.14.0
 h2==3.2.0
 h5py==3.10.0
