@@ -32,8 +32,9 @@ def run(*, type="all", detect_language=None, audio_file=None, cache_folder=None,
         rs = split_recogn_openai(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
                                  model_name=model_name, set_p=set_p, inst=inst, is_cuda=is_cuda)
     elif model_type == 'GoogleSpeech':
-        rs = google_recogn(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
-                           set_p=set_p, inst=None)
+        rs = google_recogn(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder, set_p=set_p, inst=None)
+    elif model_type=='zh_recogn':
+        rs = zh_recogn(audio_file=audio_file, cache_folder=cache_folder, set_p=set_p, inst=None)
     elif type == "all":
         rs = all_recogn(detect_language=detect_language, audio_file=audio_file, cache_folder=cache_folder,
                         model_name=model_name, set_p=set_p, inst=inst, is_cuda=is_cuda)
@@ -606,3 +607,31 @@ def google_recogn(*, detect_language=None, audio_file=None, cache_folder=None, s
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.btnkey if inst else "")
     # 写入原语言字幕到目标文件夹
     return raw_subtitles
+
+
+
+# zh_recogn 识别
+def zh_recogn(audio_file=None, cache_folder=None, set_p=None, inst=None):
+    api_url=config.params['zh_recogn_api'].strip().rstrip('/').lower()
+    if not api_url:
+        raise Exception('必须填写地址')
+    if not api_url.startswith('http'):
+        api_url=f'http://{api_url}'
+    if not api_url.endswith('/api'):
+        api_url+='/api'
+    files={"audio":open(audio_file,'rb')}
+    import requests
+    if set_p:
+        tools.set_process(f"识别可能较久，请耐心等待，进度可查看zh_recogn终端", 'logs',btnkey=inst.btnkey if inst else "")
+    try:
+        res=requests.post(f"{api_url}",files=files,proxies={"http":"","https":""},timeout=3600)
+        config.logger.info(f'clone-voice{res=}')
+    except Exception as e:
+        raise Exception(e)
+
+    res = res.json()
+    if "code" not in res or res['code'] != 0:
+        raise Exception(f'{res["msg"]}')
+    if "data" not in res or len(res['data'])<1:
+        raise Exception('识别出错')
+    return res['data']

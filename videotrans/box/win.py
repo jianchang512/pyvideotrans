@@ -579,6 +579,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             model_type='GoogleSpeech'
             self.shibie_whisper_type.setDisabled(True)
             self.shibie_model.setDisabled(True)
+        elif self.shibie_model_type.currentIndex()==3:
+            model_type='zh_recogn'
+            self.shibie_whisper_type.setDisabled(True)
+            self.shibie_model.setDisabled(True)
         else:
             self.shibie_whisper_type.setDisabled(False)
             self.shibie_model.setDisabled(False)
@@ -592,6 +596,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             model_type='openai'
         elif self.shibie_model_type.currentIndex()==2:
             model_type='GoogleSpeech'
+        elif self.shibie_model_type.currentIndex()==3:
+            model_type='zh_recogn'
         else:
             model_type="faster"
         is_cuda=self.is_cuda.isChecked()

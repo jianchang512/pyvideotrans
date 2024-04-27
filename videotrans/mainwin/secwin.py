@@ -636,6 +636,17 @@ class SecWindow():
             config.params['model_type'] = 'GoogleSpeech'
             self.main.whisper_model.setDisabled(True)
             self.main.whisper_type.setDisabled(True)
+        elif self.main.model_type.currentIndex() == 3:
+            lang=self.main.source_language.currentText()
+            if get_code(show_text=lang) not in ['zh-cn','zh-tw']:
+                self.main.model_type.setCurrentIndex(0)
+                return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
+
+            config.params['model_type'] = 'zh_recogn'
+            self.main.whisper_model.setDisabled(True)
+            self.main.whisper_type.setDisabled(True)
+            if not config.params['zh_recogn_api']:
+                self.main.subform.set_zh_recogn()
         else:
             self.main.whisper_type.setDisabled(False)
             self.main.whisper_model.setDisabled(False)
@@ -1018,6 +1029,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 if question != QMessageBox.Yes:
                     self.update_status('stop')
                     return
+
         config.task_countdown = config.settings['countdown_sec']
         config.settings = config.parse_init()
         # 清理日志
@@ -1043,6 +1055,13 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
         # 原始语言
         config.params['source_language'] = self.main.source_language.currentText()
+        if self.main.model_type.currentIndex==3 and get_code(show_text=config.params['source_language']) not in ['zh-cn','zh-tw']:
+            self.update_status('stop')
+            return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
+        if self.main.model_type.currentIndex==3 and not config.params['zh_recogn_api']:
+            return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 必须在设置-zh_recogn中填写http接口地址' if config.defaulelang=='zh' else 'The http interface address must be filled in the settings-zh_recogn')
+
+
         # 目标语言
         target_language = self.main.target_language.currentText()
         config.params['target_language'] = target_language
