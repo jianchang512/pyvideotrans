@@ -31,7 +31,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         else:
             #克隆声音
             files={"audio":open(filename,'rb')}
-        res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies={"http":"","https":""})
+        res=requests.post(f"{api_url}/apitts",data=data,files=files,proxies={"http":"","https":""},timeout=3600)
         config.logger.info(f'clone-voice:{data=},{res.text=}')
 
         res=res.json()

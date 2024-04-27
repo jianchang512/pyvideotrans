@@ -247,6 +247,7 @@ params = {
     "elevenlabstts_key": "",
 
     "clone_api": "",
+    "zh_recogn_api":"",
 
     "chatgpt_api": "",
     "chatgpt_key": "",

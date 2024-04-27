@@ -278,7 +278,8 @@ class Ui_MainWindow(object):
         self.shibie_model_type.addItems([
             config.uilanglist['faster model'],
             config.uilanglist['openai model'],
-            "GoogleSpeech"
+            "GoogleSpeech",
+            "zh_recogn中文识别" if config.defaulelang=='zh' else "zh_recogn only Chinese"
         ])
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)

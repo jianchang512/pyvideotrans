@@ -23,6 +23,9 @@ from videotrans.ui.ttsapi import Ui_ttsapiform
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.azuretts import Ui_azurettsform
+from videotrans.ui.zh_recogn import Ui_zhrecognform
+
+
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
     def __init__(self, parent=None):
         super(SetLineRole, self).__init__(parent)
@@ -149,6 +152,13 @@ class OttForm(QDialog, Ui_ottform):  # <===
 class CloneForm(QDialog, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super(CloneForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class ZhrecognForm(QDialog, Ui_zhrecognform):  # <===
+    def __init__(self, parent=None):
+        super(ZhrecognForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))

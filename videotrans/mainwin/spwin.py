@@ -126,6 +126,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model_type.setCurrentIndex(1)
         elif config.params['model_type'] == 'GoogleSpeech':
             self.model_type.setCurrentIndex(2)
+        elif config.params['model_type'] == 'zh_recogn':
+            self.model_type.setCurrentIndex(3)
+            self.whisper_model.setDisabled(True)
+            self.whisper_type.setDisabled(True)
         if config.params['only_video']:
             self.only_video.setChecked(True)
 
@@ -289,6 +293,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionott_address.triggered.connect(self.subform.set_ott_address)
         self.actionclone_address.triggered.connect(self.subform.set_clone_address)
         self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
+        self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
         self.actiontrans_api.triggered.connect(self.subform.set_transapi)
         self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
@@ -440,6 +445,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["gptsovits_role"] = self.settings.value("gptsovits_role", "")
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
+        config.params["zh_recogn_api"] = self.settings.value("zh_recogn_api", "")
 
         config.params["azure_api"] = self.settings.value("azure_api", "")
         config.params["azure_key"] = self.settings.value("azure_key", "")
@@ -472,6 +478,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("model_type", config.params['model_type'])
         self.settings.setValue("voice_rate", config.params['voice_rate'])
         self.settings.setValue("voice_role", config.params['voice_role'])
+        self.settings.setValue("zh_recogn_api", config.params['zh_recogn_api'])
 
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
         self.settings.setValue("auto_ajust", config.params['auto_ajust'])

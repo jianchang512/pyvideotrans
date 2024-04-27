@@ -32,7 +32,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 data.update(roledict[role])
         # role=clone是直接复制
         #克隆声音
-        response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""})
+        response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""},timeout=3600)
         # 获取响应头中的Content-Type
         content_type = response.headers.get('Content-Type')
 

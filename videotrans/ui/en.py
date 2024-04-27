@@ -255,7 +255,8 @@ class Ui_MainWindow(object):
         self.model_type.addItems([
             config.uilanglist['faster model'],
             config.uilanglist['openai model'],
-            "GoogleSpeech"
+            "GoogleSpeech",
+            "zh_recogn中文识别" if config.defaulelang=='zh' else "zh_recogn only Chinese"
         ])
         self.model_type.setToolTip(config.uilanglist['model_type_tips'])
 
@@ -522,6 +523,8 @@ class Ui_MainWindow(object):
 
         self.actiontrans_api = QtGui.QAction(MainWindow)
         self.actiontrans_api.setObjectName("actiontrans_api")
+        self.actionzhrecogn_api = QtGui.QAction(MainWindow)
+        self.actionzhrecogn_api.setObjectName("actionzhrecogn_api")
 
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
@@ -636,6 +639,7 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontrans_api)
 
+
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclone_address)
         self.menu_Key.addSeparator()
@@ -646,6 +650,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actionazure_tts)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_api)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionzhrecogn_api)
 
         self.menu_Key.addSeparator()
         self.menu.addAction(self.action_tool)
@@ -764,6 +770,7 @@ class Ui_MainWindow(object):
         self.actionclone_address.setText("原音色克隆TTS" if config.defaulelang=='zh' else "Clone-Voice TTS")
         self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang=='zh' else "TransateAPI")
+        self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang=='zh' else "zh_recogn only Chinese")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_aihelp.setText('AI文档问答助手')
