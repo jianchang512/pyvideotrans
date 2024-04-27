@@ -5,7 +5,7 @@
 >
 > 这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。
 >
-> 语音识别支持 `faster-whisper`模型 `openai-whisper`模型 和 `GoogleSpeech` .
+> 语音识别支持 `faster-whisper`模型 `openai-whisper`模型 和 `GoogleSpeech` `zh_recogn阿里中文语音识别模型`.
 >
 > 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|离线翻译OTT`,并内置免费ChatGPT API翻译接口(apiskey.top赞助)
 >
