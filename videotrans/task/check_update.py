@@ -17,7 +17,7 @@ class CheckUpdateWorker(QThread):
 
     def get(self):
         try:
-            res=requests.get("https://pyvideotrans.com/version.json")
+            res=requests.get("https://pyvideotrans.com/version2.json")
             if res.status_code==200:
                 d=res.json()
                 if d['version_num']>videotrans.VERSION_NUM:

@@ -68,7 +68,7 @@ def all_recogn(*, detect_language=None, audio_file=None, cache_folder=None, mode
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(
                                  config.settings['whisper_threads']),
-                             local_files_only=True)
+                             local_files_only=False)
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             return False
         if not tools.vail_file(audio_file):
