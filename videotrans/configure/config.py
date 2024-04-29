@@ -165,7 +165,9 @@ model_list=[
     "large-v3",
     "distil-whisper-small.en",
     "distil-whisper-medium.en",
-    "distil-whisper-large-v2"]
+    "distil-whisper-large-v2",
+    "distil-whisper-large-v3"
+    ]
 
 # 开始按钮状态
 current_status = "stop"
