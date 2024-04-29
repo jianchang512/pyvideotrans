@@ -208,7 +208,7 @@ LANG_CODE = {
         "uk",
         "ukr",
         "ukr",#百度
-        "No",#deepl
+        "UK",#deepl
         "No",#腾讯
         "No",#ott
         "uk",#微软
@@ -218,7 +218,7 @@ LANG_CODE = {
         "id",
         "ind",
         "id",
-        "No",
+        "ID",
         "id",
         "No",
         "id",
@@ -243,6 +243,16 @@ LANG_CODE = {
         "No",
         "kk",
         "Kazakh language"
+    ],
+    "cs":[
+        "cs",
+        "ces",
+        "cs",
+        "CS",
+        "No",
+        "No",
+        "cs",
+        "Czech language"
     ],
 }
 

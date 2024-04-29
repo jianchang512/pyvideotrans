@@ -60,18 +60,18 @@ class Ui_chatgptform(object):
         self.label_4.setObjectName("label_4")
 
         self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
-        self.chatgpt_template.setGeometry(QtCore.QRect(10, 200, 571, 151))
+        self.chatgpt_template.setGeometry(QtCore.QRect(10, 230, 571, 151))
         self.chatgpt_template.setObjectName("chatgpt_template")
         self.chatgpt_template.setDisabled(True)
         self.chatgpt_template.setReadOnly(True)
 
         self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.set_chatgpt.setGeometry(QtCore.QRect(10, 385, 93, 35))
+        self.set_chatgpt.setGeometry(QtCore.QRect(10, 400, 93, 35))
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
 
         self.test_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.test_chatgpt.setGeometry(QtCore.QRect(130, 390, 93, 30))
+        self.test_chatgpt.setGeometry(QtCore.QRect(130, 405, 93, 30))
         self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
         self.test_chatgpt.setObjectName("test_chatgpt")
 

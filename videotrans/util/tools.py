@@ -864,13 +864,10 @@ def set_process(text, type="logs", *, qname='sp', func_name="", btnkey=""):
             else:
                 config.logger.info(text)
 
+            # 移除html
             if type == 'error':
-                text = text.strip()
-                m = re.findall(r'<title>(.*?)</title>', text, re.I)
-                if m and len(m) > 0:
-                    text = m[0].strip()
-                text = text.replace("\n", ' ')[:180]
-
+                text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>','',text,re.I|re.M|re.S)
+                text = text.replace('\\n',' ').strip()
 
         if qname == 'sp':
             config.queue_logs.put_nowait({"text": text, "type": type, "btnkey": btnkey})
