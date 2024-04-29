@@ -270,7 +270,7 @@
     "What language do you want to translate into": "你希望翻译为哪种语言",
     "Dubbing role": "配音角色",
     "No is not dubbing": "选No代表不进行配音",
-    "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower": "base到large，效果越来越好，但也需要更多计算机资源，8G以下GPU不要使用large模型",
+    "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower": "从 tiny 到 large-v3，效果越来越好，但也需要更多计算机资源\nCUDA加速时，12G以下GPU不建议使用large系模型，可能闪退\nen后缀模型只用于识别英文视频",
     "Overall recognition is suitable for videos with or without background music and noticeable silence": "整体识别适合有无背景音乐，有明显静音的视频。",
     "Embed subtitles": "嵌入字幕",
     "shuoming02": "硬字幕无论在哪里播放始终显示字幕，不可隐藏。\n软字幕如果播放器支持，可在播放器中控制显示或隐藏。\n如果你想网页中播放时显示字幕，请选择硬字幕。\n硬字幕可在 videotrans/set.ini 中修改fontsize控制大小",
@@ -411,6 +411,7 @@
     "uk": "乌克兰语",
     "id": "印度尼西亚",
     "ms": "马来语",
-    "kk": "哈萨克语"
+    "kk": "哈萨克语",
+	"cs":"捷克语"
   }
 }

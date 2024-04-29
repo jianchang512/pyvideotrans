@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 from videotrans import configure
 from videotrans.task.job import start_thread
 from videotrans.util import tools
-from videotrans.translator import is_allow_translate, get_code, TRANSAPI_NAME, FREECHATGPT_NAME
+from videotrans import translator
 from videotrans.configure import config
 from pathlib import Path
 
@@ -49,7 +49,10 @@ class ClickableProgressBar(QLabel):
     def setTarget(self, url):
         self.target_dir = url
     def setMsg(self, text):
+        if text and config.defaulelang=='zh':
+            text+='\n\n请尝试在文档站 pyvideotrans.com 搜索错误解决方案\n'
         self.msg = text
+        
 
     def setText(self, text):
         if self.progress_bar:
@@ -601,14 +604,30 @@ class SecWindow():
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
         try:
-            rs = is_allow_translate(translate_type=name, only_key=True)
+            rs = translator.is_allow_translate(translate_type=name, only_key=True)
             if rs is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
-                if name == TRANSAPI_NAME:
+                if name == translator.TRANSAPI_NAME:
+                    self.main.subform.set_transapi()
+                elif name == translator.CHATGPT_NAME:
+                    self.main.subform.set_chatgpt_key()
+                elif name == translator.GEMINI_NAME:
+                    self.main.subform.set_gemini_key()
+                elif name == translator.AZUREGPT_NAME:
+                    self.main.subform.set_azure_key()
+                elif name == translator.BAIDU_NAME:
+                    self.main.subform.set_transapi()
+                elif name == translator.TENCENT_NAME:
+                    self.main.subform.set_transapi()
+                elif name == translator.DEEPL_NAME:
+                    self.main.subform.set_transapi()
+                elif name == translator.DEEPLX_NAME:
+                    self.main.subform.set_transapi()
+                elif name == translator.OTT_NAME:
                     self.main.subform.set_transapi()
                 return
             config.params['translate_type'] = name
-            if name == FREECHATGPT_NAME:
+            if name == translator.FREECHATGPT_NAME:
                 self.main.translate_label1.show()
             else:
                 self.main.translate_label1.hide()
@@ -638,7 +657,7 @@ class SecWindow():
             self.main.whisper_type.setDisabled(True)
         elif self.main.model_type.currentIndex() == 3:
             lang=self.main.source_language.currentText()
-            if get_code(show_text=lang) not in ['zh-cn','zh-tw']:
+            if translator.get_code(show_text=lang) not in ['zh-cn','zh-tw']:
                 self.main.model_type.setCurrentIndex(0)
                 return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
 
@@ -658,7 +677,7 @@ class SecWindow():
         if self.main.model_type.currentIndex() == 2:
             return True
         slang = self.main.source_language.currentText()
-        if name.endswith('.en') and get_code(show_text=slang) != 'en':
+        if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['enmodelerror'])
             return False
         if config.params['model_type'] == 'openai':
@@ -712,7 +731,7 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             self.main.subform.set_gptsovits()
             return
-        lang = get_code(show_text=self.main.target_language.currentText())
+        lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-' and type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
@@ -759,7 +778,7 @@ class SecWindow():
 
     # 试听配音
     def listen_voice_fun(self):
-        lang = get_code(show_text=self.main.target_language.currentText())
+        lang = translator.get_code(show_text=self.main.target_language.currentText())
         text = config.params[f'listen_text_{lang}']
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
@@ -816,7 +835,7 @@ class SecWindow():
         role = self.main.voice_role.currentText()
         # 如果tts类型是 openaiTTS，则角色不变
         # 是edgeTTS时需要改变
-        code = get_code(show_text=t)
+        code = translator.get_code(show_text=t)
         if code and code != '-' and config.params['tts_type'] == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'
@@ -1055,7 +1074,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
         # 原始语言
         config.params['source_language'] = self.main.source_language.currentText()
-        if self.main.model_type.currentIndex==3 and get_code(show_text=config.params['source_language']) not in ['zh-cn','zh-tw']:
+        if self.main.model_type.currentIndex==3 and translator.get_code(show_text=config.params['source_language']) not in ['zh-cn','zh-tw']:
             self.update_status('stop')
             return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
         if self.main.model_type.currentIndex==3 and not config.params['zh_recogn_api']:
@@ -1159,7 +1178,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['translate_type'] = self.main.translate_type.currentText()
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
-            rs = is_allow_translate(translate_type=config.params['translate_type'],
+            rs = translator.is_allow_translate(translate_type=config.params['translate_type'],
                                     show_target=config.params['target_language'])
             if rs is not True:
                 # 不是True，有错误
@@ -1197,42 +1216,44 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
-        if btnkey and btnkey in self.main.processbtns:
-            if btnkey != 'srt2wav' and btnkey not in self.main.task.tasklist:
-                return
-            if type == 'succeed':
-                text, basename = text.split('##')
-                self.main.processbtns[btnkey].setTarget(text)
+        if not btnkey or btnkey not in self.main.processbtns:
+            return
+        if not self.main.task:
+            return
+        if btnkey=='srt2wav' and  self.main.task and self.main.task.video:
+            jindu = f' {round(self.main.task.video.precent, 1)}% '
+            self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
+            raw_name = self.main.task.video.raw_basename
+            self.main.processbtns[btnkey].setText(f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
+            return
+
+        if type == 'succeed':
+            text, basename = text.split('##')
+            self.main.processbtns[btnkey].setTarget(text)
+            self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
+            text = f'{config.transobj["endandopen"]} {basename}'
+            self.main.processbtns[btnkey].setText(text)
+            self.main.processbtns[btnkey].progress_bar.setValue(100)
+            self.main.processbtns[btnkey].setToolTip(config.transobj['mubiao'])
+        elif type == 'error' or type == 'stop':
+            self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
+            if type=='error':
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
-                text = f'{config.transobj["endandopen"]} {basename}'
-                self.main.processbtns[btnkey].setText(text)
-                self.main.processbtns[btnkey].progress_bar.setValue(100)
-                self.main.processbtns[btnkey].setToolTip(config.transobj['mubiao'])
-            elif type == 'error' or type == 'stop':
-                self.main.processbtns[btnkey].setStyleSheet('color:#ff0000')
-                self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
-                if type=='error':
-                    self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
-                    self.main.processbtns[btnkey].setMsg(
-                        text+f'{config.errorlist[btnkey] if btnkey in config.errorlist else "" }'
-                    )
-                self.main.processbtns[btnkey].setText(text[:180])
-            elif btnkey != 'srt2wav':
-                jindu = ""
-                if self.main.task and btnkey in self.main.task.tasklist:
-                    jindu = f' {round(self.main.task.tasklist[btnkey].precent, 1)}% '
-                    self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.tasklist[btnkey].precent))
-                raw_name = self.main.task.tasklist[btnkey].raw_basename
-                self.main.processbtns[btnkey].setText(
-                    f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
+                self.main.processbtns[btnkey].setMsg(
+                    text+f'\n\n{config.errorlist[btnkey] if btnkey in config.errorlist and config.errorlist[btnkey]!=text else "" }'
+                )
+                self.main.processbtns[btnkey].setToolTip('点击查看详细报错' if config.defaulelang=='zh' else 'Click to view the detailed error report')
             else:
-                jindu = ""
-                if self.main.task and self.main.task.video:
-                    jindu = f' {round(self.main.task.video.precent, 1)}% '
-                    self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
-                raw_name = self.main.task.video.raw_basename
-                self.main.processbtns[btnkey].setText(
-                    f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
+                self.main.processbtns[btnkey].setToolTip('')
+            self.main.processbtns[btnkey].setText(text[:120])
+        elif btnkey in self.main.task.tasklist:
+            jindu = f' {round(self.main.task.tasklist[btnkey].precent, 1)}% '
+            self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.tasklist[btnkey].precent))
+            raw_name = self.main.task.tasklist[btnkey].raw_basename
+            self.main.processbtns[btnkey].setToolTip(config.transobj["endopendir"])
+            self.main.processbtns[btnkey].setText(
+                f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
+
 
     # 更新执行状态
     def update_status(self, type):

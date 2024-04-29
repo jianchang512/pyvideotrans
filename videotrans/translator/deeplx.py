@@ -39,7 +39,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             break
         if iter_num >= config.settings['retries']:
             raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+                f'DeepLx:{iter_num}{"次重试后依然出错，请更换翻译渠道" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
         iter_num += 1
         if iter_num > 1:
             if set_p:
@@ -73,15 +73,13 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 config.logger.info(f'data,{i=}, {data}')
 
                 response = requests.post(url=url, json=data, proxies=proxies)
-                if response.status_code!=200:
-                    raise Exception(f'code={response.status_code}')
                 try:
                     result = response.json()
                 except Exception as e:
-                    raise Exception(f'{response.text=},{str(e)}')
+                    raise Exception(f'DeepLx请更换翻译渠道:{response.text=}')
                 result=result['data'].strip().replace('&#39;','"').replace('&quot;',"'")
                 if not result:
-                    raise Exception(f'{response.text=}')
+                    raise Exception(f'DeepLx请更换翻译渠道:{response.text=}')
                 result=result.split("\n")
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
@@ -100,7 +98,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 iter_num=0
             except Exception as e:
                 error = str(e)
-                config.logger.info(f'DeepLx {error}')
+                config.logger.error(f'DeepLx {error}')
                 err=error
                 index=i
                 break

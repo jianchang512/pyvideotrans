@@ -276,6 +276,10 @@ class TransCreate():
         # 如果移动了，删除移动后的文件
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
+        # 提取时，删除
+        if self.app_mode=='tiqu':
+            Path(f'{self.obj["output"]}/{self.source_language_code}.srt').unlink(missing_ok=True)
+            Path(f'{self.obj["output"]}/{self.target_language_code}.srt').unlink(missing_ok=True)
         #删除临时文件
         shutil.rmtree(self.cache_folder, ignore_errors=True)
         # 批量不允许编辑字幕
@@ -388,29 +392,29 @@ class TransCreate():
                 cache_folder=self.cache_folder,
                 is_cuda=self.config_params['cuda'],
                 inst=self)
+            self._unlink(self.shibie_audio)
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
-            self.regcon_end = True
             raise Exception(f'{msg}')
-        finally:
-            self._unlink(self.shibie_audio)
+
 
         if not raw_subtitles or len(raw_subtitles) < 1:
             self.regcon_end = True
-            self._unlink(self.shibie_audio)
             raise Exception(self.obj['raw_basename'] + config.transobj['recogn result is empty'].replace('{lang}',
                                                                                                          self.config_params['source_language']))
         self._save_srt_target(raw_subtitles, self.targetdir_source_sub)
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
+        # 仅提取字幕
+        if self.app_mode=='tiqu':
+            shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{self.obj["raw_noextname"]}.srt')
+            if self.config_params['target_language'] == '-' or  self.config_params['target_language'] == self.config_params['source_language']:
+                self.compose_end=True
+           
+                
         # 删除识别音频
-        try:
-            os.unlink(self.shibie_audio)
-        except Exception:
-            pass
-        self._unlink(self.shibie_audio)
         self.regcon_end = True
         return True
 
@@ -453,9 +457,9 @@ class TransCreate():
             time.sleep(2)
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
         if not tools.vail_file(self.targetdir_source_sub) or tools.vail_file(self.targetdir_target_sub):
+            self.trans_end = True
             if self.app_mode == 'tiqu':
                 self.compose_end = True
-            self.trans_end = True
             if self.obj and self.obj['output']!=self.obj['linshi_output'] and tools.vail_file(self.targetdir_target_sub):
                 shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
             return True
@@ -475,22 +479,28 @@ class TransCreate():
                 inst=self,
                 source_code=self.source_language_code)
         except Exception as e:
+            self.trans_end = True
             raise Exception(e)
         self._save_srt_target(target_srt, self.targetdir_target_sub)
-        if self.app_mode == 'tiqu':
-            self.compose_end = True
         self.trans_end = True
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             shutil.copy2(self.targetdir_target_sub, f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
+        # 仅提取，该名字删原
+        if self.app_mode == 'tiqu':
+            shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{self.obj["raw_noextname"]}-{self.target_language_code}.srt')
+            self.compose_end = True            
         return True
 
     # 配音处理
     def dubbing(self):
         self.precent += 3
         config.task_countdown = 0 if self.app_mode == 'biaozhun_jd' else config.settings['countdown_sec']
+        if self.app_mode in ['tiqu']:
+            self.compose_end=True
+            return True
 
         # 不需要配音
-        if self.app_mode in ['tiqu', 'hebing'] or \
+        if self.app_mode in ['hebing'] or \
                 self.config_params['voice_role'] == 'No' or \
                 not tools.vail_file(self.targetdir_target_sub):
             self.dubb_end = True
