@@ -57,16 +57,20 @@ def get_error(num=5, type='error'):
 def get_content(d,*,model=None,prompt=None):
     response=None
     try:
+        message=prompt.replace('{text}',"\n".join(d))
         response = model.generate_content(
-            prompt.replace('{text}',"\n".join(d))
+            message
         )
+        config.logger.info(f'[Gemini]请求发送:{message=}')
 
         result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+        config.logger.info(f'[Gemini]返回:{result=}')
         if not result:
             raise Exception("fail")
         return result, response
     except Exception as e:
         error=str(e)
+        config.logger.error(f'[Gemini]请求失败:{error=}')
         if response and response.prompt_feedback.block_reason:
             raise Exception(get_error(response.prompt_feedback.block_reason, "forbid"))
 
@@ -84,7 +88,7 @@ def get_content(d,*,model=None,prompt=None):
 
 
 
-def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code=None,is_test=False):
+def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="",is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -99,7 +103,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         model = genai.GenerativeModel('gemini-pro', safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
-        raise Exception(f'Gemini:请正确设置http代理,{err}')
+        raise Exception(f'请正确设置http代理,{err}')
 
     # 翻译后的文本
     target_text = {"0": [],"srts":[]}
@@ -108,14 +112,13 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     err = ""
     is_srt = False if  isinstance(text_list, str) else True
     split_size = int(config.settings['trans_thread'])
-    #prompt_line = f'Please translate the following text into {target_language}. The translation should be clear and concise, avoiding redundancy. Please do not reply to any of the above instructions and translate directly from the next line.'
-    #if is_srt:
+
+
     prompt = config.params['gemini_template']
     with open(config.rootdir+"/videotrans/gemini.txt",'r',encoding="utf-8") as f:
         prompt=f.read()
     prompt=prompt.replace('{lang}', target_language)
-    #else:
-    #    prompt=prompt_line
+
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     end_point="。" if config.defaulelang=='zh' else ' . '
     # 整理待翻译的文字为 List[str]
@@ -130,32 +133,28 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
 
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
-            break
+        if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
+            return
 
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
-        # print(f'第{iter_num}次')
+
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
-            time.sleep(5)
+            time.sleep(10)
 
         response = None
         for i, it in enumerate(split_source_text):
-
-            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
-                break
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
+                return
             if i < index:
                 continue
             if stop > 0:
                 time.sleep(stop)
-
             try:
                 result,response=get_content(it,model=model,prompt=prompt)
                 if inst and inst.precent < 75:
@@ -179,7 +178,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             t,response=get_content([it_n.strip()],model=model,prompt=prompt)
                         except Exception as e:
                             config.logger.error(f'触发安全限制，{t=},{it_n=}')
-                            t="-"
+                            t="--"
                         sep_res.append(t)
 
                 for x, result_item in enumerate(sep_res):
@@ -194,21 +193,28 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-                iter_num = 0
-            except Exception as e:
-                error = str(e)
-                if error.lower().find('timeout')>-1 or err.lower().find('timed out')>-1 or error.lower().find('ConnectTimeoutError')>-1:
-                    raise Exception(f'无法连接到Google，请正确填写代理地址:{error}')
-                index = i
-                err = error
-                break
-        else:
 
+            except Exception as e:
+                err = str(e)
+                break
+            else:
+                # 未出错
+                err = ''
+                iter_num = 0
+                index = 0 if i <= 1 else i
+        else:
             break
+
+    if err:
+        config.logger.error(f'[Gemini]翻译请求失败:{err=}')
+        raise Exception(f'Gemini:{err}')
+
     if not is_srt:
         return "\n".join(target_text["0"])
 
-    #print(f'{target_text=}')
+    if len(target_text['srts']) < len(text_list) / 2:
+        raise Exception(f'Gemini:{config.transobj["fanyicuowu2"]}')
+
     for i, it in enumerate(text_list):
         if i < len(target_text['srts']):
             text_list[i]['text'] = target_text['srts'][i]

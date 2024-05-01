@@ -625,13 +625,13 @@ def zh_recogn(audio_file=None, cache_folder=None, set_p=None, inst=None):
         tools.set_process(f"识别可能较久，请耐心等待，进度可查看zh_recogn终端", 'logs',btnkey=inst.btnkey if inst else "")
     try:
         res=requests.post(f"{api_url}",files=files,proxies={"http":"","https":""},timeout=3600)
-        config.logger.info(f'clone-voice{res=}')
+        config.logger.info(f'zh_recogn:{res=}')
     except Exception as e:
         raise Exception(e)
-
-    res = res.json()
-    if "code" not in res or res['code'] != 0:
-        raise Exception(f'{res["msg"]}')
-    if "data" not in res or len(res['data'])<1:
-        raise Exception('识别出错')
-    return res['data']
+    else:
+        res = res.json()
+        if "code" not in res or res['code'] != 0:
+            raise Exception(f'{res["msg"]}')
+        if "data" not in res or len(res['data'])<1:
+            raise Exception('识别出错')
+        return res['data']

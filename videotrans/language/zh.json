@@ -1,5 +1,11 @@
 {
   "translate_language": {
+	"chaochu255":"视频路径加名称过长，请缩短视频名称并移动到简短路径下，避免后续出错",  
+	"teshufuhao":"视频路径或名称中请勿存在 + & ? : | 等特殊符号，以避免后续出错",  
+	  
+    "notjson": "返回响应不是有效json数据",
+    "fanyicuowu2": "翻译出错数量超过一半，请检查",
+
     "azureinfo": "必须正确填写 Azure TTS 的相关信息",
 
     "yuchulichucuo": "预处理阶段出错",
@@ -236,7 +242,7 @@
     "onlyruanzimu": "正在嵌入软字幕，无配音",
     "zimuhangshu": "当前字幕行数 ",
     "huituicpu": "GPU上执行出错，回退到CPU执行",
-    "zimuwenjianbuzhengque": "字幕文件不正确，尺寸是0",
+    "zimuwenjianbuzhengque": "字幕文件不正确，无有效字幕",
     "mansuchucuo": "视频自动慢速出错，请尝试取消‘视频自动慢速’选项",
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },

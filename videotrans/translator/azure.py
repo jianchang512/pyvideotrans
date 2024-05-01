@@ -13,16 +13,18 @@ def get_content(d,*,model=None,prompt=None):
         {'role': 'user', 'content': prompt.replace('[TEXT]',"\n".join(d))},
     ]
 
-    config.logger.info(f"\n[Azure start]待翻译:{message=}")
+    config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
     try:
         response = model.chat.completions.create(
             model=config.params["azure_model"],
             messages=message
         )
-        config.logger.info(f'Azure 返回响应:{response}')
+        config.logger.info(f'[AzureGPT]返回响应:{response=}')
     except APIError as e:
+        config.logger.error(f'[AzureGPT]请求失败:{str(e)}')
         raise Exception(f'{e.message=}')
     except Exception as e:
+        config.logger.error(f'[AzureGPT]请求失败:{str(e)}')
         raise Exception(e)
 
     if response.choices:
@@ -30,11 +32,12 @@ def get_content(d,*,model=None,prompt=None):
     elif response.data and response.data['choices']:
         result = response.data['choices'][0]['message']['content'].strip()
     else:
-        raise Exception(f"[error]:Azure {response}")
+        config.logger.error(f'[AzureGPT]请求失败:{response=}')
+        raise Exception(f"{response}")
     result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
     return result, response
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code="",is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -59,13 +62,12 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     is_srt=False if isinstance(text_list, str) else True
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
-    #if is_srt and split_size>1:
+
     prompt = config.params['azure_template'].replace('{lang}', target_language)
     with open(config.rootdir+"/videotrans/azure.txt",'r',encoding="utf-8") as f:
         prompt=f.read()
     prompt=prompt.replace('{lang}', target_language)
-    #else:
-    #    prompt=prompt_line
+
     end_point="。" if config.defaulelang=='zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
@@ -79,20 +81,17 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
     response=None
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
+            return
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
-
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
-            time.sleep(5)
+            time.sleep(10)
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
@@ -103,8 +102,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
 
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
-                break
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
+                return
             if i<index:
                 continue
             if stop>0:
@@ -138,20 +137,27 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 if len(sep_res)<len(it):
                     tmp=["" for x in range(len(it)-len(sep_res))]
                     target_text["srts"]+=tmp
-                iter_num=0
+
             except Exception as e:
-                error = str(e)+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
-                if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
-                    raise Exception(f'无法连接到Azure，请正确填写代理地址:{error}')
-                err = error
-                index = i
+                err = str(e)
                 break
+            else:
+                # 未出错
+                err=''
+                iter_num=0
+                index=0 if i<=1 else i
         else:
             break
 
 
+    if err:
+        config.logger.error(f'[AzureGPT]翻译请求失败:{err=}')
+        raise Exception(f'AzureGPT:{err}')
+
     if not is_srt:
         return "\n".join(target_text["0"])
+    if len(target_text['srts']) < len(text_list) / 2:
+        raise Exception(f'AzureGPT:{config.transobj["fanyicuowu2"]}')
 
     for i, it in enumerate(text_list):
         line=str(it["line"])

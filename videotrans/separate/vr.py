@@ -39,7 +39,7 @@ class AudioPre:
         self.model = model
 
     def _path_audio_(
-        self, music_file, ins_root=None, format="wav", is_hp3=False
+        self, music_file, ins_root=None, format="wav", is_hp3=False,btnkey=None
     ):
         if ins_root is None:
             return "No save root."
@@ -104,7 +104,7 @@ class AudioPre:
         }
         with torch.no_grad():
             pred, X_mag, X_phase = inference(
-                X_spec_m, self.device, self.model, aggressiveness, self.data,self.source
+                X_spec_m, self.device, self.model, aggressiveness, self.data,self.source,btnkey=btnkey
             )
         # Postprocess
         if self.data["postprocess"]:

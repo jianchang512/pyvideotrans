@@ -8,7 +8,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code="",is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -19,6 +19,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     """
     # 翻译后的文本
     url=config.params['trans_api_url'].strip().rstrip('/').lower()
+    if not url:
+        raise Exception(f'Please input your api')
     if not url.startswith('http'):
         url=f"http://{url}"
     if url.find('?')>0:
@@ -39,13 +41,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
+            return
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err =f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
         if iter_num > 1:
             if set_p:
@@ -63,8 +63,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response=None
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
-                break
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
+                return
             if i < index:
                 continue
             if stop>0:
@@ -77,20 +77,26 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "source_language": 'zh' if source_code.startswith('zh') else source_code,
                     "target_language": 'zh' if target_language.startswith('zh') else  target_language
                 }
-                config.logger.info(f'data,{i=}, {data}')
+                requrl=f"{url}target_language={data['target_language']}&source_language={data['source_language']}&text={data['text']}&secret={data['secret']}"
+                config.logger.info(f'[TransAPI]请求数据：{requrl=}')
 
-                response = requests.get(url=f"{url}target_language={data['target_language']}&source_language={data['source_language']}&text={data['text']}&secret={data['secret']}",proxies=proxies)
+                response = requests.get(url=requrl,proxies=proxies)
+                config.logger.info(f'[TransAPI]返回:{response.text=}')
                 if response.status_code!=200:
-                    raise Exception(f'code={response.status_code},{response.text}')
+                    err=f'code={response.status_code=},{response.text}'
+                    break
                 try:
                     result = response.json()
-                    if result["code"]!=0:
-                        raise result['msg']
                 except Exception as e:
-                    raise Exception(f'{str(e)}')
+                    err=config.transobj['notjson']+response.text
+                    break
+                if result["code"]!=0:
+                    err=result['msg']
+                    break
                 result=result['text'].strip().replace('&#39;','"').replace('&quot;',"'")
                 if not result:
-                    raise Exception(f'{response.text=}')
+                    err=f'{response.text=}'
+                    break
 
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
@@ -102,20 +108,29 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(result+"\n\n", func_name="set_fanyi")
 
                 target_text.append(result)
-                iter_num=0
+
             except Exception as e:
-                error = str(e)
-                config.logger.info(f'Transapi {error}')
-                err=error
-                index=i
+                err = str(e)
                 break
+            else:
+                # 未出错
+                err=''
+                iter_num=0
+                index=0 if i<=1 else i
         else:
             break
+
+    if err:
+        config.logger.error(f'[TransAPI]翻译请求失败:{err=}')
+        raise Exception(f'Trans_API:{err}')
 
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
     max_i = len(target_text)
+    if max_i < len(text_list) / 2:
+        raise Exception(f'Trans_API:{config.transobj["fanyicuowu2"]}')
+
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]

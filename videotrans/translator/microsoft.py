@@ -4,7 +4,7 @@ import requests
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -27,14 +27,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             'https': serv
         }
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing':
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
+            return
         if iter_num >= config.settings['retries']:
-            if err.find("timeout")>-1 and config.defaulelang == "zh":
-                err=f'{iter_num}次重试后依然出错,请尝试挂代理并填写代理地址，或者更换其他翻译渠道'
-            raise Exception(f'{err}')
+            err=f'{err}'
+            break
         iter_num += 1
         if iter_num > 1:
             if set_p:
@@ -58,9 +55,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         try:
             auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers,proxies=proxies)
         except:
-            raise Exception('连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang=='zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel')
+            err='连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang=='zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel'
+            continue
+
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing':
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
                 break
             if i < index:
                 continue
@@ -71,44 +70,58 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 text = "\n".join(it)
                 url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={target_language}&api-version=3.0&includeSentenceLength=true"
                 headers['Authorization']=f"Bearer {auth.text}"
+                config.logger.info(f'[Mircosoft]请求数据:{url=},{auth.text=}')
                 response = requests.post(url,  json=[{"Text":text}],headers=headers, timeout=300,proxies=proxies)
+                config.logger.info(f'[Mircosoft]返回:{response.text=}')
                 if response.status_code != 200:
-                    config.logger.info(f'Microsoft 返回响应:{response.text}\nurl={url}')
-                    raise Exception(f'{response.status_code=}')
+                    err=f'{response.status_code=}'
+                    break
+                try:
+                    re_result=response.json()
+                except Exception:
+                    err=config.transobj['notjson']+response.text
+                    break
 
-                re_result=response.json()
-                if len(re_result)>0 and len(re_result[0]['translations'])>0:
-                    result=re_result[0]['translations'][0]['text'].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
-                    if inst and inst.precent < 75:
-                        inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
-                    if set_p:
-                        tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
-                        tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.btnkey if inst else "")
-                    else:
-                        tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                    result_length=len(result)
-                    config.logger.info(f'{result_length=},{source_length=}')
-                    while result_length<source_length:
-                        result.append("")
-                        result_length+=1
-                    result=result[:source_length]
-                    target_text.extend(result)
-                    iter_num=0
+                if len(re_result)==0 or len(re_result[0]['translations'])==0:
+                    err=f'{re_result}'
+                    break
+
+                result=re_result[0]['translations'][0]['text'].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                if inst and inst.precent < 75:
+                    inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
+                if set_p:
+                    tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
+                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.btnkey if inst else "")
                 else:
-                    raise Exception(f'Microsoft no result:{re_result}')
+                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
+                result_length=len(result)
+                config.logger.info(f'{result_length=},{source_length=}')
+                while result_length<source_length:
+                    result.append("")
+                    result_length+=1
+                result=result[:source_length]
+                target_text.extend(result)
             except Exception as e:
-                error = str(e)
-                config.logger.error(error)
-                err=error
-                index=i
+                err=f'{str(e)}'
                 break
+            else:
+                err=''
+                index=0 if i<=1 else i
+                iter_num=0
         else:
             break
+
+    if err:
+        config.logger.error(f'[Mircosoft]翻译请求失败:{err=}')
+        raise Exception(f'Mircosoft:{err}')
 
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
     max_i = len(target_text)
+    if max_i < len(text_list)/2:
+        raise Exception(f'Mircosoft:{config.transobj["fanyicuowu2"]}')
+
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]

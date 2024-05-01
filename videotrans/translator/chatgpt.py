@@ -35,7 +35,7 @@ def create_openai_client():
     try:
         client = OpenAI(base_url=api_url,http_client=httpx.Client(proxies=proxies))
     except Exception as e:
-        raise Exception(f'chatGPT API={api_url},{str(e)}')
+        raise Exception(f'API={api_url},{str(e)}')
     return client,api_url
 
 def get_content(d,*,model=None,prompt=None):
@@ -43,16 +43,18 @@ def get_content(d,*,model=None,prompt=None):
         {'role': 'system', 'content': "You are a professional, authentic translation engine, only returns translations."},
         {'role': 'user', 'content':  prompt.replace('[TEXT]',"\n".join(d))},
     ]
-    config.logger.info(f"\n[chatGPT start]待翻译:{message=}")
+    config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
     try:
         response = model.chat.completions.create(
             model=config.params['chatgpt_model'],
             messages=message
         )
-        config.logger.info(f'chatGPT 返回响应:{response}')
+        config.logger.info(f'[chatGPT]响应:{response=}')
     except APIError as e:
+        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
         raise Exception(f'{e.message=}')
     except Exception as e:
+        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
         raise Exception(e)
 
     if response.choices:
@@ -60,13 +62,14 @@ def get_content(d,*,model=None,prompt=None):
     elif response.data and response.data['choices']:
         result = response.data['choices'][0]['message']['content'].strip()
     else:
-        raise Exception(f"chatGPT {response}")
+        config.logger.error(f'[chatGPT]请求失败:{response=}')
+        raise Exception(f"{response}")
 
     result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
     return result,response
 
 
-def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code=None,is_test=False):
+def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code="",is_test=False):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -91,8 +94,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         prompt=f.read()
     prompt=prompt.replace('{lang}', target_language)
 
-    #else:
-    #    prompt=prompt_line
+
     end_point="。" if config.defaulelang=='zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
@@ -106,25 +108,25 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
     response=None
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing' and not is_test:
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
+            return
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
-            time.sleep(5)
+            time.sleep(10)
+
         client,api_url = create_openai_client()
+        config.logger.info(f'[chatGPT],{api_url=}')
 
 
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing' and not is_test:
-                break
+            if config.exit_soft or  (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
+                return
             if i < index:
                 continue
             if stop>0:
@@ -161,23 +163,28 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 if len(sep_res)<len(it):
                     tmp=["" for x in range(len(it)-len(sep_res))]
                     target_text["srts"]+=tmp
-                iter_num=0
+
             except Exception as e:
-                error=str(e)
-                if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
-                    raise Exception(f'无法连接到 {api_url}，请正确填写代理地址:{error}')
-                if source_code is not None:
-                    err =error+f'目标文件夹下{source_code}.srt文件第{(i*split_size)+1}条开始的{split_size}条字幕'
-                else:
-                    err=error+f", {api_url=}"
-                index = i
+                err=str(e)
                 break
+            else:
+                # 未出错
+                err=''
+                iter_num=0
+                index=0 if i<=1 else i
         else:
             break
 
+    if err:
+        config.logger.error(f'[ChatGPT]翻译请求失败:{err=}')
+        raise Exception(f'ChatGPT:{err}')
 
     if not is_srt:
         return "\n".join(target_text["0"])
+
+    if len(target_text['srts']) < len(text_list)/2:
+        raise Exception(f'ChatGPT:{config.transobj["fanyicuowu2"]},{config.params["chatgpt_api"]}')
+
     for i, it in enumerate(text_list):
         if i< len(target_text['srts']):
             text_list[i]['text'] = target_text['srts'][i]

@@ -316,7 +316,7 @@ class TransCreate():
             # 背景分离音
             try:
                 tools.set_process(config.transobj['Separating background music'], btnkey=self.btnkey)
-                tools.split_audio_byraw(self.source_mp4, self.targetdir_source_wav, True)
+                tools.split_audio_byraw(self.source_mp4, self.targetdir_source_wav, True,btnkey=self.btnkey)
             except Exception as e:
                 pass
             finally:
@@ -355,20 +355,11 @@ class TransCreate():
             self.regcon_end = True
             self._unlink(self.shibie_audio)
             return True
-        if tools.vail_file(self.targetdir_source_sub):
-            self.regcon_end = True
+        if self._srt_vail(self.targetdir_source_sub):
+            # 判断已存在的字幕文件中是否存在有效字幕纪录
             if self.obj and self.obj['output']!=self.obj['linshi_output']:
                 shutil.copy2(self.targetdir_source_sub,f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
-            self._unlink(self.shibie_audio)
-            return True
-        #####识别阶段 存在已识别后的字幕，并且不存在目标语言字幕，则更新替换界面字幕
-        if tools.vail_file(self.targetdir_target_sub):
-            # 通知前端替换字幕
-            with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
-                tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
             self.regcon_end = True
-            if self.obj and self.obj['output']!=self.obj['linshi_output']:
-                shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
             self._unlink(self.shibie_audio)
             return True
 
@@ -398,26 +389,33 @@ class TransCreate():
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
             raise Exception(f'{msg}')
+        else:
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                self.regcon_end = True
+                raise Exception(self.obj['raw_basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.config_params['source_language']))
+            self._save_srt_target(raw_subtitles, self.targetdir_source_sub)
 
+            if self.obj and self.obj['output'] != self.obj['linshi_output']:
+                shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
+            # 仅提取字幕
+            if self.app_mode=='tiqu':
+                shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{self.obj["raw_noextname"]}.srt')
+                if self.config_params['target_language'] == '-' or  self.config_params['target_language'] == self.config_params['source_language']:
+                    self.compose_end=True
 
-        if not raw_subtitles or len(raw_subtitles) < 1:
-            self.regcon_end = True
-            raise Exception(self.obj['raw_basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                         self.config_params['source_language']))
-        self._save_srt_target(raw_subtitles, self.targetdir_source_sub)
-        if self.obj and self.obj['output'] != self.obj['linshi_output']:
-            shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{Path(self.targetdir_source_sub).name}')
-        # 仅提取字幕
-        if self.app_mode=='tiqu':
-            shutil.copy2(self.targetdir_source_sub, f'{self.obj["output"]}/{self.obj["raw_noextname"]}.srt')
-            if self.config_params['target_language'] == '-' or  self.config_params['target_language'] == self.config_params['source_language']:
-                self.compose_end=True
-           
-                
-        # 删除识别音频
         self.regcon_end = True
         return True
 
+    #字幕是否存在并且有效
+    def _srt_vail(self,file):
+        if not tools.vail_file(file):
+            return False
+        try:
+            tools.get_subtitle_from_srt(file)
+        except Exception:
+            self._unlink(file)
+            return False
+        return True
     # 翻译字幕
     def trans(self):
         self.precent += 3
@@ -431,7 +429,8 @@ class TransCreate():
         config.task_countdown = 0 if self.app_mode == 'biaozhun_jd' else config.settings['countdown_sec']
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
-        if tools.vail_file(self.targetdir_target_sub):
+        if self._srt_vail(self.targetdir_target_sub):
+            # 判断已存在的字幕文件中是否存在有效字幕纪录
             # 通知前端替换字幕
             with open(self.targetdir_target_sub, 'r', encoding="utf-8", errors="ignore") as f:
                 tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.btnkey)
@@ -439,6 +438,7 @@ class TransCreate():
                 if self.obj and self.obj['output'] != self.obj['linshi_output']:
                     shutil.copy2(self.targetdir_target_sub,
                                  f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
+                self.trans_end = True
                 return True
 
         # 批量不允许修改字幕
@@ -455,8 +455,9 @@ class TransCreate():
             # 禁止修改字幕
             tools.set_process('translate_start', 'timeout_djs', btnkey=self.btnkey)
             time.sleep(2)
+
         # 如果不存在原字幕，或已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
-        if not tools.vail_file(self.targetdir_source_sub) or tools.vail_file(self.targetdir_target_sub):
+        if self._srt_vail(self.targetdir_target_sub):
             self.trans_end = True
             if self.app_mode == 'tiqu':
                 self.compose_end = True
@@ -481,14 +482,15 @@ class TransCreate():
         except Exception as e:
             self.trans_end = True
             raise Exception(e)
-        self._save_srt_target(target_srt, self.targetdir_target_sub)
-        self.trans_end = True
-        if self.obj and self.obj['output'] != self.obj['linshi_output']:
-            shutil.copy2(self.targetdir_target_sub, f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
-        # 仅提取，该名字删原
-        if self.app_mode == 'tiqu':
-            shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{self.obj["raw_noextname"]}-{self.target_language_code}.srt')
-            self.compose_end = True            
+        else:
+            self._save_srt_target(target_srt, self.targetdir_target_sub)
+            self.trans_end = True
+            if self.obj and self.obj['output'] != self.obj['linshi_output']:
+                shutil.copy2(self.targetdir_target_sub, f'{self.obj["output"]}/{Path(self.targetdir_target_sub).name}')
+            # 仅提取，该名字删原
+            if self.app_mode == 'tiqu':
+                shutil.copy2(self.targetdir_target_sub,f'{self.obj["output"]}/{self.obj["raw_noextname"]}-{self.target_language_code}.srt')
+                self.compose_end = True
         return True
 
     # 配音处理

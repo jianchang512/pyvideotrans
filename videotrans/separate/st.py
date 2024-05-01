@@ -15,7 +15,7 @@ from videotrans.util import tools
 import hashlib
 
 
-def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
+def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=None):
     infos = []
     try:
         func = AudioPre
@@ -35,7 +35,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
                 need_reformat = 0
                 pre_fun._path_audio_(
                     inp_path,
-                    ins_root=save_root
+                    ins_root=save_root,btnkey=btnkey
                 )
                 done = 1
             else:
@@ -60,7 +60,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
         try:
             if done == 0:
                 pre_fun._path_audio_(
-                    inp_path, ins_root=save_root
+                    inp_path, ins_root=save_root,btnkey=btnkey
                 )
             infos.append("%s->Success" % (os.path.basename(inp_path)))
             yield "\n".join(infos)
@@ -68,7 +68,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs"):
             try:
                 if done == 0:
                     pre_fun._path_audio_(
-                        inp_path, ins_root=save_root
+                        inp_path, ins_root=save_root,btnkey=btnkey
                     )
                 infos.append("%s->Success" % (os.path.basename(inp_path)))
                 yield "\n".join(infos)
@@ -106,13 +106,13 @@ def convert_to_pure_eng_num(string):
 
 
 # path 是需要保存vocal.wav的目录
-def start(audio,path,source="logs"):
+def start(audio,path,source="logs",btnkey=None):
     dist=int(config.settings['separate_sec'])
     try:
         # 获取总时长秒
         sec=tools.get_audio_time(audio)
         #if sec<=dist:
-        gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source)
+        gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source,btnkey=btnkey)
         print(next(gr))
         print(next(gr))
     except Exception as e:

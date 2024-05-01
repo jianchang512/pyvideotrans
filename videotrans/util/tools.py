@@ -368,7 +368,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
 
 
 # 从原始视频中分离出音频 cuda + h264_cuvid
-def split_audio_byraw(source_mp4, targe_audio, is_separate=False):
+def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
     cmd = [
         "-y",
         "-i",
@@ -405,7 +405,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False):
         if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
-                st.start(audio=tmpfile, path=path)
+                st.start(audio=tmpfile, path=path,btnkey=btnkey)
             except Exception as e:
                 msg = f"separate vocal and background music:{str(e)}"
                 set_process(msg)
@@ -702,6 +702,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
+    if len(new_result)<1:
+        raise Exception(config.transobj['zimuwenjianbuzhengque'])
 
     return new_result
 
