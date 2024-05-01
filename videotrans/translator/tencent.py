@@ -7,7 +7,7 @@ from tencentcloud.tmt.v20180321 import tmt_client, models
 from videotrans.configure import config
 from videotrans.util import tools
 
-def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -23,19 +23,17 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing':
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
+            return
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err = f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
-            time.sleep(5)
+            time.sleep(10)
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
             source_text = text_list.strip().split("\n")
@@ -58,8 +56,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         client = tmt_client.TmtClient(cred, "ap-beijing", clientProfile)
 
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing':
-                break
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
+                return
             if i < index:
                 continue
             if stop>0:
@@ -74,10 +72,12 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "Target": target_language,
                     "ProjectId": 0
                 }
+                config.logger.info(f'[腾讯]请求数据:{params=}')
                 req.from_json_string(json.dumps(params))
                 # 返回的resp是一个TextTranslateResponse的实例，与请求对象对应
                 resp = client.TextTranslate(req)
-                result = resp.TargetText.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")#json.loads(resp.TargetText)
+                config.logger.info(f'[腾讯]返回:{resp.TargetText=}')
+                result = resp.TargetText.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
@@ -91,20 +91,27 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
-                iter_num=0
+
             except Exception as e:
-                error = str(e)
-                config.logger.error(f"tencent api error:{error}" )
-                err=error
-                index=i
+                err = str(e)
                 break
+            else:
+                # 未出错
+                err=''
+                iter_num=0
+                index=0 if i<=1 else i
         else:
             break
 
+    if err:
+        config.logger.error(f'[腾讯翻译]翻译请求失败:{err=}')
+        raise Exception(f'腾讯翻译:{err}')
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
     max_i = len(target_text)
+    if max_i < len(text_list) / 2:
+        raise Exception(f'腾讯翻译:翻译出错数量超过一半，请检查')
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]

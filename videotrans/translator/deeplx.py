@@ -6,7 +6,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=None):
+def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -33,19 +33,17 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     while 1:
-        if config.exit_soft:
-            return False
-        if config.current_status!='ing' and config.box_trans!='ing':
-            break
+        if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
+            return
         if iter_num >= config.settings['retries']:
-            raise Exception(
-                f'DeepLx:{iter_num}{"次重试后依然出错，请更换翻译渠道" if config.defaulelang == "zh" else " retries after error persists "}:{err}')
+            err=f'{iter_num}{"次重试后依然出错，请更换翻译渠道" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            break
         iter_num += 1
         if iter_num > 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
-            time.sleep(5)
+            time.sleep(10)
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
             source_text = text_list.strip().split("\n")
@@ -57,8 +55,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response=None
         for i,it in enumerate(split_source_text):
-            if config.current_status != 'ing' and config.box_trans != 'ing':
-                break
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
+                return
             if i < index:
                 continue
             if stop>0:
@@ -70,16 +68,19 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "source_lang": "auto",
                     "target_lang": 'zh' if target_language.startswith('zh') else  target_language
                 }
-                config.logger.info(f'data,{i=}, {data}')
+                config.logger.info(f'[DeepLX]发送请求数据,{data=}')
 
                 response = requests.post(url=url, json=data, proxies=proxies)
+                config.logger.info(f'[DeepLX]返回响应,{response.text=}')
                 try:
                     result = response.json()
                 except Exception as e:
-                    raise Exception(f'DeepLx请更换翻译渠道:{response.text=}')
+                    err=config.transobj['notjson']+response.text
+                    break
                 result=result['data'].strip().replace('&#39;','"').replace('&quot;',"'")
                 if not result:
-                    raise Exception(f'DeepLx请更换翻译渠道:{response.text=}')
+                    err=f'无有效返回，{response.text=}'
+                    break
                 result=result.split("\n")
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
@@ -95,20 +96,27 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
-                iter_num=0
             except Exception as e:
-                error = str(e)
-                config.logger.error(f'DeepLx {error}')
-                err=error
-                index=i
+                err = str(e)
                 break
+            else:
+                # 未出错
+                err=''
+                iter_num=0
+                index=0 if i<=1 else i
         else:
             break
+    if err:
+        config.logger.error(f'[DeepLX]翻译请求失败:{err=}')
+        raise Exception(f'DeepLX:{err}')
 
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
     max_i = len(target_text)
+    if max_i < len(text_list) / 2:
+        raise Exception(f'DeepLX:{config.transobj["fanyicuowu2"]}')
+
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]

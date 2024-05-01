@@ -26,7 +26,7 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data,source="logs"):
+def inference(X_spec, device, model, aggressiveness, data,source="logs",btnkey=None):
     """
     data : dic configs
     """
@@ -45,7 +45,7 @@ def inference(X_spec, device, model, aggressiveness, data,source="logs"):
                 if source!='logs' and config.separate_status !='ing':
                     return
                 jd=(i+1)*100/n_window
-                tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%",source)
+                tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%",source,btnkey=btnkey)
                 print(f"{config.transobj['Separating background music']} {round(jd,1)}%")
                 start = i * roi_size
                 X_mag_window = X_mag_pad[

@@ -674,7 +674,7 @@ class SecWindow():
 
     # 判断模型是否存在
     def check_whisper_model(self, name):
-        if self.main.model_type.currentIndex() == 2:
+        if self.main.model_type.currentIndex() in [2,3]:
             return True
         slang = self.main.source_language.currentText()
         if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':
@@ -1095,6 +1095,15 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # 视频自动减速
         # 语音模型
         config.params['whisper_model'] = self.main.whisper_model.currentText()
+        model_index=self.main.model_type.currentIndex()
+        if model_index==1:
+            config.params['model_type']='openai'
+        elif model_index==2:
+            config.params['model_type']='GoogleSpeech'
+        elif model_index==3:
+            config.params['model_type']='zh_recogn'
+        else:
+            config.params['model_type']='faster'
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
 
@@ -1295,8 +1304,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
+        if d['type']=='alert':
+            QMessageBox.critical(self.main, config.transobj['anerror'], d['text'])
+            return
+            
         # 一行一行插入字幕到字幕编辑区
-        if d['type'] == 'set_start_btn':
+        elif d['type'] == 'set_start_btn':
             self.main.startbtn.setText(config.transobj["running"])
         elif d['type'] == "subtitle":
             self.main.subtitle_area.moveCursor(QTextCursor.End)

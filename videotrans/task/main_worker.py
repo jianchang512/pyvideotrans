@@ -9,6 +9,7 @@ from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 from videotrans.util.tools import set_process, send_notification
 from pathlib import Path
+import re
 
 
 class Worker(QThread):
@@ -70,6 +71,16 @@ class Worker(QThread):
                 return self.stop()
             # 格式化每个视频信息
             obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
+            target_dir_mp4=obj_format['output']+f"/{obj_format['raw_noextname']}.mp4"
+            if len(target_dir_mp4)>=250:
+                set_process(config.transobj['chaochu255']+"\n\n"+it, 'alert')
+                self.stop()
+                return
+            if re.search(r'[\&\+\:\?\|]+',it[2:]):
+                set_process(config.transobj['teshufuhao']+"\n\n"+it, 'alert')
+                self.stop()
+                return
+            
             videolist.append(obj_format)
             self.unidlist.append(obj_format['unid'])
             # 添加进度按钮 unid
@@ -134,7 +145,7 @@ class Worker(QThread):
                     return self.stop()
                 video.dubbing()
             except Exception as e:
-                err=f'{config.transobj["peyinchucuo"]}:' + str(e)
+                err=f'{config.transobj["peiyinchucuo"]}:' + str(e)
                 config.errorlist[video.btnkey]=err
                 set_process(err, 'error', btnkey=video.btnkey)
                 continue
@@ -152,6 +163,7 @@ class Worker(QThread):
                     return self.stop()
                 video.move_at_end()
             except Exception as e:
+                
                 err=f'{config.transobj["hebingchucuo"]}:' + str(e)
                 config.errorlist[video.btnkey]=err
                 set_process(err, 'error', btnkey=video.btnkey)
