@@ -495,11 +495,7 @@ class Ui_MainWindow(object):
         self.subtitle_layout.addLayout(self.layout_sub_bottom)
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
-        #200ms后渲染文字
-        QTimer.singleShot(200, lambda: self.retranslateUi(MainWindow))
 
-
-    def retranslateUi(self, MainWindow):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
@@ -739,9 +735,12 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yingyinhebing)
         self.toolBar.addAction(self.action_hun)
 
+        # self.retranslateUi(MainWindow)
+        #200ms后渲染文字
+        QTimer.singleShot(200, self.retranslateUi)
 
 
-
+    def retranslateUi(self):
         self.btn_get_video.setToolTip(config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
