@@ -39,11 +39,12 @@ class Worker(QThread):
                 raise Exception(f'{config.transobj["yuchulichucuo"]}:'+str(e))
             try:
                 self.video.dubbing()
+
             except Exception as e:
                 raise Exception(f'{config.transobj["peiyinchucuo"]}:'+str(e))
             # 成功完成
             config.params['line_roles'] = {}
-            set_process(f"{self.video.target_dir}##srt2wav", 'succeed', btnkey="srt2wav")
+            set_process(f"{self.video.init['target_dir']}##srt2wav", 'succeed', btnkey="srt2wav")
             send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
             # 全部完成
         except Exception as e:
@@ -107,19 +108,19 @@ class Worker(QThread):
             if config.exit_soft or config.current_status != 'ing':
                 return self.stop()
             try:
-                set_process(config.transobj['kaishichuli'], btnkey=video.btnkey)
+                set_process(config.transobj['kaishichuli'], btnkey=video.init['btnkey'])
                 video.prepare()
             except Exception as e:
                 err=f'{config.transobj["yuchulichucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
                 if self.is_batch:
-                    self.unidlist.remove(video.btnkey)
+                    self.unidlist.remove(video.init['btnkey'])
                 continue
 
             if self.is_batch:
                 # 压入识别队列开始执行
-                config.regcon_queue.append(self.tasklist[video.btnkey])
+                config.regcon_queue.append(self.tasklist[video.init['btnkey']])
                 continue
             # 非批量并发
             try:
@@ -128,8 +129,8 @@ class Worker(QThread):
                 video.recogn()
             except Exception as e:
                 err=f'{config.transobj["shibiechucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
             try:
                 if config.exit_soft or config.current_status != 'ing':
@@ -137,8 +138,8 @@ class Worker(QThread):
                 video.trans()
             except Exception as e:
                 err=f'{config.transobj["fanyichucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
             try:
                 if config.exit_soft or config.current_status != 'ing':
@@ -146,8 +147,8 @@ class Worker(QThread):
                 video.dubbing()
             except Exception as e:
                 err=f'{config.transobj["peiyinchucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
             try:
                 if config.exit_soft or config.current_status != 'ing':
@@ -155,19 +156,21 @@ class Worker(QThread):
                 video.hebing()
             except Exception as e:
                 err=f'{config.transobj["hebingchucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
             try:
                 if config.exit_soft or config.current_status != 'ing':
                     return self.stop()
                 video.move_at_end()
             except Exception as e:
-                
                 err=f'{config.transobj["hebingchucuo"]}:' + str(e)
-                config.errorlist[video.btnkey]=err
-                set_process(err, 'error', btnkey=video.btnkey)
+                config.errorlist[video.init['btnkey']]=err
+                set_process(err, 'error', btnkey=video.init['btnkey'])
+                send_notification(err, f'{video.obj["raw_basename"]}')
                 continue
+            else:
+                send_notification("Succeed", f'{video.obj["raw_basename"]}')
         # 批量进入等待
         if self.is_batch:
             return self.wait_end()

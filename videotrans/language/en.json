@@ -1,8 +1,9 @@
 {
   "translate_language": {
+    "peiyindayu31": "The number of dubbing errors is greater than 1/3, please check the",
+
 	"chaochu255":"The original video path and name is too long, please shorten the video name and move it to a shorter path to avoid subsequent errors.",  
 	"teshufuhao":"Please do not include any special symbols such as + & ? : | etc. in the path or name of the original video to avoid subsequent errors.",     
-	  
     "notjson": "Return response is not valid json data",
     "fanyicuowu2": "The number of translation errors is more than half, please check",
 

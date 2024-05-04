@@ -15,9 +15,9 @@ from videotrans.box.component import Player, DropButton, Textedit, TextGetdir
 from videotrans.box.logs_worker import LogsWorker
 from videotrans.box.worker import Worker, WorkerWhisper, WorkerTTS, FanyiWorker
 from videotrans.configure import config
-from videotrans  import translator
+from videotrans import translator
 from videotrans.translator import GOOGLE_NAME
-from videotrans.util  import tools
+from videotrans.util import tools
 import shutil
 from videotrans.ui.toolboxen import Ui_MainWindow
 from videotrans.util.tools import get_azure_rolelist, get_edge_rolelist
@@ -27,14 +27,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        self.initSize=None
-        self.shibie_out_path=None
-        self.hecheng_files=[]
-        self.fanyi_files=[]
-        self.fanyi_errors=""
+        self.initSize = None
+        self.shibie_out_path = None
+        self.hecheng_files = []
+        self.fanyi_files = []
+        self.fanyi_errors = ""
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.setWindowTitle(f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION} pyvideotrans.com {' Q群 905857759 ' if config.defaulelang=='zh' else ''}")
+        self.setWindowTitle(
+            f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION} pyvideotrans.com {' Q群 905857759 ' if config.defaulelang == 'zh' else ''}")
 
     def closeEvent(self, event):
         if config.exit_soft:
@@ -88,11 +89,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_dropbtn.setMinimumSize(0, 150)
         self.shibie_widget.insertWidget(0, self.shibie_dropbtn)
 
-
         self.shibie_language.addItems(config.langnamelist)
         self.shibie_model.addItems(config.model_list)
         self.shibie_startbtn.clicked.connect(self.shibie_start_fun)
-        self.shibie_opendir.clicked.connect(lambda :self.opendir_fn(self.shibie_out_path))
+        self.shibie_opendir.clicked.connect(lambda: self.opendir_fn(self.shibie_out_path))
         self.is_cuda.toggled.connect(self.check_cuda)
         self.shibie_model_type.currentIndexChanged.connect(self.model_type_change)
 
@@ -105,12 +105,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
         self.hecheng_plaintext.setPlaceholderText(config.transobj['tuodonghuoshuru'])
-        
+
         self.hecheng_importbtn = QtWidgets.QPushButton(self.tab_2)
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
-        self.hecheng_importbtn.setFixedHeight(35)
+        self.hecheng_importbtn.setFixedHeight(150)
         self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
-
 
         self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
         self.hecheng_importbtn.clicked.connect(self.hecheng_import_fun)
@@ -129,42 +128,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_issrt.stateChanged.connect(self.tts_issrt_change)
 
         # tab-5 格式转换
-        self.geshi_input = TextGetdir()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
-        self.geshi_input.setSizePolicy(sizePolicy)
-        self.geshi_input.setMinimumSize(300, 0)
-
-        self.geshi_input.setPlaceholderText(config.transobj['tuodongdaoci'])
-
-        self.geshi_importbtn = QtWidgets.QPushButton(self.tab_6)
-        self.geshi_importbtn.setObjectName("geshi_importbtn")
-        self.geshi_importbtn.setFixedWidth(100)
-        self.geshi_importbtn.setText(config.box_lang['import audio or video'])
-        self.geshi_importbtn.clicked.connect(lambda :self.geshi_import_fun(self.geshi_input))
-        self.horizontalLayout_14.insertWidget(0,self.geshi_importbtn)
-
-        self.geshi_layout.insertWidget(0, self.geshi_input)
-        self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
-        self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
-        self.geshi_mov.clicked.connect(lambda: self.geshi_start_fun("mov"))
-        self.geshi_mp3.clicked.connect(lambda: self.geshi_start_fun("mp3"))
-        self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
-        self.geshi_aac.clicked.connect(lambda: self.geshi_start_fun("aac"))
-        self.geshi_m4a.clicked.connect(lambda: self.geshi_start_fun("m4a"))
-        self.geshi_flac.clicked.connect(lambda: self.geshi_start_fun("flac"))
-        self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{config.homedir}/conver'))
-        if not os.path.exists(f'{config.homedir}/conver'):
-            os.makedirs(f'{config.homedir}/conver', exist_ok=True)
+        # self.geshi_input = TextGetdir()
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
+        # self.geshi_input.setSizePolicy(sizePolicy)
+        # self.geshi_input.setMinimumSize(300, 0)
+        #
+        # self.geshi_input.setPlaceholderText(config.transobj['tuodongdaoci'])
+        #
+        # self.geshi_importbtn = QtWidgets.QPushButton(self.tab_6)
+        # self.geshi_importbtn.setObjectName("geshi_importbtn")
+        # self.geshi_importbtn.setFixedWidth(100)
+        # self.geshi_importbtn.setText(config.box_lang['import audio or video'])
+        # self.geshi_importbtn.clicked.connect(lambda: self.geshi_import_fun(self.geshi_input))
+        # self.horizontalLayout_14.insertWidget(0, self.geshi_importbtn)
+        #
+        # self.geshi_layout.insertWidget(0, self.geshi_input)
+        # self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
+        # self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
+        # self.geshi_mov.clicked.connect(lambda: self.geshi_start_fun("mov"))
+        # self.geshi_mp3.clicked.connect(lambda: self.geshi_start_fun("mp3"))
+        # self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
+        # self.geshi_aac.clicked.connect(lambda: self.geshi_start_fun("aac"))
+        # self.geshi_m4a.clicked.connect(lambda: self.geshi_start_fun("m4a"))
+        # self.geshi_flac.clicked.connect(lambda: self.geshi_start_fun("flac"))
+        # self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{config.homedir}/conver'))
+        # if not os.path.exists(f'{config.homedir}/conver'):
+        #     os.makedirs(f'{config.homedir}/conver', exist_ok=True)
 
         # 混流
         self.hun_file1btn.clicked.connect(lambda: self.hun_get_file('file1'))
         self.hun_file2btn.clicked.connect(lambda: self.hun_get_file('file2'))
         self.hun_startbtn.clicked.connect(self.hun_fun)
         self.hun_opendir.clicked.connect(lambda: self.opendir_fn(self.hun_out.text()))
-
 
         self.fanyi_target.addItems(["-"] + config.langnamelist)
         self.fanyi_import.clicked.connect(self.fanyi_import_fun)
@@ -196,7 +194,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.task_logs.post_logs.connect(self.receiver)
         self.task_logs.start()
 
-    def geshi_import_fun(self,obj):
+    def geshi_import_fun(self, obj):
         fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['selectmp4'], config.last_opendir,
                                                  "Video files(*.mp4 *.avi *.mov *.m4a *.mp3 *.aac *.flac *.wav)")
         if len(fnames) < 1:
@@ -205,7 +203,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fnames[i] = it.replace('\\', '/')
 
         if len(fnames) > 0:
-            config.last_opendir=os.path.dirname(fnames[0])
+            config.last_opendir = os.path.dirname(fnames[0])
             self.settings.setValue("last_dir", config.last_opendir)
             obj.setPlainText("\n".join(fnames))
 
@@ -214,8 +212,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname, _ = QFileDialog.getOpenFileName(self, "Select audio", config.last_opendir,
                                                "Audio files(*.wav *.mp3 *.aac *.m4a *.flac)")
         if fname:
-            fname=fname.replace('file:///', '').replace('\\', '/')
-            config.last_opendir=os.path.dirname(fname)
+            fname = fname.replace('file:///', '').replace('\\', '/')
+            config.last_opendir = os.path.dirname(fname)
             self.settings.setValue("last_dir", config.last_opendir)
             if name == 'file1':
                 self.hun_file1.setText(fname)
@@ -227,30 +225,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fnames, _ = QFileDialog.getOpenFileNames(self,
                                                  config.transobj['tuodongfanyi'],
                                                  config.last_opendir,
-                                               "Subtitles files(*.srt)")
+                                                 "Subtitles files(*.srt)")
         if len(fnames) < 1:
             return
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/').replace('file:///', '')
         if fnames:
-            self.fanyi_files=fnames
-            config.last_opendir=os.path.dirname(fnames[0])
+            self.fanyi_files = fnames
+            config.last_opendir = os.path.dirname(fnames[0])
             self.settings.setValue("last_dir", config.last_opendir)
             self.fanyi_sourcetext.setPlainText(f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}')
 
     def hecheng_import_fun(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.last_opendir,
-                                               "Text files(*.srt)")
+                                                 "Text files(*.srt)")
         if len(fnames) < 1:
             return
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/').replace('file:///', '')
 
         if len(fnames) > 0:
-            config.last_opendir=os.path.dirname(fnames[0])
+            config.last_opendir = os.path.dirname(fnames[0])
             self.settings.setValue("last_dir", config.last_opendir)
             self.hecheng_files = fnames
-            content=""
+            content = ""
             try:
                 with open(fnames[0], 'r', encoding='utf-8') as f:
                     content = f.read().strip()
@@ -260,7 +258,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_plaintext.setPlainText(content)
             self.tts_issrt.setChecked(True)
             self.tts_issrt.setDisabled(True)
-            self.hecheng_importbtn.setText(f'导入{len(fnames)}个srt文件' if config.defaulelang=='zh' else  f'Import {len(fnames)} Subtitles' )
+            self.hecheng_importbtn.setText(
+                f'导入{len(fnames)}个srt文件' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles')
 
     def render_play(self, t):
         if t != 'ok':
@@ -288,115 +287,80 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def receiver(self, json_data):
         data = json.loads(json_data)
         # fun_name 方法名，type类型，text具体文本
-
-        if data['func_name'] == "yspfl_end":
-            # 音视频分离完成了
-            self.yspfl_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
-            self.yspfl_startbtn.setDisabled(False)
-            self.statuslabel.setText("Succeed")
-        elif data['func_name'] == 'ysphb_end':
-            self.ysphb_startbtn.setText(config.transobj["zhixingwc"] if data['type'] == "end" else config.transobj["zhixinger"])
-            self.ysphb_startbtn.setDisabled(False)
-            self.ysphb_opendir.setDisabled(False)
-            if data['type'] == 'end':
-                self.statuslabel.setText("Succeed")
-                basename = os.path.basename(self.ysphb_videoinput.text())
-                if os.path.exists(config.rootdir + f"/{basename}.srt"):
-                    os.unlink(config.rootdir + f"/{basename}.srt")
-        elif data['func_name'] == "shibie_end":
-            # 识别执行完成
-            self.disabled_shibie(False)
-            if data['type'] == 'replace_subtitle':
+        func = data['func_name']
+        type = data['type']
+        if func == 'yspfl':
+            if type == 'end' or type == 'error':
+                self.yspfl_startbtn.setDisabled(False)
+                self.yspfl_startbtn.setText(config.transobj["zhixingwc"])
+                if type=='error':
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+            else:
+                self.yspfl_startbtn.setText(data['text'])
+                self.yspfl_startbtn.setDisabled(True)
+        elif func == 'ysphb':
+            if type == 'end' or type == 'error':
+                self.ysphb_startbtn.setDisabled(False)
+                self.ysphb_startbtn.setText(config.transobj["zhixingwc"])
+                self.ysphb_opendir.setDisabled(False)
+                if type=='error':
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+            else:
+                self.ysphb_startbtn.setText(data['text'])
+                self.ysphb_startbtn.setDisabled(True)
+        elif func == 'shibie':
+            if type == 'replace':
                 self.shibie_text.clear()
-                text,per=data['text'].split('@@@@@@')
-                self.shibie_text.insertPlainText(text)
-                self.shibie_startbtn.setText(config.transobj["ing"]+per)
-            elif data['type']=='allend':
-                self.shibie_startbtn.setText(config.transobj["zhixingwc"])
-                self.statuslabel.setText("Succeed")
-                self.shibie_dropbtn.setText(config.transobj['quanbuend']+". "+config.transobj['xuanzeyinshipin'])
-                if data['text']:
-                    self.label_shibie10.setText(data['text'])
-                    self.label_shibie10.setStyleSheet('''color:#ff0000''')
-                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+                self.shibie_text.insertPlainText(data['text'])
+            elif type == 'set':
+                self.shibie_text.moveCursor(QTextCursor.End)
+                self.shibie_text.insertPlainText(data['text'].capitalize())
+            elif type == 'error' or type == 'end':
+                self.shibie_startbtn.setDisabled(False)
+                self.shibie_dropbtn.setDisabled(False)
+                if type=='end':
+                    self.shibie_startbtn.setText(config.transobj["zhixingwc"])
+                    self.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
+                else:
+                    self.shibie_dropbtn.setText(data['text'])
             else:
-                self.shibie_dropbtn.setText(data['text'])
-
-        elif data['func_name'] == 'hecheng_set':
-            # 填充合成文本
-            self.hecheng_plaintext.setPlainText(data['text'])
-        elif data['func_name'] == 'hecheng_end':
-            if data['type'] == 'ing':
-                self.hecheng_startbtn.setText(config.transobj["running"]+data['text'])
-            elif data['type']=='end':
-                self.hecheng_out.setDisabled(False)
-                self.hecheng_startbtn.setDisabled(False)
-                self.hecheng_startbtn.setText(config.uilanglist['Start'])
-                self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+                self.shibie_startbtn.setText(data['text'])
+        elif func == 'hecheng':
+            if type=='replace':
                 self.hecheng_plaintext.clear()
-                self.tts_issrt.setDisabled(False)
-                if data['text']!='Succeed':
-                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
-                    self.hecheng_startbtn.setDisabled(False)
-                    self.hecheng_startbtn.setText(config.uilanglist['Start'])
-            else:
-                QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+                self.hecheng_plaintext.setPlainText(data['text'])
+            elif type == 'error' or type == 'end':
                 self.hecheng_startbtn.setDisabled(False)
-                self.hecheng_startbtn.setText(config.uilanglist['Start'])
-        elif data['func_name'] == 'geshi_end':
-            config.geshi_num -= 1
-            self.geshi_result.moveCursor(QTextCursor.End)
-            self.geshi_result.insertPlainText("\n"+data['text'])
-            if config.geshi_num <= 0:
-                self.disabled_geshi(False)
-                self.geshi_result.moveCursor(QTextCursor.End)
-                self.geshi_result.insertPlainText(config.transobj["zhixingwc"])
-                self.geshi_input.clear()
-                self.statuslabel.setText("Succeed")
-        elif data['func_name'] == 'hun_end':
-            self.hun_startbtn.setDisabled(False)
-            self.hun_out.setDisabled(False)
-            self.statuslabel.setText("Succeed")
-        # 完成一个字幕文件翻译
-        elif data['func_name'] == 'fanyi_end':
-            self.fanyi_targettext.clear()
-            self.fanyi_targettext.setPlainText(data['text'])
-        #设置源文本框字幕
-        elif data['func_name']=='fanyi_set_source':
-            self.fanyi_sourcetext.clear()
-            self.fanyi_sourcetext.setPlainText(data['text'])
-        #全部翻译结束
-        elif data['func_name']=='fanyi_all':
-            self.fanyi_start.setDisabled(False)
-            self.fanyi_start.setText(config.transobj['starttrans'])
-            self.daochu.setDisabled(False)
-            self.fanyi_sourcetext.clear()
-            self.statuslabel.clear()
-            if self.fanyi_errors:
-                self.fanyi_sourcetext.setPlainText(self.fanyi_errors)
+                self.hecheng_startbtn.setText(data['text'] if type=='error' else config.transobj["zhixingwc"])
             else:
-                self.fanyi_sourcetext.setPlainText(config.transobj['quanbuwanbi'])
-        # 设置翻译结果文本框，每行更新
-        elif data['func_name']=='set_fanyi':
-            self.fanyi_targettext.moveCursor(QTextCursor.End)
-            self.fanyi_targettext.insertPlainText(data['text'].capitalize())
-        #翻译出错了
-        elif data['func_name']=='fanyi_oneerror':
-            self.fanyi_errors+=data['text'] if data['text'] else ""
-            self.statuslabel.setText(data['text'])
-            self.fanyi_start.setDisabled(False)
-            self.fanyi_start.setText(config.transobj['starttrans'])
-            self.daochu.setDisabled(False)
-        elif data['func_name']=='set_subtitle':
-            self.shibie_text.moveCursor(QTextCursor.End)
-            self.shibie_text.insertPlainText(data['text'].capitalize())
-        elif "func_name" not in data or not data['func_name']:
-            self.statuslabel.setText(data['text'][:60])
-            if data['type'] == 'error':
-                self.statuslabel.setStyle("""color:#ff0000""")
-                QMessageBox.critical(self,config.transobj['anerror'],data['text'])
-        else:
-            self.statuslabel.setText(data['text'])
+                self.hecheng_startbtn.setText(data['text'])
+        elif func == 'fanyi':
+            if type == 'error' or type == 'end':
+                self.fanyi_start.setDisabled(False)
+                self.daochu.setDisabled(False)
+                self.fanyi_start.setText(config.transobj["zhixingwc"])
+                self.fanyi_sourcetext.setPlainText(config.transobj["zhixingwc"])
+                if type == 'error':
+                    self.fanyi_sourcetext.setPlainText(data['text'])
+                    self.fanyi_targettext.moveCursor(QTextCursor.End)
+                    self.fanyi_targettext.insertPlainText(data['text'])
+            elif type == 'replace':
+                self.fanyi_targettext.clear()
+                self.fanyi_targettext.setPlainText(data['text'])
+            elif type == 'set':
+                self.fanyi_targettext.moveCursor(QTextCursor.End)
+                self.fanyi_targettext.insertPlainText(data['text'].capitalize())
+            else:
+                self.fanyi_sourcetext.setPlainText(data['text'])
+
+        elif func == 'hunhe':
+            if type == 'error' or type == 'end':
+                self.hun_startbtn.setDisabled(False)
+                self.hun_startbtn.setText(config.transobj["zhixingwc"])
+                if type=='error':
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
+            else:
+                self.hun_startbtn.setText(data['text'])
 
     # tab-1 音视频分离启动
     def yspfl_start_fn(self):
@@ -404,15 +368,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
-        rs,newfile,base=tools.rename_move(file,is_dir=False)
+        rs, newfile, base = tools.rename_move(file, is_dir=False)
         if rs:
-            file=newfile
-            basename=base
+            file = newfile
+            basename = base
         video_out = f"{config.homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
         self.yspfl_task = Worker(
-            [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl_end",
+            [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl",
             self)
 
         self.yspfl_task.start()
@@ -442,8 +406,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             mime = "Srt files(*.srt)"
             showname = " srt "
-        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos",
-                                               mime)
+        fname, _ = QFileDialog.getOpenFileName(self, f"Select {showname} file", os.path.expanduser('~') + "\\Videos", mime)
         if not fname:
             return
 
@@ -461,7 +424,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         srtfile = self.ysphb_srtinput.text()
         wavfile = self.ysphb_wavinput.text()
         # 是否保留原声
-        save_raw=self.ysphb_replace.isChecked()
+        save_raw = self.ysphb_replace.isChecked()
         if not videofile or not os.path.exists(videofile):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
             return
@@ -473,20 +436,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         if os.path.exists(videofile):
-            rs,newfile,base=tools.rename_move(videofile,is_dir=False)
+            rs, newfile, base = tools.rename_move(videofile, is_dir=False)
             if rs:
-                videofile=newfile
-                basename=base
+                videofile = newfile
+                basename = base
         if os.path.exists(srtfile):
-            rs,newsrtfile,_=tools.rename_move(srtfile,is_dir=False)
+            rs, newsrtfile, _ = tools.rename_move(srtfile, is_dir=False)
             if rs:
-                srtfile=newsrtfile
+                srtfile = newsrtfile
         if os.path.exists(wavfile):
-            rs,newwavfile,_=tools.rename_move(wavfile,is_dir=False)
+            rs, newwavfile, _ = tools.rename_move(wavfile, is_dir=False)
             if rs:
-             wavfile=newwavfile
-
-
+                wavfile = newwavfile
 
         savedir = f"{config.homedir}/hebing-{basename}"
         os.makedirs(savedir, exist_ok=True)
@@ -512,41 +473,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 视频里是否有音轨 并且保留原声音
             if video_info['streams_audio'] > 0 and save_raw:
                 tmp_a = f'{config.rootdir}/tmp/box-a.m4a'
-                
+
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile,'-vn', '-filter_complex',
-               "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map','[aout]','-ac', '2', tmp_a],
-                    ['-y', '-i', videofile, '-i', tmp_a, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac','-shortest',
+                    ['-y', '-i', videofile, '-i', wavfile, '-vn', '-filter_complex',
+                     "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]", '-map', '[aout]', '-ac', '2', tmp_a],
+                    ['-y', '-i', videofile, '-i', tmp_a, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac',
+                     '-shortest',
                      tmpname if srtfile else f'{savedir}/{basename}.mp4']
                 ]
             else:
                 cmds = [
-                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a', 'aac','-shortest',
+                    ['-y', '-i', videofile, '-i', wavfile, '-filter_complex', "[1:a]apad", '-c:v', 'copy', '-c:a',
+                     'aac', '-shortest',
                      tmpname if srtfile else f'{savedir}/{basename}.mp4']]
 
         if srtfile:
-            #srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
-            basename=os.path.basename(srtfile)
+            # srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
+            basename = os.path.basename(srtfile)
             shutil.copy2(srtfile, config.rootdir + f"/{basename}.srt")
             os.chdir(config.rootdir)
             cmds.append(
-                #['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={basename}.srt", '-c:v', 'libx264',
+                # ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={basename}.srt", '-c:v', 'libx264',
                 # '-c:a', 'copy', f'{savedir}/{basename}.mp4']
                 [
-                            "-y",
-                            "-i",
-                            os.path.normpath(tmpname if wavfile else videofile),
-                            
-                            "-c:v",
-                            "libx264",
-                            "-vf",
-                            f"subtitles={basename}.srt",
-                            "-shortest",
-                            f'{savedir}/{basename}.mp4'
-                ]
-                 
-                 )
-        self.ysphb_task = Worker(cmds, "ysphb_end", self)
+                    "-y",
+                    "-i",
+                    os.path.normpath(tmpname if wavfile else videofile),
+
+                    "-c:v",
+                    "libx264",
+                    "-vf",
+                    f"subtitles={basename}.srt",
+                    "-shortest",
+                    f'{savedir}/{basename}.mp4'
+                ])
+        self.ysphb_task = Worker(cmds, "ysphb", self)
         self.ysphb_task.start()
 
         self.ysphb_startbtn.setText(config.transobj["running"])
@@ -568,68 +529,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.is_cuda.setChecked(False)
                     self.is_cuda.setDisabled(True)
 
-
-    #设定模型类型
+    # 设定模型类型
     def model_type_change(self):
-        if self.shibie_model_type.currentIndex()==1:
-            model_type='openai'
+        if self.shibie_model_type.currentIndex() == 1:
+            model_type = 'openai'
             self.shibie_whisper_type.setDisabled(False)
             self.shibie_model.setDisabled(False)
-        elif self.shibie_model_type.currentIndex()==2:
-            model_type='GoogleSpeech'
+        elif self.shibie_model_type.currentIndex() == 2:
+            model_type = 'GoogleSpeech'
             self.shibie_whisper_type.setDisabled(True)
             self.shibie_model.setDisabled(True)
-        elif self.shibie_model_type.currentIndex()==3:
-            model_type='zh_recogn'
+        elif self.shibie_model_type.currentIndex() == 3:
+            model_type = 'zh_recogn'
             self.shibie_whisper_type.setDisabled(True)
             self.shibie_model.setDisabled(True)
         else:
             self.shibie_whisper_type.setDisabled(False)
             self.shibie_model.setDisabled(False)
-            model_type='faster'
+            model_type = 'faster'
 
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
         model = self.shibie_model.currentText()
-        split_type_index=self.shibie_whisper_type.currentIndex()
-        if self.shibie_model_type.currentIndex()==1:
-            model_type='openai'
-        elif self.shibie_model_type.currentIndex()==2:
-            model_type='GoogleSpeech'
-        elif self.shibie_model_type.currentIndex()==3:
-            model_type='zh_recogn'
+        split_type_index = self.shibie_whisper_type.currentIndex()
+        if self.shibie_model_type.currentIndex() == 1:
+            model_type = 'openai'
+        elif self.shibie_model_type.currentIndex() == 2:
+            model_type = 'GoogleSpeech'
+        elif self.shibie_model_type.currentIndex() == 3:
+            model_type = 'zh_recogn'
         else:
-            model_type="faster"
-        is_cuda=self.is_cuda.isChecked()
+            model_type = "faster"
+        is_cuda = self.is_cuda.isChecked()
         if is_cuda and model_type == 'faster':
-            allow=True
+            allow = True
             try:
                 from torch.backends import cudnn
                 if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                    allow=False
+                    allow = False
             except:
-                allow=False
+                allow = False
             finally:
                 if not allow:
                     self.is_cuda.setChecked(False)
                     return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["nocudnn"])
-        if model_type=='faster':
+        if model_type == 'faster':
             file = f'{config.rootdir}/models/models--Systran--faster-whisper-{model}/snapshots'
             if model.startswith('distil'):
-                file=f'{config.rootdir}/models/models--Systran--faster-{model}/snapshots'
+                file = f'{config.rootdir}/models/models--Systran--faster-{model}/snapshots'
             if not os.path.exists(file):
-                QMessageBox.critical(self.main, config.transobj['anerror'],
-                                 config.transobj['downloadmodel'].replace('{name}', model))
+                QMessageBox.critical(self, config.transobj['anerror'],
+                                     config.transobj['downloadmodel'].replace('{name}', model))
                 return
-        elif model_type=='openai' and not os.path.exists(config.rootdir+f'/models/{model}.pt'):
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['openaimodelnot'].replace('{name}',model))
+        elif model_type == 'openai' and not os.path.exists(config.rootdir + f'/models/{model}.pt'):
+            return QMessageBox.critical(self, config.transobj['anerror'],
+                                        config.transobj['openaimodelnot'].replace('{name}', model))
         files = self.shibie_dropbtn.filelist
 
-        if not files or len(files)<1:
+        if not files or len(files) < 1:
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixuyinshipin'])
 
-
-        wait_list=[]
+        wait_list = []
         self.shibie_startbtn.setText(config.transobj["running"])
         self.disabled_shibie(True)
         self.label_shibie10.setText('')
@@ -637,22 +597,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             basename = os.path.basename(file)
 
             try:
-                rs,newfile,base=tools.rename_move(file,is_dir=False)
+                rs, newfile, base = tools.rename_move(file, is_dir=False)
                 if rs:
-                    file=newfile
-                    basename=base
+                    file = newfile
+                    basename = base
             except Exception as e:
                 print(f"removename {str(e)}")
             self.shibie_text.clear()
 
-            if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov",".mp3",".flac",".m4a",".mov",".aac"]:
+            if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov", ".mp3", ".flac", ".m4a", ".mov",
+                                                          ".aac"]:
                 out_file = f"{config.homedir}/tmp/{basename}.wav"
                 if not os.path.exists(f"{config.homedir}/tmp"):
                     os.makedirs(f"{config.homedir}/tmp")
                 try:
                     self.shibie_ffmpeg_task = Worker([
-                        ['-y', '-i', file,'-vn','-ac','1','-ar','8000', out_file]
-                    ],"logs", self)
+                        ['-y', '-i', file, '-vn', '-ac', '1', '-ar', '8000', out_file]
+                    ], "logs", self)
                     self.shibie_ffmpeg_task.start()
                     wait_list.append(out_file)
                 except Exception as e:
@@ -663,23 +624,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 wait_list.append(file)
 
-        self.shibie_out_path=config.homedir+f"/recogn"
+        self.shibie_out_path = config.homedir + f"/recogn"
 
-        os.makedirs(self.shibie_out_path,exist_ok=True)
+        os.makedirs(self.shibie_out_path, exist_ok=True)
         self.shibie_opendir.setDisabled(False)
 
         self.shibie_task = WorkerWhisper(
             audio_paths=wait_list,
             model=model,
-            split_type= ["all","split","avg"][split_type_index],
+            split_type=["all", "split", "avg"][split_type_index],
             model_type=model_type,
             language=translator.get_audio_code(show_source=self.shibie_language.currentText()),
-            func_name="shibie_end",
+            func_name="shibie",
             out_path=self.shibie_out_path,
             is_cuda=is_cuda,
             parent=self)
         self.shibie_task.start()
-
 
     # 禁用启用按钮
     def disabled_shibie(self, type):
@@ -702,23 +662,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if language == '-' or role == 'No':
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['yuyanjuesebixuan'])
         if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['bixutianxie'] + "chatGPT key")
-        if  tts_type =='GPT-SoVITS' and langcode[:2] not in ['zh','ja','en']:
-            #除此指望不支持
-            config.params['tts_type']='edgeTTS'
+            return QMessageBox.critical(self, config.transobj['anerror'],
+                                        config.transobj['bixutianxie'] + "chatGPT key")
+        if tts_type == 'GPT-SoVITS' and langcode[:2] not in ['zh', 'ja', 'en']:
+            # 除此指望不支持
+            config.params['tts_type'] = 'edgeTTS'
             self.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(self,config.transobj['anerror'],config.transobj['nogptsovitslanguage'])
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             return
+        if rate >= 0:
+            rate = f"+{rate}%"
+        else:
+            rate = f"{rate}%"
+        volume=int(self.volume_rate.value())
+        pitch=int(self.pitch_rate.value())
+        volume=f'+{volume}%' if volume>=0 else f'{volume}%'
+        pitch=f'+{pitch}Hz' if pitch>=0 else f'{volume}Hz'
 
         # 文件名称
         filename = self.hecheng_out.text()
         if os.path.exists(filename):
-            filename=''
+            filename = ''
         if filename and re.search(r'[\\/]+', filename):
             filename = ""
         if not filename:
-            newrole=role.replace('/','-').replace('\\','-')
-            filename = f"{newrole}-rate{rate}"
+            newrole = role.replace('/', '-').replace('\\', '-')
+            filename = f"{newrole}-rate{rate.replace('%','')}-volume{volume.replace('%','')}-pitch{pitch}"
         else:
             filename = filename.replace('.wav', '')
 
@@ -726,21 +695,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
 
         wavname = f"{config.homedir}/tts/{filename}"
-        
-        if rate >= 0:
-            rate = f"+{rate}%"
-        else:
-            rate = f"{rate}%"
+
+
 
         issrt = self.tts_issrt.isChecked()
         self.hecheng_task = WorkerTTS(self,
-                                      files=self.hecheng_files if len(self.hecheng_files)>0 else txt,
+                                      files=self.hecheng_files if len(self.hecheng_files) > 0 else txt,
                                       role=role,
                                       rate=rate,
+                                      pitch=pitch,
+                                      volume=volume,
                                       langcode=langcode,
                                       wavname=wavname,
                                       tts_type=self.tts_type.currentText(),
-                                      func_name="hecheng_end",
+                                      func_name="hecheng",
                                       voice_autorate=issrt and self.voice_autorate.isChecked(),
                                       audio_ajust=issrt and self.audio_ajust.isChecked(),
                                       tts_issrt=issrt)
@@ -760,6 +728,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tts类型改变
     def tts_type_change(self, type):
+        if type in ['edgeTTS','AzureTTS']:
+            self.volume_rate.setDisabled(False)
+            self.pitch_rate.setDisabled(False)
+        else:
+            self.volume_rate.setDisabled(True)
+            self.pitch_rate.setDisabled(True)
+
+
         if type == 'gtts':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(['gtts'])
@@ -769,41 +745,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif type == 'elevenlabsTTS':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['elevenlabstts_role'])
-        elif type in ['edgeTTS','AzureTTS']:
+        elif type in ['edgeTTS', 'AzureTTS']:
             self.hecheng_language_fun(self.hecheng_language.currentText())
-        elif type=='clone-voice':
+        elif type == 'clone-voice':
             self.hecheng_role.clear()
-            self.hecheng_role.addItems([it for it in config.clone_voicelist if it !='clone'])
-        elif type=='TTS-API':
+            self.hecheng_role.addItems([it for it in config.clone_voicelist if it != 'clone'])
+        elif type == 'TTS-API':
             if not config.params['ttsapi_url']:
-                QMessageBox.critical(self,config.transobj['anerror'],config.transobj['ttsapi_nourl'])
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['ttsapi_nourl'])
                 return
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
-        elif type=='GPT-SoVITS':
-            code=translator.get_code(show_text=self.hecheng_language.currentText())
-            if code and code !='-' and code[:2] not in ['zh','ja','en']:
+        elif type == 'GPT-SoVITS':
+            code = translator.get_code(show_text=self.hecheng_language.currentText())
+            if code and code != '-' and code[:2] not in ['zh', 'ja', 'en']:
                 self.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(self,config.transobj['anerror'],config.transobj['nogptsovitslanguage'])
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
                 return
-            rolelist=tools.get_gptsovits_role()
+            rolelist = tools.get_gptsovits_role()
             self.hecheng_role.clear()
             self.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(self, t):
         code = translator.get_code(show_text=t)
-        if code and code !='-' and self.tts_type.currentText()=='GPT-SoVITS' and code[:2] not in ['zh','ja','en']:
-            #除此指望不支持
+        if code and code != '-' and self.tts_type.currentText() == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
+            # 除此指望不支持
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             self.tts_type.setCurrentText('edgeTTS')
-        if self.tts_type.currentText() not in ["edgeTTS","AzureTTS"]:
+        if self.tts_type.currentText() not in ["edgeTTS", "AzureTTS"]:
             return
         self.hecheng_role.clear()
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
 
-        show_rolelist= get_edge_rolelist() if config.params['tts_type']=='edgeTTS' else get_azure_rolelist()
+        show_rolelist = get_edge_rolelist() if config.params['tts_type'] == 'edgeTTS' else get_azure_rolelist()
         if not show_rolelist:
             show_rolelist = get_edge_rolelist()
         if not show_rolelist:
@@ -823,58 +800,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.addItems(show_rolelist[vt])
         except:
             self.hecheng_role.addItems(['No'])
-
-    # tab-5 转换
-    def geshi_start_fun(self, ext):
-        filelist = self.geshi_input.toPlainText().strip().split("\n")
-        filelist_vail = []
-        for it in filelist:
-            if it and os.path.exists(it) and it.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'mp3', 'wav', 'aac',
-                                                                           'm4a', 'flac']:
-                filelist_vail.append(it)
-        if len(filelist_vail) < 1:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nowenjian'])
-        self.geshi_input.setPlainText("\n".join(filelist_vail))
-        self.disabled_geshi(True)
-        config.geshi_num = len(filelist_vail)
-        cmdlist = []
-        savedir = f"{config.homedir}/conver"
-        if not os.path.exists(savedir):
-            os.makedirs(savedir, exist_ok=True)
-        for it in filelist_vail:
-            basename = os.path.basename(it)
-            ext_this = basename.split('.')[-1].lower()
-            if ext == ext_this:
-                config.geshi_num -= 1
-                self.geshi_result.insertPlainText(f"{it} -> {ext}")
-
-                continue
-            if ext_this in ["wav", "mp3", "aac", "m4a", "flac"] and ext in ["mp4", "mov", "avi"]:
-                self.geshi_result.insertPlainText(f"{it} {config.transobj['yinpinbuke']} {ext} ")
-                config.geshi_num -= 1
-
-                continue
-
-            self.geshi_result.insertPlainText(f'{savedir}/{basename}.{ext}')
-            cmdlist.append(['-y', '-i', f'{it}', f'{savedir}/{basename}.{ext}'])
-
-        if len(cmdlist) < 1:
-            self.geshi_result.insertPlainText(config.transobj["quanbuend"])
-            self.disabled_geshi(False)
-            return
-        self.geshi_task = Worker(cmdlist, "geshi_end", self, True)
-        self.geshi_task.start()
-
-    # 禁用按钮
-    def disabled_geshi(self, type):
-        self.geshi_mp4.setDisabled(type)
-        self.geshi_avi.setDisabled(type)
-        self.geshi_mov.setDisabled(type)
-        self.geshi_mp3.setDisabled(type)
-        self.geshi_wav.setDisabled(type)
-        self.geshi_aac.setDisabled(type)
-        self.geshi_flac.setDisabled(type)
-        self.geshi_m4a.setDisabled(type)
 
     # 音频混流
     def hun_fun(self):
@@ -905,7 +830,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
-        self.geshi_task = Worker([cmd], "hun_end", self, True)
+        self.geshi_task = Worker([cmd], "hunhe", self, True)
         self.geshi_task.start()
         self.hun_startbtn.setDisabled(True)
         self.hun_out.setDisabled(True)
@@ -920,17 +845,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if proxy:
             tools.set_proxy(proxy)
-            self.settings.setValue('proxy',proxy)
-            config.proxy=proxy
+            self.settings.setValue('proxy', proxy)
+            config.proxy = proxy
         else:
             proxy = self.settings.value("proxy", "", str)
             if proxy:
                 tools.set_proxy(proxy)
-                config.proxy=proxy
-                self.settings.setValue('proxy',proxy)
-                if translate_type.lower()==GOOGLE_NAME:
+                config.proxy = proxy
+                self.settings.setValue('proxy', proxy)
+                if translate_type.lower() == GOOGLE_NAME:
                     self.fanyi_proxy.setText(proxy)
-
 
         config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
@@ -945,7 +869,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["azure_key"] = self.settings.value("azure_key", "")
         config.params["azure_model"] = self.settings.value("azure_model", "")
 
-        rs=translator.is_allow_translate(translate_type=translate_type,show_target=target_language)
+        rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         if rs is not True:
             QMessageBox.critical(self, config.transobj['anerror'], rs)
             return
@@ -958,8 +882,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.daochu.setDisabled(True)
 
     def fanyi_save_fun(self):
-        target=os.path.join(os.path.dirname(self.fanyi_files[0]),'_translate')
-        if len(self.fanyi_files)<1 or not os.path.exists(target):
+        target = os.path.join(os.path.dirname(self.fanyi_files[0]), '_translate')
+        if len(self.fanyi_files) < 1 or not os.path.exists(target):
             return
         QDesktopServices.openUrl(QUrl.fromLocalFile(target))
-

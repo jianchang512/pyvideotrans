@@ -8,7 +8,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
+def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
     try:
         api_url=config.params['gptsovits_url'].strip().rstrip('/').lower()
         if not api_url:
@@ -18,8 +18,6 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         text=text.strip()
         if not text:
             return True
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
         splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
         if text[-1] not in splits:
             text+='.'
@@ -46,7 +44,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 f.write(response.content)
             time.sleep(1)
             if not os.path.exists(filename+".wav"):
-                return f'GPT-SoVITS合成声音失败-2:{text=}'
+                raise Exception(f'GPT-SoVITS合成声音失败-2:{text=}')
             tools.wav2mp3(filename+".wav",filename)
             if os.path.exists(filename+".wav"):
                 os.unlink(filename+".wav")
@@ -54,17 +52,16 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 tools.remove_silence_from_end(filename)
             if set_p and inst and inst.precent < 80:
                 inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
-        return True
     except Exception as e:
         error=str(e)
-        if is_test:
-            raise Exception(error)
         if set_p:
-            tools.set_process(error,btnkey=inst.btnkey if inst else "")
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=error
+            tools.set_process(error,btnkey=inst.init['btnkey'] if inst else "")
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=error
         config.logger.error(f"{error}")
-        return error
+        raise Exception(error)
+    else:
+        return True

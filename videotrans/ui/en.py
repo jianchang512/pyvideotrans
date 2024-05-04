@@ -10,6 +10,7 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QSizePolicy, QSpacerItem
 
 from videotrans.configure import config
 
@@ -138,7 +139,7 @@ class Ui_MainWindow(object):
         
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
         self.listen_btn.setEnabled(False)
-        self.listen_btn.setMaximumWidth(200)
+        self.listen_btn.setFixedWidth(80)
 
         
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
@@ -234,6 +235,35 @@ class Ui_MainWindow(object):
         self.layout_voice_role.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_role)
         self.horizontalLayout.addLayout(self.layout_voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
+
+        self.edge_volume_layout=QtWidgets.QHBoxLayout()
+
+
+        self.volume_label=QtWidgets.QLabel(self.layoutWidget)
+        self.volume_label.setText("音量+" if config.defaulelang=='zh' else "Volume+")
+
+        self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        # self.volume_rate.setMinimumSize(QtCore.QSize(0, 30))
+        self.volume_rate.setMinimum(-95)
+        self.volume_rate.setMaximum(100)
+        self.volume_rate.setObjectName("volume_rate")
+
+        self.pitch_label=QtWidgets.QLabel(self.layoutWidget)
+        self.pitch_label.setText("音调+" if config.defaulelang=='zh' else "Pitch+")
+        self.pitch_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.pitch_rate.setMinimum(-100)
+        self.pitch_rate.setMaximum(100)
+        self.pitch_rate.setObjectName("pitch_rate")
+
+        self.edge_volume_layout.addWidget(self.volume_label)
+        self.edge_volume_layout.addWidget(self.volume_rate)
+        self.edge_volume_layout.addWidget(self.pitch_label)
+        self.edge_volume_layout.addWidget(self.pitch_rate)
+        self.horizontalLayout.addLayout(self.edge_volume_layout)
+
+
+
+
         
         
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -308,7 +338,7 @@ class Ui_MainWindow(object):
         self.gaoji_layout_wrap.setObjectName("gaoji_layout_wrap")
         self.gaoji_layout_inner = QtWidgets.QHBoxLayout()
         self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
-        
+
         self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
         self.gaoji_layout_inner2.setObjectName("gaoji_layout_inner2")
         self.addbackbtn=QtWidgets.QPushButton(self.layoutWidget)
@@ -342,26 +372,28 @@ class Ui_MainWindow(object):
 
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_6)
 
-        self.voice_rate = QtWidgets.QLineEdit(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.voice_rate.sizePolicy().hasHeightForWidth())
-        self.voice_rate.setSizePolicy(sizePolicy)
-        self.voice_rate.setMinimumSize(QtCore.QSize(50, 30))
+
+
+        self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.voice_rate.setMinimum(-50)
+        self.voice_rate.setMaximum(50)
         self.voice_rate.setObjectName("voice_rate")
 
+
+        self.layout_voice_rate.setAlignment(Qt.AlignVCenter)
         self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_rate)
         self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
 
+        self.append_video = QtWidgets.QCheckBox(self.layoutWidget)
+        self.append_video.setObjectName("append_video")
+
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
-        self.voice_autorate.setMinimumSize(QtCore.QSize(0, 30))
         self.voice_autorate.setObjectName("voice_autorate")
         
         self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
-        self.video_autorate.setMinimumSize(QtCore.QSize(0, 30))
         self.video_autorate.setObjectName("videoe_autorate")
         
+        self.gaoji_layout_inner.addWidget(self.append_video)
         self.gaoji_layout_inner.addWidget(self.voice_autorate)
         self.gaoji_layout_inner.addWidget(self.video_autorate)
 
@@ -381,7 +413,7 @@ class Ui_MainWindow(object):
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
 
-
+        self.gaoji_layout_inner.setAlignment(Qt.AlignVCenter)
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner)
         self.gaoji_layout_wrap.addLayout(self.gaoji_layout_inner2)
         self.verticalLayout_2.addLayout(self.gaoji_layout_wrap)
@@ -463,11 +495,14 @@ class Ui_MainWindow(object):
         self.subtitle_layout.addLayout(self.layout_sub_bottom)
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
+        #200ms后渲染文字
+        QTimer.singleShot(200, lambda: self.retranslateUi(MainWindow))
+
+
+    def retranslateUi(self, MainWindow):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-
-
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1488, 26))
         self.menuBar.setObjectName("menuBar")
@@ -596,9 +631,6 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
 
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
-        self.action_geshi = QtGui.QAction(MainWindow)
-
-        self.action_geshi.setObjectName("action_geshi")
         self.action_hun = QtGui.QAction(MainWindow)
 
         self.action_hun.setObjectName("action_hun")
@@ -621,6 +653,8 @@ class Ui_MainWindow(object):
         self.actionElevenlabs_key.setObjectName("actionElevenlabs_key")
         self.actionyoutube = QtGui.QAction(MainWindow)
         self.actionyoutube.setObjectName("actionyoutube")
+        self.actionsepar = QtGui.QAction(MainWindow)
+        self.actionsepar.setObjectName("actionsepar")
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontencent_key)
@@ -658,6 +692,8 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
+        self.menu.addAction(self.actionsepar)
+        self.menu.addSeparator()
         self.menu.addAction(self.action_clearcache)
         self.menu.addSeparator()
         self.menu_H.addSeparator()
@@ -693,21 +729,19 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
-        self.toolBar.addAction(self.action_zimu_video)
         self.toolBar.addAction(self.action_zimu_peiyin)
+        self.toolBar.addAction(self.action_zimu_video)
+
         self.toolBar.addAction(self.action_yuyinshibie)
+        self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
         self.toolBar.addAction(self.action_yinshipinfenli)
         self.toolBar.addAction(self.action_yingyinhebing)
-        self.toolBar.addAction(self.action_geshi)
         self.toolBar.addAction(self.action_hun)
-        self.toolBar.addAction(self.action_fanyi)
-        # QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-        QTimer.singleShot(200, lambda: self.retranslateUi(MainWindow))
 
 
-    def retranslateUi(self, MainWindow):
+
+
         self.btn_get_video.setToolTip(config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(config.uilanglist.get("Select video.."))
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
@@ -731,13 +765,14 @@ class Ui_MainWindow(object):
         self.label_8.setText(config.uilanglist.get("Embed subtitles"))
         self.subtitle_type.setToolTip(config.uilanglist.get("shuoming02"))
 
-        self.label_6.setText(config.uilanglist.get("Dubbing speed"))
+        self.label_6.setText(config.uilanglist.get("Dubbing speed")+'+')
         self.voice_rate.setToolTip(config.uilanglist.get("Overall acceleration or deceleration of voice over playback"))
-        self.voice_rate.setPlaceholderText(config.uilanglist.get("Positive numbers accelerate, negative numbers decelerate, -90 to+90"))
         self.voice_autorate.setToolTip(config.uilanglist.get("shuoming03"))
+        self.voice_autorate.setText(config.uilanglist.get("Voice acceleration?"))
         self.video_autorate.setToolTip('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
         self.video_autorate.setText('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
-        self.voice_autorate.setText(config.uilanglist.get("Voice acceleration?"))
+        self.append_video.setToolTip('如果配音时长大于视频时，是否视频末尾延长' if config.defaulelang=='zh' else 'If the dubbing time is longer than the video time, is the end of the video extended?')
+        self.append_video.setText('视频末尾延长?' if config.defaulelang=='zh' else 'Extension video?')
         self.auto_ajust.setText(config.transobj.get("auto_ajust"))
         self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
@@ -801,8 +836,6 @@ class Ui_MainWindow(object):
         self.action_yinshipinfenli.setToolTip(config.uilanglist.get("Separate audio and silent videos from videos"))
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
-        self.action_geshi.setText(config.uilanglist.get("Files Format Conversion"))
-        self.action_geshi.setToolTip(config.uilanglist.get("Convert various formats to each other"))
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
@@ -815,3 +848,4 @@ class Ui_MainWindow(object):
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
+        self.actionsepar.setText('人声/背景音分离' if config.defaulelang=='zh'else 'Vocal & instrument Separate')

@@ -42,6 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.youw = None
         self.sepw = None
         self.util = None
+        self.moshis=None
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
 
@@ -53,8 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
-        QTimer.singleShot(100, self.bind_action)
-        QTimer.singleShot(500, self.start_box)
+
 
     def start_box(self):
         # 打开工具箱
@@ -132,11 +132,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.whisper_type.setDisabled(True)
         if config.params['only_video']:
             self.only_video.setChecked(True)
+        try:
+            self.voice_rate.setValue(int(config.params['voice_rate'].replace('%','')))
+        except Exception:
+            self.voice_rate.setValue(0)
 
-        self.voice_rate.setText(config.params['voice_rate'])
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.video_autorate.setChecked(config.params['video_autorate'])
+        self.append_video.setChecked(config.params['append_video'])
         self.auto_ajust.setChecked(config.params['auto_ajust'])
 
         if config.params['cuda']:
@@ -180,28 +184,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processlayout = QVBoxLayout(viewport)
         # 设置布局管理器的对齐方式为顶部对齐
         self.processlayout.setAlignment(Qt.AlignTop)
+        # 渲染后再执行绑定
+        QTimer.singleShot(500, self.bind_action)
+        QTimer.singleShot(500, self.start_box)
 
+    def bind_action(self):
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
-        # self.statusLabel.setStyleSheet("background-color:#455364;color:#ffff00")
-
         self.statusBar.addWidget(self.statusLabel)
 
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        # self.rightbottom.setStyleSheet("background-color:#455364;color:#ffffff;border:0")
         self.rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
         self.statusBar.addPermanentWidget(self.container)
 
-        # 设置QAction的大小
-        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        # 设置QToolBar的大小，影响其中的QAction的大小
-        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
-
-    def bind_action(self):
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
         from videotrans.mainwin.secwin import SecWindow
         from videotrans.mainwin.subform import Subform
@@ -210,8 +209,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
-            config.params['is_separate'] = True
-            self.is_separate.setChecked(True)
         elif config.params['tts_type'] == 'TTS-API':
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
         elif config.params['tts_type'] == 'GPT-SoVITS':
@@ -219,8 +216,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
 
         if config.params['tts_type']:
+            if config.params['tts_type'] not in ['edgeTTS','AzureTTS']:
+                self.voice_role.addItems(['No'])
             self.util.tts_type_change(config.params['tts_type'])
-            self.voice_role.addItems(['No'])
 
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
@@ -268,11 +266,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
         self.model_type.currentTextChanged.connect(self.util.model_type_change)
-        self.voice_rate.textChanged.connect(self.util.voice_rate_changed)
+        self.voice_rate.valueChanged.connect(self.util.voice_rate_changed)
         self.voice_autorate.stateChanged.connect(
             lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.video_autorate.stateChanged.connect(
-            lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.video_autorate.stateChanged.connect(lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.append_video.stateChanged.connect(lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "append_video"))
         self.auto_ajust.stateChanged.connect(
             lambda: self.util.autorate_changed(self.auto_ajust.isChecked(), "auto_ajust"))
         # tts_type 改变时，重设角色
@@ -281,6 +279,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
+
+
+        # 设置QAction的大小
+        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        # 设置QToolBar的大小，影响其中的QAction的大小
+        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
+
+
         self.actionbaidu_key.triggered.connect(self.subform.set_baidu_key)
         self.actionazure_key.triggered.connect(self.subform.set_azure_key)
         self.actionazure_tts.triggered.connect(self.subform.set_auzuretts_key)
@@ -311,11 +317,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.subform.open_youtube)
+        self.actionsepar.triggered.connect(self.subform.open_separate)
         self.action_about.triggered.connect(self.util.about)
 
         self.action_xinshoujandan.triggered.connect(self.util.set_xinshoujandann)
 
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
+
 
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
 
@@ -333,20 +341,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.util.set_zimu_video()
         elif self.app_mode == 'peiyin':
             self.util.set_zimu_peiyin()
+        self.moshis={
+            "biaozhun_jd":self.action_xinshoujandan,
+            "biaozhun":self.action_biaozhun,
+            "tiqu":self.action_tiquzimu,
+            "hebing":self.action_zimu_video,
+            "peiyin":self.action_zimu_peiyin
+        }
+        self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(0, False))
 
-        self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(2, False))
+        self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(1, False))
 
-        self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(3, False))
+        self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(3, False))
 
-        self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(0, False))
+        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(4, False))
 
-        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(1, False))
-
-        self.action_geshi.triggered.connect(lambda: self.util.open_toolbox(4, False))
 
         self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
 
-        self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(6, False))
+        self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
         # 禁止随意移动sp.exe
@@ -371,7 +384,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             update_role = GetRoleWorker(parent=self)
             update_role.start()
-
             self.task_logs = LogsWorker(parent=self)
             self.task_logs.post_logs.connect(self.util.update_data)
             self.task_logs.start()
@@ -409,6 +421,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["voice_role"] = self.settings.value("voice_role", "")
         config.params["voice_autorate"] = self.settings.value("voice_autorate", False, bool)
         config.params["video_autorate"] = self.settings.value("video_autorate", False, bool)
+        config.params["append_video"] = self.settings.value("append_video", False, bool)
         config.params["auto_ajust"] = self.settings.value("auto_ajust", True, bool)
 
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
@@ -456,7 +469,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
-        config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'], str)
+        config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'].replace('%','').replace('+',''), str)
         config.params['cuda'] = self.settings.value("cuda", False, bool)
         config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
@@ -476,7 +489,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("whisper_model", config.params['whisper_model'])
         self.settings.setValue("whisper_type", config.params['whisper_type'])
         self.settings.setValue("model_type", config.params['model_type'])
-        self.settings.setValue("voice_rate", config.params['voice_rate'])
+        self.settings.setValue("voice_rate", config.params['voice_rate'].replace('%','').replace('+',''))
         self.settings.setValue("voice_role", config.params['voice_role'])
         self.settings.setValue("zh_recogn_api", config.params['zh_recogn_api'])
 
@@ -489,4 +502,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
         self.settings.setValue("video_autorate", config.params['video_autorate'])
+        self.settings.setValue("append_video", config.params['append_video'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist))

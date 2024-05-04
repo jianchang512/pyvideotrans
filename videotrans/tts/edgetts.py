@@ -1,9 +1,9 @@
 import asyncio
+import re
 import sys
 import time
 import os
 import edge_tts
-
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -15,13 +15,26 @@ else:
 
 
 
-def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,set_p=True,is_test=False,inst=None):
-    if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-        return False
-    communicate = edge_tts.Communicate(text, role, rate=rate)
+def get_voice(*,
+              text=None,
+              role=None,
+              rate="+0%",
+              language=None,
+              filename=None,
+              set_p=True,
+              inst=None,
+              pitch="+0Hz",
+              volume="+0%"
+              ):
+    if not re.match(r'^[+-]\d+%$',volume):
+        volume='+0%'
+    if not re.match(r'^[+-]\d+%$',rate):
+        rate='+0%'
+    if not re.match(r'^[+-]\d+Hz$',pitch,re.I):
+        pitch='+0Hz'
+    print(f'### {volume=},{pitch=}')
+    communicate = edge_tts.Communicate(text, role, rate=rate,volume=volume,pitch=pitch)
     try:
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
         asyncio.run(communicate.save(filename))
         if not tools.vail_file(filename):
             config.logger.error( f'edgeTTS配音失败:{text=},{filename=}')
@@ -30,22 +43,32 @@ def get_voice(*, text=None, role=None, rate=None,language=None, filename=None,se
             tools.remove_silence_from_end(filename)
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.btnkey if inst else "")
-        return True
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.init['btnkey'] if inst else "")
+
     except Exception as e:
         err = str(e)
-        if is_test:
-            raise Exception(err)
         config.logger.error(f'[edgeTTS]{text=}{err=},')
         if err.find("Invalid response status") > 0 or err.find('WinError 10054')>-1:
             if set_p:
-                tools.set_process("edgeTTS过于频繁暂停5s后重试",btnkey=inst.btnkey if inst else "")
+                tools.set_process("edgeTTS过于频繁暂停5s后重试",btnkey=inst.init['btnkey'] if inst else "")
             config.settings['dubbing_thread']=1
             time.sleep(10)
-            asyncio.run(communicate.save(filename))
+            return get_voice(
+              text=text,
+              role=role,
+              rate=rate,
+              language=language,
+              filename=filename,
+              set_p=set_p,
+              inst=inst,
+              pitch=pitch,
+              volume=volume
+            )
         elif set_p:
-            tools.set_process("有一个配音出错",btnkey=inst.btnkey if inst else "")
+            tools.set_process("有一个配音出错",btnkey=inst.init['btnkey'] if inst else "")
             config.logger.error( f'edgeTTS配音有一个失败:{text=},{filename=}')
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=err
-        return err
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=err
+        raise Exception(err)
+    else:
+        return True

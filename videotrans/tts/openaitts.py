@@ -18,7 +18,7 @@ def get_url(url=""):
         return url+"/v1"
     return url
 
-def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True,is_test=False,inst=None):
+def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None, language=None,filename=None,set_p=True,inst=None):
     api_url=get_url(config.params['chatgpt_api'])
     proxies=None
     if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
@@ -29,8 +29,6 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
                 'https://': serv
             }
     try:
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
         speed=1.0
         if rate:
             rate=float(rate.replace('%',''))/100
@@ -52,24 +50,22 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
             tools.remove_silence_from_end(filename)
         if set_p and inst and inst.precent<80:
             inst.precent+=0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.btnkey if inst else "")
-        return True
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',btnkey=inst.init['btnkey'] if inst else "")
     except Exception as e:
         error=str(e)
-        if is_test:
-            raise Exception(error)
         if error.lower().find('connect timeout')>-1 or error.lower().find('ConnectTimeoutError')>-1:
-            if inst and inst.btnkey:
-                config.errorlist[inst.btnkey]=f'无法连接到 {api_url}，请正确填写代理地址:{error}'
+            if inst and inst.init['btnkey']:
+                config.errorlist[inst.init['btnkey']]=f'无法连接到 {api_url}，请正确填写代理地址:{error}'
             return False
         if error and re.search(r'Rate limit',error,re.I) is not None:
             if set_p:
-                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试',btnkey=inst.btnkey if inst else "")
+                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(30)
             return get_voice(text=text, role=role, rate=rate, filename=filename)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=error
-        return error
-
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=error
+        raise Exception(error)
+    else:
+        return True
 

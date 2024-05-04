@@ -91,18 +91,14 @@ class SecWindow():
 
     # 配音速度改变时，更改全局
     def voice_rate_changed(self, text):
-        text = str(text).replace('+', '').replace('%', '').strip()
-        text = 0 if not text else int(text)
-        text = f'+{text}%' if text >= 0 else f'{text}%'
-        config.params['voice_rate'] = text
+        # text = str(text).replace('+', '').replace('%', '').strip()
+        # text = 0 if not text else int(text)
+        # text = f'+{text}%' if text >= 0 else f'{text}%'
+        config.params['voice_rate'] = f'+{text}%' if text>=0 else f'{text}%'
 
     # 简单新手模式
     def set_xinshoujandann(self):
-        if config.current_status == 'ing':
-            self.main.action_xinshoujandan.setChecked(False)
-            tools.send_notification("该模式执行中不可切换",
-                              '请等待结束后再切换该模式' if config.defaulelang == 'zh' else 'Please wait until the end of the execution before switching modes.')
-            return
+        self.main.action_xinshoujandan.setChecked(True)
         self.main.app_mode = 'biaozhun_jd'
         self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
         self.main.startbtn.setText(config.transobj['kaishichuli'])
@@ -142,15 +138,20 @@ class SecWindow():
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, False)
 
+        # 隐藏音量 音调变化
+        self.hide_show_element(self.main.edge_volume_layout, False)
+
         # 配音语速
 
         self.hide_show_element(self.main.layout_voice_rate, False)
         # 静音片段
         # 配音自动加速
         self.main.voice_autorate.setChecked(True)
-        self.main.video_autorate.setChecked(True)
         self.main.voice_autorate.hide()
+        self.main.video_autorate.setChecked(True)
         self.main.video_autorate.hide()
+        self.main.append_video.setChecked(True)
+        self.main.append_video.hide()
 
         self.main.splitter.setSizes([self.main.width, 0])
         self.hide_show_element(self.main.subtitle_layout, False)
@@ -174,11 +175,7 @@ class SecWindow():
 
     # 启用标准模式
     def set_biaozhun(self):
-        if config.current_status == 'ing':
-            self.main.action_biaozhun.setChecked(False)
-            tools.send_notification("该模式执行中不可切换",
-                              '请等待结束后再切换该模式' if config.defaulelang == 'zh' else 'Please wait until the end of the execution before switching modes.')
-            return
+        self.main.action_biaozhun.setChecked(True)
         self.main.app_mode = 'biaozhun'
         self.main.show_tips.setText("")
         self.main.startbtn.setText(config.transobj['kaishichuli'])
@@ -207,6 +204,9 @@ class SecWindow():
         self.hide_show_element(self.main.layout_voice_role, True)
         # 试听按钮
 
+        # 显示音量 音调变化
+        self.hide_show_element(self.main.edge_volume_layout, True)
+
         self.main.listen_btn.show()
         # 语音模型
         self.hide_show_element(self.main.layout_whisper_model, True)
@@ -218,34 +218,36 @@ class SecWindow():
         # 配音自动加速
         # 视频自动降速
         self.main.is_separate.setDisabled(False)
+        self.main.is_separate.show()
+
         self.main.addbackbtn.setDisabled(False)
         self.main.only_video.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
         self.main.auto_ajust.setDisabled(False)
+        self.main.auto_ajust.show()
+
         self.main.video_autorate.setDisabled(False)
         self.main.voice_autorate.setDisabled(False)
+        self.main.voice_autorate.show()
+
+        self.main.append_video.setDisabled(False)
+        self.main.append_video.setDisabled(False)
 
         self.hide_show_element(self.main.subtitle_layout, True)
         self.main.splitter.setSizes([self.main.width - 400, 400])
 
-        self.main.voice_autorate.show()
-        self.main.auto_ajust.show()
-        self.main.is_separate.show()
         self.main.addbackbtn.show()
         self.main.back_audio.show()
         self.main.only_video.show()
         self.main.video_autorate.show()
+        self.main.append_video.show()
 
         # cuda
         self.main.enable_cuda.show()
 
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
-        if config.current_status == 'ing':
-            self.main.action_tiquzimu.setChecked(False)
-            tools.send_notification("该模式执行中不可切换",
-                              '请等待结束后再切换该模式' if config.defaulelang == 'zh' else 'Please wait until the end of the execution before switching modes.')
-            return
+        self.main.action_tiquzimu.setChecked(True)
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
@@ -261,6 +263,9 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
+
+        # 隐藏音量 音调变化
+        self.hide_show_element(self.main.edge_volume_layout, False)
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
@@ -295,7 +300,9 @@ class SecWindow():
         self.main.auto_ajust.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
         self.main.voice_autorate.setDisabled(True)
+        self.main.append_video.setDisabled(True)
 
+        self.main.append_video.hide()
         self.main.voice_autorate.hide()
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
@@ -310,11 +317,7 @@ class SecWindow():
     # 启用字幕合并模式, 仅显示 选择视频、保存目录、字幕类型、 cuda
     # 不配音、不识别，
     def set_zimu_video(self):
-        if config.current_status == 'ing':
-            self.main.action_zimu_video.setChecked(False)
-            tools.send_notification("该模式执行中不可切换",
-                              '请等待结束后再切换该模式' if config.defaulelang == 'zh' else 'Please wait until the end of the execution before switching modes.')
-            return
+        self.main.action_zimu_video.setChecked(True)
         self.main.app_mode = 'hebing'
         self.main.show_tips.setText(config.transobj['zimu_video'])
         self.main.startbtn.setText(config.transobj['kaishihebing'])
@@ -331,7 +334,9 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
-        # self.main.open_targetdir.show()
+
+        # 隐藏音量 音调变化
+        self.hide_show_element(self.main.edge_volume_layout, False)
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -364,6 +369,7 @@ class SecWindow():
         self.main.back_audio.setReadOnly(True)
         self.main.auto_ajust.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
+        self.main.append_video.setDisabled(True)
         self.main.voice_autorate.setDisabled(True)
 
         self.main.only_video.show()
@@ -373,6 +379,7 @@ class SecWindow():
         self.main.back_audio.hide()
         self.main.auto_ajust.hide()
         self.main.video_autorate.hide()
+        self.main.append_video.hide()
 
         # cuda
         self.main.enable_cuda.show()
@@ -380,11 +387,7 @@ class SecWindow():
     # 仅仅对已有字幕配音，
     # 不翻译不识别
     def set_zimu_peiyin(self):
-        if config.current_status == 'ing':
-            self.main.action_zimu_peiyin.setChecked(False)
-            tools.send_notification("该模式执行中不可切换",
-                              '请等待结束后再切换该模式' if config.defaulelang == 'zh' else 'Please wait until the end of the execution before switching modes.')
-            return
+        self.main.action_zimu_peiyin.setChecked(True)
         self.main.show_tips.setText(config.transobj['zimu_peiyin'])
         self.main.startbtn.setText(config.transobj['kaishipeiyin'])
         self.main.action_zimu_peiyin.setChecked(True)
@@ -400,6 +403,9 @@ class SecWindow():
         self.hide_show_element(self.main.layout_source_mp4, False)
         # 保存目标
         self.hide_show_element(self.main.layout_target_dir, True)
+
+        # 显示音量 音调变化
+        self.hide_show_element(self.main.edge_volume_layout, True)
 
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -431,6 +437,7 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
+        self.main.append_video.setDisabled(True)
         self.main.voice_autorate.setDisabled(False)
         self.main.auto_ajust.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
@@ -439,6 +446,7 @@ class SecWindow():
         self.main.voice_autorate.show()
         self.main.is_separate.hide()
         self.main.video_autorate.hide()
+        self.main.append_video.hide()
         self.main.only_video.hide()
         self.main.auto_ajust.show()
         self.main.back_audio.show()
@@ -461,6 +469,8 @@ class SecWindow():
             config.params['auto_ajust'] = state
         elif name == 'video':
             config.params['video_autorate'] = state
+        elif name=='append_video':
+            config.params['append_video']=state
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -502,6 +512,7 @@ class SecWindow():
         self.main.model_type.setDisabled(type)
         self.main.voice_autorate.setDisabled(type)
         self.main.video_autorate.setDisabled(type)
+        self.main.append_video.setDisabled(type)
         self.main.voice_role.setDisabled(type)
         self.main.voice_rate.setDisabled(type)
         self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu', 'peiyin'] else type)
@@ -703,8 +714,10 @@ class SecWindow():
     def clearcache(self):
         if config.defaulelang == 'zh':
             question = tools.show_popup('清理后需要重启软件', '确认进行清理？')
+
         else:
             question = tools.show_popup('The software needs to be restarted after cleaning', 'Confirm cleanup?')
+
         if question == QMessageBox.Yes:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
             shutil.rmtree(config.homedir + "/tmp", ignore_errors=True)
@@ -715,6 +728,7 @@ class SecWindow():
 
     # tts类型改变
     def tts_type_change(self, type):
+        self.hide_show_element(self.main.edge_volume_layout,True if type in ['edgeTTS','AzureTTS'] else False)
         if self.main.app_mode == 'peiyin' and type == 'clone-voice' and config.params['voice_role'] == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
                 'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
@@ -742,6 +756,7 @@ class SecWindow():
         if type=='gtts':
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
+
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == "openaiTTS":
             self.main.voice_role.clear()
@@ -764,8 +779,7 @@ class SecWindow():
             self.main.current_rolelist = config.clone_voicelist
             self.main.voice_role.addItems(self.main.current_rolelist)
             threading.Thread(target=tools.get_clone_role).start()
-            config.params['is_separate'] = True
-            self.main.is_separate.setChecked(True)
+
         elif type == 'TTS-API':
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
@@ -775,6 +789,8 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
             self.main.voice_role.addItems(self.main.current_rolelist)
+
+
 
     # 试听配音
     def listen_voice_fun(self):
@@ -791,16 +807,21 @@ class SecWindow():
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True,exist_ok=True)
         lujing_role = role.replace('/', '-')
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}.mp3"
+        volume=int(self.main.volume_rate.value())
+        pitch=int(self.main.pitch_rate.value())
+        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
         if config.params['tts_type'] == 'GPT-SoVITS':
             voice_file += '.wav'
+
         obj = {
             "text": text,
             "rate": "+0%",
             "role": role,
             "voice_file": voice_file,
             "tts_type": config.params['tts_type'],
-            "language": lang
+            "language": lang,
+            "volume":f'+{volume}%' if volume>0 else f'{volume}%',
+            "pitch":f'+{pitch}Hz' if pitch>0 else f'{pitch}Hz',
         }
         if config.params['tts_type'] == 'clone-voice' and role == 'clone':
             return
@@ -954,6 +975,7 @@ class SecWindow():
             config.params['whisper_type'] = 'all'
             config.params['is_separate'] = False
             config.params['video_autorate'] = False
+            config.params['append_video'] = False
             return True
         # 如果是 合并模式,必须有字幕，有视频，有字幕嵌入类型，允许设置视频减速
         # 不需要翻译
@@ -968,6 +990,7 @@ class SecWindow():
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
             config.params['video_autorate'] = False
+            config.params['append_video'] = False
             config.params['whisper_model'] = 'tiny'
             config.params['whisper_type'] = 'all'
             config.params['back_audio'] = ''
@@ -984,10 +1007,12 @@ class SecWindow():
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
             config.params['video_autorate'] = False
+            config.params['append_video'] = False
             config.params['back_audio'] = ''
         if self.main.app_mode == 'biaozhun_jd':
             config.params['voice_autorate'] = True
             config.params['video_autorate'] = True
+            config.params['append_video'] = True
             config.params['auto_ajust'] = True
             config.params['is_separate'] = False
             config.params['back_audio'] = ''
@@ -1091,6 +1116,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # 配音自动加速
         config.params['voice_autorate'] = self.main.voice_autorate.isChecked()
         config.params['video_autorate'] = self.main.video_autorate.isChecked()
+        config.params['append_video'] = self.main.append_video.isChecked()
 
         # 视频自动减速
         # 语音模型
@@ -1108,12 +1134,20 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
 
         try:
-            voice_rate = self.main.voice_rate.text().strip().replace('+', '').replace('%', '')
-            voice_rate = 0 if not voice_rate else int(voice_rate)
+            voice_rate = int(self.main.voice_rate.value())
+            # voice_rate = 0 if not voice_rate else int(voice_rate)
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
-        except:
+        except Exception:
             config.params['voice_rate'] = '+0%'
 
+        try:
+            volume=int(self.main.volume_rate.value())
+            pitch=int(self.main.pitch_rate.value())
+            config.params['volume']=f'+{volume}%' if volume>0 else f'{volume}%'
+            config.params['pitch']=f'+{pitch}Hz' if pitch>0 else f'{pitch}Hz'
+        except Exception:
+            config.params['volume']='+0%'
+            config.params['pitch']='+0Hz'
         config.params['back_audio'] = self.main.back_audio.text().strip()
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
@@ -1223,6 +1257,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         self.main.task = Worker(parent=self.main, app_mode=self.main.app_mode, txt=txt)
         self.main.task.start()
 
+
+        for k,v in self.main.moshis.items():
+            if k != self.main.app_mode:
+                v.setDisabled(True)
+
+
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
         if not btnkey or btnkey not in self.main.processbtns:
@@ -1230,10 +1270,17 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         if not self.main.task:
             return
         if btnkey=='srt2wav' and  self.main.task and self.main.task.video:
-            jindu = f' {round(self.main.task.video.precent, 1)}% '
-            self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.video.precent))
-            raw_name = self.main.task.video.raw_basename
-            self.main.processbtns[btnkey].setText(f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
+            if type=='succeed':
+                text, basename = text.split('##')
+                self.main.processbtns[btnkey].setTarget(text)
+                self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
+                precent=100
+                text=f'{config.transobj["endandopen"].replace("..", "")} {text}'
+            else:
+                precent=self.main.task.video.precent
+                text=f'{config.transobj["running"].replace("..", "")} [{round(precent, 1)}%] /  {config.transobj["endopendir"]} {text}'
+            self.main.processbtns[btnkey].progress_bar.setValue(precent)
+            self.main.processbtns[btnkey].setText(text)
             return
 
         if type == 'succeed':
@@ -1258,7 +1305,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif btnkey in self.main.task.tasklist:
             jindu = f' {round(self.main.task.tasklist[btnkey].precent, 1)}% '
             self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.tasklist[btnkey].precent))
-            raw_name = self.main.task.tasklist[btnkey].raw_basename
+            raw_name = self.main.task.tasklist[btnkey].obj['raw_basename']
             self.main.processbtns[btnkey].setToolTip(config.transobj["endopendir"])
             self.main.processbtns[btnkey].setText(
                 f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
@@ -1276,6 +1323,8 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.startbtn.setText(config.transobj[type])
             # 启用
             self.disabled_widget(False)
+            for k, v in self.main.moshis.items():
+                v.setDisabled(False)
             if type == 'end':
                 # 成功完成
                 self.main.source_mp4.setText(config.transobj["No select videos"])
@@ -1333,6 +1382,8 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 self.main.continue_compos.hide()
                 self.main.target_dir.clear()
                 self.main.stop_djs.hide()
+                self.main.export_sub.setDisabled(False)
+                self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
@@ -1347,9 +1398,13 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
             self.main.subtitle_area.setReadOnly(True)
+            self.main.export_sub.setDisabled(True)
+            self.main.set_line_role.setDisabled(True)
         elif d['type'] == 'allow_edit':
             # 允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
+            self.main.export_sub.setDisabled(False)
+            self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
             self.main.subtitle_area.clear()
@@ -1362,7 +1417,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'show_djs':
             self.set_process_btn_text(d['text'], d['btnkey'])
         elif d['type'] == 'check_soft_update':
-            print(d)
             if not self.usetype:
                 self.usetype = QPushButton()
                 self.usetype.setStyleSheet('color:#ffff00;border:0')
@@ -1401,21 +1455,23 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         self.main.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
         txt = self.main.subtitle_area.toPlainText().strip()
-        if not btnkey:
+        config.task_countdown = 0
+        if not btnkey or not txt:
             return
-        srtfile=None
         if btnkey == 'srt2wav':
-            srtfile = self.main.task.video.targetdir_target_sub
-        elif btnkey in self.main.task.tasklist:
+            srtfile = self.main.task.video.init['target_sub']
+            with open(srtfile, 'w', encoding='utf-8') as f:
+                f.write(txt)
+            return
+
+        if not self.main.task.is_batch and btnkey in self.main.task.tasklist:
             if step == 'translate_start':
-                srtfile = self.main.task.tasklist[btnkey].targetdir_source_sub
+                srtfile = self.main.task.tasklist[btnkey].init['source_sub']
             else:
-                srtfile = self.main.task.tasklist[btnkey].targetdir_target_sub
-        # 不是批量才允许更新字幕
-        if  not self.main.task.is_batch and srtfile and txt:
+                srtfile = self.main.task.tasklist[btnkey].init['target_sub']
+            # 不是批量才允许更新字幕
             with open(srtfile, 'w', encoding='utf-8') as f:
                 f.write(txt)
         if step == 'translate_start':
             self.main.subtitle_area.clear()
-        config.task_countdown = 0
         return True
