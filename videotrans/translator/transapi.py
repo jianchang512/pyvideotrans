@@ -50,7 +50,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(5)
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
@@ -103,7 +103,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process( f'{result}\n\n')
-                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.btnkey if inst else "")
+                    tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process(result+"\n\n", func_name="set_fanyi")
 

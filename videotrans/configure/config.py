@@ -73,7 +73,6 @@ def parse_init():
         "remove_white_ms":100,
         "vsync":"passthrough",
         "force_edit_srt":True,
-        "append_video":True,
         "loop_backaudio":False,
         "cors_run":True
     }
@@ -199,7 +198,7 @@ params = {
     "is_separate":False,
 
     "voice_role": "No",
-    "voice_rate": "+0%",
+    "voice_rate": "0",
 
     "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
     "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",

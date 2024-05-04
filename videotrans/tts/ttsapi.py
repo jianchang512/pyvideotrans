@@ -6,15 +6,14 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
+def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, language=None, filename=None,set_p=True,inst=None):
 
     try:
         api_url=config.params['ttsapi_url'].strip().rstrip('/')
         if not api_url:
             raise Exception("get_voice:"+config.transobj['ttsapi_nourl'])
         config.logger.info(f'TTS-API:api={api_url}')
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
+
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
 
         resraw=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},verify=False)
@@ -34,15 +33,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
             tools.remove_silence_from_end(filename)
         if set_p and inst and inst.precent < 80:
             inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
-        return True
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
     except Exception as e:
         error=str(e)
-        if is_test:
-            raise Exception(error)
         if set_p:
-            tools.set_process(error,btnkey=inst.btnkey if inst else "")
+            tools.set_process(error,btnkey=inst.init['btnkey'] if inst else "")
         config.logger.error(f"TTS-API自定义失败:{error}")
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=error
-        return error
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=error
+        raise Exception(error)
+    else:
+        return True

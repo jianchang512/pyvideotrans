@@ -366,8 +366,12 @@ def get_audio_code(*, show_source=None):
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
 def get_subtitle_code(*, show_target=None):
-    target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[config.rev_langlist[show_target]]
-    return target_list[1]
+    if show_target in LANG_CODE:
+        return LANG_CODE[show_target][1]
+    if show_target in config.rev_langlist:
+        return LANG_CODE[config.rev_langlist[show_target]][1]
+
+    return 'eng'
 
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码

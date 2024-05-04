@@ -4,7 +4,10 @@ import re
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import Qt
+from PySide6.QtWidgets import QMessageBox, QFileDialog
+
 from videotrans.configure import config
+from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
 
 
@@ -226,8 +229,7 @@ class Subform():
                     tools.get_clone_role(True)
                     if len(config.clone_voicelist) < 2:
                         raise Exception('没有可供测试的声音')
-                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False,is_test=True,
-                              filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False, filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -369,7 +371,7 @@ class Subform():
                     from videotrans.translator.chatgpt import trans as trans_chatgpt
                     raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
                     text = trans_chatgpt(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
-                                         inst=None, is_test=True)
+                                         inst=None)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -455,7 +457,7 @@ class Subform():
                 from videotrans.tts.ttsapi import get_voice
                 try:
 
-                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False, is_test=True,  filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False, filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -528,7 +530,7 @@ class Subform():
             def run(self):
                 from videotrans.translator.transapi import trans
                 try:
-                    t = trans(self.text, target_language="en", set_p=False, source_code="zh", is_test=True)
+                    t = trans(self.text, target_language="en", set_p=False, source_code="zh")
                     self.uito.emit(f"ok:{self.text}\n{t}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -591,7 +593,7 @@ class Subform():
                 from videotrans.tts.gptsovits import get_voice
                 try:
                     get_voice(text=self.text, language=self.language, set_p=False, role=self.role,
-                              filename=config.homedir + "/test.wav",is_test=True)
+                              filename=config.homedir + "/test.wav")
                     self.uito.emit("ok")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -719,3 +721,71 @@ class Subform():
             self.main.w.azure_template.setPlainText(config.params["azure_template"])
         self.main.w.set_azure.clicked.connect(save)
         self.main.w.show()
+
+    def open_separate(self):
+        def get_file():
+            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video", config.last_opendir,
+                                                   "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
+            if fname:
+                self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def update(d):
+            #更新
+            if d=='succeed':
+                self.main.sepw.set.setText(config.transobj['Separate End/Restart'])
+                self.main.sepw.fromfile.setText('')
+            elif d=='end':
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+            else:
+                QMessageBox.critical(self.main.sepw,config.transobj['anerror'],d)
+
+
+        def start():
+            if config.separate_status=='ing':
+                config.separate_status='stop'
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+                return
+            #开始处理分离，判断是否选择了源文件
+            file=self.main.sepw.fromfile.text()
+            if not file or not os.path.exists(file):
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], config.transobj['must select audio or video file'])
+                return
+            self.main.sepw.set.setText(config.transobj['Start Separate...'])
+            basename=os.path.basename(file)
+            #判断名称是否正常
+            rs,newfile,base=tools.rename_move(file,is_dir=False)
+            if rs:
+                file=newfile
+                basename=base
+            #创建文件夹
+            out=os.path.join(outdir,basename).replace('\\','/')
+            os.makedirs(out,exist_ok=True)
+            self.main.sepw.url.setText(out)
+            #开始分离
+            config.separate_status='ing'
+            self.main.sepw.task=SeparateWorker(parent=self.main.sepw,out=out,file=file,basename=basename)
+            self.main.sepw.task.finish_event.connect(update)
+            self.main.sepw.task.start()
+
+
+
+        from videotrans.component import SeparateForm
+        try:
+            if self.main.sepw is not None:
+                self.main.sepw.show()
+                return
+            self.main.sepw = SeparateForm()
+            self.main.sepw.set.setText(config.transobj['Start Separate'])
+            outdir = os.path.join(config.homedir,'separate').replace( '\\', '/')
+            if not os.path.exists(outdir):
+                os.makedirs(outdir, exist_ok=True)
+            # 创建事件过滤器实例并将其安装到 lineEdit 上
+            self.main.sepw.url.setText(outdir)
+
+            self.main.sepw.selectfile.clicked.connect(get_file)
+
+            self.main.sepw.set.clicked.connect(start)
+            self.main.sepw.show()
+        except:
+            print('err')
+            pass

@@ -1,0 +1,97 @@
+# 整体识别，全部传给模型
+import os
+import re
+
+from videotrans.configure import config
+from videotrans.util import tools
+from faster_whisper import WhisperModel
+
+
+def recogn(*,
+           detect_language=None,
+           audio_file=None,
+           cache_folder=None,
+           model_name="base",
+           set_p=True,
+           inst=None,
+           is_cuda=None):
+    if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
+        return False
+    if set_p:
+        tools.set_process(f"{config.transobj['kaishishibie']}",
+                          btnkey=inst.init['btnkey'] if inst else "")
+    down_root = os.path.normpath(config.rootdir + "/models")
+    model = None
+    try:
+        model = WhisperModel(model_name,
+                             device="cuda" if is_cuda else "cpu",
+                             compute_type="float32" if model_name.startswith('distil-') else config.settings[
+                                 'cuda_com_type'],
+                             download_root=down_root,
+                             num_workers=config.settings['whisper_worker'],
+                             cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(
+                                 config.settings['whisper_threads']),
+                             local_files_only=True)
+        if config.current_status != 'ing' and config.box_recogn != 'ing':
+            return False
+        if not tools.vail_file(audio_file):
+            raise Exception(f'no exists {audio_file}')
+        segments, info = model.transcribe(audio_file,
+                                          beam_size=config.settings['beam_size'],
+                                          best_of=config.settings['best_of'],
+                                          condition_on_previous_text=config.settings['condition_on_previous_text'],
+
+                                          temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6,
+                                                                                                     0.8, 1.0],
+                                          vad_filter=bool(config.settings['vad']),
+                                          vad_parameters=dict(
+                                              min_silence_duration_ms=config.settings['overall_silence'],
+                                              max_speech_duration_s=config.settings['overall_maxsecs']
+                                          ),
+                                          word_timestamps=True,
+                                          language=detect_language,
+                                          initial_prompt=None if detect_language != 'zh' else config.settings[
+                                              'initial_prompt_zh'])
+
+        # 保留原始语言的字幕
+        raw_subtitles = []
+        sidx = -1
+        for segment in segments:
+            if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
+                del model
+                return None
+            sidx += 1
+            start = int(segment.words[0].start * 1000)
+            end = int(segment.words[-1].end * 1000)
+            # if start == end:
+            #     end += 200
+            startTime = tools.ms_to_time_string(ms=start)
+            endTime = tools.ms_to_time_string(ms=end)
+            text = segment.text.strip().replace('&#39;', "'")
+            if detect_language == 'zh' and text == config.settings['initial_prompt_zh']:
+                continue
+            text = re.sub(r'&#\d+;', '', text)
+            # 无有效字符
+            if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text) or len(text) <= 1:
+                continue
+            # 原语言字幕
+            s = {"line": len(raw_subtitles) + 1, "time": f"{startTime} --> {endTime}", "text": text}
+            raw_subtitles.append(s)
+            if set_p:
+                tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
+                if inst and inst.precent < 55:
+                    inst.precent += round(segment.end * 0.5 / info.duration, 2)
+                tools.set_process(f'{config.transobj["zimuhangshu"]} {s["line"]}',
+                                  btnkey=inst.init['btnkey'] if inst else "")
+            else:
+                tools.set_process_box(text=f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', type="set",
+                                      func_name="shibie")
+        return raw_subtitles
+    except Exception as e:
+        raise Exception(str(e)+str(e.args))
+    finally:
+        try:
+            if model:
+                del model
+        except Exception:
+            pass

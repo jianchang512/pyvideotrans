@@ -1,5 +1,7 @@
 {
   "translate_language": {
+    "peiyindayu31": "配音出错数量大于1/3，请检查",
+
 	"chaochu255":"视频路径加名称过长，请缩短视频名称并移动到简短路径下，避免后续出错",  
 	"teshufuhao":"视频路径或名称中请勿存在 + & ? : | 等特殊符号，以避免后续出错",  
 	  
@@ -322,7 +324,7 @@
     "Recognize the sound in audio or video and output SRT text": "将音频或视频中的声音识别后输出srt字幕文件",
     "From  Text  Into  Speech": "批量字幕配音",
     "Generate audio WAV from text or SRT subtitle files": "根据srt字幕文件创建配音文件",
-    "Extract Srt And Translate": "语音转为字幕",
+    "Extract Srt And Translate": "视频转为字幕",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "识别视频中的语音为srt字幕",
     "Separate Video to audio": "从视频取音频",
     "Separate audio and silent videos from videos": "将视频分离为音频文件和无声mp4视频文件",

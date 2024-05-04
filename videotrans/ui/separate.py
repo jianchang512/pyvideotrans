@@ -111,7 +111,7 @@ class Ui_separateform(object):
         self.url = QtWidgets.QLineEdit(self.layoutWidget)
         self.url.setMinimumSize(QtCore.QSize(0, 35))
         self.url.setObjectName("url")
-        # self.url.setCursor(Qt.PointingHandCursor)
+        self.url.setCursor(Qt.PointingHandCursor)
         self.url.setToolTip(config.uilanglist['Open target dir'])
         self.url.setReadOnly(True)
 

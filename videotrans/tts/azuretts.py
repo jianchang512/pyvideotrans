@@ -5,10 +5,8 @@ import azure.cognitiveservices.speech as speechsdk
 
 
 
-def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set_p=True,is_test=False,inst=None):
+def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, language=None,filename=None,set_p=True,inst=None):
     try:
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
         if language:
             language=language.split("-",maxsplit=1)
         else:
@@ -27,20 +25,20 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
         # speech_config.speech_synthesis_voice_name=role
         audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True,filename=filename+".wav")
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
-        if rate  in ['+0%','0%','-0%','0','+0','-0']:
-            ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
-            <voice name='{}'>
-                {}
-            </voice>
-        </speak>""".format(language,role,text)
-        else:
-            ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
-            <voice name='{}'>
-                <prosody rate="{}">
-                {}
-                </prosody>
-            </voice>
-        </speak>""".format(language,role,rate,text)
+        # if rate  in ['+0%','0%','-0%','0','+0','-0']:
+        #     ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
+        #     <voice name='{}'>
+        #         {}
+        #     </voice>
+        # </speak>""".format(language,role,text)
+        # else:
+        ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
+        <voice name='{}'>
+            <prosody rate="{}" pitch='{}'  volume='{}'>
+            {}
+            </prosody>
+        </voice>
+        </speak>""".format(language,role,rate,pitch,volume,text)
         config.logger.info(f'{ssml=}')
         speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
 
@@ -50,24 +48,23 @@ def get_voice(*,text=None, role=None, rate=None, language=None,filename=None,set
                 tools.remove_silence_from_end(filename)
             if set_p and inst and inst.precent < 80:
                 inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
-            return True
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    tools.set_process(f"{config.transobj['azureinfo']}", btnkey=inst.btnkey if inst else "")
+                    tools.set_process(f"{config.transobj['azureinfo']}", btnkey=inst.init['btnkey'] if inst else "")
                     raise Exception(config.transobj['azureinfo'])
             raise Exception("Speech synthesis canceled: {},text={}".format(cancellation_details.reason,text))
         else:
             raise Exception('配音出错，请检查 Azure TTS')
     except Exception as e:
         error=str(e)
-        if is_test:
-            raise Exception(error)
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=error
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=error
         config.logger.error(f"Azure TTS合成失败" + str(e))
         if set_p:
-            tools.set_process(error,btnkey=inst.btnkey if inst else "")
-        return error
+            tools.set_process(error,btnkey=inst.init['btnkey'] if inst else "")
+        raise Exception(error)
+    else:
+        return True

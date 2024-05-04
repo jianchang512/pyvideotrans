@@ -144,7 +144,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         if iter_num > 1:
             if set_p:
                 tools.set_process(
-                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.btnkey if inst else "")
+                    f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
 
         response = None
@@ -162,7 +162,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 if not is_srt:
                     target_text["0"].append(result)
                     if not set_p:
-                        tools.set_process_box(result + "\n", func_name="set_fanyi")
+                        tools.set_process_box(text=result + "\n",func_name="fanyi",type="set")
                     continue
 
                 sep_res = result.strip().split("\n")
@@ -186,9 +186,9 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',btnkey=inst.btnkey if inst else "")
+                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',btnkey=inst.init['btnkey'] if inst else "")
                         else:
-                            tools.set_process_box(result_item + "\n", func_name="set_fanyi")
+                            tools.set_process_box(text=result_item + "\n", func_name="fanyi",type="set")
 
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]

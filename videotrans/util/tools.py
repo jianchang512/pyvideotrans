@@ -240,9 +240,9 @@ def runffmpeg(arg, *, noextname=None,
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
-    cmd[-1] = os.path.normpath(cmd[-1])
+    # cmd[-1] = os.path.normpath(cmd[-1])
     try:
-        p = subprocess.run(['ffprobe'] + cmd,
+        p = subprocess.run( cmd if isinstance(cmd,str) else ['ffprobe'] + cmd,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
@@ -250,7 +250,7 @@ def runffprobe(cmd):
                            check=True,
                            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if p.stdout:
-            return p.stdout
+            return p.stdout.strip()
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
         msg = f'ffprobe call error:{str(e.stdout)},{str(e.stderr)}'
@@ -565,15 +565,21 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None,
     return True
 
 
-def show_popup(title, text):
+def show_popup(title, text,parent=None):
     from PySide6.QtGui import QIcon
+    from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QMessageBox
+
     msg = QMessageBox()
     msg.setWindowTitle(title)
     msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
     msg.setText(text)
     msg.addButton(QMessageBox.Yes)
     msg.addButton(QMessageBox.Cancel)
+    msg.setWindowModality(Qt.ApplicationModal)  # 设置为应用模态
+    msg.setWindowFlags(msg.windowFlags() | Qt.WindowStaysOnTopHint)  # 置于顶层
+
+
     # msg.addButton(a2)
     msg.setIcon(QMessageBox.Information)
     x = msg.exec()  # 显示消息框
@@ -788,6 +794,12 @@ def is_novoice_mp4(novoice_mp4, noextname):
             continue
         return True
 
+def match_target_amplitude(sound, target_dBFS):
+    change_in_dBFS = target_dBFS - sound.dBFS
+    return sound.apply_gain(change_in_dBFS)
+
+
+
 
 # 从视频中切出一段时间的视频片段 cuda + h264_cuvid
 def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
@@ -906,8 +918,8 @@ def send_notification(title, message):
         notification.notify(
             title=title[:60],
             message=message[:120],
-            ticker="视频翻译与配音",
-            app_name="视频翻译与配音",  # config.uilanglist['SP-video Translate Dubbing'],
+            ticker="pyVideoTrans",
+            app_name="pyVideoTrans",  # config.uilanglist['SP-video Translate Dubbing'],
             app_icon=os.path.join(config.rootdir, 'videotrans/styles/icon.ico'),
             timeout=10  # Display duration in seconds
         )
@@ -990,14 +1002,13 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     format = "wav"
     if isinstance(input_file_path, str):
         format = input_file_path.split('.')[-1].lower()
-        if format in ['wav', 'mp3']:
-            audio = AudioSegment.from_file(input_file_path, format=format)
+        if format in ['wav', 'mp3','m4a']:
+            audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav','mp3'] else 'mp4')
         else:
             # 转为mp3
-            tmp = input_file_path + ".mp3"
             try:
-                runffmpeg(['-y', '-i', input_file_path, tmp])
-                audio = AudioSegment.from_file(tmp, format="mp3")
+                runffmpeg(['-y', '-i', input_file_path, input_file_path + ".mp3"])
+                audio = AudioSegment.from_file(input_file_path + ".mp3", format="mp3")
             except Exception:
                 return input_file_path
 
@@ -1014,8 +1025,6 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
     if nonsilent_chunks:
         start_index, end_index = nonsilent_chunks[-1]
-    elif isinstance(input_file_path, str):
-        return True
     else:
         # If the whole audio is silent, just return it as is
         return input_file_path
@@ -1025,14 +1034,15 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
         trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
     if isinstance(input_file_path, str):
-        if format in ['wav', 'mp3']:
-            return trimmed_audio.export(input_file_path, format=format)
+        if format in ['wav', 'mp3','m4a']:
+            trimmed_audio.export(input_file_path, format=format if format in ['wav','mp3'] else 'mp4')
+            return input_file_path
         try:
-            trimmed_audio.export(tmp, format="mp3")
-            runffmpeg(['-y', '-i', tmp, input_file_path])
+            trimmed_audio.export(input_file_path + ".mp3", format="mp3")
+            runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
         except Exception:
             pass
-        return True
+        return input_file_path
     return trimmed_audio
 
 

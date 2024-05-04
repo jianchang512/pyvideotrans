@@ -2,19 +2,19 @@ import os
 import re
 import shutil
 import time
+from pathlib import Path
 
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set_p=True,is_test=False,inst=None):
+def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
     try:
         api_url=config.params['clone_api'].strip().rstrip('/').lower()
         if not api_url:
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
-        if config.current_status != 'ing' and config.box_tts != 'ing' and not is_test:
-            return False
+
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'clone-voice:api={api_url}')
         splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
@@ -37,10 +37,7 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
         res=res.json()
         if "code" not in res or res['code']!=0:
             if "msg" in  res and res['msg'].find("non-empty")>0:
-                try:
-                    os.unlink(filename)
-                except:
-                    pass
+                Path(filename).unlink(missing_ok=True)
                 return True
             raise Exception(f'{res}')
         if api_url.find('127.0.0.1')>-1 or api_url.find('localhost')>-1:
@@ -60,15 +57,14 @@ def get_voice(*,text=None, role=None,rate=None, language=None, filename=None,set
                 tools.remove_silence_from_end(filename)
             if set_p and inst and inst.precent < 80:
                 inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.btnkey if inst else "")
-        return True
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
     except Exception as e:
         error=str(e)
-        if is_test:
-            raise Exception(error)
         if set_p:
-            tools.set_process(error,btnkey=inst.btnkey if inst else  "")
+            tools.set_process(error,btnkey=inst.init['btnkey'] if inst else  "")
         config.logger.error(f"cloneVoice合成失败:{error}")
-        if inst and inst.btnkey:
-            config.errorlist[inst.btnkey]=error
-        return error
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']]=error
+        raise Exception(error)
+    else:
+        return True
