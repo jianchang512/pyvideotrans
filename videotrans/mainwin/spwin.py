@@ -54,6 +54,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
+        # 渲染后再执行绑定
+        # QTimer.singleShot(200, self.bind_action)
+        QTimer.singleShot(500, self.start_box)
+        self.bind_action()
 
 
     def start_box(self):
@@ -184,11 +188,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processlayout = QVBoxLayout(viewport)
         # 设置布局管理器的对齐方式为顶部对齐
         self.processlayout.setAlignment(Qt.AlignTop)
-        # 渲染后再执行绑定
-        QTimer.singleShot(500, self.bind_action)
-        QTimer.singleShot(500, self.start_box)
-
-    def bind_action(self):
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
@@ -201,6 +200,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.container.addWidget(self.rightbottom)
         self.statusBar.addPermanentWidget(self.container)
 
+
+
+    def bind_action(self):
         # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
         from videotrans.mainwin.secwin import SecWindow
         from videotrans.mainwin.subform import Subform
