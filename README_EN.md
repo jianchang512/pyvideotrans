@@ -13,7 +13,7 @@
 >
 > Allows retaining background accompaniment music, etc. (based on uvr5)
 >
-> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay.
+> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay.Cozhen
 
 # Main Uses and How to Use
 
@@ -29,7 +29,6 @@
 
 【Extract audio from video】Extract as audio files and mute video from video
 
-【Audio and video format conversion】Mutual conversion between various formats
 
 【Download YouTube videos】Download videos from YouTube
 
@@ -68,7 +67,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
     ```
     export PATH="/usr/local/opt/python@3.12/bin:$PATH"
 
-    source ~/.bash_profile; source ~/.zshrc
+    source ~/.bash_profile
+	
+	source ~/.zshrc
 
     ```
 
@@ -162,7 +163,7 @@ apt-get install ffmpeg
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-9. To enable CUDA acceleration on Linux, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly, see [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+9. To enable CUDA acceleration on Linux, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly
 
 10. `python sp.py` to open the software interface.
 

@@ -67,12 +67,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
     ```
 
-    继续如下2条执行
+    继续执行
 
     ```
     export PATH="/usr/local/opt/python@3.12/bin:$PATH"
 
-    source ~/.bash_profile ; source ~/.zshrc
+    source ~/.bash_profile 
+	
+	source ~/.zshrc
 
     ```
 
@@ -188,7 +190,7 @@ apt-get install ffmpeg
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-9. linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+9. linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境,请自行搜索 "Linux CUDA 安装"
 
 
 10. `python sp.py` 打开软件界面
@@ -225,11 +227,9 @@ apt-get install ffmpeg
 
 9. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-10. Linux 如果要使用 CUDA 加速，还需要额外执行安装 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
+10. 解压 ffmpeg.zip 到当前源码目录下，提示覆盖则覆盖，解压后确保源码下的ffmepg文件夹内能看到 ffmpeg.exe ffprobe.exe ytwin32.exe,
 
-11. 解压 ffmpeg.zip 到当前源码目录下，提示覆盖则覆盖，解压后确保源码下的ffmepg文件夹内能看到 ffmpeg.exe ffprobe.exe ytwin32.exe,
-
-12. `python sp.py` 打开软件界面
+11. `python sp.py` 打开软件界面
 
 
 
