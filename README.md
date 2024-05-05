@@ -13,7 +13,7 @@
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
-> 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语
+> 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语
 
 
 
@@ -31,7 +31,6 @@
 
 【从视频中分离出音频】从视频中分离为音频文件和无声视频
 
-【音频、视频格式转换】各种格式之间的相互转换
 
 【下载油管视频】可从youtube上下载视频
 
@@ -55,7 +54,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # MacOS源码部署
 
-0. 打开终端窗口，分别执行这3条命令
+0. 打开终端窗口，分别执行如下命令
 
     ```
     brew install libsndfile
@@ -96,14 +95,6 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 7. `python sp.py` 打开软件界面
 
-8. Ubuntu 下可能还需要安装 Libxcb 库，安装命令
-
-	```
-
-	sudo apt-get update
-	sudo apt-get install libxcb-cursor0
-
-	```
 
 [Mac下详细部署方案](https://pyvideotrans.com/mac.html)
 
@@ -241,7 +232,7 @@ apt-get install ffmpeg
 
    下载地址： https://pyvideotrans.com/model.html
 
-   说明和区别介绍地址：https://pyvideotrans.com/02.html
+   模型说明和区别介绍：https://pyvideotrans.com/02.html
 
 
 
