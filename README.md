@@ -206,20 +206,30 @@ apt-get install ffmpeg
 4. 继续执行命令 `cd pyvideotrans`
 5. 继续执行 `python -m venv venv`
 6. 继续执行命令 `.\venv\scripts\activate`,执行后请查看确认命令行开头已变成了`(venv)`,否则说明出错
-7.  如果要使用CUDA加速，分别执行
+7. 执行 `pip install -r requirements.txt --no-deps`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
+
+    ```
+
+    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+    pip config set install.trusted-host mirrors.aliyun.com
+
+    ```
+
+    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt  --ignore-installed --no-deps `
+8.  如果要使用CUDA加速，分别执行
 
     `pip uninstall -y torch torchaudio`
 
     `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
 
-8. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
+9. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81)
 
-9. Linux 如果要使用 CUDA 加速，还需要额外执行安装 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
+10. Linux 如果要使用 CUDA 加速，还需要额外执行安装 `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-10. 解压 ffmpeg.zip 到当前源码目录下，提示覆盖则覆盖，解压后确保源码下的ffmepg文件夹内能看到 ffmpeg.exe ffprobe.exe ytwin32.exe,
+11. 解压 ffmpeg.zip 到当前源码目录下，提示覆盖则覆盖，解压后确保源码下的ffmepg文件夹内能看到 ffmpeg.exe ffprobe.exe ytwin32.exe,
 
-11. `python sp.py` 打开软件界面
+12. `python sp.py` 打开软件界面
 
 
 
