@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys
+import sys,os
 from pathlib import Path
 import time
 
@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, QTimer, QPoint
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 from videotrans import VERSION
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):
