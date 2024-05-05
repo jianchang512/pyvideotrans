@@ -50,7 +50,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # MacOS Source Code Deployment
 
-0. Open a terminal window and execute these 3 commands respectively
+0. Open a terminal window and execute commands respectively
 
     ```
     brew install libsndfile
@@ -77,25 +77,13 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 3. Execute the command `cd pyvideotrans`.
 4. Continue with `python -m venv venv`.
 5. Continue with the command `source ./venv/bin/activate`, confirming that the terminal prompt starts with `(venv)`, the following commands must be sure the terminal prompt starts with `(venv)`.
-6. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt, switch to Aliyun mirror source and execute the following 2 commands
+6. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt,
 
-    ```
-    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-    pip config set install.trusted-host mirrors.aliyun.com
-    ```
-
-    Then retry. If the failure persists, try `pip install -r requirements.txt  --ignore-installed --no-deps`.
+  try `pip install -r requirements.txt  --ignore-installed --no-deps`.
 
 7. `python sp.py` to open the software interface.
 
-8. Ubuntu may also need to install the Libxcb library, installation commands are:
 
-	```
-
-	sudo apt-get update
-	sudo apt-get install libxcb-cursor0
-
-	```
 
 [Detailed MacOS deployment scheme](https://pyvideotrans.com/mac.html)
 
@@ -164,16 +152,7 @@ apt-get install ffmpeg
 4. Continue with the command `cd pyvideotrans`.
 5. Continue with `python -m venv venv`.
 6. Continue with the command `source ./venv/bin/activate`, confirming that the terminal prompt starts with `(venv)`.
-7. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt, switch to Aliyun mirror source and execute the following 2 commands.
-
-    ```
-
-    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-    pip config set install.trusted-host mirrors.aliyun.com
-
-    ```
-
-    Then retry. If the failure persists, try `pip install -r requirements.txt  --ignore-installed --no-deps`.
+7. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt,  try `pip install -r requirements.txt  --ignore-installed --no-deps`.
 8. If you want to use CUDA acceleration, execute respectively
 
     `pip uninstall -y torch torchaudio`
@@ -199,16 +178,16 @@ apt-get install ffmpeg
 4. Continue with the command `cd pyvideotrans`.
 5. Continue with `python -m venv venv`.
 6. Continue with the command `.\venv\scripts\activate`, ensuring the command line starts with `(venv)`, otherwise, there's an error.
-7. If you want to use CUDA acceleration, execute respectively
+7. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt,  try `pip install -r requirements.txt  --ignore-installed --no-deps`.
+8. If you want to use CUDA acceleration, execute respectively
 
     `pip uninstall -y torch torchaudio`
 
     `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
 
-8. To enable CUDA acceleration on Windows, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly, see [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+9. To enable CUDA acceleration on Windows, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly, see [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
 
-9. Linux If you want to use CUDA acceleration, you need to also install `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`.
 
 10. Unzip ffmpeg.zip to the current source code directory, overwrite if prompted, ensure you can see ffmpeg.exe, ffprobe.exe, ytwin32.exe, in the ffmepg folder within the source code.
 
