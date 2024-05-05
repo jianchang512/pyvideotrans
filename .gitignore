@@ -8,6 +8,7 @@ models/*.pt
 models/models--Systran--faster-whisper-base
 dev
 venv
+venv.bak
 dist
 source
 build
