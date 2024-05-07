@@ -165,7 +165,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                     target_text["srts"]+=tmp
 
             except Exception as e:
-                err=str(e)
+                err=str(e)+f',{api_url=}'
                 break
             else:
                 # 未出错

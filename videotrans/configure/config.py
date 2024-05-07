@@ -17,20 +17,29 @@ def get_executable_path():
     else:
         return str(Path.cwd()).replace('\\','/')
 
+#root dir
 rootdir = get_executable_path()
 root_path=Path(rootdir)
 
+# cache tmp
 temp_path=root_path/"tmp"
 temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = temp_path.as_posix()
 
+# home 
 homepath=Path.home()/'Videos/pyvideotrans'
 homepath.mkdir(parents=True, exist_ok=True)
 homedir = homepath.as_posix()
 
+# home tmp
+TEMP_HOME= homedir +"/tmp"
+Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
+
+# logs 
+
 logs_path=root_path/"logs"
-LOGS_DIR = logs_path.as_posix()
 logs_path.mkdir(parents=True, exist_ok=True)
+LOGS_DIR = logs_path.as_posix()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,7 +69,8 @@ def parse_init():
         "audio_rate":1.5,
         "video_rate":20,
         "initial_prompt_zh":"",
-        "fontsize":14,
+        "fontsize":16,
+        "fontname":"黑体",
         "voice_silence":200,
         "interval_split":6,
         "cjk_len":24,
@@ -139,7 +149,9 @@ box_lang = obj['toolbox_lang']
 
 # ffmpeg
 if sys.platform == 'win32':
-    os.environ['PATH'] = rootdir + f';{rootdir}\\ffmpeg;' + os.environ['PATH']
+    PWD=rootdir.replace('/','\\')
+    os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;{PWD}\\_internal\torch\lib;' + os.environ['PATH']
+    
 else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
@@ -324,3 +336,9 @@ compose_queue=[]
 unidlist=[]
 # 全局错误
 errorlist={}
+
+#当前可用编码 libx264 h264_qsv h264_nvenc 等
+video_codec=None
+
+# 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
+video_min_ms=50

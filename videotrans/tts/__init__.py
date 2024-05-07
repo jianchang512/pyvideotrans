@@ -45,8 +45,7 @@ def text_to_speech(
         from .gtts import get_voice
         # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
     if get_voice:
-        try:
-            get_voice(
+        get_voice(
                 text=text,
                 volume=volume,
                 pitch=pitch,
@@ -56,15 +55,11 @@ def text_to_speech(
                 filename=filename,
                 set_p=set_p,
                 inst=inst)
-        except Exception as e:
-            lasterror=str(e)
     if tools.vail_file(filename):
         if play:
             threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
-        return True
     else:
         config.logger.error(f'no filename={filename} {tts_type=} {text=},{role=}')
-        return False
 
 
 def run(*, queue_tts=None, language=None,set_p=True,inst=None):
@@ -108,7 +103,8 @@ def run(*, queue_tts=None, language=None,set_p=True,inst=None):
                     tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',btnkey=inst.init['btnkey'])
                 t.join()
         except Exception as e:
-            raise Exception(f'runtts:{str(e)}')
+            print(f'runtts:{str(e)}')
+           
     err=0
     for it in queue_tts_copy:
         if not tools.vail_file(it['filename']):

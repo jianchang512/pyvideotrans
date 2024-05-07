@@ -23,35 +23,36 @@ class Worker(QThread):
         self.is_batch=False
 
     def srt2audio(self):
+        # 添加进度按钮
+        self.is_batch=False
+        set_process('srt2wav', 'add_process', btnkey="srt2wav")
+        config.params.update({"is_batch": False, 'subtitles': self.txt, 'app_mode': self.app_mode})
         try:
-            # 添加进度按钮
-            self.is_batch=False
-            set_process('srt2wav', 'add_process', btnkey="srt2wav")
-            config.params.update({"is_batch": False, 'subtitles': self.txt, 'app_mode': self.app_mode})
-            try:
-                self.video = TransCreate(copy.deepcopy(config.params))
-            except Exception as e:
-                raise Exception(f'error:'+str(e))
-            try:
-                set_process(config.transobj['kaishichuli'], btnkey="srt2wav")
-                self.video.prepare()
-            except Exception as e:
-                raise Exception(f'{config.transobj["yuchulichucuo"]}:'+str(e))
-            try:
-                self.video.dubbing()
-
-            except Exception as e:
-                raise Exception(f'{config.transobj["peiyinchucuo"]}:'+str(e))
-            # 成功完成
-            config.params['line_roles'] = {}
-            set_process(f"{self.video.init['target_dir']}##srt2wav", 'succeed', btnkey="srt2wav")
-            send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
-            # 全部完成
+            self.video = TransCreate(copy.deepcopy(config.params))
+        except Exception as e:
+            set_process(str(e), 'error',btnkey="srt2wav")
+            return
+            
+        try:
+            set_process(config.transobj['kaishichuli'], btnkey="srt2wav")
+            self.video.prepare()
+        except Exception as e:
+            set_process(f'{config.transobj["yuchulichucuo"]}:'+str(e), 'error',btnkey="srt2wav")
+            return
+            #raise Exception(f'{config.transobj["yuchulichucuo"]}:'+str(e))
+            
+        try:
+            self.video.dubbing()
         except Exception as e:
             set_process(f"{str(e)}", 'error',btnkey="srt2wav")
-            send_notification(config.transobj['anerror'], str(e))
-        finally:
-            set_process("", 'end')
+            return
+            #raise Exception(f'{config.transobj["peiyinchucuo"]}:'+str(e))
+        # 成功完成
+        config.params['line_roles'] = {}
+        set_process(f"{self.video.init['target_dir']}##srt2wav", 'succeed', btnkey="srt2wav")
+        send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
+        # 全部完成
+        set_process("", 'end')
 
 
     def run(self) -> None:
@@ -73,6 +74,15 @@ class Worker(QThread):
             # 格式化每个视频信息
             obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
             target_dir_mp4=obj_format['output']+f"/{obj_format['raw_noextname']}.mp4"
+            if config.params['clear_cache'] and Path(obj_format['output']).is_dir():
+                try:
+                    shutil.rmtree(obj_format['output'])                    
+                except Exception:
+                    pass
+                else:
+                    Path(obj_format['output']).mkdir(parents=True,exist_ok=True)
+            
+            
             if len(target_dir_mp4)>=250:
                 set_process(config.transobj['chaochu255']+"\n\n"+it, 'alert')
                 self.stop()
@@ -189,13 +199,14 @@ class Worker(QThread):
             video=self.tasklist[unid]
             # 当前 video 执行完毕
             if unid in config.unidlist:
+                pass
                 #成功完成
-                if unid not in config.errorlist or not config.errorlist[unid]:
-                    send_notification("Succeed", f'{video.obj["raw_basename"]}')
-                    if len(config.queue_mp4) > 0:
-                        config.queue_mp4.pop(0)
-                else:
-                    send_notification(config.errorlist[unid], f'{video.obj["raw_basename"]}')
+                #if unid  in config.errorlist and config.errorlist[unid]:
+                    #send_notification("Succeed", f'{video.obj["raw_basename"]}')
+                    #if len(config.queue_mp4) > 0:
+                    #config.queue_mp4.pop(0)
+                    #else:
+                    #send_notification(config.errorlist[unid], f'{video.obj["raw_basename"]}')
             else:
                 #未结束重新插入
                 self.unidlist.append(unid)
@@ -206,4 +217,5 @@ class Worker(QThread):
     def stop(self):
         set_process("", 'stop')
         self.tasklist = {}
+        config.queue_mp4=[]
 

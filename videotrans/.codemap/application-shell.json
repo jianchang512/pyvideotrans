@@ -1,0 +1,137 @@
+{
+  "bottomPanel": {
+    "config": {
+      "main": {
+        "type": "tab-area",
+        "widgets": [
+          {
+            "constructionOptions": {
+              "factoryId": "problems"
+            },
+            "innerWidgetState": {}
+          }
+        ],
+        "currentIndex": 0
+      }
+    },
+    "expanded": false
+  },
+  "leftPanel": {
+    "type": "sidepanel",
+    "items": [
+      {
+        "widget": {
+          "constructionOptions": {
+            "factoryId": "explorer-view-container"
+          },
+          "innerWidgetState": {
+            "parts": [
+              {
+                "widget": {
+                  "constructionOptions": {
+                    "factoryId": "files"
+                  },
+                  "innerWidgetState": {
+                    "decorations": {},
+                    "root": {
+                      "id": "WorkspaceNodeId",
+                      "name": "WorkspaceNode",
+                      "children": [
+                        {
+                          "id": "/f:/python/pyvideo/videotrans",
+                          "uri": "file:///f%3A/python/pyvideo/videotrans",
+                          "expanded": false,
+                          "selected": true,
+                          "children": [],
+                          "visible": false,
+                          "focus": true,
+                          "stat": {
+                            "type": 2,
+                            "ctime": 1706166528040,
+                            "mtime": 1715010304145,
+                            "size": 0
+                          }
+                        }
+                      ],
+                      "visible": false,
+                      "selected": false
+                    },
+                    "model": {
+                      "selection": {
+                        "selectionStack": [
+                          {
+                            "focus": "/f:/python/pyvideo/videotrans",
+                            "node": "/f:/python/pyvideo/videotrans",
+                            "type": 1
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "partId": "{\"factoryId\":\"files\"}",
+                "collapsed": false,
+                "hidden": false
+              }
+            ],
+            "title": {
+              "label": "资源树",
+              "iconClass": "codemap-files-icon",
+              "closeable": true
+            }
+          }
+        },
+        "rank": 100,
+        "expanded": false
+      },
+      {
+        "widget": {
+          "constructionOptions": {
+            "factoryId": "search-in-workspace"
+          },
+          "innerWidgetState": {
+            "matchCaseState": {
+              "className": "match-case",
+              "enabled": true,
+              "title": "Match Case"
+            },
+            "wholeWordState": {
+              "className": "whole-word",
+              "enabled": true,
+              "title": "Match Whole Word"
+            },
+            "regExpState": {
+              "className": "use-regexp",
+              "enabled": false,
+              "title": "Use Regular Expression"
+            },
+            "includeIgnoredState": {
+              "className": "include-ignored fa fa-eye",
+              "enabled": false,
+              "title": "Include Ignored Files"
+            },
+            "showSearchDetails": false,
+            "searchInWorkspaceOptions": {
+              "matchCase": true,
+              "matchWholeWord": true,
+              "useRegExp": false,
+              "includeIgnored": false,
+              "include": [],
+              "exclude": [],
+              "maxResults": 2000
+            },
+            "searchTerm": "",
+            "replaceTerm": "",
+            "showReplaceField": false
+          }
+        },
+        "rank": 200,
+        "expanded": false
+      }
+    ]
+  },
+  "rightPanel": {
+    "type": "sidepanel",
+    "items": []
+  }
+}

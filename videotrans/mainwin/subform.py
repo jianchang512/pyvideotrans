@@ -370,8 +370,7 @@ class Subform():
                 try:
                     from videotrans.translator.chatgpt import trans as trans_chatgpt
                     raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                    text = trans_chatgpt(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
-                                         inst=None)
+                    text = trans_chatgpt(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, is_test=True)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -530,7 +529,7 @@ class Subform():
             def run(self):
                 from videotrans.translator.transapi import trans
                 try:
-                    t = trans(self.text, target_language="en", set_p=False, source_code="zh")
+                    t = trans(self.text, target_language="en", set_p=False, is_test=True,source_code="zh")
                     self.uito.emit(f"ok:{self.text}\n{t}")
                 except Exception as e:
                     self.uito.emit(str(e))

@@ -497,6 +497,7 @@ class SecWindow():
 
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
+        self.main.clear_cache.setDisabled(type)
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
@@ -1232,6 +1233,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['only_video'] = False
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
+        config.params['clear_cache']=False
+        if self.main.clear_cache.isChecked():
+            config.params['clear_cache']=True
         if len(config.queue_mp4) > 0:
             self.main.show_tips.setText("")
             if self.main.app_mode not in ['tiqu', 'peiyin',
@@ -1269,7 +1273,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             return
         if not self.main.task:
             return
-        if btnkey=='srt2wav' and  self.main.task and self.main.task.video:
+        if btnkey=='srt2wav':
+            if not self.main.task or not self.main.task.video:
+                return
             if type=='succeed':
                 text, basename = text.split('##')
                 self.main.processbtns[btnkey].setTarget(text)
@@ -1282,11 +1288,15 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.processbtns[btnkey].progress_bar.setValue(precent)
             self.main.processbtns[btnkey].setText(text)
             return
-
-        if type == 'succeed':
-            text, basename = text.split('##')
-            self.main.processbtns[btnkey].setTarget(text)
+        precent=round( self.main.task.tasklist[btnkey].precent if self.main.task.tasklist and btnkey in self.main.task.tasklist else 0, 1)
+        if type == 'succeed' or precent>=100.0:        
+            
+            target=self.main.task.tasklist[btnkey].obj['output']            
+            basename=self.main.task.tasklist[btnkey].obj['raw_basename']
+            
+            self.main.processbtns[btnkey].setTarget(target)
             self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
+            
             text = f'{config.transobj["endandopen"]} {basename}'
             self.main.processbtns[btnkey].setText(text)
             self.main.processbtns[btnkey].progress_bar.setValue(100)
@@ -1299,14 +1309,15 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                     text+f'\n\n{config.errorlist[btnkey] if btnkey in config.errorlist and config.errorlist[btnkey]!=text else "" }'
                 )
                 self.main.processbtns[btnkey].setToolTip('点击查看详细报错' if config.defaulelang=='zh' else 'Click to view the detailed error report')
+                self.main.processbtns[btnkey].setText(text[:120])
             else:
                 self.main.processbtns[btnkey].setToolTip('')
-            self.main.processbtns[btnkey].setText(text[:120])
         elif btnkey in self.main.task.tasklist:
-            jindu = f' {round(self.main.task.tasklist[btnkey].precent, 1)}% '
+            jindu = f' {precent}% '
             self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.tasklist[btnkey].precent))
             raw_name = self.main.task.tasklist[btnkey].obj['raw_basename']
             self.main.processbtns[btnkey].setToolTip(config.transobj["endopendir"])
+            
             self.main.processbtns[btnkey].setText(
                 f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
 
@@ -1349,6 +1360,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
+            
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1370,12 +1382,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'set_target_dir':
             self.main.target_dir.setText(d['text'])
         elif d['type'] == "logs":
-            self.set_process_btn_text(d['text'], d['btnkey'])
+            self.set_process_btn_text(d['text'], btnkey=d['btnkey'])
         elif d['type'] == 'stop' or d['type'] == 'end' or d['type'] == 'error':
             if d['type'] == 'error':
-                self.set_process_btn_text(d['text'], d['btnkey'], d['type'])
+                self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type=d['type'])
             elif d['type'] == 'stop':
-                self.set_process_btn_text(config.transobj['stop'], d['btnkey'], d['type'])
+                #self.set_process_btn_text(config.transobj['stop'], d['btnkey'], d['type'])
                 self.main.subtitle_area.clear()
             if d['type'] == 'stop' or d['type'] == 'end':
                 self.update_status(d['type'])
@@ -1386,7 +1398,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'succeed':
             # 本次任务结束
-            self.set_process_btn_text(d['text'], d['btnkey'], 'succeed')
+            self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type='succeed')
         elif d['type'] == 'edit_subtitle':
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
@@ -1415,7 +1427,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.continue_compos.setDisabled(True)
             self.main.subtitle_area.setReadOnly(True)
         elif d['type'] == 'show_djs':
-            self.set_process_btn_text(d['text'], d['btnkey'])
+            self.set_process_btn_text(d['text'], btnkey=d['btnkey'])
         elif d['type'] == 'check_soft_update':
             if not self.usetype:
                 self.usetype = QPushButton()
