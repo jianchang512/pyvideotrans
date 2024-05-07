@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import hashlib
+import platform
 import random
 
 import re
@@ -179,34 +180,33 @@ def get_azure_rolelist():
 
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None,
-              disable_gpu=False,  # True=禁止使用GPU解码
-              no_decode=config.settings['no_decode'],  # False=禁止 h264_cuvid 解码，True=尽量使用硬件解码
-              de_format=config.settings['hwaccel_output_format'],  # 硬件输出格式，模型cuda兼容性差，可选nv12
               is_box=False,
-              use_run=True,
               fps=None):
+    config.logger.info(f'runffmpeg-arg={arg}')
     arg_copy = copy.deepcopy(arg)
+
     if fps:
         cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", 'cfr', '-r', f'{fps}']
     else:
         cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", config.settings['vsync']]
     # 启用了CUDA 并且没有禁用GPU
+
+
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
-            arg[i + 1] = os.path.normpath(arg[i + 1])
+            arg[i + 1] = os.path.normpath(arg[i + 1]).replace('\\','/')
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
-    if config.params['cuda'] and not disable_gpu:
-        cmd.extend(
-            ["-hwaccel", config.settings['hwaccel'], "-hwaccel_output_format", de_format, "-extra_hw_frames", "2"])
-        # 如果没有禁止硬件解码，则添加
-        if not no_decode:
-            cmd.append("-c:v")
-            cmd.append("h264_cuvid")
+
+    if "libx264" in arg and config.video_codec != 'libx264':
+        if not config.video_codec:
+            config.video_codec=get_video_codec()
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
-                arg[i] = it.replace('libx264', "h264_nvenc")
+                arg[i] = config.video_codec
+
     cmd = cmd + arg
+    config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
@@ -220,21 +220,38 @@ def runffmpeg(arg, *, noextname=None,
         if noextname:
             config.queue_novice[noextname] = "end"
         return True
-    except subprocess.CalledProcessError as e:
-        # 如果启用cuda时出错，则回退cpu
-        if config.params['cuda'] and not disable_gpu:
-            # 切换为cpu
-            if not is_box:
-                set_process(config.transobj['huituicpu'])
-            config.logger.error(f'cuda上执行出错，退回到CPU执行')
-            # disable_gpt=True禁用GPU，no_decode=True禁止h264_cuvid解码，
-            return runffmpeg(arg_copy, noextname=noextname, disable_gpu=True, is_box=is_box)
+    except subprocess.CalledProcessError as e:       
+        retry=False
+        config.logger.error(f'出错了:{cmd=}')
+        config.logger.error(f'before:{retry=},{arg_copy=}')
+        # 处理视频时如果出错，尝试回退
+        if cmd[-1].endswith('.mp4'):
+            #存在视频的copy操作时，尝试回退使用重新编码
+            if "copy" in cmd:
+                for i, it in enumerate(arg_copy):
+                    if i > 0 and arg_copy[i - 1] == '-c:v' and it=='copy':
+                        arg_copy[i] = config.video_codec if config.video_codec is not None else "libx264"
+                        retry=True
+            #如果不是copy并且也不是 libx264，则替换为libx264编码
+            if not retry and config.video_codec!='libx264':
+                config.video_codec='libx264'
+                # 切换为cpu
+                if not is_box:
+                    set_process(config.transobj['huituicpu'])
+                config.logger.error(f'cuda上执行出错，退回到CPU执行')
+                for i, it in enumerate(arg_copy):
+                    if i > 0 and arg_copy[i - 1] == '-c:v' and it!='libx264':
+                        arg_copy[i] = "libx264"
+                        retry=True
+            config.logger.error(f'after:{retry=},{arg_copy=}')
+            if retry:
+                return runffmpeg(arg_copy, noextname=noextname, is_box=is_box)
         if noextname:
             config.queue_novice[noextname] = "error"
-        config.logger.error(f'cmd执行出错:{str(e.stderr)}')
+        config.logger.error(f'cmd执行出错抛出异常:{cmd=},{str(e.stderr)}')
         raise Exception(str(e.stderr))
     except Exception as e:
-        config.logger.error(f'执行出错:{cmd=},{str(e)}')
+        config.logger.error(f'执行出错 Exception:{cmd=},{str(e)}')
         raise Exception(str(e))
 
 
@@ -253,11 +270,11 @@ def runffprobe(cmd):
             return p.stdout.strip()
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
-        msg = f'ffprobe call error:{str(e.stdout)},{str(e.stderr)}'
+        msg = f'ffprobe error:{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
     except Exception as e:
-        raise Exception(f'ffprobe except error:{str(e)}')
+        raise Exception(f'ffprobe except:{str(e)}')
 
 
 # 获取视频信息
@@ -348,7 +365,7 @@ def conver_mp4(source_file, out_mp4, *, is_box=False):
         '-crf', f'{config.settings["crf"]}',
         '-preset', 'slow',
         out_mp4
-    ], no_decode=True, de_format=config.settings['hwaccel_output_format'], is_box=is_box)
+    ], is_box=is_box)
 
 
 # 从原始视频分离出 无声视频 cuda + h264_cuvid
@@ -455,7 +472,7 @@ def wav2m4a(wavfile, m4afile, extra=None):
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
-    return runffmpeg(cmd, disable_gpu=True)
+    return runffmpeg(cmd)
 
 
 # wav转为 mp3 cuda + h264_cuvid
@@ -468,7 +485,7 @@ def wav2mp3(wavfile, mp3file, extra=None):
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
-    return runffmpeg(cmd, disable_gpu=True)
+    return runffmpeg(cmd)
 
 
 # m4a 转为 wav cuda + h264_cuvid
@@ -487,7 +504,7 @@ def m4a2wav(m4afile, wavfile):
         "pcm_s16le",
         wavfile
     ]
-    return runffmpeg(cmd, disable_gpu=True)
+    return runffmpeg(cmd)
 
 
 # 创建 多个视频的连接文件
@@ -518,8 +535,7 @@ def concat_multi_audio(*, filelist=[], out=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
-    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:a', 'aac', out], disable_gpu=True,
-                     use_run=True)
+    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:a', 'aac', out])
 
 
 # mp3 加速播放 cuda + h264_cuvid
@@ -531,7 +547,7 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
         "-af",
         f'atempo={speed}',
         out
-    ], use_run=True)
+    ])
 
 
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None, max_rate=100):
@@ -1184,3 +1200,50 @@ def vail_file(file=None):
     if p.stat().st_size<1:
         return False
     return True
+
+
+# 获取视频编码格式
+def get_video_codec():
+    plat=platform.system()
+
+    mp4_test=config.rootdir+"/videotrans/styles/no-remove.mp4"
+    if not Path(mp4_test).is_file():
+        return 'libx264'
+    mp4_target=config.TEMP_DIR+"/test.mp4"
+    codec='libx264'
+    if plat in ['Windows','Linux']:
+        import torch    
+        if torch.cuda.is_available():
+            codec='h264_nvenc'
+        elif plat=='Windows':
+            codec='h264_qsv'
+        elif plat=='Linux':
+            codec='h264_vaapi'
+    elif plat=='Darwin':
+        codec='h264_videotoolbox'
+
+
+    print(f'{codec=}')
+    s=time.time()
+    try:
+        Path(config.TEMP_DIR).mkdir(exist_ok=True)
+        subprocess.run([
+            "ffmpeg",
+            "-y",
+            "-hide_banner",
+            "-ignore_unknown",
+            "-i",
+            mp4_test,
+            "-c:v",
+            codec,
+            mp4_target
+        ],
+        check=True,
+        creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    # except subprocess.CalledProcessError as e:
+    except Exception as e:
+        print('error='+str(e))
+        return 'libx264'
+    finally:
+        print(f'time={time.time()-s}')
+    return codec

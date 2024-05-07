@@ -56,8 +56,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         # 渲染后再执行绑定
         # QTimer.singleShot(200, self.bind_action)
-        QTimer.singleShot(500, self.start_box)
         self.bind_action()
+        QTimer.singleShot(500, self.start_box)
 
 
     def start_box(self):

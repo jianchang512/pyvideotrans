@@ -180,6 +180,11 @@ class TransCreate():
         self.init['source_wav'] = f"{self.init['target_dir']}/{self.init['source_language_code']}.m4a"
         # 配音后的音频文件
         self.init['target_wav'] = f"{self.init['target_dir']}/{self.init['target_language_code']}.m4a"
+        # 如果是配音操作
+        if self.config_params['app_mode'] == 'peiyin':
+            self.init['target_wav']=f"{self.init['target_dir']}/{self.init['target_language_code']}-{self.init['noextname']}.m4a"
+            
+        
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
         if self.config_params['voice_role'] != 'No' and self.init['source_language_code'] == self.init['target_language_code']:
             self.init['target_wav'] = f"{self.init['target_dir']}/{self.init['target_language_code']}-dubbing.m4a"
@@ -262,6 +267,7 @@ class TransCreate():
 
         # 不是 提取字幕时，需要分离出视频
         if self.config_params['app_mode'] not in ['tiqu']:
+            config.queue_novice[self.init['noextname']] = 'ing'
             threading.Thread(target=tools.split_novoice_byraw,
                              args=(self.obj['source_mp4'],
                                    self.init['novoice_mp4'],
@@ -313,6 +319,7 @@ class TransCreate():
             self.step_inst.recogn()
         except Exception as e:
             self.hasend=True
+            tools.send_notification(str(e), f'{self.obj["raw_basename"]}')
             raise Exception(e)
         if self.config_params['app_mode']=='tiqu' and (self.config_params['source_language'] == self.config_params['target_language'] or self.config_params['target_language'] == '-'):
             self.step_inst.precent = 100
@@ -324,6 +331,7 @@ class TransCreate():
             self.step_inst.trans()
         except Exception as e:
             self.hasend=True
+            tools.send_notification(str(e), f'{self.obj["raw_basename"]}')
             raise Exception(e)
         if self.config_params['app_mode']=='tiqu':
             self.step_inst.precent = 100
@@ -336,6 +344,7 @@ class TransCreate():
             self.step_inst.dubbing()
         except Exception as e:
             self.hasend=True
+            tools.send_notification(str(e), f'{self.obj["raw_basename"]}')
             raise Exception(e)
         if self.config_params['app_mode']=='peiyin':
             self.step_inst.precent=100
@@ -347,6 +356,7 @@ class TransCreate():
             self.step_inst.hebing()
         except Exception as e:
             self.hasend=True
+            tools.send_notification(str(e), f'{self.obj["raw_basename"]}')
             raise Exception(e)
         self.step_inst.precent=100
         return True
@@ -354,6 +364,7 @@ class TransCreate():
     # 收尾，根据 output和 linshi_output是否相同，不相同，则移动
     def move_at_end(self):
         self.hasend=True
+        self.step_inst.precent=100
         output = self.obj['output']
         # 需要移动
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
@@ -362,9 +373,12 @@ class TransCreate():
                 target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
             shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
             shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
-
+        # 提取时，删除
+        if self.config_params['app_mode']=='tiqu':
+            self._unlink(f"{self.obj['output']}/{self.init['source_language_code']}.srt")
+            self._unlink(f"{self.obj['output']}/{self.init['target_language_code']}.srt")
         # 仅保存视频
-        if self.config_params['only_video']:
+        elif self.config_params['only_video']:
             outputpath=Path(self.obj['output'])
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
@@ -386,22 +400,22 @@ class TransCreate():
                 try:
                     output=outputpath.parent.resolve().as_posix()
                     shutil.rmtree(self.obj['output'], ignore_errors=True)
-                    outputpath.rmdir()
+                    self.obj['output']=output
+                    outputpath.rmdir()                    
                 except Exception:
                     pass
-        # 提取时，删除
-        if self.config_params['app_mode']=='tiqu':
-            self._unlink(f"{self.obj['output']}/{self.init['source_language_code']}.srt")
-            self._unlink(f"{self.obj['output']}/{self.init['target_language_code']}.srt")
+        
         #删除临时文件
         shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
         # 批量不允许编辑字幕
         if not self.config_params['is_batch']:
             tools.set_process('', 'allow_edit', btnkey=self.init['btnkey'])
-        time.sleep(3)
+        #time.sleep(3)
+        print(f'结束100% {self.obj['raw_basename']}')
+        
         tools.set_process(
             f"{output}##{self.obj['raw_basename']}",
             'succeed',
             btnkey=self.init['btnkey']
         )
-        self.step_inst.precent=100
+        tools.send_notification("Succeed", f'{self.obj["raw_basename"]}')

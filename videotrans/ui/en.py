@@ -425,8 +425,18 @@ class Ui_MainWindow(object):
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.addSpacing(5)
+        #self.horizontalLayout_3.addSpacing(5)
+        self.horizontalLayout_3.addStretch(1)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        
+        
+        
+        self.clear_cache = QtWidgets.QCheckBox(self.layoutWidget)
+        self.clear_cache.setMinimumSize(QtCore.QSize(50, 30))
+        self.clear_cache.setObjectName("clear_cache")
+        self.clear_cache.setToolTip('清理上次执行时已处理好的文件，比如已识别或翻译的字幕文件' if config.defaulelang=='zh'else 'Cleaning up files that have been processed in previous executions, such as recognized or translated subtitle files')
+        self.clear_cache.setText('清理缓存' if config.defaulelang=='zh'else 'Clear Cache')
+        
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -435,7 +445,10 @@ class Ui_MainWindow(object):
         self.startbtn.setSizePolicy(sizePolicy)
         self.startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.startbtn.setObjectName("startbtn")
+        self.horizontalLayout_3.addWidget(self.clear_cache)
         self.horizontalLayout_3.addWidget(self.startbtn)
+        
+        
         self.continue_compos = QtWidgets.QPushButton(self.layoutWidget)
         self.continue_compos.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
@@ -457,6 +470,7 @@ class Ui_MainWindow(object):
         self.stop_djs.setMinimumSize(QtCore.QSize(130, 30))
         self.stop_djs.setObjectName("stop_djs")
         self.horizontalLayout_3.addWidget(self.stop_djs)
+        self.horizontalLayout_3.addStretch(1)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
         self.scroll_area = QtWidgets.QScrollArea(self.layoutWidget)
         self.scroll_area.setStyleSheet("border-color:#32414B")
@@ -840,7 +854,7 @@ class Ui_MainWindow(object):
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
 
-        self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存')
+        self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存和配置')
 
         self.actionazure_key.setText("AzureGPT Translation")
         self.actionazure_tts.setText("AzureAI TTS")

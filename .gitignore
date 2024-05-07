@@ -6,6 +6,7 @@
 tmp
 models/*.pt
 models/models--Systran--faster-whisper-base
+models/models--Systran--faster-whisper-tiny
 dev
 venv
 venv.bak
@@ -23,7 +24,6 @@ __pycache__
 *.aac
 *副本.py
 pretrained_models
-voice_list.json
 elevenlabs.json
 pack.bat
 gitcmd.bat

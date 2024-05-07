@@ -53,8 +53,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def initUI(self):
         if not os.path.exists(config.homedir):
             os.makedirs(config.homedir, exist_ok=True)
-        if not os.path.exists(config.homedir + "/tmp"):
-            os.makedirs(config.homedir + "/tmp", exist_ok=True)
+        if not os.path.exists(config.TEMP_HOME):
+            os.makedirs(config.TEMP_HOME, exist_ok=True)
         self.settings = QSettings("Jameson", "VideoTranslate")
         # tab-1
         self.yspfl_video_wrap = Player(self)
@@ -316,8 +316,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.shibie_text.moveCursor(QTextCursor.End)
                 self.shibie_text.insertPlainText(data['text'].capitalize())
             elif type == 'error' or type == 'end':
-                self.shibie_startbtn.setDisabled(False)
-                self.shibie_dropbtn.setDisabled(False)
+                self.disabled_shibie(False)
                 if type=='end':
                     self.shibie_startbtn.setText(config.transobj["zhixingwc"])
                     self.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
@@ -368,10 +367,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
-        rs, newfile, base = tools.rename_move(file, is_dir=False)
-        if rs:
-            file = newfile
-            basename = base
+        #rs, newfile, base = tools.rename_move(file, is_dir=False)
+        #if rs:
+        #    file = newfile
+        #    basename = base
         video_out = f"{config.homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
@@ -453,10 +452,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         os.makedirs(savedir, exist_ok=True)
 
         cmds = []
-        if not os.path.exists(f'{config.rootdir}/tmp'):
-            os.makedirs(f'{config.rootdir}/tmp', exist_ok=True)
-        tmpname = f'{config.rootdir}/tmp/{time.time()}.mp4'
-        tmpname_conver = f'{config.rootdir}/tmp/box-conver.mp4'
+        if not os.path.exists(f'{config.TEMP_DIR}'):
+            os.makedirs(f'{config.TEMP_DIR}', exist_ok=True)
+        tmpname = f'{config.TEMP_DIR}/{time.time()}.mp4'
+        tmpname_conver = f'{config.TEMP_DIR}/box-conver.mp4'
         video_info = tools.get_video_info(videofile)
         if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != 'h264' or (
                 video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
@@ -472,7 +471,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if wavfile:
             # 视频里是否有音轨 并且保留原声音
             if video_info['streams_audio'] > 0 and save_raw:
-                tmp_a = f'{config.rootdir}/tmp/box-a.m4a'
+                tmp_a = f'{config.TEMP_DIR}/box-a.m4a'
 
                 cmds = [
                     ['-y', '-i', videofile, '-i', wavfile, '-vn', '-filter_complex',
@@ -595,7 +594,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_shibie10.setText('')
         for file in files:
             basename = os.path.basename(file)
-
+            '''
             try:
                 rs, newfile, base = tools.rename_move(file, is_dir=False)
                 if rs:
@@ -603,13 +602,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     basename = base
             except Exception as e:
                 print(f"removename {str(e)}")
+            '''
             self.shibie_text.clear()
 
             if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov", ".mp3", ".flac", ".m4a", ".mov",
                                                           ".aac"]:
-                out_file = f"{config.homedir}/tmp/{basename}.wav"
-                if not os.path.exists(f"{config.homedir}/tmp"):
-                    os.makedirs(f"{config.homedir}/tmp")
+                out_file = f"{config.TEMP_HOME}/{basename}.wav"
+                if not os.path.exists(f"{config.TEMP_HOME}"):
+                    os.makedirs(f"{config.TEMP_HOME}")
                 try:
                     self.shibie_ffmpeg_task = Worker([
                         ['-y', '-i', file, '-vn', '-ac', '1', '-ar', '8000', out_file]
@@ -821,16 +821,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file1 = self.hun_file1.text()
         file2 = self.hun_file2.text()
 
-        rs, newfile1, _ = tools.rename_move(file1, is_dir=False)
-        if rs:
-            file1 = newfile1
-        rs, newfile2, _ = tools.rename_move(file2, is_dir=False)
-        if rs:
-            file2 = newfile2
+        #rs, newfile1, _ = tools.rename_move(file1, is_dir=False)
+        #if rs:
+        #    file1 = newfile1
+        #rs, newfile2, _ = tools.rename_move(file2, is_dir=False)
+        #if rs:
+        #    file2 = newfile2
 
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]
-        self.geshi_task = Worker([cmd], "hunhe", self, True)
+        self.geshi_task = Worker([cmd], "hunhe", self)
         self.geshi_task.start()
         self.hun_startbtn.setDisabled(True)
         self.hun_out.setDisabled(True)

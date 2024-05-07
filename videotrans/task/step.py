@@ -18,6 +18,8 @@ from videotrans.translator import run as run_trans
 from videotrans.tts import run as run_tts
 
 
+
+
 class Runstep():
 
     def __init__(self, init=None, obj=None, config_params=None, parent=None):
@@ -587,14 +589,14 @@ class Runstep():
                 self.precent += jindu
             # 如果i==0即第一个视频，前面若是还有片段，需要截取
             if i == 0:
-                if it['start_time_source'] > 0:
+                if it['start_time_source'] >= config.video_min_ms:
                     before_dst = self.init['cache_folder'] + f'/{i}-before.mp4'
                     tools.cut_from_video(ss='00:00:00.000',
                                          to=tools.ms_to_time_string(ms=it['start_time_source']),
                                          source=self.init['novoice_mp4'],
                                          out=before_dst)
                     concat_txt_arr.append(before_dst)
-            elif it['start_time_source'] > queue_tts[i - 1]['end_time_source'] and it[
+            elif (it['start_time_source'] > queue_tts[i - 1]['end_time_source']+config.video_min_ms) and it[
                 'start_time_source'] < last_time:
                 # 否则如果距离前一个字幕结束之间还有空白，则将此空白视频段截取
                 before_dst = self.init['cache_folder'] + f'/{i}-before.mp4'
@@ -622,30 +624,36 @@ class Runstep():
 
                 # 截取原始视频
                 if it['end_time_source'] > it['start_time_source'] and it['start_time_source'] < last_time:
-                    tools.cut_from_video(ss=tools.ms_to_time_string(ms=it['start_time']),
-                                         to=tools.ms_to_time_string(
-                                             ms=it['end_time_source'] if it[
-                                                                             'end_time_source'] < last_time else last_time),
-                                         source=self.init['novoice_mp4'],
-                                         pts="" if speed <= 1 else speed,
-                                         out=filename_video)
-                    concat_txt_arr.append(filename_video)
-            elif it['end_time_source'] > it['start_time_source'] and it['start_time_source'] < last_time:
+                    end_time=it['end_time_source'] if it['end_time_source'] < last_time else last_time
+                    if end_time>=(it['start_time_source']+config.video_min_ms):
+                        tools.cut_from_video(
+                            ss=tools.ms_to_time_string(ms=it['start_time_source']),
+                            to=tools.ms_to_time_string(ms=end_time),
+                            source=self.init['novoice_mp4'],
+                            pts="" if speed <= 1 else speed,
+                            out=filename_video
+                        )
+                        concat_txt_arr.append(filename_video)
+            elif (it['end_time_source'] > it['start_time_source']+config.video_min_ms) and it['start_time_source'] < last_time:
                 filename_video = self.init['cache_folder'] + f'/{i}.mp4'
                 concat_txt_arr.append(filename_video)
                 # 直接截取原始片段，不慢放
-                tools.cut_from_video(ss=tools.ms_to_time_string(ms=it['start_time_source']),
-                                     to=tools.ms_to_time_string(
-                                         ms=it['end_time_source'] if it[
-                                                                         'end_time_source'] < last_time else last_time),
-                                     source=self.init['novoice_mp4'],
-                                     out=filename_video)
+                end_time=it['end_time_source'] if it['end_time_source'] < last_time else last_time
+                if end_time>=(it['start_time_source']+config.video_min_ms):
+                    tools.cut_from_video(
+                        ss=tools.ms_to_time_string(ms=it['start_time_source']),
+                        to=tools.ms_to_time_string(ms=end_time),
+                        source=self.init['novoice_mp4'],
+                        out=filename_video
+                    )
             tools.set_process(f"{config.transobj['video speed down']}[{i}]", btnkey=self.init['btnkey'])
-        if queue_tts[-1]['end_time_source'] < last_time:
+        if (queue_tts[-1]['end_time_source']+config.video_min_ms) < last_time:
             last_v = self.init['cache_folder'] + "/last_dur.mp4"
-            tools.cut_from_video(ss=tools.ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
-                                 source=self.init['novoice_mp4'],
-                                 out=last_v)
+            tools.cut_from_video(
+                ss=tools.ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
+                source=self.init['novoice_mp4'],
+                out=last_v
+            )
             concat_txt_arr.append(last_v)
         # 将所有视频片段连接起来
         new_arr = []
@@ -872,7 +880,11 @@ class Runstep():
         # 硬字幕仅名字 需要和视频在一起
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
-        fontsize = f":force_style=Fontsize={config.settings['fontsize']}" if config.settings['fontsize'] > 0 else ""
+
+        if True:#Path(config.rootdir + '/simhei.ttf').is_file():
+            fontname=config.settings['fontname']
+            fontsize_px=config.settings['fontsize']
+            fontsize= f":fontsdir='./videotrans/styles':force_style='Fontname={fontname},Fontsize={fontsize_px}'"
         maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp",
                                                                                          "ko"] else \
             config.settings['other_len']
@@ -908,7 +920,7 @@ class Runstep():
                     '-preset',
                     'slow',
                     os.path.normpath(self.init['targetdir_mp4']),
-                ], de_format="nv12")
+                ])
             else:
                 # 软字幕
                 tools.runffmpeg([
@@ -1022,7 +1034,7 @@ class Runstep():
                         '-preset',
                         'slow',
                         os.path.normpath(self.init['targetdir_mp4']),
-                    ], de_format="nv12")
+                    ])
                 else:
                     tools.set_process(config.transobj['peiyin-ruanzimu'], btnkey=self.init['btnkey'])
                     # 配音+软字幕
@@ -1085,7 +1097,7 @@ class Runstep():
                     'slow',
                     os.path.normpath(self.init['targetdir_mp4']),
                 ]
-                tools.runffmpeg(cmd, de_format="nv12")
+                tools.runffmpeg(cmd)
             elif self.config_params['subtitle_type'] in [2, 4]:
                 # 软字幕无配音
                 tools.set_process(config.transobj['onlyruanzimu'], btnkey=self.init['btnkey'])

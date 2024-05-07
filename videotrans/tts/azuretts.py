@@ -66,5 +66,4 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         if set_p:
             tools.set_process(error,btnkey=inst.init['btnkey'] if inst else "")
         raise Exception(error)
-    else:
-        return True
+
