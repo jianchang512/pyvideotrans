@@ -68,10 +68,16 @@ def recogn(*,
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
+    if model_name.startswith('distil-'):
+        com_type= "float32"
+    elif is_cuda:
+        com_type=config.settings['cuda_com_type']
+    else:
+        com_type='int8'
     model = WhisperModel(
             model_name,
             device="cuda" if is_cuda else "cpu",
-            compute_type="float32" if model_name.startswith('distil-') else config.settings['cuda_com_type'],
+            compute_type=com_type,
             download_root=config.rootdir + "/models",
             local_files_only=True)
     for i, duration in enumerate(nonsilent_data):
