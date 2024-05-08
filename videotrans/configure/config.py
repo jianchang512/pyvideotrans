@@ -150,7 +150,7 @@ box_lang = obj['toolbox_lang']
 # ffmpeg
 if sys.platform == 'win32':
     PWD=rootdir.replace('/','\\')
-    os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;{PWD}\\_internal\torch\lib;' + os.environ['PATH']
+    os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;' + os.environ['PATH']
     
 else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']

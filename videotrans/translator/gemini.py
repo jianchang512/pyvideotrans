@@ -207,6 +207,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     if err:
         config.logger.error(f'[Gemini]翻译请求失败:{err=}')
+        if err.lower().find("Connection error")>-1:
+            err='连接失败 '+err
         raise Exception(f'Gemini:{err}')
 
     if not is_srt:
