@@ -29,7 +29,7 @@ edge-tts==6.1.11
 elevenlabs==0.2.27
 exceptiongroup==1.1.3
 executing==2.0.1
-faster-whisper==1.0.1
+faster-whisper==1.0.2
 ffmpeg-python==0.2.0
 filelock==3.12.4
 flatbuffers==1.12
@@ -76,7 +76,6 @@ llvmlite==0.42.0
 Markdown==3.5
 MarkupSafe==2.1.3
 matplotlib-inline==0.1.6
-mkl==2021.4.0
 more-itertools==10.1.0
 moviepy==1.0.3
 mpmath==1.3.0
@@ -154,8 +153,8 @@ termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.6.0
 tokenizers==0.15.2
-torch==2.3.0
-torchaudio==2.3.0
+torch==2.2.0
+torchaudio==2.2.0
 tqdm==4.66.1
 traitlets==5.14.1
 typer==0.3.2

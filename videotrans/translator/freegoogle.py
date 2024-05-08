@@ -130,6 +130,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
     if err:
         config.logger.error(f'[FreeGoogle]翻译请求失败:{err=}')
+        if err.lower().find("Connection error")>-1:
+            err='连接失败 '+err
         raise Exception(f'FreeGoogle:{err}')
     if isinstance(text_list, str):
         return "\n".join(target_text)
