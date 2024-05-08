@@ -411,11 +411,11 @@ class TransCreate():
         if not self.config_params['is_batch']:
             tools.set_process('', 'allow_edit', btnkey=self.init['btnkey'])
         #time.sleep(3)
-        print(f'结束100% {self.obj['raw_basename']}')
+        print(f"结束100% {self.obj['raw_basename']}")
         
         tools.set_process(
             f"{output}##{self.obj['raw_basename']}",
             'succeed',
             btnkey=self.init['btnkey']
         )
-        tools.send_notification("Succeed", f'{self.obj["raw_basename"]}')
+        tools.send_notification("Succeed", f"{self.obj['raw_basename']}")
