@@ -7,6 +7,7 @@ import torch
 import os
 import sys
 from torch.backends import cudnn
+
 # ffmpeg
 rootdir = os.getcwd()
 tmpdir = os.path.join(rootdir, 'tmp')
@@ -30,7 +31,6 @@ else:
 
 result = subprocess.run(['ffmpeg', '-hwaccels'], text=True, stdout=subprocess.PIPE)
 print(f'Accels:\n{result.stdout}')
-
 
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir, exist_ok=True)
@@ -60,10 +60,10 @@ def runffmpeg(cmd, *, title=""):
     print(str(errs))
     print("\n******Error*******\n")
 
-    for (i, it) in enumerate(cmd):
-        if it == '-hwaccel' and cmd[i] == 'cuda':
-            print(f'hwaccel_output_format=cuda Dont Support, But hwaccel_output_format=nv12 is OK')
-            break
+    # for (i, it) in enumerate(cmd):
+    #    if it == '-hwaccel' and cmd[i] == 'cuda':
+    #        print(f'hwaccel_output_format=cuda Dont Support, But hwaccel_output_format=nv12 is OK')
+    #        break
 
     input("\nPress enter for close")
     sys.exit()
@@ -129,18 +129,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     return result
 
 
-def test_cuda(*, hwaccel_output_format=""):
-    if hwaccel_output_format == "cuda":
-        acc_name = "cuda"
-        libx264 = "h264_nvenc"
-    elif hwaccel_output_format == 'nv12':
-        acc_name = "cuvid"
-        libx264 = "h264_nvenc"
-    else:
-        acc_name = None
-        libx264 = "libx264"
+def test_cuda(libx264="libx264"):
     # 从视频中截取的图片
-    img = os.path.join(tmpdir, '1.jpg')
     # 从原始视频中分离出的无声视频
     novoice = os.path.join(tmpdir, 'novoice.mp4')
     # 视频 音频 硬字幕合并后输出
@@ -162,12 +152,10 @@ def test_cuda(*, hwaccel_output_format=""):
     # 字幕文件
     srtfile = os.path.join(tmpdir, 'zimu.srt')
     # 根据图片生成的视频
-    imgvideo = os.path.join(tmpdir, 'img.mp4')
     # 从视频中截取的片段
     pianduan = os.path.join(tmpdir, 'pianduan.mp4')
 
     # 图片视频片段和截取的片段合并
-    hebing = os.path.join(tmpdir, 'imgvideo-pianduan.mp4')
 
     # 获取视频信息
     video_info = get_video_info(sourcemp4)
@@ -176,21 +164,17 @@ def test_cuda(*, hwaccel_output_format=""):
         input("\nPress enter will close")
         sys.exit()
 
-    print(f"start test -hwaccel_output_format={hwaccel_output_format} ...")
+    print(f"start test  ...")
     if video_info['video_codec_name'] != 'h264' or video_info['audio_codec_name'] != 'aac':
         # 转换
         tmptestmp4 = os.path.join(rootdir, 'tmptest.mp4')
-        accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                        '-hide_banner',
-                                                                                        '-ignore_unknown',
-                                                                                        '-vsync',
-                                                                                        'vfr',
-                                                                                        '-hwaccel',
-                                                                                        acc_name,
-                                                                                        '-hwaccel_output_format',
-                                                                                        hwaccel_output_format,
-                                                                                        '-extra_hw_frames',
-                                                                                        '2']
+        accel_pre = ['ffmpeg',
+                     '-hide_banner',
+                     '-ignore_unknown',
+                     '-vsync',
+                     'vfr',
+                     '-extra_hw_frames',
+                     '2']
         runffmpeg(accel_pre + [
             '-y',
             '-i',
@@ -214,18 +198,13 @@ def test_cuda(*, hwaccel_output_format=""):
     scale = [video_info['width'], video_info['height']]
 
     # 从原始视频 分离出无声视频 cuda + h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -238,18 +217,13 @@ def test_cuda(*, hwaccel_output_format=""):
               , title='从原始视频 分离出无声视频')
 
     # 从原始视频 分离出音频 cuda + h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -257,23 +231,18 @@ def test_cuda(*, hwaccel_output_format=""):
         sourcemp4,
         '-vn',
         '-c:a',
-        'copy',
+        'aac',
         m4a]
               , title='从原始视频 分离出音频')
 
     # 分离出的 m4a 转为 wav cuda + h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -284,79 +253,14 @@ def test_cuda(*, hwaccel_output_format=""):
         wav]
               , title='分离出的 m4a 转为 wav')
 
-    # 提取最后一帧为图片 nv12 + h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    "nv12",
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
-    runffmpeg(accel_pre + [
-
-        '-y',
-        '-sseof',
-        '-3',
-        '-i',
-        novoice,
-        '-q:v',
-        '1',
-        '-qmin:v',
-        '1',
-        '-qmax:v',
-        '1',
-        '-update',
-        'true',
-        img]
-              , title='提取最后一帧为图片')
-
-    # 根据图片创建 5s 的视频 nv12 +  not h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    "nv12",
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', ]
-    runffmpeg(accel_pre + [
-        '-y',
-        '-loop',
-        '1',
-        '-i',
-        img,
-        '-vf',
-        f"fps={fps},scale={scale[0]}:{scale[1]}",
-        '-c:v',
-        libx264,
-        '-crf',
-        '13',
-        '-to',
-        '00:00:05',
-        imgvideo]
-              , title='根据图片创建 5s 的视频')
-
     # 截取 00:00:05 -- 00:00:15 nv12 +  not h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -374,43 +278,6 @@ def test_cuda(*, hwaccel_output_format=""):
         '13',
         pianduan]
               , title='截取 00:00:05 -- 00:00:15')
-
-    # imgvideo 和 pianduan 合并
-    srttext = f"""
-    file '{imgvideo}'
-    file '{pianduan}'
-    """
-    with open(concat, 'w', encoding='utf-8') as f:
-        f.write(srttext)
-    # 连接 2个视频片段 cuda +  h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
-    runffmpeg(accel_pre + [
-
-        '-y',
-        '-f',
-        'concat',
-        '-safe',
-        '0',
-        '-i',
-        concat,
-        '-c:v',
-        libx264,
-        '-crf',
-        '13',
-        '-an',
-        hebing]
-              , title='连接 2个视频片段')
 
     with open(srtfile, 'w', encoding='utf-8') as f:
         f.write("""
@@ -431,18 +298,13 @@ First of all, we got an electromagnetic penalty""")
         hardfile = srtfile
     # 视频 音频 硬字幕合并 nv12 +  h264_cuvid
     os.chdir(os.path.dirname(srtfile))
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    "nv12",
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -453,25 +315,20 @@ First of all, we got an electromagnetic penalty""")
         '-c:v',
         libx264,
         '-c:a',
-        'copy',
+        'aac',
         '-vf',
         f'subtitles={hardfile}',
         out_hard]
               , title='视频 音频 硬字幕合并')
 
     # 视频 硬字幕 nv12 +  h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    "nv12",
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2']
     runffmpeg(accel_pre + [
 
         '-y',
@@ -485,18 +342,14 @@ First of all, we got an electromagnetic penalty""")
               , title='视频 硬字幕')
 
     # 视频 配音 软字幕 cuda +   h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ['ffmpeg',
-                                                                                    '-hide_banner',
-                                                                                    '-ignore_unknown',
-                                                                                    '-vsync',
-                                                                                    'vfr',
-                                                                                    '-hwaccel',
-                                                                                    acc_name,
-                                                                                    '-hwaccel_output_format',
-                                                                                    hwaccel_output_format,
-                                                                                    '-extra_hw_frames',
-                                                                                    '2', '-c:v',
-                                                                                    'h264_cuvid', ]
+    accel_pre = ['ffmpeg',
+                 '-hide_banner',
+                 '-ignore_unknown',
+                 '-vsync',
+                 'vfr',
+                 '-extra_hw_frames',
+                 '2'
+                 ]
     runffmpeg(accel_pre + [
 
         '-y',
@@ -509,7 +362,7 @@ First of all, we got an electromagnetic penalty""")
         '-c:v',
         libx264,
         '-c:a',
-        'copy',
+        'aac',
         '-c:s',
         'mov_text',
         '-metadata:s:s:0',
@@ -518,62 +371,42 @@ First of all, we got an electromagnetic penalty""")
               , title='视频 配音 软字幕')
 
     # 软字幕无配音 cuda + h264_cuvid
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
-                                                                                    "-ignore_unknown", "-vsync", "vfr",
-                                                                                    "-hwaccel", acc_name,
-                                                                                    "-hwaccel_output_format",
-                                                                                    hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2", "-c:v",
-                                                                                    "h264_cuvid", ]
+    accel_pre = ["ffmpeg", "-hide_banner",
+                 "-ignore_unknown", "-vsync", "vfr",
+                 "-extra_hw_frames", "2"]
     runffmpeg(
         accel_pre + ["-y", "-i", novoice, "-i", srtfile, "-c:v", libx264, "-c:s", "mov_text",
                      "-metadata:s:s:0", "language=chi", out_soft], title='软字幕无配音')
 
     # 配音无字幕
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
-                                                                                    "-ignore_unknown", "-vsync", "vfr",
-                                                                                    "-hwaccel", acc_name,
-                                                                                    "-hwaccel_output_format",
-                                                                                    hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2", "-c:v",
-                                                                                    "h264_cuvid", ]
-    runffmpeg(accel_pre + ["-y", "-i", novoice, "-i", m4a, "-c:v", libx264, "-c:a", "copy",
+    accel_pre = ["ffmpeg", "-hide_banner",
+                 "-ignore_unknown", "-vsync", "vfr",
+                 "-extra_hw_frames", "2"]
+    runffmpeg(accel_pre + ["-y", "-i", novoice, "-i", m4a, "-c:v", libx264, "-c:a", "aac",
                            out_nosrt], title='配音无字幕')
 
     # 加速音频
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
-                                                                                    "-ignore_unknown", "-vsync", "vfr",
-                                                                                    "-hwaccel", acc_name,
-                                                                                    "-hwaccel_output_format",
-                                                                                    hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2", "-c:v",
-                                                                                    "h264_cuvid", ]
+    accel_pre = ["ffmpeg", "-hide_banner",
+                 "-ignore_unknown", "-vsync", "vfr",
+
+                 "-extra_hw_frames", "2"]
     runffmpeg(accel_pre + ["-y", "-i", wav, "-af", "atempo=2", wavspeedup], title='加速音频')
 
     # mp4 转为 api
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
-                                                                                    "-ignore_unknown", "-vsync", "vfr",
-                                                                                    "-hwaccel", acc_name,
-                                                                                    "-hwaccel_output_format", "nv12",
-                                                                                    "-extra_hw_frames", "2", ]
+    accel_pre = ["ffmpeg", "-hide_banner",
+                 "-ignore_unknown", "-vsync", "vfr",
+                 "-extra_hw_frames", "2", ]
     runffmpeg(accel_pre + ["-y", "-i", sourcemp4, "-c:v", libx264, "-c:a", "aac", sourceavi], title='mp4 转为 avi')
 
     # avi 转为 mp4
-    accel_pre = ["ffmpeg", "-hide_banner", '-ignore_unknown'] if not acc_name else ["ffmpeg", "-hide_banner",
-                                                                                    "-ignore_unknown", "-vsync", "vfr",
-                                                                                    "-hwaccel", acc_name,
-                                                                                    "-hwaccel_output_format",
-                                                                                    hwaccel_output_format,
-                                                                                    "-extra_hw_frames", "2", ]
+    accel_pre = ["ffmpeg", "-hide_banner",
+                 "-ignore_unknown", "-vsync", "vfr",
+                 "-extra_hw_frames", "2", ]
     runffmpeg(accel_pre + ["-y", "-i", sourceavi, "-c:v", libx264, "-c:a", "aac", f"{sourceavi}.mp4"],
               title='avi 转为 mp4')
 
 
-test_cuda(hwaccel_output_format="nv12")
-print("\n[hwaccel_output_format=nv12 is ok,CUDA OK】\n\n")
-print("\nNext will test hwaccel_output_format=cuda\n")
-test_cuda(hwaccel_output_format="cuda")
-print(
-    "hwaccel_output_format=cuda is ok\nMay be open videotrans/set.ini\nedit 'hwaccel_output_format=nv12' to 'hwaccel_output_format=cuda'\n And edit 'hwaccel=cuvid' to 'hwaccel=cuda'")
-
-input("\nPress enter for close")
+test_cuda(libx264='h264_nvenc')
+test_cuda(libx264='h264_qsv')
+test_cuda(libx264='h264_vaapi')
+test_cuda(libx264='h264_videotoolbox')

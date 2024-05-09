@@ -9,6 +9,25 @@ from requests import Timeout
 from videotrans.configure import config
 from videotrans.util import tools
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
@@ -19,13 +38,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-    serv = tools.set_proxy()
-    proxies = None
-    if serv:
-        proxies = {
-            'http': serv,
-            'https': serv
-        }
+
     # 翻译后的文本
     target_text = []
 
@@ -74,7 +87,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
-                response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
+                response = requests.get(url,  headers=headers, timeout=300)
                 config.logger.info(f'[Google]返回数据:{response.text=}')
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
@@ -114,6 +127,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 index=0 if i<=1 else i
         else:
             break
+
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[Google]翻译请求失败:{err=}')
