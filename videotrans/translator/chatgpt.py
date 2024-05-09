@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import httpx
@@ -19,21 +20,33 @@ def get_url(url=""):
         return url+"/v1"
     return url
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 def create_openai_client():
     api_url = get_url(config.params['chatgpt_api'])
     openai.base_url = api_url
     config.logger.info(f'当前chatGPT:{api_url=}')
-    proxies=None
-    if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
-        serv = tools.set_proxy()
-        if serv:
-            proxies = {
-                'http://': serv,
-                'https://': serv
-            }
+    update_proxy(type='set')
     try:
-        client = OpenAI(base_url=api_url,http_client=httpx.Client(proxies=proxies))
+        client = OpenAI(base_url=api_url,http_client=httpx.Client())
     except Exception as e:
         raise Exception(f'API={api_url},{str(e)}')
     return client,api_url
@@ -174,6 +187,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 index=0 if i<=1 else i
         else:
             break
+
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[ChatGPT]翻译请求失败:{err=}')

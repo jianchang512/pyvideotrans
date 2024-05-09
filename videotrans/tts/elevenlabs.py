@@ -5,8 +5,29 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
+
 def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None,language=None, filename=None,set_p=True,inst=None):
     try:
+        update_proxy(type='set')
         with open(os.path.join(config.rootdir,'elevenlabs.json'),'r',encoding="utf-8") as f:
             jsondata=json.loads(f.read())
         if config.params['elevenlabstts_key']:
@@ -30,6 +51,8 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None,langu
         config.logger.error(f"elevenlabsTTS：request error:{error}")
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
+        update_proxy(type='del')
         raise Exception(error)
     else:
+        update_proxy(type='del')
         return True

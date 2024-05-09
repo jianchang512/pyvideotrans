@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
+import os
 import time
 import requests
 from videotrans.configure import config
@@ -14,8 +15,13 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
+    proxy = os.environ.get('http_proxy')
+    if proxy:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
 
-    # 翻译后的文本
+        # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
@@ -107,6 +113,13 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 index=0 if i<=1 else i
         else:
             break
+
+    if proxy:
+        os.environ['http_proxy']=proxy
+        os.environ['https_proxy']=proxy
+        os.environ['all_proxy']=proxy
+
+
     if err:
         config.logger.error(f'[Baidu]翻译请求失败:{err=}')
         raise Exception(f'百度翻译:{err}')

@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -16,6 +17,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
+    proxy=os.environ.get('http_proxy')
+    if proxy:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
 
     # 翻译后的文本
     target_text = []
@@ -102,6 +108,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 index=0 if i<=1 else i
         else:
             break
+
+    if proxy:
+        os.environ['http_proxy']=proxy
+        os.environ['https_proxy']=proxy
+        os.environ['all_proxy']=proxy
 
     if err:
         config.logger.error(f'[腾讯翻译]翻译请求失败:{err=}')

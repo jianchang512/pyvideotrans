@@ -524,6 +524,9 @@ class FanyiWorker(QThread):
         # 开始翻译,从目标文件夹读取原始字幕
         set_process_box(text=f'start translate',type='logs')
         config.box_trans = "ing"
+        if not self.files:
+            set_process_box(text="no srt file", type="error", func_name=self.func_name)
+            return
         target = os.path.join(os.path.dirname(self.files[0]), '_translate')
         os.makedirs(target, exist_ok=True)
         for f in self.files:
