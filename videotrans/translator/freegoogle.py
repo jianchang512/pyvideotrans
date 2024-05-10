@@ -15,10 +15,28 @@ urls=[
 "https://g1.pyvideotrans.com",
 "https://g2.pyvideotrans.com",
 "https://g3.pyvideotrans.com",
-"https://g4.pyvideotrans.com",
-"https://translate.google.com"
+"https://g4.pyvideotrans.com"
 ]
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
@@ -30,13 +48,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-    serv = tools.set_proxy()
-    proxies = None
-    if serv:
-        proxies = {
-            'http': serv,
-            'https': serv
-        }
+    update_proxy(type='set')
     # 翻译后的文本
     target_text = []
 
@@ -85,7 +97,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
                 config.logger.info(f'[FreeGoole] 发送请求:{url=}')
-                response = requests.get(url, proxies=proxies, headers=headers, timeout=300)
+                response = requests.get(url,  headers=headers, timeout=300)
                 config.logger.info(f'[FreeGoole] 返回:{response.text=}')
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
@@ -127,6 +139,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         else:
             break
 
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[FreeGoogle]翻译请求失败:{err=}')

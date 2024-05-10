@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import urllib
@@ -6,7 +7,25 @@ import urllib
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
-
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code="",is_test=False):
     """
@@ -27,15 +46,9 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         url+='&'
     else:
         url+='/?'
-    serv = tools.set_proxy()
-    proxies = None
-    if serv:
-        proxies = {
-            'http': serv,
-            'https': serv
-        }
-    if re.search(r'localhost',url) or re.match(r'https?://(\d+\.){3}\d+',url):
-        proxies={"http":"","https":""}
+
+    if not re.search(r'localhost',url) and not re.match(r'https?://(\d+\.){3}\d+',url):
+        update_proxy(type='set')
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
@@ -80,7 +93,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 requrl=f"{url}target_language={data['target_language']}&source_language={data['source_language']}&text={data['text']}&secret={data['secret']}"
                 config.logger.info(f'[TransAPI]请求数据：{requrl=}')
 
-                response = requests.get(url=requrl,proxies=proxies)
+                response = requests.get(url=requrl)
                 config.logger.info(f'[TransAPI]返回:{response.text=}')
                 if response.status_code!=200:
                     err=f'code={response.status_code=},{response.text}'
@@ -119,6 +132,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 index=0 if i<=1 else i
         else:
             break
+
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[TransAPI]翻译请求失败:{err=}')

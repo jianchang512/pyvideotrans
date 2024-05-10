@@ -23,10 +23,15 @@ def recogn(*,
     down_root = os.path.normpath(config.rootdir + "/models")
     model = None
     try:
+        if model_name.startswith('distil-'):
+            com_type= "float32"
+        elif is_cuda:
+            com_type=config.settings['cuda_com_type']
+        else:
+            com_type='int8'
         model = WhisperModel(model_name,
                              device="cuda" if is_cuda else "cpu",
-                             compute_type="float32" if model_name.startswith('distil-') else config.settings[
-                                 'cuda_com_type'],
+                             compute_type=com_type,
                              download_root=down_root,
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(

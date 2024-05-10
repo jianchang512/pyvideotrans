@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import httpx
@@ -6,6 +7,26 @@ from openai import AzureOpenAI, APIError
 from videotrans.configure import config
 from videotrans.util import tools
 
+
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 def get_content(d,*,model=None,prompt=None):
     message = [
@@ -46,13 +67,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     set_p:
         是否实时输出日志，主界面中需要
     """
-    proxies = None
-    serv = tools.set_proxy()
-    if serv:
-        proxies = {
-            'http://': serv,
-            'https://': serv
-        }
+    update_proxy(type='set')
 
     # 翻译后的文本
     target_text = {"0":[]}
@@ -97,7 +112,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             api_key=config.params["azure_key"],
             api_version="2023-05-15",
             azure_endpoint=config.params["azure_api"],
-            http_client=httpx.Client(proxies=proxies)
+            http_client=httpx.Client()
         )
 
 
@@ -149,6 +164,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         else:
             break
 
+
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[AzureGPT]翻译请求失败:{err=}')

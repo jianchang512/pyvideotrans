@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re,os
 import time
 from videotrans.configure import config
 from videotrans.util import tools
@@ -28,6 +28,25 @@ safetySettings = [
     },
 ]
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 def get_error(num=5, type='error'):
     REASON_CN = {
@@ -55,7 +74,7 @@ def get_error(num=5, type='error'):
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
 def get_content(d,*,model=None,prompt=None):
-    response=None
+    update_proxy(type='set')
     try:
         message=prompt.replace('{text}',"\n".join(d))
         response = model.generate_content(
@@ -204,6 +223,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 index = 0 if i <= 1 else i
         else:
             break
+    update_proxy(type='del')
 
     if err:
         config.logger.error(f'[Gemini]翻译请求失败:{err=}')
