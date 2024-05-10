@@ -4,9 +4,30 @@ import os
 import azure.cognitiveservices.speech as speechsdk
 
 
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
+
 
 def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, language=None,filename=None,set_p=True,inst=None):
     try:
+        update_proxy(type='set')
         if language:
             language=language.split("-",maxsplit=1)
         else:
@@ -65,5 +86,7 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         config.logger.error(f"Azure TTS合成失败" + str(e))
         if set_p:
             tools.set_process(error,btnkey=inst.init['btnkey'] if inst else "")
+        update_proxy(type='del')
         raise Exception(error)
-
+    else:
+        update_proxy(type='del')

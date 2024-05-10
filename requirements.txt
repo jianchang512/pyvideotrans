@@ -38,13 +38,15 @@ frozenlist==1.4.0
 fsspec==2023.10.0
 future==0.18.3
 gast==0.4.0
-google-ai-generativelanguage==0.4.0
-google-api-core==2.15.0
-google-auth==2.23.3
+google-ai-generativelanguage==0.6.2
+google-api-core==2.19.0
+google-api-python-client==2.128.0
+google-auth==2.29.0
+google-auth-httplib2==0.2.0
 google-auth-oauthlib==0.4.6
-google-generativeai==0.3.1
+google-generativeai==0.5.2
 google-pasta==0.2.0
-googleapis-common-protos==1.62.0
+googleapis-common-protos==1.63.0
 grpcio==1.60.0
 grpcio-status==1.60.0
 gTTS==2.5.1
@@ -54,6 +56,7 @@ h5py==3.10.0
 hpack==3.0.0
 hstspreload==2023.1.1
 httpcore==1.0.2
+httplib2==0.22.0
 httpx==0.25.1
 huggingface-hub==0.17.3
 humanfriendly==10.0
@@ -159,6 +162,7 @@ tqdm==4.66.1
 traitlets==5.14.1
 typer==0.3.2
 typing_extensions==4.8.0
+uritemplate==4.1.1
 urllib3==2.0.5
 wcwidth==0.2.12
 websockets==12.0

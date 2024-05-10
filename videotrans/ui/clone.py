@@ -53,7 +53,7 @@ class Ui_cloneform(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.clone_address.sizePolicy().hasHeightForWidth())
         self.clone_address.setSizePolicy(sizePolicy)
-        self.clone_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.clone_address.setMinimumSize(QtCore.QSize(400, 35))
         self.clone_address.setObjectName("clone_address")
         
         

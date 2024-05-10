@@ -6,6 +6,28 @@ from openai import OpenAI, APIError
 from videotrans.configure import config
 from videotrans.util import tools
 
+
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        print(f'当前代理:{raw_proxy=}')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                print(f'设置代理:{proxy=}')
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
+
+
 def get_url(url=""):
     if not url or url.find(".openai.com")>-1:
         return "https://api.openai.com/v1"
@@ -20,21 +42,15 @@ def get_url(url=""):
 
 def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None, language=None,filename=None,set_p=True,inst=None):
     api_url=get_url(config.params['chatgpt_api'])
-    proxies=None
     if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
-        serv = tools.set_proxy()
-        if serv:
-            proxies = {
-                'http://': serv,
-                'https://': serv
-            }
+        update_proxy(type='set')
     try:
         speed=1.0
         if rate:
             rate=float(rate.replace('%',''))/100
             speed+=rate
         try:
-            client = OpenAI(base_url=api_url, http_client=httpx.Client(proxies=proxies))
+            client = OpenAI(base_url=api_url, http_client=httpx.Client())
             response = client.audio.speech.create(
                 model="tts-1",
                 voice=role,
@@ -65,7 +81,10 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None, lang
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
+        update_proxy(type='del')
         raise Exception(error)
     else:
         return True
+    finally:
+        update_proxy(type='del')
 
