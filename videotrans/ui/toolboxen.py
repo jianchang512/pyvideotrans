@@ -75,15 +75,6 @@ class Ui_MainWindow(object):
 
 
         self.formLayout_2.setObjectName("formLayout_2")
-        # self.label_9 = QtWidgets.QLabel(self.tab_4)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
-        # self.label_9.setSizePolicy(sizePolicy)
-        # self.label_9.setMinimumSize(QtCore.QSize(0, 30))
-        # self.label_9.setObjectName("label_9")
-
 
         self.is_cuda = QtWidgets.QCheckBox(self.tab_4)
         self.is_cuda.setObjectName("is_cuda")
@@ -116,14 +107,6 @@ class Ui_MainWindow(object):
         self.shibie_model.setMinimumSize(QtCore.QSize(0, 30))
         self.shibie_model.setObjectName("shibie_model")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_model)
-
-
-        # self.horizontalLayout.addWidget(self.is_cuda)
-
-
-
-
-
 
 
         self.shibie_whisper_type = QtWidgets.QComboBox(self.tab_4)
@@ -206,6 +189,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.hecheng_layout)
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
+        self.horizontalLayout_10_1 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_10_1.setObjectName("horizontalLayout_10_1")
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
@@ -262,6 +247,8 @@ class Ui_MainWindow(object):
         self.hecheng_role.setObjectName("hecheng_role")
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
         self.horizontalLayout_10.addLayout(self.formLayout_4)
+
+
         self.formLayout_5 = QtWidgets.QFormLayout()
         self.formLayout_5.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.formLayout_5.setObjectName("formLayout_5")
@@ -275,7 +262,7 @@ class Ui_MainWindow(object):
         self.hecheng_rate.setMaximum(100)
         self.hecheng_rate.setObjectName("hecheng_rate")
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_rate)
-        self.horizontalLayout_10.addLayout(self.formLayout_5)
+        self.horizontalLayout_10_1.addLayout(self.formLayout_5)
 
 
         self.tts_issrt = QtWidgets.QCheckBox(self.tab_2)
@@ -290,9 +277,9 @@ class Ui_MainWindow(object):
         self.audio_ajust.setObjectName("audio_ajust")
 
 
-        self.horizontalLayout_10.addWidget(self.tts_issrt)
-        self.horizontalLayout_10.addWidget(self.voice_autorate)
-        self.horizontalLayout_10.addWidget(self.audio_ajust)
+        self.horizontalLayout_10_1.addWidget(self.tts_issrt)
+        self.horizontalLayout_10_1.addWidget(self.voice_autorate)
+        self.horizontalLayout_10_1.addWidget(self.audio_ajust)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
 
@@ -318,7 +305,7 @@ class Ui_MainWindow(object):
         self.edge_volume_layout.addWidget(self.pitch_rate)
 
 
-        self.horizontalLayout_10.addLayout(self.edge_volume_layout)
+        self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
 
 
 
@@ -328,11 +315,15 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.hecheng_startbtn.sizePolicy().hasHeightForWidth())
         self.hecheng_startbtn.setSizePolicy(sizePolicy)
-        self.hecheng_startbtn.setMinimumSize(QtCore.QSize(200, 30))
+        self.hecheng_startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.hecheng_startbtn.setObjectName("hecheng_startbtn")
         self.hecheng_startbtn.setCursor(Qt.PointingHandCursor)
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_10_1)
+
+
+
         self.verticalLayout_4.addWidget(self.hecheng_startbtn)
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setObjectName("gridLayout_3")

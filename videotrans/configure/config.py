@@ -71,6 +71,7 @@ def parse_init():
         "initial_prompt_zh":"",
         "fontsize":16,
         "fontname":"黑体",
+        "subtitle_bottom":0,
         "voice_silence":200,
         "interval_split":6,
         "cjk_len":24,

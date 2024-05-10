@@ -6,6 +6,7 @@ from PySide6.QtCore import QThread
 
 import videotrans
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.tools import  set_process
 from videotrans.configure.config import transobj
 
@@ -17,7 +18,12 @@ class CheckUpdateWorker(QThread):
 
     def get(self):
         try:
-            res=requests.get("https://pyvideotrans.com/version2.json")
+            proxies=None
+            proxy=tools.set_proxy()
+            if proxy:
+                proxies={"http":proxy,"https":proxy}
+
+            res=requests.get("https://raw.githubusercontent.com/jianchang512/pyvideotrans/main/version.json",proxies=proxies)
             if res.status_code==200:
                 d=res.json()
                 if d['version_num']>videotrans.VERSION_NUM:
