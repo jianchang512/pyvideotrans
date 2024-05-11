@@ -28,6 +28,7 @@ class Runstep():
         self.config_params = config_params
         self.precent = 1
         self.parent=parent
+        self.video_codec=config.settings['video_codec']
 
     def _unlink(self, file):
         try:
@@ -920,7 +921,7 @@ class Runstep():
                     "-i",
                     novoice_mp4,
                     "-c:v",
-                    "libx264",
+                    f"libx{self.video_codec}",
                     "-vf",
                     f"subtitles={hard_srt}{fontsize}",
                     '-crf',
@@ -938,7 +939,7 @@ class Runstep():
                     "-i",
                     soft_srt,
                     "-c:v",
-                    "copy" if self.init['h264'] else "libx264",
+                    "copy" if self.init['h264'] else f"libx{self.video_codec}",
                     "-c:s",
                     "mov_text",
                     "-metadata:s:s:0",
@@ -1032,7 +1033,7 @@ class Runstep():
                         "-i",
                         os.path.normpath(self.init['target_wav']),
                         "-c:v",
-                        "libx264",
+                        f"libx{self.video_codec}",
                         "-c:a",
                         "aac",
                         "-vf",
@@ -1092,7 +1093,7 @@ class Runstep():
                     cmd.append(os.path.normpath(self.init['source_wav']))
 
                 cmd.append('-c:v')
-                cmd.append('libx264')
+                cmd.append(f'libx{self.video_codec}')
                 if tools.vail_file(self.init['source_wav']):
                     cmd.append('-c:a')
                     cmd.append('aac')
