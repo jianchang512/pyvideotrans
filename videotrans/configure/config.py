@@ -141,9 +141,9 @@ transobj = obj["translate_language"]
 # 软件界面
 uilanglist = obj["ui_lang"]
 # 语言代码:语言显示名称
-langlist = obj["language_code_list"]
+langlist: dict = obj["language_code_list"]
 # 语言显示名称：语言代码
-rev_langlist = {val: key for key, val in langlist.items()}
+rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
 # 语言显示名称 list
 langnamelist = list(langlist.values())
 # 工具箱语言

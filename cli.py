@@ -11,38 +11,37 @@ python cli.py -c D:/cli.ini  -m c:/Users/c1/Videos/1.mp4 使用 D:/cli.ini, 忽�
 import os
 import re
 import sys
+import traceback
+from videotrans.box.worker import Worker
 from videotrans.configure import config
 import argparse
 from videotrans.task.trans_create import TransCreate
 from videotrans.translator import LANG_CODE, is_allow_translate, BAIDU_NAME, TENCENT_NAME, CHATGPT_NAME, AZUREGPT_NAME, \
     GEMINI_NAME, DEEPLX_NAME, DEEPL_NAME
-from videotrans.util.tools import set_proxy, get_edge_rolelist, get_elevenlabs_role
+from videotrans.util import tools
+from videotrans.util.tools import send_notification, set_process, set_proxy, get_edge_rolelist, get_elevenlabs_role
+from tqdm import tqdm
 
-parser = argparse.ArgumentParser(description='cli.ini and source mp4')
-parser.add_argument('-c', type=str, help='cli.ini file absolute filepath', default=os.path.join(os.getcwd(), 'cli.ini'))
-parser.add_argument('-m', type=str, help='mp4 absolute filepath', default="")
-parser.add_argument('-cuda', action='store_true', help='Activates the cuda option')
+def __init__():
+    if not os.path.exists(os.path.join(config.rootdir, 'voice_list.json')) or os.path.getsize(
+            os.path.join(config.rootdir, 'voice_list.json')) == 0:
+        print("正在获取 edge TTS 角色...")
+        get_edge_rolelist()
+    if not os.path.exists(os.path.join(config.rootdir, 'elevenlabs.json')) or os.path.getsize(
+            os.path.join(config.rootdir, 'elevenlabs.json')) == 0:
+        print("正在获取 elevenlabs TTS 角色...")
+        get_elevenlabs_role()
 
-
-def set_process(text, type="logs"):
-    print(f'[{type}] {text}\n')
-
-
-if not os.path.exists(os.path.join(config.rootdir, 'voice_list.json')) or os.path.getsize(
-        os.path.join(config.rootdir, 'voice_list.json')) == 0:
-    print("正在获取 edge TTS 角色...")
-    get_edge_rolelist()
-if not os.path.exists(os.path.join(config.rootdir, 'elevenlabs.json')) or os.path.getsize(
-        os.path.join(config.rootdir, 'elevenlabs.json')) == 0:
-    print("正在获取 elevenlabs TTS 角色...")
-    get_elevenlabs_role()
 
 if __name__ == '__main__':
-    config.exec_mode = 'cli'
-    config.settings['countdown_sec'] = 0
+    parser = argparse.ArgumentParser(description='cli.ini and source mp4')
+    parser.add_argument('-c', type=str, help='cli.ini file absolute filepath', default=os.path.join(os.getcwd(), 'cli.ini'))
+    parser.add_argument('-m', type=str, help='mp4 absolute filepath', default="")
+    parser.add_argument('-cuda', action='store_true', help='Activates the cuda option')
 
     args = vars(parser.parse_args())
 
+    config.settings['countdown_sec'] = 0
     cfg_file = args['c']
     if not os.path.exists(cfg_file):
         print('不存在配置文件 cli.ini' if config.defaulelang == 'zh' else "cli.ini file not exists")
@@ -67,10 +66,21 @@ if __name__ == '__main__':
         config.params['source_language']='-'
     if not config.params['target_language']:
         config.params['target_language']='-'
+    if not config.params.get('back_audio'):
+        config.params['back_audio']='-'
     if args['cuda']:
         config.params['cuda'] = True
     if args['m'] and os.path.exists(args['m']):
         config.params['source_mp4'] = args['m']
+
+    # 传多个视频的话,考虑支持批量处理
+    if type(args['m']) == str:
+        config.params['is_batch'] = False
+    else:
+        config.params['is_batch'] = True
+        print("命令行批量处理暂未支持")
+        sys.exit()
+
     if not config.params['source_mp4'] or not os.path.exists(config.params['source_mp4']):
         print(
             "必须在命令行或cli.ini文件设置 source_mp4(视频文件)的绝对路径" if config.defaulelang == 'zh' else "The absolute path of source_mp4 (video file) must be set on the command line or in the cli.ini file.")
@@ -88,7 +98,7 @@ if __name__ == '__main__':
             print(config.transobj['anerror'], config.transobj['baikeymust'])
             sys.exit()
     elif config.params['translate_type'] == TENCENT_NAME:
-        #     腾讯翻译
+        # 腾讯翻译
         if not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]:
             print(config.transobj['tencent_key'])
             sys.exit()
@@ -135,11 +145,73 @@ if __name__ == '__main__':
         config.proxy = config.params['proxy'].strip()
         set_proxy(config.proxy)
     config.current_status = 'ing'
+    config.params['app_mode'] = 'cli'
+    (base, ext) = os.path.splitext(config.params['source_mp4'].replace('\\', '/'))
+    config.params['target_dir'] = os.path.dirname(base)
+    obj_format = tools.format_video(config.params['source_mp4'].replace('\\', '/'), config.params['target_dir'])
+    
+    process_bar_data = [
+        config.transobj['kaishichuli'],
+        config.transobj['kaishishibie'],
+        config.transobj['starttrans'],
+        config.transobj['kaishipeiyin'],
+        config.transobj['kaishihebing'],
+    ]
 
-    # try:
-    #     task = TransCreate({"source_mp4": config.params['source_mp4'], 'app_mode': "biaozhun","mode":"cli"})
-    #     set_process(config.transobj['kaishichuli'])
-    #     res = task.run()
-    #     print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {task.targetdir_mp4}')
-    # except Exception as e:
-    #     print(f'\nException:{str(e)}\n')
+    process_bar = tqdm(process_bar_data)
+    try:
+        video_task = TransCreate(config.params, obj_format)
+        try:
+            process_bar.set_description(process_bar_data[0])
+            video_task.prepare()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["yuchulichucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+        try:
+            process_bar.set_description(process_bar_data[1])
+            video_task.recogn()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["shibiechucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+        try:
+            process_bar.set_description(process_bar_data[2])
+            video_task.trans()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["fanyichucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+        try:
+            process_bar.set_description(process_bar_data[3])
+            video_task.dubbing()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["peiyinchucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+        try:
+            process_bar.set_description(process_bar_data[4])
+            video_task.hebing()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["hebingchucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+        try:
+            video_task.move_at_end()
+            process_bar.update(1)
+        except Exception as e:
+            err=f'{config.transobj["hebingchucuo"]}:' + str(e)
+            print(err)
+            sys.exit()
+
+        send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
+        print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {video_task.targetdir_mp4}')
+    except Exception as e:
+        send_notification(e, f'{video_task.obj["raw_basename"]}')
+        # 捕获异常并重新绑定回溯信息
+        traceback.print_exc()
