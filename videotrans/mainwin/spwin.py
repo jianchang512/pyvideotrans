@@ -50,7 +50,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION} pyvideotrans.com {' Q群 905857759 ' if config.defaulelang == 'zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION} pyvideotrans.com {' Q群 933714380 ' if config.defaulelang == 'zh' else ''}"
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.initUI()
