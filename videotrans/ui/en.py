@@ -713,8 +713,7 @@ class Ui_MainWindow(object):
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_blog)
         self.menu_H.addSeparator()
-        self.menu_H.addAction(self.action_online)
-        self.menu_H.addSeparator()
+
         self.menu_H.addAction(self.action_models)
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_gtrans)
@@ -733,6 +732,9 @@ class Ui_MainWindow(object):
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_about)
         self.menu_H.addSeparator()
+        self.menu_H.addAction(self.action_online)
+        self.menu_H.addSeparator()
+
         self.menuBar.addAction(self.menu_Key.menuAction())
         self.menuBar.addAction(self.menu.menuAction())
         self.menuBar.addAction(self.menu_H.menuAction())
@@ -828,7 +830,7 @@ class Ui_MainWindow(object):
         self.action_dll.setText(config.uilanglist["Download cuBLASxx.dll"])
         self.action_gtrans.setText(config.transobj["miandailigoogle"])
         self.action_cuda.setText('CUDA')
-        self.action_online.setText('在线免费视频翻译' if config.defaulelang=='zh' else 'Web Online VideoTrans')
+        self.action_online.setText('免责声明')
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang=='zh' else "Tencent Key")
         self.action_about.setText(config.uilanglist.get("Donating developers"))
         self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
