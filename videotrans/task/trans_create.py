@@ -64,6 +64,7 @@ class TransCreate():
         # 进度
         self.step_inst=None
         self.hasend=False
+        self.video_codec=int(config.settings['video_codec'])
         self.status_text=config.transobj['ing']
         
         #初始化后的信息 
@@ -148,7 +149,8 @@ class TransCreate():
 
                 if not self.init['video_info']:
                     raise Exception(config.transobj['get video_info error'])
-                if self.init['video_info']['video_codec_name'] != 'h264' or self.obj['ext'].lower() != 'mp4':
+                video_codec= 'h264' if self.video_codec==264 else 'hevc'
+                if self.init['video_info']['video_codec_name'] != video_codec or self.obj['ext'].lower() != 'mp4':
                     self.init['h264'] = False
 
         # 临时文件夹
@@ -272,7 +274,7 @@ class TransCreate():
                              args=(self.obj['source_mp4'],
                                    self.init['novoice_mp4'],
                                    self.init['noextname'],
-                                   "copy" if self.init['h264'] else "libx264"))\
+                                   "copy" if self.init['h264'] else f"libx{self.video_codec}"))\
                 .start()
         else:
             config.queue_novice[self.init['noextname']] = 'end'

@@ -186,11 +186,12 @@ def runffmpeg(arg, *, noextname=None,
     arg_copy = copy.deepcopy(arg)
 
     if fps:
-        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", 'cfr', '-r', f'{fps}']
+        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", '1', '-r', f'{fps}']
     else:
-        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", config.settings['vsync']]
+        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown", "-vsync", f"{config.settings['vsync']}"]
     # 启用了CUDA 并且没有禁用GPU
-
+    # 默认视频编码 libx264 / libx265
+    default_codec=f"libx{config.settings['video_codec']}"
 
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
@@ -198,7 +199,7 @@ def runffmpeg(arg, *, noextname=None,
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
-    if "libx264" in arg and config.video_codec != 'libx264':
+    if default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
             config.video_codec=get_video_codec()
         for i, it in enumerate(arg):
@@ -230,18 +231,18 @@ def runffmpeg(arg, *, noextname=None,
             if "copy" in cmd:
                 for i, it in enumerate(arg_copy):
                     if i > 0 and arg_copy[i - 1] == '-c:v' and it=='copy':
-                        arg_copy[i] = config.video_codec if config.video_codec is not None else "libx264"
+                        arg_copy[i] = config.video_codec if config.video_codec is not None else default_codec
                         retry=True
             #如果不是copy并且也不是 libx264，则替换为libx264编码
-            if not retry and config.video_codec!='libx264':
-                config.video_codec='libx264'
+            if not retry and config.video_codec!= default_codec:
+                config.video_codec=default_codec
                 # 切换为cpu
                 if not is_box:
                     set_process(config.transobj['huituicpu'])
                 config.logger.error(f'cuda上执行出错，退回到CPU执行')
                 for i, it in enumerate(arg_copy):
-                    if i > 0 and arg_copy[i - 1] == '-c:v' and it!='libx264':
-                        arg_copy[i] = "libx264"
+                    if i > 0 and arg_copy[i - 1] == '-c:v' and it!= default_codec:
+                        arg_copy[i] = default_codec
                         retry=True
             config.logger.error(f'after:{retry=},{arg_copy=}')
             if retry:
@@ -354,12 +355,13 @@ def get_video_resolution(file_path):
 
 # 视频转为 mp4格式 nv12 + not h264_cuvid
 def conver_mp4(source_file, out_mp4, *, is_box=False):
+    video_codec=config.settings['video_codec']
     return runffmpeg([
         '-y',
         '-i',
         os.path.normpath(source_file),
         '-c:v',
-        'libx264',
+        f'libx{video_codec}',
         "-c:a",
         "aac",
         '-crf', f'{config.settings["crf"]}',
@@ -521,12 +523,13 @@ def create_concat_txt(filelist, filename):
 def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
+    video_codec=config.settings['video_codec']
     create_concat_txt(filelist, txt)
     if maxsec:
-        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "libx264", '-t', f"{maxsec}", '-crf',
+        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-t', f"{maxsec}", '-crf',
                           f'{config.settings["crf"]}', '-preset', 'slow', '-an', out], fps=fps)
     return runffmpeg(
-        ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', "libx264", '-an', '-crf', f'{config.settings["crf"]}',
+        ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf', f'{config.settings["crf"]}',
          '-preset', 'slow', out], fps=fps)
 
 
@@ -819,6 +822,7 @@ def match_target_amplitude(sound, target_dBFS):
 
 # 从视频中切出一段时间的视频片段 cuda + h264_cuvid
 def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
+    video_codec=config.settings['video_codec']
     cmd1 = [
         "-y",
         "-ss",
@@ -833,7 +837,7 @@ def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
         cmd1.append("-vf")
         cmd1.append(f'setpts={pts}*PTS')
     cmd = cmd1 + ["-c:v",
-                  "libx264",
+                  f"libx{video_codec}",
                   '-an',
                   '-crf', f'{config.settings["crf"]}',
                   '-preset', 'slow',
@@ -1202,29 +1206,34 @@ def vail_file(file=None):
     return True
 
 
-# 获取视频编码格式
+# 获取最终视频应该输出的编码格式
 def get_video_codec():
     plat=platform.system()
-
+    # 264 / 265
+    video_codec=int(config.settings['video_codec'])
+    hhead='h264'
+    if video_codec!=264:
+        hhead='hevc'
     mp4_test=config.rootdir+"/videotrans/styles/no-remove.mp4"
     if not Path(mp4_test).is_file():
-        return 'libx264'
+        return f'libx{video_codec}'
     mp4_target=config.TEMP_DIR+"/test.mp4"
-    codec='libx264'
+    codec=''
     if plat in ['Windows','Linux']:
         import torch    
         if torch.cuda.is_available():
-            codec='h264_nvenc'
+            codec=f'{hhead}_nvenc'
         elif plat=='Windows':
-            codec='h264_qsv'
+            codec=f'{hhead}_qsv'
         elif plat=='Linux':
-            codec='h264_vaapi'
+            codec=f'{hhead}_vaapi'
     elif plat=='Darwin':
-        codec='h264_videotoolbox'
+        codec=f'{hhead}_videotoolbox'
 
+    if not codec:
+        return f"libx{video_codec}"
 
     print(f'{codec=}')
-    s=time.time()
     try:
         Path(config.TEMP_DIR).mkdir(exist_ok=True)
         subprocess.run([
@@ -1240,10 +1249,24 @@ def get_video_codec():
         ],
         check=True,
         creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    # except subprocess.CalledProcessError as e:
     except Exception as e:
         print('error='+str(e))
-        return 'libx264'
-    finally:
-        print(f'time={time.time()-s}')
+        if sys.platform=='win32':
+            try:
+                codec=f"{hhead}_amf"
+                subprocess.run([
+                    "ffmpeg",
+                    "-y",
+                    "-hide_banner",
+                    "-ignore_unknown",
+                    "-i",
+                    mp4_test,
+                    "-c:v",
+                    codec,
+                    mp4_target
+                ],
+                    check=True,
+                    creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+            except Exception:
+                codec=f"libx{video_codec}"
     return codec

@@ -457,7 +457,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tmpname = f'{config.TEMP_DIR}/{time.time()}.mp4'
         tmpname_conver = f'{config.TEMP_DIR}/box-conver.mp4'
         video_info = tools.get_video_info(videofile)
-        if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != 'h264' or (
+        video_codec= 'h264' if config.settings['video_codec']==264 else 'hevc'
+        if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != video_codec or (
                 video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
             try:
                 tools.conver_mp4(videofile, tmpname_conver, is_box=True)

@@ -63,6 +63,7 @@ def parse_init():
         "temperature":1,
         "condition_on_previous_text":False,
         "crf":13,
+        "video_codec":264,
         "retries":2,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen",
         "separate_sec":600,
@@ -163,23 +164,24 @@ queue_logs = Queue(1000)
 # box窗口
 queuebox_logs = Queue(1000)
 
-model_list=[
-    "tiny",
-    "tiny.en",
-    "base",
-    "base.en",
-    "small",
-    "small.en",
-    "medium",
-    "medium.en",
-    "large-v1",
-    "large-v2",
-    "large-v3",
-    "distil-whisper-small.en",
-    "distil-whisper-medium.en",
-    "distil-whisper-large-v2",
-    "distil-whisper-large-v3"
-    ]
+model_list=settings['model_list'].split(',')
+# model_list=[
+#     "tiny",
+#     "tiny.en",
+#     "base",
+#     "base.en",
+#     "small",
+#     "small.en",
+#     "medium",
+#     "medium.en",
+#     "large-v1",
+#     "large-v2",
+#     "large-v3",
+#     "distil-whisper-small.en",
+#     "distil-whisper-medium.en",
+#     "distil-whisper-large-v2",
+#     "distil-whisper-large-v3"
+#     ]
 
 # 开始按钮状态
 current_status = "stop"
