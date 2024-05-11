@@ -46,7 +46,7 @@ class TransCreate():
 
     '''
 
-    def __init__(self, config_params=None, obj=None):
+    def __init__(self, config_params: dict = None, obj=None):
         # 视频原始路径 名称等信息
         self.obj = obj
         # 配置信息
@@ -164,8 +164,14 @@ class TransCreate():
             self.init['target_language_code'] = self.config_params['target_language']
         else:
             # 仅作为文件名标识
-            self.init['source_language_code']=config.rev_langlist[self.config_params['source_language']] if self.config_params['source_language'] != '-' else '-'
-            self.init['target_language_code'] = config.rev_langlist[self.config_params['target_language']] if self.config_params['target_language'] != '-' else '-'
+            var_a = config.rev_langlist.get(self.config_params['source_language'])
+            var_b = config.langlist.get(self.config_params['source_language'])
+            var_c = var_a if var_a is not None else var_b
+            self.init['source_language_code'] = var_c if var_c != '-' else '-'
+            var_a = config.rev_langlist.get(self.config_params['target_language'])
+            var_b = config.langlist.get(self.config_params['target_language'])
+            var_c = var_a if var_a is not None else var_b
+            self.init['target_language_code'] = var_c if var_c != '-' else '-'
 
         # 检测字幕原始语言
         if self.config_params['source_language'] != '-':
@@ -248,6 +254,7 @@ class TransCreate():
 
         self._split_wav_novicemp4()
         self.step_inst=Runstep(init=self.init,obj=self.obj,config_params=self.config_params,parent=self)
+        return True
 
     def __getattr__(self, precent):
         return self.step_inst.precent if self.step_inst else 0
@@ -421,9 +428,11 @@ class TransCreate():
             btnkey=self.init['btnkey']
         )
         tools.send_notification("Succeed", f"{self.obj['raw_basename']}")
+
         #删除临时文件
         shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
         if linshi_deldir:
             shutil.rmtree(linshi_deldir)
         if wait_deldir:
             shutil.rmtree(wait_deldir,ignore_errors=True)
+        return True
