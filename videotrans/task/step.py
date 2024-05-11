@@ -881,10 +881,18 @@ class Runstep():
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
 
-        if True:#Path(config.rootdir + '/simhei.ttf').is_file():
-            fontname=config.settings['fontname']
-            fontsize_px=config.settings['fontsize']
-            fontsize= f":fontsdir='./videotrans/styles':force_style='Fontname={fontname},Fontsize={fontsize_px}'"
+        fontname=config.settings['fontname']
+        fontsize_px=config.settings['fontsize']
+        vh= ""
+        try:
+            remain_h=20
+            if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (self.init['video_info']['height']-remain_h):
+                vh=f",MarginV={self.init['video_info']['height']-remain_h}"
+            elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom']>0:
+                vh=f",MarginV={vh}"
+        except Exception:
+            pass
+        fontsize= f":fontsdir='./videotrans/styles':force_style='Fontname={fontname},Fontsize={fontsize_px}{vh}'"
         maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp",
                                                                                          "ko"] else \
             config.settings['other_len']
