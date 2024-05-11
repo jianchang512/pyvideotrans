@@ -62,7 +62,7 @@ def text_to_speech(
         config.logger.error(f'no filename={filename} {tts_type=} {text=},{role=}')
 
 
-def run(*, queue_tts=None, language=None,set_p=True,inst=None):
+def run(*, queue_tts=None, language=None, set_p=True, inst=None):
     queue_tts_copy=copy.deepcopy(queue_tts)
     # 需要并行的数量3
     n_total = len(queue_tts)
