@@ -372,14 +372,19 @@ class TransCreate():
     def move_at_end(self):
         self.hasend=True
         self.step_inst.precent=100
-        output = self.obj['output']
-        # 需要移动
+        if self.config_params['app_mode']=='peiyin':
+            return
+
+        wait_deldir=None
+        linshi_deldir=None
+        # 需要移动 linshi移动到 output
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             target_mp4=Path(self.init['targetdir_mp4'])
             if target_mp4.exists() and target_mp4.stat().st_size>0:
                 target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
             shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
-            shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
+            linshi_deldir=self.obj['linshi_output']
+            # shutil.rmtree(self.obj['linshi_output'], ignore_errors=True)
         # 提取时，删除
         if self.config_params['app_mode']=='tiqu':
             self._unlink(f"{self.obj['output']}/{self.init['source_language_code']}.srt")
@@ -389,12 +394,12 @@ class TransCreate():
             outputpath=Path(self.obj['output'])
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
-                # 软字幕时也需要保存字幕
+                # 软字幕时也需要保存字幕, 仅删除非 mp4非srt文件
                 if int(self.config_params['subtitle_type']) in [2, 4]:
                     if ext not in ['.mp4', '.srt']:
                         it.unlink(missing_ok=True)
-                elif int(self.config_params['subtitle_type']) in [1, 3]:
-                    # 硬字幕 移动视频到上一级
+                else:
+                    # 其他情况 移动视频到上一级
                     if ext != '.mp4':
                         it.unlink(missing_ok=True)
                     else:
@@ -402,29 +407,32 @@ class TransCreate():
                             it.rename(it.parent/"../"/f'{it.name}')
                         except Exception:
                             pass
-            # 硬字幕删除文件夹
-            if int(self.config_params['subtitle_type']) in [1, 3]:
+            # 不是软字幕则删除文件夹
+            if int(self.config_params['subtitle_type']) not in [2, 4]:
                 try:
-                    output=outputpath.parent.resolve().as_posix()
-                    shutil.rmtree(self.obj['output'], ignore_errors=True)
-                    self.obj['output']=output
-                    outputpath.rmdir()                    
+                    self.obj['output']=outputpath.parent.resolve().as_posix()
+                    wait_deldir=outputpath.resolve().as_posix()
                 except Exception:
                     pass
         
-        #删除临时文件
-        shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
+
         # 批量不允许编辑字幕
         if not self.config_params['is_batch']:
             tools.set_process('', 'allow_edit', btnkey=self.init['btnkey'])
-        #time.sleep(3)
 
         print(f"结束100% {self.obj['raw_basename']}")
        
         tools.set_process(
-            f"{output}##{self.obj['raw_basename']}",
+            f"{self.obj['output']}##{self.obj['raw_basename']}",
             'succeed',
             btnkey=self.init['btnkey']
         )
         tools.send_notification("Succeed", f"{self.obj['raw_basename']}")
+
+        #删除临时文件
+        shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
+        if linshi_deldir:
+            shutil.rmtree(linshi_deldir)
+        if wait_deldir:
+            shutil.rmtree(wait_deldir,ignore_errors=True)
         return True
