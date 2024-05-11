@@ -1283,6 +1283,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         self.update_status('ing')
         self.delete_process()
         # return
+        config.settings=config.parse_init()
         from videotrans.task.main_worker import Worker
 
         self.main.task = Worker(parent=self.main, app_mode=self.main.app_mode, txt=txt)
