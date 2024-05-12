@@ -54,7 +54,15 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # MacOS源码部署
 
-0. 打开终端窗口，分别执行如下命令
+0. 打开终端窗口，分别执行如下命令,确保已安装 Homebrew
+	
+	>
+    > 如果你没有安装 Homebrew,那么需要先安装
+	>
+	> 执行命令安装 Homebrew：  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+	>
+	> 安装完成后，执行： `eval $(brew --config)`
+	>
 
     ```
     brew install libsndfile
@@ -134,7 +142,7 @@ sudo yum install -y ffmpeg
 
 ```
 
-## Ubuntu/Debian系执行如下命令安装python3.12
+1. Ubuntu/Debian系执行如下命令安装python3.12
 
 ```
 
