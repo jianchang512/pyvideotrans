@@ -87,6 +87,9 @@ def set_proxy(set_val=''):
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
         config.proxy = set_val
+        os.environ['http_proxy']=set_val
+        os.environ['https_proxy']=set_val
+        os.environ['all_proxy']=set_val
         return set_val
 
     # 获取代理
@@ -890,13 +893,14 @@ def set_process_box(text, type='logs', *, func_name=""):
 
 
 # 综合写入日志，默认sp界面
-def set_process(text, type="logs", *, qname='sp', func_name="", btnkey=""):
+def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="",nologs=False):
     try:
         if text:
-            if text.startswith("[error]") or type == 'error':
-                config.logger.error(text)
-            else:
-                config.logger.info(text)
+            if not nologs:
+                if type == 'error':
+                    config.logger.error(text)
+                else:
+                    config.logger.info(text)
 
             # 移除html
             if type == 'error':

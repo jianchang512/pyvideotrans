@@ -51,16 +51,7 @@ class TransCreate():
         self.obj = obj
         # 配置信息
         self.config_params = config_params
-        
-       
-        # 识别是否结束
-        # self.regcon_end = False
-        # # 翻译是否结束
-        # self.trans_end = False
-        # # 配音是否结束
-        # self.dubb_end = False
-        # # 合并是否结束
-        # self.compose_end = False
+
         # 进度
         self.step_inst=None
         self.hasend=False
@@ -178,8 +169,6 @@ class TransCreate():
         # 检测字幕原始语言
         if self.config_params['source_language'] != '-':
             self.init['detect_language'] = get_audio_code(show_source=self.config_params['source_language'])
-        # if self.config_params['target_language'] != '-':
-        #     self.init['subtitle_language'] = get_subtitle_code(show_target=self.config_params['target_language'])
 
         self.init['novoice_mp4'] = f"{self.init['target_dir']}/novoice.mp4"
         self.init['source_sub'] = f"{self.init['target_dir']}/{self.init['source_language_code']}.srt"
@@ -221,15 +210,31 @@ class TransCreate():
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
                 f.write(self.config_params['subtitles'].strip())
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
-        if self.config_params['app_mode']!='peiyin' and self.obj['output'] != self.obj['linshi_output']:
+        if self.config_params['app_mode']!='peiyin':
+            # 判断是否存在原始视频同名同目录的srt字幕文件
+            raw_srt=Path(self.obj['raw_dirname']+f"/{self.obj['raw_noextname']}.srt")
+            if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size>0:
+                config.logger.info(f'使用原始视频同目录下同名字幕文件:{raw_srt.as_posix()}')
+                shutil.copy2(raw_srt.as_posix(),self.init['source_sub'])
+
             raw_source_srt=self.obj['output']+f"/{self.init['source_language_code']}.srt"
-            
-            if Path(raw_source_srt).is_file():
-                shutil.copy2(raw_source_srt,self.init['source_sub'])
+            raw_source_srt_path=Path(raw_source_srt)
+            if raw_source_srt_path.is_file():
+                if raw_source_srt_path.stat().st_size==0:
+                    raw_source_srt_path.unlink(missing_ok=True)
+                elif self.obj['output']!=self.obj['linshi_output']:
+                    config.logger.info(f'使用已放置到目标文件夹下的原语言字幕:{raw_source_srt}')
+                    shutil.copy2(raw_source_srt,self.init['source_sub'])
+
 
             raw_target_srt=self.obj['output']+f"/{self.init['target_language_code']}.srt"
+            raw_target_srt_path=Path(raw_target_srt)
             if Path(raw_target_srt).is_file():
-                shutil.copy2(raw_target_srt,self.init['target_sub'])
+                if raw_target_srt_path.stat().st_size==0:
+                    raw_target_srt_path.unlink(missing_ok=True)
+                elif self.obj['output']!=self.obj['linshi_output']:
+                    config.logger.info(f'使用已放置到目标文件夹下的目标语言字幕:{raw_target_srt}')
+                    shutil.copy2(raw_target_srt,self.init['target_sub'])
 
 
 
@@ -250,7 +255,7 @@ class TransCreate():
             while not self.hasend:
                 time.sleep(2)
                 t+=2
-                tools.set_process(f"{self.status_text} {t}s",btnkey=self.init['btnkey'])
+                tools.set_process(f"{self.status_text} {t}s",btnkey=self.init['btnkey'],nologs=True)
         if self.config_params['app_mode'] not in ['peiyin','tiqu']:
             threading.Thread(target=runing).start()
 

@@ -37,7 +37,7 @@ def recogn(*,
            detect_language=None,
            audio_file=None,
            cache_folder=None,
-           model_name="base",
+           model_name="tiny",
            set_p=True,
            inst=None,
            is_cuda=None):
