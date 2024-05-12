@@ -54,10 +54,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 # MacOS源码部署
 
-0. 打开终端窗口，分别执行如下命令,确保已安装 Homebrew
+0. 打开终端窗口，分别执行如下命令
 	
-	>
-    > 如果你没有安装 Homebrew,那么需要先安装
+	> 执行前确保已安装 Homebrew，如果你没有安装 Homebrew,那么需要先安装
 	>
 	> 执行命令安装 Homebrew：  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 	>
