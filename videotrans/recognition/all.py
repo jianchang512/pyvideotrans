@@ -11,24 +11,31 @@ def recogn(*,
            detect_language=None,
            audio_file=None,
            cache_folder=None,
-           model_name="base",
+           model_name="tiny",
            set_p=True,
            inst=None,
            is_cuda=None):
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
-    if set_p:
-        tools.set_process(f"{config.transobj['kaishishibie']}",
-                          btnkey=inst.init['btnkey'] if inst else "")
-    down_root = os.path.normpath(config.rootdir + "/models")
+    down_root = config.rootdir + "/models"
+    if set_p and inst:
+        if model_name.find('/')>0:
+            if not os.path.isdir(down_root+'/models--'+model_name.replace('/','--')):
+                inst.parent.status_text='下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Download model from huggingface'
+            else:
+                inst.parent.status_text='加载或下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Load model from local or download model from huggingface'
+        else:
+            tools.set_process(f"{config.transobj['kaishishibie']}",btnkey=inst.init['btnkey'] if inst else "")
     model = None
     try:
         if model_name.startswith('distil-'):
-            com_type= "float32"
+            com_type= "default"
         elif is_cuda:
             com_type=config.settings['cuda_com_type']
         else:
-            com_type='int8'
+            com_type='default'
+        local_res=True if model_name.find('/')==-1 else False       
+        
         model = WhisperModel(model_name,
                              device="cuda" if is_cuda else "cpu",
                              compute_type=com_type,
@@ -36,7 +43,7 @@ def recogn(*,
                              num_workers=config.settings['whisper_worker'],
                              cpu_threads=os.cpu_count() if int(config.settings['whisper_threads']) < 1 else int(
                                  config.settings['whisper_threads']),
-                             local_files_only=True)
+                             local_files_only=local_res)
         if config.current_status != 'ing' and config.box_recogn != 'ing':
             return False
         if not tools.vail_file(audio_file):

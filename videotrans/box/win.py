@@ -573,7 +573,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if not allow:
                     self.is_cuda.setChecked(False)
                     return QMessageBox.critical(self, config.transobj['anerror'], config.transobj["nocudnn"])
-        if model_type == 'faster':
+        if model_type == 'faster' and model.find('/')==-1:
             file = f'{config.rootdir}/models/models--Systran--faster-whisper-{model}/snapshots'
             if model.startswith('distil'):
                 file = f'{config.rootdir}/models/models--Systran--faster-{model}/snapshots'

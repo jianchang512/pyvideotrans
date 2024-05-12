@@ -601,8 +601,6 @@ class SecWindow():
 本软件的所有解释权均属于开发者。谨请用户在理解、同意、遵守本免责声明的前提下使用本软件。                
             """)
 
-        elif title == 'freechatgpt':
-            webbrowser.open_new_tab("https://apiskey.top")
         elif title == 'aihelp':
             webbrowser.open_new_tab("https://www.coze.cn/store/bot/7358853334134112296?panel=1")
 
@@ -666,10 +664,6 @@ class SecWindow():
                     self.main.subform.set_transapi()
                 return
             config.params['translate_type'] = name
-            if name == translator.FREECHATGPT_NAME:
-                self.main.translate_label1.show()
-            else:
-                self.main.translate_label1.hide()
         except Exception as e:
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
 
@@ -714,6 +708,8 @@ class SecWindow():
     # 判断模型是否存在
     def check_whisper_model(self, name):
         if self.main.model_type.currentIndex() in [2,3]:
+            return True
+        if name.find('/')>0:
             return True
         slang = self.main.source_language.currentText()
         if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':

@@ -20,7 +20,7 @@ click==7.1.2
 colorama==0.4.6
 coloredlogs==15.0.1
 contourpy==1.1.1
-ctranslate2==4.0.0
+ctranslate2==3.24.0
 cycler==0.12.1
 decorator==4.4.2
 deepl==1.16.1

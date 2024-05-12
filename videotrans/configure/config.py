@@ -94,6 +94,7 @@ def parse_init():
             with file.open('r', encoding="utf-8") as f:
                 # 遍历.ini文件中的每个section
                 for it in f.readlines():
+                    
                     it = it.strip()
                     if not it or it.startswith(';'):
                         continue
@@ -126,6 +127,8 @@ except Exception:
 
 # 初始化一个字典变量
 settings = parse_init()
+
+
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 if settings['lang']:
     defaulelang = settings['lang'].lower()
@@ -164,24 +167,12 @@ queue_logs = Queue(1000)
 # box窗口
 queuebox_logs = Queue(1000)
 
+
+
+
 model_list=settings['model_list'].split(',')
-# model_list=[
-#     "tiny",
-#     "tiny.en",
-#     "base",
-#     "base.en",
-#     "small",
-#     "small.en",
-#     "medium",
-#     "medium.en",
-#     "large-v1",
-#     "large-v2",
-#     "large-v3",
-#     "distil-whisper-small.en",
-#     "distil-whisper-medium.en",
-#     "distil-whisper-large-v2",
-#     "distil-whisper-large-v3"
-#     ]
+
+
 
 # 开始按钮状态
 current_status = "stop"

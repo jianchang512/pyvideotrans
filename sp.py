@@ -62,6 +62,7 @@ class StartWindow(QtWidgets.QWidget):
             et = time.time()
             self.close()
             print(f'启动用时：{et - st}')
+            print(f'代理='+(os.environ.get('http_proxy','') or os.environ.get('https_proxy','')))
             if not nostyle.exists():
                 import videotrans.ui.dark.darkstyle_rc
                 with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:

@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 from videotrans.task.get_role_list import GetRoleWorker
 from videotrans.util import tools
 
-from videotrans.translator import TRANSNAMES, FREECHATGPT_NAME
+from videotrans.translator import TRANSNAMES
 from videotrans.configure import config
 from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
@@ -110,10 +110,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #  translation type
         self.translate_type.addItems(TRANSNAMES)
-        translate_name = config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else \
-        TRANSNAMES[0]
-        if translate_name == FREECHATGPT_NAME:
-            self.translate_label1.show()
+        translate_name = config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0]
 
         self.translate_type.setCurrentText(translate_name)
 
@@ -125,7 +122,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             d = {"all": 0, 'split': 1, "avg": 2, "": 0}
             self.whisper_type.setCurrentIndex(d[config.params['whisper_type']])
         self.whisper_model.addItems(config.model_list)
-        self.whisper_model.setCurrentText(config.params['whisper_model'])
+        if config.params['whisper_model'] in config.model_list:
+            self.whisper_model.setCurrentText(config.params['whisper_model'])
         if config.params['model_type'] == 'openai':
             self.model_type.setCurrentIndex(1)
         elif config.params['model_type'] == 'GoogleSpeech':
@@ -249,7 +247,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.export_sub.setToolTip(
             config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
 
-        self.translate_label1.clicked.connect(lambda: self.util.open_url('freechatgpt'))
 
         self.set_line_role.clicked.connect(self.subform.set_line_role_fun)
         self.set_line_role.setCursor(Qt.PointingHandCursor)
@@ -444,8 +441,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.clone_voicelist = self.settings.value("clone_voicelist", "").split(',')
 
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
-        if config.params["chatgpt_model"] == 'large':
-            config.params["chatgpt_model"] = 'large-v3'
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
         config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
@@ -469,6 +464,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["elevenlabstts_key"] = self.settings.value("elevenlabstts_key", "")
 
         config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
+        if config.params['translate_type']=='FreeChatGPT':
+            config.params['translate_type']='FreeGoogle'
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
         config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'].replace('%','').replace('+',''), str)

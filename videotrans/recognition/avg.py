@@ -41,7 +41,7 @@ def recogn(*,
            detect_language=None,
            audio_file=None,
            cache_folder=None,
-           model_name="base",
+           model_name="tiny",
            set_p=True,
            inst=None,
            is_cuda=None):
@@ -72,17 +72,24 @@ def recogn(*,
     total_length = len(nonsilent_data)
     start_t = time.time()
     if model_name.startswith('distil-'):
-        com_type= "float32"
+        com_type= "default"
     elif is_cuda:
         com_type=config.settings['cuda_com_type']
     else:
-        com_type='int8'
+        com_type='default'
+    local_res=True if model_name.find('/')==-1 else False
+    down_root=config.rootdir + "/models"
+    if set_p and inst and  model_name.find('/')>0:
+        if not os.path.isdir(down_root+'/models--'+model_name.replace('/','--')):
+            inst.parent.status_text='下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Download model from huggingface'
+        else:
+            inst.parent.status_text='加载或下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Load model from local or download model from huggingface'
     model = WhisperModel(
             model_name,
             device="cuda" if config.params['cuda'] else "cpu",
             compute_type=com_type,
-            download_root=config.rootdir + "/models",
-            local_files_only=True)
+            download_root=down_root,
+            local_files_only=local_res)
     for i, duration in enumerate(nonsilent_data):
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
             del model

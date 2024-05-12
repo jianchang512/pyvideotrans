@@ -104,14 +104,7 @@ class Ui_MainWindow(object):
         self.layout_translate_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.translate_type)
         self.horizontalLayout_5.addLayout(self.layout_translate_type)
 
-        self.translate_label1 = QtWidgets.QPushButton(self.layoutWidget)
-        self.translate_label1.setCursor(Qt.PointingHandCursor)
-        self.translate_label1.setText(config.transobj['freechatgpt_tips'])
-        self.translate_label1.setToolTip(config.transobj['freechatgpt_tips'])
-        self.translate_label1.setStyleSheet("""border:0;background-color:transparent;font-size:12px;color:#999""")
-        self.horizontalLayout_5.addWidget(self.translate_label1)
 
-        self.translate_label1.hide()
 
         self.horizontalLayout_5.addStretch()
         self.layout_proxy = QtWidgets.QFormLayout()
