@@ -155,7 +155,7 @@ class TransCreate():
         if "mode" in self.config_params and self.config_params['mode'] == "cli":
             self.init['source_language_code'] = self.config_params['source_language']
             self.init['target_language_code'] = self.config_params['target_language']
-        else:
+        elif self.config_params['app_mode'] !='hebing':
             # 仅作为文件名标识
             var_a = config.rev_langlist.get(self.config_params['source_language'])
             var_b = config.langlist.get(self.config_params['source_language'])
@@ -165,6 +165,8 @@ class TransCreate():
             var_b = config.langlist.get(self.config_params['target_language'])
             var_c = var_a if var_a is not None else var_b
             self.init['target_language_code'] = var_c if var_c != '-' else '-'
+        else:
+            self.init['target_language_code']=self.init['source_language_code']='-'
 
         # 检测字幕原始语言
         if self.config_params['source_language'] != '-':
@@ -180,6 +182,8 @@ class TransCreate():
         # 如果是配音操作
         if self.config_params['app_mode'] == 'peiyin':
             self.init['target_wav']=f"{self.init['target_dir']}/{self.init['target_language_code']}-{self.init['noextname']}.m4a"
+            if self.config_params['clear_cache']:
+                Path(self.init['target_wav']).unlink(missing_ok=True)
             
         
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
@@ -210,7 +214,7 @@ class TransCreate():
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
                 f.write(self.config_params['subtitles'].strip())
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
-        if self.config_params['app_mode']!='peiyin':
+        if self.config_params['app_mode'] not in ['peiyin','hebing']:
             # 判断是否存在原始视频同名同目录的srt字幕文件
             raw_srt=Path(self.obj['raw_dirname']+f"/{self.obj['raw_noextname']}.srt")
             if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size>0:
@@ -328,10 +332,15 @@ class TransCreate():
             pass
 
     def recogn(self):
+        print('111')
         self.status_text=config.transobj['kaishitiquzimu']
+        print('222')
         try:
+            print('333')
             self.step_inst.recogn()
+            print('444')
         except Exception as e:
+            print(f'5555 {str(e)}')
             self.hasend=True
             tools.send_notification(str(e), f'{self.obj["raw_basename"]}')
             raise Exception(e)

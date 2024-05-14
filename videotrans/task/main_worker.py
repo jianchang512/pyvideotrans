@@ -39,14 +39,12 @@ class Worker(QThread):
         except Exception as e:
             set_process(f'{config.transobj["yuchulichucuo"]}:'+str(e), 'error',btnkey="srt2wav")
             return
-            #raise Exception(f'{config.transobj["yuchulichucuo"]}:'+str(e))
             
         try:
             self.video.dubbing()
         except Exception as e:
             set_process(f"{str(e)}", 'error',btnkey="srt2wav")
             return
-            #raise Exception(f'{config.transobj["peiyinchucuo"]}:'+str(e))
         # 成功完成
         config.params['line_roles'] = {}
         set_process(f"{self.video.init['target_dir']}##srt2wav", 'succeed', btnkey="srt2wav")
