@@ -7,7 +7,7 @@
 >
 > The voice recognition supports `faster-whisper`, `openai-whisper`, `GoogleSpeech`, `zh_recogn Ali Chinese voice recognition model`.
 >
-> Text translation supports `Microsoft Translate | Google Translate | Baidu Translate | Tencent Translate | ChatGPT | AzureAI | Gemini | DeepL | DeepLX | Offline translation OTT`, and includes a free ChatGPT API translation interface sponsored by (apiskey.top).
+> Text translation supports `Microsoft Translate | Google Translate | Baidu Translate | Tencent Translate | ChatGPT | AzureAI | Gemini | DeepL | DeepLX | Offline translation OTT`
 >
 > Text-to-speech synthesis supports `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `Custom TTS server API`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice).
 >
