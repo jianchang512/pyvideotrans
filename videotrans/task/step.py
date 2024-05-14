@@ -39,6 +39,7 @@ class Runstep():
     # 开始识别出字幕
     def recogn(self):
         self.precent += 3
+        print("aaa")
         tools.set_process(config.transobj["kaishishibie"], btnkey=self.init['btnkey'])
         # 如果不存在视频，或存在已识别过的，或存在目标语言字幕 或合并模式，不需要识别
         if self.config_params['app_mode'] in ['hebing', 'peiyin']:
@@ -882,8 +883,6 @@ class Runstep():
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
 
-        fontname=config.settings['fontname']
-        fontsize_px=config.settings['fontsize']
         vh= ""
         try:
             remain_h=20
@@ -893,7 +892,6 @@ class Runstep():
                 vh=f",MarginV={vh}"
         except Exception:
             pass
-        fontsize= f":fontsdir='./videotrans/styles':force_style='Fontname={fontname},Fontsize={fontsize_px}{vh}'"
         maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp",
                                                                                          "ko"] else \
             config.settings['other_len']
@@ -904,18 +902,20 @@ class Runstep():
         if self.precent < 90:
             self.precent = 90
 
-        # 需要硬字幕
+        # 提前处理单硬字幕
         if self.config_params['subtitle_type'] in [1, 3]:
             text = ""
             for i, it in enumerate(target_sub_list):
-                it['text'] = textwrap.fill(it['text'], maxlen)
+                it['text'] = textwrap.fill(it['text'], maxlen,replace_whitespace=False).replace('\n','\\N')
                 text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
             hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
             os.chdir(mp4_dirpath)
+            hard_srt=tools.set_ass_font(hard_srt_path.as_posix())
 
-        # 如果是合并字幕模式
+        # 如果是合并字幕模式 双字幕强制为单
         if self.config_params['app_mode'] == 'hebing':
-            if self.config_params['subtitle_type'] in [1, 3]:
+            if self.config_params['subtitle_type'] in [1, 3]:                
+                
                 tools.runffmpeg([
                     "-y",
                     "-i",
@@ -923,7 +923,7 @@ class Runstep():
                     "-c:v",
                     f"libx{self.video_codec}",
                     "-vf",
-                    f"subtitles={hard_srt}{fontsize}",
+                    f"subtitles={hard_srt}",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
@@ -950,6 +950,7 @@ class Runstep():
             try:
                 novoice_mp4_path.unlink(missing_ok=True)
                 hard_srt_path.unlink(missing_ok=True)
+                Path(mp4_dirpath.as_posix() + "/tmp.srt.ass").unlink(missing_ok=True)
             except Exception:
                 pass
             return True
@@ -959,19 +960,22 @@ class Runstep():
 
         # 需要双字幕
         if self.init['source_language_code'] != self.init['target_language_code'] and len(source_sub_list) > 0:
-            # 双字幕 硬字幕
+            # 处理双硬字幕
             if self.config_params['subtitle_type'] == 3:
                 text = ""
                 source_length = len(source_sub_list)
                 for i, it in enumerate(target_sub_list):
-                    it['text'] = textwrap.fill(it['text'], maxlen)
+                    it['text'] = textwrap.fill(it['text'], maxlen,replace_whitespace=False).replace('\n','\\N')
                     text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
                     if source_length > 0 and i < source_length:
-                        text += "\n" + textwrap.fill(source_sub_list[i]['text'], maxlen_source).strip()
+                        text += "\\N" + textwrap.fill(source_sub_list[i]['text'], maxlen_source,replace_whitespace=False).replace('\n','\\N').strip()
                     text += "\n\n"
                 hard_srt_path.write_text(text.strip(), encoding="utf-8", errors="ignore")
                 os.chdir(mp4_dirpath)
                 shutil.copy2(hard_srt_path.as_posix(), f"{self.obj['output']}/shuang.srt")
+                hard_srt=tools.set_ass_font(hard_srt_path.as_posix())
+                
+            
 
             # 双字幕 软字幕
             elif self.config_params['subtitle_type'] == 4:
@@ -1037,7 +1041,7 @@ class Runstep():
                         "-c:a",
                         "aac",
                         "-vf",
-                        f"subtitles={hard_srt}{fontsize}",
+                        f"subtitles={hard_srt}",
                         '-crf',
                         f'{config.settings["crf"]}',
                         '-preset',
@@ -1099,7 +1103,7 @@ class Runstep():
                     cmd.append('aac')
                 cmd += [
                     "-vf",
-                    f"subtitles={hard_srt}{fontsize}",
+                    f"subtitles={hard_srt}",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
@@ -1191,7 +1195,8 @@ Docs: https://pyvideotrans.com
                 """)
 
             novoice_mp4_path.unlink(missing_ok=True)
-            Path(mp4_dirpath.as_posix() + "/tmp.srt").unlink(missing_ok=True)
+            hard_srt_path.unlink(missing_ok=True)
+            Path(mp4_dirpath.as_posix() + "/tmp.srt.ass").unlink(missing_ok=True)
         except:
             pass
         self.precent = 100

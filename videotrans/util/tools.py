@@ -274,11 +274,11 @@ def runffprobe(cmd):
             return p.stdout.strip()
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
-        msg = f'ffprobe error:{str(e.stdout)},{str(e.stderr)}'
+        msg = f'ffprobe error,:{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
     except Exception as e:
-        raise Exception(f'ffprobe except:{str(e)}')
+        raise Exception(f'ffprobe except,{cmd=}:{str(e)}')
 
 
 # 获取视频信息
@@ -1274,3 +1274,23 @@ def get_video_codec():
             except Exception:
                 codec=f"libx{video_codec}"
     return codec
+
+
+
+# 设置ass字体格式
+def set_ass_font(srtfile=None):
+    if not os.path.exists(srtfile) or os.path.getsize(srtfile)==0:
+        return os.path.basename(srtfile)
+    runffmpeg(['-y','-i',srtfile,f'{srtfile}.ass'])
+    assfile=f'{srtfile}.ass'
+    with open(assfile,'r',encoding='utf-8') as f:
+        ass_str=f.readlines()
+    
+    for i,it in enumerate(ass_str):
+        if it.find('Style: ')==0:
+            ass_str[i]='Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(fontname=config.settings['fontname'],fontsize=config.settings['fontsize'],fontcolor=config.settings['fontcolor'],fontbordercolor=config.settings['fontbordercolor'],subtitle_bottom=config.settings['subtitle_bottom'])
+            break
+    
+    with open(assfile,'w',encoding='utf-8') as f:
+        f.write("".join(ass_str))
+    return os.path.basename(assfile)
