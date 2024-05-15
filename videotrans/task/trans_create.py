@@ -141,8 +141,8 @@ class TransCreate():
                 if not self.init['video_info']:
                     raise Exception(config.transobj['get video_info error'])
                 video_codec= 'h264' if self.video_codec==264 else 'hevc'
-                if self.init['video_info']['video_codec_name'] != video_codec or self.obj['ext'].lower() != 'mp4':
-                    self.init['h264'] = False
+                if self.init['video_info']['video_codec_name'] == video_codec and self.obj['ext'].lower() == 'mp4':
+                    self.init['h264'] = True
 
         # 临时文件夹
         self.init['cache_folder'] = f"{config.rootdir}/tmp/{self.init['noextname']}"
