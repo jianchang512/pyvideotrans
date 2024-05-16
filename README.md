@@ -1,4 +1,4 @@
-[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / Q群 905857759 / 微信公众号：搜一搜“ pyvideotrans ”
+[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / Q群 939721590 / 微信公众号：搜一搜“ pyvideotrans ”
 
 # 视频翻译配音工具
 
