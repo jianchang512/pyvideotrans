@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys,os
+import sys, os
 from pathlib import Path
 import time
 
@@ -8,7 +8,11 @@ from PySide6.QtCore import Qt, QTimer, QPoint
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 from videotrans import VERSION
 
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+
+
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):
@@ -45,29 +49,21 @@ class StartWindow(QtWidgets.QWidget):
         QTimer.singleShot(200, self.run)
 
     def run(self):
-        global qss
         # 创建并显示窗口B
         try:
-            nostyle = Path("./nostyle.txt")
-            st = time.time()
-            from videotrans.mainwin.spwin import MainWindow
-            MainWindow(width=self.width, height=self.height)
-            if not nostyle.exists():
-                with open('./videotrans/styles/stylenoimg.qss', 'r', encoding='utf-8') as f:
-                    app.setStyleSheet(f.read())
 
-
-            file = Path(Path.cwd() / "tmp")
-            file.mkdir(parents=True, exist_ok=True)
-            et = time.time()
-            self.close()
-            print(f'启动用时：{et - st}')
-            print(f'代理='+(os.environ.get('http_proxy','') or os.environ.get('https_proxy','')))
-            if not nostyle.exists():
+            if not Path("./nostyle.txt").exists():
                 import videotrans.ui.dark.darkstyle_rc
                 with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
                     app.setStyleSheet(f.read())
 
+            st = time.time()
+            from videotrans.mainwin.spwin import MainWindow
+            MainWindow(width=self.width, height=self.height)
+            Path(Path.cwd() / "tmp").mkdir(parents=True, exist_ok=True)
+            et = time.time()
+            print(f'启动用时：{et - st}')
+            self.close()
         except Exception as e:
             print(f'main window {str(e)}')
 
@@ -75,7 +71,7 @@ class StartWindow(QtWidgets.QWidget):
         screen = QGuiApplication.primaryScreen()
         screen_resolution = screen.geometry()
         self.width, self.height = screen_resolution.width(), screen_resolution.height()
-        self.move( QPoint( int( (self.width - 560) / 2), int( (self.height - 350)/ 2 ) ) )
+        self.move(QPoint(int((self.width - 560) / 2), int((self.height - 350) / 2)))
 
 
 if __name__ == "__main__":

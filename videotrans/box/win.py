@@ -35,7 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.setWindowTitle(
-            f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION} pyvideotrans.com {' Q群 933714380 ' if config.defaulelang == 'zh' else ''}")
+            f"pyVideoTrans{config.uilanglist['Video Toolbox']} {VERSION} {' 使用文档 ' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com")
 
     def closeEvent(self, event):
         if config.exit_soft:

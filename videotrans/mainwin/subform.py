@@ -785,6 +785,5 @@ class Subform():
 
             self.main.sepw.set.clicked.connect(start)
             self.main.sepw.show()
-        except:
-            print('err')
+        except Exception:
             pass

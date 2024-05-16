@@ -18,8 +18,6 @@ from videotrans.translator import run as run_trans
 from videotrans.tts import run as run_tts
 
 
-
-
 class Runstep():
 
     def __init__(self, init=None, obj=None, config_params=None, parent=None):
@@ -27,8 +25,8 @@ class Runstep():
         self.obj = obj
         self.config_params = config_params
         self.precent = 1
-        self.parent=parent
-        self.video_codec=config.settings['video_codec']
+        self.parent = parent
+        self.video_codec = config.settings['video_codec']
 
     def _unlink(self, file):
         try:
@@ -39,7 +37,6 @@ class Runstep():
     # 开始识别出字幕
     def recogn(self):
         self.precent += 3
-        print("aaa")
         tools.set_process(config.transobj["kaishishibie"], btnkey=self.init['btnkey'])
         # 如果不存在视频，或存在已识别过的，或存在目标语言字幕 或合并模式，不需要识别
         if self.config_params['app_mode'] in ['hebing', 'peiyin']:
@@ -47,8 +44,7 @@ class Runstep():
             return True
         if self._srt_vail(self.init['source_sub']):
             # 判断已存在的字幕文件中是否存在有效字幕纪录
-            if self.obj and self.obj['output'] != self.obj['linshi_output']:
-                shutil.copy2(self.init['source_sub'], f"{self.obj['output']}/{Path(self.init['source_sub']).name}")
+            shutil.copy2(self.init['source_sub'], f"{self.obj['output']}/{self.obj['raw_noextname']}.srt")
             self._unlink(self.init['shibie_audio'])
             return True
 
@@ -77,8 +73,8 @@ class Runstep():
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
-            elif re.search(r'out\s+?of.*?memory',msg,re.I):
-                msg=f'显存不足，请使用较小模型，比如 tiny/base/small' if config.defaulelang=='zh' else 'Insufficient video memory, use a smaller model such as tiny/base/small'
+            elif re.search(r'out\s+?of.*?memory', msg, re.I):
+                msg = f'显存不足，请使用较小模型，比如 tiny/base/small' if config.defaulelang == 'zh' else 'Insufficient video memory, use a smaller model such as tiny/base/small'
             raise Exception(f'{msg}')
         else:
             if not raw_subtitles or len(raw_subtitles) < 1:
@@ -93,7 +89,6 @@ class Runstep():
             # 仅提取字幕
             if self.config_params['app_mode'] == 'tiqu':
                 shutil.copy2(self.init['source_sub'], f"{self.obj['output']}/{self.obj['raw_noextname']}.srt")
-
         return True
 
     # 字幕是否存在并且有效
@@ -186,14 +181,12 @@ class Runstep():
         config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else config.settings[
             'countdown_sec']
         if self.config_params['app_mode'] in ['tiqu']:
-
             return True
 
         # 不需要配音
         if self.config_params['app_mode'] in ['hebing'] or \
                 self.config_params['voice_role'] == 'No' or \
                 not tools.vail_file(self.init['target_sub']):
-
             return True
         if tools.vail_file(self.init['target_wav']):
             if self.obj and self.obj['output'] != self.obj['linshi_output']:
@@ -248,15 +241,15 @@ class Runstep():
         # join
         offset = 0
         for i, it in enumerate(queue_tts):
-            tools.set_process(text=f"audio concat:{i}",btnkey=self.init['btnkey'])
+            tools.set_process(text=f"audio concat:{i}", btnkey=self.init['btnkey'])
             it['raw_duration'] = it['end_time'] - it['start_time']
             if it['raw_duration'] == 0:
                 continue
             if not tools.vail_file(it['filename']):
                 merged_audio += AudioSegment.silent(duration=it['raw_duration'])
                 continue
-            the_ext=it['filename'].split('.')[-1]
-            segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext=='m4a' else the_ext)
+            the_ext = it['filename'].split('.')[-1]
+            segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
             the_dur = len(segment)
             # 字幕可用时间
             raw_dur = it['raw_duration']
@@ -306,7 +299,7 @@ class Runstep():
             wavfile = self.init['cache_folder'] + "/target.wav"
             merged_audio.export(wavfile, format="wav")
 
-            if self.config_params['app_mode']=='peiyin' and tools.vail_file(self.init['background_music']):
+            if self.config_params['app_mode'] == 'peiyin' and tools.vail_file(self.init['background_music']):
                 cmd = ['-y', '-i', wavfile, '-i', self.init['background_music'], '-filter_complex',
                        "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2',
                        self.init['target_wav']]
@@ -363,7 +356,7 @@ class Runstep():
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
             newrole = voice_role.replace('/', '-').replace('\\', '/')
-            filename = f'{i}-{newrole}-{self.config_params["voice_rate"]}-{self.config_params["voice_autorate"]}-{it["text"]}-{self.config_params["volume"].replace("%","")}-{self.config_params["pitch"]}'
+            filename = f'{i}-{newrole}-{self.config_params["voice_rate"]}-{self.config_params["voice_autorate"]}-{it["text"]}-{self.config_params["volume"].replace("%", "")}-{self.config_params["pitch"]}'
             md5_hash = hashlib.md5()
             md5_hash.update(f"{filename}".encode('utf-8'))
             # 要保存到的文件
@@ -393,8 +386,8 @@ class Runstep():
                 "rate": rate,
                 "startraw": it['startraw'],
                 "endraw": it['endraw'],
-                "volume":self.config_params['volume'],
-                "pitch":self.config_params['pitch'],
+                "volume": self.config_params['volume'],
+                "pitch": self.config_params['pitch'],
                 "tts_type": self.config_params['tts_type'],
                 "filename": filename})
         return queue_tts
@@ -403,7 +396,7 @@ class Runstep():
     def _add_dubb_time(self, queue_tts):
         for i, it in enumerate(queue_tts):
             it['video_add'] = 0
-            tools.set_process(text=f"audio:{i}",btnkey=self.init['btnkey'])
+            tools.set_process(text=f"audio:{i}", btnkey=self.init['btnkey'])
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < queue_tts[i - 1]['end_time']:
                 it['start_time'] = queue_tts[i - 1]['end_time']
@@ -417,8 +410,9 @@ class Runstep():
             it['raw_duration'] = it['end_time'] - it['start_time']
 
             if it['end_time'] > it['start_time'] and tools.vail_file(it['filename']):
-                the_ext=it['filename'].split('.')[-1]
-                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext=='m4a' else the_ext))
+                the_ext = it['filename'].split('.')[-1]
+                it['dubb_time'] = len(
+                    AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
             else:
                 # 不存在配音
                 it['dubb_time'] = 0
@@ -443,7 +437,7 @@ class Runstep():
         max_index = len(queue_tts) - 1
 
         for i, it in enumerate(queue_tts):
-            tools.set_process(text=f"ajust:{i}",btnkey=self.init['btnkey'])
+            tools.set_process(text=f"ajust:{i}", btnkey=self.init['btnkey'])
             # 如果存在配音文件并且时长大于0，才需要判断是否顺延
             if "dubb_time" not in it and it['dubb_time'] <= 0:
                 continue
@@ -546,7 +540,7 @@ class Runstep():
                 continue
 
             tools.set_process(f"{config.transobj['dubbing speed up']} [{i}]",
-                                  btnkey=self.init['btnkey'])
+                              btnkey=self.init['btnkey'])
             if tools.vail_file(it['filename']):
                 # 如果同时有视频加速，则配音压缩为原时长 + 差额的一半
                 if config.settings['video_rate'] > 1:
@@ -584,7 +578,7 @@ class Runstep():
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
         last_time = tools.get_video_duration(self.init['novoice_mp4'])
-        self.parent.status_text=config.transobj['videodown..']
+        self.parent.status_text = config.transobj['videodown..']
         for i, it in enumerate(queue_tts):
             jindu = (len(queue_tts) * 10) / (i + 1)
             if self.precent + jindu < 95:
@@ -598,7 +592,7 @@ class Runstep():
                                          source=self.init['novoice_mp4'],
                                          out=before_dst)
                     concat_txt_arr.append(before_dst)
-            elif (it['start_time_source'] > queue_tts[i - 1]['end_time_source']+config.video_min_ms) and it[
+            elif (it['start_time_source'] > queue_tts[i - 1]['end_time_source'] + config.video_min_ms) and it[
                 'start_time_source'] < last_time:
                 # 否则如果距离前一个字幕结束之间还有空白，则将此空白视频段截取
                 before_dst = self.init['cache_folder'] + f'/{i}-before.mp4'
@@ -623,11 +617,10 @@ class Runstep():
                 else:
                     speed = min(20, config.settings['video_rate'], speed)
 
-
                 # 截取原始视频
                 if it['end_time_source'] > it['start_time_source'] and it['start_time_source'] < last_time:
-                    end_time=it['end_time_source'] if it['end_time_source'] < last_time else last_time
-                    if end_time>=(it['start_time_source']+config.video_min_ms):
+                    end_time = it['end_time_source'] if it['end_time_source'] < last_time else last_time
+                    if end_time >= (it['start_time_source'] + config.video_min_ms):
                         tools.cut_from_video(
                             ss=tools.ms_to_time_string(ms=it['start_time_source']),
                             to=tools.ms_to_time_string(ms=end_time),
@@ -636,12 +629,13 @@ class Runstep():
                             out=filename_video
                         )
                         concat_txt_arr.append(filename_video)
-            elif (it['end_time_source'] > it['start_time_source']+config.video_min_ms) and it['start_time_source'] < last_time:
+            elif (it['end_time_source'] > it['start_time_source'] + config.video_min_ms) and it[
+                'start_time_source'] < last_time:
                 filename_video = self.init['cache_folder'] + f'/{i}.mp4'
                 concat_txt_arr.append(filename_video)
                 # 直接截取原始片段，不慢放
-                end_time=it['end_time_source'] if it['end_time_source'] < last_time else last_time
-                if end_time>=(it['start_time_source']+config.video_min_ms):
+                end_time = it['end_time_source'] if it['end_time_source'] < last_time else last_time
+                if end_time >= (it['start_time_source'] + config.video_min_ms):
                     tools.cut_from_video(
                         ss=tools.ms_to_time_string(ms=it['start_time_source']),
                         to=tools.ms_to_time_string(ms=end_time),
@@ -649,7 +643,7 @@ class Runstep():
                         out=filename_video
                     )
             tools.set_process(f"{config.transobj['video speed down']}[{i}]", btnkey=self.init['btnkey'])
-        if (queue_tts[-1]['end_time_source']+config.video_min_ms) < last_time:
+        if (queue_tts[-1]['end_time_source'] + config.video_min_ms) < last_time:
             last_v = self.init['cache_folder'] + "/last_dur.mp4"
             tools.cut_from_video(
                 ss=tools.ms_to_time_string(ms=queue_tts[-1]['end_time_source']),
@@ -663,7 +657,8 @@ class Runstep():
             if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
-            tools.set_process(f"连接视频片段..." if config.defaulelang=='zh' else 'concat multi mp4 ...', btnkey=self.init['btnkey'])
+            tools.set_process(f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...',
+                              btnkey=self.init['btnkey'])
             tools.concat_multi_mp4(filelist=concat_txt_arr, out=self.init['novoice_mp4'])
         return queue_tts
 
@@ -702,8 +697,9 @@ class Runstep():
             start_times = []
             for i, it in enumerate(queue_tts):
                 if it['dubb_time'] > 0 and tools.vail_file(it['filename']):
-                    the_ext=it['filename'].split('.')[-1]
-                    segments.append(AudioSegment.from_file(it['filename'], format="mp4" if the_ext=='m4a' else the_ext))
+                    the_ext = it['filename'].split('.')[-1]
+                    segments.append(
+                        AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
                     start_times.append(it['start_time'])
                 else:
                     segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
@@ -872,24 +868,25 @@ class Runstep():
 
         # 无声音视频 或 合并模式时原视频
         novoice_mp4_path = Path(self.init['novoice_mp4'])
-        novoice_mp4 = os.path.normpath(self.init['novoice_mp4'])
+        novoice_mp4 = Path(self.init['novoice_mp4']).as_posix()
         # 视频目录，用于硬字幕时进入工作目录
         mp4_dirpath = novoice_mp4_path.parent.resolve()
 
         # 软字幕 完整路径
-        soft_srt = os.path.normpath(self.init['target_sub'])
+        soft_srt = Path(self.init['target_sub']).as_posix()
 
         # 硬字幕仅名字 需要和视频在一起
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
 
-        vh= ""
+        vh = ""
         try:
-            remain_h=20
-            if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (self.init['video_info']['height']-remain_h):
-                vh=f",MarginV={self.init['video_info']['height']-remain_h}"
-            elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom']>0:
-                vh=f",MarginV={vh}"
+            remain_h = 20
+            if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (
+                    self.init['video_info']['height'] - remain_h):
+                vh = f",MarginV={self.init['video_info']['height'] - remain_h}"
+            elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > 0:
+                vh = f",MarginV={vh}"
         except Exception:
             pass
         maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp",
@@ -906,16 +903,16 @@ class Runstep():
         if self.config_params['subtitle_type'] in [1, 3]:
             text = ""
             for i, it in enumerate(target_sub_list):
-                it['text'] = textwrap.fill(it['text'], maxlen,replace_whitespace=False).replace('\n','\\N')
+                it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).replace('\n', '\\N')
                 text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
             hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
             os.chdir(mp4_dirpath)
-            hard_srt=tools.set_ass_font(hard_srt_path.as_posix())
+            hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
 
         # 如果是合并字幕模式 双字幕强制为单
         if self.config_params['app_mode'] == 'hebing':
-            if self.config_params['subtitle_type'] in [1, 3]:                
-                
+            if self.config_params['subtitle_type'] in [1, 3]:
+
                 tools.runffmpeg([
                     "-y",
                     "-i",
@@ -928,7 +925,7 @@ class Runstep():
                     f'{config.settings["crf"]}',
                     '-preset',
                     'slow',
-                    os.path.normpath(self.init['targetdir_mp4']),
+                    Path(self.init['targetdir_mp4']).as_posix(),
                 ])
             else:
                 # 软字幕
@@ -944,7 +941,7 @@ class Runstep():
                     "mov_text",
                     "-metadata:s:s:0",
                     f"language=eng",
-                    os.path.normpath(self.init['targetdir_mp4'])
+                    Path(self.init['targetdir_mp4']).as_posix()
                 ])
             self.precent = 100
             try:
@@ -965,17 +962,18 @@ class Runstep():
                 text = ""
                 source_length = len(source_sub_list)
                 for i, it in enumerate(target_sub_list):
-                    it['text'] = textwrap.fill(it['text'], maxlen,replace_whitespace=False).replace('\n','\\N')
+                    it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).replace('\n', '\\N')
                     text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
                     if source_length > 0 and i < source_length:
-                        text += "\\N" + textwrap.fill(source_sub_list[i]['text'], maxlen_source,replace_whitespace=False).replace('\n','\\N').strip()
+                        text += "\\N" + textwrap.fill(source_sub_list[i]['text'], maxlen_source,
+                                                      replace_whitespace=False).replace('\n', '\\N').strip()
                     text += "\n\n"
                 hard_srt_path.write_text(text.strip(), encoding="utf-8", errors="ignore")
                 os.chdir(mp4_dirpath)
                 shutil.copy2(hard_srt_path.as_posix(), f"{self.obj['output']}/shuang.srt")
-                hard_srt=tools.set_ass_font(hard_srt_path.as_posix())
-                
-            
+                hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
+
+
 
             # 双字幕 软字幕
             elif self.config_params['subtitle_type'] == 4:
@@ -990,7 +988,7 @@ class Runstep():
                 shutil.copy2(self.init['target_sub'], soft_srt)
                 with open(soft_srt, 'w', encoding="utf-8", errors="ignore") as f:
                     f.write(text.strip())
-                soft_srt = os.path.normpath(soft_srt)
+                soft_srt = Path(soft_srt).as_posix()
 
         # 分离背景音和添加背景音乐
         self._back_music()
@@ -999,30 +997,30 @@ class Runstep():
         if self.config_params['voice_role'] != 'No' and self.config_params['append_video']:
             video_time = tools.get_video_duration(novoice_mp4)
             try:
-                audio_length=int(tools.get_audio_time(self.init['target_wav'])*1000)
+                audio_length = int(tools.get_audio_time(self.init['target_wav']) * 1000)
             except Exception:
-                audio_length=0
-            if audio_length>0 and audio_length > video_time:
+                audio_length = 0
+            if audio_length > 0 and audio_length > video_time:
                 try:
                     # 先对音频末尾移除静音
-                    tools.remove_silence_from_end(self.init['target_wav'],is_start=False)
-                    audio_length=int(tools.get_audio_time(self.init['target_wav'])*1000)
+                    tools.remove_silence_from_end(self.init['target_wav'], is_start=False)
+                    audio_length = int(tools.get_audio_time(self.init['target_wav']) * 1000)
                 except Exception:
-                    audio_length=0
-            if audio_length>0 and audio_length > video_time:
+                    audio_length = 0
+            if audio_length > 0 and audio_length > video_time:
                 # 视频末尾延长
                 try:
                     # 对视频末尾定格延长
                     self._novoicemp4_add_time(audio_length - video_time)
                 except Exception as e:
                     raise Exception(f'{config.transobj["moweiyanchangshibai"]}:{str(e)}')
-            elif audio_length>0 and video_time > audio_length:
-                ext=self.init['target_wav'].split('.')[-1]
+            elif audio_length > 0 and video_time > audio_length:
+                ext = self.init['target_wav'].split('.')[-1]
                 m = AudioSegment.from_file(
                     self.init['target_wav'],
-                    format="mp4" if ext=='m4a' else ext) + AudioSegment.silent(
+                    format="mp4" if ext == 'm4a' else ext) + AudioSegment.silent(
                     duration=video_time - audio_length)
-                m.export(self.init['target_wav'], format="mp4" if ext=='m4a' else ext)
+                m.export(self.init['target_wav'], format="mp4" if ext == 'm4a' else ext)
         try:
             subtitle_language = translator.get_subtitle_code(show_target=self.config_params['target_language'])
             # 有配音有字幕
@@ -1035,7 +1033,7 @@ class Runstep():
                         "-i",
                         novoice_mp4,
                         "-i",
-                        os.path.normpath(self.init['target_wav']),
+                        Path(self.init['target_wav']).as_posix(),
                         "-c:v",
                         f"libx{self.video_codec}",
                         "-c:a",
@@ -1046,7 +1044,7 @@ class Runstep():
                         f'{config.settings["crf"]}',
                         '-preset',
                         'slow',
-                        os.path.normpath(self.init['targetdir_mp4']),
+                        Path(self.init['targetdir_mp4']).as_posix()
                     ])
                 else:
                     tools.set_process(config.transobj['peiyin-ruanzimu'], btnkey=self.init['btnkey'])
@@ -1056,7 +1054,7 @@ class Runstep():
                         "-i",
                         novoice_mp4,
                         "-i",
-                        os.path.normpath(self.init['target_wav']),
+                        Path(self.init['target_wav']).as_posix(),
                         "-i",
                         soft_srt,
                         "-c:v",
@@ -1067,7 +1065,7 @@ class Runstep():
                         "mov_text",
                         "-metadata:s:s:0",
                         f"language={subtitle_language}",
-                        os.path.normpath(self.init['targetdir_mp4'])
+                        Path(self.init['targetdir_mp4']).as_posix()
                     ])
             elif self.config_params['voice_role'] != 'No':
                 # 有配音无字幕
@@ -1077,12 +1075,12 @@ class Runstep():
                     "-i",
                     novoice_mp4,
                     "-i",
-                    os.path.normpath(self.init['target_wav']),
+                    Path(self.init['target_wav']).as_posix(),
                     "-c:v",
                     "copy",
                     "-c:a",
                     "aac",
-                    os.path.normpath(self.init['targetdir_mp4'])
+                    Path(self.init['targetdir_mp4']).as_posix()
                 ])
             # 硬字幕无配音  原始 wav合并
             elif self.config_params['subtitle_type'] in [1, 3]:
@@ -1094,7 +1092,7 @@ class Runstep():
                 ]
                 if tools.vail_file(self.init['source_wav']):
                     cmd.append('-i')
-                    cmd.append(os.path.normpath(self.init['source_wav']))
+                    cmd.append(Path(self.init['source_wav']).as_posix())
 
                 cmd.append('-c:v')
                 cmd.append(f'libx{self.video_codec}')
@@ -1108,7 +1106,7 @@ class Runstep():
                     f'{config.settings["crf"]}',
                     '-preset',
                     'slow',
-                    os.path.normpath(self.init['targetdir_mp4']),
+                    Path(self.init['targetdir_mp4']).as_posix(),
                 ]
                 tools.runffmpeg(cmd)
             elif self.config_params['subtitle_type'] in [2, 4]:
@@ -1123,7 +1121,7 @@ class Runstep():
                 # 原配音流
                 if tools.vail_file(self.init['source_wav']):
                     cmd.append("-i")
-                    cmd.append(os.path.normpath(self.init['source_wav']))
+                    cmd.append(Path(self.init['source_wav']).as_posix())
                 # 目标字幕流
                 cmd += [
                     "-i",
@@ -1143,7 +1141,7 @@ class Runstep():
                     f'{config.settings["crf"]}',
                     '-preset',
                     'slow', ]
-                cmd.append(os.path.normpath(self.init['targetdir_mp4']))
+                cmd.append(Path(self.init['targetdir_mp4']).as_posix())
                 tools.runffmpeg(cmd)
         except Exception as e:
             raise Exception(f'compose srt + video + audio:{str(e)}')

@@ -28,11 +28,9 @@ def update_proxy(type='set'):
         shound_del=False
     elif type=='set':
         raw_proxy=os.environ.get('http_proxy')
-        print(f'当前代理:{raw_proxy=}')
         if not raw_proxy:
             proxy=tools.set_proxy()
             if proxy:
-                print(f'设置代理:{proxy=}')
                 shound_del=True
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
