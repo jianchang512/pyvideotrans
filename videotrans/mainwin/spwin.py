@@ -23,6 +23,11 @@ from videotrans.box import win
 
 from videotrans import configure
 from pathlib import Path
+from videotrans.mainwin.secwin import SecWindow
+from videotrans.mainwin.subform import Subform
+import platform
+from videotrans.task.check_update import CheckUpdateWorker
+from videotrans.task.logs_worker import LogsWorker
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -36,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lefttopx=int(width*0.15)
         self.lefttopy=int(height*0.15)
         self.resize(self.width, self.height)
+
         self.show()
         self.task = None
         self.shitingobj = None
@@ -50,12 +56,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION} pyvideotrans.com {' Q群 933714380 ' if config.defaulelang == 'zh' else ''}"
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang=='zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
+        self.util = SecWindow(self)
+        self.subform = Subform(self)
         self.initUI()
-        # 渲染后再执行绑定
-        # QTimer.singleShot(200, self.bind_action)
+
         self.bind_action()
         QTimer.singleShot(500, self.start_box)
 
@@ -67,16 +74,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         configure.TOOLBOX.move(QPoint(self.lefttopx,self.lefttopy))
 
     def initUI(self):
-
         self.settings = QSettings("Jameson", "VideoTranslate")
         # 获取最后一次选择的目录
         config.last_opendir = self.settings.value("last_dir", config.last_opendir, str)
         # language code
         self.languagename = config.langnamelist
         self.get_setting()
-
         self.splitter.setSizes([self.width - 400, 400])
-        # start
 
         # 隐藏倒计时
         self.stop_djs.hide()
@@ -94,7 +98,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_mp4.setAcceptDrops(True)
         self.target_dir.setAcceptDrops(True)
         self.proxy.setText(config.proxy)
-
         # language
         self.source_language.addItems(self.languagename)
         if config.params['source_language'] and config.params['source_language'] in self.languagename:
@@ -174,18 +177,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.subtitle_layout.insertWidget(0, self.subtitle_tips)
         self.subtitle_layout.insertWidget(1, self.subtitle_area)
-
-        # 创建 Scroll Area
-        self.scroll_area.setWidgetResizable(True)
-
-        # 创建一个 QWidget 作为 Scroll Area 的 viewport
-        viewport = QWidget(self.scroll_area)
-        self.scroll_area.setWidget(viewport)
-
-        # 创建一个垂直布局管理器，用于在 viewport 中放置按钮
-        self.processlayout = QVBoxLayout(viewport)
-        # 设置布局管理器的对齐方式为顶部对齐
-        self.processlayout.setAlignment(Qt.AlignTop)
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
@@ -197,15 +188,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
         self.statusBar.addPermanentWidget(self.container)
-
-
+        # 创建 Scroll Area
+        self.scroll_area.setWidgetResizable(True)
+        # 创建一个 QWidget 作为 Scroll Area 的 viewport
+        viewport = QWidget(self.scroll_area)
+        self.scroll_area.setWidget(viewport)
+        # 创建一个垂直布局管理器，用于在 viewport 中放置按钮
+        self.processlayout = QVBoxLayout(viewport)
+        # 设置布局管理器的对齐方式为顶部对齐
+        self.processlayout.setAlignment(Qt.AlignTop)
 
     def bind_action(self):
-        # 设置角色类型，如果当前是OPENTTS或 coquiTTS则设置，如果是edgeTTS，则为No
-        from videotrans.mainwin.secwin import SecWindow
-        from videotrans.mainwin.subform import Subform
-        self.util = SecWindow(self)
-        self.subform = Subform(self)
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
@@ -361,11 +354,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
+
+
         # 禁止随意移动sp.exe
         if not Path(config.rootdir+'/videotrans').exists() or not Path(config.rootdir+ '/models').exists():
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['sp.exeerror'])
             return False
-        import platform
+
 
         if platform.system().lower() == 'windows' and (
                 platform.release().lower() == 'xp' or int(platform.release()) < 10):
@@ -378,8 +373,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.startbtn.setText(config.transobj['installffmpeg'])
             self.startbtn.setDisabled(True)
             self.startbtn.setStyleSheet("""color:#ff0000""")
-        from videotrans.task.check_update import CheckUpdateWorker
-        from videotrans.task.logs_worker import LogsWorker
+
         try:
             update_role = GetRoleWorker(parent=self)
             update_role.start()
@@ -390,6 +384,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.check_update.start()
         except Exception as e:
             print('threaqd-----' + str(e))
+
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -408,7 +403,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tools.kill_ffmpeg_processes()
         except Exception:
             pass
-        time.sleep(1)
+        print('等待所有进程退出...')
+        time.sleep(2)
         event.accept()
 
     def get_setting(self):

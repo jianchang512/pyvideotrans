@@ -118,7 +118,7 @@ def set_proxy(set_val=''):
                     return None
                 return proxy_server
     except Exception as e:
-        print(f"Error accessing Windows registry: {e}")
+        pass
     return None
 
 
@@ -210,6 +210,7 @@ def runffmpeg(arg, *, noextname=None,
                 arg[i] = config.video_codec
 
     cmd = cmd + arg
+    print(f'ffmpeg:{cmd=}')
     config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
@@ -262,6 +263,7 @@ def runffmpeg(arg, *, noextname=None,
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     # cmd[-1] = os.path.normpath(cmd[-1])
+    print(f'ffprobe:{cmd=}')
     try:
         p = subprocess.run( cmd if isinstance(cmd,str) else ['ffprobe'] + cmd,
                            stdout=subprocess.PIPE,
@@ -274,6 +276,7 @@ def runffprobe(cmd):
             return p.stdout.strip()
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
+        print(f"ffprobe---error{e=},{e.args=}")
         msg = f'ffprobe error,:{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
@@ -284,6 +287,7 @@ def runffprobe(cmd):
 # 获取视频信息
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False):
     # 如果存在缓存并且没有禁用缓存
+    mp4_file=Path(mp4_file).as_posix()
     if not nocache and mp4_file in config.video_cache:
         result = config.video_cache[mp4_file]
     else:
@@ -362,7 +366,7 @@ def conver_mp4(source_file, out_mp4, *, is_box=False):
     return runffmpeg([
         '-y',
         '-i',
-        os.path.normpath(source_file),
+        Path(source_file).as_posix(),
         '-c:v',
         f'libx{video_codec}',
         "-c:a",
@@ -378,7 +382,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
     cmd = [
         "-y",
         "-i",
-        f'{source_mp4}',
+        Path(source_mp4).as_posix(),
         "-an",
         "-c:v",
         lib,
@@ -391,6 +395,8 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
 
 # 从原始视频中分离出音频 cuda + h264_cuvid
 def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
+    source_mp4=Path(source_mp4).as_posix()
+    targe_audio=Path(targe_audio).as_posix()
     cmd = [
         "-y",
         "-i",
@@ -422,8 +428,8 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
     ])
     from videotrans.separate import st
     try:
-        path = os.path.dirname(targe_audio)
-        vocal_file = os.path.join(path, 'vocal.wav')
+        path = Path(targe_audio).parent.as_posix()
+        vocal_file = path+'/vocal.wav'
         if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
@@ -444,19 +450,21 @@ def conver_to_8k(audio, target_audio):
     return runffmpeg([
         "-y",
         "-i",
-        audio,
+        Path(audio).as_posix(),
         "-ac",
         "1",
         "-ar",
         "8000",
-        target_audio,
+        Path(target_audio).as_posix(),
     ])
 
 
 #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
 def backandvocal(backwav, peiyinm4a):
-    tmpwav = os.path.join(os.environ["TEMP"] or os.environ['temp'], f'{time.time()}-1.m4a')
-    tmpm4a = os.path.join(os.environ["TEMP"] or os.environ['temp'], f'{time.time()}.m4a')
+    backwav=Path(backwav).as_posix()
+    peiyinm4a=Path(peiyinm4a).as_posix()
+    tmpwav = Path((os.environ["TEMP"] or os.environ['temp'])+ f'/{time.time()}-1.m4a').as_posix()
+    tmpm4a = Path((os.environ["TEMP"] or os.environ['temp'])+ f'/{time.time()}.m4a').as_posix()
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
@@ -470,10 +478,10 @@ def wav2m4a(wavfile, m4afile, extra=None):
     cmd = [
         "-y",
         "-i",
-        wavfile,
+        Path(wavfile).as_posix(),
         "-c:a",
         "aac",
-        m4afile
+        Path(m4afile).as_posix()
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
@@ -485,8 +493,8 @@ def wav2mp3(wavfile, mp3file, extra=None):
     cmd = [
         "-y",
         "-i",
-        wavfile,
-        mp3file
+        Path(wavfile).as_posix(),
+        Path(mp3file).as_posix()
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
@@ -498,7 +506,7 @@ def m4a2wav(m4afile, wavfile):
     cmd = [
         "-y",
         "-i",
-        m4afile,
+        Path(m4afile).as_posix(),
         "-ac",
         "1",
         "-ar",
@@ -507,7 +515,7 @@ def m4a2wav(m4afile, wavfile):
         "128k",
         "-c:a",
         "pcm_s16le",
-        wavfile
+        Path(wavfile).as_posix()
     ]
     return runffmpeg(cmd)
 
@@ -528,6 +536,8 @@ def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     video_codec=config.settings['video_codec']
     create_concat_txt(filelist, txt)
+    if out:
+        out=Path(out).as_posix()
     if maxsec:
         return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-t', f"{maxsec}", '-crf',
                           f'{config.settings["crf"]}', '-preset', 'slow', '-an', out], fps=fps)
@@ -538,6 +548,8 @@ def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
 
 # 多个音频片段连接 
 def concat_multi_audio(*, filelist=[], out=None):
+    if out:
+        out=Path(out).as_posix()
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
@@ -549,7 +561,7 @@ def speed_up_mp3(*, filename=None, speed=1, out=None):
     return runffmpeg([
         "-y",
         "-i",
-        filename,
+        Path(filename).as_posix(),
         "-af",
         f'atempo={speed}',
         out
@@ -1098,7 +1110,6 @@ def get_google_url():
 def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
     from PySide6.QtCore import QSettings
     import platform
-
     # Create a QSettings object with the specified organization and application
     settings = QSettings(organization, application)
 
@@ -1237,7 +1248,6 @@ def get_video_codec():
     if not codec:
         return f"libx{video_codec}"
 
-    print(f'{codec=}')
     try:
         Path(config.TEMP_DIR).mkdir(exist_ok=True)
         subprocess.run([
@@ -1254,7 +1264,6 @@ def get_video_codec():
         check=True,
         creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     except Exception as e:
-        print('error='+str(e))
         if sys.platform=='win32':
             try:
                 codec=f"{hhead}_amf"

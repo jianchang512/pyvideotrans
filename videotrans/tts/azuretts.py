@@ -14,11 +14,9 @@ def update_proxy(type='set'):
         shound_del=False
     elif type=='set':
         raw_proxy=os.environ.get('http_proxy')
-        print(f'当前代理:{raw_proxy=}')
         if not raw_proxy:
             proxy=tools.set_proxy()
             if proxy:
-                print(f'设置代理:{proxy=}')
                 shound_del=True
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
@@ -33,7 +31,6 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         else:
             language=role.split('-',maxsplit=2)
         language=language[0].lower()+("" if len(language)<2 else '-'+language[1].upper())
-        print(f"{config.params['azure_speech_key']=},{config.params['azure_speech_region']=}")
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
         try:
             speech_config = speechsdk.SpeechConfig(

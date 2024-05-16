@@ -32,7 +32,6 @@ def get_voice(*,
         rate='+0%'
     if not re.match(r'^[+-]\d+Hz$',pitch,re.I):
         pitch='+0Hz'
-    print(f'### {volume=},{pitch=}')
     communicate = edge_tts.Communicate(text, role, rate=rate,volume=volume,pitch=pitch)
     try:
         asyncio.run(communicate.save(filename))
