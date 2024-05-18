@@ -572,6 +572,9 @@ class SecWindow():
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
         elif title == 'download':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
+        elif title=='openvoice':
+            webbrowser.open_new_tab("https://github.com/kungful/openvoice-api")
+            
         elif title == 'online':
             QMessageBox.information(self.main,'免责声明',"""
 免责声明：

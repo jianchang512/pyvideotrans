@@ -73,6 +73,7 @@ def get_error(num=5, type='error'):
 
 def get_content(d,*,model=None,prompt=None):
     update_proxy(type='set')
+    response=None
     try:
         message=prompt.replace('{text}',"\n".join(d))
         response = model.generate_content(
