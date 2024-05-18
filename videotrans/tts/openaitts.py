@@ -29,14 +29,18 @@ def update_proxy(type='set'):
 
 
 def get_url(url=""):
+    
+    if not url.startswith('http'):
+        url='http://'+url    
+    # 删除末尾 /
+    url=url.rstrip('/').lower()
     if not url or url.find(".openai.com")>-1:
         return "https://api.openai.com/v1"
-    url=url.rstrip('/').lower()
-    if not url.startswith('http'):
-        url='http://'+url
-    if re.match(r'.*/v1/(chat/)?completions/?$',url):
-        return re.sub(r'/v1/.*$','/v1',url)
-    if re.match(r'^https?://[^/]+?$',url):
+    # 存在 /v1/xx的，改为 /v1
+    if re.match(r'.*/v1/(chat)?(/?completions)?$',url):
+        return re.sub(r'/v1.*$','/v1',url)
+    # 不是/v1结尾的改为 /v1
+    if url.find('/v1')==-1:
         return url+"/v1"
     return url
 

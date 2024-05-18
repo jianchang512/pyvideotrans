@@ -36,7 +36,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     url=url.replace('//translate','/translate')
     if not url.startswith('http'):
         url=f"http://{url}"
-    if re.search(r'localhost',url) or re.match(r'https?://(\d+\.){3}\d+',url):
+    if not re.search(r'localhost',url) and not re.match(r'https?://(\d+\.){3}\d+',url):
         update_proxy(type='set')
     # 翻译后的文本
     target_text = []

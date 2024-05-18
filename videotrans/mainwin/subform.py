@@ -516,6 +516,8 @@ class Subform():
 
         self.main.ttsapiw.save.clicked.connect(save)
         self.main.ttsapiw.test.clicked.connect(test)
+        self.main.ttsapiw.otherlink.clicked.connect(lambda: self.main.util.open_url('openvoice'))
+        self.main.ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
         self.main.ttsapiw.show()
 
     def set_transapi(self):

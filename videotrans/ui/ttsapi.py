@@ -61,7 +61,8 @@ class Ui_ttsapiform(object):
         self.test.setGeometry(QRect(490, 350, 93, 35))
         self.test.setMinimumSize(QSize(0, 35))
 
-        self.otherlink=QLabel()
+        self.otherlink=QPushButton(ttsapiform)
+        self.otherlink.setStyleSheet("""background-color:transparent;border:0;""")
         self.otherlink.setText("第三方实现OpenVoice接口 https://github.com/kungful/openvoice-api")
         self.otherlink.setGeometry(QRect(10,400,400,35))
 
