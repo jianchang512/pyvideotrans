@@ -480,9 +480,9 @@ class WorkerTTS(QThread):
             if diff >= 0:
                 it['end_time'] += diff
                 offset += diff
-            else:
+            #else:
                 # 配音小于原时长，添加静音
-                merged_audio += AudioSegment.silent(duration=abs(diff))
+            #    merged_audio += AudioSegment.silent(duration=abs(diff))
 
             if i > 0:
                 silence_duration = it['start_time'] - queue_tts[i - 1]['end_time']
@@ -495,10 +495,10 @@ class WorkerTTS(QThread):
             queue_tts[i] = it
             merged_audio += segment
 
-        if video_time > 0 and (len(merged_audio) < video_time):
+        #if video_time > 0 and (len(merged_audio) < video_time):
             # 末尾补静音
-            silence = AudioSegment.silent(duration=video_time - len(merged_audio))
-            merged_audio += silence
+        #    silence = AudioSegment.silent(duration=video_time - len(merged_audio))
+        #    merged_audio += silence
         # 创建配音后的文件
         try:
             merged_audio.export(out, format="wav")
