@@ -714,12 +714,22 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 raise Exception(f'get srtfile error:{str(e)}')
     else:
         content = srtfile.strip().splitlines()
+    # remove whitespace
+    content=[c for c in content if c.strip()]
+    
     if len(content) < 1:
-        raise Exception("srt content is 0")
-
+        raise Exception("srt content is empty")
+    
     result = format_srt(content)
+    
+    # txt 文件转为一条字幕
     if len(result) < 1:
-        return []
+        if is_file and srtfile.endswith('.txt'):
+            result= [
+                {"line":1,"time":"00:00:00,000 --> 05:00:00,000","text":"\n".join(content)}
+            ]
+        else:
+            return []
 
     new_result = []
     line = 1

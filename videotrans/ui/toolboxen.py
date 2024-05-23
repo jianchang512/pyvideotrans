@@ -247,6 +247,13 @@ class Ui_MainWindow(object):
         self.hecheng_role.setObjectName("hecheng_role")
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
         self.horizontalLayout_10.addLayout(self.formLayout_4)
+        
+        self.listen_btn = QtWidgets.QPushButton(self.tab_2)
+        self.listen_btn.setFixedWidth(80)
+        self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
+        self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
+        self.horizontalLayout_10.addWidget(self.listen_btn)
+
 
 
         self.formLayout_5 = QtWidgets.QFormLayout()

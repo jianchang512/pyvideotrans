@@ -240,6 +240,23 @@ apt-get install ffmpeg
 
 
 
+#  源码部署问题说明
+
+1. 默认使用 ctranslate2的4.x版本，仅支持CUDA12.x版本，如果你的cuda低于12，并且无法升级cuda到12.x，请执行命令卸载ctranslate2然后重新安装
+
+```
+
+pip uninstall -y ctranslate2
+
+pip install ctranslate2==3.24.0
+
+```
+
+2. 可能会遇到 `xx module not found ` 之类错误，请打开 requirements.txt，搜索该 xx 模块，然后将xx后的 ==及等会后的版本号去掉
+
+
+
+
 # 使用教程和文档
 
 请查看 https://pyvideotrans.com/guide.html

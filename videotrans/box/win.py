@@ -21,6 +21,7 @@ from videotrans.util import tools
 import shutil
 from videotrans.ui.toolboxen import Ui_MainWindow
 from videotrans.util.tools import get_azure_rolelist, get_edge_rolelist
+from pathlib import Path
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -120,6 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hecheng_role.addItems(['No'])
         self.hecheng_language.currentTextChanged.connect(self.hecheng_language_fun)
         self.hecheng_startbtn.clicked.connect(self.hecheng_start_fun)
+        self.listen_btn.clicked.connect(self.listen_voice_fun)
         self.hecheng_opendir.clicked.connect(lambda: self.opendir_fn(self.hecheng_out.text().strip()))
         # 设置 tts_type
         self.tts_type.addItems([i for i in config.params['tts_type_list']])
@@ -238,11 +240,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def hecheng_import_fun(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.last_opendir,
-                                                 "Text files(*.srt)")
+                                                 "Text files(*.srt *.txt)")
         if len(fnames) < 1:
             return
         for (i, it) in enumerate(fnames):
-            fnames[i] = it.replace('\\', '/').replace('file:///', '')
+            it=it.replace('\\', '/').replace('file:///', '')
+            if it.endswith('.txt'):
+                shutil.copy2(it,f'{it}.srt')
+                # 使用 "r+" 模式打开文件：读取和写入
+                with open(f'{it}.srt', 'r+', encoding='utf-8') as file:
+                    # 读取原始文件内容
+                    original_content = file.readlines()
+                    # 将文件指针移动到文件开始位置
+                    file.seek(0)
+                    # 将新行内容与原始内容合并，并写入文件
+                    file.writelines(["1\n","00:00:00,000 --> 05:00:00,000\n"] + original_content)
+
+                it+='.srt'
+            fnames[i] = it
 
         if len(fnames) > 0:
             config.last_opendir = os.path.dirname(fnames[0])
@@ -649,6 +664,73 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_language.setDisabled(type)
         self.shibie_model.setDisabled(type)
 
+
+    # 试听配音
+    def listen_voice_fun(self):
+        lang = translator.get_code(show_text=self.hecheng_language.currentText())
+        if not lang or lang=='-':
+            return QMessageBox.critical(self, config.transobj['anerror'], "选择字幕语言" if config.defaulelang=='zh' else 'Please target language')
+        text = config.params[f'listen_text_{lang}']
+        role = self.hecheng_role.currentText()
+        if not role or role == 'No':
+            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['mustberole'])
+        voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
+        if not voice_dir or not Path(voice_dir).exists():
+            voice_dir = config.rootdir + "/tmp/voice_tmp"
+        else:
+            voice_dir = voice_dir.replace('\\', '/') + "/pyvideotrans"
+        if not Path(voice_dir).exists():
+            Path(voice_dir).mkdir(parents=True,exist_ok=True)
+        lujing_role = role.replace('/', '-')
+        
+        rate = int(self.hecheng_rate.value())
+        tts_type = self.tts_type.currentText()
+        
+        if rate >= 0:
+            rate = f"+{rate}%"
+        else:
+            rate = f"{rate}%"
+        volume=int(self.volume_rate.value())
+        pitch=int(self.pitch_rate.value())
+        volume=f'+{volume}%' if volume>=0 else f'{volume}%'
+        pitch=f'+{pitch}Hz' if pitch>=0 else f'{volume}Hz'
+        
+        
+        
+        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        if config.params['tts_type'] == 'GPT-SoVITS':
+            voice_file += '.wav'
+
+        obj = {
+            "text": text,
+            "rate": '+0%',
+            "role": role,
+            "voice_file": voice_file,
+            "tts_type": config.params['tts_type'],
+            "language": lang,
+            "volume":volume,
+            "pitch":pitch,
+        }
+        
+        if config.params['tts_type'] == 'clone-voice' and role == 'clone':
+            return
+        # 测试能否连接clone
+        if config.params['tts_type'] == 'clone-voice':
+            try:
+                tools.get_clone_role(set_p=True)
+            except:
+                QMessageBox.critical(self, config.transobj['anerror'],
+                                     config.transobj['You must deploy and start the clone-voice service'])
+                return
+
+        def feed(d):
+            QMessageBox.critical(self, config.transobj['anerror'], d)
+
+        from videotrans.task.play_audio import PlayMp3
+        t = PlayMp3(obj, self)
+        t.mp3_ui.connect(feed)
+        t.start()
+
     # tab-4 语音合成
     def hecheng_start_fun(self):
         txt = self.hecheng_plaintext.toPlainText().strip()
@@ -700,6 +782,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         issrt = self.tts_issrt.isChecked()
+        if len(self.hecheng_files)>0:
+            self.tts_issrt.setChecked(True)
+            issrt=True
+            
         self.hecheng_task = WorkerTTS(self,
                                       files=self.hecheng_files if len(self.hecheng_files) > 0 else txt,
                                       role=role,

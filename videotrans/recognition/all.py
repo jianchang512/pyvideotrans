@@ -72,6 +72,8 @@ def recogn(*,
             if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
                 del model
                 return None
+            if not segment.words or len(segment.words)<1:
+                continue
             sidx += 1
             start = int(segment.words[0].start * 1000)
             end = int(segment.words[-1].end * 1000)
