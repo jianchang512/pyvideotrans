@@ -841,31 +841,10 @@ class Runstep():
     def _compos_video(self):
         if self.config_params['app_mode'] in ['tiqu', 'peiyin']:
             return True
+
         # 判断novoice_mp4是否完成
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception(config.transobj['fenlinoviceerror'])
-
-        # 需要字幕
-        if self.config_params['subtitle_type'] > 0 and not tools.vail_file(self.init['target_sub']):
-            raise Exception(f"{config.transobj['No subtitles file']}: {self.init['target_sub']}")
-
-        if self.precent < 90:
-            self.precent = 90
-        # 存放目标字幕
-        target_sub_list = []
-        # 存放原始字幕
-        source_sub_list = []
-        if self.config_params['subtitle_type'] > 0:
-            try:
-                target_sub_list = tools.get_subtitle_from_srt(self.init['target_sub'])
-            except Exception as e:
-                raise Exception(f'{config.transobj["Subtitles error"]}-1 :{str(e)}')
-        if self.config_params['subtitle_type'] in [3, 4] and tools.vail_file(self.init['source_sub']):
-            try:
-                source_sub_list = tools.get_subtitle_from_srt(self.init['source_sub'])
-            except Exception as e:
-                raise Exception(f'{config.transobj["Subtitles error"]}-1 :{str(e)}')
-
         # 无声音视频 或 合并模式时原视频
         novoice_mp4_path = Path(self.init['novoice_mp4'])
         novoice_mp4 = Path(self.init['novoice_mp4']).as_posix()
@@ -879,40 +858,69 @@ class Runstep():
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
 
-        vh = ""
-        try:
-            remain_h = 20
-            if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (
-                    self.init['video_info']['height'] - remain_h):
-                vh = f",MarginV={self.init['video_info']['height'] - remain_h}"
-            elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > 0:
-                vh = f",MarginV={vh}"
-        except Exception:
-            pass
-        maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                         "ko"] else \
-            config.settings['other_len']
-        maxlen_source = config.settings['cjk_len'] if self.init['source_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                                "ko"] else \
-            config.settings['other_len']
+        # 需要字幕
+        if self.config_params['subtitle_type'] > 0:
+            # 存放目标字幕
+            target_sub_list = []
+            # 存放原始字幕
+            source_sub_list = []
+            vh = ""
+            try:
+                remain_h = 20
+                if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (
+                        self.init['video_info']['height'] - remain_h):
+                    vh = f",MarginV={self.init['video_info']['height'] - remain_h}"
+                elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > 0:
+                    vh = f",MarginV={vh}"
+            except Exception:
+                pass
+            maxlen_source = config.settings['cjk_len'] if self.init['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len']
+            if tools.vail_file(self.init['source_sub']):
+                try:
+                    source_sub_list = tools.get_subtitle_from_srt(self.init['source_sub'])
+                except Exception as e:
+                    raise Exception(f'{config.transobj["Subtitles error"]}-1 :{str(e)}')
+            #如果未设置目标语言，仅存在原始语言
+            if not self.init['target_language_code']:
+                if self.config_params['subtitle_type']==3:
+                    self.config_params['subtitle_type']=1
+                elif self.config_params['subtitle_type']==4:
+                    self.config_params['subtitle_type']=2
+                # 软字幕使用原始语言字幕
+                soft_srt = Path(self.init['source_sub']).as_posix()
+                # 硬字幕均为原始字幕
+                if self.config_params['subtitle_type'] ==1:
+                    text = ""
+                    for i, it in enumerate(source_sub_list):
+                        it['text'] = textwrap.fill(it['text'], maxlen_source,replace_whitespace=False).replace('\n', '\\N')
+                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                    hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
+                    os.chdir(mp4_dirpath)
+                    hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
+            else:
+                #存在目标语言
+                maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len']
+                try:
+                    target_sub_list = tools.get_subtitle_from_srt(self.init['target_sub'])
+                    # 提前处理单硬字幕
+                    if self.config_params['subtitle_type'] in [1, 3]:
+                        text = ""
+                        for i, it in enumerate(target_sub_list):
+                            it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).replace('\n', '\\N')
+                            text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                        hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
+                        os.chdir(mp4_dirpath)
+                        hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
+                except Exception as e:
+                    raise Exception(f'{config.transobj["Subtitles error"]}-1 :{str(e)}')
+
 
         if self.precent < 90:
             self.precent = 90
 
-        # 提前处理单硬字幕
-        if self.config_params['subtitle_type'] in [1, 3]:
-            text = ""
-            for i, it in enumerate(target_sub_list):
-                it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).replace('\n', '\\N')
-                text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-            hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
-            os.chdir(mp4_dirpath)
-            hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
-
         # 如果是合并字幕模式 双字幕强制为单
         if self.config_params['app_mode'] == 'hebing':
             if self.config_params['subtitle_type'] in [1, 3]:
-
                 tools.runffmpeg([
                     "-y",
                     "-i",
@@ -956,7 +964,7 @@ class Runstep():
             raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.init['target_wav']}")
 
         # 需要双字幕
-        if self.init['source_language_code'] != self.init['target_language_code'] and len(source_sub_list) > 0:
+        if len(target_sub_list)>0 and len(source_sub_list) > 0:
             # 处理双硬字幕
             if self.config_params['subtitle_type'] == 3:
                 text = ""
@@ -972,8 +980,6 @@ class Runstep():
                 os.chdir(mp4_dirpath)
                 shutil.copy2(hard_srt_path.as_posix(), f"{self.obj['output']}/shuang.srt")
                 hard_srt = tools.set_ass_font(hard_srt_path.as_posix())
-
-
 
             # 双字幕 软字幕
             elif self.config_params['subtitle_type'] == 4:

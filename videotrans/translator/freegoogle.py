@@ -12,10 +12,7 @@ import random
 
 urls=[
 "https://g0.pyvideotrans.com",
-"https://g1.pyvideotrans.com",
-"https://g2.pyvideotrans.com",
-"https://g3.pyvideotrans.com",
-"https://g4.pyvideotrans.com"
+"https://g1.pyvideotrans.com"
 ]
 
 shound_del=False
@@ -58,7 +55,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
         if iter_num >= config.settings['retries']:
-            err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
+            err=f'{iter_num}{"次重试后依然出错,请尝试填写网络代理或更换其他翻译渠道" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
 
         iter_num += 1

@@ -95,7 +95,7 @@ Expect data to be returned from the interface in json format:
 }
 Usage: github.com/jianchang512/translate-api
 """
-        transapiform.setWindowTitle("自定义翻译API" if config.defaulelang=='zh' else "Customizing the Translate API")
+        transapiform.setWindowTitle("自定义翻译API/无编码能力勿使用该功能" if config.defaulelang=='zh' else "Customizing the Translate API")
         self.label_3.setText("密钥" if config.defaulelang=='zh' else "Secret")
         self.miyue.setPlaceholderText("填写密钥")
 
