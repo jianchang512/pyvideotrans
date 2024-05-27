@@ -114,7 +114,7 @@ Expect data to be returned from the interface in json format:
     data:On successful synthesis, return the full url of the mp3 file for downloading within the software. When it fails, the url will be empty.
 }            
 """
-        ttsapiform.setWindowTitle("自定义TTS-API" if config.defaulelang=='zh' else "Customizing the TTS-API")
+        ttsapiform.setWindowTitle("自定义TTS-API/无编码能力勿使用该功能" if config.defaulelang=='zh' else "Customizing the TTS-API")
         self.label_3.setText("额外参数" if config.defaulelang=='zh' else "additional parameter")
         self.tips.setPlainText(tips)
         self.tips.setPlaceholderText("")

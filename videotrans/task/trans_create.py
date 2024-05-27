@@ -160,7 +160,8 @@ class TransCreate():
             var_c = var_a if var_a is not None else var_b
             self.init['target_language_code'] = var_c if var_c != '-' else '-'
         else:
-            self.init['target_language_code'] = self.init['source_language_code'] = '-'
+            self.init['target_language_code']=None
+            self.init['source_language_code'] = '-'
 
         # 检测字幕原始语言
         if self.config_params['source_language'] != '-':
@@ -202,8 +203,9 @@ class TransCreate():
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
         if "subtitles" in self.config_params and self.config_params['subtitles'].strip():
             sub_file = self.init['target_sub']
-            if self.config_params['source_language'] != self.config_params['target_language'] and self.config_params[
-                'source_language'] != '-' and self.config_params['target_language'] != '-':
+            if self.config_params['app_mode']=='hebing':
+                sub_file=self.init['source_sub']
+            elif self.init['source_language_code'] and self.init['target_language_code'] and self.init['source_language_code'] != self.init['target_language_code']:
                 # 原始和目标语言都存在，并且不相等，需要翻译，作为待翻译字幕
                 sub_file = self.init['source_sub']
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
@@ -433,7 +435,7 @@ class TransCreate():
             if int(self.config_params['subtitle_type']) not in [2, 4]:
                 try:
                     self.obj['output'] = outputpath.parent.resolve().as_posix()
-                    wait_deldir = outputpath.resolve().as_posix()
+                    #wait_deldir = outputpath.resolve().as_posix()
                 except Exception:
                     pass
 
@@ -449,9 +451,9 @@ class TransCreate():
         tools.send_notification("Succeed", f"{self.obj['raw_basename']}")
 
         # 删除临时文件
-        shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
-        if linshi_deldir:
-            shutil.rmtree(linshi_deldir)
-        if wait_deldir:
-            shutil.rmtree(wait_deldir, ignore_errors=True)
+        #shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
+        #if linshi_deldir:
+        #    shutil.rmtree(linshi_deldir)
+        #if wait_deldir:
+        #    shutil.rmtree(wait_deldir, ignore_errors=True)
         return True

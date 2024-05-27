@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import os
 import shutil
 import time
 from PySide6.QtCore import QThread
@@ -186,7 +187,17 @@ class Worker(QThread):
         self.tasklist = {}
         config.queue_mp4 = []
         set_process("", 'end')
-
+        self._unlink_tmp()
+        
+        
+    def _unlink_tmp(self):
+        if not os.path.isdir(config.TEMP_DIR):
+            return
+        for it in os.listdir(config.TEMP_DIR):
+            if os.path.isfile(config.TEMP_DIR+f"/{it}"):
+                Path(config.TEMP_DIR+f"/{it}").unlink(missing_ok=True)
+            else:
+                shutil.rmtree(config.TEMP_DIR+f"/{it}", ignore_errors=True)
 
     def wait_end(self):
         #开始等待任务执行完毕
@@ -215,9 +226,12 @@ class Worker(QThread):
         self.tasklist = {}
         config.queue_mp4 = []
         set_process("", 'end')
+        
+        self._unlink_tmp()
 
     def stop(self):
         set_process("", 'stop')
         self.tasklist = {}
         config.queue_mp4=[]
+        self._unlink_tmp()
 
