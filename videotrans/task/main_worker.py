@@ -184,10 +184,10 @@ class Worker(QThread):
         if self.is_batch:
             return self.wait_end()
         # 非批量直接结束
-        self.tasklist = {}
         config.queue_mp4 = []
         set_process("", 'end')
         self._unlink_tmp()
+        #self.tasklist = {}
         
         
     def _unlink_tmp(self):
@@ -223,15 +223,14 @@ class Worker(QThread):
                 self.unidlist.append(unid)
             time.sleep(0.5)
         # 全部完成
-        self.tasklist = {}
         config.queue_mp4 = []
-        set_process("", 'end')
-        
+        set_process("", 'end')        
         self._unlink_tmp()
+        #self.tasklist = {}
 
     def stop(self):
         set_process("", 'stop')
-        self.tasklist = {}
         config.queue_mp4=[]
         self._unlink_tmp()
+        #self.tasklist = {}
 

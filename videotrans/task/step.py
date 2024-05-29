@@ -858,12 +858,12 @@ class Runstep():
         hard_srt = "tmp.srt"
         hard_srt_path = Path(mp4_dirpath / hard_srt)
 
+        # 存放目标字幕
+        target_sub_list = []
+        # 存放原始字幕
+        source_sub_list = []
         # 需要字幕
         if self.config_params['subtitle_type'] > 0:
-            # 存放目标字幕
-            target_sub_list = []
-            # 存放原始字幕
-            source_sub_list = []
             vh = ""
             try:
                 remain_h = 20
