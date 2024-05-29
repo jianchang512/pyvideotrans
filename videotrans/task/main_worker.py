@@ -224,6 +224,7 @@ class Worker(QThread):
             time.sleep(0.5)
         # 全部完成
         config.queue_mp4 = []
+        
         set_process("", 'end')        
         self._unlink_tmp()
         #self.tasklist = {}
@@ -233,4 +234,3 @@ class Worker(QThread):
         config.queue_mp4=[]
         self._unlink_tmp()
         #self.tasklist = {}
-
