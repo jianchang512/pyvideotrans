@@ -129,36 +129,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.currentTextChanged.connect(self.tts_type_change)
         self.tts_issrt.stateChanged.connect(self.tts_issrt_change)
 
-        # tab-5 格式转换
-        # self.geshi_input = TextGetdir()
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.geshi_result.sizePolicy().hasHeightForWidth())
-        # self.geshi_input.setSizePolicy(sizePolicy)
-        # self.geshi_input.setMinimumSize(300, 0)
-        #
-        # self.geshi_input.setPlaceholderText(config.transobj['tuodongdaoci'])
-        #
-        # self.geshi_importbtn = QtWidgets.QPushButton(self.tab_6)
-        # self.geshi_importbtn.setObjectName("geshi_importbtn")
-        # self.geshi_importbtn.setFixedWidth(100)
-        # self.geshi_importbtn.setText(config.box_lang['import audio or video'])
-        # self.geshi_importbtn.clicked.connect(lambda: self.geshi_import_fun(self.geshi_input))
-        # self.horizontalLayout_14.insertWidget(0, self.geshi_importbtn)
-        #
-        # self.geshi_layout.insertWidget(0, self.geshi_input)
-        # self.geshi_mp4.clicked.connect(lambda: self.geshi_start_fun("mp4"))
-        # self.geshi_avi.clicked.connect(lambda: self.geshi_start_fun("avi"))
-        # self.geshi_mov.clicked.connect(lambda: self.geshi_start_fun("mov"))
-        # self.geshi_mp3.clicked.connect(lambda: self.geshi_start_fun("mp3"))
-        # self.geshi_wav.clicked.connect(lambda: self.geshi_start_fun("wav"))
-        # self.geshi_aac.clicked.connect(lambda: self.geshi_start_fun("aac"))
-        # self.geshi_m4a.clicked.connect(lambda: self.geshi_start_fun("m4a"))
-        # self.geshi_flac.clicked.connect(lambda: self.geshi_start_fun("flac"))
-        # self.geshi_output.clicked.connect(lambda: self.opendir_fn(f'{config.homedir}/conver'))
-        # if not os.path.exists(f'{config.homedir}/conver'):
-        #     os.makedirs(f'{config.homedir}/conver', exist_ok=True)
+
 
         # 混流
         self.hun_file1btn.clicked.connect(lambda: self.hun_get_file('file1'))
@@ -698,7 +669,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if config.params['tts_type'] == 'GPT-SoVITS':
+        if config.params['tts_type'] in ['GPT-SoVITS','ChatTTS']:
             voice_file += '.wav'
 
         obj = {
@@ -753,6 +724,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tts_type.setCurrentText('edgeTTS')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             return
+        if tts_type == 'ChatTTS' and langcode[:2] not in ['zh', 'en']:
+            # 除此指望不支持
+            config.params['tts_type'] = 'edgeTTS'
+            self.tts_type.setCurrentText('edgeTTS')
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
+            return
+
         if rate >= 0:
             rate = f"+{rate}%"
         else:
@@ -822,10 +800,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.volume_rate.setDisabled(True)
             self.pitch_rate.setDisabled(True)
 
-
+        code = translator.get_code(show_text=self.hecheng_language.currentText())
         if type == 'gtts':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(['gtts'])
+        elif type=='ChatTTS':
+            if code and code != '-' and code[:2] not in ['zh',  'en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
+                return
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(['No']+list(config.ChatTTS_voicelist.keys()) )
         elif type == "openaiTTS":
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
@@ -844,7 +829,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
         elif type == 'GPT-SoVITS':
-            code = translator.get_code(show_text=self.hecheng_language.currentText())
             if code and code != '-' and code[:2] not in ['zh', 'ja', 'en']:
                 self.tts_type.setCurrentText('edgeTTS')
                 QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
@@ -860,6 +844,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 除此指望不支持
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             self.tts_type.setCurrentText('edgeTTS')
+            return
+        if code and code != '-' and self.tts_type.currentText() == 'ChatTTS' and code[:2] not in ['zh', 'en']:
+            self.tts_type.setCurrentText('edgeTTS')
+            # 除此指望不支持
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
+            return
+
         if self.tts_type.currentText() not in ["edgeTTS", "AzureTTS"]:
             return
         self.hecheng_role.clear()
@@ -907,13 +898,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         file1 = self.hun_file1.text()
         file2 = self.hun_file2.text()
-
-        #rs, newfile1, _ = tools.rename_move(file1, is_dir=False)
-        #if rs:
-        #    file1 = newfile1
-        #rs, newfile2, _ = tools.rename_move(file2, is_dir=False)
-        #if rs:
-        #    file2 = newfile2
 
         cmd = ['-y', '-i', file1, '-i', file2, '-filter_complex',
                "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', savename]

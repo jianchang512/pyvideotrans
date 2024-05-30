@@ -185,6 +185,8 @@ geshi_num = 0
 
 clone_voicelist=["clone"]
 
+ChatTTS_voicelist={"boy1":2222,"boy2":7869,"boy3":6653,"girl1":4099,"girl2":5099}
+
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]
 # 存放 edget-tts 角色列表
@@ -227,7 +229,7 @@ params = {
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
+    "tts_type_list": ["edgeTTS","ChatTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "whisper_type": "all",
     "whisper_model": "tiny",

@@ -43,6 +43,8 @@ def text_to_speech(
         # lasterror=get_voice(text=text, role=role, rate=rate,language=language, filename=filename,set_p=set_p,inst=inst)
     elif tts_type =='gtts':
         from .gtts import get_voice
+    elif tts_type=='ChatTTS':
+        from .chattts import get_voice
         # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
     if get_voice:
         get_voice(
