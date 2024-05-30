@@ -8,6 +8,7 @@ from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
+from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.gptsovits import Ui_gptsovitsform
@@ -152,6 +153,12 @@ class OttForm(QDialog, Ui_ottform):  # <===
 class CloneForm(QDialog, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super(CloneForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+class ChatttsForm(QDialog, Ui_chatttsform):  # <===
+    def __init__(self, parent=None):
+        super(ChatttsForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))

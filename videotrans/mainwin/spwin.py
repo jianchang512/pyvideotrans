@@ -202,6 +202,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
+        elif config.params['tts_type']=='ChatTTS':
+            self.voice_role.addItems(['No']+list(config.ChatTTS_voicelist.keys()))
         elif config.params['tts_type'] == 'TTS-API':
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
         elif config.params['tts_type'] == 'GPT-SoVITS':
@@ -290,6 +292,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepLX_address.triggered.connect(self.subform.set_deepLX_address)
         self.actionott_address.triggered.connect(self.subform.set_ott_address)
         self.actionclone_address.triggered.connect(self.subform.set_clone_address)
+        self.actionchattts_address.triggered.connect(self.subform.set_chattts_address)
         self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
         self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
         self.actiontrans_api.triggered.connect(self.subform.set_transapi)
@@ -426,6 +429,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
         config.params["ott_address"] = self.settings.value("ott_address", "")
         config.params["clone_api"] = self.settings.value("clone_api", "")
+        config.params["chattts_api"] = self.settings.value("chattts_api", "")
         config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
         config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
 
@@ -497,6 +501,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("only_video", config.params['only_video'])
         self.settings.setValue("tts_type", config.params['tts_type'])
         self.settings.setValue("clone_api", config.params['clone_api'])
+        self.settings.setValue("chattts_api", config.params['chattts_api'])
         self.settings.setValue("video_autorate", config.params['video_autorate'])
         self.settings.setValue("append_video", config.params['append_video'])
         self.settings.setValue("clone_voicelist", ','.join(config.clone_voicelist))

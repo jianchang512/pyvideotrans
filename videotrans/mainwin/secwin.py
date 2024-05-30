@@ -772,10 +772,19 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             self.main.subform.set_gptsovits()
             return
+        if type == 'ChatTTS' and not config.params['chattts_api']:
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.main.subform.set_chattts_address()
+            return
+
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-' and type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+            return
+        if lang and lang != '-' and type == 'ChatTTS' and lang[:2] not in ['zh', 'en']:
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
 
         config.params['tts_type'] = type
@@ -783,7 +792,6 @@ class SecWindow():
         if type=='gtts':
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
-
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == "openaiTTS":
             self.main.voice_role.clear()
@@ -806,7 +814,10 @@ class SecWindow():
             self.main.current_rolelist = config.clone_voicelist
             self.main.voice_role.addItems(self.main.current_rolelist)
             threading.Thread(target=tools.get_clone_role).start()
-
+        elif type =='ChatTTS':
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(config.ChatTTS_voicelist.keys())
+            self.main.voice_role.addItems(['No']+self.main.current_rolelist)
         elif type == 'TTS-API':
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
@@ -837,7 +848,7 @@ class SecWindow():
         volume=int(self.main.volume_rate.value())
         pitch=int(self.main.pitch_rate.value())
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if config.params['tts_type'] == 'GPT-SoVITS':
+        if config.params['tts_type'] in ['GPT-SoVITS','ChatTTS']:
             voice_file += '.wav'
 
         obj = {
@@ -889,6 +900,11 @@ class SecWindow():
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+        if code and code != '-' and config.params['tts_type'] == 'ChatTTS' and code[:2] not in ['zh','en']:
+            # 除此指望不支持
+            config.params['tts_type'] = 'edgeTTS'
+            self.main.tts_type.setCurrentText('edgeTTS')
+            return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
@@ -1162,7 +1178,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
         try:
             voice_rate = int(self.main.voice_rate.value())
-            # voice_rate = 0 if not voice_rate else int(voice_rate)
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         except Exception:
             config.params['voice_rate'] = '+0%'
@@ -1254,6 +1269,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 # 不是True，有错误
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
+
+        if self.main.app_mode !='hebing' and config.params['target_language']!='-':
+            code=translator.get_code(show_text=config.params['target_language'])
+            if code not in ['zh-cn','zh-tw','en'] and config.params['tts_type']=='ChatTTS' and config.params['voice_role']!='No':
+                return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
+
 
         # 存在视频
         config.params['only_video'] = False

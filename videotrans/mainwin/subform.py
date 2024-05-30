@@ -271,6 +271,59 @@ class Subform():
         self.main.clonw.test.clicked.connect(test)
         self.main.clonw.show()
 
+    def set_chattts_address(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None):
+                super().__init__(parent=parent)
+                self.text = text
+
+            def run(self):
+                from videotrans.tts.chattts import get_voice
+                try:
+                    get_voice(text=self.text, role="boy1", set_p=False, filename=config.homedir + "/test.mp3")
+
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.mp3")
+                QtWidgets.QMessageBox.information(self.main.chatttsw, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.chatttsw, config.transobj['anerror'], d)
+            self.main.chatttsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+
+        def test():
+            if not self.main.chatttsw.chattts_address.text().strip():
+                QtWidgets.QMessageBox.critical(self.main.chatttsw, config.transobj['anerror'], '必须填写http地址')
+                return
+            config.params['chattts_api'] = self.main.chatttsw.chattts_address.text().strip()
+            task = TestTTS(parent=self.main.chatttsw,
+                           text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
+                           )
+            self.main.chatttsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+        def save():
+            key = self.main.chatttsw.chattts_address.text().strip()
+            key = key.rstrip('/')
+            key = 'http://' + key.replace('http://', '').replace('/tts','')
+            self.main.settings.setValue("chattts_api", key)
+            config.params["chattts_api"] = key
+            self.main.chatttsw.close()
+
+        from videotrans.component import ChatttsForm
+        self.main.chatttsw = ChatttsForm()
+        if config.params["chattts_api"]:
+            self.main.chatttsw.chattts_address.setText(config.params["chattts_api"])
+        self.main.chatttsw.set_chattts.clicked.connect(save)
+        self.main.chatttsw.test.clicked.connect(test)
+        self.main.chatttsw.show()
+
     def set_zh_recogn(self):
         class Test(QThread):
             uito = Signal(str)

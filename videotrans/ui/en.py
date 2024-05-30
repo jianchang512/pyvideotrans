@@ -555,6 +555,8 @@ class Ui_MainWindow(object):
 
         self.actionclone_address = QtGui.QAction(MainWindow)
         self.actionclone_address.setObjectName("actionclone_address")
+        self.actionchattts_address = QtGui.QAction(MainWindow)
+        self.actionchattts_address.setObjectName("actionchattts_address")
 
         self.actiontts_api = QtGui.QAction(MainWindow)
         self.actiontts_api.setObjectName("actiontts_api")
@@ -679,6 +681,8 @@ class Ui_MainWindow(object):
 
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclone_address)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionchattts_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_gptsovits)
         self.menu_Key.addSeparator()
@@ -811,6 +815,7 @@ class Ui_MainWindow(object):
         self.actiondeepLX_address.setText("DeepLX Api")
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang=='zh' else "OTT Api")
         self.actionclone_address.setText("原音色克隆TTS" if config.defaulelang=='zh' else "Clone-Voice TTS")
+        self.actionchattts_address.setText("ChatTTS")
         self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang=='zh' else "TransateAPI")
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang=='zh' else "zh_recogn only Chinese")
