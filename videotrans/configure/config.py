@@ -88,6 +88,7 @@ def parse_init():
         "vsync":"passthrough",
         "force_edit_srt":True,
         "loop_backaudio":False,
+        "chattts_voice":'1111,2222,3333,4444,5555,6666,7777,8888,9999,4099,5099,6653,7869',
         "cors_run":True
     }
     file = root_path/'videotrans/set.ini'
@@ -172,7 +173,7 @@ queuebox_logs = Queue(1000)
 
 
 
-model_list=settings['model_list'].split(',')
+model_list=re.split('\,|，',settings['model_list'])
 
 
 
@@ -185,7 +186,7 @@ geshi_num = 0
 
 clone_voicelist=["clone"]
 
-ChatTTS_voicelist={"boy1":2222,"boy2":7869,"boy3":6653,"girl1":4099,"girl2":5099}
+ChatTTS_voicelist=re.split('\,|，',settings['chattts_voice'])
 
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]

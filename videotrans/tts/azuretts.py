@@ -34,8 +34,10 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
         try:
             speech_config = speechsdk.SpeechConfig(
-            subscription=config.params['azure_speech_key'],
-            region=config.params['azure_speech_region'])
+                subscription=config.params['azure_speech_key'],
+                region=config.params['azure_speech_region'],
+                speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
+            )
         except Exception as e:
             raise Exception(f'{str(e)=}')
 

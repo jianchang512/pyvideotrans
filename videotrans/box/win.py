@@ -668,8 +668,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         
         
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if config.params['tts_type'] in ['GPT-SoVITS','ChatTTS']:
+        voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        if tts_type in ['GPT-SoVITS','ChatTTS']:
             voice_file += '.wav'
 
         obj = {
@@ -677,16 +677,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "rate": '+0%',
             "role": role,
             "voice_file": voice_file,
-            "tts_type": config.params['tts_type'],
+            "tts_type": tts_type,
             "language": lang,
             "volume":volume,
             "pitch":pitch,
         }
         
-        if config.params['tts_type'] == 'clone-voice' and role == 'clone':
+        if tts_type == 'clone-voice' and role == 'clone':
             return
         # 测试能否连接clone
-        if config.params['tts_type'] == 'clone-voice':
+        if tts_type == 'clone-voice':
             try:
                 tools.get_clone_role(set_p=True)
             except:
@@ -720,13 +720,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         config.transobj['bixutianxie'] + "chatGPT key")
         if tts_type == 'GPT-SoVITS' and langcode[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
-            config.params['tts_type'] = 'edgeTTS'
+            tts_type = 'edgeTTS'
             self.tts_type.setCurrentText('edgeTTS')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             return
         if tts_type == 'ChatTTS' and langcode[:2] not in ['zh', 'en']:
             # 除此指望不支持
-            config.params['tts_type'] = 'edgeTTS'
+            tts_type = 'edgeTTS'
             self.tts_type.setCurrentText('edgeTTS')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
@@ -810,7 +810,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
                 return
             self.hecheng_role.clear()
-            self.hecheng_role.addItems(['No']+list(config.ChatTTS_voicelist.keys()) )
+            self.hecheng_role.addItems(['No']+list(config.ChatTTS_voicelist))
         elif type == "openaiTTS":
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
@@ -840,25 +840,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(self, t):
         code = translator.get_code(show_text=t)
-        if code and code != '-' and self.tts_type.currentText() == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
+        tts_type=self.tts_type.currentText()
+        if code and code != '-' and tts_type == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             self.tts_type.setCurrentText('edgeTTS')
             return
-        if code and code != '-' and self.tts_type.currentText() == 'ChatTTS' and code[:2] not in ['zh', 'en']:
+        if code and code != '-' and tts_type == 'ChatTTS' and code[:2] not in ['zh', 'en']:
             self.tts_type.setCurrentText('edgeTTS')
             # 除此指望不支持
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
 
-        if self.tts_type.currentText() not in ["edgeTTS", "AzureTTS"]:
+        if tts_type not in ["edgeTTS", "AzureTTS"]:
             return
         self.hecheng_role.clear()
         if t == '-':
             self.hecheng_role.addItems(['No'])
             return
 
-        show_rolelist = get_edge_rolelist() if config.params['tts_type'] == 'edgeTTS' else get_azure_rolelist()
+        show_rolelist = get_edge_rolelist() if tts_type == 'edgeTTS' else get_azure_rolelist()
         if not show_rolelist:
             show_rolelist = get_edge_rolelist()
         if not show_rolelist:
