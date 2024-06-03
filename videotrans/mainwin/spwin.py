@@ -203,7 +203,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
         elif config.params['tts_type']=='ChatTTS':
-            self.voice_role.addItems(['No']+list(config.ChatTTS_voicelist.keys()))
+            self.voice_role.addItems(['No']+list(config.ChatTTS_voicelist))
         elif config.params['tts_type'] == 'TTS-API':
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
         elif config.params['tts_type'] == 'GPT-SoVITS':

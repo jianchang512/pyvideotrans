@@ -816,7 +816,7 @@ class SecWindow():
             threading.Thread(target=tools.get_clone_role).start()
         elif type =='ChatTTS':
             self.main.voice_role.clear()
-            self.main.current_rolelist = list(config.ChatTTS_voicelist.keys())
+            self.main.current_rolelist = list(config.ChatTTS_voicelist)
             self.main.voice_role.addItems(['No']+self.main.current_rolelist)
         elif type == 'TTS-API':
             self.main.voice_role.clear()

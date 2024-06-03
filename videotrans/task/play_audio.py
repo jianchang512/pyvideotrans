@@ -18,10 +18,11 @@ class PlayMp3(QThread):
         try:
             if not tools.vail_file(self.obj['voice_file']):
                 print(self.obj)
+                print(f'play role={self.obj["role"]}')
                 text_to_speech(
                     text=self.obj['text'],
                     role=self.obj['role'],
-                    tts_type=config.params['tts_type'],
+                    tts_type=self.obj['tts_type'],
                     filename=self.obj['voice_file'],
                     play=True,
                     volume=self.obj['volume'],
@@ -30,5 +31,6 @@ class PlayMp3(QThread):
             else:
                 pygameaudio(self.obj['voice_file'])
         except Exception as e:
+            print(f'play {str(e)}')
             self.mp3_ui.emit(str(e))
 

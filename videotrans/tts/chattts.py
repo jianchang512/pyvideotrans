@@ -5,11 +5,13 @@ import time
 from pathlib import Path
 
 import requests
+from requests import Timeout
 from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_voice(*,text=None, role="boy1",rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
+def get_voice(*,text=None, role="2222",rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
+    print(f'role={role}')
     try:
         api_url=config.params['chattts_api'].strip().rstrip('/').lower()
         if not api_url:
@@ -19,8 +21,8 @@ def get_voice(*,text=None, role="boy1",rate=None, volume="+0%",pitch="+0Hz", lan
         api_url='http://'+api_url.replace('http://','').replace('/tts','')
         config.logger.info(f'ChatTTS:api={api_url}')
 
-        voice_list=config.ChatTTS_voicelist
-        data={"text":text.strip(),"voice":voice_list[role],'prompt':'[oral_2][laugh_0][break_6]'}
+
+        data={"text":text.strip(),"voice":role,'prompt':''}
         res=requests.post(f"{api_url}/tts",data=data,proxies={"http":"","https":""},timeout=3600)
         config.logger.info(f'chatTTS:{data=},{res.text=}')
 
@@ -48,6 +50,8 @@ def get_voice(*,text=None, role="boy1",rate=None, volume="+0%",pitch="+0Hz", lan
             if set_p and inst and inst.precent < 80:
                 inst.precent += 0.1
                 tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+    except ConnectionError or Timeout as e:
+        raise Exception(f'无法连接到ChatTTS服务{api_url}，请确保已部署并启动了ChatTTS-ui')
     except Exception as e:
         error=str(e)
         if set_p:

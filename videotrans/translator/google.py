@@ -3,6 +3,7 @@ import os
 import re
 import time
 import urllib
+from urllib.parse import quote
 import requests
 from requests import Timeout
 
@@ -79,8 +80,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length=len(it)
-                text = "\n".join(it)
-                url = f"{google_url}/m?sl=auto&tl={urllib.parse.quote(target_language)}&hl={urllib.parse.quote(target_language)}&q={urllib.parse.quote(text)}"
+                text = "##".join(it)
+                url = f"{google_url}/m?sl=auto&tl={quote(target_language)}&hl={quote(target_language)}&q={quote(text)}"
                 config.logger.info(f'[Google]请求数据:{url=}')
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -97,7 +98,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     err=f'无有效结果,{response.text}'
                     break
 
-                result=re_result[0].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result=re_result[0].strip().replace('&#39;','"').replace('&quot;',"'").split("##")
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:

@@ -3,6 +3,7 @@ import os
 import re
 import time
 import urllib
+from urllib.parse import quote
 
 import requests
 from videotrans.configure import config
@@ -83,7 +84,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             try:
 
                 data = {
-                    "text": urllib.parse.quote("".join(it)),
+                    "text": quote("".join(it)),
                     "secret":config.params['trans_secret'],
                     "source_language": 'zh' if source_code.startswith('zh') else source_code,
                     "target_language": 'zh' if target_language.startswith('zh') else  target_language
