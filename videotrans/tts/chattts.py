@@ -22,7 +22,7 @@ def get_voice(*,text=None, role="2222",rate=None, volume="+0%",pitch="+0Hz", lan
         config.logger.info(f'ChatTTS:api={api_url}')
 
 
-        data={"text":text.strip(),"voice":role,'prompt':''}
+        data={"text":text.strip(),"voice":role,'prompt':'','is_split':1}
         res=requests.post(f"{api_url}/tts",data=data,proxies={"http":"","https":""},timeout=3600)
         config.logger.info(f'chatTTS:{data=},{res.text=}')
 
