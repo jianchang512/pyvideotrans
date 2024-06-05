@@ -9,13 +9,14 @@
 
 
 from PySide6 import QtCore,  QtWidgets
+from PySide6.QtCore import Qt
 from videotrans.configure import config
 
 class Ui_azurettsform(object):
     def setupUi(self, azurettsform):
         azurettsform.setObjectName("azurettsform")
         azurettsform.setWindowModality(QtCore.Qt.NonModal)
-        azurettsform.resize(400, 223)
+        azurettsform.resize(400, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -31,6 +32,8 @@ class Ui_azurettsform(object):
         
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setAlignment(Qt.AlignTop)
+
         
         
         
@@ -49,6 +52,7 @@ class Ui_azurettsform(object):
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.speech_region = QtWidgets.QLineEdit(azurettsform)
+        self.speech_region.setPlaceholderText("如果不知怎么填请留空" if config.defaulelang=='zh' else "Leave blank if you don't know how to fill in")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -84,15 +88,71 @@ class Ui_azurettsform(object):
         
         
         self.verticalLayout.addLayout(self.formLayout_22)
+        
+        
+        self.azuretts_area = QtWidgets.QComboBox(azurettsform)
+        self.azuretts_area.setGeometry(QtCore.QRect(150, 145, 431, 35))
+        self.azuretts_area.setMinimumSize(QtCore.QSize(0, 35))
+        self.azuretts_area.setObjectName("azuretts_area")
+        self.azuretts_area.addItems([
+            "EastAsia",
+            "SoutheastAsia",
+            "AustraliaEast",
+            "AustraliaSoutheast",
+            "BrazilSouth",
+            "CanadaCentral",
+            "CanadaEast",
+            "WestEurope",
+            "NorthEurope",
+            "CentralIndia",
+            "SouthIndia",
+            "WestIndia",
+            "JapanEast",
+            "JapanWest",
+            "KoreaCentral",
+            "KoreaSouth",
+            "UkWest",
+            "UkSouth",
+            "NorthCentralUs",
+            "EastUs",
+            "WestUs2",
+            "SouthCentralUs",
+            "CentralUs",
+            "EastUs2",
+            "WestUs",
+            "WestCentralUs",
+            "GermanyCentral",
+            "GermanyNortheast",
+            "ChinaNorth",
+            "ChinaEast",
+            "USGovArizona",
+            "USGovTexas",
+            "USGovIowa",
+            "USGovVirginia",
+            "USDoDCentral",
+            "USDoDEast"
+        ])
+        
+        self.verticalLayout.addWidget(self.azuretts_area)
         self.verticalLayout.addLayout(self.formLayout_2)
         
         
         
-        self.verticalLayout_2.addLayout(self.verticalLayout)
         self.save = QtWidgets.QPushButton(azurettsform)
         self.save.setMinimumSize(QtCore.QSize(0, 35))
         self.save.setObjectName("save")
-        self.verticalLayout_2.addWidget(self.save)
+        
+        self.test = QtWidgets.QPushButton(azurettsform)
+        self.test.setMinimumSize(QtCore.QSize(0, 35))
+        self.test.setObjectName("test")
+        
+        hv=QtWidgets.QHBoxLayout()
+        hv.addWidget(self.save)
+        hv.addWidget(self.test)
+        
+        
+        self.verticalLayout.addLayout(hv)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
         self.retranslateUi(azurettsform)
@@ -100,6 +160,7 @@ class Ui_azurettsform(object):
 
     def retranslateUi(self, azurettsform):
         azurettsform.setWindowTitle("AzureTTS")
-        self.label.setText( "区域URL" if config.defaulelang=='zh' else "SPEECH_REGION")
+        self.label.setText( "自定义区域URL" if config.defaulelang=='zh' else "Your SPEECH REGION")
         self.label22.setText( "授权key" if config.defaulelang=='zh' else "SPEECH_KEY")
         self.save.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.test.setText('测试' if config.defaulelang=='zh' else "Test")
