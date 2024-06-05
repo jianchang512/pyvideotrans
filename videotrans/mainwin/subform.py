@@ -152,23 +152,78 @@ class Subform():
         self.main.w.show()
 
     def set_auzuretts_key(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None,role=None,language=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.role=role
+                self.language=language
+
+            def run(self):
+                from videotrans.tts.azuretts import get_voice
+                try:
+                    get_voice(text=self.text, role=self.role,rate="+0%", language=self.language, set_p=False, filename=config.homedir + "/test.mp3")
+
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.mp3")
+                QtWidgets.QMessageBox.information(self.main.aztw, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.aztw, config.transobj['anerror'], d)
+            self.main.aztw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        
+        def test():
+            key = self.main.aztw.speech_key.text().strip()
+            if not key:
+                QtWidgets.QMessageBox.critical(self.main.aztw, config.transobj['anerror'], '填写Azure speech key ')
+                return
+            region = self.main.aztw.speech_region.text().strip()
+            if not region or not region.startswith('https:'):
+                region=self.main.aztw.azuretts_area.currentText()
+            self.main.settings.setValue("azure_speech_key", key)
+            self.main.settings.setValue("azure_speech_region", region)
+
+            config.params['azure_speech_key'] = key
+            config.params['azure_speech_region'] = region
+
+
+            task = TestTTS(parent=self.main.aztw,
+                           text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
+                           role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
+                           language="zh-CN" if config.defaulelang == 'zh' else 'en-US'
+                           )
+            self.main.aztw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+        
         def save():
             key = self.main.aztw.speech_key.text()
             region = self.main.aztw.speech_region.text().strip()
+            if not region or not region.startswith('https:'):
+                region=self.main.aztw.azuretts_area.currentText()
             self.main.settings.setValue("azure_speech_key", key)
             self.main.settings.setValue("azure_speech_region", region)
 
             config.params['azure_speech_key'] = key
             config.params['azure_speech_region'] = region
             self.main.aztw.close()
-
+        
         from videotrans.component import AzurettsForm
         self.main.aztw = AzurettsForm()
-        if config.params['azure_speech_region']:
+        if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
             self.main.aztw.speech_region.setText(config.params['azure_speech_region'])
+        else:
+            self.main.aztw.azuretts_area.setCurrentText(config.params['azure_speech_region'])
         if config.params['azure_speech_key']:
             self.main.aztw.speech_key.setText(config.params['azure_speech_key'])
         self.main.aztw.save.clicked.connect(save)
+        self.main.aztw.test.clicked.connect(test)
         self.main.aztw.show()
 
     def set_elevenlabs_key(self):
