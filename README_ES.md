@@ -253,7 +253,8 @@ Consulta https://pyvideotrans.com/guide.html para la gu√≠a de uso y documentaci√
 
 # Capturas de Pantalla del Software
 
-![imagen](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/c3abb561-1ab5-47f9-bfdc-609245445190)
+
 
 # Proyectos Relacionados
 

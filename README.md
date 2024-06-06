@@ -281,7 +281,7 @@ pip install ctranslate2==3.24.0
 
 # 软件预览截图
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/c410a307-8e1e-4b52-a24c-75647b012f65)
 
 
 # 相关联项目

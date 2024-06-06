@@ -266,7 +266,8 @@ Please visit https://pyvideotrans.com/guide.html
 
 # Software Preview Screenshot
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/c3abb561-1ab5-47f9-bfdc-609245445190)
+
 
 
 # Related Projects
