@@ -48,13 +48,14 @@ def recogn(*,
             return False
         if not tools.vail_file(audio_file):
             raise Exception(f'no exists {audio_file}')
+        print('temperature===')
+        print(0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         segments, info = model.transcribe(audio_file,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
 
-                                          temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6,
-                                                                                                     0.8, 1.0],
+                                          temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=config.settings['overall_silence'],
