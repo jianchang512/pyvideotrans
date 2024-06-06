@@ -16,13 +16,13 @@ class Ui_azurettsform(object):
     def setupUi(self, azurettsform):
         azurettsform.setObjectName("azurettsform")
         azurettsform.setWindowModality(QtCore.Qt.NonModal)
-        azurettsform.resize(400, 300)
+        azurettsform.resize(400, 250)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(azurettsform.sizePolicy().hasHeightForWidth())
         azurettsform.setSizePolicy(sizePolicy)
-        azurettsform.setMaximumSize(QtCore.QSize(400, 300))
+        azurettsform.setMaximumSize(QtCore.QSize(400, 250))
         self.gridLayout = QtWidgets.QGridLayout(azurettsform)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
@@ -32,7 +32,7 @@ class Ui_azurettsform(object):
         
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.verticalLayout.setAlignment(Qt.AlignTop)
+        #self.verticalLayout.setAlignment(Qt.AlignTop)
 
         
         
@@ -90,9 +90,28 @@ class Ui_azurettsform(object):
         self.verticalLayout.addLayout(self.formLayout_22)
         
         
+        self.formLayout_222 = QtWidgets.QFormLayout()
+        self.formLayout_222.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        self.formLayout_222.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_222.setObjectName("formLayout_222")
+        
+        self.label222 = QtWidgets.QLabel(azurettsform)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label222.sizePolicy().hasHeightForWidth())
+        self.label222.setSizePolicy(sizePolicy)
+        self.label222.setMinimumSize(QtCore.QSize(100, 35))
+        self.label222.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label222.setObjectName("label222")
+        self.formLayout_222.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label222)
+        
+        
+        
+        
+        
         self.azuretts_area = QtWidgets.QComboBox(azurettsform)
-        self.azuretts_area.setGeometry(QtCore.QRect(150, 145, 431, 35))
-        self.azuretts_area.setMinimumSize(QtCore.QSize(0, 35))
+        
         self.azuretts_area.setObjectName("azuretts_area")
         self.azuretts_area.addItems([
             "EastAsia",
@@ -133,7 +152,16 @@ class Ui_azurettsform(object):
             "USDoDEast"
         ])
         
-        self.verticalLayout.addWidget(self.azuretts_area)
+        self.azuretts_area.setMinimumSize(QtCore.QSize(210, 40))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        #sizePolicy.setHeightForWidth(self.azuretts_area.sizePolicy().hasHeightForWidth())
+        self.azuretts_area.setSizePolicy(sizePolicy)
+        
+        self.formLayout_222.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.azuretts_area)
+        
+        self.verticalLayout.addLayout(self.formLayout_222)
         self.verticalLayout.addLayout(self.formLayout_2)
         
         
@@ -162,5 +190,6 @@ class Ui_azurettsform(object):
         azurettsform.setWindowTitle("AzureTTS")
         self.label.setText( "自定义区域URL" if config.defaulelang=='zh' else "Your SPEECH REGION")
         self.label22.setText( "授权key" if config.defaulelang=='zh' else "SPEECH_KEY")
+        self.label222.setText( "选择区域" if config.defaulelang=='zh' else "REGION")
         self.save.setText('保存' if config.defaulelang=='zh' else "Save")
         self.test.setText('测试' if config.defaulelang=='zh' else "Test")

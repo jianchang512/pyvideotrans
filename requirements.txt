@@ -64,7 +64,6 @@ hyperframe==5.2.0
 idna==2.10
 imageio==2.31.4
 imageio-ffmpeg==0.4.9
-intel-openmp==2021.4.0
 ipython==8.23.0
 jedi==0.19.1
 Jinja2==3.1.2
@@ -139,7 +138,6 @@ rsa==4.9
 samplerate==0.2.1
 scikit-learn==1.3.2
 scipy==1.11.3
-setuptools==69.5.1
 shiboken6==6.7.0
 six==1.16.0
 sniffio==1.3.0

@@ -1,56 +1,62 @@
-[简体中文](./README.md) / [👑 Donate to this project](./about.md)
+[简体中文 Readme](./README.md) / [👑Donate to this project](./about.md) / [Discord invitation link](https://discord.gg/mTh5Cu5Bqm)
 
-# Video Translation and Dubbing Tool
+# Video Translation and Voiceover Tool
 
 >
-> This is a video translation and dubbing tool that can translate a video from one language to a specified language and automatically generate and add subtitles and dubbing in that language.
+> This is a video translation and voiceover tool that can translate videos from one language into a specified language, automatically generating and adding subtitles and voiceovers in that language.
 >
-> The voice recognition supports `faster-whisper`, `openai-whisper`, `GoogleSpeech`, `zh_recogn Ali Chinese voice recognition model`.
+> Voice recognition supports `faster-whisper` model, `openai-whisper` model, and `GoogleSpeech`, `zh_recogn`Ali Chinese speech recognition model.
 >
-> Text translation supports `Microsoft Translate | Google Translate | Baidu Translate | Tencent Translate | ChatGPT | AzureAI | Gemini | DeepL | DeepLX | Offline translation OTT`, and includes a free ChatGPT API translation interface sponsored by (apiskey.top).
+> Text translation supports `Microsoft Translator|Google Translate|Baidu Translate|Tencent Translate|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|Offline Translation OTT`
 >
-> Text-to-speech synthesis supports `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `Custom TTS server API`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice).
+> Text-to-speech synthesis supports `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `Custom TTS server API`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice), `[ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)`
 >
-> Allows retaining background accompaniment music, etc. (based on uvr5)
+> Allows for the retention of background accompaniment music, etc. (based on uvr5)
 >
-> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay.
+> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay, Czech
 
-# Main Uses and How to Use
+# Main Uses and Methods of Use
 
-【Translate videos and dub】Translate the audio in videos into the voice of another language and embed subtitles in that language
+[Translate Video and Dubbing] Translate the audio in a video into another language's dubbing and embed the subtitles in that language.
 
-【Convert audio or video to subtitles】Recognize human speech in audio or video files as text and export to srt subtitle files
+[Audio or Video to Subtitles] Convert human speech in audio or video files into text and export as srt subtitle files.
 
-【Batch subtitle creation and dubbing】Create dubbing based on local existing srt subtitle files, supporting single or batch subtitles
+[Batch Subtitle Creation and Dubbing] Create dubbing based on existing local srt subtitle files, supporting both single and batch subtitles.
 
-【Batch subtitle translation】Translate one or more srt subtitle files into subtitles in other languages
+[Batch Subtitle Translation] Translate one or more srt subtitle files into subtitles in other languages.
 
-【Audio, video, and subtitle merge】Merge audio files, video files, and subtitle files into one video file
+[Audio, Video, and Subtitles Merge] Merge audio files, video files, and subtitle files into one video file.
 
-【Extract audio from video】Extract as audio files and mute video from video
+[Extracting Audio from Video] Separate a video into audio files and silent video.
 
-【Audio and video format conversion】Mutual conversion between various formats
-
-【Download YouTube videos】Download videos from YouTube
+[Download YouTube Videos] Download videos from YouTube.
 
 ----
 
 https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-ba24-7a95d2e13d58
 
-# Pre-Packaged Version (Only available for Win10/Win11, MacOS/Linux systems use source code deployment)
 
-> Packaged with pyinstaller, not anti-virus whitelisted or signed, anti-virus software may flag it, please add to trusted list or use source code deployment
+# Pre-packaged Version (Only for win10/win11, MacOS/Linux use source code deployment)
 
-0. [Click to download the pre-packaged version, unzip to an English directory without spaces, then double-click sp.exe (https://github.com/jianchang512/pyvideotrans/releases)
+> Packaged using pyinstaller, not made undetectable and unsigned, antivirus may alert, please add to the whitelist or deploy using the source code
 
-1. Unzip to an English path, and ensure the path does not contain spaces. After unzipping, double-click sp.exe (if you encounter permission issues, right-click to open as administrator)
+0. [Click to download the pre-packaged version, unzip to an English directory without spaces, then double-click sp.exe](https://github.com/jianchang512/pyvideotrans/releases)
 
-4. Note: Must be used after extracting, cannot be used directly within the compressed package, nor can the sp.exe file be moved to another location after extraction
+1. Unzip to an English path and make sure the path does not contain spaces. After unzipping, double-click sp.exe (If encountering permission issues, right-click to open as administrator)
+
+4. Note: Must be used after unzipping, do not directly click inside the compressed package, and do not move the sp.exe file to other locations after unzipping.
 
 
 # MacOS Source Code Deployment
 
-0. Open a terminal window and execute these 3 commands respectively
+0. Open a terminal window and execute the following commands one by one
+
+    > Make sure you have installed Homebrew before executing. If you have not installed Homebrew, you need to install it first.
+    >
+    > Execute the command to install Homebrew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+    >
+    > After installation, execute: `eval $(brew --config)`
+    >
 
     ```
     brew install libsndfile
@@ -59,49 +65,40 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
     brew install git
 
-    brew install python@3.12
+    brew install python@3.10
 
     ```
 
-    Then proceed with the following 2 commands
+    Continue executing
 
     ```
-    export PATH="/usr/local/opt/python@3.12/bin:$PATH"
+    export PATH="/usr/local/opt/python@3.10/bin:$PATH"
 
-    source ~/.bash_profile; source ~/.zshrc
-
-    ```
-
-1. Create a folder without spaces and Chinese characters, and enter that folder in the terminal.
-2. Execute the command `git clone https://github.com/jianchang512/pyvideotrans` in the terminal.
-3. Execute the command `cd pyvideotrans`.
-4. Continue with `python -m venv venv`.
-5. Continue with the command `source ./venv/bin/activate`, confirming that the terminal prompt starts with `(venv)`, the following commands must be sure the terminal prompt starts with `(venv)`.
-6. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt, switch to Aliyun mirror source and execute the following 2 commands
+    source ~/.bash_profile 
+	
+	source ~/.zshrc
 
     ```
-    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-    pip config set install.trusted-host mirrors.aliyun.com
-    ```
 
-    Then retry. If the failure persists, try `pip install -r requirements.txt  --ignore-installed --no-deps`.
 
-7. `python sp.py` to open the software interface.
+1. Create a folder without spaces or Chinese characters, then navigate to that folder in the terminal.
+2. In the terminal, execute `git clone https://github.com/jianchang512/pyvideotrans `
+3. Execute `cd pyvideotrans`
+4. Continue with `python -m venv venv`
+5. Execute `source ./venv/bin/activate` and ensure the terminal prompt begins with `(venv)`, following commands must ensure the terminal prompt starts with `(venv)`
+6. Execute `pip install -r requirements.txt --no-deps`
 
-8. Ubuntu may also need to install the Libxcb library, installation commands are:
 
-	```
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
 
-	sudo apt-get update
-	sudo apt-get install libxcb-cursor0
+7. `python sp.py` to open the software interface
 
-	```
 
-[Detailed MacOS deployment scheme](https://pyvideotrans.com/mac.html)
+[Detailed Deployment Scheme for Mac](https://pyvideotrans.com/mac.html)
 
 # Linux Source Code Deployment
 
-0. CentOS/RHEL series execute the following commands in order to install python3.12
+0. For CentOS/RHEL series, execute the following commands in sequence to install python3.10
 
 ```
 
@@ -113,23 +110,23 @@ sudo yum install openssl-devel bzip2-devel libffi-devel
 
 cd /tmp
 
-wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz
+wget https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
 
-tar xzf Python-3.12.0.tgz
+tar xzf Python-3.10.4.tgz
 
-cd Python-3.12.0
+cd Python-3.10.4
 
 ./configure — enable-optimizations
 
 sudo make && sudo make install
 
-sudo alternatives — install /usr/bin/python3 python3 /usr/local/bin/python3.12 2
+sudo alternatives — install /usr/bin/python3 python3 /usr/local/bin/python3.10
 
 sudo yum install -y ffmpeg
 
 ```
 
-## Ubuntu/Debian series execute the following commands to install python3.12
+1. For Ubuntu/Debian series, execute the following commands to install python3.10
 
 ```
 
@@ -143,13 +140,13 @@ apt update
 
 sudo apt-get install libxcb-cursor0
 
-apt install python3.12
+apt install python3.10
 
-curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
-pip 23.2.1 from /usr/local/lib/python3.12/site-packages/pip (python 3.12)
+pip 23.2.1 from /usr/local/lib/python3.10/site-packages/pip (python 3.10)
 
-sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.12 1
+sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 
 
 sudo update-alternatives --config python
 
@@ -157,14 +154,16 @@ apt-get install ffmpeg
 
 ```
 
-**Open any terminal, execute `python3 -V`, if it displays “3.12.0”, the installation is successful, otherwise it's a failure.**
 
-1. Create a folder without spaces and Chinese characters, open the folder from the terminal.
-3. In the terminal execute the command `git clone https://github.com/jianchang512/pyvideotrans`.
-4. Continue with the command `cd pyvideotrans`.
-5. Continue with `python -m venv venv`.
-6. Continue with the command `source ./venv/bin/activate`, confirming that the terminal prompt starts with `(venv)`.
-7. Execute `pip install -r requirements.txt --no-deps`, if there's a failure prompt, switch to Aliyun mirror source and execute the following 2 commands.
+**Open any terminal and execute `python3 -V`, if the output is "3.10.4", it means the installation was successful; otherwise, it was not successful.**
+
+
+1. Create a folder without spaces or Chinese characters, then navigate to that folder from the terminal.
+3. In the terminal, execute `git clone https://github.com/jianchang512/pyvideotrans`
+4. Continue with `cd pyvideotrans`
+5. Execute `python -m venv venv`
+6. Continue with `source ./venv/bin/activate`, ensure the command line prompt has changed to start with `(venv)`, otherwise, it indicates an error.
+7. Execute `pip install -r requirements.txt --no-deps`, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba.
 
     ```
 
@@ -173,8 +172,8 @@ apt-get install ffmpeg
 
     ```
 
-    Then retry. If the failure persists, try `pip install -r requirements.txt  --ignore-installed --no-deps`.
-8. If you want to use CUDA acceleration, execute respectively
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
+8. To use CUDA acceleration, execute separately
 
     `pip uninstall -y torch torchaudio`
 
@@ -183,60 +182,89 @@ apt-get install ffmpeg
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
-9. To enable CUDA acceleration on Linux, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly, see [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+9. To enable CUDA acceleration on Linux, an Nvidia graphics card must be available, and the CUDA11.8+ environment must be properly set up. Please search "Linux CUDA Installation" for more information.
 
-10. `python sp.py` to open the software interface.
+
+10. `python sp.py` to open the software interface
+
 
 # Window10/11 Source Code Deployment
 
-0. Open https://www.python.org/downloads/ and download windows3.12, after downloading, keep clicking next, ensuring to select "Add to PATH".
+0. Open https://www.python.org/downloads/ to download Windows3.10, double-click to proceed with the installation, make sure to select "Add to PATH"
 
-   **Open a cmd, execute `python -V`, if the output is not `3.12.3`, it means there was an installation error, or "Add to PATH" was not selected, please reinstall.**
+   **Open a cmd, execute `python -V`, if the output is not `3.10.4`, it indicates an installation error or "Add to PATH" was not selected, please reinstall**
 
-1. Open https://github.com/git-for-windows/git/releases/download/v2.45.0.windows.1/Git-2.45.0-64-bit.exe, download git, after downloading keep clicking next.
-2. Find a folder that does not contain spaces and Chinese characters, type `cmd` in the address bar and hit enter to open the terminal, all commands are to be executed in this terminal.
-3. Execute the command `git clone https://github.com/jianchang512/pyvideotrans`.
-4. Continue with the command `cd pyvideotrans`.
-5. Continue with `python -m venv venv`.
-6. Continue with the command `.\venv\scripts\activate`, ensuring the command line starts with `(venv)`, otherwise, there's an error.
-7. If you want to use CUDA acceleration, execute respectively
+1. Open https://github.com/git-for-windows/git/releases/download/v2.45.0.windows.1/Git-2.45.0-64-bit.exe, download Git, double-click and proceed with the installation steps.
+2. Find a folder without spaces or Chinese characters, enter `cmd` in the address bar and press enter to open the terminal, all the following commands must be executed in this terminal.
+3. Execute `git clone https://github.com/jianchang512/pyvideotrans`
+4. Continue with `cd pyvideotrans`
+5. Execute `python -m venv venv`
+6. Continue with `.\venv\scripts\activate`, after execution check and confirm that the command line has changed to start with `(venv)`, otherwise, it indicates an error.
+7. Execute `pip install -r requirements.txt --no-deps`, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba
+
+    ```
+
+    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+    pip config set install.trusted-host mirrors.aliyun.com
+
+    ```
+
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
+8.  To use CUDA acceleration, execute separately
 
     `pip uninstall -y torch torchaudio`
 
     `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
 
-8. To enable CUDA acceleration on Windows, you must have an NVIDIA card and have configured the CUDA11.8+ environment properly, see [CUDA acceleration support](https://github.com/jianchang512/pyvideotrans?tab=readme-ov-file#cuda-%E5%8A%A0%E9%80%9F%E6%94%AF%E6%8C%81).
+9. For Windows, to enable CUDA acceleration, an Nvidia graphics card is required, and the CUDA11.8+ environment must be properly set up. See [CUDA Acceleration Support](https://pyvideotrans.com/gpu.html) for installation details.
 
-9. Linux If you want to use CUDA acceleration, you need to also install `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`.
+10. Unzip ffmpeg.zip to the current source code directory, prompt to overwrite if asked, make sure the ffmpeg folder under the source code directory contains ffmpeg.exe ffprobe.exe ytwin32.exe,
 
-10. Unzip ffmpeg.zip to the current source code directory, overwrite if prompted, ensure you can see ffmpeg.exe, ffprobe.exe, ytwin32.exe, in the ffmepg folder within the source code.
-
-11. `python sp.py` to open the software interface.
+11. `python sp.py` to open the software interface
 
 
-# Tutorial and Documentation
 
-Please check https://pyvideotrans.com/guide.html
+# Source Code Deployment Issue Explanation
+
+1. By default, ctranslate2 version 4.x is used, only supporting CUDA12.x version. If your CUDA version is below 12 and you cannot upgrade to CUDA12.x, please execute the command to uninstall ctranslate2 and then reinstall
+
+```
+
+pip uninstall -y ctranslate2
+
+pip install ctranslate2==3.24.0
+
+```
+
+2. You may encounter errors such as `xx module not found`. Open requirements.txt, search for the xx module, then remove the == and the version number after it.
 
 
-# Voice Recognition Models:
 
-   Download address: https://pyvideotrans.com/model.html
 
-   Description and differences introduction: https://pyvideotrans.com/02.html
+# User Guide and Documentation
+
+Please visit https://pyvideotrans.com/guide.html
+
+
+# Speech Recognition Models:
+
+   Download link: https://pyvideotrans.com/model.html
+
+   Model descriptions and differences: https://pyvideotrans.com/02.html
+
 
 
 # Video Tutorials (Third-party)
 
-[MacOS Source Code Deployment/Bilibili](https://www.bilibili.com/video/BV1tK421y7rd/)
+[Mac Source Code Deployment/Bilibili](https://www.bilibili.com/video/BV1tK421y7rd/)
 
-[How to Set Video Translation Using Gemini Api/Bilibili](https://b23.tv/fED1dS3)
+[Method of setting video translation with Gemini Api/Bilibili](https://b23.tv/fED1dS3)
 
 [How to Download and Install](https://www.bilibili.com/video/BV1Gr421s7cN/)
 
 
-# Software Preview Screenshots
+# Software Preview Screenshot
 
 ![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/e5089358-a6e5-4989-9a50-1876c51dc2a7)
 
@@ -245,18 +273,18 @@ Please check https://pyvideotrans.com/guide.html
 
 [OTT: Local Offline Text Translation Tool](https://github.com/jianchang512/ott)
 
-[Voice Clone Tool: Synthesize Speech with Any Voice Color](https://github.com/jianchang512/clone-voice)
+[Voice Clone Tool: Synthesizing Speech with Any Voice](https://github.com/jianchang512/clone-voice)
 
-[Voice Recognition Tool: Local Offline Speech-to-Text Tool](https://github.com/jianchang512/stt)
+[Speech Recognition Tool: Local Offline Speech-to-Text Tool](https://github.com/jianchang512/stt)
 
-[Vocal Background Music Separator: Vocal and Background Music Separation Tool](https://github.com/jianchang512/vocal-separate)
+[Vocal and Background Music Separation Tool](https://github.com/jianchang512/vocal-separate)
 
-[Improved version of GPT-SoVITS's api.py](https://github.com/jianchang512/gptsovits-api)
+[Improved version of api.py for GPT-SoVITS](https://github.com/jianchang512/gptsovits-api)
 
 
-## Acknowledgements
+## Acknowledgments
 
-> The main open source projects this program relies on:
+> This program mainly relies on several open-source projects
 
 1. ffmpeg
 2. PySide6
@@ -264,4 +292,3 @@ Please check https://pyvideotrans.com/guide.html
 4. faster-whisper
 5. openai-whisper
 6. pydub
-
