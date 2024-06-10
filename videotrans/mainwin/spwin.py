@@ -306,7 +306,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_cuda.triggered.connect(lambda: self.util.open_url('cuda'))
         self.action_online.triggered.connect(lambda: self.util.open_url('online'))
         self.action_website.triggered.connect(lambda: self.util.open_url('website'))
-        self.action_aihelp.triggered.connect(lambda: self.util.open_url('aihelp'))
         self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('help'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))

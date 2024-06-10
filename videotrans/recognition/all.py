@@ -59,12 +59,13 @@ def recogn(*,
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=config.settings['overall_silence'],
-                                              max_speech_duration_s=config.settings['overall_maxsecs']
+                                              max_speech_duration_s=config.settings['overall_maxsecs'],
+                                              threshold=config.settings['overall_threshold'],
+                                              speech_pad_ms=config.settings['overall_speech_pad_ms']
                                           ),
                                           word_timestamps=True,
                                           language=detect_language,
-                                          initial_prompt=None if detect_language != 'zh' else config.settings[
-                                              'initial_prompt_zh'])
+                                          initial_prompt=config.settings['initial_prompt_zh'])
 
         # 保留原始语言的字幕
         raw_subtitles = []

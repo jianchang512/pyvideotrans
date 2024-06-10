@@ -555,7 +555,7 @@ class SecWindow():
         elif title == 'issue':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/issues")
         elif title == 'discord':
-            webbrowser.open_new_tab("https://discord.gg/4WrxqBTSn8")
+            webbrowser.open_new_tab("https://discord.gg/y9gUweVCCJ")
         elif title == 'models':
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/0.0")
         elif title == 'dll':
@@ -603,9 +603,6 @@ class SecWindow():
 
 本软件的所有解释权均属于开发者。谨请用户在理解、同意、遵守本免责声明的前提下使用本软件。                
             """)
-
-        elif title == 'aihelp':
-            webbrowser.open_new_tab("https://www.coze.cn/store/bot/7358853334134112296?panel=1")
 
     # 工具箱
     def open_toolbox(self, index=0, is_hide=True):

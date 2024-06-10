@@ -91,7 +91,7 @@ def recogn(*,
         try:
             tr = model.transcribe(chunk_filename,
                                   language=detect_language,
-                                  initial_prompt=None if detect_language != 'zh' else config.settings['initial_prompt_zh'],
+                                  initial_prompt=config.settings['initial_prompt_zh'],
                                   condition_on_previous_text=config.settings['condition_on_previous_text']
             )
             for t in tr['segments']:
