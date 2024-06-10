@@ -106,11 +106,19 @@ def recogn(*,
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
-                                           beam_size=5,
-                                           best_of=5,
-                                           condition_on_previous_text=True,
+                                          beam_size=config.settings['beam_size'],
+                                          best_of=config.settings['best_of'],
+                                          condition_on_previous_text=config.settings['condition_on_previous_text'],
+                                           temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,0.6, 0.8, 1.0],
+                                           vad_filter=bool(config.settings['vad']),
+                                           vad_parameters=dict(
+                                               min_silence_duration_ms=config.settings['overall_silence'],
+                                               max_speech_duration_s=config.settings['overall_maxsecs'],
+                                               threshold=config.settings['overall_threshold'],
+                                               speech_pad_ms=config.settings['overall_speech_pad_ms']
+                                           ),
                                            language=detect_language,
-                                           initial_prompt=None if detect_language != 'zh' else config.settings['initial_prompt_zh'], )
+                                           initial_prompt=config.settings['initial_prompt_zh'], )
             for t in segments:
                 text += t.text + " "
         except Exception as e:

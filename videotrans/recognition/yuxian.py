@@ -13,7 +13,7 @@ from videotrans.util import tools
 
 
 # split audio by silence
-def shorten_voice(normalized_sound, max_interval=60000):
+def shorten_voice(normalized_sound, max_interval=300000):
     normalized_sound = tools.match_target_amplitude(normalized_sound, -20.0)
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
@@ -36,13 +36,13 @@ def recogn(*,
            detect_language=None,
            audio_file=None,
            cache_folder=None,
-           model_name="base",
+           model_name="tiny",
            set_p=True,
            inst=None,
            is_cuda=None):
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
-    if set_p:        
+    if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'], btnkey=inst.init['btnkey'] if inst else "")
     noextname = os.path.basename(audio_file)
     tmp_path = f'{cache_folder}/{noextname}_tmp'
@@ -110,19 +110,21 @@ def recogn(*,
                                            vad_filter=bool(config.settings['vad']),
                                            vad_parameters=dict(
                                                min_silence_duration_ms=config.settings['overall_silence'],
-                                               max_speech_duration_s=config.settings['overall_maxsecs']
+                                               max_speech_duration_s=config.settings['overall_maxsecs'],
+                                               threshold=config.settings['overall_threshold'],
+                                                speech_pad_ms=config.settings['overall_speech_pad_ms']
                                            ),
                                            word_timestamps=True,
                                            language=detect_language,
-                                           initial_prompt=None if detect_language != 'zh' else config.settings['initial_prompt_zh'], )
+                                           initial_prompt=config.settings['initial_prompt_zh'])
             for t in segments:
-                if detect_language == 'zh' and t.text == config.settings['initial_prompt_zh']:
+                if t.text == config.settings['initial_prompt_zh']:
                     continue
                 start_time, end_time, buffered = duration
                 text = t.text
                 text = f"{text.capitalize()}. ".replace('&#39;', "'")
                 text = re.sub(r'&#\d+;', '', text).strip().strip('.')
-                if detect_language == 'zh' and text == config.settings['initial_prompt_zh']:
+                if text == config.settings['initial_prompt_zh']:
                     continue
                 if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                     continue

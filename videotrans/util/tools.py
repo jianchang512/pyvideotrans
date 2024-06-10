@@ -454,7 +454,7 @@ def conver_to_8k(audio, target_audio):
         "-ac",
         "1",
         "-ar",
-        "8000",
+        "16000",
         Path(target_audio).as_posix(),
     ])
 
@@ -510,7 +510,7 @@ def m4a2wav(m4afile, wavfile):
         "-ac",
         "1",
         "-ar",
-        "8000",
+        "16000",
         "-b:a",
         "128k",
         "-c:a",
@@ -882,7 +882,7 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
         "-to",
         format_time(to, '.'),
         "-ar",
-        "8000",
+        "16000",
         out_file
     ]
     return runffmpeg(cmd)
