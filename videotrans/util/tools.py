@@ -1203,6 +1203,8 @@ def format_video(name, out=None):
         # 目标存放位置，完成后再复制
         obj['linshi_output'] = config.TEMP_DIR + f'/{obj["noextname"]}/_video_out'
         Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
+        # 从source目录copy文件到tmp目录
+        shutil.copy(name, obj['source_mp4'])
     return obj
 
 

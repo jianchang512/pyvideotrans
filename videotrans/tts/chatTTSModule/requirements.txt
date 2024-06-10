@@ -1,0 +1,13 @@
+Flask
+ipython
+modelscope
+numpy==1.26.4
+omegaconf
+python-dotenv
+requests
+soundfile
+tokenizers
+transformers
+vector-quantize-pytorch
+vocos
+waitress

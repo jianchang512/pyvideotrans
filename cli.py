@@ -149,6 +149,9 @@ if __name__ == '__main__':
     (base, ext) = os.path.splitext(config.params['source_mp4'].replace('\\', '/'))
     config.params['target_dir'] = os.path.dirname(base)
     obj_format = tools.format_video(config.params['source_mp4'].replace('\\', '/'), config.params['target_dir'])
+
+    config.params['video_autorate'] = False
+    config.params['append_video'] = False
     
     process_bar_data = [
         config.transobj['kaishichuli'],

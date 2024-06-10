@@ -1,0 +1,16 @@
+services:
+  chat-tts-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+    container_name: chat-tts-ui
+    restart: always
+    volumes:
+      - "./:/app"
+    ports:
+      - 9966:9966
+    user: "${UID}:${GID}"
+    environment:
+      LOG_LEVEL: DEBUG
+      WEB_ADDRESS: 0.0.0.0:9966
+    command: python3 app.py

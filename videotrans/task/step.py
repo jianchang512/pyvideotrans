@@ -355,7 +355,7 @@ class Runstep():
             voice_role = self.config_params['voice_role']
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
-            newrole = voice_role.replace('/', '-').replace('\\', '/')
+            newrole = str(voice_role).replace('/', '-').replace('\\', '/')
             filename = f'{i}-{newrole}-{self.config_params["voice_rate"]}-{self.config_params["voice_autorate"]}-{it["text"]}-{self.config_params["volume"].replace("%", "")}-{self.config_params["pitch"]}'
             md5_hash = hashlib.md5()
             md5_hash.update(f"{filename}".encode('utf-8'))

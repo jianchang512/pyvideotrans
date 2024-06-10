@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "chattts-ui"
+version = "0.1.0"
+description = "一个简单的本地网页界面，直接使用ChatTTS将文字合成为语音，同时支持对外提供API接口。"
+authors = ["jianchang512 <jianchang512@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/jianchang512/ChatTTS-ui"
+repository = "https://github.com/jianchang512/ChatTTS-ui"
+documentation = "https://github.com/jianchang512/ChatTTS-ui"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+soundfile = "^0.12.1"
+python-dotenv = "^1.0.1"
+flask = "^3.0.3"
+waitress = "^3.0.0"
+modelscope = "^1.14.0"
+langsegment = "^0.3.3"
+omegaconf = "^2.3.0"
+tokenizers = "^0.19.1"
+transformers = "^4.41.2"
+torch = [
+    { version = "^2.3.0+cu118", source = "pytorch-gpu-src" },
+    { platform = "darwin", version = "^2" }
+]
+torchaudio = [
+    { version = "^2.3.0+cu118", source = "pytorch-gpu-src" },
+    { platform = "darwin", version = "^2" }
+]
+vocos = "^0.1.0"
+vector-quantize-pytorch = "^1.14.24"
+numpy = { version = "^1.26.4" }
+
+# Optional dependencies that are not downloaded by default
+fastapi = { version = "*", extras = ["all"], optional = true }
+pydantic = { version = "^2", optional = true }
+
+[[tool.poetry.source]]
+name = "pytorch-gpu-src"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "explicit"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+ruff = "*"
+
+[tool.poetry.group.test.dependencies]
+# https://docs.pytest.org/en/stable/reference/plugin_list.html#plugin-list
+# https://docs.pytest.org/en/stable/contents.html
+pytest = "*"
+# https://pytest-asyncio.readthedocs.io/en/latest/
+pytest-asyncio = "*"
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+skip-magic-trailing-comma = true
+exclude = '''
+/(
+    ChatTTS
+    | .*
+    | build
+    | dist
+    | migrations
+    | __pycache__
+)/
+'''
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/stable/reference/reference.html#configuration-options
+testpaths = ["tests", "examples"]
+asyncio_mode = "auto"
+filterwarnings = "ignore::DeprecationWarning"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

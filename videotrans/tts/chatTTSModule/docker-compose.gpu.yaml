@@ -1,0 +1,23 @@
+services:
+  chat-tts-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: chat-tts-ui
+    restart: always
+    volumes:
+      - "./:/app"
+    ports:
+      - 9966:9966
+    user: "${UID}:${GID}"
+    environment:
+      LOG_LEVEL: DEBUG
+      WEB_ADDRESS: 0.0.0.0:9966
+      NVIDIA_VISIBLE_DEVICES: all
+    command: python3 app.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
