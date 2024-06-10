@@ -1,4 +1,4 @@
-[简体中文 Readme](./README.md) / [👑Donate to this project](./about.md) / [Discord invitation link](https://discord.gg/mTh5Cu5Bqm)
+[简体中文 Readme](./README.md) / [👑Donate to this project](./about.md) / [Discord invitation link](https://discord.gg/y9gUweVCCJ)
 
 # Video Translation and Voiceover Tool
 
