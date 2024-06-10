@@ -1,4 +1,4 @@
-[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [Discord邀请链接](https://discord.gg/mTh5Cu5Bqm) / 微信公众号：搜一搜“ pyvideotrans ”
+[English Readme](./README_EN.md)  /  [👑捐助该项目](./about.md) / [Discord邀请链接](https://discord.gg/y9gUweVCCJ) / 微信公众号：搜一搜“ pyvideotrans ”
 
 # 视频翻译配音工具
 
