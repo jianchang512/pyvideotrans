@@ -89,7 +89,7 @@ def recogn(*,
             local_files_only=local_res)
     for i, duration in enumerate(nonsilent_data):
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-            del model
+            #del model
             return False
         start_time, end_time, buffered = duration
 
@@ -98,7 +98,7 @@ def recogn(*,
         audio_chunk.export(chunk_filename, format="wav")
 
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-            del model
+            #del model
             return False
         text = ""
         try:
@@ -150,7 +150,7 @@ def recogn(*,
                 else:
                     tools.set_process_box(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", func_name="shibie", type="set")
         except Exception as e:
-            del model
+            #del model
             raise Exception(str(e.args)+str(e))
 
     if set_p:

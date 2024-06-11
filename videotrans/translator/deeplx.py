@@ -35,9 +35,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     url=config.params['deeplx_address'].strip().rstrip('/').replace('/translate','')+'/translate'
     if not url.startswith('http'):
         url=f"http://{url}"
-
+    proxies=None
     if not re.search(r'localhost',url) and not re.match(r'https?://(\d+\.){3}\d+',url):
         update_proxy(type='set')
+    else:
+        proxies={"https":"","http":""}
     # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
@@ -81,7 +83,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 }
                 config.logger.info(f'[DeepLX]发送请求数据,{data=}')
 
-                response = requests.post(url=url, json=data)
+                response = requests.post(url=url, json=data,proxies=proxies)
                 config.logger.info(f'[DeepLX]返回响应,{response.text=}')
                 try:
                     result = response.json()

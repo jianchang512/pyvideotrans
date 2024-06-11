@@ -5,23 +5,8 @@ import time
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
-shound_del=False
-def update_proxy(type='set'):
-    global shound_del
-    if type=='del' and shound_del:
-        del os.environ['http_proxy']
-        del os.environ['https_proxy']
-        del os.environ['all_proxy']
-        shound_del=False
-    elif type=='set':
-        raw_proxy=os.environ.get('http_proxy')
-        if not raw_proxy:
-            proxy=tools.set_proxy()
-            if proxy:
-                shound_del=True
-                os.environ['http_proxy'] = proxy
-                os.environ['https_proxy'] = proxy
-                os.environ['all_proxy'] = proxy
+
+
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
@@ -36,8 +21,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     url=url.replace('//translate','/translate')
     if not url.startswith('http'):
         url=f"http://{url}"
-    if not re.search(r'localhost',url) and not re.match(r'https?://(\d+\.){3}\d+',url):
-        update_proxy(type='set')
+    
     # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
@@ -82,7 +66,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
 
                 try:
-                    response = requests.post(url=url,json=data)
+                    response = requests.post(url=url,json=data,proxies={"https":"","http":""})
                 except Exception as e:
                     err=str(e)
                     break
@@ -122,7 +106,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 iter_num=0
         else:
             break
-    update_proxy(type="del")
 
     if err:
         config.logger.error(f'[OTT]翻译请求失败:{err=}')

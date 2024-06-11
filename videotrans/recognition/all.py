@@ -72,7 +72,7 @@ def recogn(*,
         sidx = -1
         for segment in segments:
             if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-                del model
+                #del model
                 return None
             if not segment.words or len(segment.words)<1:
                 continue
@@ -108,6 +108,7 @@ def recogn(*,
     finally:
         try:
             if model:
-                del model
+                pass
+                #del model
         except Exception:
             pass

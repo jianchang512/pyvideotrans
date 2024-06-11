@@ -92,7 +92,7 @@ def recogn(*,
             local_files_only=local_res)
     for i, duration in enumerate(nonsilent_data):
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-            del model
+            #del model
             return False
         start_time, end_time, buffered = duration
         if start_time == end_time:
@@ -122,7 +122,7 @@ def recogn(*,
             for t in segments:
                 text += t.text + " "
         except Exception as e:
-            del model
+            #del model
             raise Exception(str(e.args)+str(e))
 
         text = f"{text.capitalize()}. ".replace('&#39;', "'")
