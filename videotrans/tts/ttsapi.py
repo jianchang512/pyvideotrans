@@ -4,6 +4,23 @@ import sys
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
+shound_del=False
+def update_proxy(type='set'):
+    global shound_del
+    if type=='del' and shound_del:
+        del os.environ['http_proxy']
+        del os.environ['https_proxy']
+        del os.environ['all_proxy']
+        shound_del=False
+    elif type=='set':
+        raw_proxy=os.environ.get('http_proxy')
+        if not raw_proxy:
+            proxy=tools.set_proxy()
+            if proxy:
+                shound_del=True
+                os.environ['http_proxy'] = proxy
+                os.environ['https_proxy'] = proxy
+                os.environ['all_proxy'] = proxy
 
 
 def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, language=None, filename=None,set_p=True,inst=None):
@@ -13,10 +30,12 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         if not api_url:
             raise Exception("get_voice:"+config.transobj['ttsapi_nourl'])
         config.logger.info(f'TTS-API:api={api_url}')
+        if not re.search(r'localhost',api_url) and not re.match(r'https?://(\d+\.){3}\d+',api_url):
+            update_proxy(type='set')
 
         data={"text":text.strip(),"language":language,"extra":config.params['ttsapi_extra'],"voice":role,"ostype":sys.platform,rate:rate}
 
-        resraw=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},verify=False)
+        resraw=requests.post(f"{api_url}",data=data,verify=False)
         res=resraw.json()
         if "code" not in res or "msg" not in res:
             raise Exception(f'TTS-API:{res}')
@@ -44,3 +63,5 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         raise Exception(error)
     else:
         return True
+    finally:
+        update_proxy(type='del')

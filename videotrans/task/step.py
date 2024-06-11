@@ -271,6 +271,10 @@ class Runstep():
                 if silence_duration > 0:
                     silence = AudioSegment.silent(duration=silence_duration)
                     merged_audio += silence
+                elif silence_duration<0:
+                    it['start_time']=queue_tts[i - 1]['end_time']
+                    if it['end_time']<it['start_time']:
+                        it['end_time']=it['start_time']
             if config.settings['force_edit_srt']:
                 it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
@@ -448,6 +452,7 @@ class Runstep():
             # 需要两侧延伸
 
             # 最后一个，直接后延就可以
+            '''
             if i == max_index:
                 # 如果是最后一个，直接延长
                 it['end_time'] += diff
@@ -456,28 +461,34 @@ class Runstep():
                 it['raw_duration'] = it['end_time'] - it['start_time']
                 queue_tts[i] = it
                 continue
-
-            # 判断后边的开始时间比当前结束时间是否大于
-            next_diff = queue_tts[i + 1]['start_time'] - it['end_time']
-            if next_diff >= diff:
-                # 如果大于0，有空白，添加
-                it['end_time'] += diff
-                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-                it['raw_duration'] = it['end_time'] - it['start_time']
-                queue_tts[i] = it
-                continue
-
+            '''
+            if i == max_index:
+                next_diff=0
+            else:
+                # 判断后边的开始时间比当前结束时间是否大于
+                next_diff = queue_tts[i + 1]['start_time'] - it['end_time']
+                if next_diff >= diff:
+                    # 如果大于0，有空白，添加
+                    it['end_time'] += diff
+                    it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                    it['raw_duration'] = it['end_time'] - it['start_time']
+                    queue_tts[i] = it
+                    continue
+                if next_diff>0:
+                    it['end_time'] += next_diff
+                    next_diff=diff-next_diff
+                
             # 防止出错
             next_diff = 0 if next_diff < 0 else next_diff
-            # 先向后延伸占完空白，然后再向前添加，
-            it['end_time'] += next_diff
+
             # 判断是否存在前边偏移
             if it['start_time'] > 0:
                 # 前面空白
                 prev_diff = it['start_time'] if i == 0 else it['start_time'] - queue_tts[i - 1]['end_time']
                 # 前面再添加最多 diff - next_diff
-                it['start_time'] -= min(prev_diff, diff - next_diff)
-                it['start_time'] = 0 if it['start_time'] < 0 else it['start_time']
+                if prev_diff>0:                    
+                    it['start_time'] -= min(prev_diff, next_diff)
+                    it['start_time'] = 0 if it['start_time'] < 0 else it['start_time']
             it['raw_duration'] = it['end_time'] - it['start_time']
             it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
             it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
@@ -504,7 +515,6 @@ class Runstep():
     # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
     def _ajust_audio(self, queue_tts):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
-
         # 设置加速倍数
         for i, it in enumerate(queue_tts):
             it['speed'] = 0

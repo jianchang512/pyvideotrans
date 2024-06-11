@@ -39,7 +39,10 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
-    update_proxy(type='set')
+    proxies=None
+    pro=update_proxy(type='set')
+    if pro:
+        proxies={"https":pro,"http":pro}
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -67,7 +70,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         try:
-            auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers)
+            auth=requests.get('https://edge.microsoft.com/translate/auth',headers=headers,proxies=proxies)
         except:
             err='连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang=='zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel'
             continue

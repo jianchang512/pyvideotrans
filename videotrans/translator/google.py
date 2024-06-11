@@ -27,6 +27,8 @@ def update_proxy(type='set'):
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
                 os.environ['all_proxy'] = proxy
+                return proxy
+    return None
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
@@ -45,7 +47,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     # 记录最后一次错误
     err = ""
-    google_url=tools.get_google_url()
+    google_url="https://translate.google.com"
+    proxies=None
+    pro=update_proxy(type='set')
+    if pro:
+        proxies={"https":pro,"http":pro}
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -86,7 +92,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
-                response = requests.get(url,  headers=headers, timeout=300)
+                response = requests.get(url,  headers=headers, timeout=300,proxies=proxies)
                 config.logger.info(f'[Google]返回数据:{response.text=}')
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')

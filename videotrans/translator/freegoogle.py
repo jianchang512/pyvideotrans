@@ -33,6 +33,8 @@ def update_proxy(type='set'):
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
                 os.environ['all_proxy'] = proxy
+                return proxy
+    return None
 
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
@@ -44,7 +46,10 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-    update_proxy(type='set')
+    proxies=None
+    pro=update_proxy(type='set')
+    if pro:
+        proxies={"https":pro,"http":pro}
     # 翻译后的文本
     target_text = []
 
@@ -94,7 +99,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
                 config.logger.info(f'[FreeGoole] 发送请求:{url=}')
-                response = requests.get(url,  headers=headers, timeout=300)
+                response = requests.get(url,  headers=headers, timeout=300,proxies=proxies)
                 config.logger.info(f'[FreeGoole] 返回:{response.text=}')
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
