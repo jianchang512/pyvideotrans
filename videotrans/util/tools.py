@@ -1313,3 +1313,62 @@ def set_ass_font(srtfile=None):
     with open(assfile,'w',encoding='utf-8') as f:
         f.write("".join(ass_str))
     return os.path.basename(assfile)
+
+# 根据原始语言list中每个项字数，所占所字数比例，将翻译结果list target_list 按照同样比例切割
+# urgent是中日韩泰语言，按字符切割，否则按标点符号切割
+def format_result(source_list,target_list,target_lang="zh"):
+    source_len=[]
+    source_total=0
+    for it in source_list:
+        it_len=len(it.strip())
+        source_total+=it_len
+        source_len.append(it_len)
+    target_str=".".join(target_list).strip()
+    target_total=len(target_str)
+    target_len=[]
+    for num in source_len:
+        target_len.append(int(target_total*num/source_total))
+    # 开始截取文字
+    result=[]
+    start=0
+    # 如果是中日韩泰语言，直接按字切割
+    if (len(target_lang)<6 and target_lang[:2].lower() in ['zh','ja','ko','th']) or (len(target_lang)>5 and target_lang[:3].lower() in ['sim','tra','jap','kor','tha']):
+        for num in target_len:
+            text=target_str[start:start+num]
+            start=start+num
+            result.append(text)
+        return result
+
+    #如果其他语言，需要找到最近的标点或空格
+    flag=["."," ",",","!","?","-","_","~","(",")","[","]","{","}","<",">","/",";",":","|"]
+    for num in target_len:
+        lastpos=start+num
+        text=target_str[start:lastpos]
+        if num<3 or text[-1] in flag:
+            start=start+num
+            result.append(text)
+            continue
+        # 倒退3个到前进10个寻找标点
+        offset=-2
+        while offset<5:
+            lastpos+=offset
+            # 如果达到了末尾或者找到了标点则切割
+            if lastpos>=target_total or target_str[lastpos] in flag:
+                text=target_str[start:lastpos+1] if start<target_total else ""
+                start=lastpos+1
+                result.append(text)
+                break
+            offset+=1
+        # 已找到切割点
+        if offset<5:
+            continue
+        # 没找到分割标点，强制截断
+        text=target_str[start:start+num] if start<target_total else ""
+        start=start+num
+        result.append(text)
+    print(f'{result=}')
+    return result
+
+# 删除翻译结果的特殊字符
+def cleartext(text):
+    return text.replace('"','').replace("'",'').replace('&#39;','').replace('&quot;',"").strip()

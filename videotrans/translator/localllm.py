@@ -8,51 +8,15 @@ from openai import OpenAI, APIError
 from videotrans.configure import config
 from videotrans.util import tools
 
-def get_url(url=""):
-    
-    if not url.startswith('http'):
-        url='http://'+url    
-    # 删除末尾 /
-    url=url.rstrip('/').lower()
-    if not url or url.find(".openai.com")>-1:
-        return "https://api.openai.com/v1"
-    # 存在 /v1/xx的，改为 /v1
-    if re.match(r'.*/v1/(chat)?(/?completions)?$',url):
-        return re.sub(r'/v1.*$','/v1',url)
-    # 不是/v1结尾的改为 /v1
-    if url.find('/v1')==-1:
-        return url+"/v1"
-    return url
 
-shound_del=False
-def update_proxy(type='set'):
-    global shound_del
-    if type=='del' and shound_del:
-        del os.environ['http_proxy']
-        del os.environ['https_proxy']
-        del os.environ['all_proxy']
-        shound_del=False
-    elif type=='set':
-        raw_proxy=os.environ.get('http_proxy')
-        if not raw_proxy:
-            proxy=tools.set_proxy()
-            if proxy:
-                shound_del=True
-                os.environ['http_proxy'] = proxy
-                os.environ['https_proxy'] = proxy
-                os.environ['all_proxy'] = proxy
 
 def create_openai_client():
-    api_url = get_url(config.params['chatgpt_api'])
+    api_url = config.params['localllm_api']
     openai.base_url = api_url
-    config.logger.info(f'当前chatGPT:{api_url=}')
-    proxies=None
-    if not re.search('localhost',api_url) and  not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?',api_url):
-        update_proxy(type='set')
-    else:
-        proxies={"http://":None,"https://":None}
+    config.logger.info(f'当前localllm:{api_url=}')
+    proxies={"http://":None,"https://":None}
     try:
-        client = OpenAI(base_url=api_url,http_client=httpx.Client(proxies=proxies))
+        client = OpenAI(api_key=config.params['localllm_key'],base_url=api_url,http_client=httpx.Client(proxies=proxies))
     except Exception as e:
         raise Exception(f'API={api_url},{str(e)}')
     return client,api_url
@@ -63,27 +27,28 @@ def get_content(d,*,model=None,prompt=None,assiant=None):
         {'role': 'assistant', 'content': assiant},
         {'role': 'user', 'content':  "\n".join(d)},
     ]
-    config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
+    config.logger.info(f"\n[localllm]发送请求数据:{message=}")
     try:
         response = model.chat.completions.create(
-            model=config.params['chatgpt_model'],
+            model=config.params['localllm_model'],
             messages=message
         )
-        config.logger.info(f'[chatGPT]响应:{response=}')
+        config.logger.info(f'[localllm]响应:{response=}')
     except APIError as e:
-        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
+        config.logger.error(f'[localllm]请求失败:{str(e)}')
         raise Exception(f'{e.message=}')
     except Exception as e:
-        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
+        config.logger.error(f'[localllm]请求失败:{str(e)}')
         raise Exception(e)
     if isinstance(response,str):
         raise Exception(response)
+
     if response.choices:
         result = response.choices[0].message.content.strip()
     elif response.data and response.data['choices']:
         result = response.data['choices'][0]['message']['content'].strip()
     else:
-        config.logger.error(f'[chatGPT]请求失败:{response=}')
+        config.logger.error(f'[localllm]请求失败:{response=}')
         raise Exception(f"{response}")
 
     result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
@@ -110,8 +75,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
     #if is_srt and split_size>1:
-    prompt=config.params['chatgpt_template'].replace('{lang}', target_language)
-    with open(config.rootdir+"/videotrans/chatgpt.txt",'r',encoding="utf-8") as f:
+    prompt=config.params['localllm_template'].replace('{lang}', target_language)
+    with open(config.rootdir+"/videotrans/localllm.txt",'r',encoding="utf-8") as f:
         prompt=f.read()
     prompt=prompt.replace('{lang}', target_language)
     assiant=f"Sure, please provide the text you need translated into {target_language}"
@@ -143,7 +108,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             time.sleep(10)
 
         client,api_url = create_openai_client()
-        config.logger.info(f'[chatGPT],{api_url=}')
+        config.logger.info(f'[localllm],{api_url=}')
 
 
         for i,it in enumerate(split_source_text):
@@ -172,11 +137,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 if sep_len < raw_len:
                     print(f'翻译前后数量不一致，需要重新切割')
                     sep_res = tools.format_result(it, sep_res, target_lang=target_language)
-                # if sep_len != raw_len:
-                #     sep_res = []
-                #     for it_n in it:
-                #         t, response = get_content([it_n.strip()],model=client,prompt=prompt)
-                #         sep_res.append(t)
 
                 for x,result_item in enumerate(sep_res):
                     if x < len(it):
@@ -201,19 +161,19 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
         else:
             break
 
-    update_proxy(type='del')
+
 
     if err:
-        config.logger.error(f'[ChatGPT]翻译请求失败:{err=}')
+        config.logger.error(f'[localllm]翻译请求失败:{err=}')
         if err.lower().find("Connection error")>-1:
             err='连接失败 '+err
-        raise Exception(f'ChatGPT:{err}')
+        raise Exception(f'localllm:{err}')
 
     if not is_srt:
         return "\n".join(target_text["0"])
 
     if len(target_text['srts']) < len(text_list)/2:
-        raise Exception(f'ChatGPT:{config.transobj["fanyicuowu2"]},{config.params["chatgpt_api"]}')
+        raise Exception(f'localllm:{config.transobj["fanyicuowu2"]},{config.params["localllm_api"]}')
 
     for i, it in enumerate(text_list):
         if i< len(target_text['srts']):

@@ -287,6 +287,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongemini_key.triggered.connect(self.subform.set_gemini_key)
         self.actiontencent_key.triggered.connect(self.subform.set_tencent_key)
         self.actionchatgpt_key.triggered.connect(self.subform.set_chatgpt_key)
+        self.actionlocalllm_key.triggered.connect(self.subform.set_localllm_key)
         self.actiondeepL_key.triggered.connect(self.subform.set_deepL_key)
         self.actionElevenlabs_key.triggered.connect(self.subform.set_elevenlabs_key)
         self.actiondeepLX_address.triggered.connect(self.subform.set_deepLX_address)
@@ -434,6 +435,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["localllm_api"] = self.settings.value("localllm_api", "")
+        config.params["localllm_key"] = self.settings.value("localllm_key", "")
         config.params["azure_speech_key"] = self.settings.value("azure_speech_key", "")
         config.params["azure_speech_region"] = self.settings.value("azure_speech_region", "")
 
@@ -441,6 +444,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.clone_voicelist = self.settings.value("clone_voicelist", "").split(',')
 
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
+        config.params["localllm_model"] = self.settings.value("localllm_model", config.params['localllm_model'])
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
         config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")

@@ -77,13 +77,18 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 try:
                     result = response.json()
                 except Exception:
-                    err=config.transobj['notjson']+result.text
+                    err=config.transobj['notjson']+response.text
                     break
 
                 if "error" in result:
                     err=result['error']
                     break
-                result=result['translatedText'].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result=tools.cleartext(result['translatedText']).split("\n")
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:

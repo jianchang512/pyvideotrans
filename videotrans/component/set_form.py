@@ -12,6 +12,7 @@ from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.gptsovits import Ui_gptsovitsform
+from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
@@ -179,6 +180,16 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.chatgpt_model.addItems(config.chatgpt_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class LocalLLMForm(QDialog, Ui_localllmform):  # <===
+    def __init__(self, parent=None):
+        super(LocalLLMForm, self).__init__(parent)
+        self.setupUi(self)
+        self.localllm_model.addItems(config.localllm_model_list)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
 class GeminiForm(QDialog, Ui_geminiform):  # <===
     def __init__(self, parent=None):
         super(GeminiForm, self).__init__(parent)

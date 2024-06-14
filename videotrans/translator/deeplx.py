@@ -90,11 +90,16 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 except Exception as e:
                     err=config.transobj['notjson']+response.text
                     break
-                result=result['data'].strip().replace('&#39;','"').replace('&quot;',"'")
+                result=tools.cleartext(result['data'])
                 if not result:
                     err=f'无有效返回，{response.text=}'
                     break
                 result=result.split("\n")
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
@@ -103,6 +108,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
+
                 result_length = len(result)
                 while result_length < source_length:
                     result.append("")

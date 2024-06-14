@@ -648,6 +648,8 @@ class SecWindow():
                     self.main.subform.set_transapi()
                 elif name == translator.CHATGPT_NAME:
                     self.main.subform.set_chatgpt_key()
+                elif name == translator.LOCALLLM_NAME:
+                    self.main.subform.set_localllm_key()
                 elif name == translator.GEMINI_NAME:
                     self.main.subform.set_gemini_key()
                 elif name == translator.AZUREGPT_NAME:
