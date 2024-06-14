@@ -67,7 +67,7 @@ def parse_init():
         "retries":2,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen",
         "separate_sec":600,
-        "audio_rate":1.5,
+        "audio_rate":100,
         "video_rate":20,
         "initial_prompt_zh":"",
         "fontsize":16,
