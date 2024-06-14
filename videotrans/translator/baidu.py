@@ -83,10 +83,15 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     err= res['error_msg']
                     break
 
-                result = [tres['dst'].strip().replace('&#39;','"').replace('&quot;',"'") for tres in  res['trans_result']]
+                result = [tools.cleartext(tres['dst']) for tres in  res['trans_result']]
                 if not result or len(result)<1:
                     err=f'{resraw}'
                     break
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
 
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
@@ -95,8 +100,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                result_length = len(result)
 
+                result_length = len(result)
                 while result_length < source_length:
                     result.append("")
                     result_length += 1

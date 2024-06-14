@@ -934,6 +934,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["localllm_api"] = self.settings.value("localllm_api", "")
+        config.params["localllm_key"] = self.settings.value("localllm_key", "")
         config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
         config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
         config.params["gemini_key"] = self.settings.value("gemini_key", "")

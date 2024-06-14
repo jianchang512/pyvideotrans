@@ -183,21 +183,25 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                         tools.set_process_box(text=result + "\n",func_name="fanyi",type="set")
                     continue
 
-                sep_res = result.strip().split("\n")
+                sep_res = tools.cleartext(result).split("\n")
                 raw_len=len(it)
                 sep_len=len(sep_res)
-                if sep_len>raw_len:
-                    sep_res[raw_len-1]=".".join(sep_len[raw_len-1:])
-                    sep_res=sep_res[:raw_len]
-                if sep_len != raw_len:
-                    sep_res=[]
-                    for it_n in it:
-                        try:
-                            t,response=get_content([it_n.strip()],model=model,prompt=prompt)
-                        except Exception as e:
-                            config.logger.error(f'触发安全限制，{t=},{it_n=}')
-                            t="--"
-                        sep_res.append(t)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if sep_len<raw_len:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    sep_res=tools.format_result(it,sep_res,target_lang=target_language)
+                # if sep_len>raw_len:
+                #     sep_res[raw_len-1]=".".join(sep_len[raw_len-1:])
+                #     sep_res=sep_res[:raw_len]
+                # if sep_len != raw_len:
+                #     sep_res=[]
+                #     for it_n in it:
+                #         try:
+                #             t,response=get_content([it_n.strip()],model=model,prompt=prompt)
+                #         except Exception as e:
+                #             config.logger.error(f'触发安全限制，{t=},{it_n=}')
+                #             t="--"
+                #         sep_res.append(t)
 
                 for x, result_item in enumerate(sep_res):
                     if x < len(it):

@@ -71,7 +71,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             source_text = [t['text'] for t in text_list]
 
         # 切割为每次翻译多少行，值在 set.ini 中设定，默认10
-        split_size = 1#int(config.settings['trans_thread'])
+        split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
         response=None
         for i,it in enumerate(split_source_text):
@@ -84,7 +84,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             try:
 
                 data = {
-                    "text": quote("".join(it)),
+                    "text": quote("\n".join(it)),
                     "secret":config.params['trans_secret'],
                     "source_language": 'zh' if source_code.startswith('zh') else source_code,
                     "target_language": 'zh' if target_language.startswith('zh') else  target_language
@@ -105,11 +105,16 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 if result["code"]!=0:
                     err=result['msg']
                     break
-                result=result['text'].strip().replace('&#39;','"').replace('&quot;',"'")
+                result=tools.cleartext(result['text']).split("\n")
                 if not result:
                     err=f'{response.text=}'
                     break
-
+                source_length=len(it)
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
@@ -118,7 +123,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process(result+"\n\n", func_name="set_fanyi")
-
+                result_length = len(result)
+                while result_length < source_length:
+                    result.append("")
+                    result_length += 1
+                result = result[:source_length]
                 target_text.append(result)
 
             except Exception as e:

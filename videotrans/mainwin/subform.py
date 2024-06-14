@@ -27,28 +27,28 @@ class Subform():
 
         def save(role):
             # 初始化一个列表，用于存放所有选中 checkbox 的名字
-            checked_checkbox_names = get_checked_boxes(self.main.w)
+            checked_checkbox_names = get_checked_boxes(self.main.row)
 
             if len(checked_checkbox_names) < 1:
-                return QtWidgets.QMessageBox.critical(self.main.w, config.transobj['anerror'],
+                return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
                                             config.transobj['zhishaoxuanzeyihang'])
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
                 # 设置labe为角色名
-                ck = self.main.w.findChild(QtWidgets.QCheckBox, n)
+                ck = self.main.row.findChild(QtWidgets.QCheckBox, n)
                 ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
                 config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
 
         from videotrans.component import SetLineRole
-        self.main.w = SetLineRole()
+        self.main.row = SetLineRole()
         box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QtWidgets.QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
         if config.params['voice_role'] in ['No', '-', 'no']:
-            return QtWidgets.QMessageBox.critical(self.main.w, config.transobj['anerror'], config.transobj['xianxuanjuese'])
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'], config.transobj['xianxuanjuese'])
         if not self.main.subtitle_area.toPlainText().strip():
-            return QtWidgets.QMessageBox.critical(self.main.w, config.transobj['anerror'], config.transobj['youzimuyouset'])
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'], config.transobj['youzimuyouset'])
 
         #  获取字幕
         srt_json = tools.get_subtitle_from_srt(self.main.subtitle_area.toPlainText().strip(), is_file=False)
@@ -71,10 +71,10 @@ class Subform():
             h_layout.addWidget(line_edit)
             box.layout().addLayout(h_layout)
         box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.main.w.select_role.addItems(self.main.current_rolelist)
-        self.main.w.set_role_label.setText(config.transobj['shezhijuese'])
+        self.main.row.select_role.addItems(self.main.current_rolelist)
+        self.main.row.set_role_label.setText(config.transobj['shezhijuese'])
 
-        self.main.w.select_role.currentTextChanged.connect(save)
+        self.main.row.select_role.currentTextChanged.connect(save)
         # 创建 QScrollArea 并将 box QWidget 设置为小部件
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidget(box)
@@ -82,10 +82,10 @@ class Subform():
         scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 将 QScrollArea 添加到主窗口的 layout
-        self.main.w.layout.addWidget(scroll_area)
+        self.main.row.layout.addWidget(scroll_area)
 
-        self.main.w.set_ok.clicked.connect(lambda: self.main.w.close())
-        self.main.w.show()
+        self.main.row.set_ok.clicked.connect(lambda: self.main.row.close())
+        self.main.row.show()
 
 
 
@@ -134,22 +134,22 @@ class Subform():
     # set deepl key
     def set_deepL_key(self):
         def save():
-            key = self.main.w.deepl_authkey.text()
-            api = self.main.w.deepl_api.text().strip()
+            key = self.main.dlw.deepl_authkey.text()
+            api = self.main.dlw.deepl_api.text().strip()
             self.main.settings.setValue("deepl_authkey", key)
             config.params['deepl_authkey'] = key
             self.main.settings.setValue("deepl_api", api)
             config.params['deepl_api'] = api
-            self.main.w.close()
+            self.main.dlw.close()
 
         from videotrans.component import DeepLForm
-        self.main.w = DeepLForm()
+        self.main.dlw = DeepLForm()
         if config.params['deepl_authkey']:
-            self.main.w.deepl_authkey.setText(config.params['deepl_authkey'])
+            self.main.dlw.deepl_authkey.setText(config.params['deepl_authkey'])
         if config.params['deepl_api']:
-            self.main.w.deepl_api.setText(config.params['deepl_api'])
-        self.main.w.set_deepl.clicked.connect(save)
-        self.main.w.show()
+            self.main.dlw.deepl_api.setText(config.params['deepl_api'])
+        self.main.dlw.set_deepl.clicked.connect(save)
+        self.main.dlw.show()
 
     def set_auzuretts_key(self):
         class TestTTS(QThread):
@@ -228,45 +228,45 @@ class Subform():
 
     def set_elevenlabs_key(self):
         def save():
-            key = self.main.w.elevenlabstts_key.text()
+            key = self.main.ew.elevenlabstts_key.text()
             self.main.settings.setValue("elevenlabstts_key", key)
             config.params['elevenlabstts_key'] = key
-            self.main.w.close()
+            self.main.ew.close()
 
         from videotrans.component import ElevenlabsForm
-        self.main.w = ElevenlabsForm()
+        self.main.ew = ElevenlabsForm()
         if config.params['elevenlabstts_key']:
-            self.main.w.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
-        self.main.w.set.clicked.connect(save)
-        self.main.w.show()
+            self.main.ew.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
+        self.main.ew.set.clicked.connect(save)
+        self.main.ew.show()
 
     def set_deepLX_address(self):
         def save():
-            key = self.main.w.deeplx_address.text()
+            key = self.main.ew.deeplx_address.text()
             self.main.settings.setValue("deeplx_address", key)
             config.params["deeplx_address"] = key
-            self.main.w.close()
+            self.main.ew.close()
 
         from videotrans.component import DeepLXForm
-        self.main.w = DeepLXForm()
+        self.main.ew = DeepLXForm()
         if config.params["deeplx_address"]:
-            self.main.w.deeplx_address.setText(config.params["deeplx_address"])
-        self.main.w.set_deeplx.clicked.connect(save)
-        self.main.w.show()
+            self.main.ew.deeplx_address.setText(config.params["deeplx_address"])
+        self.main.ew.set_deeplx.clicked.connect(save)
+        self.main.ew.show()
 
     def set_ott_address(self):
         def save():
-            key = self.main.w.ott_address.text()
+            key = self.main.ow.ott_address.text()
             self.main.settings.setValue("ott_address", key)
             config.params["ott_address"] = key
-            self.main.w.close()
+            self.main.ow.close()
 
         from videotrans.component import OttForm
-        self.main.w = OttForm()
+        self.main.ow = OttForm()
         if config.params["ott_address"]:
-            self.main.w.ott_address.setText(config.params["ott_address"])
-        self.main.w.set_ott.clicked.connect(save)
-        self.main.w.show()
+            self.main.ow.ott_address.setText(config.params["ott_address"])
+        self.main.ow.set_ott.clicked.connect(save)
+        self.main.ow.show()
 
     def set_clone_address(self):
         class TestTTS(QThread):
@@ -355,7 +355,11 @@ class Subform():
             if not self.main.chatttsw.chattts_address.text().strip():
                 QtWidgets.QMessageBox.critical(self.main.chatttsw, config.transobj['anerror'], '必须填写http地址')
                 return
-            config.params['chattts_api'] = self.main.chatttsw.chattts_address.text().strip()
+            apiurl=self.main.chatttsw.chattts_address.text().strip()
+            if not apiurl:
+                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'], '必须填写api地址' if config.defaulelang=='zh' else 'Please input ChatTTS API url')
+
+            config.params['chattts_api'] = apiurl
             task = TestTTS(parent=self.main.chatttsw,
                            text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
                            )
@@ -430,41 +434,41 @@ class Subform():
     # set baidu
     def set_baidu_key(self):
         def save_baidu():
-            appid = self.main.w.baidu_appid.text()
-            miyue = self.main.w.baidu_miyue.text()
+            appid = self.main.baw.baidu_appid.text()
+            miyue = self.main.baw.baidu_miyue.text()
             self.main.settings.setValue("baidu_appid", appid)
             self.main.settings.setValue("baidu_miyue", miyue)
             config.params["baidu_appid"] = appid
             config.params["baidu_miyue"] = miyue
-            self.main.w.close()
+            self.main.baw.close()
 
         from videotrans.component import BaiduForm
-        self.main.w = BaiduForm()
+        self.main.baw = BaiduForm()
         if config.params["baidu_appid"]:
-            self.main.w.baidu_appid.setText(config.params["baidu_appid"])
+            self.main.baw.baidu_appid.setText(config.params["baidu_appid"])
         if config.params["baidu_miyue"]:
-            self.main.w.baidu_miyue.setText(config.params["baidu_miyue"])
-        self.main.w.set_badiu.clicked.connect(save_baidu)
-        self.main.w.show()
+            self.main.baw.baidu_miyue.setText(config.params["baidu_miyue"])
+        self.main.baw.set_badiu.clicked.connect(save_baidu)
+        self.main.baw.show()
 
     def set_tencent_key(self):
         def save():
-            SecretId = self.main.w.tencent_SecretId.text()
-            SecretKey = self.main.w.tencent_SecretKey.text()
+            SecretId = self.main.tew.tencent_SecretId.text()
+            SecretKey = self.main.tew.tencent_SecretKey.text()
             self.main.settings.setValue("tencent_SecretId", SecretId)
             self.main.settings.setValue("tencent_SecretKey", SecretKey)
             config.params["tencent_SecretId"] = SecretId
             config.params["tencent_SecretKey"] = SecretKey
-            self.main.w.close()
+            self.main.tew.close()
 
         from videotrans.component import TencentForm
-        self.main.w = TencentForm()
+        self.main.tew = TencentForm()
         if config.params["tencent_SecretId"]:
-            self.main.w.tencent_SecretId.setText(config.params["tencent_SecretId"])
+            self.main.tew.tencent_SecretId.setText(config.params["tencent_SecretId"])
         if config.params["tencent_SecretKey"]:
-            self.main.w.tencent_SecretKey.setText(config.params["tencent_SecretKey"])
-        self.main.w.set_tencent.clicked.connect(save)
-        self.main.w.show()
+            self.main.tew.tencent_SecretKey.setText(config.params["tencent_SecretKey"])
+        self.main.tew.set_tencent.clicked.connect(save)
+        self.main.tew.show()
 
     # set chatgpt
     def set_chatgpt_key(self):
@@ -547,6 +551,86 @@ class Subform():
         self.main.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.main.w.test_chatgpt.clicked.connect(test)
         self.main.w.show()
+    def set_localllm_key(self):
+        class TestLocalLLM(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None):
+                super().__init__(parent=parent)
+
+            def run(self):
+                try:
+                    from videotrans.translator.localllm import trans as trans_localllm
+                    raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
+                    text = trans_localllm(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, is_test=True)
+                    self.uito.emit(f"ok:{raw}\n{text}")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if not d.startswith("ok:"):
+                QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'], d)
+            else:
+                QtWidgets.QMessageBox.information(self.main.llmw, "OK", d[3:])
+            self.main.llmw.test_localllm.setText('测试' if config.defaulelang == 'zh' else 'Test')
+
+        def test():
+            key = self.main.llmw.localllm_key.text()
+            api = self.main.llmw.localllm_api.text().strip()
+            if not api:
+                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'], '必须填写api地址' if config.defaulelang=='zh' else 'Please input LLM API url')
+
+            model = self.main.llmw.localllm_model.currentText()
+            template = self.main.llmw.localllm_template.toPlainText()
+            self.main.settings.setValue("localllm_key", key)
+            self.main.settings.setValue("localllm_api", api)
+
+            self.main.settings.setValue("localllm_model", model)
+            self.main.settings.setValue("localllm_template", template)
+
+            config.params["localllm_key"] = key
+            config.params["localllm_api"] = api
+            config.params["localllm_model"] = model
+            config.params["localllm_template"] = template
+
+            task = TestLocalLLM(parent=self.main.llmw)
+            self.main.llmw.test_localllm.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+        def save_localllm():
+            key = self.main.llmw.localllm_key.text()
+            api = self.main.llmw.localllm_api.text().strip()
+
+            model = self.main.llmw.localllm_model.currentText()
+            template = self.main.llmw.localllm_template.toPlainText()
+            self.main.settings.setValue("localllm_key", key)
+            self.main.settings.setValue("localllm_api", api)
+
+            self.main.settings.setValue("localllm_model", model)
+            self.main.settings.setValue("localllm_template", template)
+
+            config.params["localllm_key"] = key
+            config.params["localllm_api"] = api
+            config.params["localllm_model"] = model
+            config.params["localllm_template"] = template
+
+            self.main.llmw.close()
+
+        from videotrans.component import LocalLLMForm
+        self.main.llmw = LocalLLMForm()
+        if config.params["localllm_key"]:
+            self.main.llmw.localllm_key.setText(config.params["localllm_key"])
+        if config.params["localllm_api"]:
+            self.main.llmw.localllm_api.setText(config.params["localllm_api"])
+        if config.params["localllm_model"]:
+            self.main.llmw.localllm_model.setCurrentText(config.params["localllm_model"])
+        if config.params["localllm_template"]:
+            self.main.llmw.localllm_template.setPlainText(config.params["localllm_template"])
+        self.main.llmw.set_localllm.clicked.connect(save_localllm)
+        self.main.llmw.test_localllm.clicked.connect(test)
+        self.main.llmw.show()
+
 
     def set_ttsapi(self):
         class TestTTS(QThread):
@@ -781,31 +865,31 @@ class Subform():
 
     def set_gemini_key(self):
         def save():
-            key = self.main.w.gemini_key.text()
-            template = self.main.w.gemini_template.toPlainText()
+            key = self.main.gw.gemini_key.text()
+            template = self.main.gw.gemini_template.toPlainText()
             self.main.settings.setValue("gemini_key", key)
             self.main.settings.setValue("gemini_template", template)
 
             os.environ['GOOGLE_API_KEY'] = key
             config.params["gemini_key"] = key
             config.params["gemini_template"] = template
-            self.main.w.close()
+            self.main.gw.close()
 
         from videotrans.component import GeminiForm
-        self.main.w = GeminiForm()
+        self.main.gw = GeminiForm()
         if config.params["gemini_key"]:
-            self.main.w.gemini_key.setText(config.params["gemini_key"])
+            self.main.gw.gemini_key.setText(config.params["gemini_key"])
         if config.params["gemini_template"]:
-            self.main.w.gemini_template.setPlainText(config.params["gemini_template"])
-        self.main.w.set_gemini.clicked.connect(save)
-        self.main.w.show()
+            self.main.gw.gemini_template.setPlainText(config.params["gemini_template"])
+        self.main.gw.set_gemini.clicked.connect(save)
+        self.main.gw.show()
 
     def set_azure_key(self):
         def save():
-            key = self.main.w.azure_key.text()
-            api = self.main.w.azure_api.text()
-            model = self.main.w.azure_model.currentText()
-            template = self.main.w.azure_template.toPlainText()
+            key = self.main.azw.azure_key.text()
+            api = self.main.azw.azure_api.text()
+            model = self.main.azw.azure_model.currentText()
+            template = self.main.azw.azure_template.toPlainText()
             self.main.settings.setValue("azure_key", key)
             self.main.settings.setValue("azure_api", api)
 
@@ -816,20 +900,20 @@ class Subform():
             config.params["azure_api"] = api
             config.params["azure_model"] = model
             config.params["azure_template"] = template
-            self.main.w.close()
+            self.main.azw.close()
 
         from videotrans.component import AzureForm
-        self.main.w = AzureForm()
+        self.main.azw = AzureForm()
         if config.params["azure_key"]:
-            self.main.w.azure_key.setText(config.params["azure_key"])
+            self.main.azw.azure_key.setText(config.params["azure_key"])
         if config.params["azure_api"]:
-            self.main.w.azure_api.setText(config.params["azure_api"])
+            self.main.azw.azure_api.setText(config.params["azure_api"])
         if config.params["azure_model"]:
-            self.main.w.azure_model.setCurrentText(config.params["azure_model"])
+            self.main.azw.azure_model.setCurrentText(config.params["azure_model"])
         if config.params["azure_template"]:
-            self.main.w.azure_template.setPlainText(config.params["azure_template"])
-        self.main.w.set_azure.clicked.connect(save)
-        self.main.w.show()
+            self.main.azw.azure_template.setPlainText(config.params["azure_template"])
+        self.main.azw.set_azure.clicked.connect(save)
+        self.main.azw.show()
 
     def open_separate(self):
         def get_file():

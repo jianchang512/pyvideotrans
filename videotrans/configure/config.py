@@ -66,6 +66,7 @@ def parse_init():
         "video_codec":264,
         "retries":2,
         "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,qwen",
+        "localllm_model":"qwen",
         "separate_sec":600,
         "audio_rate":1.5,
         "video_rate":20,
@@ -192,6 +193,7 @@ ChatTTS_voicelist=re.split('\,|，',settings['chattts_voice'])
 
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]
+localllm_model_list = [ it.strip() for it in settings['localllm_model'].split(',')]
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
@@ -265,8 +267,12 @@ params = {
 
     "chatgpt_api": "",
     "chatgpt_key": "",
+    "localllm_api": "",
+    "localllm_key": "",
     "chatgpt_model":chatgpt_model_list[0],
+    "localllm_model":localllm_model_list[0],
     "chatgpt_template": "",
+    "localllm_template": "",
     "azure_api": "",
     "azure_key": "",
     "azure_model": "gpt-3.5-turbo",
@@ -293,9 +299,11 @@ params = {
 }
 
 chatgpt_path=root_path/'videotrans/chatgpt.txt'
+localllm_path=root_path/'videotrans/localllm.txt'
 azure_path=root_path/'videotrans/azure.txt'
 gemini_path=root_path/'videotrans/gemini.txt'
 
+params['localllm_template']=localllm_path.read_text(encoding='utf-8').strip()+"\n"
 params['chatgpt_template']=chatgpt_path.read_text(encoding='utf-8').strip()+"\n"
 params['azure_template']=azure_path.read_text(encoding='utf-8').strip()+"\n"
 params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
