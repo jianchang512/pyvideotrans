@@ -551,6 +551,7 @@ class Subform():
         self.main.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.main.w.test_chatgpt.clicked.connect(test)
         self.main.w.show()
+
     def set_localllm_key(self):
         class TestLocalLLM(QThread):
             uito = Signal(str)
@@ -631,6 +632,77 @@ class Subform():
         self.main.llmw.test_localllm.clicked.connect(test)
         self.main.llmw.show()
 
+
+    def set_zijiehuoshan_key(self):
+        class TestZijiehuoshan(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None):
+                super().__init__(parent=parent)
+
+            def run(self):
+                try:
+                    from videotrans.translator.huoshan import trans as trans_zijiehuoshan
+                    raw = "你好啊我的朋友"
+                    text = trans_zijiehuoshan(raw,"English", set_p=False, is_test=True)
+                    self.uito.emit(f"ok:{raw}\n{text}")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if not d.startswith("ok:"):
+                QtWidgets.QMessageBox.critical(self.main.zijiew, config.transobj['anerror'], d)
+            else:
+                QtWidgets.QMessageBox.information(self.main.zijiew, "OK", d[3:])
+            self.main.zijiew.test_zijiehuoshan.setText('测试')
+
+        def test():
+            key = self.main.zijiew.zijiehuoshan_key.text()
+            model = self.main.zijiew.zijiehuoshan_model.currentText()
+            if not key or  not model.strip():
+                return QtWidgets.QMessageBox.critical(self.main.zijiew, config.transobj['anerror'], '必须填写API key和推理接入点')
+
+            template = self.main.zijiew.zijiehuoshan_template.toPlainText()
+            self.main.settings.setValue("zijiehuoshan_key", key)
+            self.main.settings.setValue("zijiehuoshan_model", model)
+            self.main.settings.setValue("zijiehuoshan_template", template)
+
+            config.params["zijiehuoshan_key"] = key
+            config.params["zijiehuoshan_model"] = model
+            config.params["zijiehuoshan_template"] = template
+
+            task = TestZijiehuoshan(parent=self.main.zijiew)
+            self.main.zijiew.test_zijiehuoshan.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+        def save_zijiehuoshan():
+            key = self.main.zijiew.zijiehuoshan_key.text()
+
+            model = self.main.zijiew.zijiehuoshan_model.currentText()
+            template = self.main.zijiew.zijiehuoshan_template.toPlainText()
+            self.main.settings.setValue("zijiehuoshan_key", key)
+
+            self.main.settings.setValue("zijiehuoshan_model", model)
+            self.main.settings.setValue("zijiehuoshan_template", template)
+
+            config.params["zijiehuoshan_key"] = key
+            config.params["zijiehuoshan_model"] = model
+            config.params["zijiehuoshan_template"] = template
+
+            self.main.zijiew.close()
+
+        from videotrans.component import ZijiehuoshanForm
+        self.main.zijiew = ZijiehuoshanForm()
+        if config.params["zijiehuoshan_key"]:
+            self.main.zijiew.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
+        if config.params["zijiehuoshan_model"]:
+            self.main.zijiew.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
+        if config.params["zijiehuoshan_template"]:
+            self.main.zijiew.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
+        self.main.zijiew.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
+        self.main.zijiew.test_zijiehuoshan.clicked.connect(test)
+        self.main.zijiew.show()
 
     def set_ttsapi(self):
         class TestTTS(QThread):

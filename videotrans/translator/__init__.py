@@ -11,6 +11,7 @@ OTT_NAME = "OTT"
 TENCENT_NAME = "Tencent"
 CHATGPT_NAME = "chatGPT"
 LOCALLLM_NAME = "LocalLLM"
+ZIJIE_NAME = "ZijieHuoshan"
 AZUREGPT_NAME = "AzureGPT"
 GEMINI_NAME = "Gemini"
 TRANSAPI_NAME = "TransAPI"
@@ -22,6 +23,7 @@ TRANSNAMES = [
     MICROSOFT_NAME,
     #FREECHATGPT_NAME,
     GOOGLE_NAME,
+    ZIJIE_NAME,
     BAIDU_NAME,
     DEEPL_NAME,
     CHATGPT_NAME,
@@ -295,7 +297,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
     elif lower_translate_type == TENCENT_NAME.lower():
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    elif lower_translate_type in [FREECHATGPT_NAME.lower(),CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower(),LOCALLLM_NAME.lower()]:
+    elif lower_translate_type in [FREECHATGPT_NAME.lower(),CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower(),LOCALLLM_NAME.lower(),ZIJIE_NAME.lower()]:
        return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif lower_translate_type == OTT_NAME.lower():
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
@@ -316,6 +318,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False)
         return config.transobj['chatgptkeymust']
     if lower_translate_type == LOCALLLM_NAME and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang=='zh' else 'Please input Local LLM API url'
+    if lower_translate_type == ZIJIE_NAME and (not config.params['bytehuoshan_model'] or not config.params['bytehuoshan_key']):
+        return '必须填写字节火山api_key和推理接入点'
+
     if lower_translate_type == GEMINI_NAME and not config.params['gemini_key']:
         return config.transobj['chatgptkeymust']
     if lower_translate_type == AZUREGPT_NAME.lower() and (
@@ -400,8 +405,8 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         from videotrans.translator.chatgpt import trans
     elif lower_translate_type == LOCALLLM_NAME.lower():
         from videotrans.translator.localllm import trans
-    #elif lower_translate_type == FREECHATGPT_NAME.lower():
-    #    from videotrans.translator.freechatgpt import trans
+    elif lower_translate_type == ZIJIE_NAME.lower():
+       from videotrans.translator.huoshan import trans
     elif lower_translate_type == GEMINI_NAME.lower():
         from videotrans.translator.gemini import trans
     elif lower_translate_type == AZUREGPT_NAME.lower():

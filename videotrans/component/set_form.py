@@ -26,6 +26,7 @@ from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.zh_recogn import Ui_zhrecognform
+from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -186,6 +187,14 @@ class LocalLLMForm(QDialog, Ui_localllmform):  # <===
         super(LocalLLMForm, self).__init__(parent)
         self.setupUi(self)
         self.localllm_model.addItems(config.localllm_model_list)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
+    def __init__(self, parent=None):
+        super(ZijiehuoshanForm, self).__init__(parent)
+        self.setupUi(self)
+        self.zijiehuoshan_model.addItems(config.zijiehuoshan_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
