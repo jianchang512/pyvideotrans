@@ -37,7 +37,7 @@ Contribute to the project to help with its ongoing maintenance
 <img src="https://pyvideotrans.com/images/alipay.png" width="200">
 
 
-## 捐助者列表
+# [pyVideoTrans项目](https://github.com/jianchang512/pyvideotrans)捐助者列表
 
 **感谢所有捐助者，您的支持是我坚持维护的动力**
 
@@ -275,12 +275,22 @@ Contribute to the project to help with its ongoing maintenance
 | 崔*9   |    2024-6-8     | 捐助 8.88 元 |
 | *聊   |    2024-6-10     | 捐助 6.66 元 |
 | Q*J   |    2024-6-11     | 捐助 20 元 |
+| *龙(支付宝)   |    2024-6-11     | 捐助 19.9 元 |
 | g*g   |    2024-6-12     | 捐助 10 元 |
 | derbyoen   |    2024-6-12     | 捐助 20 元 |
 | *海   |    2024-6-12     | 捐助 50 元 |
-| *龙(支付宝)   |    2024-6-11     | 捐助 19.9 元 |
+| *哥   |    2024-6-14     | 捐助 12 元 |
+
+| T*m(ccynet) |    2024-6-14     | 捐助 20 元 |
+| *就   |    2024-6-15     | 捐助 88.88 元 |
 
 
+
+# [ChatTTS-ui项目](https://github.com/jianchang512/chattts-ui)捐助者列表
+
+| 微信支付宝昵称/GitHub用户名 | 日期  | 金额 |
+| --- | --- | --- |
+| T*m(ccynet) |    2024-6-14     | 捐助 10 元 |
 
 **未标注付款方式的即为微信支付，括号内标注为GitHub用户名，感谢所有支持者，软件的每一点进步都离不开您的支持和帮助。**
 

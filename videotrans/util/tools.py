@@ -208,7 +208,10 @@ def runffmpeg(arg, *, noextname=None,
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = config.video_codec
-
+    
+    
+    arg.insert(-1,f'-fps_mode')
+    arg.insert(-1,f'cfr' if fps else 'vfr')
     cmd = cmd + arg
     print(f'ffmpeg:{cmd=}')
     config.logger.info(f'runffmpeg-tihuan:{cmd=}')
@@ -402,6 +405,8 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
         "-i",
         source_mp4,
         "-vn",
+        "-ac",
+        "1",
         "-c:a",
         "aac",
         targe_audio

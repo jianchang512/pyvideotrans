@@ -50,22 +50,23 @@ class StartWindow(QtWidgets.QWidget):
 
     def run(self):
         # 创建并显示窗口B
-        try:
+        # try:
 
-            if not Path("./nostyle.txt").exists():
-                import videotrans.ui.dark.darkstyle_rc
-                with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
-                    app.setStyleSheet(f.read())
+        if not Path("./nostyle.txt").exists():
+            import videotrans.ui.dark.darkstyle_rc
+            with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
+                app.setStyleSheet(f.read())
 
-            st = time.time()
-            from videotrans.mainwin.spwin import MainWindow
-            MainWindow(width=self.width, height=self.height)
-            Path(Path.cwd() / "tmp").mkdir(parents=True, exist_ok=True)
-            et = time.time()
-            print(f'启动用时：{et - st}')
-            self.close()
-        except Exception as e:
-            print(f'main window {str(e)}')
+        st = time.time()
+        from videotrans.mainwin.spwin import MainWindow
+        MainWindow(width=self.width, height=self.height)
+        Path(Path.cwd() / "tmp").mkdir(parents=True, exist_ok=True)
+        et = time.time()
+        print(f'启动用时：{et - st}')
+        self.close()
+        # except Exception as e:
+        #     print(e)
+        #     print(f'main window {str(e)}')
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
