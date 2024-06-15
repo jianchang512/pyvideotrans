@@ -146,6 +146,7 @@ if __name__ == '__main__':
         set_proxy(config.proxy)
     config.current_status = 'ing'
     config.params['app_mode'] = 'cli'
+    config.params['mode'] = 'cli'
     (base, ext) = os.path.splitext(config.params['source_mp4'].replace('\\', '/'))
     config.params['target_dir'] = os.path.dirname(base)
     obj_format = tools.format_video(config.params['source_mp4'].replace('\\', '/'), config.params['target_dir'])

@@ -1,7 +1,4 @@
 import os
-import re
-import sys
-from pathlib import Path
 import torch
 import torch._dynamo
 torch._dynamo.config.suppress_errors = True
@@ -10,19 +7,14 @@ torch._dynamo.config.suppress_errors = True
 torch.set_float32_matmul_precision('high')
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-import soundfile as sf
 import datetime
 from dotenv import load_dotenv
-from flask import Flask, request, render_template, jsonify,  send_from_directory
 import logging
 from logging.handlers import RotatingFileHandler
-from waitress import serve
 load_dotenv()
 
 
-from random import random
 from modelscope import snapshot_download
-import numpy as np
 from videotrans.tts.chatTTSModule import ChatTTS
 from videotrans.tts.chatTTSModule.uilib.cfg import LOGS_DIR, MODEL_DIR, ROOT_DIR
 
@@ -53,15 +45,9 @@ log = logging.getLogger('werkzeug')
 log.handlers[:] = []
 log.setLevel(logging.WARNING)
 
-app = Flask(__name__, 
-    static_folder=ROOT_DIR+'/static', 
-    static_url_path='/static',
-    template_folder=ROOT_DIR+'/templates')
-
 root_log = logging.getLogger()  # Flask的根日志记录器
 root_log.handlers = []
 root_log.setLevel(logging.WARNING)
-app.logger.setLevel(logging.WARNING) 
 # 创建 RotatingFileHandler 对象，设置写入的文件路径和大小限制
 file_handler = RotatingFileHandler(LOGS_DIR+f'/{datetime.datetime.now().strftime("%Y%m%d")}.log', maxBytes=1024 * 1024, backupCount=5)
 # 创建日志的格式
@@ -69,6 +55,3 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 # 设置文件处理器的级别和格式
 file_handler.setLevel(logging.WARNING)
 file_handler.setFormatter(formatter)
-# 将文件处理器添加到日志记录器中
-app.logger.addHandler(file_handler)
-app.jinja_env.globals.update(enumerate=enumerate)
