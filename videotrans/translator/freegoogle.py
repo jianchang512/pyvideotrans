@@ -33,6 +33,8 @@ def update_proxy(type='set'):
                 os.environ['http_proxy'] = proxy
                 os.environ['https_proxy'] = proxy
                 os.environ['all_proxy'] = proxy
+                return proxy
+    return None
 
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
@@ -44,7 +46,10 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-    update_proxy(type='set')
+    proxies=None
+    pro=update_proxy(type='set')
+    if pro:
+        proxies={"https":pro,"http":pro}
     # 翻译后的文本
     target_text = []
 
@@ -87,14 +92,14 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length=len(it)
-                text = "##".join(it)
-                print(f'{text=}')
+                text = "\n".join(it)
+
                 url = f"{google_url}/m?sl=auto&tl={quote(target_language)}&hl={quote(target_language)}&q={quote(text)}"
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
                 config.logger.info(f'[FreeGoole] 发送请求:{url=}')
-                response = requests.get(url,  headers=headers, timeout=300)
+                response = requests.get(url,  headers=headers, timeout=300,proxies=proxies)
                 config.logger.info(f'[FreeGoole] 返回:{response.text=}')
                 if response.status_code != 200:
                     config.logger.error(f'{response.text=}')
@@ -106,7 +111,12 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 if len(re_result) < 1 or not re_result[0]:
                     err=f'{google_url} {re_result}'
                     break
-                result=re_result[0].strip().replace('&#39;','"').replace('&quot;',"'").split("##")
+                result=tools.cleartext(re_result[0]).split("\n")
+                result_length=len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length<source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result=tools.format_result(it,result,target_lang=target_language)
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
@@ -114,8 +124,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                result_length=len(result)
                 config.logger.info(f'{result_length=},{source_length=}')
+                result_length = len(result)
                 while result_length<source_length:
                     result.append("")
                     result_length+=1

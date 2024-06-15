@@ -5,23 +5,8 @@ import time
 import requests
 from videotrans.configure import config
 from videotrans.util import tools
-shound_del=False
-def update_proxy(type='set'):
-    global shound_del
-    if type=='del' and shound_del:
-        del os.environ['http_proxy']
-        del os.environ['https_proxy']
-        del os.environ['all_proxy']
-        shound_del=False
-    elif type=='set':
-        raw_proxy=os.environ.get('http_proxy')
-        if not raw_proxy:
-            proxy=tools.set_proxy()
-            if proxy:
-                shound_del=True
-                os.environ['http_proxy'] = proxy
-                os.environ['https_proxy'] = proxy
-                os.environ['all_proxy'] = proxy
+
+
 
 def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source_code=""):
     """
@@ -36,8 +21,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     url=url.replace('//translate','/translate')
     if not url.startswith('http'):
         url=f"http://{url}"
-    if not re.search(r'localhost',url) and not re.match(r'https?://(\d+\.){3}\d+',url):
-        update_proxy(type='set')
+    
     # 翻译后的文本
     target_text = []
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
@@ -82,7 +66,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
 
                 try:
-                    response = requests.post(url=url,json=data)
+                    response = requests.post(url=url,json=data,proxies={"https":"","http":""})
                 except Exception as e:
                     err=str(e)
                     break
@@ -93,13 +77,18 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 try:
                     result = response.json()
                 except Exception:
-                    err=config.transobj['notjson']+result.text
+                    err=config.transobj['notjson']+response.text
                     break
 
                 if "error" in result:
                     err=result['error']
                     break
-                result=result['translatedText'].strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result=tools.cleartext(result['translatedText']).split("\n")
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
@@ -122,7 +111,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 iter_num=0
         else:
             break
-    update_proxy(type="del")
 
     if err:
         config.logger.error(f'[OTT]翻译请求失败:{err=}')

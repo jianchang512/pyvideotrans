@@ -77,7 +77,12 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 config.logger.info(f'[DeepL]请求数据:{it=}')
                 result = deepltranslator.translate_text("\n".join(it), target_lang=target_language if not re.match(r'^zh',target_language,re.I)  else "ZH" )
                 config.logger.info(f'[DeepL]返回:{result=}')
-                result=result.text.strip().replace('&#39;','"').replace('&quot;',"'").split("\n")
+                result=tools.cleartext(result.text).split("\n")
+                result_length = len(result)
+                # 如果返回数量和原始语言数量不一致，则重新切割
+                if result_length < source_length:
+                    print(f'翻译前后数量不一致，需要重新切割')
+                    result = tools.format_result(it, result, target_lang=target_language)
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
@@ -85,8 +90,9 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
                     tools.set_process("\n\n".join(result), func_name="set_fanyi")
-                result_length = len(result)
 
+
+                result_length = len(result)
                 while result_length < source_length:
                     result.append("")
                     result_length += 1
