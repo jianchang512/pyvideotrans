@@ -18,6 +18,7 @@ from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.setlinerole import Ui_setlinerole
+from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.transapi import Ui_transapiform
@@ -195,6 +196,13 @@ class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
         super(ZijiehuoshanForm, self).__init__(parent)
         self.setupUi(self)
         self.zijiehuoshan_model.addItems(config.zijiehuoshan_model_list)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class HebingsrtForm(QDialog, Ui_srthebing):  # <===
+    def __init__(self, parent=None):
+        super(HebingsrtForm, self).__init__(parent)
+        self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 

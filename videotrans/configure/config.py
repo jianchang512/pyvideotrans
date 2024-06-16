@@ -47,10 +47,82 @@ logging.basicConfig(
     encoding="utf-8",
     filemode="a")
 logger = logging.getLogger('VideoTrans')
+# ffmpeg
+if sys.platform == 'win32':
+    PWD=rootdir.replace('/','\\')
+    os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;' + os.environ['PATH']
+
+else:
+    os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
+
+os.environ['QT_API'] = 'pyside6'
+os.environ['SOFT_NAME'] = 'pyvideotrans'
+# spwin主窗口
+queue_logs = Queue(1000)
+# box窗口
+queuebox_logs = Queue(1000)
+# 开始按钮状态
+current_status = "stop"
+# video toolbox 状态
+box_status = "stop"
+# 工具箱 需格式化的文件数量
+geshi_num = 0
+
+# 存放一次性多选的视频
+queue_mp4 = []
+# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
+queue_novice = {}
+
+# 倒计时
+task_countdown = 60
+# 获取的视频信息 全局缓存
+video_cache = {}
+
+#youtube是否取消了下载
+canceldown=False
+#工具箱翻译进行状态,ing进行中，其他停止
+box_trans="stop"
+#工具箱tts状态
+box_tts="stop"
+#工具箱识别状态
+box_recogn='stop'
+# 中断win背景分离
+separate_status='stop'
+# 最后一次打开的目录
+last_opendir=homedir
+# 软件退出
+exit_soft=False
+
+# 翻译队列
+trans_queue=[]
+# 配音队列
+dubb_queue=[]
+#识别队列
+regcon_queue=[]
+#合成队列
+compose_queue=[]
+#全局任务id列表
+unidlist=[]
+# 全局错误
+errorlist={}
+
+#当前可用编码 libx264 h264_qsv h264_nvenc 等
+video_codec=None
+
+# 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
+video_min_ms=50
+clone_voicelist=["clone"]
+openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
+
+# 语言
+try:
+    defaulelang = locale.getdefaultlocale()[0][:2].lower()
+except Exception:
+    defaulelang = "zh"
 
 def parse_init():
     settings = {
-        "lang": defaulelang,
+        "lang": "",
         "dubbing_thread": 3,
         "trans_thread": 15,
         "countdown_sec": 30,
@@ -127,16 +199,10 @@ def parse_init():
     return settings
 
 
-# 语言
-try:
-    defaulelang = locale.getdefaultlocale()[0][:2].lower()
-except Exception:
-    defaulelang = "zh"
+
 
 # 初始化一个字典变量
 settings = parse_init()
-
-
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 if settings['lang']:
     defaulelang = settings['lang'].lower()
@@ -160,42 +226,27 @@ langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = obj['toolbox_lang']
 
-# ffmpeg
-if sys.platform == 'win32':
-    PWD=rootdir.replace('/','\\')
-    os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;' + os.environ['PATH']
-    
-else:
-    os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
-os.environ['QT_API'] = 'pyside6'
-os.environ['SOFT_NAME'] = 'pyvideotrans'
-# spwin主窗口
-queue_logs = Queue(1000)
-# box窗口
-queuebox_logs = Queue(1000)
+
 
 
 
 model_list=re.split('\,|，',settings['model_list'])
-
-
-
-# 开始按钮状态
-current_status = "stop"
-# video toolbox 状态
-box_status = "stop"
-# 工具箱 需格式化的文件数量
-geshi_num = 0
-
-clone_voicelist=["clone"]
-
 ChatTTS_voicelist=re.split('\,|，',settings['chattts_voice'])
 
-openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
-chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',')]
-localllm_model_list = [ it.strip() for it in settings['localllm_model'].split(',')]
-zijiehuoshan_model_list = [ it.strip() for it in settings['zijiehuoshan_model'].split(',') ]
+chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
+localllm_model_list = [ it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
+zijiehuoshan_model_list = [ it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip() ]
+if len(chatgpt_model_list)<1:
+    chatgpt_model_list=['']
+if len(localllm_model_list)<1:
+    localllm_model_list=['']
+if len(zijiehuoshan_model_list)<1:
+    zijiehuoshan_model_list=['']
+
+
+
+
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
@@ -308,53 +359,9 @@ localllm_path=root_path/'videotrans/localllm.txt'
 zijiehuoshan_path=root_path/'videotrans/zijie.txt'
 azure_path=root_path/'videotrans/azure.txt'
 gemini_path=root_path/'videotrans/gemini.txt'
-
 params['localllm_template']=localllm_path.read_text(encoding='utf-8').strip()+"\n"
 params['zijiehuoshan_template']=zijiehuoshan_path.read_text(encoding='utf-8').strip()+"\n"
 params['chatgpt_template']=chatgpt_path.read_text(encoding='utf-8').strip()+"\n"
 params['azure_template']=azure_path.read_text(encoding='utf-8').strip()+"\n"
 params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
 
-# 存放一次性多选的视频
-queue_mp4 = []
-# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
-queue_novice = {}
-
-# 倒计时
-task_countdown = 60
-# 获取的视频信息 全局缓存
-video_cache = {}
-
-#youtube是否取消了下载
-canceldown=False
-#工具箱翻译进行状态,ing进行中，其他停止
-box_trans="stop"
-#工具箱tts状态
-box_tts="stop"
-#工具箱识别状态
-box_recogn='stop'
-# 中断win背景分离
-separate_status='stop'
-# 最后一次打开的目录
-last_opendir=homedir
-# 软件退出
-exit_soft=False
-
-# 翻译队列
-trans_queue=[]
-# 配音队列
-dubb_queue=[]
-#识别队列
-regcon_queue=[]
-#合成队列
-compose_queue=[]
-#全局任务id列表
-unidlist=[]
-# 全局错误
-errorlist={}
-
-#当前可用编码 libx264 h264_qsv h264_nvenc 等
-video_codec=None
-
-# 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
-video_min_ms=50

@@ -314,14 +314,15 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False):
     lower_translate_type = translate_type.lower()
-    if lower_translate_type == CHATGPT_NAME and not config.params['chatgpt_key']:
+
+    if lower_translate_type == CHATGPT_NAME.lower() and not config.params['chatgpt_key']:
         return config.transobj['chatgptkeymust']
-    if lower_translate_type == LOCALLLM_NAME and not config.params['localllm_api']:
+    if lower_translate_type == LOCALLLM_NAME.lower() and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang=='zh' else 'Please input Local LLM API url'
-    if lower_translate_type == ZIJIE_NAME and (not config.params['bytehuoshan_model'] or not config.params['bytehuoshan_key']):
+    if lower_translate_type == ZIJIE_NAME.lower() and (not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
         return '必须填写字节火山api_key和推理接入点'
 
-    if lower_translate_type == GEMINI_NAME and not config.params['gemini_key']:
+    if lower_translate_type == GEMINI_NAME.lower() and not config.params['gemini_key']:
         return config.transobj['chatgptkeymust']
     if lower_translate_type == AZUREGPT_NAME.lower() and (
             not config.params['azure_key'] or not config.params['azure_api']):

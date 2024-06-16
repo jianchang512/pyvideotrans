@@ -2,8 +2,8 @@ import os
 import re
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
-from PySide6.QtGui import Qt
+from PySide6.QtCore import QThread, Signal, QUrl
+from PySide6.QtGui import Qt, QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans.configure import config
@@ -14,6 +14,7 @@ from videotrans.util import tools
 class Subform():
     def __init__(self, main=None):
         self.main = main
+
     # 设置每行角色
     def set_line_role_fun(self):
         def get_checked_boxes(widget):
@@ -31,7 +32,7 @@ class Subform():
 
             if len(checked_checkbox_names) < 1:
                 return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
-                                            config.transobj['zhishaoxuanzeyihang'])
+                                                      config.transobj['zhishaoxuanzeyihang'])
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
@@ -46,9 +47,11 @@ class Subform():
         box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QtWidgets.QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
         if config.params['voice_role'] in ['No', '-', 'no']:
-            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'], config.transobj['xianxuanjuese'])
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
+                                                  config.transobj['xianxuanjuese'])
         if not self.main.subtitle_area.toPlainText().strip():
-            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'], config.transobj['youzimuyouset'])
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
+                                                  config.transobj['youzimuyouset'])
 
         #  获取字幕
         srt_json = tools.get_subtitle_from_srt(self.main.subtitle_area.toPlainText().strip(), is_file=False)
@@ -87,8 +90,6 @@ class Subform():
         self.main.row.set_ok.clicked.connect(lambda: self.main.row.close())
         self.main.row.show()
 
-
-
     def open_youtube(self):
         def download():
             proxy = self.main.youw.proxy.text().strip()
@@ -97,7 +98,8 @@ class Subform():
             vid = self.main.youw.formatname.isChecked()
             if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
                 QtWidgets.QMessageBox.critical(self.main.youw, config.transobj['anerror'],
-                                     config.transobj['You must fill in the YouTube video playback page address'])
+                                               config.transobj[
+                                                   'You must fill in the YouTube video playback page address'])
                 return
             self.main.settings.setValue("youtube_outdir", outdir)
             if proxy:
@@ -155,16 +157,17 @@ class Subform():
         class TestTTS(QThread):
             uito = Signal(str)
 
-            def __init__(self, *, parent=None, text=None,role=None,language=None):
+            def __init__(self, *, parent=None, text=None, role=None, language=None):
                 super().__init__(parent=parent)
                 self.text = text
-                self.role=role
-                self.language=language
+                self.role = role
+                self.language = language
 
             def run(self):
                 from videotrans.tts.azuretts import get_voice
                 try:
-                    get_voice(text=self.text, role=self.role,rate="+0%", language=self.language, set_p=False, filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, role=self.role, rate="+0%", language=self.language, set_p=False,
+                              filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -177,7 +180,7 @@ class Subform():
             else:
                 QtWidgets.QMessageBox.critical(self.main.aztw, config.transobj['anerror'], d)
             self.main.aztw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
-        
+
         def test():
             key = self.main.aztw.speech_key.text().strip()
             if not key:
@@ -185,13 +188,12 @@ class Subform():
                 return
             region = self.main.aztw.speech_region.text().strip()
             if not region or not region.startswith('https:'):
-                region=self.main.aztw.azuretts_area.currentText()
+                region = self.main.aztw.azuretts_area.currentText()
             self.main.settings.setValue("azure_speech_key", key)
             self.main.settings.setValue("azure_speech_region", region)
 
             config.params['azure_speech_key'] = key
             config.params['azure_speech_region'] = region
-
 
             task = TestTTS(parent=self.main.aztw,
                            text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
@@ -201,19 +203,19 @@ class Subform():
             self.main.aztw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
             task.uito.connect(feed)
             task.start()
-        
+
         def save():
             key = self.main.aztw.speech_key.text()
             region = self.main.aztw.speech_region.text().strip()
             if not region or not region.startswith('https:'):
-                region=self.main.aztw.azuretts_area.currentText()
+                region = self.main.aztw.azuretts_area.currentText()
             self.main.settings.setValue("azure_speech_key", key)
             self.main.settings.setValue("azure_speech_region", region)
 
             config.params['azure_speech_key'] = key
             config.params['azure_speech_region'] = region
             self.main.aztw.close()
-        
+
         from videotrans.component import AzurettsForm
         self.main.aztw = AzurettsForm()
         if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
@@ -242,17 +244,17 @@ class Subform():
 
     def set_deepLX_address(self):
         def save():
-            key = self.main.ew.deeplx_address.text()
+            key = self.main.dexw.deeplx_address.text()
             self.main.settings.setValue("deeplx_address", key)
             config.params["deeplx_address"] = key
-            self.main.ew.close()
+            self.main.dexw.close()
 
         from videotrans.component import DeepLXForm
-        self.main.ew = DeepLXForm()
+        self.main.dexw = DeepLXForm()
         if config.params["deeplx_address"]:
-            self.main.ew.deeplx_address.setText(config.params["deeplx_address"])
-        self.main.ew.set_deeplx.clicked.connect(save)
-        self.main.ew.show()
+            self.main.dexw.deeplx_address.setText(config.params["deeplx_address"])
+        self.main.dexw.set_deeplx.clicked.connect(save)
+        self.main.dexw.show()
 
     def set_ott_address(self):
         def save():
@@ -284,7 +286,8 @@ class Subform():
                     tools.get_clone_role(True)
                     if len(config.clone_voicelist) < 2:
                         raise Exception('没有可供测试的声音')
-                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False, filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False,
+                              filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -355,9 +358,10 @@ class Subform():
             if not self.main.chatttsw.chattts_address.text().strip():
                 QtWidgets.QMessageBox.critical(self.main.chatttsw, config.transobj['anerror'], '必须填写http地址')
                 return
-            apiurl=self.main.chatttsw.chattts_address.text().strip()
+            apiurl = self.main.chatttsw.chattts_address.text().strip()
             if not apiurl:
-                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'], '必须填写api地址' if config.defaulelang=='zh' else 'Please input ChatTTS API url')
+                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'],
+                                                      '必须填写api地址' if config.defaulelang == 'zh' else 'Please input ChatTTS API url')
 
             config.params['chattts_api'] = apiurl
             task = TestTTS(parent=self.main.chatttsw,
@@ -370,7 +374,7 @@ class Subform():
         def save():
             key = self.main.chatttsw.chattts_address.text().strip()
             key = key.rstrip('/')
-            key = 'http://' + key.replace('http://', '').replace('/tts','')
+            key = 'http://' + key.replace('http://', '').replace('/tts', '')
             self.main.settings.setValue("chattts_api", key)
             config.params["chattts_api"] = key
             self.main.chatttsw.close()
@@ -393,7 +397,7 @@ class Subform():
             def run(self):
                 try:
                     import requests
-                    res=requests.get(config.params['zh_recogn_api'])
+                    res = requests.get(config.params['zh_recogn_api'])
                     self.uito.emit("ok")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -482,7 +486,8 @@ class Subform():
                 try:
                     from videotrans.translator.chatgpt import trans as trans_chatgpt
                     raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                    text = trans_chatgpt(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, is_test=True)
+                    text = trans_chatgpt(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
+                                         is_test=True)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -563,7 +568,8 @@ class Subform():
                 try:
                     from videotrans.translator.localllm import trans as trans_localllm
                     raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                    text = trans_localllm(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False, is_test=True)
+                    text = trans_localllm(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
+                                          is_test=True)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -579,7 +585,8 @@ class Subform():
             key = self.main.llmw.localllm_key.text()
             api = self.main.llmw.localllm_api.text().strip()
             if not api:
-                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'], '必须填写api地址' if config.defaulelang=='zh' else 'Please input LLM API url')
+                return QtWidgets.QMessageBox.critical(self.main.llmw, config.transobj['anerror'],
+                                                      '必须填写api地址' if config.defaulelang == 'zh' else 'Please input LLM API url')
 
             model = self.main.llmw.localllm_model.currentText()
             template = self.main.llmw.localllm_template.toPlainText()
@@ -632,7 +639,6 @@ class Subform():
         self.main.llmw.test_localllm.clicked.connect(test)
         self.main.llmw.show()
 
-
     def set_zijiehuoshan_key(self):
         class TestZijiehuoshan(QThread):
             uito = Signal(str)
@@ -644,7 +650,7 @@ class Subform():
                 try:
                     from videotrans.translator.huoshan import trans as trans_zijiehuoshan
                     raw = "你好啊我的朋友"
-                    text = trans_zijiehuoshan(raw,"English", set_p=False, is_test=True)
+                    text = trans_zijiehuoshan(raw, "English", set_p=False, is_test=True)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -659,7 +665,7 @@ class Subform():
         def test():
             key = self.main.zijiew.zijiehuoshan_key.text()
             model = self.main.zijiew.zijiehuoshan_model.currentText()
-            if not key or  not model.strip():
+            if not key or not model.strip():
                 return QtWidgets.QMessageBox.critical(self.main.zijiew, config.transobj['anerror'], '必须填写API key和推理接入点')
 
             template = self.main.zijiew.zijiehuoshan_template.toPlainText()
@@ -696,8 +702,15 @@ class Subform():
         self.main.zijiew = ZijiehuoshanForm()
         if config.params["zijiehuoshan_key"]:
             self.main.zijiew.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
+        else:
+            self.main.settings.setValue('zijiehuoshan_key','')
         if config.params["zijiehuoshan_model"]:
+            print('11')
             self.main.zijiew.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
+        else:
+            print('22')
+            self.main.settings.setValue('zijiehuoshan_model','')
+
         if config.params["zijiehuoshan_template"]:
             self.main.zijiew.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
         self.main.zijiew.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
@@ -720,7 +733,8 @@ class Subform():
                 from videotrans.tts.ttsapi import get_voice
                 try:
 
-                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False, filename=config.homedir + "/test.mp3")
+                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
+                              filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
                 except Exception as e:
@@ -795,7 +809,7 @@ class Subform():
             def run(self):
                 from videotrans.translator.transapi import trans
                 try:
-                    t = trans(self.text, target_language="en", set_p=False, is_test=True,source_code="zh")
+                    t = trans(self.text, target_language="en", set_p=False, is_test=True, source_code="zh")
                     self.uito.emit(f"ok:{self.text}\n{t}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -812,7 +826,7 @@ class Subform():
             config.params["ttsapi_url"] = url
             if not url:
                 return QtWidgets.QMessageBox.critical(self.main.transapiw, config.transobj['anerror'],
-                                            "必须填写自定义翻译的url" if config.defaulelang == 'zh' else "The url of the custom translation must be filled in")
+                                                      "必须填写自定义翻译的url" if config.defaulelang == 'zh' else "The url of the custom translation must be filled in")
             url = self.main.transapiw.api_url.text()
             miyue = self.main.transapiw.miyue.text()
             self.main.settings.setValue("trans_api_url", url)
@@ -892,15 +906,15 @@ class Subform():
                 s = it.strip().split('#')
                 if len(s) != 3:
                     QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                         "每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
+                                                   "每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
                     return
                 if not s[0].endswith(".wav"):
                     QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                         "每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
+                                                   "每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
                     return
                 if s[2] not in ['zh', 'ja', 'en']:
                     QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                         "每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
+                                                   "每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
                     return
                 role = s[0]
             config.params['gptsovits_role'] = tmp
@@ -995,44 +1009,42 @@ class Subform():
                 self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
 
         def update(d):
-            #更新
-            if d=='succeed':
+            # 更新
+            if d == 'succeed':
                 self.main.sepw.set.setText(config.transobj['Separate End/Restart'])
                 self.main.sepw.fromfile.setText('')
-            elif d=='end':
+            elif d == 'end':
                 self.main.sepw.set.setText(config.transobj['Start Separate'])
             else:
-                QMessageBox.critical(self.main.sepw,config.transobj['anerror'],d)
-
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], d)
 
         def start():
-            if config.separate_status=='ing':
-                config.separate_status='stop'
+            if config.separate_status == 'ing':
+                config.separate_status = 'stop'
                 self.main.sepw.set.setText(config.transobj['Start Separate'])
                 return
-            #开始处理分离，判断是否选择了源文件
-            file=self.main.sepw.fromfile.text()
+            # 开始处理分离，判断是否选择了源文件
+            file = self.main.sepw.fromfile.text()
             if not file or not os.path.exists(file):
-                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], config.transobj['must select audio or video file'])
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'],
+                                     config.transobj['must select audio or video file'])
                 return
             self.main.sepw.set.setText(config.transobj['Start Separate...'])
-            basename=os.path.basename(file)
-            #判断名称是否正常
-            rs,newfile,base=tools.rename_move(file,is_dir=False)
+            basename = os.path.basename(file)
+            # 判断名称是否正常
+            rs, newfile, base = tools.rename_move(file, is_dir=False)
             if rs:
-                file=newfile
-                basename=base
-            #创建文件夹
-            out=os.path.join(outdir,basename).replace('\\','/')
-            os.makedirs(out,exist_ok=True)
+                file = newfile
+                basename = base
+            # 创建文件夹
+            out = os.path.join(outdir, basename).replace('\\', '/')
+            os.makedirs(out, exist_ok=True)
             self.main.sepw.url.setText(out)
-            #开始分离
-            config.separate_status='ing'
-            self.main.sepw.task=SeparateWorker(parent=self.main.sepw,out=out,file=file,basename=basename)
+            # 开始分离
+            config.separate_status = 'ing'
+            self.main.sepw.task = SeparateWorker(parent=self.main.sepw, out=out, file=file, basename=basename)
             self.main.sepw.task.finish_event.connect(update)
             self.main.sepw.task.start()
-
-
 
         from videotrans.component import SeparateForm
         try:
@@ -1041,7 +1053,7 @@ class Subform():
                 return
             self.main.sepw = SeparateForm()
             self.main.sepw.set.setText(config.transobj['Start Separate'])
-            outdir = os.path.join(config.homedir,'separate').replace( '\\', '/')
+            outdir = os.path.join(config.homedir, 'separate').replace('\\', '/')
             if not os.path.exists(outdir):
                 os.makedirs(outdir, exist_ok=True)
             # 创建事件过滤器实例并将其安装到 lineEdit 上
@@ -1051,5 +1063,98 @@ class Subform():
 
             self.main.sepw.set.clicked.connect(start)
             self.main.sepw.show()
+        except Exception:
+            pass
+
+    def open_hebingsrt(self):
+        class CompThread(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, file1=None, file2=None):
+                super().__init__(parent=parent)
+                self.file1 = file1
+                self.file2 = file2
+                self.result_dir = config.homedir + "/Mergersrt"
+                os.makedirs(self.result_dir, exist_ok=True)
+                self.result_file = self.result_dir + "/" + os.path.splitext(os.path.basename(file1))[0] + '-plus-' + \
+                                   os.path.splitext(os.path.basename(file2))[0] + '.srt'
+
+            def run(self):
+                try:
+                    text = ""
+                    srt1_list = tools.get_subtitle_from_srt(self.file1)
+                    srt2_list = tools.get_subtitle_from_srt(self.file2)
+                    srt2_len = len(srt2_list)
+                    for i, it in enumerate(srt1_list):
+                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
+                        if i < srt2_len:
+                            text += f"\n{srt2_list[i]['text'].strip()}"
+                        text += "\n\n"
+                    with open(self.result_file, 'w', encoding="utf-8", errors="ignore") as f:
+                        f.write(text.strip())
+
+                    self.uito.emit(self.result_file)
+                except Exception as e:
+                    self.uito.emit('error:' + str(e))
+
+        def feed(d):
+            if d.startswith("error:"):
+                QtWidgets.QMessageBox.critical(self.main.hew, config.transobj['anerror'], d)
+            else:
+                self.main.hew.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
+                self.main.hew.startbtn.setDisabled(False)
+                self.main.hew.resultlabel.setText(d)
+                self.main.hew.resultbtn.setDisabled(False)
+                with open(self.main.hew.resultlabel.text(), 'r', encoding='utf-8') as f:
+                    self.main.hew.resultinput.setPlainText(f.read())
+
+        def get_file(inputname):
+            fname, _ = QFileDialog.getOpenFileName(self.main.hew, "Select subtitles srt", config.last_opendir,
+                                                   "files(*.srt)")
+            if fname:
+                if inputname == 1:
+                    self.main.hew.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                else:
+                    self.main.hew.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def start():
+            # 开始处理分离，判断是否选择了源文件
+            srt1 = self.main.hew.srtinput1.text()
+            srt2 = self.main.hew.srtinput2.text()
+            if not srt1 or not srt2:
+                QMessageBox.critical(self.main.hew, config.transobj['anerror'],
+                                     '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
+                return
+
+            self.main.hew.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
+            self.main.hew.startbtn.setDisabled(True)
+            self.main.hew.resultbtn.setDisabled(True)
+            self.main.hew.resultinput.setPlainText("")
+
+            task = CompThread(parent=self.main.hew, file1=srt1, file2=srt2)
+
+            task.uito.connect(feed)
+            task.start()
+
+        def opendir():
+            filepath = self.main.hew.resultlabel.text()
+            if not filepath:
+                return QMessageBox.critical(self.main.hew, config.transobj['anerror'],
+                                            '尚未生成合并字幕' if config.defaulelang == 'zh' else 'Combined subtitles not yet generated')
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
+
+        from videotrans.component import HebingsrtForm
+        try:
+            print('###')
+            if self.main.hew is not None:
+                self.main.hew.show()
+                return
+            self.main.hew = HebingsrtForm()
+            self.main.hew.srtbtn1.clicked.connect(lambda: get_file(1))
+            self.main.hew.srtbtn2.clicked.connect(lambda: get_file(2))
+
+            self.main.hew.resultbtn.clicked.connect(opendir)
+            self.main.hew.startbtn.clicked.connect(start)
+            self.main.hew.show()
         except Exception:
             pass
