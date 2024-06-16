@@ -31,24 +31,45 @@ from videotrans.task.logs_worker import LogsWorker
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None,width=1200,height=700):
+    def __init__(self, parent=None, width=1200, height=700):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.width = int(width * 0.8)
         self.height = int(height * 0.8)
-        self.bwidth=int(width*0.7)
-        self.bheight=int(height*0.7)
-        self.lefttopx=int(width*0.15)
-        self.lefttopy=int(height*0.15)
+        self.bwidth = int(width * 0.7)
+        self.bheight = int(height * 0.7)
+        self.lefttopx = int(width * 0.15)
+        self.lefttopy = int(height * 0.15)
         self.resize(self.width, self.height)
-
         self.show()
         self.task = None
         self.shitingobj = None
+        # 各个子窗口
         self.youw = None
         self.sepw = None
+        self.hew = None
+        self.azw = None
+        self.gw = None
+        self.gptsovitsw = None
+        self.transapiw = None
+        self.ttsapiw = None
+        self.zijiew = None
+        self.baw = None
+        self.zhrecognw = None
+        self.chatttsw = None
+        self.clonw = None
+        self.ow = None
+        self.ew = None
+        self.dexw = None
+        self.aztw = None
+        self.dlw = None
+        self.youw = None
+        self.row = None
+        self.llmw = None
+        self.tew = None
         self.util = None
-        self.moshis=None
+        self.moshis = None
+
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
 
@@ -56,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang=='zh' else 'Documents'}  pyvideotrans.com "
+        self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
         self.util = SecWindow(self)
@@ -66,12 +87,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bind_action()
         QTimer.singleShot(500, self.start_box)
 
-
     def start_box(self):
         # 打开工具箱
         configure.TOOLBOX = win.MainWindow(self)
         configure.TOOLBOX.resize(self.bwidth, self.bheight)
-        configure.TOOLBOX.move(QPoint(self.lefttopx,self.lefttopy))
+        configure.TOOLBOX.move(QPoint(self.lefttopx, self.lefttopy))
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -113,7 +133,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #  translation type
         self.translate_type.addItems(TRANSNAMES)
-        translate_name = config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else TRANSNAMES[0]
+        translate_name = config.params['translate_type'] if config.params['translate_type'] in TRANSNAMES else \
+        TRANSNAMES[0]
 
         self.translate_type.setCurrentText(translate_name)
 
@@ -138,10 +159,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['only_video']:
             self.only_video.setChecked(True)
         try:
-            self.voice_rate.setValue(int(config.params['voice_rate'].replace('%','')))
+            self.voice_rate.setValue(int(config.params['voice_rate'].replace('%', '')))
         except Exception:
             self.voice_rate.setValue(0)
-
 
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.video_autorate.setChecked(config.params['video_autorate'])
@@ -202,8 +222,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.clone_voicelist)
             threading.Thread(target=tools.get_clone_role).start()
-        elif config.params['tts_type']=='ChatTTS':
-            self.voice_role.addItems(['No']+list(config.ChatTTS_voicelist))
+        elif config.params['tts_type'] == 'ChatTTS':
+            self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
         elif config.params['tts_type'] == 'TTS-API':
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
         elif config.params['tts_type'] == 'GPT-SoVITS':
@@ -211,7 +231,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
 
         if config.params['tts_type']:
-            if config.params['tts_type'] not in ['edgeTTS','AzureTTS']:
+            if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
                 self.voice_role.addItems(['No'])
             self.util.tts_type_change(config.params['tts_type'])
 
@@ -242,7 +262,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.export_sub.setToolTip(
             config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
 
-
         self.set_line_role.clicked.connect(self.subform.set_line_role_fun)
         self.set_line_role.setCursor(Qt.PointingHandCursor)
         self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
@@ -263,8 +282,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_rate.valueChanged.connect(self.util.voice_rate_changed)
         self.voice_autorate.stateChanged.connect(
             lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.video_autorate.stateChanged.connect(lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
-        self.append_video.stateChanged.connect(lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "append_video"))
+        self.video_autorate.stateChanged.connect(
+            lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.append_video.stateChanged.connect(
+            lambda: self.util.autorate_changed(self.video_autorate.isChecked(), "append_video"))
         self.auto_ajust.stateChanged.connect(
             lambda: self.util.autorate_changed(self.auto_ajust.isChecked(), "auto_ajust"))
         # tts_type 改变时，重设角色
@@ -274,12 +295,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
 
-
         # 设置QAction的大小
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         # 设置QToolBar的大小，影响其中的QAction的大小
         self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
-
 
         self.actionbaidu_key.triggered.connect(self.subform.set_baidu_key)
         self.actionazure_key.triggered.connect(self.subform.set_azure_key)
@@ -311,7 +330,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('help'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
-        
+
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.subform.open_youtube)
         self.actionsepar.triggered.connect(self.subform.open_separate)
@@ -320,7 +339,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_xinshoujandan.triggered.connect(self.util.set_xinshoujandann)
 
         self.action_biaozhun.triggered.connect(self.util.set_biaozhun)
-
 
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
 
@@ -338,12 +356,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.util.set_zimu_video()
         elif self.app_mode == 'peiyin':
             self.util.set_zimu_peiyin()
-        self.moshis={
-            "biaozhun_jd":self.action_xinshoujandan,
-            "biaozhun":self.action_biaozhun,
-            "tiqu":self.action_tiquzimu,
-            "hebing":self.action_zimu_video,
-            "peiyin":self.action_zimu_peiyin
+        self.moshis = {
+            "biaozhun_jd": self.action_xinshoujandan,
+            "biaozhun": self.action_biaozhun,
+            "tiqu": self.action_tiquzimu,
+            "hebing": self.action_zimu_video,
+            "peiyin": self.action_zimu_peiyin
         }
         self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(0, False))
 
@@ -353,19 +371,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(4, False))
 
-
         self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
 
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
+        self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
 
-
         # 禁止随意移动sp.exe
-        if not Path(config.rootdir+'/videotrans').exists() or not Path(config.rootdir+ '/models').exists():
+        if not Path(config.rootdir + '/videotrans').exists() or not Path(config.rootdir + '/models').exists():
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['sp.exeerror'])
             return False
-
 
         if platform.system().lower() == 'windows' and (
                 platform.release().lower() == 'xp' or int(platform.release()) < 10):
@@ -389,7 +405,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.check_update.start()
         except Exception as e:
             print('threaqd-----' + str(e))
-
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -438,7 +453,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
         config.params["localllm_api"] = self.settings.value("localllm_api", "")
         config.params["localllm_key"] = self.settings.value("localllm_key", "")
-        config.params["zijiehuoshan_key"] = self.settings.value("zijiehuoshan_key", "")
         config.params["azure_speech_key"] = self.settings.value("azure_speech_key", "")
         config.params["azure_speech_region"] = self.settings.value("azure_speech_region", "")
 
@@ -446,8 +460,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.clone_voicelist = self.settings.value("clone_voicelist", "").split(',')
 
         config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
-        config.params["localllm_model"] = self.settings.value("localllm_model", config.params['localllm_model'])
-        config.params["zijiehuoshan_model"] = self.settings.value("zijiehuoshan_model", config.params['zijiehuoshan_model'])
+
+        if not config.settings['localllm_model']:
+            self.settings.setValue('localllm_model', '')
+        else:
+            lastmodel = self.settings.value("localllm_model", '')
+            config.params["localllm_model"] = lastmodel if lastmodel else config.params["localllm_model"]
+
+        if not config.settings['zijiehuoshan_model']:
+            self.settings.setValue('zijiehuoshan_model', '')
+        else:
+            lastmodel = self.settings.value("zijiehuoshan_model", '')
+            config.params["zijiehuoshan_model"] = lastmodel if lastmodel else config.params["zijiehuoshan_model"]
+
+        config.params["zijiehuoshan_key"] = self.settings.value("zijiehuoshan_key", "")
         os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
 
         config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
@@ -471,11 +497,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["elevenlabstts_key"] = self.settings.value("elevenlabstts_key", "")
 
         config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
-        if config.params['translate_type']=='FreeChatGPT':
-            config.params['translate_type']='FreeGoogle'
+        if config.params['translate_type'] == 'FreeChatGPT':
+            config.params['translate_type'] = 'FreeGoogle'
         config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
         config.proxy = self.settings.value("proxy", "", str)
-        config.params['voice_rate'] = self.settings.value("voice_rate", config.params['voice_rate'].replace('%','').replace('+',''), str)
+        config.params['voice_rate'] = self.settings.value("voice_rate",
+                                                          config.params['voice_rate'].replace('%', '').replace('+', ''),
+                                                          str)
         config.params['cuda'] = self.settings.value("cuda", False, bool)
         config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
@@ -495,7 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("whisper_model", config.params['whisper_model'])
         self.settings.setValue("whisper_type", config.params['whisper_type'])
         self.settings.setValue("model_type", config.params['model_type'])
-        self.settings.setValue("voice_rate", config.params['voice_rate'].replace('%','').replace('+',''))
+        self.settings.setValue("voice_rate", config.params['voice_rate'].replace('%', '').replace('+', ''))
         self.settings.setValue("voice_role", config.params['voice_role'])
         self.settings.setValue("zh_recogn_api", config.params['zh_recogn_api'])
 

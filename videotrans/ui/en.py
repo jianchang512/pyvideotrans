@@ -677,8 +677,9 @@ class Ui_MainWindow(object):
         self.action_hun.setObjectName("action_hun")
 
         self.action_fanyi = QtGui.QAction(MainWindow)
-
         self.action_fanyi.setObjectName("action_fanyi")
+        self.action_hebingsrt = QtGui.QAction(MainWindow)
+        self.action_hebingsrt.setObjectName("action_hebingsrt")
 
 
         self.action_clearcache = QtGui.QAction(MainWindow)
@@ -785,6 +786,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yinshipinfenli)
         self.toolBar.addAction(self.action_yingyinhebing)
         self.toolBar.addAction(self.action_hun)
+        self.toolBar.addAction(self.action_hebingsrt)
 
         # self.retranslateUi(MainWindow)
         #200ms后渲染文字
@@ -892,6 +894,9 @@ class Ui_MainWindow(object):
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
+
+        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang=='zh' else 'Merge 2 subtitles')
+        self.action_hebingsrt.setToolTip('将2个字幕文件合并为一个，组成双语字幕' if config.defaulelang=='zh' else 'Combine 2 subtitle files into one to form bilingual subtitles')
 
         self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存和配置')
 

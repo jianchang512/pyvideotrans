@@ -664,6 +664,8 @@ class SecWindow():
                     self.main.subform.set_transapi()
                 elif name == translator.OTT_NAME:
                     self.main.subform.set_transapi()
+                elif name == translator.ZIJIE_NAME:
+                    self.main.subform.set_zijiehuoshan_key()
                 return
             config.params['translate_type'] = name
         except Exception as e:
