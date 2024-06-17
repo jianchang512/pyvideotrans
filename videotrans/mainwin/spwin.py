@@ -89,7 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_box(self):
         # 打开工具箱
-        configure.TOOLBOX = win.MainWindow(self)
+        configure.TOOLBOX = win.MainWindow()
         configure.TOOLBOX.resize(self.bwidth, self.bheight)
         configure.TOOLBOX.move(QPoint(self.lefttopx, self.lefttopy))
 

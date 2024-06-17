@@ -519,7 +519,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def model_type_change(self):
         if self.shibie_model_type.currentIndex() == 1:
             model_type = 'openai'
-            self.shibie_whisper_type.setDisabled(False)
+            self.shibie_whisper_type.setDisabled(True)
             self.shibie_model.setDisabled(False)
         elif self.shibie_model_type.currentIndex() == 2:
             model_type = 'GoogleSpeech'
@@ -591,7 +591,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 print(f"removename {str(e)}")
             '''
             self.shibie_text.clear()
-
+            '''
             if os.path.splitext(basename)[-1].lower() in [".mp4", ".avi", ".mov", ".mp3", ".flac", ".m4a", ".mov",
                                                           ".aac"]:
                 out_file = f"{config.TEMP_HOME}/{basename}.wav"
@@ -599,7 +599,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.makedirs(f"{config.TEMP_HOME}")
                 try:
                     self.shibie_ffmpeg_task = Worker([
-                        ['-y', '-i', file, '-vn', '-ac', '1', '-ar', '8000', out_file]
+                        ['-y', '-i', file, '-vn', '-ac', '1', '-ar', '16000', out_file]
                     ], "logs", self)
                     self.shibie_ffmpeg_task.start()
                     wait_list.append(out_file)
@@ -609,7 +609,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.disabled_shibie(False)
                     QMessageBox.critical(self, config.transobj['anerror'], str(e))
             else:
-                wait_list.append(file)
+            '''
+            wait_list.append(file)
 
         self.shibie_out_path = config.homedir + f"/recogn"
 

@@ -121,7 +121,7 @@ def recogn(*,
         raw_subtitles.append(srt_line)
         if set_p:
             if inst and inst.precent < 55:
-                inst.precent += round(srt_line['line'] * 5 / total_length, 2)
+                inst.precent += 0.1
             tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
                               btnkey=inst.init['btnkey'] if inst else "")
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"

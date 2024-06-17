@@ -13,7 +13,7 @@ from videotrans.util import tools
 
 
 # split audio by silence
-def shorten_voice(normalized_sound, max_interval=300000):
+def shorten_voice(normalized_sound, max_interval=1200000):
     normalized_sound = tools.match_target_amplitude(normalized_sound, -20.0)
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
@@ -40,6 +40,7 @@ def recogn(*,
            set_p=True,
            inst=None,
            is_cuda=None):
+    print('预先分割')
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     if set_p:
@@ -130,14 +131,10 @@ def recogn(*,
                     continue
                 end_time = start_time + t.words[-1].end * 1000
                 start_time += t.words[0].start * 1000
-                start = timedelta(milliseconds=start_time)
-                stmp = str(start).split('.')
-                if len(stmp) == 2:
-                    start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-                end = timedelta(milliseconds=end_time)
-                etmp = str(end).split('.')
-                if len(etmp) == 2:
-                    end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
+                start = tools.ms_to_time_string(ms=start_time)
+
+                end = tools.ms_to_time_string(ms=end_time)
+
                 srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
                 raw_subtitles.append(srt_line)
                 if set_p:

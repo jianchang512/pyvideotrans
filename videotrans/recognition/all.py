@@ -15,6 +15,7 @@ def recogn(*,
            set_p=True,
            inst=None,
            is_cuda=None):
+    print(f'整体识别')
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     down_root = config.rootdir + "/models"
@@ -105,10 +106,4 @@ def recogn(*,
         return raw_subtitles
     except Exception as e:
         raise Exception(str(e)+str(e.args))
-    finally:
-        try:
-            if model:
-                pass
-                #del model
-        except Exception:
-            pass
+
