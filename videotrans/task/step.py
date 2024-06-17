@@ -220,7 +220,8 @@ class Runstep():
 
     # 合并操作
     def hebing(self):
-        self.precent += 3
+        if self.precent<95:
+            self.precent += 3
         # 视频 音频 字幕 合并
         if self.config_params['app_mode'] in ['tiqu', 'peiyin']:
             return True
@@ -505,7 +506,7 @@ class Runstep():
                 # 配音小于 原时长，移除默认静音
                 dt = it['start_time'] - queue_tts[i - 1]['end_time']
                 if dt > config.settings['remove_white_ms']:
-                    diff = config.settings['remove_white_ms']
+                    diff = config.settings['remove_white_ms'] if config.settings['remove_white_ms']>-1 else dt
                     it['end_time'] -= diff
                     it['start_time'] -= diff
                     offset += diff

@@ -65,16 +65,29 @@ class WorkerWhisper(QThread):
             try:
                 config.box_recogn = 'ing'
                 audio_path = self.audio_paths.pop(0)
+                if not audio_path.endswith('.wav'):
+                    outfile=config.TEMP_HOME+"/"+os.path.basename(audio_path)+'.wav'
+                    cmd = [
+                        "-y",
+                        "-i",
+                        audio_path,
+                        "-ac",
+                        "1",
+                        "-ar",
+                        "16000",
+                        "-b:a",
+                        "128k",
+                        "-c:a",
+                        "pcm_s16le",
+                        outfile
+                    ]
+                    tools.runffmpeg(cmd)
+                    audio_path=outfile
                 if not os.path.exists(audio_path):
-                    if time_dur > 600:
-                        errs.append(f'{audio_path} 不存在')
-                        time_dur = 0
-                        continue
-                    self.audio_paths.append(audio_path)
-                    time.sleep(1)
-                    time_dur += 1
+                    errs.append(f'{audio_path} 不存在')
                     continue
                 self.post_message(type="logs",text=f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
+                print(f'{audio_path=}')
                 jindu = f'{int((length - len(self.audio_paths)) * 49 / length)}%'
                 self.post_message(type='logs',text=f'{jindu}')
                 srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
@@ -89,6 +102,7 @@ class WorkerWhisper(QThread):
                     f.write(text)
                 self.post_message(type="replace", text=f'{text}')
             except Exception as e:
+                print(e)
                 errs.append(f'失败，{str(e)}')
         self.post_message(type='end', text="" if len(errs) < 1 else "\n".join(errs))
         config.box_recogn = 'stop'

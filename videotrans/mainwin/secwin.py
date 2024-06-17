@@ -686,7 +686,7 @@ class SecWindow():
         if self.main.model_type.currentIndex() == 1:
             config.params['model_type'] = 'openai'
             self.main.whisper_model.setDisabled(False)
-            self.main.whisper_type.setDisabled(False)
+            self.main.whisper_type.setDisabled(True)
             self.check_whisper_model(self.main.whisper_model.currentText())
         elif self.main.model_type.currentIndex() == 2:
             config.params['model_type'] = 'GoogleSpeech'

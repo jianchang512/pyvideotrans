@@ -29,7 +29,7 @@ def shorten_voice_old(normalized_sound):
         while end_time - start_time >= max_interval:
             n += 1
             # new_end = start_time + max_interval+buffer
-            new_end = start_time + max_interval + buffer
+            new_end = start_time + max_interval
             new_start = start_time
             nonsilent_data.append((new_start, new_end, True))
             start_time += max_interval
@@ -45,6 +45,7 @@ def recogn(*,
            set_p=True,
            inst=None,
            is_cuda=None):
+    print(f'均等分割')
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'], btnkey=inst.init['btnkey'] if inst else "")
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -95,8 +96,8 @@ def recogn(*,
             #del model
             return False
         start_time, end_time, buffered = duration
-        if start_time == end_time:
-            end_time += int(config.settings['voice_silence'])
+        #if start_time == end_time:
+        #    end_time += int(config.settings['voice_silence'])
 
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
@@ -110,44 +111,41 @@ def recogn(*,
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
                                            temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,0.6, 0.8, 1.0],
-                                           vad_filter=bool(config.settings['vad']),
-                                           vad_parameters=dict(
-                                               min_silence_duration_ms=config.settings['overall_silence'],
-                                               max_speech_duration_s=config.settings['overall_maxsecs'],
-                                               threshold=config.settings['overall_threshold'],
-                                               speech_pad_ms=config.settings['overall_speech_pad_ms']
-                                           ),
+                                           vad_filter=False,
+                                           #vad_parameters=dict(
+                                           #    min_silence_duration_ms=config.settings['overall_silence'],
+                                           #    max_speech_duration_s=config.settings['overall_maxsecs'],
+                                           #    threshold=config.settings['overall_threshold'],
+                                           #    speech_pad_ms=config.settings['overall_speech_pad_ms']
+                                           #),
+                                           #word_timestamps=True,
                                            language=detect_language,
                                            initial_prompt=config.settings['initial_prompt_zh'], )
+
             for t in segments:
                 text += t.text + " "
+                    
+            text = f"{text.capitalize()}. ".replace('&#39;', "'")
+            text = re.sub(r'&#\d+;', '', text).strip()
+            if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
+                continue
+            start = tools.ms_to_time_string(ms=start_time)
+            end = tools.ms_to_time_string(ms=end_time)
+            srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
+            raw_subtitles.append(srt_line)
+            if set_p:
+                if inst and inst.precent < 55:
+                    inst.precent += 0.1
+                tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
+                                  btnkey=inst.init['btnkey'] if inst else "")
+                msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
+                tools.set_process(msg, 'subtitle')
+            else:
+                tools.set_process_box(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", type="set", func_name="shibie")
         except Exception as e:
             #del model
             raise Exception(str(e.args)+str(e))
 
-        text = f"{text.capitalize()}. ".replace('&#39;', "'")
-        text = re.sub(r'&#\d+;', '', text).strip()
-        if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
-            continue
-        start = timedelta(milliseconds=start_time)
-        stmp = str(start).split('.')
-        if len(stmp) == 2:
-            start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-        end = timedelta(milliseconds=end_time)
-        etmp = str(end).split('.')
-        if len(etmp) == 2:
-            end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-        srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
-        raw_subtitles.append(srt_line)
-        if set_p:
-            if inst and inst.precent < 55:
-                inst.precent += round(srt_line['line'] * 5 / total_length, 2)
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
-                              btnkey=inst.init['btnkey'] if inst else "")
-            msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
-            tools.set_process(msg, 'subtitle')
-        else:
-            tools.set_process_box(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", type="set", func_name="shibie")
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs', btnkey=inst.init['btnkey'] if inst else "")
     # 写入原语言字幕到目标文件夹
