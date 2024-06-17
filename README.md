@@ -281,10 +281,13 @@ pip install ctranslate2==3.24.0
 
 # 软件预览截图
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/c410a307-8e1e-4b52-a24c-75647b012f65)
+![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/55faecd9-5ac6-4962-b0f3-ef2283000c64)
+
 
 
 # 相关联项目
+
+[ChatTTS-ui:使用ChatTTS合成声音的UI界面](https://github.com/jianchang512/ChatTTS-ui)
 
 [OTT:本地离线文字翻译工具](https://github.com/jianchang512/ott)
 
