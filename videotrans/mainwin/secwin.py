@@ -128,7 +128,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_tts_type, False)
         # 试听按钮
 
-        self.main.listen_btn.show()
+        self.main.listen_btn.hide()
         # 语音模型
         self.main.whisper_type.setCurrentIndex(0)
         self.main.whisper_model.setCurrentIndex(0)
@@ -885,10 +885,11 @@ class SecWindow():
     def show_listen_btn(self, role):
         config.params["voice_role"] = role
         if role == 'No' or (config.params['tts_type'] == 'clone-voice' and config.params['voice_role'] == 'clone'):
-            self.main.listen_btn.setDisabled(True)
+            self.main.listen_btn.hide()
             return
-        self.main.listen_btn.show()
-        self.main.listen_btn.setDisabled(False)
+        if self.main.app_mode in ['biaozhun','peiyin']:
+            self.main.listen_btn.show()
+            self.main.listen_btn.setDisabled(False)
 
     # 目标语言改变时设置配音角色
     def set_voice_role(self, t):
@@ -909,11 +910,11 @@ class SecWindow():
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
-            if role != 'No':
+            if role != 'No' and self.main.app_mode in ['biaozhun','peiyin']:
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
             else:
-                self.main.listen_btn.setDisabled(True)
+                self.main.listen_btn.hide()
             return
 
         self.main.listen_btn.hide()

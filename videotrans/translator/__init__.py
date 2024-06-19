@@ -258,6 +258,16 @@ LANG_CODE = {
         "cs",
         "Czech language"
     ],
+    "pl":[
+        "pl",
+        "pol",
+        "pl",
+        "PL",
+        "No",
+        "No",
+        "pl",
+        "Polish language"
+    ]
 }
 
 

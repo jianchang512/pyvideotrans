@@ -77,6 +77,8 @@ class Runstep():
                 msg = f'显存不足，请使用较小模型，比如 tiny/base/small' if config.defaulelang == 'zh' else 'Insufficient video memory, use a smaller model such as tiny/base/small'
             raise Exception(f'{msg}')
         else:
+            if config.current_status=='stop':
+                return True
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise Exception(
                     self.obj['raw_basename'] + config.transobj['recogn result is empty'].replace('{lang}',
