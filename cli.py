@@ -32,17 +32,9 @@ def __init__():
         print("正在获取 elevenlabs TTS 角色...")
         get_elevenlabs_role()
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='cli.ini and source mp4')
-    parser.add_argument('-c', type=str, help='cli.ini file absolute filepath', default=os.path.join(os.getcwd(), 'cli.ini'))
-    parser.add_argument('-m', type=str, help='mp4 absolute filepath', default="")
-    parser.add_argument('-cuda', action='store_true', help='Activates the cuda option')
-
-    args = vars(parser.parse_args())
-
+def process(video_path, cfg_file, enableCuda = False) :
     config.settings['countdown_sec'] = 0
-    cfg_file = args['c']
+
     if not os.path.exists(cfg_file):
         print('不存在配置文件 cli.ini' if config.defaulelang == 'zh' else "cli.ini file not exists")
         sys.exit()
@@ -68,13 +60,13 @@ if __name__ == '__main__':
         config.params['target_language']='-'
     if not config.params.get('back_audio'):
         config.params['back_audio']='-'
-    if args['cuda']:
+    if enableCuda:
         config.params['cuda'] = True
-    if args['m'] and os.path.exists(args['m']):
-        config.params['source_mp4'] = args['m']
+    if video_path and os.path.exists(video_path):
+        config.params['source_mp4'] = video_path
 
     # 传多个视频的话,考虑支持批量处理
-    if type(args['m']) == str:
+    if type(video_path) == str:
         config.params['is_batch'] = False
     else:
         config.params['is_batch'] = True
@@ -215,7 +207,19 @@ if __name__ == '__main__':
 
         send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
         print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {video_task.targetdir_mp4}')
+
+        return video_task.targetdir_mp4
     except Exception as e:
         send_notification(e, f'{video_task.obj["raw_basename"]}')
         # 捕获异常并重新绑定回溯信息
         traceback.print_exc()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='cli.ini and source mp4')
+    parser.add_argument('-c', type=str, help='cli.ini file absolute filepath', default=os.path.join(os.getcwd(), 'cli.ini'))
+    parser.add_argument('-m', type=str, help='mp4 absolute filepath', default="")
+    parser.add_argument('-cuda', action='store_true', help='Activates the cuda option')
+
+    args = vars(parser.parse_args())
+
+    process(args['m'], args['c'], args['cuda'])
