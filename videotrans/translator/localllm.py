@@ -23,9 +23,9 @@ def create_openai_client():
 
 def get_content(d,*,model=None,prompt=None,assiant=None):
     message = [
-        {'role': 'system', 'content': prompt},
-        {'role': 'assistant', 'content': assiant},
-        {'role': 'user', 'content':  "\n".join(d)},
+        {'role': 'system', 'content': "You are a professional, authentic translation engine, only returns translations"},
+        #{'role': 'assistant', 'content': assiant},
+        {'role': 'user', 'content':  prompt.replace('[TEXT]',"\n".join(d))},
     ]
     config.logger.info(f"\n[localllm]发送请求数据:{message=}")
     try:
