@@ -167,3 +167,4 @@ websockets==12.0
 Werkzeug==3.0.1
 wrapt==1.15.0
 yarl==1.9.2
+zhconv

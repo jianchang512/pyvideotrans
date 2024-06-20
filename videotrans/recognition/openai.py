@@ -4,6 +4,7 @@ import os
 import re
 from datetime import timedelta
 
+import zhconv
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
@@ -86,6 +87,10 @@ def recogn(*,
                 srt_text=f.read()
             tmp_srts=tools.get_subtitle_from_srt(srt_text,is_file=False)
             for n,it in enumerate(tmp_srts):
+                print(f'{it["text"]=}')
+                if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
+                    tmp_srts[n]['text'] = zhconv.convert(tmp_srts[n]['text'], 'zh-hans')
+
                 tmp_srts[n]['line']=n+last_line
                 tmp_srts[n]['start_time']+=start_time
                 tmp_srts[n]['end_time']+=start_time

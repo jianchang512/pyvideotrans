@@ -124,7 +124,7 @@ class WorkerTTS(QThread):
                  func_name=None,
                  voice_autorate=False,
                  langcode=None,
-                 audio_ajust=False,
+                 # audio_ajust=False,
                  tts_issrt=False):
         super(WorkerTTS, self).__init__(parent)
         self.volume=volume
@@ -139,7 +139,7 @@ class WorkerTTS(QThread):
         self.tts_issrt = tts_issrt
         self.langcode = langcode
         self.voice_autorate = voice_autorate
-        self.audio_ajust = audio_ajust
+        # self.audio_ajust = audio_ajust
         self.tmpdir = f'{homedir}/tmp'
         if not os.path.exists(self.tmpdir):
             os.makedirs(self.tmpdir, exist_ok=True)
@@ -214,7 +214,6 @@ class WorkerTTS(QThread):
     #
     def _add_dubb_time(self, queue_tts):
         for i, it in enumerate(queue_tts):
-            it['video_add'] = 0
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < queue_tts[i - 1]['end_time']:
                 it['start_time'] = queue_tts[i - 1]['end_time']
@@ -227,9 +226,9 @@ class WorkerTTS(QThread):
             # 记录原字母区间时长
             it['raw_duration'] = it['end_time'] - it['start_time']
 
-            if it['end_time'] > it['start_time'] and os.path.exists(it['filename']) and os.path.getsize(
-                    it['filename']) > 0:
-                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp3"))
+            if tools.vail_file(it['filename']):
+                the_ext = it['filename'].split('.')[-1]
+                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
             else:
                 # 不存在配音
                 it['dubb_time'] = 0
@@ -246,59 +245,11 @@ class WorkerTTS(QThread):
                 diff = it['raw_duration'] - it['dubb_time']
                 it['end_time'] -= diff
                 it['raw_duration'] = it['dubb_time']
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
             queue_tts[i] = it
         return queue_tts
 
-    # 3. 自动后延或前延以对齐
-    def _auto_ajust(self, queue_tts):
-        max_index = len(queue_tts) - 1
 
-        for i, it in enumerate(queue_tts):
-            # 如果存在配音文件并且时长大于0，才需要判断是否顺延
-            if "dubb_time" not in it and it['dubb_time'] <= 0:
-                continue
-            # 配音时长如果大于原时长，才需要两侧延伸
-            diff = it['dubb_time'] - it['raw_duration']
-            if diff <= 0:
-                continue
-            # 需要两侧延伸
-
-            # 最后一个，直接后延就可以
-            if i == max_index:
-                # 如果是最后一个，直接延长
-                it['end_time'] += diff
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                # 重新设定可用的字幕区间时长
-                it['raw_duration'] = it['end_time'] - it['start_time']
-                queue_tts[i] = it
-                continue
-
-            # 判断后边的开始时间比当前结束时间是否大于
-            next_diff = queue_tts[i + 1]['start_time'] - it['end_time']
-            if next_diff >= diff:
-                # 如果大于0，有空白，添加
-                it['end_time'] += diff
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                it['raw_duration'] = it['end_time'] - it['start_time']
-                queue_tts[i] = it
-                continue
-
-            # 防止出错
-            next_diff = 0 if next_diff < 0 else next_diff
-            # 先向后延伸占完空白，然后再向前添加，
-            it['end_time'] += next_diff
-            # 判断是否存在前边偏移
-            if it['start_time'] > 0:
-                # 前面空白
-                prev_diff = it['start_time'] if i == 0 else it['start_time'] - queue_tts[i - 1]['end_time']
-                # 前面再添加最多 diff - next_diff
-                it['start_time'] -= min(prev_diff, diff - next_diff)
-                it['start_time'] = 0 if it['start_time'] < 0 else it['start_time']
-            it['raw_duration'] = it['end_time'] - it['start_time']
-            it['startraw'] = ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = ms_to_time_string(ms=it['end_time'])
-            queue_tts[i] = it
-        return queue_tts
 
     #   移除2个字幕间的间隔 config.settings[remove_white_ms] ms
     def _remove_white_ms(self, queue_tts):
@@ -310,86 +261,69 @@ class WorkerTTS(QThread):
                 # 配音小于 原时长，移除默认静音
                 dt = it['start_time'] - queue_tts[i - 1]['end_time']
                 if dt > config.settings['remove_white_ms']:
-                    diff = config.settings['remove_white_ms']
+                    diff = config.settings['remove_white_ms'] if config.settings['remove_white_ms']>-1 else dt
                     it['end_time'] -= diff
                     it['start_time'] -= diff
                     offset += diff
+                it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
                 queue_tts[i] = it
         return queue_tts
 
     # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
     def _ajust_audio(self, queue_tts):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
-        max_speed = config.settings['audio_rate']
-        if max_speed >= 100:
-            max_speed = 99
-
         # 设置加速倍数
         for i, it in enumerate(queue_tts):
-            it['speed'] = 0
+            it['speed'] = False
             # 存在配音时进行处理 没有配音
             if it['dubb_time'] <= 0:
                 queue_tts[i] = it
                 continue
             # 字幕可用时长
-            raw_duration = it['raw_duration']
-            # 配音时长大于可用字幕时长，需加速
-            diff = it['dubb_time'] - raw_duration
-            # 存在原时长，并且新配音大于原时长，才需要加速,计算加速倍数 speed，并计算相对于原时长需要延长的时长add_time, 原时长不变
+            # 经过移除空白等处理后的字幕时长
+            it['raw_duration'] = it['end_time'] - it['start_time']
             # 配音时长 不大于 原时长，不处理
-            if raw_duration <= 0 or diff <= 0:
-                queue_tts[i] = it
-                continue
-            # 是否按照对齐的一半进行，用于音频加速和视频慢速同时起作用
-            # 倍数上浮
-            it['speed'] = round(it['dubb_time'] / raw_duration, 2)
-            if it['speed'] <= 1:
-                it['speed'] = 0
+            if it['raw_duration'] <= 0 or it['dubb_time'] <= it['raw_duration']:
                 queue_tts[i] = it
                 continue
 
-            #     # 如果大于限制倍，则最大限制倍
-            if max_speed > 1 and max_speed < it['speed']:
-                it['speed'] = max_speed
-
-            if it['speed'] < 1:
-                it['speed'] = 0
+            it['speed']=True
             queue_tts[i] = it
 
         # 再次遍历，调整字幕开始结束时间对齐实际音频时长
         # 每次 start_time 和 end_time 需要添加的长度 offset 为当前所有 add_time 之和
-        offset = 0
         for i, it in enumerate(queue_tts):
-
-            # 偏移增加
-            it['start_time'] += offset
-            # 结束时间还需要额外添加
-            it['end_time'] += offset
-
-            if it['speed'] <= 1:
-                # 不需要加速
-                it['startraw'] = ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            # 需要音频加速，否则跳过
+            if not it['speed'] or config.settings['audio_rate'] <= 1:
+                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 queue_tts[i] = it
                 continue
 
-            if it['speed'] > 1:
+            if tools.vail_file(it['filename']):
                 # 调整音频
                 tmp_mp3 = os.path.join(self.tmpdir, f'{it["filename"]}-speed.mp3')
-                speed_up_mp3(filename=it['filename'], speed=it['speed'], out=tmp_mp3)
-                # 加速后时间
-                mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
-                raw_t = it['raw_duration']
-                # 加速后如果仍大于原时长，再移除末尾静音
-                if mp3_len > raw_t:
-                    tools.remove_silence_from_end(tmp_mp3)
-                    add_time = len(AudioSegment.from_file(tmp_mp3, format="mp3")) - raw_t
-                    if add_time > 0:
-                        # 需要延长结束时间，以便字幕 声音对齐
-                        it['end_time'] += add_time
-                        offset += add_time
-                        it['video_add'] = add_time
-                it['raw_duration'] = it['end_time'] - it['start_time']
+                # 需要加速的倍数如果大于2，并且大于1s才需要判断是否视频慢速，否则不慢速，以避免过差效果
+                speed=it['dubb_time']/it['raw_duration']
+                # 确定变化后的配音时长，如果倍数低于 audio_rate 限制，则设为原字幕时长，否则设定 配音时长/最大倍数
+                audio_extend = it['raw_duration'] if speed <= float(config.settings['audio_rate']) else int(it['dubb_time'] / float(config.settings['audio_rate']))
+                tools.precise_speed_up_audio(file_path=it['filename'], out=tmp_mp3,
+                                             target_duration_ms=audio_extend,
+                                             max_rate=min(config.settings['audio_rate'], 100))
+
+                # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
+                #如果视频需要变化，更新视频时长需要变化的长度
+                if tools.vail_file(tmp_mp3):
+                    mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
+                else:
+                    # 加速失败使用原配音文件
+                    tmp_mp3=it['filename']
+                    mp3_len = it['dubb_time']
+
+
+                # 变化后的真实配音时长
+                it['dubb_time'] = mp3_len
                 it['filename'] = tmp_mp3
 
             # 更改时间戳
@@ -443,8 +377,8 @@ class WorkerTTS(QThread):
                     queue_tts = self._remove_srt_silence(queue_tts)
 
                 # 3.是否需要 前后延展
-                if self.audio_ajust:
-                    queue_tts = self._auto_ajust(queue_tts)
+                # if self.audio_ajust:
+                #     queue_tts = self._auto_ajust(queue_tts)
 
                 # 4. 如果需要配音加速
                 if self.voice_autorate:

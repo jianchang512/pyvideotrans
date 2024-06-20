@@ -425,9 +425,9 @@ class Ui_MainWindow(object):
         self.gaoji_layout_inner.addWidget(self.video_autorate)
 
 
-        self.auto_ajust = QtWidgets.QCheckBox(self.layoutWidget)
-        self.auto_ajust.setObjectName("auto_ajust")
-        self.gaoji_layout_inner.addWidget(self.auto_ajust)
+        # self.auto_ajust = QtWidgets.QCheckBox(self.layoutWidget)
+        # self.auto_ajust.setObjectName("auto_ajust")
+        # self.gaoji_layout_inner.addWidget(self.auto_ajust)
 
         self.is_separate = QtWidgets.QCheckBox(self.layoutWidget)
         self.is_separate.setMinimumSize(QtCore.QSize(0, 30))
@@ -825,8 +825,8 @@ class Ui_MainWindow(object):
         self.video_autorate.setText('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
         self.append_video.setToolTip('如果配音时长大于视频时，是否视频末尾延长' if config.defaulelang=='zh' else 'If the dubbing time is longer than the video time, is the end of the video extended?')
         self.append_video.setText('视频末尾延长?' if config.defaulelang=='zh' else 'Extension video?')
-        self.auto_ajust.setText(config.transobj.get("auto_ajust"))
-        self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
+        # self.auto_ajust.setText(config.transobj.get("auto_ajust"))
+        # self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
         self.is_separate.setText(config.uilanglist.get("Preserve background music"))
         self.is_separate.setToolTip(config.uilanglist.get("If retained, the required time may be longer, please be patient and wait"))

@@ -46,7 +46,7 @@ def text_to_speech(
     elif tts_type=='ChatTTS':
         from .chattts import get_voice
         # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
-    print(f'tts_text {role=},{tts_type=}')
+
     if get_voice:
         get_voice(
                 text=text,
