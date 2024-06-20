@@ -405,8 +405,10 @@ class TransCreate():
         if self.obj and self.obj['output'] != self.obj['linshi_output']:
             target_mp4 = Path(self.init['targetdir_mp4'])
             if target_mp4.exists() and target_mp4.stat().st_size > 0:
-                target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
+                output_target_mp4_path = self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'
+                target_mp4.rename(Path(output_target_mp4_path))
             shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
+            self.config_params['output_target_mp4_path'] = output_target_mp4_path
             linshi_deldir = self.obj['linshi_output']
 
         # 提取时，删除

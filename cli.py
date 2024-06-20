@@ -12,7 +12,7 @@ import os
 import re
 import sys
 import traceback
-from videotrans.box.worker import Worker
+# from videotrans.box.worker import Worker
 from videotrans.configure import config
 import argparse
 from videotrans.task.trans_create import TransCreate
@@ -33,6 +33,8 @@ def __init__():
         get_elevenlabs_role()
 
 def process(video_path, cfg_file, enableCuda = False) :
+    # 先清理临时文件再跑
+    tools.delete_temp()
     config.settings['countdown_sec'] = 0
 
     if not os.path.exists(cfg_file):
@@ -208,7 +210,7 @@ def process(video_path, cfg_file, enableCuda = False) :
         send_notification(config.transobj["zhixingwc"], f'"subtitles -> audio"')
         print(f'{"执行完成" if config.defaulelang == "zh" else "Succeed"} {video_task.targetdir_mp4}')
 
-        return video_task.targetdir_mp4
+        return config.params['output_target_mp4_path']
     except Exception as e:
         send_notification(e, f'{video_task.obj["raw_basename"]}')
         # 捕获异常并重新绑定回溯信息
