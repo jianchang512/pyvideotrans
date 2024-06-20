@@ -5,7 +5,7 @@ import re
 from videotrans.configure import config
 from videotrans.util import tools
 from faster_whisper import WhisperModel
-
+import zhconv
 
 def recogn(*,
            detect_language=None,
@@ -71,6 +71,7 @@ def recogn(*,
         # 保留原始语言的字幕
         raw_subtitles = []
         sidx = -1
+
         for segment in segments:
             if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
                 #del model
@@ -91,6 +92,8 @@ def recogn(*,
             # 无有效字符
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text) or len(text) <= 1:
                 continue
+            if detect_language[:2]=='zh' and config.settings['zh_hant_s']:
+                text=zhconv.convert(text,'zh-hans')
             # 原语言字幕
             s = {"line": len(raw_subtitles) + 1, "time": f"{startTime} --> {endTime}", "text": text}
             raw_subtitles.append(s)

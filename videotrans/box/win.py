@@ -776,7 +776,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                       tts_type=self.tts_type.currentText(),
                                       func_name="hecheng",
                                       voice_autorate=issrt and self.voice_autorate.isChecked(),
-                                      audio_ajust=issrt and self.audio_ajust.isChecked(),
                                       tts_issrt=issrt)
         self.hecheng_task.start()
         self.hecheng_startbtn.setText(config.transobj["running"])
@@ -787,10 +786,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def tts_issrt_change(self, state):
         if state:
             self.voice_autorate.setDisabled(False)
-            self.audio_ajust.setDisabled(False)
         else:
             self.voice_autorate.setDisabled(True)
-            self.audio_ajust.setDisabled(True)
 
     # tts类型改变
     def tts_type_change(self, type):

@@ -4,6 +4,7 @@ import os
 import re
 from datetime import timedelta
 
+import zhconv
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
@@ -129,6 +130,8 @@ def recogn(*,
                     continue
                 if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                     continue
+                if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
+                    text = zhconv.convert(text, 'zh-hans')
                 end_time = start_time + t.words[-1].end * 1000
                 start_time += t.words[0].start * 1000
                 start = tools.ms_to_time_string(ms=start_time)

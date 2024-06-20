@@ -161,13 +161,13 @@ class SecWindow():
         self.main.addbackbtn.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.auto_ajust.setDisabled(True)
+        # self.main.auto_ajust.setDisabled(True)
 
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
         self.main.only_video.hide()
-        self.main.auto_ajust.hide()
+        # self.main.auto_ajust.hide()
 
         # cuda
         self.main.enable_cuda.setChecked(False)
@@ -223,8 +223,8 @@ class SecWindow():
         self.main.addbackbtn.setDisabled(False)
         self.main.only_video.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
-        self.main.auto_ajust.setDisabled(False)
-        self.main.auto_ajust.show()
+        # self.main.auto_ajust.setDisabled(False)
+        # self.main.auto_ajust.show()
 
         self.main.video_autorate.setDisabled(False)
         self.main.voice_autorate.setDisabled(False)
@@ -297,7 +297,7 @@ class SecWindow():
         self.main.addbackbtn.setDisabled(True)
         self.main.only_video.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.auto_ajust.setDisabled(True)
+        # self.main.auto_ajust.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
         self.main.voice_autorate.setDisabled(True)
         self.main.append_video.setDisabled(True)
@@ -308,7 +308,7 @@ class SecWindow():
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
         self.main.only_video.hide()
-        self.main.auto_ajust.hide()
+        # self.main.auto_ajust.hide()
         self.main.video_autorate.hide()
 
         # cuda
@@ -367,7 +367,7 @@ class SecWindow():
         self.main.is_separate.setDisabled(True)
         self.main.addbackbtn.setDisabled(True)
         self.main.back_audio.setReadOnly(True)
-        self.main.auto_ajust.setDisabled(True)
+        # self.main.auto_ajust.setDisabled(True)
         self.main.video_autorate.setDisabled(True)
         self.main.append_video.setDisabled(True)
         self.main.voice_autorate.setDisabled(True)
@@ -377,7 +377,7 @@ class SecWindow():
         self.main.is_separate.hide()
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
-        self.main.auto_ajust.hide()
+        # self.main.auto_ajust.hide()
         self.main.video_autorate.hide()
         self.main.append_video.hide()
 
@@ -439,7 +439,7 @@ class SecWindow():
         self.main.video_autorate.setDisabled(True)
         self.main.append_video.setDisabled(True)
         self.main.voice_autorate.setDisabled(False)
-        self.main.auto_ajust.setDisabled(False)
+        # self.main.auto_ajust.setDisabled(False)
         self.main.back_audio.setReadOnly(False)
         self.main.addbackbtn.setDisabled(False)
 
@@ -448,7 +448,7 @@ class SecWindow():
         self.main.video_autorate.hide()
         self.main.append_video.hide()
         self.main.only_video.hide()
-        self.main.auto_ajust.show()
+        # self.main.auto_ajust.show()
         self.main.back_audio.show()
         self.main.addbackbtn.show()
 
@@ -465,8 +465,8 @@ class SecWindow():
     def autorate_changed(self, state, name):
         if name == 'voice':
             config.params['voice_autorate'] = state
-        elif name == 'auto_ajust':
-            config.params['auto_ajust'] = state
+        # elif name == 'auto_ajust':
+        #     config.params['auto_ajust'] = state
         elif name == 'video':
             config.params['video_autorate'] = state
         elif name=='append_video':
@@ -520,7 +520,7 @@ class SecWindow():
         self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu', 'peiyin'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu', 'hebing'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu', 'hebing'] else type)
-        self.main.auto_ajust.setDisabled(True if self.main.app_mode in ['tiqu', 'hebing'] else type)
+        # self.main.auto_ajust.setDisabled(True if self.main.app_mode in ['tiqu', 'hebing'] else type)
 
     def export_sub_fun(self):
         srttxt = self.main.subtitle_area.toPlainText().strip()
@@ -1058,7 +1058,7 @@ class SecWindow():
             config.params['voice_autorate'] = True
             config.params['video_autorate'] = True
             config.params['append_video'] = True
-            config.params['auto_ajust'] = True
+            # config.params['auto_ajust'] = True
             config.params['is_separate'] = False
             config.params['back_audio'] = ''
 

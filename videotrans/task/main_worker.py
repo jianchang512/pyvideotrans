@@ -178,8 +178,8 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 send_notification(err, f'{video.obj["raw_basename"]}')
                 continue
-            else:
-                send_notification("Succeed", f'{video.obj["raw_basename"]}')
+            # else:
+            #     send_notification("Succeed", f'{video.obj["raw_basename"]}')
         # 批量进入等待
         if self.is_batch:
             return self.wait_end()

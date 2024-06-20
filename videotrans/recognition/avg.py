@@ -11,7 +11,7 @@ from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.util import tools
-
+import zhconv
 
 # split audio by silence
 def shorten_voice_old(normalized_sound):
@@ -129,6 +129,8 @@ def recogn(*,
             text = re.sub(r'&#\d+;', '', text).strip()
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
+            if detect_language[:2]=='zh' and config.settings['zh_hant_s']:
+                text=zhconv.convert(text,'zh-hans')
             start = tools.ms_to_time_string(ms=start_time)
             end = tools.ms_to_time_string(ms=end_time)
             srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}

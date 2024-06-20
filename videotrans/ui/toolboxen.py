@@ -279,14 +279,14 @@ class Ui_MainWindow(object):
         self.voice_autorate.setEnabled(False)
         self.voice_autorate.setObjectName("voice_autorate")
 
-        self.audio_ajust = QtWidgets.QCheckBox(self.tab_2)
-        self.audio_ajust.setEnabled(False)
-        self.audio_ajust.setObjectName("audio_ajust")
+        # self.audio_ajust = QtWidgets.QCheckBox(self.tab_2)
+        # self.audio_ajust.setEnabled(False)
+        # self.audio_ajust.setObjectName("audio_ajust")
 
 
         self.horizontalLayout_10_1.addWidget(self.tts_issrt)
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
-        self.horizontalLayout_10_1.addWidget(self.audio_ajust)
+        # self.horizontalLayout_10_1.addWidget(self.audio_ajust)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
 
@@ -764,7 +764,7 @@ class Ui_MainWindow(object):
         self.tts_issrt.setToolTip(box_lang.get("If so, the line number and time value will skip reading aloud"))
         self.tts_issrt.setText(box_lang.get("Is srt?"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
-        self.audio_ajust.setText(config.transobj.get("auto_ajust"))
+        # self.audio_ajust.setText(config.transobj.get("auto_ajust"))
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.label_7.setText(box_lang.get("Output audio name"))
         self.hecheng_out.setPlaceholderText(box_lang.get("Set the name of the generated audio file here. If not filled in, use the time and date command"))
