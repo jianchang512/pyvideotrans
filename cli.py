@@ -32,7 +32,7 @@ def __init__():
         print("正在获取 elevenlabs TTS 角色...")
         get_elevenlabs_role()
 
-def process(video_path, cfg_file, enableCuda = False) :
+def process(video_path, cfg_file, enableCuda = True) :
     # 先清理临时文件再跑
     tools.delete_temp()
     config.settings['countdown_sec'] = 0
@@ -64,7 +64,7 @@ def process(video_path, cfg_file, enableCuda = False) :
         config.params['back_audio']='-'
     # cuda必须准确的设置，如果没cuda环境却启用了cuda，后面会报错
     config.params['cuda'] = enableCuda
-    
+
     if video_path and os.path.exists(video_path):
         config.params['source_mp4'] = video_path
 
