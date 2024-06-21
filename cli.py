@@ -62,8 +62,9 @@ def process(video_path, cfg_file, enableCuda = False) :
         config.params['target_language']='-'
     if not config.params.get('back_audio'):
         config.params['back_audio']='-'
-    if enableCuda:
-        config.params['cuda'] = True
+    # cuda必须准确的设置，如果没cuda环境却启用了cuda，后面会报错
+    config.params['cuda'] = enableCuda
+    
     if video_path and os.path.exists(video_path):
         config.params['source_mp4'] = video_path
 
