@@ -933,8 +933,12 @@ def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="",nologs
             config.queue_logs.put_nowait({"text": text, "type": type, "btnkey": btnkey})
         elif qname == 'box':
             config.queuebox_logs.put_nowait({"text": text, "type": type, "func_name": func_name})
-        else:
+        # else:
+        if config.params['detail_log']:
             print(f'[{type}]: {text}')
+        elif qname != 'box' and qname != 'sp':
+            print(f'[{type}]: {text}')
+
     except Exception as e:
         pass
 
