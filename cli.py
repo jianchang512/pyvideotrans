@@ -118,8 +118,12 @@ def process(video_path, cfg_file, enableCuda = True) :
             print(config.transobj['deepl_authkey'])
             sys.exit()
         if config.params['translate_type'] == DEEPLX_NAME and not config.params["deeplx_address"]:
-            print(config.transobj['setdeeplx_address'])
-            sys.exit()
+            # 从环境变量中读取deeplx_address属性，如果有，则放入config.params中
+            if 'deeplx_address' in os.environ:
+                config.params['deeplx_address'] = os.environ['deeplx_address']
+            else:
+                print(config.transobj['setdeeplx_address'])
+                sys.exit()
 
         if LANG_CODE[config.params['target_language']] == 'No':
             print(config.transobj['deepl_nosupport'])
@@ -149,6 +153,7 @@ def process(video_path, cfg_file, enableCuda = True) :
     config.params['video_autorate'] = False
     config.params['append_video'] = False
     
+
     process_bar_data = [
         config.transobj['kaishichuli'],
         config.transobj['kaishishibie'],
