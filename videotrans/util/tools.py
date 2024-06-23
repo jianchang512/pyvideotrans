@@ -1245,60 +1245,64 @@ def get_video_codec():
     hhead='h264'
     if video_codec!=264:
         hhead='hevc'
-    mp4_test=config.rootdir+"/videotrans/styles/no-remove.mp4"
-    if not Path(mp4_test).is_file():
-        return f'libx{video_codec}'
-    mp4_target=config.TEMP_DIR+"/test.mp4"
-    codec=''
-    if plat in ['Windows','Linux']:
-        import torch    
-        if torch.cuda.is_available():
-            codec=f'{hhead}_nvenc'
-        elif plat=='Windows':
-            codec=f'{hhead}_qsv'
-        elif plat=='Linux':
-            codec=f'{hhead}_vaapi'
-    elif plat=='Darwin':
-        codec=f'{hhead}_videotoolbox'
+    
+    # huggingface上ffmpeg环境有问题，直接指定吧
+    return f'libx{video_codec}'
 
-    if not codec:
-        return f"libx{video_codec}"
+    # mp4_test=config.rootdir+"/videotrans/styles/no-remove.mp4"
+    # if not Path(mp4_test).is_file():
+    #     return f'libx{video_codec}'
+    # mp4_target=config.TEMP_DIR+"/test.mp4"
+    # codec=''
+    # if plat in ['Windows','Linux']:
+    #     import torch    
+    #     if torch.cuda.is_available():
+    #         codec=f'{hhead}_nvenc'
+    #     elif plat=='Windows':
+    #         codec=f'{hhead}_qsv'
+    #     elif plat=='Linux':
+    #         codec=f'{hhead}_vaapi'
+    # elif plat=='Darwin':
+    #     codec=f'{hhead}_videotoolbox'
 
-    try:
-        Path(config.TEMP_DIR).mkdir(exist_ok=True)
-        subprocess.run([
-            "ffmpeg",
-            "-y",
-            "-hide_banner",
-            "-ignore_unknown",
-            "-i",
-            mp4_test,
-            "-c:v",
-            codec,
-            mp4_target
-        ],
-        check=True,
-        creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    except Exception as e:
-        if sys.platform=='win32':
-            try:
-                codec=f"{hhead}_amf"
-                subprocess.run([
-                    "ffmpeg",
-                    "-y",
-                    "-hide_banner",
-                    "-ignore_unknown",
-                    "-i",
-                    mp4_test,
-                    "-c:v",
-                    codec,
-                    mp4_target
-                ],
-                    check=True,
-                    creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-            except Exception:
-                codec=f"libx{video_codec}"
-    return codec
+    # if not codec:
+    #     return f"libx{video_codec}"
+
+    # try:
+    #     Path(config.TEMP_DIR).mkdir(exist_ok=True)
+    #     subprocess.run([
+    #         "ffmpeg",
+    #         "-y",
+    #         "-hide_banner",
+    #         "-ignore_unknown",
+    #         "-i",
+    #         mp4_test,
+    #         "-c:v",
+    #         codec,
+    #         mp4_target
+    #     ],
+    #     check=True,
+    #     creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    # except Exception as e:
+    #     if sys.platform=='win32':
+    #         try:
+    #             codec=f"{hhead}_amf"
+    #             subprocess.run([
+    #                 "ffmpeg",
+    #                 "-y",
+    #                 "-hide_banner",
+    #                 "-ignore_unknown",
+    #                 "-i",
+    #                 mp4_test,
+    #                 "-c:v",
+    #                 codec,
+    #                 mp4_target
+    #             ],
+    #                 check=True,
+    #                 creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+    #         except Exception:
+    #             codec=f"libx{video_codec}"
+    # return codec
 
 
 
