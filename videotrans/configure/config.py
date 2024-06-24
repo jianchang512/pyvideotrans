@@ -288,6 +288,12 @@ params = {
     "listen_text_tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
     "listen_text_hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
     "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
+    "listen_text_uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
+    "listen_text_id": "Halo, temanku, semoga kamu cantik setiap hari!",
+    "listen_text_ms": "Helo, sahabat saya, saya harap anda cantik setiap hari!",
+    "listen_text_kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
+    "listen_text_cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
+    "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
     "tts_type_list": ["edgeTTS","ChatTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],

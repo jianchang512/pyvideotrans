@@ -86,7 +86,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length=len(it)
-                text = "\n".join(it)
+                text = "...".join(it)
                 url = f"{google_url}/m?sl=auto&tl={quote(target_language)}&hl={quote(target_language)}&q={quote(text)}"
                 config.logger.info(f'[Google]请求数据:{url=}')
                 headers = {
@@ -104,12 +104,14 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     err=f'无有效结果,{response.text}'
                     break
 
-                result=tools.cleartext(re_result[0]).split("\n")
+                result=tools.cleartext(re_result[0]).split("...")
                 result_length=len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length<source_length:
-                    print(f'翻译前后数量不一致，需要重新切割')
+                    print(f'翻译前后数量不一致，需要重新切割,{it=}')
+                    # print(f'{result=}')
                     result=tools.format_result(it,result,target_lang=target_language)
+                    # print(f'{len(result)=}')
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
