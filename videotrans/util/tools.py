@@ -215,9 +215,9 @@ def runffmpeg(arg, *, noextname=None,
     if fps:
         arg.insert(-1,'-r')
         arg.insert(-1,f'{fps}')
-    else:
-        arg.insert(-1,'-fps_mode')
-        arg.insert(-1,f"{config.settings['vsync']}")
+    # else:
+    #     arg.insert(-1,'-fps_mode')
+    #     arg.insert(-1,f"{config.settings['vsync']}")
 
     cmd = cmd + arg
     # 插入自定义 ffmpeg 参数
@@ -555,8 +555,9 @@ def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
     if out:
         out=Path(out).as_posix()
     if maxsec:
-        return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-t', f"{maxsec}", '-crf',
-                          f'{config.settings["crf"]}', '-preset', config.settings['preset'], '-an', out], fps=fps)
+        print(f'maxsec={maxsec=}')
+        return os.system(f'ffmpeg -y -f  concat -safe 0 -i "{txt}"  -c:v libx{video_codec}  -crf {config.settings["crf"]} -preset {config.settings["preset"]} -an {out}')
+        # return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-crf',  f'{config.settings["crf"]}', '-preset', config.settings['preset'], '-an', out], fps=fps)
     return runffmpeg(
         ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf', f'{config.settings["crf"]}',
          '-preset', config.settings['preset'], out], fps=fps)
@@ -1340,40 +1341,88 @@ def format_result(source_list,target_list,target_lang="zh"):
         it_len=len(it.strip())
         source_total+=it_len
         source_len.append(it_len)
-    target_str=".".join(target_list).strip()
+
+    target_str=" ".join(target_list).strip()
     target_total=len(target_str)
     target_len=[]
     for num in source_len:
         target_len.append(math.ceil(target_total*num/source_total))
+
     # 开始截取文字
     result=[]
     start=0
-    # 如果是中日韩泰语言，直接按字切割
-    if (len(target_lang)<6 and target_lang[:2].lower() in ['zh','ja','ko','th']) or (len(target_lang)>5 and target_lang[:3].lower() in ['sim','tra','jap','kor','tha']):
-        for num in target_len:
-            text=target_str[start:start+num]
-            start=start+num
-            result.append(text)
-        return result
-
     #如果其他语言，需要找到最近的标点或空格
-    flag=["."," ",",","!","?","_","~","[","]","{","}","<",">",";",":","|"]
+    flag=[
+          ".",
+          '"',
+          "'",
+          " ",
+          ",",
+          "!",
+          "?",
+          "_",
+          "~",
+          "[",
+          "]",
+          "{",
+          "}",
+          "<",
+          ">",
+          ";",
+          ":",
+          "|",
+          "(",
+          ")",
+          "，",
+          "。",
+          "；",
+          "：",
+          "‘",
+          "“",
+          "？",
+          "、",
+          "《",
+          "》",
+          "【",
+          "】",
+          "｛",
+          "｝",
+          "（",
+          "）",
+          "—",
+          "·",
+          "！",
+          "￥",
+          "…",
+          "\n"
+    ]
     for num in target_len:
         lastpos=start+num
+        if start>=target_total:
+            result.append("")
+            continue
         text=target_str[start:lastpos]
+
         if num<5 or text[-1] in flag:
+
             start=start+num
             result.append(text)
             continue
-        # 倒退3个到前进10个寻找标点
-        offset=-1
-        maxlen=7
+        # 倒退3个到前进6个寻找标点 切割点
+        offset=-3
+        maxlen=6
         while offset<maxlen:
-            lastpos+=offset
+            newlastpos=lastpos+offset
+
+            if start>=target_total:
+                break
             # 如果达到了末尾或者找到了标点则切割
-            if lastpos>=target_total or target_str[lastpos] in flag:
-                text=target_str[start:lastpos+1] if start<target_total else ""
-                start=lastpos+1
+            if newlastpos>=target_total:
+                result.append(target_str[start:])
+                break
+            if newlastpos>=target_total or target_str[newlastpos] in flag:
+                text=target_str[start:newlastpos+1] if start<target_total else ""
+                start=newlastpos+1
                 result.append(text)
                 break
             offset+=1
@@ -1384,7 +1433,9 @@ def format_result(source_list,target_list,target_lang="zh"):
         text=target_str[start:start+num] if start<target_total else ""
         start=start+num
         result.append(text)
-
+    if len(result)<len(source_list):
+        for i in range(len(source_list)-len(result)):
+            result.append("")
     return result
 
 # 删除翻译结果的特殊字符

@@ -16,7 +16,7 @@ from videotrans.util import tools
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans
 from videotrans.tts import run as run_tts
-
+import subprocess
 
 class Runstep():
 
@@ -754,45 +754,48 @@ class Runstep():
 
     # 延长 novoice.mp4  duration_ms 毫秒
     def _novoicemp4_add_time(self, duration_ms):
-        if duration_ms < 100:
+        if duration_ms < 1000:
             return
         tools.set_process(f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms', btnkey=self.init['btnkey'])
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
 
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
+        shutil.copy2(self.init['novoice_mp4'],self.init['novoice_mp4']+".raw.mp4")
+        try:
+            tools.cut_from_video(
+                source=self.init['novoice_mp4'],
+                ss=tools.ms_to_time_string(ms=video_time - 500).replace(',', '.'),
+                out=self.init['cache_folder'] + "/last-clip-novoice.mp4"
+            )
+            tools.runffmpeg([
+                '-y',
+                 '-stream_loop',
+                f'{math.ceil(duration_ms/500)}',
+                '-i',
+                self.init['cache_folder'] + "/last-clip-novoice.mp4",
+                '-c:v',
+                'copy',
+                '-an',
+                self.init['cache_folder'] + "/last-clip-novoice-all.mp4"
+            ])
+        except Exception as  e:
+            print(e)
 
-        # 开始将 novoice_mp4 和 last_clip 合并
-        shutil.copy2(self.init['novoice_mp4'], f"{self.init['novoice_mp4']}.raw.mp4")
+        tools.runffmpeg([
+            '-y',
+            '-i',
+            f"{self.init['novoice_mp4']}.raw.mp4",
+            '-i',
+            self.init['cache_folder'] + "/last-clip-novoice-all.mp4",
+            '-filter_complex',
+            "[0:v][1:v]concat=n=2:v=1[outv]",
+            '-map',
+            "[outv]",
+            '-an',
+            self.init['novoice_mp4']])
 
-        tools.cut_from_video(
-            source=self.init['novoice_mp4'],
-            ss=tools.ms_to_time_string(ms=video_time - duration_ms).replace(',', '.'),
-            out=self.init['cache_folder'] + "/last-clip-novoice.mp4",
-            pts=10,
-            fps=None if not self.init['video_info'] or not self.init['video_info']['video_fps'] else
-            self.init['video_info']['video_fps']
-        )
-
-        clip_time = tools.get_video_duration(self.init['cache_folder'] + "/last-clip-novoice.mp4")
-
-        nums = math.ceil(duration_ms / clip_time)
-        nums += math.ceil(nums / 3)
-        tools.concat_multi_mp4(
-            filelist=[self.init['cache_folder'] + "/last-clip-novoice.mp4" for x in range(nums)],
-            out=self.init['cache_folder'] + "/last-clip-novoice-all.mp4",
-            fps=None if not self.init['video_info'] or not self.init['video_info']['video_fps'] else
-            self.init['video_info']['video_fps']
-        )
-
-        tools.concat_multi_mp4(
-            filelist=[f"{self.init['novoice_mp4']}.raw.mp4",
-                      self.init['cache_folder'] + "/last-clip-novoice-all.mp4"],
-            out=self.init['novoice_mp4'],
-            maxsec=math.ceil((video_time + duration_ms) / 1000),
-            fps=None if not self.init['video_info'] or not self.init['video_info']['video_fps'] else
-            self.init['video_info']['video_fps']
-        )
+        # shutil.copy2(self.init['novoice_mp4'],self.init['novoice_mp4']+"----.mp4")
         Path(f"{self.init['novoice_mp4']}.raw.mp4").unlink(missing_ok=True)
         return True
 
@@ -1043,7 +1046,7 @@ class Runstep():
                     # 对视频末尾定格延长
                     self._novoicemp4_add_time(audio_length - video_time)
                 except Exception as e:
-                    # print(f'{config.transobj["moweiyanchangshibai"]}:{str(e)}')
+                    print(f'{config.transobj["moweiyanchangshibai"]}:{str(e)}')
                     config.logger.error(f'视频末尾延长失败:{str(e)}')
             elif audio_length > 0 and video_time > audio_length:
                 ext = self.init['target_wav'].split('.')[-1]

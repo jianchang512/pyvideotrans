@@ -64,6 +64,23 @@ def text_to_speech(
     else:
         config.logger.error(f'no filename={filename} {tts_type=} {text=},{role=}')
 
+# 单独处理 AzureTTS 批量
+def _azuretts(queue_tts,language=None,set_p=False,inst=None):
+    from .azuretts import get_voice
+    num=200
+    qlist=[queue_tts[i:i+num] for i in range(0,len(queue_tts),num)]
+    for i,q in enumerate(qlist):
+        get_voice(
+                    text=q,
+                    volume=queue_tts[0]["volume"],
+                    pitch=queue_tts[0]["pitch"],
+                    role=queue_tts[0]["role"],
+                    rate=queue_tts[0]["rate"],
+                    language=language,
+                    set_p=set_p)
+        if inst:
+            inst.precent += 1
+        tools.set_process(f"AzureTTS...", btnkey=inst.init['btnkey'] if inst else "")
 
 def run(*, queue_tts=None, language=None, set_p=True, inst=None):
     queue_tts_copy=copy.deepcopy(queue_tts)
@@ -74,39 +91,44 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None):
 
     n = 0
     dub_nums=config.settings['dubbing_thread']
-    while len(queue_tts) > 0:
-        if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
-            return True
-        try:
-            tolist = []
-            for i in range(dub_nums):
-                if len(queue_tts) > 0:
-                    p=queue_tts.pop(0)
-                    if p['tts_type']!='clone-voice' and tools.vail_file(p['filename']):
-                        continue
-                    tolist.append(threading.Thread(target=text_to_speech, kwargs={
-                        "text":p['text'],
-                        "role":p['role'],
-                        "rate":p['rate'],
-                        "pitch":p['pitch'],
-                        "volume":p['volume'],
-                        "filename":p['filename'],
-                        "tts_type":p['tts_type'],
-                        "set_p":set_p,
-                        "inst":inst,
-                        "language":language
-                    }))
-            if len(tolist)<1:
-                continue
-            for t in tolist:
-                t.start()
-            for t in tolist:
-                n += 1
-                if set_p and inst:
-                    tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',btnkey=inst.init['btnkey'])
-                t.join()
-        except Exception as e:
-            print(f'runtts:{str(e)}')
+    if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
+        return True
+    if len(queue_tts)>0 and queue_tts[0]['tts_type']=='AzureTTS':
+        _azuretts(queue_tts,language=language, set_p=set_p, inst=inst)
+    else:
+        while len(queue_tts) > 0:
+            if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
+                return True
+            try:
+                tolist = []
+                for i in range(dub_nums):
+                    if len(queue_tts) > 0:
+                        p=queue_tts.pop(0)
+                        if p['tts_type']!='clone-voice' and tools.vail_file(p['filename']):
+                            continue
+                        tolist.append(threading.Thread(target=text_to_speech, kwargs={
+                            "text":p['text'],
+                            "role":p['role'],
+                            "rate":p['rate'],
+                            "pitch":p['pitch'],
+                            "volume":p['volume'],
+                            "filename":p['filename'],
+                            "tts_type":p['tts_type'],
+                            "set_p":set_p,
+                            "inst":inst,
+                            "language":language
+                        }))
+                if len(tolist)<1:
+                    continue
+                for t in tolist:
+                    t.start()
+                for t in tolist:
+                    n += 1
+                    if set_p and inst:
+                        tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',btnkey=inst.init['btnkey'])
+                    t.join()
+            except Exception as e:
+                print(f'runtts:{str(e)}')
            
     err=0
     for it in queue_tts_copy:

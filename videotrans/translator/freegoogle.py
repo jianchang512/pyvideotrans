@@ -92,7 +92,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length=len(it)
-                text = "\n".join(it)
+                text = "...".join(it)
 
                 url = f"{google_url}/m?sl=auto&tl={quote(target_language)}&hl={quote(target_language)}&q={quote(text)}"
                 headers = {
@@ -111,7 +111,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 if len(re_result) < 1 or not re_result[0]:
                     err=f'{google_url} {re_result}'
                     break
-                result=tools.cleartext(re_result[0]).split("\n")
+                result=tools.cleartext(re_result[0]).split("...")
                 result_length=len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length<source_length:

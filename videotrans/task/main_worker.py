@@ -186,7 +186,7 @@ class Worker(QThread):
         # 非批量直接结束
         config.queue_mp4 = []
         set_process("", 'end')
-        self._unlink_tmp()
+        # self._unlink_tmp()
         #self.tasklist = {}
         
         
