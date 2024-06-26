@@ -410,6 +410,9 @@ class TransCreate():
             shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
             self.config_params['output_target_mp4_path'] = output_target_mp4_path
             linshi_deldir = self.obj['linshi_output']
+        else:
+        # 如果临时输出目录和最终输出目录相同，设置 output_target_mp4_path
+            self.config_params['output_target_mp4_path'] = self.obj['output'] + f'/{self.obj["raw_noextname"]}.mp4'
 
         # 提取时，删除
         if self.config_params['app_mode'] == 'tiqu':
