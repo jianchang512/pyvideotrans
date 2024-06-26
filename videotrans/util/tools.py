@@ -224,7 +224,7 @@ def runffmpeg(arg, *, noextname=None,
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
             cmd.insert(-1,str(it))
-    print(f'ffmpeg:{" ".join(cmd)}')
+    # print(f'ffmpeg:{" ".join(cmd)}')
     config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
@@ -277,7 +277,7 @@ def runffmpeg(arg, *, noextname=None,
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     # cmd[-1] = os.path.normpath(cmd[-1])
-    print(f'ffprobe:{cmd=}')
+    # print(f'ffprobe:{cmd=}')
     try:
         p = subprocess.run( cmd if isinstance(cmd,str) else ['ffprobe'] + cmd,
                            stdout=subprocess.PIPE,
@@ -1341,12 +1341,17 @@ def format_result(source_list,target_list,target_lang="zh"):
         it_len=len(it.strip())
         source_total+=it_len
         source_len.append(it_len)
+    print(f'{target_list=}')
+    print(f'{source_total=},{source_len=}')
 
-    target_str=" ".join(target_list).strip()
+    target_str="".join(target_list).strip()
     target_total=len(target_str)
     target_len=[]
     for num in source_len:
-        target_len.append(math.ceil(target_total*num/source_total))
+        n=math.floor(target_total*num/source_total)
+        n=1 if n==0 else n
+        target_len.append(n)
+    print(f'{target_total=},{target_len=}')
 
     # 开始截取文字
     result=[]
@@ -1403,17 +1408,15 @@ def format_result(source_list,target_list,target_lang="zh"):
             continue
         text=target_str[start:lastpos]
 
-        if num<5 or text[-1] in flag:
-
+        if len(text)<3 or text[-1] in flag:
             start=start+num
-            result.append(text)
+            result.append(text.strip())
             continue
         # 倒退3个到前进6个寻找标点 切割点
-        offset=-3
-        maxlen=6
+        offset=-5
+        maxlen=1
         while offset<maxlen:
             newlastpos=lastpos+offset
-
             if start>=target_total:
                 break
             # 如果达到了末尾或者找到了标点则切割
@@ -1423,7 +1426,7 @@ def format_result(source_list,target_list,target_lang="zh"):
             if newlastpos>=target_total or target_str[newlastpos] in flag:
                 text=target_str[start:newlastpos+1] if start<target_total else ""
                 start=newlastpos+1
-                result.append(text)
+                result.append(text.strip())
                 break
             offset+=1
         # 已找到切割点
@@ -1432,10 +1435,25 @@ def format_result(source_list,target_list,target_lang="zh"):
         # 没找到分割标点，强制截断
         text=target_str[start:start+num] if start<target_total else ""
         start=start+num
-        result.append(text)
+        result.append(text.strip())
     if len(result)<len(source_list):
         for i in range(len(source_list)-len(result)):
             result.append("")
+
+    length=len(result)
+    for i,it in enumerate(result):
+        if i>0 and it=="":
+            tmp=re.split(r'[\s,.? 。，！；、·：… ]',result[i-1])
+            if len(tmp)>1 and tmp[-1]:
+                it=tmp[-1]
+                result[i-1]=" ".join(tmp[:-1])
+            elif len(tmp)>2 and tmp[-2]:
+                it=tmp[-2]
+                result[i-1]=" ".join(tmp[:-2])
+            result[i]=it
+
+
+
     return result
 
 # 删除翻译结果的特殊字符

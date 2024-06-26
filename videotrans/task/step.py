@@ -238,28 +238,66 @@ class Runstep():
     def _merge_audio_segments(self, *, queue_tts=None, video_time=0):
         merged_audio = AudioSegment.empty()
         # start is not 0
-        if queue_tts[0]['start_time'] > 0:
-            silence_duration = queue_tts[0]['start_time']
-            silence = AudioSegment.silent(duration=silence_duration)
+        if queue_tts[0]['start_time_source'] > 0:
+            silence = AudioSegment.silent(duration=queue_tts[0]['start_time_source'])
             merged_audio += silence
-        # 修改时间戳，如果当前开始小于前一个结束，则后移
-        offset = 0
+
+
+        # 开始时间
+        cur=queue_tts[0]['start_time_source']
+        length=len(queue_tts)
         for i, it in enumerate(queue_tts):
-            it['end_time']+=offset
-            it['start_time']+=offset
-            # 当前字幕可用时长
-            it['raw_duration'] = it['end_time'] - it['start_time']
-            if i>0 and it['start_time']<queue_tts[i-1]['end_time']:
-                # 有重叠
-                diff=queue_tts[i-1]['end_time']-it['start_time']
-                it['start_time']+=diff
-                it['end_time']+=diff
-                offset+=diff
-                print(f'{i=} {diff=} move ')
-            elif i>0:
-                # 和前面一个之间有静音片段
-                silence = AudioSegment.silent(duration=it['start_time']-queue_tts[i-1]['end_time'])
-                merged_audio += silence
+
+            # 存在有效配音文件则加入，否则配音时长大于0则加入静音
+            segment=None
+            the_ext = it['filename'].split('.')[-1]
+
+            # 原始字幕时长
+            raw_source=it['end_time_source']-it['start_time_source']
+            if raw_source==0:
+                continue
+            # 存在配音文件
+            if tools.vail_file(it['filename']):
+                segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
+                it['dubb_time']=len(segment)
+
+            else:
+                # 不存在配音文件
+                segment = AudioSegment.silent(duration=raw_source)
+                it['dubb_time']=raw_source
+
+            if i==0:
+                it['start_time']=it['start_time_source']
+                it['end_time']=it['start_time_source']+it['dubb_time']
+                cur=it['end_time']
+                merged_audio+=segment
+            else:
+                if it['start_time_source']<cur:
+                    # 如果开始时间和上一个结束片段重合
+                    it['start_time']=cur
+                    it['end_time']=it['start_time']+it['dubb_time']
+                    cur=it['end_time']
+                    merged_audio+=segment
+                elif it['start_time_source']>=cur:
+                    # 如果当前开始时间和上一个结束时间之间有间隔，则添加静音
+                    if it['start_time_source']>cur:
+                        merged_audio +=AudioSegment.silent(duration=it['start_time_source']-cur)
+                    it['start_time']=it['start_time_source']
+                    it['end_time']=it['start_time']+it['dubb_time']
+                    merged_audio+=segment
+                    cur=it['end_time']
+
+            if cur < it['end_time_source']:
+                merged_audio += AudioSegment.silent(duration=it['end_time_source']-cur)
+                cur=it['end_time_source']
+                it['end_time']=cur
+
+
+            print(f'{i=},{it["start_time_source"]=},{it["end_time_source"]=}')
+            print(f'{i=},{it["start_time"]=},{it["end_time"]=}')
+
+
+
 
             it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
             it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
@@ -268,42 +306,10 @@ class Runstep():
 
 
 
-            if it['raw_duration'] == 0:
-                continue
-            if not tools.vail_file(it['filename']):
-                print(f'[{i=}] dubb_time=0 add silent')
-                merged_audio += AudioSegment.silent(duration=it['raw_duration'])
-                continue
-            the_ext = it['filename'].split('.')[-1]
-            segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
-            # 真实配音时长
-            it['dubb_time'] = len(segment)
-            merged_audio+=segment
-
-            diff = it['dubb_time'] - it['raw_duration']
-            # 配音大于字幕时长，后延，延长时间
-            if diff > 0:
-                it['end_time'] += diff
-                offset+=diff
-            else:
-                # 配音小于原时长，添加静音
-                merged_audio += AudioSegment.silent(duration=abs(diff))
-
-
-            it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-            queue_tts[i] = it
-
-
+        print(f'合成音频后时长={len(merged_audio)},{video_time=}')
         # 移除尾部静音
-        co2 = merged_audio
-        if config.settings['remove_silence'] or (
-                video_time > 0 and merged_audio and (len(merged_audio) > video_time)):
-            merged_audio = tools.remove_silence_from_end(merged_audio, silence_threshold=-50.0, chunk_size=10,is_start=False)
-            if isinstance(merged_audio, str):
-                merged_audio = co2
 
-        if video_time > 0 and merged_audio and (len(merged_audio) < video_time):
+        if not self.config_params['video_autorate'] and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
             # 末尾补静音
             silence = AudioSegment.silent(duration=video_time - len(merged_audio))
             merged_audio += silence
@@ -322,7 +328,7 @@ class Runstep():
                 tools.wav2m4a(wavfile, self.init['target_wav'])
         except Exception as e:
             raise Exception(f'[error]merged_audio:{str(e)}')
-
+        print(f'合成音频返回时 {len(merged_audio)=}')
         return len(merged_audio), queue_tts
 
     # 保存字幕文件 到目标文件夹
@@ -436,7 +442,7 @@ class Runstep():
             # >0 需要视频慢放到的实际时长
             it['video_extend']=-1
 
-            # 记录实际配音后，未经任何处理的时长
+            # 记录实际配音后，未经任何处理的真实配音时长
             if tools.vail_file(it['filename']):
                 the_ext = it['filename'].split('.')[-1]
                 it['dubb_time'] = len(
@@ -486,81 +492,81 @@ class Runstep():
     # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
     def _ajust_audio(self, queue_tts):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
-        # 设置加速倍数
+        length=len(queue_tts)
+        video_time = tools.get_video_duration(self.init['novoice_mp4'])
         for i, it in enumerate(queue_tts):
             # 是否需要音频加速
             it['speed'] = False
-            # 视频慢放到的毫秒数
-            it['video_extend']=0
-
             # 存在配音时进行处理 没有配音
-            if it['dubb_time'] <= 0:
+            if it['dubb_time'] <= 0 or it['end_time'] == it['start_time']:
                 queue_tts[i] = it
                 continue
-            # 经过移除空白等处理后的字幕时长
-            it['raw_duration'] = it['end_time'] - it['start_time']
-            # 配音时长 不大于 原时长，不处理
-            if it['raw_duration'] <= 0 or it['dubb_time'] <= it['raw_duration']:
-                queue_tts[i] = it
+
+            # 可用时长，从本片段开始到下一个片段开始
+            able_time=queue_tts[i+1]['start_time']-it['start_time'] if i<length-1 else video_time-it['start_time']
+            # 配音时长小于等于可用时长，无需加速
+            if it['dubb_time']<=able_time:
+                queue_tts[i]=it
                 continue
+
             it['speed'] = True
             queue_tts[i] = it
 
-        # 再次遍历，调整字幕开始结束时间对齐实际音频时长
-        # 每次 start_time 和 end_time 需要添加的长度 offset 为当前所有 add_time 之和
+        # 允许最大音频加速倍数
+        max_speed=float(config.settings['audio_rate'])
         for i, it in enumerate(queue_tts):
-            jindu = (len(queue_tts) * 10) / (i + 1)
+            jindu = (length* 10) / (i + 1)
             if self.precent + jindu < 95:
                 self.precent += jindu
-            # 需要音频加速，否则跳过
-            if not it['speed'] or config.settings['audio_rate'] <= 1:
-                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-                queue_tts[i] = it
+            # 不需要或不存在配音文件 跳过
+            if not it['speed'] or not tools.vail_file(it['filename']):
                 continue
 
-            tools.set_process(f"{config.transobj['dubbing speed up']} [{i}]",
-                              btnkey=self.init['btnkey'])
-            if tools.vail_file(it['filename']):
-                # 需要加速的倍数如果大于2，并且大于1s才需要判断是否视频慢速，否则不慢速，以避免过差效果
-                diff=it['dubb_time'] - it['raw_duration']
-                speed=it['dubb_time']/it['raw_duration']
-                print(f'{speed=},{diff=},{it["dubb_time"]=},{it["raw_duration"]=}')
-                # 仅在音频加速倍数大于1.5 并且 与字幕时长相差大于800ms时，才考虑视频慢速
-                if config.settings['video_rate'] > 1 and diff>800 and speed>1.5:
-                    # 实际视频时长应该变为
-                    video_extend=it['raw_duration']+int(diff/2)
-                    #实际音频时长应变短为
-                    audio_extend=it['dubb_time']-int(diff/2)
+            tools.set_process(f"{config.transobj['dubbing speed up']} [{i}]",btnkey=self.init['btnkey'])
+
+            # 可用时长
+            able_time = queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it['start_time']
+            if it['dubb_time']<=able_time:
+                continue
+
+            # 配音大于可用时长毫秒数
+            diff=it['dubb_time']-able_time
+
+            # 如果加速到恰好等于 able_time 时长，需要加速的倍数
+            shound_speed=round(it['dubb_time']/able_time,2)
+
+            # 仅当开启视频慢速，shound_speed大于1.5，diff大于1s，才考虑视频慢速
+            if self.config_params['video_autorate'] and config.settings['video_rate']>1 and diff>1000 and shound_speed>1.5:
+                # 开启了视频慢速，音频加速一半
+                # 音频加速一半后实际时长应该变为
+                audio_extend=it['dubb_time']-int(diff/2)
+                print(f'[音频加速 视频慢速]音频处理，{audio_extend=}')
+                # 如果音频加速一半后仍然大于设定，则重新设定加速后音频时长
+                if round(it['dubb_time']/audio_extend,2)>max_speed:
+                    audio_extend=int(it['dubb_time']/max_speed)
+                    print(f'[音频加速 视频慢速]音频2次处理，{audio_extend=}')
+            else:
+                #仅处理音频加速
+                if shound_speed<=max_speed:
+                    audio_extend=able_time
                 else:
-                    # 确定变化后的配音时长，如果倍数低于 audio_rate 限制，则设为原字幕时长，否则设定 配音时长/最大倍数
-                    audio_extend = it['raw_duration'] if speed<=float(config.settings['audio_rate']) else int(it['dubb_time']/float(config.settings['audio_rate']))
-                # 调整音频
+                    audio_extend=int(it['dubb_time']/max_speed)
+                print(f'仅音频加速，{shound_speed=},{audio_extend=},{it["dubb_time"]=}')
 
-                tmp_mp3 = f'{it["filename"]}-speed.mp3'
-                tools.precise_speed_up_audio(file_path=it['filename'], out=tmp_mp3,
-                                             target_duration_ms=audio_extend,
-                                             max_rate=min(config.settings['audio_rate'], 100))
 
-                # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
-                #如果视频需要变化，更新视频时长需要变化的长度
-                if tools.vail_file(tmp_mp3):
-                    mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
-                    it['video_extend']=mp3_len if it['video_extend']>0 else 0
-                else:
-                    # 加速失败使用原配音文件
-                    tmp_mp3=it['filename']
-                    mp3_len = it['dubb_time']
-                    it['video_extend']=it['dubb_time']
+            # # 调整音频
+            tmp_mp3 = f'{it["filename"]}-speed.mp3'
+            tools.precise_speed_up_audio(file_path=it['filename'],
+                                         out=tmp_mp3,
+                                         target_duration_ms=audio_extend,
+                                         max_rate=100)
 
-                # 变化后的真实配音时长
-                it['dubb_time'] = mp3_len
+            # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
+            #如果视频需要变化，更新视频时长需要变化的长度
+            if tools.vail_file(tmp_mp3):
+                mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
                 it['filename'] = tmp_mp3
-
-
-            # 更改时间戳
-            it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                it['dubb_time'] = mp3_len
             queue_tts[i] = it
         return queue_tts
 
@@ -568,41 +574,45 @@ class Runstep():
 
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
-    # 逻辑复杂，增加冗余
     def _ajust_video(self, queue_tts):
         if not self.config_params['video_autorate'] or config.settings['video_rate'] <= 1:
             return queue_tts
-        # 计算视频应该慢放的倍数，用当前实际的字幕时长/原始字幕时长得到倍数，如果当前时长小于等于原时长，不处理
-        # 开始遍历每个时间段，如果需要视频加速，则截取 end_time_source start_time_source 时间段的视频，进行speed_video 处理
         concat_txt_arr = []
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
+        # 获取视频时长
         last_time = tools.get_video_duration(self.init['novoice_mp4'])
         self.parent.status_text = config.transobj['videodown..']
 
+        length=len(queue_tts)
+        max_pts=config.settings['video_rate']
         # 按照原始字幕截取
         for i, it in enumerate(queue_tts):
-            jindu = (len(queue_tts) * 10) / (i + 1)
+            jindu = (length * 10) / (i + 1)
             if self.precent + jindu < 95:
                 self.precent += jindu
-            # 如果 it[video_extend]==-1 代表未进行音频加速，需单独进行视频慢速处理
-            if it['video_extend']==-1:
-                it['video_extend']=it['dubb_time']
+
+            # 可用的时长
+            able_time=it['end_time_source']-it['start_time_source']
+            # 视频需要和配音对齐，video_extend是需要增加的时长
+            it['video_extend']=it['dubb_time']-able_time
+            queue_tts[i]=it
+
             # 如果i==0即第一个视频，前面若是还有片段，需要截取
             if i == 0:
-                #如果前面有大于 min 的片段，需截取
-                if it['start_time_source'] > config.video_min_ms:
+                #如果前面有大于 0 的片段，需截取
+                if it['start_time_source'] > 0:
                     before_dst = self.init['cache_folder'] + f'/{i}-before.mp4'
+                    # 下一片段起始时间
+                    st_time=it['start_time_source']
                     try:
                         tools.cut_from_video(ss='00:00:00.000',
                                              to=tools.ms_to_time_string(ms=it['start_time_source']),
                                              source=self.init['novoice_mp4'],
                                              out=before_dst)
                         concat_txt_arr.append(before_dst)
-                        # 下一片段起始时间
-                        st_time=it['start_time_source']
                     except Exception:
-                        st_time=0
+                        pass
                 else:
                     # 下一片段起始时间,从视频开始处
                     st_time=0
@@ -611,8 +621,13 @@ class Runstep():
                 duration=it['end_time_source']- st_time
                 # 是否需要延长视频
                 pts=""
-                if it['video_extend']>0 and it['video_extend']>duration:
-                    pts=round(it['video_extend']/duration,2)
+                if it['video_extend']>0:
+                    pts=round((it['video_extend']+duration)/duration,2)
+                    if pts>max_pts:
+                        print(f'{i=},{pts=} > {max_pts=}')
+                        pts=max_pts
+                        it['video_extend']=duration*max_pts-duration
+                    print(f'{i}/{length},{it["dubb_time"]=},{able_time=},视频应延长{it["video_extend"]}ms,pts={pts}')
                 tools.set_process(f"{config.transobj['videodown..']} {pts=}",btnkey=self.init['btnkey'])
                 before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
                 try:
@@ -624,24 +639,15 @@ class Runstep():
                          out=before_dst
                     )
                     concat_txt_arr.append(before_dst)
+                    it['video_extend']=tools.get_video_duration(before_dst)-duration
                 except Exception:
                     pass
-            # 最后一个不延长。最终合成时再判断延长
-            elif i==len(queue_tts)-1:
-                before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
-                try:
-                    tools.cut_from_video(ss=tools.ms_to_time_string(ms=queue_tts[i-1]['end_time_source']),
-                                         source=self.init['novoice_mp4'],
-                                         out=before_dst)
-                    concat_txt_arr.append(before_dst)
-                except Exception:
-                    pass
-            # 否则处于中间
             else:
                 # 距离前面一个的时长
-                diff=queue_tts[i - 1]['end_time_source'] - it['start_time_source']
-                if diff>config.video_min_ms:
+                diff=it['start_time_source']-queue_tts[i - 1]['end_time_source']
+                if diff>0:
                     before_dst = self.init['cache_folder'] + f'/{i}-before.mp4'
+                    st_time=it['start_time_source']
                     try:
                         tools.cut_from_video(
                             ss=tools.ms_to_time_string(ms=queue_tts[i - 1]['end_time_source']),
@@ -650,19 +656,24 @@ class Runstep():
                              out=before_dst
                         )
                         concat_txt_arr.append(before_dst)
-                        st_time=it['start_time_source']
                     except Exception:
-                        st_time=queue_tts[i - 1]['end_time_source']
+                        pass
                 else:
                     st_time=queue_tts[i - 1]['end_time_source']
 
                 # 是否需要延长视频
                 pts = ""
                 duration = it['end_time_source'] - st_time
-                if it['video_extend'] > 0 and it['video_extend'] > duration:
-                    pts = round(it['video_extend'] / duration, 2)
+                if it['video_extend'] > 0:
+                    pts = round((it['video_extend']+duration) / duration, 2)
+                    if pts>max_pts:
+                        print(f'{i=},{pts=} > {max_pts=}')
+                        pts=max_pts
+                        it['video_extend']=duration*max_pts-duration
+                    print(f'{i}/{length},{it["dubb_time"]=},{able_time=},视频应延长{it["video_extend"]}ms,pts={pts}')
                 tools.set_process(f"{config.transobj['videodown..']} {pts=}",btnkey=self.init['btnkey'])
                 before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
+
                 try:
                     tools.cut_from_video(ss=tools.ms_to_time_string(ms=st_time),
                                          to=tools.ms_to_time_string(ms=it['end_time_source']),
@@ -670,10 +681,31 @@ class Runstep():
                                          pts=pts,
                                          out=before_dst)
                     concat_txt_arr.append(before_dst)
+                    it['video_extend']=tools.get_video_duration(before_dst)-duration
+
                 except Exception:
                     pass
+                # 是最后一个，并且未到视频末尾
+                if i==length-1 and it['end_time_source']<last_time:
+                    # 最后一个
+                    before_dst = self.init['cache_folder'] + f'/{i}-after.mp4'
+                    try:
+                        tools.cut_from_video(ss=tools.ms_to_time_string(ms=it['end_time_source']),
+                                             source=self.init['novoice_mp4'],
+                                             out=before_dst)
+                        concat_txt_arr.append(before_dst)
+                    except Exception:
+                        pass
 
-
+        # 需要调整 原字幕时长，延长视频相当于延长了原字幕时长
+        offset=0
+        for i,it in enumerate(queue_tts):
+            it['start_time_source']+=offset
+            it['end_time_source']+=offset
+            if it['video_extend']>0:
+                it['end_time_source']+=it['video_extend']
+                offset+=it['video_extend']
+            queue_tts[i]=it
 
         # 将所有视频片段连接起来
         new_arr = []
@@ -726,6 +758,8 @@ class Runstep():
             return True
 
         # 6.处理视频慢速
+        video_time = tools.get_video_duration(self.init['novoice_mp4'])
+        print(f'视频慢速前时长{video_time=}')
         if self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
             queue_tts = self._ajust_video(queue_tts)
 
@@ -733,6 +767,7 @@ class Runstep():
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
+        print(f'视频慢速后时长{video_time=}')
         audio_length, queue_tts = self._merge_audio_segments(
             video_time=video_time,
             queue_tts=copy.deepcopy(queue_tts))
