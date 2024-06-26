@@ -12,8 +12,8 @@ from videotrans.util import tools
 import random
 
 urls=[
-"https://g0.pyvideotrans.com",
-"https://g1.pyvideotrans.com"
+"https://g3.pyvideotrans.com",
+"https://g4.pyvideotrans.com"
 ]
 
 shound_del=False
@@ -92,9 +92,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length=len(it)
-                text = "...".join(it)
-
-                url = f"{google_url}/m?sl=auto&tl={quote(target_language)}&hl={quote(target_language)}&q={quote(text)}"
+                text = "\n".join(it)
+                url = f"{google_url}/translate_a/single?client=gtx&dt=t&sl=auto&tl={target_language}&q={quote(text)}"
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
@@ -106,13 +105,16 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     err=f'{google_url} error_code={response.status_code}'
                     break
 
-                re_result = re.findall(
-                    r'(?s)class="(?:t0|result-container)">(.*?)<', response.text)
-                if len(re_result) < 1 or not re_result[0]:
-                    err=f'{google_url} {re_result}'
+                re_result = response.json()
+                if len(re_result[0]) < 1:
+                    err = f'无有效结果,{response.text}'
                     break
-                result=tools.cleartext(re_result[0]).split("...")
-                result_length=len(result)
+
+                result = "".join([te[0] for te in re_result[0]])
+                result = [te.strip() for te in result.split("\n")]
+                result_length = len(result)
+                print(f'{result=},{result_length=}')
+
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length<source_length:
                     print(f'翻译前后数量不一致，需要重新切割')
