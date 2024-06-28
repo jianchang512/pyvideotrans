@@ -41,13 +41,8 @@ class Ui_MainWindow(object):
         self.layout_source_mp4 = QtWidgets.QFormLayout()
         self.layout_source_mp4.setObjectName("layout_source_mp4")
         self.btn_get_video = QtWidgets.QPushButton(self.layoutWidget)
-        '''
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.btn_get_video.sizePolicy().hasHeightForWidth())
-        self.btn_get_video.setSizePolicy(sizePolicy)
-        '''
+
+
         
         self.btn_get_video.setMinimumSize(QtCore.QSize(120, 30))
         self.btn_get_video.setObjectName("btn_get_video")
@@ -174,25 +169,13 @@ class Ui_MainWindow(object):
         self.layout_proxy.setObjectName("layout_proxy")
         
         self.label = QtWidgets.QLabel(self.layoutWidget)
-        '''
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        '''
+
         
         self.label.setMinimumSize(QtCore.QSize(0, 30))
         self.label.setObjectName("label")
         self.layout_proxy.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
-        '''
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.proxy.sizePolicy().hasHeightForWidth())
-        self.proxy.setSizePolicy(sizePolicy)
-        '''
+
         
         self.proxy.setMinimumSize(QtCore.QSize(200, 30))
         self.proxy.setObjectName("proxy")
@@ -211,10 +194,6 @@ class Ui_MainWindow(object):
         
         
         
-        
-        
-        #self.horizontalLayout.addLayout(self.layout_source_language)
-        #self.horizontalLayout.addLayout(self.layout_target_language)
         
         
         self.layout_tts_type = QtWidgets.QFormLayout()
@@ -313,7 +292,8 @@ class Ui_MainWindow(object):
             config.uilanglist['faster model'],
             config.uilanglist['openai model'],
             "GoogleSpeech",
-            "zh_recogn中文识别" if config.defaulelang=='zh' else "zh_recogn only Chinese"
+            "zh_recogn中文识别" if config.defaulelang=='zh' else "zh_recogn only Chinese",
+            "豆包模型识别" if config.defaulelang=='zh' else "Doubao"
         ])
         self.model_type.setToolTip(config.uilanglist['model_type_tips'])
 
@@ -603,6 +583,9 @@ class Ui_MainWindow(object):
         self.actiontrans_api.setObjectName("actiontrans_api")
         self.actionzhrecogn_api = QtGui.QAction(MainWindow)
         self.actionzhrecogn_api.setObjectName("actionzhrecogn_api")
+        
+        self.actiondoubao_api = QtGui.QAction(MainWindow)
+        self.actiondoubao_api.setObjectName("actiondoubao_api")
 
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
@@ -733,6 +716,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_api)
         self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiondoubao_api)
+        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionzhrecogn_api)
 
         self.menu_Key.addSeparator()
@@ -861,6 +846,7 @@ class Ui_MainWindow(object):
         self.actiontts_api.setText("自定义TTS-API" if config.defaulelang=='zh' else "TTS-API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang=='zh' else "TransateAPI")
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang=='zh' else "zh_recogn only Chinese")
+        self.actiondoubao_api.setText("豆包模型音视频识别" if config.defaulelang=='zh' else "Doubao")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")

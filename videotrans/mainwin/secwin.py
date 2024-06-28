@@ -703,6 +703,17 @@ class SecWindow():
             self.main.whisper_type.setDisabled(True)
             if not config.params['zh_recogn_api']:
                 self.main.subform.set_zh_recogn()
+        elif self.main.model_type.currentIndex() == 4:
+            lang=self.main.source_language.currentText()
+            langcode=translator.get_code(show_text=lang)
+            if not langcode or langcode[:2] not in ["zh","en","ja","ko","fr","es","ru"]:
+                self.main.model_type.setCurrentIndex(0)
+                return QMessageBox.critical(self.main,config.transobj['anerror'],'豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
+            config.params['model_type'] = 'doubao'
+            self.main.whisper_model.setDisabled(True)
+            self.main.whisper_type.setDisabled(True)
+            if not config.params['doubao_appid']:
+                self.main.subform.set_doubao()
         else:
             self.main.whisper_type.setDisabled(False)
             self.main.whisper_model.setDisabled(False)
@@ -1144,12 +1155,20 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
         # 原始语言
         config.params['source_language'] = self.main.source_language.currentText()
-        if self.main.model_type.currentIndex==3 and translator.get_code(show_text=config.params['source_language']) not in ['zh-cn','zh-tw']:
+        langcode=translator.get_code(show_text=config.params['source_language'])
+        if self.main.model_type.currentIndex==3 and langcode not in ['zh-cn','zh-tw']:
             self.update_status('stop')
             return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
+            
         if self.main.model_type.currentIndex==3 and not config.params['zh_recogn_api']:
             return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 必须在设置-zh_recogn中填写http接口地址' if config.defaulelang=='zh' else 'The http interface address must be filled in the settings-zh_recogn')
-
+        
+        if self.main.model_type.currentIndex==4:
+            if not config.params['doubao_appid']:
+                return QMessageBox.critical(self.main,config.transobj['anerror'],'必须填写豆包应用APP ID')
+            if langcode and langcode[:2] not in ["zh","en","ja","ko","es","fr","ru"]:
+                return QMessageBox.critical(self.main,config.transobj['anerror'],'豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
+            
 
         # 目标语言
         target_language = self.main.target_language.currentText()
@@ -1173,8 +1192,13 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             config.params['model_type']='GoogleSpeech'
         elif model_index==3:
             config.params['model_type']='zh_recogn'
+        elif model_index==4:
+            config.params['model_type']='doubao'
         else:
             config.params['model_type']='faster'
+            
+        print(f"{config.params['model_type']}")
+
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
 
