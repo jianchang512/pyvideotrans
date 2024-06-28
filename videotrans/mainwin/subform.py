@@ -717,6 +717,40 @@ class Subform():
         self.main.zijiew.test_zijiehuoshan.clicked.connect(test)
         self.main.zijiew.show()
 
+
+
+    def set_doubao(self):
+
+        def save():
+            appid = self.main.doubaow.doubao_appid.text()
+
+            access = self.main.doubaow.doubao_access.text()
+            config.params["doubao_appid"] = appid
+            config.params["doubao_access"] = access
+            self.main.settings.setValue('doubao_access',access)
+            self.main.settings.setValue('doubao_appid',appid)
+
+            self.main.doubaow.close()
+
+        from videotrans.component import DoubaoForm
+        self.main.doubaow = DoubaoForm()
+        if config.params["doubao_appid"]:
+            self.main.doubaow.doubao_appid.setText(config.params["doubao_appid"])
+        else:
+            self.main.settings.setValue('doubao_appid','')
+        if config.params["doubao_access"]:
+            print('11')
+            self.main.doubaow.doubao_access.setText(config.params["doubao_access"])
+        else:
+            print('22')
+            self.main.settings.setValue('doubao_access','')
+
+        self.main.doubaow.set_save.clicked.connect(save)
+        self.main.doubaow.show()
+
+
+
+
     def set_ttsapi(self):
         class TestTTS(QThread):
             uito = Signal(str)

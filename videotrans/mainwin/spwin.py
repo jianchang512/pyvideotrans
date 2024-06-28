@@ -69,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tew = None
         self.util = None
         self.moshis = None
+        self.doubaow=None
 
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
@@ -159,6 +160,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model_type.setCurrentIndex(3)
             self.whisper_model.setDisabled(True)
             self.whisper_type.setDisabled(True)
+        elif config.params['model_type'] == 'doubao':
+            self.model_type.setCurrentIndex(4)
+            self.whisper_model.setDisabled(True)
+            self.whisper_type.setDisabled(True)
         if config.params['only_video']:
             self.only_video.setChecked(True)
         try:
@@ -169,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_autorate.setChecked(config.params['voice_autorate'])
         self.video_autorate.setChecked(config.params['video_autorate'])
         self.append_video.setChecked(config.params['append_video'])
-        # self.auto_ajust.setChecked(config.params['auto_ajust'])
+
         if platform.system()=='Darwin':
             self.enable_cuda.hide()
 
@@ -321,6 +326,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionchattts_address.triggered.connect(self.subform.set_chattts_address)
         self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
         self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
+        self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
         self.actiontrans_api.triggered.connect(self.subform.set_transapi)
         self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
@@ -442,7 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["voice_autorate"] = self.settings.value("voice_autorate", False, bool)
         config.params["video_autorate"] = self.settings.value("video_autorate", False, bool)
         config.params["append_video"] = self.settings.value("append_video", False, bool)
-        # config.params["auto_ajust"] = self.settings.value("auto_ajust", True, bool)
+
 
         config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
         config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
@@ -500,6 +506,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["azure_model"] = self.settings.value("azure_model", config.params['azure_model'])
 
         config.params["elevenlabstts_key"] = self.settings.value("elevenlabstts_key", "")
+        config.params["doubao_appid"] = self.settings.value("doubao_appid", "")
+        config.params["doubao_access"] = self.settings.value("doubao_access", "")
 
         config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
         if config.params['translate_type'] == 'FreeChatGPT':
@@ -533,7 +541,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.setValue("zh_recogn_api", config.params['zh_recogn_api'])
 
         self.settings.setValue("voice_autorate", config.params['voice_autorate'])
-        # self.settings.setValue("auto_ajust", config.params['auto_ajust'])
+
         self.settings.setValue("subtitle_type", config.params['subtitle_type'])
         self.settings.setValue("translate_type", config.params['translate_type'])
         self.settings.setValue("cuda", config.params['cuda'])

@@ -53,10 +53,10 @@ def recogn(*,
     total_length=1+(len(normalized_sound)//inter)
 
     for i in range(total_length):
-    #for i, duration in enumerate(nonsilent_data):
+
         print(f'{i=}')
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-            #del model
+
             return False
         start_time=i*inter
         if i<total_length-1:
@@ -64,15 +64,14 @@ def recogn(*,
         else:
             end_time=len(normalized_sound)
 
-        #if start_time == end_time:
-        #    end_time += int(config.settings['voice_silence'])
+
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
 
         text = ""
         try:
-            print('addddddddddddd')
+
             result = model.transcribe(chunk_filename,
                                   language=detect_language,
                                   word_timestamps=True,
@@ -103,7 +102,7 @@ def recogn(*,
             #clen=
             last_line=len(raw_subtitles)
             if set_p:
-                if inst and inst.precent < 55:
+                if inst and inst.precent < 75:
                     inst.precent += 0.1
                 tools.set_process(f"{config.transobj['yuyinshibiejindu']} {last_line}/{total_length}", btnkey=inst.init['btnkey'] if inst else "")
                 

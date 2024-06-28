@@ -28,6 +28,7 @@ from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.zh_recogn import Ui_zhrecognform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
+from videotrans.ui.doubao import Ui_doubaoform
 
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -169,6 +170,14 @@ class ChatttsForm(QDialog, Ui_chatttsform):  # <===
 class ZhrecognForm(QDialog, Ui_zhrecognform):  # <===
     def __init__(self, parent=None):
         super(ZhrecognForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
+class DoubaoForm(QDialog, Ui_doubaoform):  # <===
+    def __init__(self, parent=None):
+        super(DoubaoForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
