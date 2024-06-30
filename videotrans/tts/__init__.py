@@ -67,7 +67,7 @@ def text_to_speech(
 # 单独处理 AzureTTS 批量
 def _azuretts(queue_tts,language=None,set_p=False,inst=None):
     from .azuretts import get_voice
-    num=200
+    num=int(config.settings['azure_lines'])
     qlist=[queue_tts[i:i+num] for i in range(0,len(queue_tts),num)]
     for i,q in enumerate(qlist):
         get_voice(

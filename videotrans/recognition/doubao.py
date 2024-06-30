@@ -26,8 +26,8 @@ def recogn(*,
     files = None
     # 尺寸大于190MB，转为 mp3
     if os.path.getsize(audio_file)>199229440:
-        tools.runffmpeg(['-y','-i',audio_file,'-ac','1','-ar','16000',cache_folder+'-doubao-tmp.mp3'])
-        audio_file=cache_folder+'-doubao-tmp.mp3'
+        tools.runffmpeg(['-y','-i',audio_file,'-ac','1','-ar','16000',cache_folder+'/doubao-tmp.mp3'])
+        audio_file=cache_folder+'/doubao-tmp.mp3'
     with open(audio_file,'rb') as f:
         files=f.read()
     if files is None:
