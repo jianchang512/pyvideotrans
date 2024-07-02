@@ -61,7 +61,7 @@ def run(*,
             cache_folder=cache_folder,
             set_p=set_p,
             inst=inst)
-    elif type == "all":
+    elif type in ["all",'yuxian']:
         rs = all_recogn(
             detect_language=detect_language,
             audio_file=audio_file,
@@ -79,15 +79,15 @@ def run(*,
             set_p=set_p,
             inst=inst,
             is_cuda=is_cuda)
-    else:
-        rs = yuxian_recogn(
-            detect_language=detect_language,
-            audio_file=audio_file,
-            cache_folder=cache_folder,
-            model_name=model_name,
-            set_p=set_p,
-            inst=inst,
-            is_cuda=is_cuda)
+    # else:
+    #     rs = yuxian_recogn(
+    #         detect_language=detect_language,
+    #         audio_file=audio_file,
+    #         cache_folder=cache_folder,
+    #         model_name=model_name,
+    #         set_p=set_p,
+    #         inst=inst,
+    #         is_cuda=is_cuda)
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

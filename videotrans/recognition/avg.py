@@ -93,17 +93,11 @@ def recogn(*,
             local_files_only=local_res)
     for i, duration in enumerate(nonsilent_data):
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-            #del model
             return False
         start_time, end_time, buffered = duration
-        #if start_time == end_time:
-        #    end_time += int(config.settings['voice_silence'])
-
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
-
-
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
@@ -112,15 +106,8 @@ def recogn(*,
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
                                            temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,0.6, 0.8, 1.0],
                                            vad_filter=False,
-                                           #vad_parameters=dict(
-                                           #    min_silence_duration_ms=config.settings['overall_silence'],
-                                           #    max_speech_duration_s=config.settings['overall_maxsecs'],
-                                           #    threshold=config.settings['overall_threshold'],
-                                           #    speech_pad_ms=config.settings['overall_speech_pad_ms']
-                                           #),
-                                           #word_timestamps=True,
                                            language=detect_language,
-                                           initial_prompt=config.settings['initial_prompt_zh'], )
+                                           initial_prompt=config.settings['initial_prompt_zh'])
 
             for t in segments:
                 text += t.text + " "

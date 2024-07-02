@@ -149,7 +149,7 @@ class TransCreate():
         if "mode" in self.config_params and self.config_params['mode'] == "cli":
             self.init['source_language_code'] = self.config_params['source_language']
             self.init['target_language_code'] = self.config_params['target_language']
-        elif self.config_params['app_mode'] != 'hebing':
+        else:
             # 仅作为文件名标识
             var_a = config.rev_langlist.get(self.config_params['source_language'])
             var_b = config.langlist.get(self.config_params['source_language'])
@@ -159,9 +159,7 @@ class TransCreate():
             var_b = config.langlist.get(self.config_params['target_language'])
             var_c = var_a if var_a is not None else var_b
             self.init['target_language_code'] = var_c if var_c != '-' else '-'
-        else:
-            self.init['target_language_code']=None
-            self.init['source_language_code'] = '-'
+
 
         # 检测字幕原始语言
         if self.config_params['source_language'] != '-':
@@ -203,15 +201,13 @@ class TransCreate():
         # 如果存在字幕，则视为目标字幕，直接生成，不再识别和翻译
         if "subtitles" in self.config_params and self.config_params['subtitles'].strip():
             sub_file = self.init['target_sub']
-            if self.config_params['app_mode']=='hebing':
-                sub_file=self.init['source_sub']
-            elif self.init['source_language_code'] and self.init['target_language_code'] and self.init['source_language_code'] != self.init['target_language_code']:
+            if self.init['source_language_code'] and self.init['target_language_code'] and self.init['source_language_code'] != self.init['target_language_code']:
                 # 原始和目标语言都存在，并且不相等，需要翻译，作为待翻译字幕
                 sub_file = self.init['source_sub']
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
                 f.write(self.config_params['subtitles'].strip())
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
-        if self.config_params['app_mode'] not in ['peiyin', 'hebing']:
+        if self.config_params['app_mode'] not in ['peiyin']:
             # 判断是否存在原始视频同名同目录的srt字幕文件
             raw_source_srt = self.obj['output'] + f"/{self.init['source_language_code']}.srt"
             raw_srt = self.obj['raw_dirname'] + f"/{self.obj['raw_noextname']}.srt"
@@ -275,12 +271,6 @@ class TransCreate():
     def _split_wav_novicemp4(self):
         # 存在视频 不是peiyin
         if self.config_params['app_mode'] == 'peiyin':
-            return True
-
-        # 合并字幕时不分离，直接复制
-        if self.config_params['app_mode'] == 'hebing':
-            shutil.copy2(self.obj['source_mp4'], self.init['novoice_mp4'])
-            config.queue_novice[self.init['noextname']] = 'end'
             return True
 
         # 不是 提取字幕时，需要分离出视频

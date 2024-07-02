@@ -19,11 +19,11 @@ from pathlib import Path
 
 
 class ClickableProgressBar(QLabel):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         super().__init__()
         self.target_dir = None
-        self.msg=None
-        self.parent=parent
+        self.msg = None
+        self.parent = parent
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -48,11 +48,11 @@ class ClickableProgressBar(QLabel):
 
     def setTarget(self, url):
         self.target_dir = url
+
     def setMsg(self, text):
-        if text and config.defaulelang=='zh':
-            text+='\n\n请尝试在文档站 pyvideotrans.com 搜索错误解决方案\n'
+        if text and config.defaulelang == 'zh':
+            text += '\n\n请尝试在文档站 pyvideotrans.com 搜索错误解决方案\n'
         self.msg = text
-        
 
     def setText(self, text):
         if self.progress_bar:
@@ -62,7 +62,7 @@ class ClickableProgressBar(QLabel):
         if self.target_dir and event.button() == Qt.LeftButton:
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
         elif not self.target_dir and self.msg:
-            QMessageBox.critical(self,config.transobj['anerror'],self.msg)
+            QMessageBox.critical(self, config.transobj['anerror'], self.msg)
 
 
 # primary ui
@@ -94,7 +94,7 @@ class SecWindow():
         # text = str(text).replace('+', '').replace('%', '').strip()
         # text = 0 if not text else int(text)
         # text = f'+{text}%' if text >= 0 else f'{text}%'
-        config.params['voice_rate'] = f'+{text}%' if text>=0 else f'{text}%'
+        config.params['voice_rate'] = f'+{text}%' if text >= 0 else f'{text}%'
 
     # 简单新手模式
     def set_xinshoujandann(self):
@@ -343,7 +343,7 @@ class SecWindow():
         # 代理
         self.hide_show_element(self.main.layout_proxy, False)
         # 原始语言
-        self.hide_show_element(self.main.layout_source_language, False)
+        self.hide_show_element(self.main.layout_source_language, True)
         # 目标语言
         self.hide_show_element(self.main.layout_target_language, False)
         # tts类型
@@ -469,8 +469,8 @@ class SecWindow():
         #     config.params['auto_ajust'] = state
         elif name == 'video':
             config.params['video_autorate'] = state
-        elif name=='append_video':
-            config.params['append_video']=state
+        elif name == 'append_video':
+            config.params['append_video'] = state
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -572,11 +572,11 @@ class SecWindow():
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/blob/main/about.md")
         elif title == 'download':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
-        elif title=='openvoice':
+        elif title == 'openvoice':
             webbrowser.open_new_tab("https://github.com/kungful/openvoice-api")
-            
+
         elif title == 'online':
-            QMessageBox.information(self.main,'免责声明',"""
+            QMessageBox.information(self.main, '免责声明', """
 免责声明：
 
 在您下载或使用 "pyVideoTrans视频翻译配音" 软件（以下简称"本软件"）前，请仔细阅读并充分理解本免责声明中的各项条款。
@@ -676,8 +676,6 @@ class SecWindow():
     def check_whisper_type(self, index):
         if index == 0:
             config.params['whisper_type'] = 'all'
-        elif index == 1:
-            config.params['whisper_type'] = 'split'
         else:
             config.params['whisper_type'] = 'avg'
 
@@ -693,10 +691,11 @@ class SecWindow():
             self.main.whisper_model.setDisabled(True)
             self.main.whisper_type.setDisabled(True)
         elif self.main.model_type.currentIndex() == 3:
-            lang=self.main.source_language.currentText()
-            if translator.get_code(show_text=lang) not in ['zh-cn','zh-tw']:
+            lang = self.main.source_language.currentText()
+            if translator.get_code(show_text=lang) not in ['zh-cn', 'zh-tw']:
                 self.main.model_type.setCurrentIndex(0)
-                return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
+                return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                            'zh_recogn 仅支持中文语音识别' if config.defaulelang == 'zh' else 'zh_recogn Supports Chinese speech recognition only')
 
             config.params['model_type'] = 'zh_recogn'
             self.main.whisper_model.setDisabled(True)
@@ -704,11 +703,11 @@ class SecWindow():
             if not config.params['zh_recogn_api']:
                 self.main.subform.set_zh_recogn()
         elif self.main.model_type.currentIndex() == 4:
-            lang=self.main.source_language.currentText()
-            langcode=translator.get_code(show_text=lang)
-            if not langcode or langcode[:2] not in ["zh","en","ja","ko","fr","es","ru"]:
+            lang = self.main.source_language.currentText()
+            langcode = translator.get_code(show_text=lang)
+            if not langcode or langcode[:2] not in ["zh", "en", "ja", "ko", "fr", "es", "ru"]:
                 self.main.model_type.setCurrentIndex(0)
-                return QMessageBox.critical(self.main,config.transobj['anerror'],'豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
+                return QMessageBox.critical(self.main, config.transobj['anerror'], '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
             config.params['model_type'] = 'doubao'
             self.main.whisper_model.setDisabled(True)
             self.main.whisper_type.setDisabled(True)
@@ -722,9 +721,9 @@ class SecWindow():
 
     # 判断模型是否存在
     def check_whisper_model(self, name):
-        if self.main.model_type.currentIndex() in [2,3]:
+        if self.main.model_type.currentIndex() in [2, 3]:
             return True
-        if name.find('/')>0:
+        if name.find('/') > 0:
             return True
         slang = self.main.source_language.currentText()
         if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':
@@ -767,7 +766,7 @@ class SecWindow():
 
     # tts类型改变
     def tts_type_change(self, type):
-        self.hide_show_element(self.main.edge_volume_layout,True if type in ['edgeTTS','AzureTTS'] else False)
+        self.hide_show_element(self.main.edge_volume_layout, True if type in ['edgeTTS', 'AzureTTS'] else False)
         if self.main.app_mode == 'peiyin' and type == 'clone-voice' and config.params['voice_role'] == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
                 'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
@@ -801,7 +800,7 @@ class SecWindow():
 
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
-        if type=='gtts':
+        if type == 'gtts':
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
             self.main.voice_role.addItems(self.main.current_rolelist)
@@ -816,7 +815,8 @@ class SecWindow():
                 self.main.current_rolelist = tools.get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type in ['edgeTTS', 'AzureTTS']:
-            if type == "AzureTTS" and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
+            if type == "AzureTTS" and (
+                    not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['azureinfo'])
                 self.main.subform.set_auzuretts_key()
                 return
@@ -826,10 +826,10 @@ class SecWindow():
             self.main.current_rolelist = config.clone_voicelist
             self.main.voice_role.addItems(self.main.current_rolelist)
             threading.Thread(target=tools.get_clone_role).start()
-        elif type =='ChatTTS':
+        elif type == 'ChatTTS':
             self.main.voice_role.clear()
             self.main.current_rolelist = list(config.ChatTTS_voicelist)
-            self.main.voice_role.addItems(['No']+self.main.current_rolelist)
+            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == 'TTS-API':
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
@@ -839,8 +839,6 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
             self.main.voice_role.addItems(self.main.current_rolelist)
-
-
 
     # 试听配音
     def listen_voice_fun(self):
@@ -855,12 +853,12 @@ class SecWindow():
         else:
             voice_dir = voice_dir.replace('\\', '/') + "/pyvideotrans"
         if not Path(voice_dir).exists():
-            Path(voice_dir).mkdir(parents=True,exist_ok=True)
+            Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
-        volume=int(self.main.volume_rate.value())
-        pitch=int(self.main.pitch_rate.value())
+        volume = int(self.main.volume_rate.value())
+        pitch = int(self.main.pitch_rate.value())
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if config.params['tts_type'] in ['GPT-SoVITS','ChatTTS']:
+        if config.params['tts_type'] in ['GPT-SoVITS', 'ChatTTS']:
             voice_file += '.wav'
 
         obj = {
@@ -870,8 +868,8 @@ class SecWindow():
             "voice_file": voice_file,
             "tts_type": config.params['tts_type'],
             "language": lang,
-            "volume":f'+{volume}%' if volume>0 else f'{volume}%',
-            "pitch":f'+{pitch}Hz' if pitch>0 else f'{pitch}Hz',
+            "volume": f'+{volume}%' if volume > 0 else f'{volume}%',
+            "pitch": f'+{pitch}Hz' if pitch > 0 else f'{pitch}Hz',
         }
         if config.params['tts_type'] == 'clone-voice' and role == 'clone':
             return
@@ -898,7 +896,7 @@ class SecWindow():
         if role == 'No' or (config.params['tts_type'] == 'clone-voice' and config.params['voice_role'] == 'clone'):
             self.main.listen_btn.hide()
             return
-        if self.main.app_mode in ['biaozhun','peiyin']:
+        if self.main.app_mode in ['biaozhun', 'peiyin']:
             self.main.listen_btn.show()
             self.main.listen_btn.setDisabled(False)
 
@@ -913,7 +911,7 @@ class SecWindow():
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
-        if code and code != '-' and config.params['tts_type'] == 'ChatTTS' and code[:2] not in ['zh','en']:
+        if code and code != '-' and config.params['tts_type'] == 'ChatTTS' and code[:2] not in ['zh', 'en']:
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
@@ -921,7 +919,7 @@ class SecWindow():
 
         # 除 edgeTTS外，其他的角色不会随语言变化
         if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
-            if role != 'No' and self.main.app_mode in ['biaozhun','peiyin']:
+            if role != 'No' and self.main.app_mode in ['biaozhun', 'peiyin']:
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
             else:
@@ -934,7 +932,8 @@ class SecWindow():
         if t == '-':
             self.main.voice_role.addItems(['No'])
             return
-        show_rolelist = tools.get_edge_rolelist() if config.params['tts_type'] == 'edgeTTS' else tools.get_azure_rolelist()
+        show_rolelist = tools.get_edge_rolelist() if config.params[
+                                                         'tts_type'] == 'edgeTTS' else tools.get_azure_rolelist()
 
         if not show_rolelist:
             show_rolelist = tools.get_edge_rolelist()
@@ -1041,7 +1040,6 @@ class SecWindow():
                 return False
             config.params['is_separate'] = False
             config.params['target_language'] = '-'
-            config.params['source_language'] = '-'
             config.params['voice_role'] = 'No'
             config.params['voice_rate'] = '+0%'
             config.params['voice_autorate'] = False
@@ -1155,20 +1153,21 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
 
         # 原始语言
         config.params['source_language'] = self.main.source_language.currentText()
-        langcode=translator.get_code(show_text=config.params['source_language'])
-        if self.main.model_type.currentIndex==3 and langcode not in ['zh-cn','zh-tw']:
+        langcode = translator.get_code(show_text=config.params['source_language'])
+        if self.main.model_type.currentIndex == 3 and langcode not in ['zh-cn', 'zh-tw']:
             self.update_status('stop')
-            return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 仅支持中文语音识别' if config.defaulelang=='zh' else 'zh_recogn Supports Chinese speech recognition only')
-            
-        if self.main.model_type.currentIndex==3 and not config.params['zh_recogn_api']:
-            return QMessageBox.critical(self.main,config.transobj['anerror'],'zh_recogn 必须在设置-zh_recogn中填写http接口地址' if config.defaulelang=='zh' else 'The http interface address must be filled in the settings-zh_recogn')
-        
-        if self.main.model_type.currentIndex==4:
+            return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                        'zh_recogn 仅支持中文语音识别' if config.defaulelang == 'zh' else 'zh_recogn Supports Chinese speech recognition only')
+
+        if self.main.model_type.currentIndex == 3 and not config.params['zh_recogn_api']:
+            return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                        'zh_recogn 必须在设置-zh_recogn中填写http接口地址' if config.defaulelang == 'zh' else 'The http interface address must be filled in the settings-zh_recogn')
+
+        if self.main.model_type.currentIndex == 4:
             if not config.params['doubao_appid']:
-                return QMessageBox.critical(self.main,config.transobj['anerror'],'必须填写豆包应用APP ID')
-            if langcode and langcode[:2] not in ["zh","en","ja","ko","es","fr","ru"]:
-                return QMessageBox.critical(self.main,config.transobj['anerror'],'豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
-            
+                return QMessageBox.critical(self.main, config.transobj['anerror'], '必须填写豆包应用APP ID')
+            if langcode and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
+                return QMessageBox.critical(self.main, config.transobj['anerror'], '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持')
 
         # 目标语言
         target_language = self.main.target_language.currentText()
@@ -1185,19 +1184,17 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # 视频自动减速
         # 语音模型
         config.params['whisper_model'] = self.main.whisper_model.currentText()
-        model_index=self.main.model_type.currentIndex()
-        if model_index==1:
-            config.params['model_type']='openai'
-        elif model_index==2:
-            config.params['model_type']='GoogleSpeech'
-        elif model_index==3:
-            config.params['model_type']='zh_recogn'
-        elif model_index==4:
-            config.params['model_type']='doubao'
+        model_index = self.main.model_type.currentIndex()
+        if model_index == 1:
+            config.params['model_type'] = 'openai'
+        elif model_index == 2:
+            config.params['model_type'] = 'GoogleSpeech'
+        elif model_index == 3:
+            config.params['model_type'] = 'zh_recogn'
+        elif model_index == 4:
+            config.params['model_type'] = 'doubao'
         else:
-            config.params['model_type']='faster'
-            
-        print(f"{config.params['model_type']}")
+            config.params['model_type'] = 'faster'
 
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
@@ -1209,13 +1206,13 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             config.params['voice_rate'] = '+0%'
 
         try:
-            volume=int(self.main.volume_rate.value())
-            pitch=int(self.main.pitch_rate.value())
-            config.params['volume']=f'+{volume}%' if volume>0 else f'{volume}%'
-            config.params['pitch']=f'+{pitch}Hz' if pitch>0 else f'{pitch}Hz'
+            volume = int(self.main.volume_rate.value())
+            pitch = int(self.main.pitch_rate.value())
+            config.params['volume'] = f'+{volume}%' if volume > 0 else f'{volume}%'
+            config.params['pitch'] = f'+{pitch}Hz' if pitch > 0 else f'{pitch}Hz'
         except Exception:
-            config.params['volume']='+0%'
-            config.params['pitch']='+0Hz'
+            config.params['volume'] = '+0%'
+            config.params['pitch'] = '+0Hz'
         config.params['back_audio'] = self.main.back_audio.text().strip()
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
@@ -1290,32 +1287,34 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # 如果需要翻译，再判断是否符合翻译规则
         if not self.dont_translate():
             rs = translator.is_allow_translate(translate_type=config.params['translate_type'],
-                                    show_target=config.params['target_language'])
+                                               show_target=config.params['target_language'])
             if rs is not True:
                 # 不是True，有错误
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 return False
 
-        if self.main.app_mode !='hebing' and config.params['target_language']!='-':
-            code=translator.get_code(show_text=config.params['target_language'])
-            if code not in ['zh-cn','zh-tw','en'] and config.params['tts_type']=='ChatTTS' and config.params['voice_role']!='No':
+        if self.main.app_mode != 'hebing' and config.params['target_language'] != '-':
+            code = translator.get_code(show_text=config.params['target_language'])
+            if code not in ['zh-cn', 'zh-tw', 'en'] and config.params['tts_type'] == 'ChatTTS' and config.params[
+                'voice_role'] != 'No':
                 return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
 
-
         # 存在视频
-        config.params['only_video'] = False
+        config.params['only_video'] = self.main.only_video.isChecked()
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
-        config.params['clear_cache']=False
+        config.params['clear_cache'] = False
         if self.main.clear_cache.isChecked():
-            config.params['clear_cache']=True
-        if len(config.queue_mp4) > 0:
+            config.params['clear_cache'] = True
+        if len(config.queue_mp4) > 0 and self.main.app_mode != 'hebing':
             self.main.show_tips.setText("")
-            if self.main.app_mode not in ['tiqu', 'peiyin',
-                                          'biaozhun_jd'] and self.main.only_video.isChecked():
-                config.params['only_video'] = True
+            if self.main.app_mode in ['tiqu', 'biaozhun_jd']:
+                config.params['only_video'] = False
             start_thread(self.main)
+        elif len(config.queue_mp4) > 0:
+            self.main.app_mode = 'hebing'
         elif txt:
+            config.params['only_video'] = False
             self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.app_mode = 'peiyin'
             config.params['is_separate'] = False
@@ -1324,22 +1323,19 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                     'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
                 return
 
-
         self.main.save_setting()
         self.update_status('ing')
         self.delete_process()
         # return
-        config.settings=config.parse_init()
+        config.settings = config.parse_init()
         from videotrans.task.main_worker import Worker
 
         self.main.task = Worker(parent=self.main, app_mode=self.main.app_mode, txt=txt)
         self.main.task.start()
 
-
-        for k,v in self.main.moshis.items():
+        for k, v in self.main.moshis.items():
             if k != self.main.app_mode:
                 v.setDisabled(True)
-
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, text, btnkey="", type="logs"):
@@ -1347,42 +1343,45 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             return
         if not self.main.task:
             return
-        if btnkey=='srt2wav':
-            if not self.main.task or not self.main.task.video:
+        if btnkey in ['srt2wav', 'hebing']:
+            if not self.main.task:
                 return
-            if type=='succeed':
+            if type == 'succeed':
                 text, basename = text.split('##')
                 self.main.processbtns[btnkey].setTarget(text)
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
-                precent=100
-                text=f'{config.transobj["endandopen"].replace("..", "")} {text}'
+                precent = 100
+                text = f'{config.transobj["endandopen"].replace("..", "")} {text}'
             else:
-                precent=self.main.task.video.precent
-                text=f'{config.transobj["running"].replace("..", "")} [{round(precent, 1)}%] /  {config.transobj["endopendir"]} {text}'
+                precent = self.main.task.video.precent if self.main.task.video else self.main.task.precent
+                text = f'{config.transobj["running"].replace("..", "")} [{round(precent, 1)}%] /  {config.transobj["endopendir"]} {text}'
             self.main.processbtns[btnkey].progress_bar.setValue(precent)
             self.main.processbtns[btnkey].setText(text)
             return
-        precent=round( self.main.task.tasklist[btnkey].precent if self.main.task.tasklist and btnkey in self.main.task.tasklist else 0, 1)
-        if type == 'succeed' or precent>=100.0:        
-            
-            target=self.main.task.tasklist[btnkey].obj['output']            
-            basename=self.main.task.tasklist[btnkey].obj['raw_basename']
-            
+
+        precent = round(self.main.task.tasklist[
+                            btnkey].precent if self.main.task.tasklist and btnkey in self.main.task.tasklist else 0, 1)
+        if type == 'succeed' or precent >= 100.0:
+
+            target = self.main.task.tasklist[btnkey].obj['output']
+            basename = self.main.task.tasklist[btnkey].obj['raw_basename']
+
             self.main.processbtns[btnkey].setTarget(target)
             self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
-            
+
             text = f'{config.transobj["endandopen"]} {basename}'
             self.main.processbtns[btnkey].setText(text)
             self.main.processbtns[btnkey].progress_bar.setValue(100)
             self.main.processbtns[btnkey].setToolTip(config.transobj['mubiao'])
         elif type == 'error' or type == 'stop':
             self.main.processbtns[btnkey].progress_bar.setStyleSheet('color:#ff0000')
-            if type=='error':
+            if type == 'error':
                 self.main.processbtns[btnkey].setCursor(Qt.PointingHandCursor)
                 self.main.processbtns[btnkey].setMsg(
-                    text+f'\n\n{config.errorlist[btnkey] if btnkey in config.errorlist and config.errorlist[btnkey]!=text else "" }'
+                    text + f'\n\n{config.errorlist[btnkey] if btnkey in config.errorlist and config.errorlist[btnkey] != text else ""}'
                 )
-                self.main.processbtns[btnkey].setToolTip('点击查看详细报错' if config.defaulelang=='zh' else 'Click to view the detailed error report')
+                self.main.processbtns[btnkey].setToolTip(
+                    '点击查看详细报错' if config.defaulelang == 'zh' else 'Click to view the detailed error report')
                 self.main.processbtns[btnkey].setText(text[:120])
             else:
                 self.main.processbtns[btnkey].setToolTip('')
@@ -1391,10 +1390,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.processbtns[btnkey].progress_bar.setValue(int(self.main.task.tasklist[btnkey].precent))
             raw_name = self.main.task.tasklist[btnkey].obj['raw_basename']
             self.main.processbtns[btnkey].setToolTip(config.transobj["endopendir"])
-            
+
             self.main.processbtns[btnkey].setText(
                 f'{config.transobj["running"].replace("..", "")} [{jindu}] {raw_name} / {config.transobj["endopendir"]} {text}')
-
 
     # 更新执行状态
     def update_status(self, type):
@@ -1434,15 +1432,14 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
-            
 
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data)
-        if d['type']=='alert':
+        if d['type'] == 'alert':
             QMessageBox.critical(self.main, config.transobj['anerror'], d['text'])
             return
-            
+
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == 'set_start_btn':
             self.main.startbtn.setText(config.transobj["running"])
@@ -1461,7 +1458,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             if d['type'] == 'error':
                 self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type=d['type'])
             elif d['type'] == 'stop':
-                #self.set_process_btn_text(config.transobj['stop'], d['btnkey'], d['type'])
+                # self.set_process_btn_text(config.transobj['stop'], d['btnkey'], d['type'])
                 self.main.subtitle_area.clear()
             if d['type'] == 'stop' or d['type'] == 'end':
                 self.update_status(d['type'])

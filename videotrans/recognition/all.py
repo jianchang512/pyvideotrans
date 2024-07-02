@@ -7,6 +7,7 @@ from videotrans.util import tools
 from faster_whisper import WhisperModel
 import zhconv
 
+
 def recogn(*,
            detect_language=None,
            audio_file=None,
@@ -20,23 +21,24 @@ def recogn(*,
         return False
     down_root = config.rootdir + "/models"
     if set_p and inst:
-        if model_name.find('/')>0:
-            if not os.path.isdir(down_root+'/models--'+model_name.replace('/','--')):
-                inst.parent.status_text='下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Download model from huggingface'
+        if model_name.find('/') > 0:
+            if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
+                inst.parent.status_text = '下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Download model from huggingface'
             else:
-                inst.parent.status_text='加载或下载模型中，用时可能较久' if config.defaulelang=='zh'else 'Load model from local or download model from huggingface'
+                inst.parent.status_text = '加载或下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Load model from local or download model from huggingface'
         else:
-            tools.set_process(f"{config.transobj['kaishishibie']}",btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(f"{config.transobj['kaishishibie']}", btnkey=inst.init['btnkey'] if inst else "")
     model = None
+    raws = []
     try:
         if model_name.startswith('distil-'):
-            com_type= "default"
+            com_type = "default"
         elif is_cuda:
-            com_type=config.settings['cuda_com_type']
+            com_type = config.settings['cuda_com_type']
         else:
-            com_type='default'
-        local_res=True if model_name.find('/')==-1 else False       
-        
+            com_type = 'default'
+        local_res = True if model_name.find('/') == -1 else False
+
         model = WhisperModel(model_name,
                              device="cuda" if is_cuda else "cpu",
                              compute_type=com_type,
@@ -49,64 +51,119 @@ def recogn(*,
             return False
         if not tools.vail_file(audio_file):
             raise Exception(f'no exists {audio_file}')
-        print('temperature===')
-        print(0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         segments, info = model.transcribe(audio_file,
                                           beam_size=config.settings['beam_size'],
                                           best_of=config.settings['best_of'],
                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
 
-                                          temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                                          temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4, 0.6,
+                                                                                                     0.8, 1.0],
                                           vad_filter=bool(config.settings['vad']),
                                           vad_parameters=dict(
                                               min_silence_duration_ms=config.settings['overall_silence'],
-                                              max_speech_duration_s=config.settings['overall_maxsecs'],
+                                              max_speech_duration_s=float('inf'),
                                               threshold=config.settings['overall_threshold'],
                                               speech_pad_ms=config.settings['overall_speech_pad_ms']
                                           ),
                                           word_timestamps=True,
                                           language=detect_language,
                                           initial_prompt=config.settings['initial_prompt_zh'])
+        flag = [
+            ",",
+            ":",
+            "'",
+            "\"",
+            ".",
+            "?",
+            "!",
+            ";",
+            ")",
+            "]",
+            "}",
+            ">",
+            "，",
+            "。",
+            "？",
+            "；",
+            "’",
+            "”",
+            "》",
+            "】",
+            "｝",
+            "！",
+            " "
+        ]
+        maxlen = config.settings['cjk_len'] if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else config.settings['other_len']
+        minlen = 2 if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else maxlen
 
-        # 保留原始语言的字幕
-        raw_subtitles = []
-        sidx = -1
-
-        for segment in segments:
-            if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-                #del model
-                return None
-            if not segment.words or len(segment.words)<1:
-                continue
-            sidx += 1
-            start = int(segment.words[0].start * 1000)
-            end = int(segment.words[-1].end * 1000)
-            # if start == end:
-            #     end += 200
-            startTime = tools.ms_to_time_string(ms=start)
-            endTime = tools.ms_to_time_string(ms=end)
-            text = segment.text.strip().replace('&#39;', "'")
-            if detect_language == 'zh' and text == config.settings['initial_prompt_zh']:
-                continue
-            text = re.sub(r'&#\d+;', '', text)
-            # 无有效字符
-            if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text) or len(text) <= 1:
-                continue
-            if detect_language[:2]=='zh' and config.settings['zh_hant_s']:
-                text=zhconv.convert(text,'zh-hans')
-            # 原语言字幕
-            s = {"line": len(raw_subtitles) + 1, "time": f"{startTime} --> {endTime}", "text": text}
-            raw_subtitles.append(s)
+        def output(srt):
             if set_p:
-                tools.set_process(f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', 'subtitle')
+                tools.set_process(f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', 'subtitle')
                 if inst and inst.precent < 55:
                     inst.precent += round(segment.end * 0.5 / info.duration, 2)
-                tools.set_process(f'{config.transobj["zimuhangshu"]} {s["line"]}',
+                tools.set_process(f'{config.transobj["zimuhangshu"]} {srt["line"]}',
                                   btnkey=inst.init['btnkey'] if inst else "")
             else:
-                tools.set_process_box(text=f'{s["line"]}\n{startTime} --> {endTime}\n{text}\n\n', type="set",
+                tools.set_process_box(text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', type="set",
                                       func_name="shibie")
-        return raw_subtitles
-    except Exception as e:
-        raise Exception(str(e)+str(e.args))
 
+        for segment in segments:
+            if len(segment.text.strip()) <= maxlen:
+                tmp = {
+                    "line": len(raws) + 1,
+                    "start_time": int(segment.words[0].start * 1000),
+                    "end_time": int(segment.words[-1].end * 1000),
+                    "text": segment.text.strip()
+                }
+                tmp[
+                    "time"] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                raws.append(tmp)
+                output(tmp)
+                continue
+
+            cur = None
+            for word in segment.words:
+                if not cur:
+                    cur = {"line": len(raws)  + 1,
+                           "start_time": int(word.start * 1000),
+                           "end_time": int(word.end * 1000),
+                           "text": word.word}
+                    continue
+                if word.word[0] in flag and len(cur['text'].strip()) >= minlen:
+                    cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                    output(cur)
+                    cur['text']=cur['text'].strip()
+                    raws.append(cur)
+                    cur = {
+                        "line": len(raws)  + 1,
+                        "start_time": int(word.start * 1000),
+                        "end_time": int(word.end * 1000),
+                        "text": word.word[1:]}
+                    continue
+                cur['text'] += word.word
+                if (word.word[-1] in flag and len(cur['text'].strip()) >= minlen) or len(cur['text']) >= maxlen * 1.5:
+                    cur['end_time'] = int(word.end * 1000)
+                    cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                    output(cur)
+                    cur['text']=cur['text'].strip()
+                    raws.append(cur)
+                    cur = None
+
+            if cur is not None:
+                cur['end_time'] = int(segment.words[-1].end * 1000)
+                cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                if len(cur['text'].strip()) <= 3:
+                    raws[-1]['text'] += cur['text'].strip()
+                    raws[-1]['end_time'] = cur['end_time']
+                    raws[-1]['time'] = cur['time']
+                else:
+                    output(cur)
+                    cur['text']=cur['text'].strip()
+                    raws.append(cur)
+    except Exception as e:
+        raise
+    else:
+        if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
+            for i, it in enumerate(raws):
+                raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
+        return raws
