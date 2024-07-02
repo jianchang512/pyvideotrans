@@ -140,11 +140,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.translate_type.setCurrentText(translate_name)
 
         #         model
-        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_split'],
-                                    config.transobj['whisper_type_avg']])
+        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
         self.whisper_type.setToolTip(config.transobj['fenge_tips'])
         if config.params['whisper_type']:
-            d = {"all": 0, 'split': 1, "avg": 2, "": 0}
+            d = {"all": 0, "avg": 1}
             self.whisper_type.setCurrentIndex(d[config.params['whisper_type']])
         self.whisper_model.addItems(config.model_list)
         if config.params['whisper_model'] in config.model_list:
@@ -521,6 +520,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params['only_video'] = self.settings.value("only_video", False, bool)
         config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
         config.params['whisper_type'] = self.settings.value("whisper_type", config.params['whisper_type'], str)
+        if not config.params['whisper_type'] or config.params['whisper_type']=='split':
+            config.params['whisper_type']='all'
         config.params['model_type'] = self.settings.value("model_type", config.params['model_type'], str)
         config.params['tts_type'] = self.settings.value("tts_type", config.params['tts_type'], str)
         if not config.params['tts_type']:

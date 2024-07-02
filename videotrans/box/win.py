@@ -608,7 +608,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shibie_task = WorkerWhisper(
             audio_paths=wait_list,
             model=model,
-            split_type=["all", "split", "avg"][split_type_index],
+            split_type=["all","avg"][split_type_index],
             model_type=model_type,
             language=langcode,
             func_name="shibie",
@@ -696,6 +696,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         txt = self.hecheng_plaintext.toPlainText().strip()
         language = self.hecheng_language.currentText()
         role = self.hecheng_role.currentText()
+        print(f'{role=}')
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
         langcode = translator.get_code(show_text=language)

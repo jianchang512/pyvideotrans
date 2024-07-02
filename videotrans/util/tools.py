@@ -777,6 +777,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
 
 # 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
+# 对不规范字幕格式，eg  001:01:2,4500  01:54,14 等做处理
 def format_time(s_time="", separate=','):
     if not s_time.strip():
         return f'00:00:00{separate}000'
@@ -1174,8 +1175,10 @@ def format_video(name, out=None):
     ext = raw_pathlib.suffix
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
+
     output_path=Path(f'{out}/{raw_noextname}' if out else f'{raw_dirname}/_video_out/{raw_noextname}')
     output_path.mkdir(parents=True, exist_ok=True)
+    print(f'{output_path=}')
     obj = {
         "raw_name": name,
         # 原始视频所在原始目录
@@ -1213,14 +1216,14 @@ def format_video(name, out=None):
         obj['noextname'] = obj['raw_noextname']
     else:
         # 不符合，需要移动到 tmp 下
+        obj['basename'] = f'{obj["unid"]}.{obj["raw_ext"]}'
         obj['noextname'] = obj['unid']
-        obj['basename'] = f'{obj["noextname"]}.{obj["raw_ext"]}'
-        obj['dirname'] = config.TEMP_DIR + f"/{obj['noextname']}"
-        obj['dirname'] = config.TEMP_DIR + f"/{obj['noextname']}"
+        obj['dirname'] = config.TEMP_DIR + f"/{obj['unid']}"
         obj['source_mp4'] = f'{obj["dirname"]}/{obj["basename"]}'
-        # 目标存放位置，完成后再复制
-        obj['linshi_output'] = config.TEMP_DIR + f'/{obj["noextname"]}/_video_out'
+        # 目标存放位置，完成后再复制到 output
+        obj['linshi_output'] = f'{obj["dirname"]}/_video_out'
         Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
+
     return obj
 
 

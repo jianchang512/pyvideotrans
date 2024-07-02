@@ -46,17 +46,50 @@ def recogn(*,
             device="cuda" if is_cuda else "cpu",
             download_root=config.rootdir + "/models"
         )
-    last_line=1
+    def output(srt,linenums):
+        if set_p:
+            if inst and inst.precent < 75:
+                inst.precent += 0.1
+            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {linenums} line",
+                              btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', 'subtitle')
+        else:
+            tools.set_process_box(text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', type="set", func_name="shibie")
     
     inter=1200000
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     total_length=1+(len(normalized_sound)//inter)
 
+    raws = []
+    flag = [
+                ",",
+                ":",
+                "'",
+                "\"",
+                ".",
+                "?",
+                "!",
+                ";",
+                ")",
+                "]",
+                "}",
+                ">",
+                "，",
+                "。",
+                "？",
+                "；",
+                "’",
+                "”",
+                "》",
+                "】",
+                "｝",
+                "！",
+                " "
+            ]
+    maxlen = config.settings['cjk_len'] if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else config.settings['other_len']
+    minlen = 2 if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else maxlen
     for i in range(total_length):
-
-        print(f'{i=}')
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-
             return False
         start_time=i*inter
         if i<total_length-1:
@@ -68,54 +101,75 @@ def recogn(*,
         chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
         audio_chunk = normalized_sound[start_time:end_time]
         audio_chunk.export(chunk_filename, format="wav")
-
-        text = ""
         try:
-
             result = model.transcribe(chunk_filename,
                                   language=detect_language,
                                   word_timestamps=True,
                                   initial_prompt=config.settings['initial_prompt_zh'],
                                   condition_on_previous_text=config.settings['condition_on_previous_text']
             )
-            srtname=f'{end_time}.srt'
+            for segment in result['segments']:
+                if len(segment['text'].strip()) <= maxlen:
+                    tmp = {
+                        "line": len(raws) + 1,
+                        "start_time": int(segment['words'][0]["start"] * 1000)+start_time,
+                        "end_time": int(segment['words'][-1]["end"] * 1000)+start_time,
+                        "text": segment["text"].strip()
+                    }
+                    tmp["time"] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                    output(tmp,len(raws)+1)
+                    tmp['text']=tmp['text'].strip()
+                    raws.append(tmp)
+                    continue
 
-            srt_writer = get_writer("srt", tmp_path)
-            srt_writer(result, srtname, {"max_line_count":1,"max_line_width":20 if detect_language.lower()[:2] in ['zh','ja','ko'] else 50})
-            with open(tmp_path+f'/{srtname}','r',encoding='utf-8') as f:
-                srt_text=f.read()
-            tmp_srts=tools.get_subtitle_from_srt(srt_text,is_file=False)
-            for n,it in enumerate(tmp_srts):
-                print(f'{it["text"]=}')
-                if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
-                    tmp_srts[n]['text'] = zhconv.convert(tmp_srts[n]['text'], 'zh-hans')
+                cur = None
+                for word in segment["words"]:
+                    if not cur:
+                        cur = {
+                            "line": len(raws)  + 1,
+                            "start_time": int(word["start"] * 1000)+start_time,
+                            "end_time": int(word["end"] * 1000)+start_time,
+                            "text": word["word"]
+                        }
+                        continue
+                    if word['word'][0] in flag and len(cur['text'].strip()) >= minlen:
+                        cur[ 'time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                        output(cur,len(raws)+1)
+                        cur['text']=cur['text'].strip()
+                        raws.append(cur)
+                        cur = {
+                            "line": len(raws) + 1,
+                            "start_time": int(word["start"] * 1000)+start_time,
+                            "end_time": int(word["end"] * 1000)+start_time,
+                            "text": word["word"][1:]}
+                        continue
+                    cur['text'] += word["word"]
+                    if (word["word"][-1] in flag and len(cur['text'].strip()) >= minlen) or len(cur['text']) >= maxlen * 1.5:
+                        cur['end_time'] = int(word["end"] * 1000)+start_time
+                        cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                        output(cur, len(raws) + 1)
+                        cur['text']=cur['text'].strip()
+                        raws.append(cur)
+                        cur = None
 
-                tmp_srts[n]['line']=n+last_line
-                tmp_srts[n]['start_time']+=start_time
-                tmp_srts[n]['end_time']+=start_time
-                tmp_srts[n]['endraw'] = tools.ms_to_time_string(ms=tmp_srts[n]['end_time'])
-                tmp_srts[n]['startraw'] = tools.ms_to_time_string(ms=tmp_srts[n]['start_time'])
-                tmp_srts[n]['time']=f"{tmp_srts[n]['startraw']} --> {tmp_srts[n]['endraw']}"
-            raw_subtitles+=tmp_srts
+                if cur is not None:
+                    cur['end_time'] = int(segment["words"][-1]["end"] * 1000)+start_time
+                    cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                    if len(cur['text']) <= 3:
+                        raws[-1]['text'] += cur['text'].strip()
+                        raws[-1]['end_time'] = cur['end_time']
+                        raws[-1]['time'] = cur['time']
+                    else:
+                        output(cur, len(raws) + 1)
+                        cur['text']=cur['text'].strip()
+                        raws.append(cur)
 
-
-            #clen=
-            last_line=len(raw_subtitles)
-            if set_p:
-                if inst and inst.precent < 75:
-                    inst.precent += 0.1
-                tools.set_process(f"{config.transobj['yuyinshibiejindu']} {last_line}/{total_length}", btnkey=inst.init['btnkey'] if inst else "")
-                
-                tools.set_process(srt_text, 'subtitle')
-            else:
-                tools.set_process_box(text=srt_text, type="set", func_name="shibie")
         except Exception as e:
-            print(e)
-            #del model
-            raise Exception(str(e.args)+str(e))
+            raise
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',btnkey=inst.init['btnkey'] if inst else "")
-    # 写入原语言字幕到目标文件夹
+    if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
+        for i,it in enumerate(raws):
+            raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
+    return raws
 
-
-    return raw_subtitles

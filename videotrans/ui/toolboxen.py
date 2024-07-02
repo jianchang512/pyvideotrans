@@ -113,7 +113,6 @@ class Ui_MainWindow(object):
         self.shibie_whisper_type = QtWidgets.QComboBox(self.tab_4)
         self.shibie_whisper_type.addItems(
             [config.transobj['whisper_type_all'],
-             config.transobj['whisper_type_split'],
              config.transobj['whisper_type_avg']]
         )
         self.shibie_whisper_type.setToolTip(config.transobj['fenge_tips'])

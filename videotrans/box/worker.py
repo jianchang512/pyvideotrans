@@ -310,21 +310,18 @@ class WorkerTTS(QThread):
                 audio_extend = it['raw_duration'] if speed <= float(config.settings['audio_rate']) else int(it['dubb_time'] / float(config.settings['audio_rate']))
                 tools.precise_speed_up_audio(file_path=it['filename'], out=tmp_mp3,
                                              target_duration_ms=audio_extend,
-                                             max_rate=min(config.settings['audio_rate'], 100))
+                                             max_rate=100)
 
                 # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
                 #如果视频需要变化，更新视频时长需要变化的长度
                 if tools.vail_file(tmp_mp3):
                     mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
-                else:
-                    # 加速失败使用原配音文件
-                    tmp_mp3=it['filename']
-                    mp3_len = it['dubb_time']
+                    it['dubb_time'] = mp3_len
+                    it['filename'] = tmp_mp3
 
 
-                # 变化后的真实配音时长
-                it['dubb_time'] = mp3_len
-                it['filename'] = tmp_mp3
+
+
 
             # 更改时间戳
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
@@ -346,11 +343,8 @@ class WorkerTTS(QThread):
             set_process_box(text=item['text'], type='replace', func_name=self.func_name)
             set_process_box(text=f'{percent + 1}%', type='logs', func_name=self.func_name)
             subs = get_subtitle_from_srt(item["text"], is_file=False)
-            rate = int(str(self.rate).replace('%', ''))
-            if rate >= 0:
-                rate = f"+{rate}%"
-            else:
-                rate = f"{rate}%"
+
+
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
             for it in subs:
                 queue_tts.append({
@@ -358,14 +352,14 @@ class WorkerTTS(QThread):
                     "role": self.role,
                     "start_time": it['start_time'],
                     "end_time": it['end_time'],
-                    "rate": rate,
+                    "rate": self.rate,
                     "startraw": it['startraw'],
                     "endraw": it['endraw'],
                     "tts_type": self.tts_type,
                     "language": self.langcode,
                     "pitch":self.pitch,
                     "volume":self.volume,
-                    "filename": f"{self.tmpdir}/tts-{it['start_time']}.mp3"})
+                    "filename": f"{self.tmpdir}/tts-{time.time()}-{it['start_time']}.mp3"})
             try:
                 run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, set_p=False)
 
