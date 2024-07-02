@@ -1340,12 +1340,12 @@ def set_ass_font(srtfile=None):
 def format_result(source_list,target_list,target_lang="zh"):
     source_len=[]
     source_total=0
+    target_lang=target_lang.lower()
     for it in source_list:
         it_len=len(it.strip())
         source_total+=it_len
         source_len.append(it_len)
-    print(f'{target_list=}')
-    print(f'{source_total=},{source_len=}')
+
 
     target_str="".join(target_list).strip()
     target_total=len(target_str)
@@ -1354,7 +1354,7 @@ def format_result(source_list,target_list,target_lang="zh"):
         n=math.floor(target_total*num/source_total)
         n=1 if n==0 else n
         target_len.append(n)
-    print(f'{target_total=},{target_len=}')
+
 
     # 开始截取文字
     result=[]
@@ -1364,7 +1364,6 @@ def format_result(source_list,target_list,target_lang="zh"):
           ".",
           '"',
           "'",
-          " ",
           ",",
           "!",
           "?",
@@ -1401,9 +1400,11 @@ def format_result(source_list,target_list,target_lang="zh"):
           "·",
           "！",
           "￥",
-          "…",
-          "\n"
+          "…"
     ]
+    if target_lang[:2] in ['zh','ja','ko']:
+        flag.append(" ")
+
     for num in target_len:
         lastpos=start+num
         if start>=target_total:
@@ -1415,9 +1416,9 @@ def format_result(source_list,target_list,target_lang="zh"):
             start=start+num
             result.append(text.strip())
             continue
+        offset = -5
+        maxlen = 1 if target_lang[:2] in ['zh','ja','ko']  else 5
         # 倒退3个到前进6个寻找标点 切割点
-        offset=-5
-        maxlen=1
         while offset<maxlen:
             newlastpos=lastpos+offset
             if start>=target_total:
@@ -1426,7 +1427,10 @@ def format_result(source_list,target_list,target_lang="zh"):
             if newlastpos>=target_total:
                 result.append(target_str[start:])
                 break
-            if newlastpos>=target_total or target_str[newlastpos] in flag:
+            st_r=target_str[newlastpos]
+            print(f'有无空格 {st_r=},offset={offset}')
+            if (not st_r.strip() and target_lang[:2] not in ['zh','ja','ko']) or newlastpos>=target_total or st_r in flag:
+                print(f'{offset=},{st_r=}')
                 text=target_str[start:newlastpos+1] if start<target_total else ""
                 start=newlastpos+1
                 result.append(text.strip())
@@ -1435,6 +1439,8 @@ def format_result(source_list,target_list,target_lang="zh"):
         # 已找到切割点
         if offset<maxlen:
             continue
+
+        print(f'强制切割{target_lang=},{st_r=}')
         # 没找到分割标点，强制截断
         text=target_str[start:start+num] if start<target_total else ""
         start=start+num

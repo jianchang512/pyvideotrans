@@ -844,7 +844,7 @@ class Subform():
                 from videotrans.translator.transapi import trans
                 try:
                     t = trans(self.text, target_language="en", set_p=False, is_test=True, source_code="zh")
-                    self.uito.emit(f"ok:{self.text}\n{t}")
+                    self.uito.emit(f"ok:{self.text}\n{str(t)}")
                 except Exception as e:
                     self.uito.emit(str(e))
 

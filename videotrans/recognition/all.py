@@ -90,12 +90,13 @@ def recogn(*,
             "》",
             "】",
             "｝",
-            "！",
-            " "
+            "！"
         ]
-        maxlen = config.settings['cjk_len'] if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else config.settings['other_len']
-        minlen = 2 if detect_language[:2].lower() in ['zh', 'ja', 'ko'] else maxlen
-
+        if detect_language[:2].lower() in ['zh', 'ja', 'ko']:
+            flag.append(" ")
+            maxlen = config.settings['cjk_len']
+        else:
+            maxlen=config.settings['other_len']
         def output(srt):
             if set_p:
                 tools.set_process(f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', 'subtitle')
@@ -106,6 +107,14 @@ def recogn(*,
             else:
                 tools.set_process_box(text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n', type="set",
                                       func_name="shibie")
+        def append_raws(cur):
+            if len(cur['text'])<int(maxlen/5) and len(raws)>0:
+                raws[-1]['text']+= cur['text'] if detect_language[:2] in ['ja','zh','ko'] else f' {cur["text"]}'
+                raws[-1]['end_time']=cur['end_time']
+                raws[-1]['time']=f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+            else:
+                output(cur)
+                raws.append(cur)
 
         for segment in segments:
             if len(segment.text.strip()) <= maxlen:
@@ -115,51 +124,59 @@ def recogn(*,
                     "end_time": int(segment.words[-1].end * 1000),
                     "text": segment.text.strip()
                 }
-                tmp[
-                    "time"] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
-                raws.append(tmp)
-                output(tmp)
-                continue
+                if tmp['end_time']-tmp['start_time']>=1500:
+                    tmp["time"] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                    append_raws(tmp)
+                    continue
+
+
 
             cur = None
             for word in segment.words:
                 if not cur:
-                    cur = {"line": len(raws)  + 1,
+                    cur = {"line": len(raws) + 1,
                            "start_time": int(word.start * 1000),
                            "end_time": int(word.end * 1000),
                            "text": word.word}
                     continue
-                if word.word[0] in flag and len(cur['text'].strip()) >= minlen:
+                # 第一个字符 是标点并且大于最小字符数
+                if word.word[0] in flag:
+                    cur['end_time'] = int(word.start * 1000)
+                    if cur['end_time']-cur['start_time']<1500:
+                        cur['text'] += word.word
+                        continue
                     cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
-                    output(cur)
-                    cur['text']=cur['text'].strip()
-                    raws.append(cur)
+                    cur['text'] = cur['text'].strip()
+                    append_raws(cur)
                     cur = {
-                        "line": len(raws)  + 1,
+                        "line": len(raws) + 1,
                         "start_time": int(word.start * 1000),
                         "end_time": int(word.end * 1000),
                         "text": word.word[1:]}
                     continue
                 cur['text'] += word.word
-                if (word.word[-1] in flag and len(cur['text'].strip()) >= minlen) or len(cur['text']) >= maxlen * 1.5:
+
+                if word.word[-1] in flag or len(cur['text']) >= maxlen * 1.5:
                     cur['end_time'] = int(word.end * 1000)
+                    if cur['end_time']-cur['start_time']<1500:
+                        continue
                     cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
-                    output(cur)
-                    cur['text']=cur['text'].strip()
-                    raws.append(cur)
+                    cur['text'] = cur['text'].strip()
+                    append_raws(cur)
                     cur = None
 
             if cur is not None:
                 cur['end_time'] = int(segment.words[-1].end * 1000)
+                if cur['end_time']-cur['start_time']<1500:
+                    continue
                 cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
                 if len(cur['text'].strip()) <= 3:
                     raws[-1]['text'] += cur['text'].strip()
                     raws[-1]['end_time'] = cur['end_time']
                     raws[-1]['time'] = cur['time']
                 else:
-                    output(cur)
-                    cur['text']=cur['text'].strip()
-                    raws.append(cur)
+                    cur['text'] = cur['text'].strip()
+                    append_raws(cur)
     except Exception as e:
         raise
     else:
