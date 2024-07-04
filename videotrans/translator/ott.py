@@ -27,6 +27,20 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    def get_content(data):
+        try:
+            response = requests.post(url=url, json=data, proxies={"https": "", "http": ""})
+        except Exception as e:
+            raise
+
+        if response.status_code != 200:
+            raise Exception(response.text)
+        result = response.json()
+
+        if "error" in result:
+            raise Exception(result['error'])
+        return result['translatedText']
+
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -64,38 +78,24 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "target": target_language
                 }
 
-
-                try:
-                    response = requests.post(url=url,json=data,proxies={"https":"","http":""})
-                except Exception as e:
-                    err=str(e)
-                    break
-
-                if response.status_code != 200:
-                    err=response.text
-                    break
-                try:
-                    result = response.json()
-                except Exception:
-                    err=config.transobj['notjson']+response.text
-                    break
-
-                if "error" in result:
-                    err=result['error']
-                    break
-                result=tools.cleartext(result['translatedText']).split("\n")
+                res_trans=get_content(data)
+                result=tools.cleartext(res_trans).split("\n")
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length < source_length:
                     print(f'翻译前后数量不一致，需要重新切割')
-                    result = tools.format_result(it, result, target_lang=target_language)
+                    result=[]
+                    for line_res in it:
+                        data['q']=line_res
+                        result.append(get_content(data))
+
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
+                    tools.set_process_box("\n".join(result), func_name="fanyi",type="set")
                 result_length = len(result)
                 while result_length < source_length:
                     result.append("")

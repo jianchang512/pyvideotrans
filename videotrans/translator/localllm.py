@@ -24,8 +24,7 @@ def create_openai_client():
 def get_content(d,*,model=None,prompt=None,assiant=None):
     message = [
         {'role': 'system', 'content': "You are a professional, authentic translation engine, only returns translations"},
-        #{'role': 'assistant', 'content': assiant},
-        {'role': 'user', 'content':  prompt.replace('[TEXT]',"\n".join(d))},
+        {'role': 'user', 'content':  prompt.replace('[TEXT]',"\n".join([i.strip() for i in d]) if isinstance(d,list) else d )},
     ]
     config.logger.info(f"\n[localllm]发送请求数据:{message=}")
     try:
@@ -36,10 +35,10 @@ def get_content(d,*,model=None,prompt=None,assiant=None):
         config.logger.info(f'[localllm]响应:{response=}')
     except APIError as e:
         config.logger.error(f'[localllm]请求失败:{str(e)}')
-        raise Exception(f'{e.message=}')
+        raise
     except Exception as e:
         config.logger.error(f'[localllm]请求失败:{str(e)}')
-        raise Exception(e)
+        raise
     if isinstance(response,str):
         raise Exception(response)
 
@@ -52,7 +51,7 @@ def get_content(d,*,model=None,prompt=None,assiant=None):
         raise Exception(f"{response}")
 
     result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-    return result,response
+    return re.sub(r'\n{2,}',"\n",result)
 
 
 def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,source_code="",is_test=False):
@@ -74,11 +73,11 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
-    #if is_srt and split_size>1:
+
     prompt=config.params['localllm_template'].replace('{lang}', target_language)
     with open(config.rootdir+"/videotrans/localllm.txt",'r',encoding="utf-8") as f:
-        prompt=f.read()
-    prompt=prompt.replace('{lang}', target_language)
+        prompt=f.read().replace('{lang}', target_language)
+
     assiant=f"Sure, please provide the text you need translated into {target_language}"
 
 
@@ -93,7 +92,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
 
-    response=None
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
             return
@@ -120,7 +118,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 time.sleep(stop)
             
             try:
-                result,response=get_content(it,model=client,prompt=prompt,assiant=assiant)
+                result=get_content(it,model=client,prompt=prompt,assiant=assiant)
 
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
@@ -135,8 +133,11 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 sep_len = len(sep_res)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if sep_len < raw_len:
-                    print(f'翻译前后数量不一致，需要重新切割')
-                    sep_res = tools.format_result(it, sep_res, target_lang=target_language)
+                    config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
+                    sep_res=[]
+                    for line_res in it:
+                        sep_res.append(get_content(line_res.strip(),model=client,prompt=prompt,assiant=assiant))
+
 
                 for x,result_item in enumerate(sep_res):
                     if x < len(it):
@@ -144,7 +145,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
                             tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x+1} ',btnkey=inst.init['btnkey'] if inst else "")
-                        else:
+                        elif not is_test:
                             tools.set_process_box(text=result_item + "\n", func_name="fanyi",type="set")
                 if len(sep_res)<len(it):
                     tmp=["" for x in range(len(it)-len(sep_res))]

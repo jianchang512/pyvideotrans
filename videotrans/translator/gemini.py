@@ -75,7 +75,10 @@ def get_content(d,*,model=None,prompt=None):
     update_proxy(type='set')
     response=None
     try:
-        message=prompt.replace('{text}',"\n".join(d))
+        if '{text}' in prompt:
+            message=prompt.replace('{text}', "\n".join([i.strip() for i in d]) if isinstance(d,list) else d)
+        else:
+            message=prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d,list) else d)
         response = model.generate_content(
             message
         )
@@ -85,7 +88,7 @@ def get_content(d,*,model=None,prompt=None):
         config.logger.info(f'[Gemini]返回:{result=}')
         if not result:
             raise Exception("fail")
-        return result, response
+        return re.sub(r'\n{2,}',"\n",result)
     except Exception as e:
         error=str(e)
         config.logger.error(f'[Gemini]请求失败:{error=}')
@@ -101,8 +104,8 @@ def get_content(d,*,model=None,prompt=None):
         if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
                 response.candidates[0].content and response.candidates[0].content.parts:
             result = response.text.replace('##','').strip().replace('&#39;', '"').replace('&quot;', "'")
-            return result,response
-        raise Exception(error)
+            return re.sub(r'\n{2,}',"\n",result)
+        raise
 
 
 
@@ -134,8 +137,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     prompt = config.params['gemini_template']
     with open(config.rootdir+"/videotrans/gemini.txt",'r',encoding="utf-8") as f:
-        prompt=f.read()
-    prompt=prompt.replace('{lang}', target_language)
+        prompt=f.read().replace('{lang}', target_language)
 
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     end_point="。" if config.defaulelang=='zh' else ' . '
@@ -165,7 +167,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
 
-        response = None
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return
@@ -174,7 +175,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             if stop > 0:
                 time.sleep(stop)
             try:
-                result,response=get_content(it,model=model,prompt=prompt)
+                result=get_content(it,model=model,prompt=prompt)
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
                 if not is_srt:
@@ -188,20 +189,10 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 sep_len=len(sep_res)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if sep_len<raw_len:
-                    print(f'翻译前后数量不一致，需要重新切割')
-                    sep_res=tools.format_result(it,sep_res,target_lang=target_language)
-                # if sep_len>raw_len:
-                #     sep_res[raw_len-1]=".".join(sep_len[raw_len-1:])
-                #     sep_res=sep_res[:raw_len]
-                # if sep_len != raw_len:
-                #     sep_res=[]
-                #     for it_n in it:
-                #         try:
-                #             t,response=get_content([it_n.strip()],model=model,prompt=prompt)
-                #         except Exception as e:
-                #             config.logger.error(f'触发安全限制，{t=},{it_n=}')
-                #             t="--"
-                #         sep_res.append(t)
+                    config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
+                    sep_res=[]
+                    for line_res in it:
+                        sep_res.append(get_content(line_res.strip(),model=model,prompt=prompt))
 
                 for x, result_item in enumerate(sep_res):
                     if x < len(it):
@@ -209,7 +200,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
                             tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',btnkey=inst.init['btnkey'] if inst else "")
-                        else:
+                        elif not is_test:
                             tools.set_process_box(text=result_item + "\n", func_name="fanyi",type="set")
 
                 if len(sep_res) < len(it):

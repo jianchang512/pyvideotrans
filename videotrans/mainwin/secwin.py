@@ -655,15 +655,15 @@ class SecWindow():
                 elif name == translator.AZUREGPT_NAME:
                     self.main.subform.set_azure_key()
                 elif name == translator.BAIDU_NAME:
-                    self.main.subform.set_transapi()
+                    self.main.subform.set_baidu_key()
                 elif name == translator.TENCENT_NAME:
-                    self.main.subform.set_transapi()
+                    self.main.subform.set_tencent_key()
                 elif name == translator.DEEPL_NAME:
-                    self.main.subform.set_transapi()
+                    self.main.subform.set_deepL_key()
                 elif name == translator.DEEPLX_NAME:
-                    self.main.subform.set_transapi()
+                    self.main.subform.set_deepLX_address()
                 elif name == translator.OTT_NAME:
-                    self.main.subform.set_transapi()
+                    self.main.subform.set_ott_address()
                 elif name == translator.ZIJIE_NAME:
                     self.main.subform.set_zijiehuoshan_key()
                 return

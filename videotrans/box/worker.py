@@ -479,8 +479,7 @@ class FanyiWorker(QThread):
                 continue
             try:
                 set_process_box(text=f'正在翻译字幕{f}',type='logs', func_name=self.func_name)
-                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,
-                                set_p=False)
+                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,set_p=False)
                 srts_tmp = ""
                 for it in srt:
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"

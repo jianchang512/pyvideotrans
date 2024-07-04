@@ -57,6 +57,26 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     google_url=random.choice(urls)
+    def get_content(data):
+        url = f"{google_url}/translate_a/single?client=gtx&dt=t&sl=auto&tl={data['target_language']}&q={quote(data['text'])}"
+        config.logger.info(f'[Google]请求数据:{url=}')
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=300, proxies=proxies)
+        config.logger.info(f'[Google]返回数据:{response.text=}')
+        if response.status_code != 200:
+            config.logger.error(f'{response.text=}')
+            err = f'{response.status_code=},{response.reason=}'
+            raise Exception(err)
+
+        re_result = response.json()
+        if len(re_result[0]) < 1:
+            err = f'无有效结果,{response.text}'
+            raise Exception(err)
+        return ("".join([te[0] for te in re_result[0]])).strip()
+
+
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -93,39 +113,24 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             try:
                 source_length=len(it)
                 text = "\n".join(it)
-                url = f"{google_url}/translate_a/single?client=gtx&dt=t&sl=auto&tl={target_language}&q={quote(text)}"
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                }
-                config.logger.info(f'[FreeGoole] 发送请求:{url=}')
-                response = requests.get(url,  headers=headers, timeout=300,proxies=proxies)
-                config.logger.info(f'[FreeGoole] 返回:{response.text=}')
-                if response.status_code != 200:
-                    config.logger.error(f'{response.text=}')
-                    err=f'{google_url} error_code={response.status_code}'
-                    break
-
-                re_result = response.json()
-                if len(re_result[0]) < 1:
-                    err = f'无有效结果,{response.text}'
-                    break
-
-                result = "".join([te[0] for te in re_result[0]])
+                result=get_content({"text":text,"target_language":target_language})
                 result = [te.strip() for te in result.split("\n")]
                 result_length = len(result)
-                print(f'{result=},{result_length=}')
 
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length<source_length:
-                    print(f'翻译前后数量不一致，需要重新切割')
-                    result=tools.format_result(it,result,target_lang=target_language)
+                    print(f'翻译前后数量不一致，需要重新按行翻译')
+                    result = []
+                    for line_res in it:
+                        result.append(get_content({"text": line_res, "target_language": target_language}))
+
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
+                    tools.set_process_box("\n".join(result), func_name="fanyi",type="set")
                 config.logger.info(f'{result_length=},{source_length=}')
                 result_length = len(result)
                 while result_length<source_length:
