@@ -41,6 +41,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    def get_content(data):
+        config.logger.info(f'[DeepL]请求数据:{data=}')
+        result = deepltranslator.translate_text(data['text'],target_lang=data["target_language"] if not re.match(r'^zh', data["target_language"],  re.I) else "ZH")
+        config.logger.info(f'[DeepL]返回:{result=}')
+        return result.text
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -74,22 +79,28 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 time.sleep(stop)
             try:
                 source_length = len(it)
-                config.logger.info(f'[DeepL]请求数据:{it=}')
-                result = deepltranslator.translate_text("\n".join(it), target_lang=target_language if not re.match(r'^zh',target_language,re.I)  else "ZH" )
-                config.logger.info(f'[DeepL]返回:{result=}')
-                result=tools.cleartext(result.text).split("\n")
+                data={
+                    "text":"\n".join(it),
+                    "target_language":target_language
+                }
+                result=get_content(data)
+                result=tools.cleartext(result).split("\n")
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length < source_length:
                     print(f'翻译前后数量不一致，需要重新切割')
-                    result = tools.format_result(it, result, target_lang=target_language)
+                    result=[]
+                    for line_res in it:
+                        data['text']=line_res
+                        result.append(get_content(data))
+
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
                     tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
+                    tools.set_process_box("\n".join(result), func_name="fanyi",type="set")
 
 
                 result_length = len(result)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 import requests
 from requests import JSONDecodeError
@@ -11,10 +12,10 @@ def get_content(d,*,prompt=None,assiant=None):
     message = [
         {'role': 'system', 'content': prompt},
         {'role': 'assistant', 'content': assiant},
-        {'role': 'user', 'content':  "\n".join(d)},
+        {'role': 'user', 'content':  "\n".join([i.strip() for i in d]) if isinstance(d,list) else d},
     ]
-    config.logger.info(f"\n[字节火山引擎]发送请求数据:{message=}")
-    print(f"接入点名称:{config.params['zijiehuoshan_model']}")
+    config.logger.info(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params['zijiehuoshan_model']}")
+
     try:
         req={
             "model":config.params['zijiehuoshan_model'],
@@ -33,7 +34,7 @@ def get_content(d,*,prompt=None,assiant=None):
     except JSONDecodeError as e:
         raise Exception('字节火山翻译失败，返回数据不是有效json格式')
     else:
-        return result
+        return re.sub(r'\n{2,}',"\n",result)
 
 
 
@@ -59,8 +60,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     #if is_srt and split_size>1:
     prompt=config.params['zijiehuoshan_template'].replace('{lang}', target_language)
     with open(config.rootdir+"/videotrans/zijie.txt",'r',encoding="utf-8") as f:
-        prompt=f.read()
-    prompt=prompt.replace('{lang}', target_language)
+        prompt=f.read().replace('{lang}', target_language)
+
     assiant=f"Sure, please provide the text you need translated into {target_language}"
 
 
@@ -74,8 +75,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
             source_text.append(it['text'].strip().replace('\n','.'))
     split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
-
-    response=None
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
             return
@@ -89,7 +88,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
 
-
         for i,it in enumerate(split_source_text):
             if config.exit_soft or  (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return
@@ -97,10 +95,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 continue
             if stop>0:
                 time.sleep(stop)
-
             try:
                 result=get_content(it,prompt=prompt,assiant=assiant)
-
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
                 if not is_srt:
@@ -114,8 +110,11 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 sep_len = len(sep_res)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if sep_len < raw_len:
-                    print(f'翻译前后数量不一致，需要重新切割')
-                    sep_res = tools.format_result(it, sep_res, target_lang=target_language)
+                    config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
+                    sep_res=[]
+                    for line_res in it:
+                        sep_res.append(get_content(line_res.strip(),prompt=prompt,assiant=assiant))
+
 
                 for x,result_item in enumerate(sep_res):
                     if x < len(it):
@@ -123,7 +122,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                         if set_p:
                             tools.set_process(result_item + "\n", 'subtitle')
                             tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x+1} ',btnkey=inst.init['btnkey'] if inst else "")
-                        else:
+                        elif not is_test:
                             tools.set_process_box(text=result_item + "\n", func_name="fanyi",type="set")
                 if len(sep_res)<len(it):
                     tmp=["" for x in range(len(it)-len(sep_res))]

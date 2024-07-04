@@ -1416,8 +1416,8 @@ def format_result(source_list,target_list,target_lang="zh"):
             start=start+num
             result.append(text.strip())
             continue
-        offset = -5
-        maxlen = 1 if target_lang[:2] in ['zh','ja','ko']  else 5
+        offset = -3
+        maxlen = 3 if target_lang[:2] in ['zh','ja','ko']  else 5
         # 倒退3个到前进6个寻找标点 切割点
         while offset<maxlen:
             newlastpos=lastpos+offset

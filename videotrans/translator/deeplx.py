@@ -45,6 +45,17 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
+    def get_content(data):
+        config.logger.info(f'[DeepLX]发送请求数据,{data=}')
+        response = requests.post(url=url, json=data, proxies=proxies)
+        config.logger.info(f'[DeepLX]返回响应,{response.text=}')
+        result = response.json()
+        result = tools.cleartext(result['data'])
+        if not result:
+            err = f'无有效返回，{response.text=}'
+            raise Exception(err)
+        return result
+
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
@@ -81,25 +92,17 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     "source_lang": "auto",
                     "target_lang": 'zh' if target_language.startswith('zh') else  target_language
                 }
-                config.logger.info(f'[DeepLX]发送请求数据,{data=}')
-
-                response = requests.post(url=url, json=data,proxies=proxies)
-                config.logger.info(f'[DeepLX]返回响应,{response.text=}')
-                try:
-                    result = response.json()
-                except Exception as e:
-                    err=config.transobj['notjson']+response.text
-                    break
-                result=tools.cleartext(result['data'])
-                if not result:
-                    err=f'无有效返回，{response.text=}'
-                    break
+                result=get_content(data)
                 result=result.split("\n")
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length < source_length:
                     print(f'翻译前后数量不一致，需要重新切割')
-                    result = tools.format_result(it, result, target_lang=target_language)
+                    result = []
+                    for line_res in it:
+                        data['text']=line_res
+                        result.append(get_content(data))
+
                 config.logger.info(f'result,{i=}, {result=}')
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
@@ -107,7 +110,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     tools.set_process( f'{result[0]}\n\n' if split_size==1 else "\n\n".join(result), 'subtitle')
                     tools.set_process(config.transobj['starttrans']+f' {i*split_size+1} ',btnkey=inst.init['btnkey'] if inst else "")
                 else:
-                    tools.set_process("\n\n".join(result), func_name="set_fanyi")
+                    tools.set_process_box("\n".join(result), func_name="fanyi",type="set")
 
                 result_length = len(result)
                 while result_length < source_length:
