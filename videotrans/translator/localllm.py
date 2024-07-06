@@ -131,6 +131,14 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                 sep_res = tools.cleartext(result).split("\n")
                 raw_len = len(it)
                 sep_len = len(sep_res)
+                
+                # 如果返回结果相差原字幕仅少一行，对最后一行进行拆分
+                if sep_len+1==raw_len:
+                    config.logger.error('如果返回结果相差原字幕仅少一行，对最后一行进行拆分')
+                    sep_res=tools.split_line(sep_res)
+                    if sep_res:
+                        sep_len=len(sep_res)
+                
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if sep_len < raw_len:
                     config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')

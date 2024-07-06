@@ -86,7 +86,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 3. Execute `cd pyvideotrans`
 4. Continue with `python -m venv venv`
 5. Execute `source ./venv/bin/activate` and ensure the terminal prompt begins with `(venv)`, following commands must ensure the terminal prompt starts with `(venv)`
-6. Execute `pip install -r requirements.txt --no-deps`
+6. Execute `pip install -r mac-requirements.txt --no-deps`
 
 
     Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
