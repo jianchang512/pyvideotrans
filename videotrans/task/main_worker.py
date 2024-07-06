@@ -171,6 +171,7 @@ class Worker(QThread):
                 else:
                     Path(obj_format['output']).mkdir(parents=True, exist_ok=True)
 
+            '''
             if len(target_dir_mp4) >= 250:
                 set_process(config.transobj['chaochu255'] + "\n\n" + it, 'alert')
                 self.stop()
@@ -179,7 +180,7 @@ class Worker(QThread):
                 set_process(config.transobj['teshufuhao'] + "\n\n" + it, 'alert')
                 self.stop()
                 return
-
+            '''
             videolist.append(obj_format)
             self.unidlist.append(obj_format['unid'])
             # 添加进度按钮 unid
@@ -273,17 +274,8 @@ class Worker(QThread):
         # 非批量直接结束
         config.queue_mp4 = []
         set_process("", 'end')
-        # self._unlink_tmp()
-        # self.tasklist = {}
+        tools._unlink_tmp()
 
-    def _unlink_tmp(self):
-        if not os.path.isdir(config.TEMP_DIR):
-            return
-        for it in os.listdir(config.TEMP_DIR):
-            if os.path.isfile(config.TEMP_DIR + f"/{it}"):
-                Path(config.TEMP_DIR + f"/{it}").unlink(missing_ok=True)
-            else:
-                shutil.rmtree(config.TEMP_DIR + f"/{it}", ignore_errors=True)
 
     def wait_end(self):
         # 开始等待任务执行完毕
@@ -297,13 +289,6 @@ class Worker(QThread):
             # 当前 video 执行完毕
             if unid in config.unidlist:
                 pass
-                # 成功完成
-                # if unid  in config.errorlist and config.errorlist[unid]:
-                # send_notification("Succeed", f'{video.obj["raw_basename"]}')
-                # if len(config.queue_mp4) > 0:
-                # config.queue_mp4.pop(0)
-                # else:
-                # send_notification(config.errorlist[unid], f'{video.obj["raw_basename"]}')
             else:
                 # 未结束重新插入
                 self.unidlist.append(unid)
@@ -312,11 +297,9 @@ class Worker(QThread):
         config.queue_mp4 = []
 
         set_process("", 'end')
-        self._unlink_tmp()
-        # self.tasklist = {}
+        tools._unlink_tmp()
 
     def stop(self):
         set_process("", 'stop')
         config.queue_mp4 = []
-        self._unlink_tmp()
-        # self.tasklist = {}
+        tools._unlink_tmp()

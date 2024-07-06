@@ -75,10 +75,6 @@ class WorkerWhisper(QThread):
                         "1",
                         "-ar",
                         "16000",
-                        "-b:a",
-                        "128k",
-                        "-c:a",
-                        "pcm_s16le",
                         outfile
                     ]
                     tools.runffmpeg(cmd)
@@ -91,7 +87,9 @@ class WorkerWhisper(QThread):
                 jindu = f'{int((length - len(self.audio_paths)) * 49 / length)}%'
                 self.post_message(type='logs',text=f'{jindu}')
                 srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
-                                  detect_language=self.language, set_p=False, cache_folder=config.TEMP_DIR,
+                                  detect_language=self.language,
+                                  set_p=False,
+                                  cache_folder=config.TEMP_DIR,
                                   model_type=self.model_type,
                                   is_cuda=self.is_cuda)
                 text = []
@@ -104,6 +102,9 @@ class WorkerWhisper(QThread):
             except Exception as e:
                 print(e)
                 errs.append(f'失败，{str(e)}')
+                self.post_message(type='error', text=str(e))
+                config.box_recogn = 'stop'
+                return
         self.post_message(type='end', text="" if len(errs) < 1 else "\n".join(errs))
         config.box_recogn = 'stop'
 

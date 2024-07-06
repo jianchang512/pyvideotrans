@@ -1,4 +1,6 @@
 # zh_recogn 识别
+import time
+
 from videotrans.configure import config
 from videotrans.util import tools
 import os
@@ -67,22 +69,40 @@ def recogn(*,
             raise Exception(f'请求失败:{res["message"]}')
         
         job_id = res['id']
-        # 获取进度
-        response = requests.get(
-                '{base_url}/query'.format(base_url=base_url),
-                params=dict(
-                    appid=appid,
-                    id=job_id,
-                ),
-                proxies={"http": "", "https": ""}, 
-                headers={
-                   'Authorization': 'Bearer; {}'.format(access_token)
-                }
-        )
-        if response.status_code != 200:
-            raise Exception(f'查询任务进度失败:{response.status_code=},{response.text=}')
-        
-        result=response.json()
+        result=None
+        delay=0
+        while 1:
+            delay+=1
+            # 获取进度
+            response = requests.get(
+                    '{base_url}/query'.format(base_url=base_url),
+                    params=dict(
+                        appid=appid,
+                        id=job_id,
+                        blocking=0
+                    ),
+                    proxies={"http": "", "https": ""},
+                    headers={
+                       'Authorization': 'Bearer; {}'.format(access_token)
+                    }
+            )
+
+            result=response.json()
+            if result['code']==2000:
+                if set_p:
+                    tools.set_process(f"任务处理中，请等待 {delay}s..", 'logs', btnkey=inst.init['btnkey'] if inst else "")
+                else:
+                    tools.set_process_box(f"任务处理中，请等待 {delay}s..", type='logs', func_name="shibie")
+                time.sleep(1)
+            elif result['code']>0:
+                raise Exception(result['message'])
+            else:
+                break
+
+
+
+
+
         
         srts=[]
         for i,it in enumerate(result['utterances']):
@@ -99,4 +119,4 @@ def recogn(*,
         return srts
         
     except Exception as e:
-        raise Exception(e)
+        raise

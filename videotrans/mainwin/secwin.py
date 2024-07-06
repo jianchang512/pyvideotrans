@@ -751,17 +751,17 @@ class SecWindow():
 
     def clearcache(self):
         if config.defaulelang == 'zh':
-            question = tools.show_popup('清理后需要重启软件', '确认进行清理？')
+            question = tools.show_popup('确认进行清理？','清理后需要重启软件并重新填写设置菜单中各项配置信息')
 
         else:
-            question = tools.show_popup('The software needs to be restarted after cleaning', 'Confirm cleanup?')
+            question = tools.show_popup('Confirm cleanup?','The software needs to be restarted after cleaning')
 
         if question == QMessageBox.Yes:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
             shutil.rmtree(config.homedir + "/tmp", ignore_errors=True)
             tools.remove_qsettings_data()
             QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
-                                    'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动')
+                                    'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
 
     # tts类型改变

@@ -1335,136 +1335,73 @@ def set_ass_font(srtfile=None):
         f.write("".join(ass_str))
     return os.path.basename(assfile)
 
-# 根据原始语言list中每个项字数，所占所字数比例，将翻译结果list target_list 按照同样比例切割
-# urgent是中日韩泰语言，按字符切割，否则按标点符号切割
-def format_result(source_list,target_list,target_lang="zh"):
-    source_len=[]
-    source_total=0
-    target_lang=target_lang.lower()
-    for it in source_list:
-        it_len=len(it.strip())
-        source_total+=it_len
-        source_len.append(it_len)
-
-
-    target_str="".join(target_list).strip()
-    target_total=len(target_str)
-    target_len=[]
-    for num in source_len:
-        n=math.floor(target_total*num/source_total)
-        n=1 if n==0 else n
-        target_len.append(n)
-
-
-    # 开始截取文字
-    result=[]
-    start=0
-    #如果其他语言，需要找到最近的标点或空格
-    flag=[
-          ".",
-          '"',
-          "'",
-          ",",
-          "!",
-          "?",
-          "_",
-          "~",
-          "[",
-          "]",
-          "{",
-          "}",
-          "<",
-          ">",
-          ";",
-          ":",
-          "|",
-          "(",
-          ")",
-          "，",
-          "。",
-          "；",
-          "：",
-          "‘",
-          "“",
-          "？",
-          "、",
-          "《",
-          "》",
-          "【",
-          "】",
-          "｛",
-          "｝",
-          "（",
-          "）",
-          "—",
-          "·",
-          "！",
-          "￥",
-          "…"
-    ]
-    if target_lang[:2] in ['zh','ja','ko']:
-        flag.append(" ")
-
-    for num in target_len:
-        lastpos=start+num
-        if start>=target_total:
-            result.append("")
-            continue
-        text=target_str[start:lastpos]
-
-        if len(text)<3 or text[-1] in flag:
-            start=start+num
-            result.append(text.strip())
-            continue
-        offset = -3
-        maxlen = 3 if target_lang[:2] in ['zh','ja','ko']  else 5
-        # 倒退3个到前进6个寻找标点 切割点
-        while offset<maxlen:
-            newlastpos=lastpos+offset
-            if start>=target_total:
-                break
-            # 如果达到了末尾或者找到了标点则切割
-            if newlastpos>=target_total:
-                result.append(target_str[start:])
-                break
-            st_r=target_str[newlastpos]
-            print(f'有无空格 {st_r=},offset={offset}')
-            if (not st_r.strip() and target_lang[:2] not in ['zh','ja','ko']) or newlastpos>=target_total or st_r in flag:
-                print(f'{offset=},{st_r=}')
-                text=target_str[start:newlastpos+1] if start<target_total else ""
-                start=newlastpos+1
-                result.append(text.strip())
-                break
-            offset+=1
-        # 已找到切割点
-        if offset<maxlen:
-            continue
-
-        print(f'强制切割{target_lang=},{st_r=}')
-        # 没找到分割标点，强制截断
-        text=target_str[start:start+num] if start<target_total else ""
-        start=start+num
-        result.append(text.strip())
-    if len(result)<len(source_list):
-        for i in range(len(source_list)-len(result)):
-            result.append("")
-
-    length=len(result)
-    for i,it in enumerate(result):
-        if i>0 and it=="":
-            tmp=re.split(r'[\s,.? 。，！；、·：… ]',result[i-1])
-            if len(tmp)>1 and tmp[-1]:
-                it=tmp[-1]
-                result[i-1]=" ".join(tmp[:-1])
-            elif len(tmp)>2 and tmp[-2]:
-                it=tmp[-2]
-                result[i-1]=" ".join(tmp[:-2])
-            result[i]=it
-
-
-
-    return result
 
 # 删除翻译结果的特殊字符
 def cleartext(text):
     return text.replace('"','').replace("'",'').replace('&#39;','').replace('&quot;',"").strip()
+    
+# 如果仅相差一行，直接拆分最后一行内容为两行
+'''
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello, my friend, today is']
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello, my friend', ' today is']
+
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello  my friend  today is monday is it']
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello  my friend  today is', ' monday is it']
+
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧']
+['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天', '气不错哦是吧']
+
+['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦,是吧！']
+['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦', '是吧']
+'''
+def split_line(sep_list):
+    # 先移除最后一行开头结尾的无效字符
+    sep=sep_list[-1].strip()
+    if not sep:
+        return False
+    flag=[",",".","?",";",":","'","\"","-","_","/","\\","+","-","=","!","*","(",")","{","}","，","。","·","？","！","（","）","｛","｝","【","】"]
+    if sep[0] in flag:
+        sep=sep[1:].strip()
+    if sep and sep[-1] in flag:
+        sep=sep[:-1].strip()
+
+    # 移除后最后一行 无有效文字或字符少于3
+    if not sep or len(sep)<3:
+        return False
+        
+    # 先尝试标点符号拆分
+    res1=re.split(r'[,.，。；？?、]',sep)
+    if len(res1)>1:
+        sep_list[-1]=",".join(res1[:-1])
+        sep_list.append(res1[-1])
+        return sep_list
+    
+    # 再尝试空格拆分，
+    res2=sep.split(" ")
+    # 不存在空格 强制按字符分割
+    if len(res2)<2:
+        pos=int(len(sep)/-3)
+        sep_list[-1]=sep[:pos]
+        sep_list.append(sep[pos:])
+        return sep_list
+    
+    # 存在一个空格则平分
+    if len(res2)==2:
+        sep_list[-1]=res2[0]
+        sep_list.append(res2[1])
+        return sep_list
+
+    # 取后三分之一
+    pos=int(len(res2)/-3)
+    sep_list[-1]=" ".join(res2[:pos])
+    sep_list.append(" ".join(res2[pos:]))
+    return sep_list
+
+def _unlink_tmp():
+    if not os.path.isdir(config.TEMP_DIR):
+        return
+    for it in os.listdir(config.TEMP_DIR):
+        if os.path.isfile(config.TEMP_DIR + f"/{it}"):
+            Path(config.TEMP_DIR + f"/{it}").unlink(missing_ok=True)
+        else:
+            shutil.rmtree(config.TEMP_DIR + f"/{it}", ignore_errors=True)

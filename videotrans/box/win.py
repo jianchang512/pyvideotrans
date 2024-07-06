@@ -307,7 +307,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.shibie_startbtn.setText(config.transobj["zhixingwc"])
                     self.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
                 else:
-                    self.shibie_dropbtn.setText(data['text'])
+                    QMessageBox.critical(self,config.transobj['anerror'],data['text'])
             else:
                 self.shibie_startbtn.setText(data['text'])
         elif func == 'hecheng':
@@ -353,10 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
         file = self.yspfl_video_wrap.filepath
         basename = os.path.basename(file)
-        #rs, newfile, base = tools.rename_move(file, is_dir=False)
-        #if rs:
-        #    file = newfile
-        #    basename = base
+
         video_out = f"{config.homedir}/{basename}"
         if not os.path.exists(video_out):
             os.makedirs(video_out, exist_ok=True)
@@ -441,19 +438,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(f'{config.TEMP_DIR}'):
             os.makedirs(f'{config.TEMP_DIR}', exist_ok=True)
         tmpname = f'{config.TEMP_DIR}/{time.time()}.mp4'
-        tmpname_conver = f'{config.TEMP_DIR}/box-conver.mp4'
+        # tmpname_conver = f'{config.TEMP_DIR}/box-conver.mp4'
         video_info = tools.get_video_info(videofile)
-        video_codec= 'h264' if config.settings['video_codec']==264 else 'hevc'
-        if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != video_codec or (
-                video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
-            try:
-                tools.conver_mp4(videofile, tmpname_conver, is_box=True)
-            except Exception as e:
-                QMessageBox.critical(self, config.transobj['anerror'], str(e))
-                self.ysphb_startbtn.setText(config.transobj["start"])
-                self.ysphb_startbtn.setDisabled(False)
-                return False
-            videofile = tmpname_conver
+        # video_codec= 'h264' if config.settings['video_codec']==264 else 'hevc'
+        # if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != video_codec or (
+        #         video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
+        #     try:
+        #         tools.conver_mp4(videofile, tmpname_conver, is_box=True)
+        #     except Exception as e:
+        #         QMessageBox.critical(self, config.transobj['anerror'], str(e))
+        #         self.ysphb_startbtn.setText(config.transobj["start"])
+        #         self.ysphb_startbtn.setDisabled(False)
+        #         return False
+        #     videofile = tmpname_conver
 
         if wavfile:
             # 视频里是否有音轨 并且保留原声音
@@ -474,13 +471,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                      tmpname if srtfile else f'{savedir}/{basename}.mp4']]
 
         if srtfile:
-            # srtfile = srtfile.replace('\\', '/').replace(':', '\\\\:')
             basename = os.path.basename(srtfile)
             shutil.copy2(srtfile, config.rootdir + f"/{basename}.srt")
             os.chdir(config.rootdir)
             cmds.append(
-                # ['-y', '-i', tmpname if wavfile else videofile, "-vf", f"subtitles={basename}.srt", '-c:v', 'libx264',
-                # '-c:a', 'copy', f'{savedir}/{basename}.mp4']
                 [
                     "-y",
                     "-i",

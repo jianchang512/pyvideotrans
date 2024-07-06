@@ -121,7 +121,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     try:
         genai.configure(api_key=config.params['gemini_key'])
-        model = genai.GenerativeModel('gemini-pro', safety_settings=safetySettings)
+        model = genai.GenerativeModel('gemini-1.5-pro', safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
         raise Exception(f'请正确设置http代理,{err}')
@@ -136,7 +136,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
 
     prompt = config.params['gemini_template']
-    with open(config.rootdir+"/videotrans/gemini.txt",'r',encoding="utf-8") as f:
+    with open(config.rootdir+"/videotrans/gemini"+("" if config.defaulelang=='zh' else '-en')+".txt",'r',encoding="utf-8") as f:
         prompt=f.read().replace('{lang}', target_language)
 
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
@@ -187,6 +187,13 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 sep_res = tools.cleartext(result).split("\n")
                 raw_len=len(it)
                 sep_len=len(sep_res)
+                # 如果返回结果相差原字幕仅少一行，对最后一行进行拆分
+                if sep_len+1==raw_len:
+                    config.logger.error('如果返回结果相差原字幕仅少一行，对最后一行进行拆分')
+                    sep_res=tools.split_line(sep_res)
+                    if sep_res:
+                        sep_len=len(sep_res)
+                
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if sep_len<raw_len:
                     config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
@@ -209,6 +216,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
             except Exception as e:
                 err = str(e)
+                if err.find('Resource has been exhausted')>-1:
+                    time.sleep(60)
                 break
             else:
                 # 未出错

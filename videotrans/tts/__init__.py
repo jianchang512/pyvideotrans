@@ -22,30 +22,22 @@ def text_to_speech(
     get_voice=None
     if tts_type == "edgeTTS":
         from .edgetts import get_voice
-        # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst,volume=volume,pitch=pitch)
     elif tts_type == "AzureTTS":
         from .azuretts import get_voice
-        # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
     elif tts_type == "openaiTTS":
         from .openaitts import get_voice
-        # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
     elif tts_type == "clone-voice":
         from .clone import get_voice
-        # lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,inst=inst)
     elif tts_type=='TTS-API':
         from .ttsapi import get_voice
-        # lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,inst=inst)
     elif tts_type=='GPT-SoVITS':
         from .gptsovits import get_voice
-        # lasterror=get_voice(text=text, role=role, language=language, filename=filename,set_p=set_p,inst=inst)
     elif tts_type == 'elevenlabsTTS':
         from .elevenlabs import get_voice
-        # lasterror=get_voice(text=text, role=role, rate=rate,language=language, filename=filename,set_p=set_p,inst=inst)
     elif tts_type =='gtts':
         from .gtts import get_voice
     elif tts_type=='ChatTTS':
         from .chattts import get_voice
-        # lasterror=get_voice(text=text, role=role, rate=rate, language=language,filename=filename,set_p=set_p,inst=inst)
 
     if get_voice:
         get_voice(

@@ -45,7 +45,7 @@ def recogn(*,
            set_p=True,
            inst=None,
            is_cuda=None):
-    print(f'均等分割')
+    config.logger.info('faster模式均等分割')
     if set_p:
         tools.set_process(config.transobj['fengeyinpinshuju'], btnkey=inst.init['btnkey'] if inst else "")
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):

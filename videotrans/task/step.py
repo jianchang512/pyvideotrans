@@ -413,7 +413,10 @@ class Runstep():
 
     # 1. 将每个配音的实际长度加入 dubb_time
     def _add_dubb_time(self, queue_tts):
+
         for i, it in enumerate(queue_tts):
+            if it is None:
+                continue
             tools.set_process(text=f"audio:{i}", btnkey=self.init['btnkey'])
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < queue_tts[i - 1]['end_time']:
@@ -715,7 +718,9 @@ class Runstep():
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
         try:
-            run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.init['target_language_code'], set_p=True,
+            run_tts(queue_tts=copy.deepcopy(queue_tts),
+                    language=self.init['target_language_code'],
+                    set_p=True,
                     inst=self)
         except Exception as e:
             raise Exception(e)

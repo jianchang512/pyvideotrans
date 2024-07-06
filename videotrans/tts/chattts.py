@@ -24,9 +24,11 @@ def get_voice(*,text=None, role="2222",rate=None, volume="+0%",pitch="+0Hz", lan
 
         data={"text":text.strip(),"voice":role,'prompt':'','is_split':1}
         res=requests.post(f"{api_url}/tts",data=data,proxies={"http":"","https":""},timeout=3600)
-        config.logger.info(f'chatTTS:{data=},{res.text=}')
+        config.logger.info(f'chatTTS:{data=}')
 
         res=res.json()
+        if res is None:
+            raise Exception('ChatTTS端出错，请查看其控制台终端')
         if "code" not in res or res['code']!=0:
             if "msg" in res:
                 Path(filename).unlink(missing_ok=True)
@@ -54,7 +56,7 @@ def get_voice(*,text=None, role="2222",rate=None, volume="+0%",pitch="+0Hz", lan
         raise Exception(f'无法连接到ChatTTS服务{api_url}，请确保已部署并启动了ChatTTS-ui')
     except Exception as e:
         error=str(e)
-        if set_p:
+        if set_p and inst:
             tools.set_process(error,btnkey=inst.init['btnkey'] if inst else  "")
         config.logger.error(f"ChatTTS合成失败:{error}")
         if inst and inst.init['btnkey']:
