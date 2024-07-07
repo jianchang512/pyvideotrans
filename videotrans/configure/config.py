@@ -297,7 +297,7 @@ params = {
     "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS","ChatTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
+    "tts_type_list": ["edgeTTS","ChatTTS","FishTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
 
     "whisper_type": "all",
     "whisper_model": "tiny",
@@ -359,6 +359,8 @@ params = {
 
     "gptsovits_url":"",
     "gptsovits_role":"",
+    "fishtts_url":"",
+    "fishtts_role":"",
     "gptsovits_extra":"pyvideotrans"
 
 

@@ -18,7 +18,7 @@ class DropButton(QPushButton):
     def get_file(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
                                                config.last_opendir,
-                                               filter="Video/Audio files(*.mp4 *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
+                                               filter="Video/Audio files(*.mp4 *.mkv *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
         self.filelist=fnames
@@ -28,7 +28,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow=True
         for it in files.split("\n"):
-            if it.split('.')[1] not in ["mp4", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+            if it.split('.')[1] not in ["mp4","mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
                 allow=False
                 break
         if allow:

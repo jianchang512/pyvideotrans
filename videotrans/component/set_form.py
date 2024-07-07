@@ -11,6 +11,7 @@ from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.fishtts import Ui_fishttsform
 from videotrans.ui.gptsovits import Ui_gptsovitsform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.ott import Ui_ottform
@@ -97,6 +98,13 @@ class TransapiForm(QDialog, Ui_transapiform):  # <===
 class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
     def __init__(self, parent=None):
         super(GPTSoVITSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class FishTTSForm(QDialog, Ui_fishttsform):  # <===
+    def __init__(self, parent=None):
+        super(FishTTSForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
