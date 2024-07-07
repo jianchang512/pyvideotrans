@@ -51,6 +51,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.azw = None
         self.gw = None
         self.gptsovitsw = None
+        self.fishttsw = None
         self.transapiw = None
         self.ttsapiw = None
         self.zijiew = None
@@ -238,6 +239,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == 'GPT-SoVITS':
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+        elif config.params['tts_type'] == 'FishTTS':
+            rolelist = tools.get_fishtts_role()
+            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
 
         if config.params['tts_type']:
             if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
@@ -328,6 +332,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
         self.actiontrans_api.triggered.connect(self.subform.set_transapi)
         self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
+        self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -496,6 +501,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["gptsovits_url"] = self.settings.value("gptsovits_url", "")
         config.params["gptsovits_extra"] = self.settings.value("gptsovits_extra", "pyvideotrans")
         config.params["gptsovits_role"] = self.settings.value("gptsovits_role", "")
+
+        config.params["fishtts_url"] = self.settings.value("fishtts_url", "")
+        config.params["fishtts_role"] = self.settings.value("fishtts_role", "")
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
         config.params["zh_recogn_api"] = self.settings.value("zh_recogn_api", "")

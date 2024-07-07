@@ -32,6 +32,8 @@ def text_to_speech(
         from .ttsapi import get_voice
     elif tts_type=='GPT-SoVITS':
         from .gptsovits import get_voice
+    elif tts_type=='FishTTS':
+        from .fishtts import get_voice
     elif tts_type == 'elevenlabsTTS':
         from .elevenlabs import get_voice
     elif tts_type =='gtts':

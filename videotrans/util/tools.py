@@ -37,6 +37,17 @@ def get_gptsovits_role():
         rolelist[tmp[0]] = {"refer_wav_path": tmp[0], "prompt_text": tmp[1], "prompt_language": tmp[2]}
     return rolelist
 
+def get_fishtts_role():
+    if not config.params['fishtts_role'].strip():
+        return None
+    rolelist = {}
+    for it in config.params['fishtts_role'].strip().split("\n"):
+        tmp = it.strip().split('#')
+        if len(tmp) != 2:
+            continue
+        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
+    return rolelist
+
 
 def pygameaudio(filepath):
     from videotrans.util.playmp3 import AudioPlayer
