@@ -62,14 +62,12 @@ class Worker(QThread):
         set_process('hebing', 'add_process', btnkey="hebing")
         self.precent = 1
         it = config.queue_mp4.pop()
-        print(f'{it=}')
         obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
         if obj_format['linshi_output'] != obj_format['output']:
             shutil.copy2(it, obj_format['source_mp4'])
         target_dir_mp4 = obj_format['output'] + f"/{obj_format['raw_noextname']}.mp4"
         if config.params['only_video']:
             target_dir_mp4 = os.path.dirname(obj_format['output']) + f"/{obj_format['raw_noextname']}.mp4"
-            print(f'{target_dir_mp4=}')
             shutil.rmtree(obj_format['output'],ignore_errors=True)
 
         video_info = tools.get_video_info(obj_format['source_mp4'])
@@ -106,10 +104,8 @@ class Worker(QThread):
                 ])
             else:
                 # 软字幕
-                print(f"{config.params['source_language']=}")
                 subtitle_language = translator.get_subtitle_code(show_target=config.params['source_language'])
                 subtitle_language = "chi" if not subtitle_language or subtitle_language == '-' else subtitle_language
-                print(f'{subtitle_language=}')
                 tools.runffmpeg([
                     "-y",
                     "-i",
