@@ -180,11 +180,11 @@ class Runstep():
 
     # 配音处理
     def dubbing(self):
+        if self.config_params['app_mode'] in ['tiqu']:
+            return True
         self.precent += 3
         config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else config.settings[
             'countdown_sec']
-        if self.config_params['app_mode'] in ['tiqu']:
-            return True
 
         # 不需要配音
         if self.config_params['voice_role'] == 'No' or \
@@ -290,8 +290,6 @@ class Runstep():
                 cur = it['end_time_source']
                 it['end_time'] = cur
 
-            print(f'{i=},{it["start_time_source"]=},{it["end_time_source"]=}')
-            print(f'{i=},{it["start_time"]=},{it["end_time"]=}')
 
             it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
             it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
@@ -489,7 +487,10 @@ class Runstep():
     def _ajust_audio(self, queue_tts):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
         length = len(queue_tts)
-        video_time = tools.get_video_duration(self.init['novoice_mp4'])
+        if os.path.exists(self.init['novoice_mp4']):        
+            video_time = tools.get_video_duration(self.init['novoice_mp4'])
+        else:
+            video_time=queue_tts[-1]['end_time']
         for i, it in enumerate(queue_tts):
             # 是否需要音频加速
             it['speed'] = False
@@ -724,7 +725,6 @@ class Runstep():
                     inst=self)
         except Exception as e:
             raise Exception(e)
-
         # 1.首先添加配音时间
         queue_tts = self._add_dubb_time(queue_tts)
 
@@ -758,7 +758,7 @@ class Runstep():
         # 6.处理视频慢速
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
         print(f'视频慢速前时长{video_time=}')
-        if self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
+        if self.config_params['app_mode'] not in ['tiqu','peiyin','hebing'] and self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
             queue_tts = self._ajust_video(queue_tts)
 
         # 获取 novoice_mp4的长度

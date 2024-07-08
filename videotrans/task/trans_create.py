@@ -219,7 +219,6 @@ class TransCreate():
             raw_source_srt_path = Path(raw_source_srt)
             if raw_source_srt_path.is_file():
                 if raw_source_srt_path.stat().st_size == 0:
-                    print('删除吗')
                     raw_source_srt_path.unlink(missing_ok=True)
                 elif self.obj['output'] != self.obj['linshi_output']:
                     config.logger.info(f'使用已放置到目标文件夹下的原语言字幕:{raw_source_srt}')

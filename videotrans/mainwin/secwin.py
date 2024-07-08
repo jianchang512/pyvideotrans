@@ -802,7 +802,7 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
-        if lang and lang != '-' and type == 'FishTTS' and lang[:2] != 'zh':
+        if lang and lang != '-' and type == 'FishTTS' and lang[:2] not in ['zh', 'ja', 'en']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
@@ -925,11 +925,11 @@ class SecWindow():
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
-        if code and code != '-' and config.params['tts_type'] == 'FishTTS' and code[:2] != 'zh':
+        if code and code != '-' and config.params['tts_type'] == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
-            return QMessageBox.critical(self.main, config.transobj['anerror'], 'FishTTS仅可用于中文配音')
+            return QMessageBox.critical(self.main, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
         if code and code != '-' and config.params['tts_type'] == 'ChatTTS' and code[:2] not in ['zh', 'en']:
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'

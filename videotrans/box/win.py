@@ -708,11 +708,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tts_type.setCurrentText('edgeTTS')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
             return
-        if tts_type == 'FishTTS' and langcode[:2] != 'zh':
+        if tts_type == 'FishTTS' and langcode[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             tts_type = 'edgeTTS'
             self.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中文配音')
+            QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
             return
         if tts_type == 'ChatTTS' and langcode[:2] not in ['zh', 'en']:
             # 除此指望不支持
@@ -824,9 +824,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.clear()
             self.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
         elif type == 'FishTTS':
-            if code and code != '-' and code[:2] != 'zh':
+            if code and code != '-' and code[:2] not in ['zh', 'ja', 'en']:
                 self.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中文配音')
+                QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
                 return
             rolelist = tools.get_fishtts_role()
             self.hecheng_role.clear()
@@ -846,10 +846,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 除此指望不支持
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
             return
-        if code and code != '-' and tts_type == 'FishTTS' and code[:2] != 'zh':
+        if code and code != '-' and tts_type == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
             self.tts_type.setCurrentText('edgeTTS')
             # 除此指望不支持
-            QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中文配音')
+            QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
             return
 
         if tts_type not in ["edgeTTS", "AzureTTS"]:
