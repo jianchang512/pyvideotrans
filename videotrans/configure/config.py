@@ -41,12 +41,52 @@ logs_path=root_path/"logs"
 logs_path.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = logs_path.as_posix()
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename=f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',
-    encoding="utf-8",
-    filemode="a")
+#logging.basicConfig(
+#    level=logging.INFO,
+#    filename=f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',
+#    encoding="utf-8",
+#   filemode="a")
 logger = logging.getLogger('VideoTrans')
+
+## 
+
+# 配置日志格式
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+# 创建日志记录器
+#logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)  # 设置日志级别
+
+# 创建文件处理器，并设置级别为DEBUG
+file_handler = logging.FileHandler(f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',encoding='utf-8')
+file_handler.setLevel(logging.INFO)  # 只记录ERROR及以上级别的日志
+
+# 创建控制台处理器，并设置级别为DEBUG
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+
+# 设置日志格式
+formatter = logging.Formatter(log_format)
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# 添加处理器到日志记录器
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# 捕获所有未处理的异常
+def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        # 允许键盘中断（Ctrl+C）退出
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+# 安装自定义异常钩子
+sys.excepthook = log_uncaught_exceptions
+
+
 # ffmpeg
 if sys.platform == 'win32':
     PWD=rootdir.replace('/','\\')

@@ -62,6 +62,6 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
         config.logger.error(f"{error}")
-        raise Exception(error)
+        raise
     else:
         return True

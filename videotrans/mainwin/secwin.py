@@ -91,9 +91,6 @@ class SecWindow():
 
     # 配音速度改变时，更改全局
     def voice_rate_changed(self, text):
-        # text = str(text).replace('+', '').replace('%', '').strip()
-        # text = 0 if not text else int(text)
-        # text = f'+{text}%' if text >= 0 else f'{text}%'
         config.params['voice_rate'] = f'+{text}%' if text >= 0 else f'{text}%'
 
     # 简单新手模式
@@ -319,7 +316,7 @@ class SecWindow():
     def set_zimu_video(self):
         self.main.action_zimu_video.setChecked(True)
         self.main.app_mode = 'hebing'
-        self.main.show_tips.setText(config.transobj['zimu_video'])
+        self.main.show_tips.setText('原始语言选择字幕文字所属语言' if config.defaulelang=='zh' else 'Choose the language of the subtitles in the source language')
         self.main.startbtn.setText(config.transobj['kaishihebing'])
         self.main.action_zimu_video.setChecked(True)
         self.main.action_xinshoujandan.setChecked(False)

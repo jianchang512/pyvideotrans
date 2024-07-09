@@ -50,7 +50,7 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None,langu
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
         update_proxy(type='del')
-        raise Exception(error)
+        raise
     else:
         update_proxy(type='del')
         return True

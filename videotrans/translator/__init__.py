@@ -149,7 +149,7 @@ LANG_CODE = {
         "Italian language" if config.defaulelang !='zh' else '意大利语'
     ],
     "pt": [
-        "pt",
+        "pt",# pt-PT
         "por",
         "pt",
         "PT",

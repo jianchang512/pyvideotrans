@@ -42,16 +42,19 @@ def text_to_speech(
         from .chattts import get_voice
 
     if get_voice:
-        get_voice(
-                text=text,
-                volume=volume,
-                pitch=pitch,
-                role=role,
-                rate=rate,
-                language=language,
-                filename=filename,
-                set_p=set_p,
-                inst=inst)
+        try:
+            get_voice(
+                    text=text,
+                    volume=volume,
+                    pitch=pitch,
+                    role=role,
+                    rate=rate,
+                    language=language,
+                    filename=filename,
+                    set_p=set_p,
+                    inst=inst)
+        except Exception as e:
+            lasterror=str(e)
     if tools.vail_file(filename):
         if play:
             threading.Thread(target=tools.pygameaudio, args=(filename,)).start()

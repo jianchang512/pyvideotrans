@@ -68,6 +68,6 @@ def get_voice(*,
             config.logger.error( f'edgeTTS配音有一个失败:{text=},{filename=}')
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=err
-        raise Exception(err)
+        raise
     else:
         return True
