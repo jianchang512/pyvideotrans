@@ -167,16 +167,6 @@ class Worker(QThread):
                 else:
                     Path(obj_format['output']).mkdir(parents=True, exist_ok=True)
 
-            '''
-            if len(target_dir_mp4) >= 250:
-                set_process(config.transobj['chaochu255'] + "\n\n" + it, 'alert')
-                self.stop()
-                return
-            if re.search(r'[\&\+\:\?\|]+', it[2:]):
-                set_process(config.transobj['teshufuhao'] + "\n\n" + it, 'alert')
-                self.stop()
-                return
-            '''
             videolist.append(obj_format)
             self.unidlist.append(obj_format['unid'])
             # 添加进度按钮 unid
@@ -205,6 +195,7 @@ class Worker(QThread):
                 video.prepare()
             except Exception as e:
                 err = f'{config.transobj["yuchulichucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 if self.is_batch:
@@ -222,6 +213,7 @@ class Worker(QThread):
                 video.recogn()
             except Exception as e:
                 err = f'{config.transobj["shibiechucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
@@ -231,6 +223,7 @@ class Worker(QThread):
                 video.trans()
             except Exception as e:
                 err = f'{config.transobj["fanyichucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
@@ -240,6 +233,7 @@ class Worker(QThread):
                 video.dubbing()
             except Exception as e:
                 err = f'{config.transobj["peiyinchucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
@@ -249,6 +243,7 @@ class Worker(QThread):
                 video.hebing()
             except Exception as e:
                 err = f'{config.transobj["hebingchucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 continue
@@ -258,6 +253,7 @@ class Worker(QThread):
                 video.move_at_end()
             except Exception as e:
                 err = f'{config.transobj["hebingchucuo"]}:' + str(e)
+                config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 send_notification(err, f'{video.obj["raw_basename"]}')

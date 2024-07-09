@@ -7,6 +7,17 @@ import requests
 from videotrans.configure import config
 from videotrans.util import tools
 
+import base64
+from pathlib import Path
+
+
+def wav_to_base64(file_path):
+    if not file_path or not Path(file_path).exists():
+        return None
+    with open(file_path, "rb") as wav_file:
+        wav_content = wav_file.read()
+        base64_encoded = base64.b64encode(wav_content)
+        return base64_encoded.decode("utf-8")
 
 def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
     try:
@@ -25,6 +36,11 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
                 data.update(roledict[role])
         # role=clone是直接复制
         #克隆声音
+        if os.path.exists(f'{config.rootdir}/{data["reference_audio"]}'):
+            data['reference_audio']=wav_to_base64(f'{config.rootdir}/{data["reference_audio"]}')
+        elif os.path.exists(f'{config.rootdir}/fishwavs/{data["reference_audio"]}'):
+            data['reference_audio']=wav_to_base64(f'{config.rootdir}/fishwavs/{data["reference_audio"]}')
+            
         response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""},timeout=3600)
         if response.status_code!=200:
             raise response.json()
@@ -51,6 +67,6 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
         config.logger.error(f"{error}")
-        raise Exception(error)
+        raise
     else:
         return True

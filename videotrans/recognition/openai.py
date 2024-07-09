@@ -186,6 +186,7 @@ def recogn(*,
                         append_raws(cur)
 
         except Exception as e:
+            config.logger.exception(e)
             raise
     if set_p:
         tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raws)}", 'logs',btnkey=inst.init['btnkey'] if inst else "")

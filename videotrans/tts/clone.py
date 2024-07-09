@@ -65,6 +65,6 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
         config.logger.error(f"cloneVoice合成失败:{error}")
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
-        raise Exception(error)
+        raise
     else:
         return True

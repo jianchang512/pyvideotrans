@@ -275,12 +275,14 @@ class TransCreate():
         # 不是 提取字幕时，需要分离出视频
         if self.config_params['app_mode'] not in ['tiqu']:
             config.queue_novice[self.init['noextname']] = 'ing'
+            
             threading.Thread(target=tools.split_novoice_byraw,
                              args=(self.obj['source_mp4'],
                                    self.init['novoice_mp4'],
                                    self.init['noextname'],
-                                   "copy" if self.init['h264'] else f"libx{self.video_codec}")) \
-                .start()
+                                   "copy" if self.init['h264'] else f"libx{self.video_codec}")).start()
+            if not self.init['h264']:
+                self.status_text='视频需要转码，耗时可能较久..' if config.defaulelang=='zh' else 'Video needs transcoded and take a long time..'
         else:
             config.queue_novice[self.init['noextname']] = 'end'
 

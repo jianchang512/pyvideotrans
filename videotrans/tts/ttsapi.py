@@ -61,7 +61,7 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz",rate=None, langu
         config.logger.error(f"TTS-API自定义失败:{error}")
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']]=error
-        raise Exception(error)
+        raise
     else:
         return True
     finally:

@@ -201,6 +201,16 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     for line_res in it:
                         sep_res.append(get_content(line_res.strip(),model=model,prompt=prompt))
 
+                
+
+            except Exception as e:
+                err = str(e)
+                if err.find('Resource has been exhausted')>-1:
+                    time.sleep(60)
+                break
+            else:
+                # 未出错
+                config.logger.info(f'{sep_res=}\n{it=}')
                 for x, result_item in enumerate(sep_res):
                     if x < len(it):
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
@@ -213,14 +223,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-
-            except Exception as e:
-                err = str(e)
-                if err.find('Resource has been exhausted')>-1:
-                    time.sleep(60)
-                break
-            else:
-                # 未出错
                 err = ''
                 iter_num = 0
                 index = 0 if i <= 1 else i
@@ -239,7 +241,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     if len(target_text['srts']) < len(text_list) / 2:
         raise Exception(f'Gemini:{config.transobj["fanyicuowu2"]}')
-
+    config.logger.info(f'{text_list=}\n{target_text["srts"]}')
     for i, it in enumerate(text_list):
         if i < len(target_text['srts']):
             text_list[i]['text'] = target_text['srts'][i]
