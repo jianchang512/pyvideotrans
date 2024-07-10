@@ -28,7 +28,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow=True
         for it in files.split("\n"):
-            if it.split('.')[1] not in ["mp4","mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+            if it.split('.')[-1] not in ["mp4","mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
                 allow=False
                 break
         if allow:
@@ -76,7 +76,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac"]:
+            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac","mkv"]:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -89,11 +89,13 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac"]:
+            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac","mkv"]:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)
         self.setPlainText("\n".join(result))
+
+
 
 
 # VLC播放器
