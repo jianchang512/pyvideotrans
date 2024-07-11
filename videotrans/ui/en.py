@@ -589,6 +589,8 @@ class Ui_MainWindow(object):
 
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
+        self.actiontts_cosyvoice = QtGui.QAction(MainWindow)
+        self.actiontts_cosyvoice.setObjectName("actiontts_cosyvoice")
         self.actiontts_fishtts = QtGui.QAction(MainWindow)
         self.actiontts_fishtts.setObjectName("actiontts_fishtts")
 
@@ -711,6 +713,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actionchattts_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_gptsovits)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiontts_cosyvoice)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontts_fishtts)
         self.menu_Key.addSeparator()
@@ -852,6 +856,7 @@ class Ui_MainWindow(object):
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang=='zh' else "zh_recogn only Chinese")
         self.actiondoubao_api.setText("豆包模型音视频识别" if config.defaulelang=='zh' else "Doubao")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
+        self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")

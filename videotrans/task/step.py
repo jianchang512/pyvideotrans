@@ -382,7 +382,9 @@ class Runstep():
             # 如果是clone-voice类型， 需要截取对应片段
             if it['end_time'] <= it['start_time']:
                 continue
-            if self.config_params['tts_type'] == 'clone-voice':
+            # 是克隆
+            print(f'{voice_role=}')
+            if self.config_params['tts_type'] in ['clone-voice','CosyVoice'] and voice_role=='clone':
                 if self.config_params['is_separate'] and not tools.vail_file(self.init['vocal']):
                     raise Exception(f"背景分离出错 {self.init['vocal']}")
                     # clone 方式文件为wav格式

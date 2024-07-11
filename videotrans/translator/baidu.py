@@ -81,35 +81,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
             try:
                 source_length = len(it)
                 text="\n".join(it)
-                # salt = int(time.time())
-                # strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"
-                # md5 = hashlib.md5()
-                # md5.update(strtext.encode('utf-8'))
-                # sign = md5.hexdigest()
-                #
-                # requrl= f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={target_language}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
-                #
-                # config.logger.info(f'[Baidu]请求数据:{requrl=}')
-                # resraw = requests.get(requrl)
-                # config.logger.info(f'[Baidu]返回响应:{resraw=}')
-                # try:
-                #     res = resraw.json()
-                # except Exception:
-                #     err=config.transobj['notjson']+resraw
-                #     break
-                #
-                # if "error_code" in res or "trans_result" not in res or len(res['trans_result'])<1:
-                #     config.logger.info(f'Baidu 返回响应:{resraw}')
-                #     if res['error_msg'].find('Access Limit')>-1:
-                #         time.sleep(10)
-                #         break
-                #     err= res['error_msg']
-                #     break
-                #
-                # result = [tools.cleartext(tres['dst']) for tres in  res['trans_result']]
-                # if not result or len(result)<1:
-                #     err=f'{resraw}'
-                #     break
                 result=get_content({"text":text,'target_language':target_language})
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
@@ -145,10 +116,6 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         else:
             break
 
-    if proxy:
-        os.environ['http_proxy']=proxy
-        os.environ['https_proxy']=proxy
-        os.environ['all_proxy']=proxy
 
 
     if err:

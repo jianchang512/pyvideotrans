@@ -32,6 +32,8 @@ def text_to_speech(
         from .ttsapi import get_voice
     elif tts_type=='GPT-SoVITS':
         from .gptsovits import get_voice
+    elif tts_type=='CosyVoice':
+        from .cosyvoice import get_voice
     elif tts_type=='FishTTS':
         from .fishtts import get_voice
     elif tts_type == 'elevenlabsTTS':
@@ -101,7 +103,7 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None):
                 for i in range(dub_nums):
                     if len(queue_tts) > 0:
                         p=queue_tts.pop(0)
-                        if p['tts_type']!='clone-voice' and tools.vail_file(p['filename']):
+                        if p['role']!='clone' and tools.vail_file(p['filename']):
                             continue
                         tolist.append(threading.Thread(target=text_to_speech, kwargs={
                             "text":p['text'],

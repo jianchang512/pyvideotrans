@@ -117,7 +117,10 @@ def recogn(*,
                 raws.append(cur)
 
         for segment in segments:
+            if len(segment.words)<1:
+                continue
             if len(segment.text.strip()) <= maxlen:
+                
                 tmp = {
                     "line": len(raws) + 1,
                     "start_time": int(segment.words[0].start * 1000),

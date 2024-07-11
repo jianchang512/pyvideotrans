@@ -120,6 +120,8 @@ def recogn(*,
                                   condition_on_previous_text=config.settings['condition_on_previous_text']
             )
             for segment in result['segments']:
+                if len(segment['words'])<1:
+                    continue
                 if len(segment['text'].strip()) <= maxlen:
                     tmp = {
                         "line": len(raws) + 1,

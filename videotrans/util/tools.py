@@ -37,6 +37,35 @@ def get_gptsovits_role():
         rolelist[tmp[0]] = {"refer_wav_path": tmp[0], "prompt_text": tmp[1], "prompt_language": tmp[2]}
     return rolelist
 
+def get_cosyvoice_role():
+    if not config.params['cosyvoice_role'].strip():
+        return None
+    rolelist = {
+        "clone":'clone'
+    }
+    if config.defaulelang=='zh':
+        rolelist['中文男']='中文男'
+        rolelist['中文女']='中文女'
+        rolelist['英文男']='英文男'
+        rolelist['英文女']='英文女'
+        rolelist['日语男']='日语男'
+        rolelist['韩语女']='韩语女'
+        rolelist['粤语女']='粤语女'
+    else:
+        rolelist['Chinese Male']='中文男'
+        rolelist['Chinese Female']='中文女'
+        rolelist['English Male']='英文男'
+        rolelist['English Female']='英文女'
+        rolelist['Japanese Male']='日语男'
+        rolelist['Korean Female']='韩语女'
+        rolelist['Cantonese Female']='粤语女'
+    for it in config.params['cosyvoice_role'].strip().split("\n"):
+        tmp = it.strip().split('#')
+        if len(tmp) != 2:
+            continue
+        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
+    return rolelist
+
 def get_fishtts_role():
     if not config.params['fishtts_role'].strip():
         return None

@@ -71,6 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.util = None
         self.moshis = None
         self.doubaow=None
+        self.cosyvoicew=None
 
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
@@ -239,6 +240,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == 'GPT-SoVITS':
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+        elif config.params['tts_type'] == 'CosyVoice':
+            rolelist = tools.get_cosyvoice_role()
+            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
         elif config.params['tts_type'] == 'FishTTS':
             rolelist = tools.get_fishtts_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
@@ -332,6 +336,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
         self.actiontrans_api.triggered.connect(self.subform.set_transapi)
         self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
+        self.actiontts_cosyvoice.triggered.connect(self.subform.set_cosyvoice)
         self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
@@ -501,6 +506,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["gptsovits_url"] = self.settings.value("gptsovits_url", "")
         config.params["gptsovits_extra"] = self.settings.value("gptsovits_extra", "pyvideotrans")
         config.params["gptsovits_role"] = self.settings.value("gptsovits_role", "")
+
+        config.params["cosyvoice_url"] = self.settings.value("cosyvoice_url", "")
+        config.params["cosyvoice_role"] = self.settings.value("cosyvoice_role", "")
 
         config.params["fishtts_url"] = self.settings.value("fishtts_url", "")
         config.params["fishtts_role"] = self.settings.value("fishtts_role", "")

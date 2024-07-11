@@ -9,6 +9,7 @@ from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
+from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.fishtts import Ui_fishttsform
@@ -101,6 +102,14 @@ class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class CosyVoiceForm(QDialog, Ui_cosyvoiceform):  # <===
+    def __init__(self, parent=None):
+        super(CosyVoiceForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class FishTTSForm(QDialog, Ui_fishttsform):  # <===
     def __init__(self, parent=None):

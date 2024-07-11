@@ -780,6 +780,11 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             self.main.subform.set_gptsovits()
             return
+        if type == 'CosyVoice' and not config.params['cosyvoice_url']:
+            QMessageBox.critical(self.main, config.transobj['anerror'], 'You must deploy the CosyVoice-api project and start the api service, then fill in the api address' if config.defaulelang!='zh' else '必须部署CosyVoice-api项目并启动api服务，然后填写api地址')
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.main.subform.set_cosyvoice()
+            return
         if type == 'FishTTS' and not config.params['fishtts_url']:
             QMessageBox.critical(self.main, config.transobj['anerror'], '必须填写FishTTS的api地址')
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
@@ -794,6 +799,10 @@ class SecWindow():
         if lang and lang != '-' and type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+            return
+        if lang and lang != '-' and type == 'CosyVoice' and lang[:2] not in ['zh', 'ja', 'en','ko']:
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            QMessageBox.critical(self.main, config.transobj['anerror'],'CosyVoice only supports Chinese, English, Japanese and Korean' if config.defaulelang=='zh' else '')
             return
         if lang and lang != '-' and type == 'ChatTTS' and lang[:2] not in ['zh', 'en']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
@@ -845,6 +854,11 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == 'CosyVoice':
+            rolelist = tools.get_cosyvoice_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['clone']
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == 'FishTTS':
             rolelist = tools.get_fishtts_role()
             self.main.voice_role.clear()
@@ -869,7 +883,7 @@ class SecWindow():
         volume = int(self.main.volume_rate.value())
         pitch = int(self.main.pitch_rate.value())
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if config.params['tts_type'] in ['GPT-SoVITS', 'ChatTTS','FishTTS']:
+        if config.params['tts_type'] in ['GPT-SoVITS', 'CosyVoice','ChatTTS','FishTTS']:
             voice_file += '.wav'
 
         obj = {
@@ -882,16 +896,9 @@ class SecWindow():
             "volume": f'+{volume}%' if volume > 0 else f'{volume}%',
             "pitch": f'+{pitch}Hz' if pitch > 0 else f'{pitch}Hz',
         }
-        if config.params['tts_type'] == 'clone-voice' and role == 'clone':
+        if role == 'clone':
+            QMessageBox.critical(self.main, config.transobj['anerror'],'原音色克隆不可试听' if config.defaulelang=='zh' else 'The original sound clone cannot be auditioned')
             return
-        # 测试能否连接clone
-        if config.params['tts_type'] == 'clone-voice':
-            try:
-                tools.get_clone_role(set_p=True)
-            except:
-                QMessageBox.critical(self.main, config.transobj['anerror'],
-                                     config.transobj['You must deploy and start the clone-voice service'])
-                return
 
         def feed(d):
             QMessageBox.critical(self.main, config.transobj['anerror'], d)
@@ -922,6 +929,11 @@ class SecWindow():
             config.params['tts_type'] = 'edgeTTS'
             self.main.tts_type.setCurrentText('edgeTTS')
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+        if code and code != '-' and config.params['tts_type'] == 'CosyVoice' and code[:2] not in ['zh', 'ja', 'en','ko']:
+            # 除此指望不支持
+            config.params['tts_type'] = 'edgeTTS'
+            self.main.tts_type.setCurrentText('edgeTTS')
+            return QMessageBox.critical(self.main, config.transobj['anerror'], 'CosyVoice仅支持中英日韩四种语言' if config.defaulelang=='zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
         if code and code != '-' and config.params['tts_type'] == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             config.params['tts_type'] = 'edgeTTS'
