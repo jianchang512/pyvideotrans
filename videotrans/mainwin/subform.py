@@ -983,6 +983,89 @@ class Subform():
         self.main.gptsovitsw.test.clicked.connect(test)
         self.main.gptsovitsw.show()
 
+    def set_cosyvoice(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None,  role=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.role = role
+
+            def run(self):
+                from videotrans.tts.cosyvoice import get_voice
+                try:
+                    get_voice(text=self.text, set_p=False, role=self.role,language='zh',
+                              filename=config.homedir + "/test.wav")
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.wav")
+                QtWidgets.QMessageBox.information(self.main.cosyvoicew, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'], d)
+            self.main.cosyvoicew.test.setText('测试api')
+
+        def test():
+            url = self.main.cosyvoicew.api_url.text()
+            config.params["cosyvoice_url"] = url
+            task = TestTTS(parent=self.main.cosyvoicew,
+                           text="你好啊我的朋友",
+                           role=getrole())
+            self.main.cosyvoicew.test.setText('测试中请稍等...')
+            task.uito.connect(feed)
+            task.start()
+
+        def getrole():
+            tmp = self.main.cosyvoicew.role.toPlainText().strip()
+            role = None
+            if not tmp:
+                return role
+
+            for it in tmp.split("\n"):
+                s = it.strip().split('#')
+                if len(s) !=2:
+                    QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
+                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
+                    return
+                if not s[0].endswith(".wav"):
+                    QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
+                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
+                    return
+                role = s[0]
+            config.params['cosyvoice_role'] = tmp
+            self.main.settings.setValue("cosyvoice_role", tmp)
+            return role
+
+        def save():
+            url = self.main.cosyvoicew.api_url.text()
+
+            role = self.main.cosyvoicew.role.toPlainText().strip()
+
+            self.main.settings.setValue("cosyvoice_role", role)
+            self.main.settings.setValue("cosyvoice_url", url)
+
+
+            config.params["cosyvoice_url"] = url
+
+            config.params["cosyvoice_role"] = role
+
+            self.main.cosyvoicew.close()
+
+        from videotrans.component import CosyVoiceForm
+        self.main.cosyvoicew = CosyVoiceForm()
+        if config.params["cosyvoice_url"]:
+            self.main.cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
+        if config.params["cosyvoice_role"]:
+            self.main.cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
+
+        self.main.cosyvoicew.save.clicked.connect(save)
+        self.main.cosyvoicew.test.clicked.connect(test)
+        self.main.cosyvoicew.show()
+
     def set_fishtts(self):
         class TestTTS(QThread):
             uito = Signal(str)
