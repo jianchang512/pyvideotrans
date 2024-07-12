@@ -1,4 +1,4 @@
-简体中文 | [English](docs/EN/README_EN.md) | [pt-BR](docs/pt-BR/README_PT-BR.md) | [Italian](docs/IT/README_IT.md) | [Spanish](docs/ES/README_ES.md)
+简体中文 | [English](docs/EN/README_EN.md) | [pt-BR](docs/pt-BR/README_pt-BR.md) | [Italian](docs/IT/README_IT.md) | [Spanish](docs/ES/README_ES.md)
 
 ---
 
