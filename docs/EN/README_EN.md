@@ -1,4 +1,4 @@
-[简体中文](../../README.md) | English | [pt-BR](../pt-BR/README_PT-BR.md) | [Italian](../IT/README_IT.md) | [Spanish](../ES/README_ES.md)
+[简体中文](../../README.md) | English | [pt-BR](../pt-BR/README_pt-BR.md) | [Italian](../IT/README_IT.md) | [Spanish](../ES/README_ES.md)
 
 ---
 
