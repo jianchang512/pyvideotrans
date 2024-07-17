@@ -121,6 +121,7 @@ class SecWindow():
         self.hide_show_element(self.main.layout_target_language, True)
         # 配音角色
         self.main.tts_type.setCurrentText('edgeTTS')
+        self.hide_show_element(self.main.layout_voice_role, True)
         # tts类型
         self.hide_show_element(self.main.layout_tts_type, False)
         # 试听按钮

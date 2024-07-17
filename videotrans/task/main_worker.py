@@ -12,7 +12,7 @@ from videotrans.util import tools
 from videotrans.util.tools import set_process, send_notification
 from pathlib import Path
 import re
-
+import threading
 
 class Worker(QThread):
     def __init__(self, *, parent=None, app_mode=None, txt=None):
@@ -84,10 +84,44 @@ class Worker(QThread):
             f.write(self.txt)
         os.chdir(config.rootdir)
         try:
+            # 开启进度线程
+            protxt=config.TEMP_DIR+f"/hebing{time.time()}.txt"
+            
+            def hebing_pro():
+                while 1:
+                    if self.precent>=100:
+                        return
+                    if not os.path.exists(protxt):
+                        time.sleep(1)
+                        continue
+                    with open(protxt,'r',encoding='utf-8') as f:
+                        content=f.read().strip().split("\n")
+                        if content[-1]=='progress=end':
+                            return
+                        idx=len(content)-1
+                        end_time="00:00:00"
+                        while idx>0:
+                            if content[idx].startswith('out_time='):
+                                end_time=content[idx].split('=')[1].strip()
+                                break
+                            idx-=1
+                        try:
+                            h,m,s=end_time.split(':')
+                        except Exception:
+                            time.sleep(1)
+                            continue
+                        else:
+                            self.precent=(int(h)*3600000+int(m)*60000+int(s[:2])*1000)*100/video_info['time']
+                            set_process('hebing', btnkey="hebing")
+                            time.sleep(1)
+                        
+            threading.Thread(target=hebing_pro).start()       
             if config.params['subtitle_type'] in [0, 1, 3]:
                 # 硬字幕仅名字 需要和视频在一起
                 tools.runffmpeg([
                     "-y",
+                    "-progress",
+                    protxt,
                     "-i",
                     obj_format['source_mp4'],
                     "-c:v",
@@ -108,6 +142,8 @@ class Worker(QThread):
                 subtitle_language = "chi" if not subtitle_language or subtitle_language == '-' else subtitle_language
                 tools.runffmpeg([
                     "-y",
+                    "-progress",
+                    protxt,
                     "-i",
                     obj_format['source_mp4'],
                     "-i",
@@ -132,10 +168,13 @@ class Worker(QThread):
         except Exception:
             pass
         self.precent = 100
+        os.chdir(config.rootdir)
+        # 退出进度线程
         set_process(f"{obj_format['output']}##hebing", 'succeed', btnkey="hebing")
         send_notification(config.transobj["zhixingwc"], target_dir_mp4)
         # 全部完成
         set_process("", 'end')
+        time.sleep(1)
         return None
 
     def run(self) -> None:
