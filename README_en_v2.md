@@ -9,11 +9,11 @@
 >
 > Text translation supports `Microsoft Translator|Google Translate|Baidu Translate|Tencent Translate|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|Offline Translation OTT`
 >
-> Text-to-speech synthesis supports `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `Custom TTS server API`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice), `[ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)`  [Fish TTS](https://github.com/fishaudio/fish-speech)
+> Text-to-speech synthesis supports `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `Custom TTS server API`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice), `[ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)`  [Fish TTS](https://github.com/fishaudio/fish-speech) [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
 >
 > Allows for the retention of background accompaniment music, etc. (based on uvr5)
 >
-> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay, Czech
+> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay, Czech,Polish
 
 # Main Uses and Methods of Use
 
@@ -89,7 +89,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 6. Execute `pip install -r mac-requirements.txt --no-deps`
 
 
-    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
 
 7. `python sp.py` to open the software interface
 
@@ -282,6 +282,7 @@ Please visit https://pyvideotrans.com/guide.html
 
 [Improved version of api.py for GPT-SoVITS](https://github.com/jianchang512/gptsovits-api)
 
+[  CosyVoice   api.py](https://github.com/jianchang512/cosyvoice-api)
 
 ## Acknowledgments
 

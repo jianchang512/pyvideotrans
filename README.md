@@ -7,13 +7,13 @@
 >
 > 语音识别支持 `faster-whisper`模型 `openai-whisper`模型 和 `GoogleSpeech` `zh_recogn阿里中文语音识别模型`.
 >
-> 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|离线翻译OTT`
+> 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|字节火山|离线翻译OTT`
 >
-> 文字合成语音支持 `Microsoft Edge tts` `Google tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)  [ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)  [Fish TTS](https://github.com/fishaudio/fish-speech)
+> 文字合成语音支持 `Microsoft Edge tts` `Google tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)  [ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)  [Fish TTS](https://github.com/fishaudio/fish-speech)  [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
 >
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
-> 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语
+> 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语
 
 
 
@@ -30,7 +30,6 @@
 【音频、视频、字幕合并】音频文件、视频文件、字幕文件合并为一个视频文件
 
 【从视频中分离出音频】从视频中分离为音频文件和无声视频
-
 
 【下载油管视频】可从youtube上下载视频
 
@@ -100,14 +99,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
     ```
 
     然后重新执行
-    如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt  --ignore-installed --no-deps `
+    如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
 
 7. `python sp.py` 打开软件界面
-
-
-[Mac下详细部署方案](https://pyvideotrans.com/mac.html)
-
-
 
 
 
@@ -191,7 +185,6 @@ apt-get install ffmpeg
 8. 如果要使用CUDA加速，分别执行
 
     `pip uninstall -y torch torchaudio`
-
 
     `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
@@ -298,6 +291,8 @@ pip install ctranslate2==3.24.0
 [人声背景乐分离:人声和背景音乐分离工具](https://github.com/jianchang512/vocal-separate)
 
 [GPT-SoVITS的api.py改良版](https://github.com/jianchang512/gptsovits-api)
+
+[适配 CosyVoice 的 api.py](https://github.com/jianchang512/cosyvoice-api)
 
 
 ## 致谢

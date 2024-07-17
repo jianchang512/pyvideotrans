@@ -1,4 +1,4 @@
-[README en inglés](./README_EN.md) / [👑Donar a este proyecto](./about.md) / [Enlace de invitación a Discord](https://discord.gg/mTh5Cu5Bqm) / Cuenta de WeChat: Buscar "pyvideotrans"
+[README en inglés](./README_EN.md) / [👑Donar a este proyecto](./about.md) / [Enlace de invitación a Discord](https://discord.gg/mTh5Cu5Bqm)
 
 # Herramienta de Traducción y Doblaje de Vídeos
 
@@ -9,11 +9,11 @@
 >
 > La traducción de texto soporta `Traducción de Microsoft|Traducción de Google|Traducción de Baidu|Traducción de Tencent|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|Traducción offline OTT`
 >
-> La síntesis de texto a voz soporta `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `API de servidor TTS personalizado`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice), `[ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)`
+> La síntesis de texto a voz soporta `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, `API de servidor TTS personalizado`, `GPT-SoVITS`, [clone-voice](https://github.com/jianchang512/clone-voice), `[ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)` [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
 >
 > Permite mantener la música de fondo (basado en uvr5)
 > 
-> Idiomas soportados: Chino simplificado y tradicional, inglés, coreano, japonés, ruso, francés, alemán, italiano, español, portugués, vietnamita, tailandés, árabe, turco, húngaro, hindi, ucraniano, kazajo, indonesio, malayo, checo
+> Idiomas soportados: Chino simplificado y tradicional, inglés, coreano, japonés, ruso, francés, alemán, italiano, español, portugués, vietnamita, tailandés, árabe, turco, húngaro, hindi, ucraniano, kazajo, indonesio, malayo, checo,Polish
 
 # Principales Usos y Métodos de Uso
 
@@ -86,9 +86,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 4. Continúa ejecutando `python -m venv venv`
 5. Sigue ejecutando el comando `source ./venv/bin/activate` para activar el entorno virtual. Asegúrate de que el prompt de la terminal ahora comienza con `(venv)`. Todos los comandos subsiguientes deben ser ejecutados asegurándote de que el prompt de la terminal comience con `(venv)`.
 
-6. Ejecuta `pip install -r requirements.txt --no-deps`
+6. Ejecuta `pip install -r mac-requirements.txt --no-deps`
 
-    Luego intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Luego intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
 
 7. `python sp.py` para abrir la interfaz del software.
 
@@ -267,6 +267,8 @@ Consulta https://pyvideotrans.com/guide.html para la guía de uso y documentaci�
 [Herramienta de Separación de Voz y Música de Fondo](https://github.com/jianchang512/vocal-separate)
 
 [Versión mejorada de api.py para GPT-SoVITS](https://github.com/jianchang512/gptsovits-api)
+
+[  CosyVoice   api.py](https://github.com/jianchang512/cosyvoice-api)
 
 # Agradecimientos
 

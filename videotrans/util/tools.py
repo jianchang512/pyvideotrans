@@ -38,8 +38,7 @@ def get_gptsovits_role():
     return rolelist
 
 def get_cosyvoice_role():
-    if not config.params['cosyvoice_role'].strip():
-        return None
+
     rolelist = {
         "clone":'clone'
     }
@@ -59,6 +58,8 @@ def get_cosyvoice_role():
         rolelist['Japanese Male']='日语男'
         rolelist['Korean Female']='韩语女'
         rolelist['Cantonese Female']='粤语女'
+    if not config.params['cosyvoice_role'].strip():
+        return rolelist
     for it in config.params['cosyvoice_role'].strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
