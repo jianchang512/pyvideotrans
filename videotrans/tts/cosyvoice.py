@@ -36,7 +36,7 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
             data['reference_audio']=wav_to_base64(filename)
             api_url+='/clone_mul'
             data['encode']='base64'
-        elif role.endswith('.wav'):
+        elif role and role.endswith('.wav'):
             data['reference_audio']= rolelist[role]['reference_audio'] if role in rolelist else None
             if not data['reference_audio']:
                 raise Exception(f'{role} 角色错误-2')
@@ -45,8 +45,7 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
             data['role']=rolelist[role]
             api_url+='/tts'
         else:
-            raise Exception(f'{role} 角色错误-1')
-        #print(f'{data=}')
+            data['role']='中文女'
         #克隆声音
         response=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},timeout=3600)
         if response.status_code!=200:
