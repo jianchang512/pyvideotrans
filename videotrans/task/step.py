@@ -17,7 +17,7 @@ from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans
 from videotrans.tts import run as run_tts
 import subprocess
-
+import threading
 
 class Runstep():
 
@@ -57,6 +57,7 @@ class Runstep():
         # 识别为字幕
         try:
             self.precent += 5
+            self.parent.status_text='语音识别文字处理中' if config.defaulelang=='zh' else 'Speech Recognition to Word Processing'
             raw_subtitles = run_recogn(
                 # faster-whisper openai-whisper googlespeech
                 model_type=self.config_params['model_type'],
@@ -157,6 +158,7 @@ class Runstep():
             raise Exception(f'{self.obj["raw_basename"]}' + config.transobj['No subtitles file'])
         # 开始翻译，禁止修改字幕
         try:
+            self.parent.status_text='字幕文字翻译中' if config.defaulelang=='zh' else 'Subtitle text translation in progress'
             target_srt = run_trans(
                 translate_type=self.config_params['translate_type'],
                 text_list=rawsrt,
@@ -235,6 +237,7 @@ class Runstep():
         return True
 
     def _merge_audio_segments(self, *, queue_tts=None, video_time=0):
+        self.parent.status_text='音频片段连接中' if config.defaulelang=='zh' else 'Audio clip link in progress'
         merged_audio = AudioSegment.empty()
         # start is not 0
         if queue_tts[0]['start_time_source'] > 0:
@@ -511,7 +514,7 @@ class Runstep():
 
             it['speed'] = True
             queue_tts[i] = it
-
+        self.parent.status_text='音频加速处理中' if config.defaulelang=='zh' else 'Audio acceleration in progress'
         # 允许最大音频加速倍数
         max_speed = float(config.settings['audio_rate'])
         for i, it in enumerate(queue_tts):
@@ -578,6 +581,7 @@ class Runstep():
         concat_txt_arr = []
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
+        self.parent.status_text='连接视频片段中' if config.defaulelang=='zh' else 'Connecting video clips'
         # 获取视频时长
         last_time = tools.get_video_duration(self.init['novoice_mp4'])
         self.parent.status_text = config.transobj['videodown..']
@@ -711,6 +715,7 @@ class Runstep():
             if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
+
             tools.set_process(f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...',
                               btnkey=self.init['btnkey'])
             tools.concat_multi_mp4(filelist=concat_txt_arr, out=self.init['novoice_mp4'])
@@ -721,6 +726,7 @@ class Runstep():
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
         try:
+
             run_tts(queue_tts=copy.deepcopy(queue_tts),
                     language=self.init['target_language_code'],
                     set_p=True,
@@ -760,7 +766,7 @@ class Runstep():
         # 6.处理视频慢速
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
         print(f'视频慢速前时长{video_time=}')
-        if self.config_params['app_mode'] not in ['tiqu','peiyin','hebing'] and self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
+        if self.config_params['app_mode'] not in ['tiqu','peiyin'] and self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
             queue_tts = self._ajust_video(queue_tts)
 
         # 获取 novoice_mp4的长度
@@ -828,7 +834,6 @@ class Runstep():
             '-an',
             self.init['novoice_mp4']])
 
-        # shutil.copy2(self.init['novoice_mp4'],self.init['novoice_mp4']+"----.mp4")
         Path(f"{self.init['novoice_mp4']}.raw.mp4").unlink(missing_ok=True)
         return True
 
@@ -838,33 +843,35 @@ class Runstep():
             'voice_role'] != 'No' and tools.vail_file(self.init['target_wav']) and tools.vail_file(
             self.init['background_music']):
             try:
+                self.parent.status_text='添加背景音频' if config.defaulelang=='zh' else 'Adding background audio'
                 # 获取视频长度
                 vtime = tools.get_video_info(self.init['novoice_mp4'], video_time=True)
                 vtime /= 1000
                 # 获取音频长度
                 atime = tools.get_audio_time(self.init['background_music'])
+
                 # 转为m4a
                 if not self.init['background_music'].lower().endswith('.m4a'):
-                    tmpm4a = self.init['cache_folder'] + f"/background_music-1.m4a"
+                    tmpm4a = self.init['cache_folder'] + f"/background_music-wav-m4a.m4a"
                     tools.wav2m4a(self.init['background_music'], tmpm4a)
                     self.init['background_music'] = tmpm4a
-                beishu = vtime / atime
+                beishu = math.ceil(vtime / atime)
+                print(f'========={vtime=},{atime=},{beishu=}')
                 if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
-                    beishu = int(beishu)
                     # 获取延长片段
-                    # 背景音频连接延长片段
+
                     tools.concat_multi_audio(filelist=[self.init['background_music'] for n in range(beishu + 1)],
-                                             out=self.init['cache_folder'] + "/background_music-2.m4a")
-                    self.init['background_music'] = self.init['cache_folder'] + "/background_music-2.m4a"
+                                             out=self.init['cache_folder'] + "/background_music-concat-extend.m4a")
+                    self.init['background_music'] = self.init['cache_folder'] + "/background_music-concat-extend.m4a"
                 # 背景音频降低音量
                 tools.runffmpeg(
                     ['-y', '-i', self.init['background_music'], "-filter:a",
                      f"volume={config.settings['backaudio_volume']}",
                      '-c:a', 'aac',
-                     self.init['cache_folder'] + f"/background_music-3.m4a"])
+                     self.init['cache_folder'] + f"/background_music-volume.m4a"])
                 # 背景音频和配音合并
                 cmd = ['-y', '-i', self.init['target_wav'], '-i',
-                       self.init['cache_folder'] + f"/background_music-3.m4a",
+                       self.init['cache_folder'] + f"/background_music-volume.m4a",
                        '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2',
                        self.init['cache_folder'] + f"/lastend.m4a"]
                 tools.runffmpeg(cmd)
@@ -875,23 +882,19 @@ class Runstep():
     def _separate(self):
         if self.config_params['is_separate'] and tools.vail_file(self.init['target_wav']):
             try:
+                self.parent.status_text='重新嵌入背景音' if config.defaulelang=='zh' else 'Re-embedded background sounds'
                 # 原始背景音乐 wav,和配音后的文件m4a合并
                 # 获取视频长度
                 vtime = tools.get_video_info(self.init['novoice_mp4'], video_time=True)
                 vtime /= 1000
                 # 获取音频长度
                 atime = tools.get_audio_time(self.init['instrument'])
+                beishu = math.ceil(vtime / atime)
                 if config.settings['loop_backaudio'] and atime + 1 < vtime:
-                    # 延长背景音
-                    cmd = ['-y', '-i', self.init['instrument'], '-ss', '00:00:00.000', '-t',
-                           f'{vtime - atime}', self.init['cache_folder'] + "/yanchang.m4a"]
-                    tools.runffmpeg(cmd)
                     # 背景音连接延长片段
-                    tools.concat_multi_audio(
-                        filelist=[self.init['instrument'], self.init['cache_folder'] + "/yanchang.m4a"],
-                        out=self.init['cache_folder'] + f"/instrument-2.m4a")
-
-                    self.init['instrument'] = self.init['cache_folder'] + f"/instrument-2.m4a"
+                    tools.concat_multi_audio(filelist=[self.init['instrument'] for n in range(beishu + 1)],
+                                             out=self.init['cache_folder'] + "/instrument-concat.m4a")
+                    self.init['instrument'] = self.init['cache_folder'] + f"/instrument-concat.m4a"
                 # 背景音合并配音
                 tools.backandvocal(self.init['instrument'], self.init['target_wav'])
             except Exception as e:
@@ -908,6 +911,8 @@ class Runstep():
         # 需要配音但没有配音文件
         if self.config_params['voice_role'] != 'No' and not tools.vail_file(self.init['target_wav']):
             raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.init['target_wav']}")
+
+
         # 无声音视频 或 合并模式时原视频
         novoice_mp4_path = Path(self.init['novoice_mp4'])
         novoice_mp4 = Path(self.init['novoice_mp4']).as_posix()
@@ -928,8 +933,7 @@ class Runstep():
         target_sub_list = []
         # 存放原始字幕
         source_sub_list = []
-        if self.precent < 90:
-            self.precent = 90
+        self.precent = 90 if self.precent<90 else self.precent
         # 需要字幕
         if self.config_params['subtitle_type'] > 0:
             vh = ""
@@ -1016,6 +1020,7 @@ class Runstep():
             
             
         # 分离背景音和添加背景音乐
+
         self._back_music()
         self._separate()
         # 有配音 延长视频或音频对齐
@@ -1036,6 +1041,7 @@ class Runstep():
                 # 视频末尾延长
                 try:
                     # 对视频末尾定格延长
+                    self.parent.status_text='视频末尾延长中' if config.defaulelang=='zh' else 'Extension at the end of the video'
                     self._novoicemp4_add_time(audio_length - video_time)
                 except Exception as e:
                     print(f'{config.transobj["moweiyanchangshibai"]}:{str(e)}')
@@ -1047,8 +1053,49 @@ class Runstep():
                     format="mp4" if ext == 'm4a' else ext) + AudioSegment.silent(
                     duration=video_time - audio_length)
                 m.export(self.init['target_wav'], format="mp4" if ext == 'm4a' else ext)
+        # process
+        # 开启进度线程
+        protxt=config.TEMP_DIR+f"/compose{time.time()}.txt"
+        video_time = tools.get_video_duration(novoice_mp4)
+        self.precent=self.precent if self.precent<98 else 95
+        basenum=100-self.precent
+        def hebing_pro():
+            while 1:
+                if self.precent>=100:
+                    return
+                if not os.path.exists(protxt):
+                    time.sleep(1)
+                    continue
+                with open(protxt,'r',encoding='utf-8') as f:
+                    content=f.read().strip().split("\n")
+                    if content[-1]=='progress=end':
+                        return
+                    idx=len(content)-1
+                    end_time="00:00:00"
+                    while idx>0:
+                        if content[idx].startswith('out_time='):
+                            end_time=content[idx].split('=')[1].strip()
+                            break
+                        idx-=1
+                    try:
+                        h,m,s=end_time.split(':')
+                    except Exception:
+                        time.sleep(1)
+                        continue
+                    else:
+                        h,m,s=end_time.split(':')
+                        precent=(int(h)*3600000+int(m)*60000+int(s[:2])*1000)*basenum/video_time
+                        if self.precent+precent<99.9:
+                            self.precent+=precent
+
+                        print(f'{self.precent=}')
+                        tools.set_process('', btnkey=self.init['btnkey'])
+                        time.sleep(1)
+
+        threading.Thread(target=hebing_pro).start()
+
         try:
-            
+            self.parent.status_text='视频+字幕+配音合并中' if config.defaulelang=='zh' else 'Video + Subtitles + Dubbing in merge'
             # 有配音有字幕
             if self.config_params['voice_role'] != 'No' and self.config_params['subtitle_type'] > 0:
                 if self.config_params['subtitle_type'] in [1, 3]:
@@ -1056,6 +1103,8 @@ class Runstep():
                     # 需要配音+硬字幕
                     tools.runffmpeg([
                         "-y",
+                        "-progress",
+                    protxt,
                         "-i",
                         novoice_mp4,
                         "-i",
@@ -1077,6 +1126,8 @@ class Runstep():
                     # 配音+软字幕
                     tools.runffmpeg([
                         "-y",
+                        "-progress",
+                    protxt,
                         "-i",
                         novoice_mp4,
                         "-i",
@@ -1098,6 +1149,8 @@ class Runstep():
                 tools.set_process(config.transobj['onlypeiyin'], btnkey=self.init['btnkey'])
                 tools.runffmpeg([
                     "-y",
+                    "-progress",
+                    protxt,
                     "-i",
                     novoice_mp4,
                     "-i",
@@ -1113,6 +1166,8 @@ class Runstep():
                 tools.set_process(config.transobj['onlyyingzimu'], btnkey=self.init['btnkey'])
                 cmd = [
                     "-y",
+                    "-progress",
+                    protxt,
                     "-i",
                     novoice_mp4
                 ]
@@ -1141,6 +1196,8 @@ class Runstep():
                 # 原视频
                 cmd = [
                     "-y",
+                    "-progress",
+                    protxt,
                     "-i",
                     novoice_mp4
                 ]
@@ -1173,6 +1230,7 @@ class Runstep():
         except Exception as e:
             raise Exception(f'compose srt + video + audio:{str(e)}')
         self.precent = 99
+        os.chdir(config.rootdir)
         try:
 
             if not self.config_params['only_video']:
@@ -1230,4 +1288,5 @@ Docs: https://pyvideotrans.com
         except:
             pass
         self.precent = 100
+        time.sleep(1)
         return True

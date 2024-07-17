@@ -206,7 +206,7 @@ def parse_init():
         "remove_white_ms":100,
         "vsync":"passthrough",
         "force_edit_srt":True,
-        "loop_backaudio":False,
+        "loop_backaudio":True,
         "azure_lines":150,
         "chattts_voice":'1111,2222,3333,4444,5555,6666,7777,8888,9999,4099,5099,6653,7869',
         "cors_run":True

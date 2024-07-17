@@ -226,7 +226,7 @@ def get_azure_rolelist():
 def runffmpeg(arg, *, noextname=None,
               is_box=False,
               fps=None):
-    config.logger.info(f'runffmpeg-arg={arg}')
+    # config.logger.info(f'runffmpeg-arg={arg}')
     arg_copy = copy.deepcopy(arg)
 
     if fps:
@@ -265,7 +265,7 @@ def runffmpeg(arg, *, noextname=None,
         for it in config.settings['ffmpeg_cmd'].split(' '):
             cmd.insert(-1,str(it))
     # print(f'ffmpeg:{" ".join(cmd)}')
-    config.logger.info(f'runffmpeg-tihuan:{cmd=}')
+    # config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:

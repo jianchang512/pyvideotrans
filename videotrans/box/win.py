@@ -400,6 +400,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ysphb_srtinput.setText(fname)
 
     def ysphb_start_fun(self):
+        config.settings = config.parse_init()
         # 启动合并
         videofile = self.ysphb_videoinput.text()
         basename = os.path.basename(videofile)
@@ -438,19 +439,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(f'{config.TEMP_DIR}'):
             os.makedirs(f'{config.TEMP_DIR}', exist_ok=True)
         tmpname = f'{config.TEMP_DIR}/{time.time()}.mp4'
-        # tmpname_conver = f'{config.TEMP_DIR}/box-conver.mp4'
         video_info = tools.get_video_info(videofile)
-        # video_codec= 'h264' if config.settings['video_codec']==264 else 'hevc'
-        # if videofile[-3:].lower() != 'mp4' or video_info['video_codec_name'] != video_codec or (
-        #         video_info['streams_audio'] > 0 and video_info['audio_codec_name'] != 'aac'):
-        #     try:
-        #         tools.conver_mp4(videofile, tmpname_conver, is_box=True)
-        #     except Exception as e:
-        #         QMessageBox.critical(self, config.transobj['anerror'], str(e))
-        #         self.ysphb_startbtn.setText(config.transobj["start"])
-        #         self.ysphb_startbtn.setDisabled(False)
-        #         return False
-        #     videofile = tmpname_conver
 
         if wavfile:
             # 视频里是否有音轨 并且保留原声音
@@ -534,6 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun(self):
+        config.settings = config.parse_init()
         model = self.shibie_model.currentText()
         split_type_index = self.shibie_whisper_type.currentIndex()
         if self.shibie_model_type.currentIndex() == 1:
@@ -679,6 +669,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tab-4 语音合成
     def hecheng_start_fun(self):
+        config.settings = config.parse_init()
         txt = self.hecheng_plaintext.toPlainText().strip()
         language = self.hecheng_language.currentText()
         role = self.hecheng_role.currentText()
@@ -921,6 +912,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 翻译开始
     def fanyi_start_fun(self):
+        config.settings = config.parse_init()
         target_language = self.fanyi_target.currentText()
         translate_type = self.fanyi_translate_type.currentText()
         if target_language == '-':

@@ -29,7 +29,7 @@ edge-tts==6.1.11
 elevenlabs==0.2.27
 exceptiongroup==1.1.3
 executing==2.0.1
-faster-whisper==1.0.2
+faster-whisper
 ffmpeg-python==0.2.0
 filelock==3.12.4
 flatbuffers==1.12
