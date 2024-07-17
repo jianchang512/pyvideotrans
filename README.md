@@ -17,7 +17,7 @@
 
 > **[赞助商]**
 > 
-> [![](https://github.com/user-attachments/assets/5194b0e0-7698-491b-b619-4e0ed1306350)](https://302.ai/)
+> [![](https://github.com/user-attachments/assets/48f4ac8f-e321-4bd3-ab2e-d6053d932f49)](https://302.ai/)
 >  [302.AI](https://302.ai) 是一个汇集全球顶级AI的自助平台，按需付费，零月费，零门槛使用各种类型AI。
 > 
 > [点击注册](https://302.ai): 立即获得 1PTC(1PTC=1美金，约为7人民币)代币。通过链接试用每天有5ptc额度
