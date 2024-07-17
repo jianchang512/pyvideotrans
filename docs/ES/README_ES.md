@@ -1,4 +1,10 @@
-[README en inglés](./README_EN.md) / [👑Donar a este proyecto](./about.md) / [Enlace de invitación a Discord](https://discord.gg/mTh5Cu5Bqm)
+[简体中文](../../README.md) | [English](../EN/README_EN.md) | [pt-BR](../pt-BR/README_pt-BR.md) | [Italian](../IT/README_IT.md) | Spanish
+
+---
+
+[👑Donar a este proyecto](../about.md) | [Enlace de invitación a Discord](https://discord.gg/mTh5Cu5Bqm) | Cuenta de WeChat: Buscar "pyvideotrans"
+
+---
 
 # Herramienta de Traducción y Doblaje de Vídeos
 
