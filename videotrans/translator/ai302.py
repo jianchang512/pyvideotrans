@@ -29,7 +29,7 @@ def get_content(d,*,prompt=None,assiant=None):
            'Authorization': f'Bearer {config.params["ai302_key"]}',
            'User-Agent': 'python',
            'Content-Type': 'application/json'
-        },json=payload)
+        },json=payload,verify=False)
         config.logger.info(f'[302.ai]响应:{response=}')
         if response.status_code !=200:
             raise Exception(response.text)
@@ -132,7 +132,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
                 # 如果返回数量和原始语言数量相差超过1，或再拆分失败
                 if sep_len < raw_len:
-                    config.logger.error(f'翻译前后数量不一致，先提交AI进行拆分')
+                    config.logger.error(f'翻译前后数量不一致，重新单个进行翻译')
                     sep_res = []
                     for it_n in it:
                         t= get_content(it_n.strip(),prompt=prompt)
