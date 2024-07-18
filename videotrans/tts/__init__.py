@@ -42,6 +42,8 @@ def text_to_speech(
         from .gtts import get_voice
     elif tts_type=='ChatTTS':
         from .chattts import get_voice
+    elif tts_type=='302.ai':
+        from .ai302tts import get_voice
 
     if get_voice:
         try:

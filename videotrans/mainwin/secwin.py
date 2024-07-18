@@ -646,6 +646,8 @@ class SecWindow():
                     self.main.subform.set_transapi()
                 elif name == translator.CHATGPT_NAME:
                     self.main.subform.set_chatgpt_key()
+                elif name == translator.AI302_NAME:
+                    self.main.subform.set_ai302_key()
                 elif name == translator.LOCALLLM_NAME:
                     self.main.subform.set_localllm_key()
                 elif name == translator.GEMINI_NAME:
@@ -823,6 +825,10 @@ class SecWindow():
         elif type == "openaiTTS":
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
+            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+        elif type == "302.ai":
+            self.main.voice_role.clear()
+            self.main.current_rolelist = config.params['ai302tts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == 'elevenlabsTTS':
             self.main.voice_role.clear()
@@ -1257,6 +1263,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # tts类型
         if config.params['tts_type'] == 'openaiTTS' and not config.params["chatgpt_key"]:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['chatgptkeymust'])
+            return False
+        if config.params['tts_type'] == '302.ai' and not config.params["ai302tts_key"]:
+            QMessageBox.critical(self.main, config.transobj['anerror'], '必须设置302.ai的API KEY')
             return False
         if config.params['tts_type'] == 'clone-voice' and not config.params["clone_api"]:
             config.logger.error(f"不存在clone-api:{config.params['tts_type']=},{config.params['clone_api']=}")
