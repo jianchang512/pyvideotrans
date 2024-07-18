@@ -320,6 +320,7 @@ Contribute to the project to help with its ongoing maintenance
 | *羽(fanvfx2022)   |    2024-7-16     | 捐助 18.00 元 |
 | *.   |    2024-7-16     | 捐助 1.00 元 |
 | *生   |    2024-7-16     | 捐助 20.00 元 |
+| *虎(thinsir)   |    2024-7-18    | 捐助 50.00 元 |
 
 
 

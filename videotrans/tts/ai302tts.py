@@ -26,7 +26,7 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None, lang
                 "input": text,
                 "voice": role,
                 "speed":speed
-            })
+            },verify=False)
             if response.status_code !=200:
                 raise Exception(response.text)
             with open(filename,'wb') as f:
