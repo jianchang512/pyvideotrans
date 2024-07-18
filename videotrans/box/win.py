@@ -685,6 +685,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
             return QMessageBox.critical(self, config.transobj['anerror'],
                                         config.transobj['bixutianxie'] + "chatGPT key")
+        if tts_type == '302.ai' and not config.params['ai302tts_key']:
+            return QMessageBox.critical(self, config.transobj['anerror'],
+                                        config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
         if tts_type == 'GPT-SoVITS' and langcode[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             tts_type = 'edgeTTS'
@@ -735,6 +738,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
 
         wavname = f"{config.homedir}/tts/{filename}"
+        print(f'{wavname=}')
 
 
 
@@ -790,6 +794,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif type == "openaiTTS":
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
+        elif type == "302.ai":
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
         elif type == 'elevenlabsTTS':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['elevenlabstts_role'])
@@ -938,6 +945,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
         config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
         config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
+        config.params["chatgpt_model"] = self.settings.value("chatgpt_model", "")
+        config.params["ai302_key"] = self.settings.value("ai302_key", "")
+        config.params["ai302_model"] = self.settings.value("ai302_model", "")
         config.params["localllm_api"] = self.settings.value("localllm_api", "")
         config.params["localllm_key"] = self.settings.value("localllm_key", "")
         config.params["zijiehuoshan_key"] = self.settings.value("zijiehuoshan_key", "")

@@ -1,8 +1,4 @@
-简体中文 | [English](docs/EN/README_EN.md) | [pt-BR](docs/pt-BR/README_pt-BR.md) | [Italian](docs/IT/README_IT.md) | [Spanish](docs/ES/README_ES.md)
-
----
-
-[👑捐助该项目](docs/about.md) / [Discord邀请链接](https://discord.gg/y9gUweVCCJ) / 微信公众号：搜一搜“ pyvideotrans ”
+简体中文 | [English](docs/EN/README_EN.md) | [pt-BR](docs/pt-BR/README_pt-BR.md) | [Italian](docs/IT/README_IT.md) | [Spanish](docs/ES/README_ES.md) / [👑捐助](docs/about.md) / [Discord](https://discord.gg/y9gUweVCCJ) / 微信公众号：“ pyvideotrans ”
 
 ---
 
@@ -20,6 +16,15 @@
 > 允许保留背景伴奏音乐等(基于uvr5)
 > 
 > 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语
+
+
+> **[赞助商]** [302.AI](https://302.ai) 是一个汇集全球顶级AI的自助平台，按需付费，零月费，零门槛使用各种类型AI。
+> [![](https://github.com/user-attachments/assets/5194b0e0-7698-491b-b619-4e0ed1306350)](https://302.ai/)
+> [点击注册](https://302.ai): 立即获得 1PTC(1PTC=1美金，约为7人民币)代币。通过链接试用每天有5ptc额度
+> **功能全面:** 将最好用的AI集成到在平台之上，包括不限于AI聊天，图片生成，图片处理，视频生成，全方位覆盖。
+> **简单易用:** 提供机器人，工具和API多种使用方法，可以满足从小白到开发者多种角色的需求。
+> **按需付费，零门槛:** 不提供月付套餐，对产品不设任何门槛，按需付费，全部开放。充值余额永久有效。
+> **管理者和使用者分离：** 管理者一键分享，使用者无需登录。使用者无需关心复杂的AI设置，让懂AI的人来配置，简化使用流程。
 
 
 

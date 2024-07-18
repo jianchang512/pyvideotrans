@@ -340,7 +340,7 @@ params = {
     "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
 
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS",'CosyVoice',"ChatTTS","FishTTS","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","gtts","TTS-API"],
+    "tts_type_list": ["edgeTTS",'CosyVoice',"ChatTTS","302.ai","FishTTS","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","gtts","TTS-API"],
 
     "whisper_type": "all",
     "whisper_model": "tiny",
@@ -387,6 +387,7 @@ params = {
     "azure_model": "gpt-3.5-turbo",
     "azure_template": "",
     "openaitts_role": openaiTTS_rolelist,
+    "ai302tts_role": openaiTTS_rolelist,
     "gemini_key": "",
     "gemini_template": "",
 
@@ -396,7 +397,13 @@ params = {
 
     "trans_api_url":"",
     "trans_secret":"",
-    
+
+    "ai302_key":"",
+    "ai302_model":"",
+    "ai302tts_key":"",
+    "ai302tts_model":"",
+    "ai302_template":"",
+
     "azure_speech_region":"",
     "azure_speech_key":"",
 
@@ -419,4 +426,6 @@ params['zijiehuoshan_template']=zijiehuoshan_path.read_text(encoding='utf-8').st
 params['chatgpt_template']=chatgpt_path.read_text(encoding='utf-8').strip()+"\n"
 params['azure_template']=azure_path.read_text(encoding='utf-8').strip()+"\n"
 params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
+
+params['ai302_template']=params['chatgpt_template']
 

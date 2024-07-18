@@ -180,6 +180,7 @@ class WorkerTTS(QThread):
             return
 
         mp3 = self.wavname + ".mp3"
+        print(f'{mp3=}')
         try:
             text_to_speech(
                 text=self.files,
