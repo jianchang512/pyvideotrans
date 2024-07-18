@@ -25,29 +25,54 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
         api_url='http://'+api_url.replace('http://','')
         config.logger.info(f'CosyVoice  API:{api_url}')
         text=text.strip()
-        data={"text":text,
-              "lang": "zh" if language.startswith('zh') else language
-        }
-        if not text:
-            return True
-        rolelist=tools.get_cosyvoice_role()
-        if role=='clone':
-            #克隆音色
-            data['reference_audio']=wav_to_base64(filename)
-            api_url+='/clone_mul'
-            data['encode']='base64'
-        elif role and role.endswith('.wav'):
-            data['reference_audio']= rolelist[role]['reference_audio'] if role in rolelist else None
-            if not data['reference_audio']:
-                raise Exception(f'{role} 角色错误-2')
-            api_url+='/clone_mul'
-        elif role in rolelist:
-            data['role']=rolelist[role]
-            api_url+='/tts'
+        
+        if api_url.endswith(':9880'):
+            data={
+                "text":text,
+                "speed":1+float(rate.replace('%','')),
+                "new":0,
+                
+            }
+            if not text:
+                return True
+            rolelist=tools.get_cosyvoice_role()
+            if role=='clone':
+                #克隆音色
+                data['speaker']='中文女'
+            elif role in rolelist:
+                data['speaker']=rolelist[role]
+            else:
+                data['speaker']='中文女'
+            #克隆声音
+            response=requests.post(f"{api_url}",json=data,proxies={"http":"","https":""},timeout=3600)
         else:
-            data['role']='中文女'
-        #克隆声音
-        response=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},timeout=3600)
+            data={"text":text,
+                  "lang": "zh" if language.startswith('zh') else language
+            }
+            if not text:
+                return True
+            rolelist=tools.get_cosyvoice_role()
+            if role=='clone':
+                #克隆音色
+                data['reference_audio']=wav_to_base64(filename)
+                api_url+='/clone_mul'
+                data['encode']='base64'
+            elif role and role.endswith('.wav'):
+                data['reference_audio']= rolelist[role]['reference_audio'] if role in rolelist else None
+                if not data['reference_audio']:
+                    raise Exception(f'{role} 角色错误-2')
+                api_url+='/clone_mul'
+            elif role in rolelist:
+                data['role']=rolelist[role]
+                api_url+='/tts'
+            else:
+                data['role']='中文女'
+            #克隆声音
+            response=requests.post(f"{api_url}",data=data,proxies={"http":"","https":""},timeout=3600)
+        
+        
+        
+        
         if response.status_code!=200:
             # 如果是JSON数据，使用json()方法解析
             data = response.json()
