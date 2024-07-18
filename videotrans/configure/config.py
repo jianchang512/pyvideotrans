@@ -41,11 +41,6 @@ logs_path=root_path/"logs"
 logs_path.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = logs_path.as_posix()
 
-#logging.basicConfig(
-#    level=logging.INFO,
-#    filename=f'{rootdir}/logs/video-{datetime.datetime.now().strftime("%Y%m%d")}.log',
-#    encoding="utf-8",
-#   filemode="a")
 logger = logging.getLogger('VideoTrans')
 
 ## 
@@ -429,3 +424,7 @@ params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
 
 params['ai302_template']=params['chatgpt_template']
 
+
+if not os.path.exists(rootdir + '/videotrans/cfg.json'):
+    with open(rootdir + '/videotrans/cfg.json','w',encoding='utf-8') as f:
+        f.write('{}')

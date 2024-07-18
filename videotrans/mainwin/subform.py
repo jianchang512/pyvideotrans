@@ -448,7 +448,7 @@ class Subform():
         from videotrans.component import AI302TTSForm
         self.main.ai302ttsw = AI302TTSForm()
         jsdata=json.load(open(config.rootdir+'/videotrans/cfg.json','r',encoding='utf-8'))
-        allmodels=jsdata['ai302tts_models'].split(',')
+        allmodels=jsdata['ai302tts_models'].split(',') if 'ai302tts_models' in jsdata else {}
         self.main.ai302ttsw.ai302tts_model.addItems(allmodels)
         self.main.ai302ttsw.edit_allmodels.setPlainText(jsdata['ai302tts_models'])
         if config.params["ai302tts_model"] and config.params["ai302tts_model"] in allmodels:
@@ -704,7 +704,7 @@ class Subform():
         from videotrans.component import AI302Form
         self.main.ai302fyw = AI302Form()
         jsdata = json.load(open(config.rootdir + '/videotrans/cfg.json', 'r', encoding='utf-8'))
-        allmodels = jsdata['ai302_models'].split(',')
+        allmodels = jsdata['ai302_models'].split(',') if 'ai302_models' in jsdata else {}
         self.main.ai302fyw.ai302_model.addItems(allmodels)
         self.main.ai302fyw.edit_allmodels.setPlainText(jsdata['ai302_models'])
 
