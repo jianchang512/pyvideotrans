@@ -59,7 +59,7 @@ class Worker(QThread):
     # 字幕嵌入视频
     def hebing(self):
         self.is_batch = False
-        set_process('hebing', 'add_process', btnkey="hebing")
+        set_process('', 'add_process', btnkey="hebing")
         self.precent = 1
         it = config.queue_mp4.pop()
         obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
@@ -112,7 +112,7 @@ class Worker(QThread):
                             continue
                         else:
                             self.precent=(int(h)*3600000+int(m)*60000+int(s[:2])*1000)*100/video_info['time']
-                            set_process('hebing', btnkey="hebing")
+                            set_process('', btnkey="hebing")
                             time.sleep(1)
                         
             threading.Thread(target=hebing_pro).start()       

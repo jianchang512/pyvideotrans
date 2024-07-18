@@ -22,6 +22,7 @@ import shutil
 from videotrans.ui.toolboxen import Ui_MainWindow
 from videotrans.util.tools import get_azure_rolelist, get_edge_rolelist
 from pathlib import Path
+import threading
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -29,6 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.initSize = None
+        self.precent_hb=0
         self.shibie_out_path = None
         self.hecheng_files = []
         self.fanyi_files = []
@@ -400,6 +402,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ysphb_srtinput.setText(fname)
 
     def ysphb_start_fun(self):
+        self.precent_hb=0
         config.settings = config.parse_init()
         # 启动合并
         videofile = self.ysphb_videoinput.text()
@@ -463,9 +466,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             basename = os.path.basename(srtfile)
             shutil.copy2(srtfile, config.rootdir + f"/{basename}.srt")
             os.chdir(config.rootdir)
+            protxt=config.TEMP_DIR+f"/compose{time.time()}.txt"
+            video_time=tools.get_video_duration(os.path.normpath(tmpname if wavfile else videofile))
+            def hebing_pro():
+                while 1:
+                    if self.precent_hb>=100:
+                        return
+                    if not os.path.exists(protxt):
+                        time.sleep(1)
+                        continue
+                    with open(protxt,'r',encoding='utf-8') as f:
+                        content=f.read().strip().split("\n")
+                        if content[-1]=='progress=end':
+                            return
+                        idx=len(content)-1
+                        end_time="00:00:00"
+                        while idx>0:
+                            if content[idx].startswith('out_time='):
+                                end_time=content[idx].split('=')[1].strip()
+                                break
+                            idx-=1
+                        try:
+                            h,m,s=end_time.split(':')
+                        except Exception:
+                            time.sleep(1)
+                            continue
+                        else:
+                            h,m,s=end_time.split(':')
+                            precent=round((int(h)*3600000+int(m)*60000+int(s[:2])*1000)*100/video_time,2)
+                            if self.precent_hb+precent<99.9:
+                                self.precent_hb+=precent
+
+                            print(f'{self.precent_hb=}')
+                            self.ysphb_startbtn.setText(f'{self.precent_hb}%')
+                            time.sleep(1)
+
+            threading.Thread(target=hebing_pro).start()
             cmds.append(
                 [
                     "-y",
+                    
+                    "-progress",
+                    protxt,
                     "-i",
                     os.path.normpath(tmpname if wavfile else videofile),
 

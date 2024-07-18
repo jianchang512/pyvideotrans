@@ -27,6 +27,8 @@ def get_voice(*,text=None, role=None, volume="+0%",pitch="+0Hz", rate=None, lang
                 "voice": role,
                 "speed":speed
             })
+            if response.status_code !=200:
+                raise Exception(response.text)
             with open(filename,'wb') as f:
                 f.write(response.content)
         except ConnectionError as e:

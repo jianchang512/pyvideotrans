@@ -1084,7 +1084,7 @@ class Runstep():
                         continue
                     else:
                         h,m,s=end_time.split(':')
-                        precent=(int(h)*3600000+int(m)*60000+int(s[:2])*1000)*basenum/video_time
+                        precent=round((int(h)*3600000+int(m)*60000+int(s[:2])*1000)*basenum/video_time,2)
                         if self.precent+precent<99.9:
                             self.precent+=precent
 
@@ -1104,7 +1104,7 @@ class Runstep():
                     tools.runffmpeg([
                         "-y",
                         "-progress",
-                    protxt,
+                        protxt,
                         "-i",
                         novoice_mp4,
                         "-i",

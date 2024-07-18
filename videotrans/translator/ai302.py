@@ -31,6 +31,8 @@ def get_content(d,*,prompt=None,assiant=None):
            'Content-Type': 'application/json'
         },json=payload)
         config.logger.info(f'[302.ai]响应:{response=}')
+        if response.status_code !=200:
+            raise Exception(response.text)
     except ConnectionError as e:
         config.logger.error(f'[302.ai]请求失败:{str(e)}')
         raise
