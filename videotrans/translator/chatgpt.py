@@ -66,7 +66,7 @@ def get_content(d,*,model=None,prompt=None,assiant=None):
     config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
     try:
         response = model.chat.completions.create(
-            model=config.params['chatgpt_model'],
+            model= 'gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5')>-1 else config.params['chatgpt_model'],
             messages=message
         )
         config.logger.info(f'[chatGPT]响应:{response=}')

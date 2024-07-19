@@ -173,7 +173,8 @@ def parse_init():
         "crf":13,
         "video_codec":264,
         "retries":2,
-        "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen",
+        "chatgpt_model":"gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen,moonshot-v1-8k,deepseek-chat",
+        "azure_model":"gpt-4o,gpt-4,gpt-35-turbo",
         "localllm_model":"qwen",
         "zijiehuoshan_model":"",
         "separate_sec":600,
@@ -274,6 +275,7 @@ model_list=re.split('\,|，',settings['model_list'])
 ChatTTS_voicelist=re.split('\,|，',settings['chattts_voice'])
 
 chatgpt_model_list = [ it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
+azure_model_list = [ it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 localllm_model_list = [ it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
 zijiehuoshan_model_list = [ it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip() ]
 if len(chatgpt_model_list)<1:
@@ -379,7 +381,7 @@ params = {
     "zijiehuoshan_template": "",
     "azure_api": "",
     "azure_key": "",
-    "azure_model": "gpt-3.5-turbo",
+    "azure_model": azure_model_list[0],
     "azure_template": "",
     "openaitts_role": openaiTTS_rolelist,
     "ai302tts_role": openaiTTS_rolelist,
