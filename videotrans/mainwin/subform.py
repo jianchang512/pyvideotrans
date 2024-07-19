@@ -1195,10 +1195,7 @@ class Subform():
                     QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
                                                    "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
                     return
-                if not s[0].endswith(".wav"):
-                    QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
-                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
-                    return
+
                 role = s[0]
             config.params['cosyvoice_role'] = tmp
             self.main.settings.setValue("cosyvoice_role", tmp)
