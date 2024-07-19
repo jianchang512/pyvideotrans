@@ -262,7 +262,7 @@ class AzureForm(QDialog, Ui_azureform):  # <===
     def __init__(self, parent=None):
         super(AzureForm, self).__init__(parent)
         self.setupUi(self)
-        self.azure_model.addItems(config.chatgpt_model_list)
+        self.azure_model.addItems(config.azure_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
