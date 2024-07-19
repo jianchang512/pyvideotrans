@@ -4,24 +4,22 @@ Contribua para o projeto para ajudar na sua manutenção contínua
 
 ----
 
-Este projeto de código aberto foi criado com base no interesse e não tem fins comerciais, o que significa que você pode usá-lo gratuitamente para sempre ou bifurcá-lo e modificá-lo você mesmo (deve cumprir a licença de código aberto GPL-v3). Não se preocupe com as cobranças. Se você se deparar com a necessidade de pagar pela compra, recuse e use a versão gratuita de código aberto aqui.
+Este projeto de código aberto foi criado por paixão e sem fins comerciais. Você pode usá-lo gratuitamente para sempre ou criar sua própria versão (desde que siga a licença GPL-v3). Não se preocupe com limitações na versão gratuita ou problemas de segurança em versões fechadas.
 
-Quanto à manutenção, o código aberto é feito com amor e energia. Quando estou livre, dedico mais tempo e energia a ele, mas quando estou ocupado, posso não conseguir cuidar dele por um tempo.
+A manutenção é feita por amor à causa. Quando tenho tempo livre, dedico mais energia ao projeto, mas em momentos de trabalho, posso ficar um tempo sem atualizá-lo.
 
-Claro, se você acha que o projeto é valioso para você e espera que ele seja mantido e otimizado de forma estável e contínua, você é bem-vindo a fazer pequenas doações. Se você não quiser ou não puder doar, não importa, me ajude a dar uma estrela ou enviar um PR, ou recomende a amigos que precisam, também é uma forma de ajudar.
+Se você acha este projeto valioso e deseja que ele continue sendo mantido e aprimorado de forma estável, fique à vontade para fazer uma pequena doação. Se não puder ou não quiser doar, não tem problema! Você ainda pode ajudar dando uma estrela, enviando um pull request ou seguindo o canal do projeto no WeChat (pesquise por "pyvideotrans").
 
-
- **URL para doação:** [https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)
-
+**URL para doação:** [https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)
 
 ----
 
 
 ## Como Doar
 
-Você pode pagar via WeChat ou Alipay, indicando seu nome de usuário do GitHub.
+Você pode pagar via WeChat ou Alipay, mencionando seu nome de usuário do GitHub na descrição.
 
- URL para doação: [https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)
+> URL para doação: [https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)
 
 
 <img src="https://pyvideotrans.com/images/wx.png" width="200">
@@ -284,6 +282,34 @@ Você pode pagar via WeChat ou Alipay, indicando seu nome de usuário do GitHub.
 | *哦(喵の左爪)   |     ¥ 10  | 19-06-2024     |
 | *维(支付宝)   |     ¥ 0.6  | 21-06-2024     |
 | *齐   |     ¥ 10  | 23-06-2024     |
+| *贤   |     ¥ 9.74  | 24-06-2024     |
+| L*n   |     ¥ 1.00  | 27-06-2024     |
+| *王   |     ¥ 10.00  | 28-06-2024     |
+| *钰   |     ¥ 10.00  | 30-06-2024     |
+| *㯖   |     ¥ 1.00  | 30-06-2024     |
+| 张*)(zhangzhiqun)   |     ¥ 19.99  | 03-07-2024     |
+| *意   |     ¥ 10.00  | 05-07-2024     |
+| J*n(0xouzm)   |     ¥ 10.00  | 05-07-2024     |
+| *瑄   |     ¥ 10.00  | 06-07-2024     |
+| *子   |     ¥ 10.00  | 06-07-2024     |
+| 0*8   |     ¥ 20.00  | 06-07-2024     |
+| *草(支付宝)   |     ¥ 50.00  | 06-07-2024     |
+| *浩(支付宝)   |     ¥ 20.00  | 06-07-2024     |
+| *子   |     ¥ 10.00  | 08-07-2024     |
+| *哦(喵の左爪)   |     ¥ 10.00  | 10-07-2024     |
+| *柳   |     ¥ 2.00  | 11-07-2024     |
+| *淳(dcyy-l)   |     ¥ 10.00  | 11-07-2024     |
+| *枫   |     ¥ 10.00  | 11-07-2024     |
+| *娴   |     ¥ 10.00  | 11-07-2024     |
+| s*n   |     ¥ 5.00  | 11-07-2024     |
+| *剑   |     ¥ 6.00  | 13-07-2024     |
+| *砀(支付宝)   |     ¥ 14.00  | 14-07-2024     |
+| *俊   |     ¥ 10.00  | 15-07-2024     |
+| J*g   |     ¥ 10.00  | 15-07-2024     |
+| *羽(fanvfx2022)   |     ¥ 18.00  | 16-07-2024     |
+| *.   |     ¥ 1.00  | 16-07-2024     |
+| *生   |     ¥ 20.00  | 16-07-2024     |
+
 
 
 # Lista de Doadores do Projeto [ChatTTS-ui](https://github.com/jianchang512/chattts-ui)
