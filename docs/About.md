@@ -280,7 +280,6 @@ Contribute to the project to help with its ongoing maintenance
 | derbyoen   |    2024-6-12     | 捐助 20 元 |
 | *海   |    2024-6-12     | 捐助 50 元 |
 | *哥   |    2024-6-14     | 捐助 12 元 |
-
 | T*m(ccynet) |    2024-6-14     | 捐助 20 元 |
 | *就   |    2024-6-15     | 捐助 88.88 元 |
 | *布   |    2024-6-16     | 捐助 3 元 |
