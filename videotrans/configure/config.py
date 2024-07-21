@@ -161,8 +161,7 @@ except Exception:
 
 
 def parse_init():
-    try:
-        default = {
+    default = {
             "ai302_models": "gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
             "ai302tts_models": "tts-1,tts-1-hd",
             "lang": "",
@@ -214,7 +213,13 @@ def parse_init():
             "zh_hant_s": True,
             "azure_lines": 150,
             "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
-        }
+    }
+    if not os.path.exists(rootdir + "/videotrans/cfg.json"):
+        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+        return default
+    try:
+        
+        
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
         raise Exception('videotrans/cfg.json not found  or  error')
