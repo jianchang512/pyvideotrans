@@ -11,7 +11,7 @@ class WorkerRegcon(QThread):
         super().__init__(parent=parent)
     def run(self) -> None:
         while 1:
-            if config.exit_soft or config.current_status!='ing':
+            if config.exit_soft:
                 return
             if len(config.regcon_queue)<1:
                 time.sleep(0.5)
@@ -25,7 +25,7 @@ class WorkerRegcon(QThread):
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])
                 msg=f'{config.transobj["shibiechucuo"]}:'+str(e)
-                config.logger.exception(err)
+                config.logger.exception(e)
                 set_process(msg,'error',btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']]=msg
 
@@ -35,7 +35,7 @@ class WorkerTrans(QThread):
         super().__init__(parent=parent)
     def run(self) -> None:
         while 1:
-            if config.exit_soft or config.current_status!='ing':
+            if config.exit_soft:
                 return
             if len(config.trans_queue)<1:
                 time.sleep(0.5)
@@ -48,7 +48,7 @@ class WorkerTrans(QThread):
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])
                 msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
-                config.logger.exception(err)
+                config.logger.exception(e)
                 set_process(msg, 'error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
 
@@ -57,7 +57,7 @@ class WorkerDubb(QThread):
         super().__init__(parent=parent)
     def run(self) -> None:
         while 1:
-            if config.exit_soft or config.current_status!='ing':
+            if config.exit_soft:
                 return
             if len(config.dubb_queue)<1:
                 time.sleep(0.5)
@@ -70,7 +70,7 @@ class WorkerDubb(QThread):
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])
                 msg=f'{config.transobj["peiyinchucuo"]}:'+str(e)
-                config.logger.exception(err)
+                config.logger.exception(e)
                 set_process(msg,'error',btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']]=msg
 
@@ -79,7 +79,7 @@ class WorkerCompose(QThread):
         super().__init__(parent=parent)
     def run(self) -> None:
         while 1:
-            if config.exit_soft or config.current_status!='ing':
+            if config.exit_soft:
                 return
             if len(config.compose_queue)<1:
                 time.sleep(0.5)
@@ -91,7 +91,7 @@ class WorkerCompose(QThread):
                 config.errorlist[trk.init['btnkey']]=""
             except Exception as e:
                 msg=f'{config.transobj["hebingchucuo"]}:'+str(e)
-                config.logger.exception(err)
+                config.logger.exception(e)
                 set_process(msg,'error',btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']]=msg
             finally:

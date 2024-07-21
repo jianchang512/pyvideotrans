@@ -74,6 +74,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cosyvoicew=None
         self.ai302fyw=None
         self.ai302ttsw=None
+        self.setiniw=None
 
         self.app_mode = "biaozhun_jd"
         self.processbtns = {}
@@ -357,6 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
         self.actionyoutube.triggered.connect(self.subform.open_youtube)
         self.actionsepar.triggered.connect(self.subform.open_separate)
+        self.actionsetini.triggered.connect(self.subform.open_setini)
         self.action_about.triggered.connect(self.util.about)
 
         self.action_xinshoujandan.triggered.connect(self.util.set_xinshoujandann)

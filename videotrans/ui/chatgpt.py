@@ -16,13 +16,13 @@ class Ui_chatgptform(object):
     def setupUi(self, chatgptform):
         chatgptform.setObjectName("chatgptform")
         chatgptform.setWindowModality(QtCore.Qt.NonModal)
-        chatgptform.resize(600, 500)
+        chatgptform.resize(600, 600)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(chatgptform.sizePolicy().hasHeightForWidth())
         chatgptform.setSizePolicy(sizePolicy)
-        chatgptform.setMaximumSize(QtCore.QSize(600, 500))
+        chatgptform.setMaximumSize(QtCore.QSize(600, 600))
 
         self.label_0 = QtWidgets.QLabel(chatgptform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -55,23 +55,34 @@ class Ui_chatgptform(object):
         self.chatgpt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_model.setObjectName("chatgpt_model")
 
+
+        self.label_allmodels = QtWidgets.QLabel(chatgptform)
+        self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
+        self.label_allmodels.setObjectName("label_allmodels")
+        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
+
+
+        self.edit_allmodels = QtWidgets.QPlainTextEdit(chatgptform)
+        self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
+        self.edit_allmodels.setObjectName("edit_allmodels")
+
+
+
         self.label_4 = QtWidgets.QLabel(chatgptform)
-        self.label_4.setGeometry(QtCore.QRect(10, 200, 571, 21))
+        self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
         self.label_4.setObjectName("label_4")
 
         self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
-        self.chatgpt_template.setGeometry(QtCore.QRect(10, 230, 571, 151))
+        self.chatgpt_template.setGeometry(QtCore.QRect(10, 340, 571, 151))
         self.chatgpt_template.setObjectName("chatgpt_template")
-        self.chatgpt_template.setDisabled(True)
-        self.chatgpt_template.setReadOnly(True)
 
         self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.set_chatgpt.setGeometry(QtCore.QRect(10, 400, 93, 35))
+        self.set_chatgpt.setGeometry(QtCore.QRect(10, 520, 93, 35))
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
 
         self.test_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.test_chatgpt.setGeometry(QtCore.QRect(130, 405, 93, 30))
+        self.test_chatgpt.setGeometry(QtCore.QRect(130, 525, 93, 30))
         self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
         self.test_chatgpt.setObjectName("test_chatgpt")
 
@@ -85,7 +96,7 @@ class Ui_chatgptform(object):
         chatgptform.setWindowTitle("ChatGPT API")
         self.label_3.setText('选择模型' if config.defaulelang=='zh' else "Model")
         self.chatgpt_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/chatgpt.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/chatgpt.txt")
+        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
         self.set_chatgpt.setText('保存' if config.defaulelang=='zh' else "Save")
         self.test_chatgpt.setText('测试..' if config.defaulelang=='zh' else "Test..")
         self.chatgpt_api.setPlaceholderText('若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang=='zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')

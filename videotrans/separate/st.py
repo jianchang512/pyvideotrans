@@ -107,7 +107,6 @@ def convert_to_pure_eng_num(string):
 
 # path 是需要保存vocal.wav的目录
 def start(audio,path,source="logs",btnkey=None):
-    dist=int(config.settings['separate_sec'])
     try:
         # 获取总时长秒
         sec=tools.get_audio_time(audio)

@@ -16,13 +16,13 @@ class Ui_localllmform(object):
     def setupUi(self, localllmform):
         localllmform.setObjectName("localllmform")
         localllmform.setWindowModality(QtCore.Qt.NonModal)
-        localllmform.resize(600, 500)
+        localllmform.resize(600, 600)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(localllmform.sizePolicy().hasHeightForWidth())
         localllmform.setSizePolicy(sizePolicy)
-        localllmform.setMaximumSize(QtCore.QSize(600, 500))
+        localllmform.setMaximumSize(QtCore.QSize(600, 600))
 
         self.label_0 = QtWidgets.QLabel(localllmform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -55,23 +55,36 @@ class Ui_localllmform(object):
         self.localllm_model.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_model.setObjectName("localllm_model")
 
+
+        self.label_allmodels = QtWidgets.QLabel(localllmform)
+        self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
+        self.label_allmodels.setObjectName("label_allmodels")
+        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
+
+
+        self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
+        self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
+        self.edit_allmodels.setObjectName("edit_allmodels")
+
+
+
         self.label_4 = QtWidgets.QLabel(localllmform)
-        self.label_4.setGeometry(QtCore.QRect(10, 200, 571, 21))
+        self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
         self.label_4.setObjectName("label_4")
 
         self.localllm_template = QtWidgets.QPlainTextEdit(localllmform)
-        self.localllm_template.setGeometry(QtCore.QRect(10, 230, 571, 151))
+        self.localllm_template.setGeometry(QtCore.QRect(10, 340, 571, 151))
         self.localllm_template.setObjectName("localllm_template")
-        self.localllm_template.setDisabled(True)
-        self.localllm_template.setReadOnly(True)
+
+
 
         self.set_localllm = QtWidgets.QPushButton(localllmform)
-        self.set_localllm.setGeometry(QtCore.QRect(10, 400, 93, 35))
+        self.set_localllm.setGeometry(QtCore.QRect(10, 510, 93, 35))
         self.set_localllm.setMinimumSize(QtCore.QSize(0, 35))
         self.set_localllm.setObjectName("set_localllm")
 
         self.test_localllm = QtWidgets.QPushButton(localllmform)
-        self.test_localllm.setGeometry(QtCore.QRect(130, 405, 93, 30))
+        self.test_localllm.setGeometry(QtCore.QRect(130, 515, 93, 30))
         self.test_localllm.setMinimumSize(QtCore.QSize(0, 30))
         self.test_localllm.setObjectName("test_localllm")
 
@@ -85,7 +98,7 @@ class Ui_localllmform(object):
         localllmform.setWindowTitle("Local LLM API" if config.defaulelang !='zh' else '本地大模型API')
         self.label_3.setText('选择模型' if config.defaulelang=='zh' else "Model")
         self.localllm_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。可在 videotrans/localllm.txt中修改提示语" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it. You can modify the prompt language in videotrans/localllm.txt")
+        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
         self.set_localllm.setText('保存' if config.defaulelang=='zh' else "Save")
         self.test_localllm.setText('测试..' if config.defaulelang=='zh' else "Test..")
         self.localllm_api.setPlaceholderText('本地模型api地址' if config.defaulelang=='zh' else 'Local LLM API url')

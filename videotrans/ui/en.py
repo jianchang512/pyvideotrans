@@ -688,6 +688,10 @@ class Ui_MainWindow(object):
         self.actionyoutube.setObjectName("actionyoutube")
         self.actionsepar = QtGui.QAction(MainWindow)
         self.actionsepar.setObjectName("actionsepar")
+        self.actionsetini = QtGui.QAction(MainWindow)
+        self.actionsetini.setObjectName("setini")
+
+
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontencent_key)
@@ -712,8 +716,9 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontrans_api)
 
-
         self.menu_Key.addSeparator()
+        self.menu_Key.addSeparator()
+
         self.menu_Key.addAction(self.actionclone_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionchattts_address)
@@ -734,9 +739,14 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondoubao_api)
         self.menu_Key.addSeparator()
+        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionzhrecogn_api)
 
         self.menu_Key.addSeparator()
+
+
+        self.menu.addAction(self.actionsetini)
+        self.menu.addSeparator()
         self.menu.addAction(self.action_tool)
         self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
@@ -826,8 +836,7 @@ class Ui_MainWindow(object):
         self.video_autorate.setText('视频自动慢速' if config.defaulelang=='zh' else 'Video Auto Slow')
         self.append_video.setToolTip('如果配音时长大于视频时，是否视频末尾延长' if config.defaulelang=='zh' else 'If the dubbing time is longer than the video time, is the end of the video extended?')
         self.append_video.setText('视频末尾延长?' if config.defaulelang=='zh' else 'Extension video?')
-        # self.auto_ajust.setText(config.transobj.get("auto_ajust"))
-        # self.auto_ajust.setToolTip(config.uilanglist.get("shuoming03"))
+
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
         self.is_separate.setText(config.uilanglist.get("Preserve background music"))
         self.is_separate.setToolTip(config.uilanglist.get("If retained, the required time may be longer, please be patient and wait"))
@@ -846,8 +855,8 @@ class Ui_MainWindow(object):
         self.actionbaidu_key.setText("百度翻译设置" if config.defaulelang=='zh' else "Baidu Key")
         self.actionchatgpt_key.setText("ChatGPT及兼容API" if config.defaulelang=='zh' else "ChatGPT API")
         self.actionai302_key.setText("302.ai接入翻译" if config.defaulelang=='zh' else "302.ai for translation")
-        self.actionlocalllm_key.setText("本地兼容openAI大模型" if config.defaulelang=='zh' else "Local LLM  API")
-        self.actionzijiehuoshan_key.setText("字节火山引擎模型" if config.defaulelang=='zh' else 'ByteDance Ark')
+        self.actionlocalllm_key.setText("本地兼容openAI大模型翻译" if config.defaulelang=='zh' else "Local LLM  API")
+        self.actionzijiehuoshan_key.setText("字节火山引擎模型翻译" if config.defaulelang=='zh' else 'ByteDance Ark')
         self.actiondeepL_key.setText("DeepL Key")
         self.action_tool.setText(config.uilanglist.get("Video Toolbox"))
         self.action_tool.setToolTip(config.uilanglist.get("Video Toolbox"))
@@ -912,3 +921,4 @@ class Ui_MainWindow(object):
         self.actionElevenlabs_key.setText("ElevenLabs TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
         self.actionsepar.setText('人声/背景音分离' if config.defaulelang=='zh'else 'Vocal & instrument Separate')
+        self.actionsetini.setText('高级设置/set.ini' if config.defaulelang=='zh'else 'Advanced Settings/set.ini')
