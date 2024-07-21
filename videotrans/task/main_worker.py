@@ -211,7 +211,7 @@ class Worker(QThread):
             # 添加进度按钮 unid
             set_process(obj_format['unid'], 'add_process', btnkey=obj_format['unid'])
         # 如果是批量，则不允许中途暂停修改字幕
-        if len(videolist) > 1 and config.settings['cors_run']:
+        if len(videolist) > 1:
             self.is_batch = True
         config.params.update(
             {"is_batch": self.is_batch, 'subtitles': self.txt, 'app_mode': self.app_mode})
@@ -297,13 +297,13 @@ class Worker(QThread):
                 set_process(err, 'error', btnkey=video.init['btnkey'])
                 send_notification(err, f'{video.obj["raw_basename"]}')
                 continue
-            # else:
-            #     send_notification("Succeed", f'{video.obj["raw_basename"]}')
+
         # 批量进入等待
         if self.is_batch:
             return self.wait_end()
         # 非批量直接结束
         config.queue_mp4 = []
+        config.unidlist = []
         set_process("", 'end')
         tools._unlink_tmp()
 
@@ -316,7 +316,7 @@ class Worker(QThread):
             unid = self.unidlist.pop(0)
             if unid not in self.tasklist:
                 continue
-            video = self.tasklist[unid]
+
             # 当前 video 执行完毕
             if unid in config.unidlist:
                 pass
@@ -325,12 +325,14 @@ class Worker(QThread):
                 self.unidlist.append(unid)
             time.sleep(0.5)
         # 全部完成
-        config.queue_mp4 = []
 
         set_process("", 'end')
         tools._unlink_tmp()
+        config.queue_mp4 = []
+        config.unidlist=[]
 
     def stop(self):
         set_process("", 'stop')
-        config.queue_mp4 = []
         tools._unlink_tmp()
+        config.queue_mp4 = []
+        config.unidlist=[]

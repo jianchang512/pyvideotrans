@@ -6,7 +6,7 @@ import webbrowser
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal, QUrl
 from PySide6.QtGui import Qt, QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QLineEdit, QPushButton
 
 from videotrans.configure import config
 from videotrans.task.separate_worker import SeparateWorker
@@ -16,144 +16,6 @@ from videotrans.util import tools
 class Subform():
     def __init__(self, main=None):
         self.main = main
-
-    # 设置每行角色
-    def set_line_role_fun(self):
-        def get_checked_boxes(widget):
-            checked_boxes = []
-            for child in widget.children():
-                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
-                    checked_boxes.append(child.objectName())
-                else:
-                    checked_boxes.extend(get_checked_boxes(child))
-            return checked_boxes
-
-        def save(role):
-            # 初始化一个列表，用于存放所有选中 checkbox 的名字
-            checked_checkbox_names = get_checked_boxes(self.main.row)
-
-            if len(checked_checkbox_names) < 1:
-                return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
-                                                      config.transobj['zhishaoxuanzeyihang'])
-
-            for n in checked_checkbox_names:
-                _, line = n.split('_')
-                # 设置labe为角色名
-                ck = self.main.row.findChild(QtWidgets.QCheckBox, n)
-                ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
-                ck.setChecked(False)
-                config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
-
-        from videotrans.component import SetLineRole
-        self.main.row = SetLineRole()
-        box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
-        box.setLayout(QtWidgets.QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
-        if config.params['voice_role'] in ['No', '-', 'no']:
-            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
-                                                  config.transobj['xianxuanjuese'])
-        if not self.main.subtitle_area.toPlainText().strip():
-            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
-                                                  config.transobj['youzimuyouset'])
-
-        #  获取字幕
-        srt_json = tools.get_subtitle_from_srt(self.main.subtitle_area.toPlainText().strip(), is_file=False)
-        for it in srt_json:
-            # 创建新水平布局
-            h_layout = QtWidgets.QHBoxLayout()
-            check = QtWidgets.QCheckBox()
-            check.setText(
-                config.params['line_roles'][f'{it["line"]}'] if f'{it["line"]}' in config.params['line_roles'] else
-                config.transobj['default'])
-            check.setObjectName(f'check_{it["line"]}')
-            # 创建并配置 QLineEdit
-            line_edit = QtWidgets.QLineEdit()
-            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
-
-            line_edit.setText(f'[{it["line"]}] {it["text"]}')
-            line_edit.setReadOnly(True)
-            # 将标签和编辑线添加到水平布局
-            h_layout.addWidget(check)
-            h_layout.addWidget(line_edit)
-            box.layout().addLayout(h_layout)
-        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.main.row.select_role.addItems(self.main.current_rolelist)
-        self.main.row.set_role_label.setText(config.transobj['shezhijuese'])
-
-        self.main.row.select_role.currentTextChanged.connect(save)
-        # 创建 QScrollArea 并将 box QWidget 设置为小部件
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidget(box)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # 将 QScrollArea 添加到主窗口的 layout
-        self.main.row.layout.addWidget(scroll_area)
-
-        self.main.row.set_ok.clicked.connect(lambda: self.main.row.close())
-        self.main.row.show()
-
-    def open_youtube(self):
-        def download():
-            proxy = self.main.youw.proxy.text().strip()
-            outdir = self.main.youw.outputdir.text()
-            url = self.main.youw.url.text().strip()
-            vid = self.main.youw.formatname.isChecked()
-            if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
-                QtWidgets.QMessageBox.critical(self.main.youw, config.transobj['anerror'],
-                                               config.transobj[
-                                                   'You must fill in the YouTube video playback page address'])
-                return
-            self.main.settings.setValue("youtube_outdir", outdir)
-            if proxy:
-                config.proxy = proxy
-                self.main.settings.setValue("proxy", proxy)
-            from videotrans.task.download_youtube import Download
-            down = Download(proxy=proxy, url=url, out=outdir, parent=self.main, vid=vid)
-            down.start()
-            self.main.youw.set.setText(config.transobj["downing..."])
-
-        def selectdir():
-            dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, "Select Dir", outdir).replace('\\', '/')
-            self.main.youw.outputdir.setText(dirname)
-
-        from videotrans.component import YoutubeForm
-        self.main.youw = YoutubeForm()
-        self.main.youw.set.setText(config.transobj['start download'])
-        self.main.youw.selectdir.setText(config.transobj['Select Out Dir'])
-        outdir = config.params['youtube_outdir'] if 'youtube_outdir' in config.params else os.path.join(config.homedir,
-                                                                                                        'youtube').replace(
-            '\\', '/')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir, exist_ok=True)
-        # 创建事件过滤器实例并将其安装到 lineEdit 上
-
-        self.main.youw.outputdir.setText(outdir)
-        if config.proxy:
-            self.main.youw.proxy.setText(config.proxy)
-        self.main.youw.selectdir.clicked.connect(selectdir)
-
-        self.main.youw.set.clicked.connect(download)
-        self.main.youw.show()
-
-    # set deepl key
-    def set_deepL_key(self):
-        def save():
-            key = self.main.dlw.deepl_authkey.text()
-            api = self.main.dlw.deepl_api.text().strip()
-            self.main.settings.setValue("deepl_authkey", key)
-            config.params['deepl_authkey'] = key
-            self.main.settings.setValue("deepl_api", api)
-            config.params['deepl_api'] = api
-            self.main.dlw.close()
-
-        from videotrans.component import DeepLForm
-        self.main.dlw = DeepLForm()
-        if config.params['deepl_authkey']:
-            self.main.dlw.deepl_authkey.setText(config.params['deepl_authkey'])
-        if config.params['deepl_api']:
-            self.main.dlw.deepl_api.setText(config.params['deepl_api'])
-        self.main.dlw.set_deepl.clicked.connect(save)
-        self.main.dlw.show()
 
     def set_auzuretts_key(self):
         class TestTTS(QThread):
@@ -243,34 +105,6 @@ class Subform():
             self.main.ew.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
         self.main.ew.set.clicked.connect(save)
         self.main.ew.show()
-
-    def set_deepLX_address(self):
-        def save():
-            key = self.main.dexw.deeplx_address.text()
-            self.main.settings.setValue("deeplx_address", key)
-            config.params["deeplx_address"] = key
-            self.main.dexw.close()
-
-        from videotrans.component import DeepLXForm
-        self.main.dexw = DeepLXForm()
-        if config.params["deeplx_address"]:
-            self.main.dexw.deeplx_address.setText(config.params["deeplx_address"])
-        self.main.dexw.set_deeplx.clicked.connect(save)
-        self.main.dexw.show()
-
-    def set_ott_address(self):
-        def save():
-            key = self.main.ow.ott_address.text()
-            self.main.settings.setValue("ott_address", key)
-            config.params["ott_address"] = key
-            self.main.ow.close()
-
-        from videotrans.component import OttForm
-        self.main.ow = OttForm()
-        if config.params["ott_address"]:
-            self.main.ow.ott_address.setText(config.params["ott_address"])
-        self.main.ow.set_ott.clicked.connect(save)
-        self.main.ow.show()
 
     def set_clone_address(self):
         class TestTTS(QThread):
@@ -417,7 +251,8 @@ class Subform():
             key = self.main.ai302ttsw.ai302tts_key.text().strip()
             model = self.main.ai302ttsw.ai302tts_model.currentText()
             if not key or not model:
-                return QtWidgets.QMessageBox.critical(self.main.ai302ttsw, config.transobj['anerror'], '必须填写 302.ai 的API KEY 和 model')
+                return QtWidgets.QMessageBox.critical(self.main.ai302ttsw, config.transobj['anerror'],
+                                                      '必须填写 302.ai 的API KEY 和 model')
             self.main.settings.setValue("ai302tts_key", key)
             self.main.settings.setValue("ai302tts_model", model)
             config.params["ai302tts_key"] = key
@@ -435,22 +270,25 @@ class Subform():
             config.params["ai302tts_key"] = key
             config.params["ai302tts_model"] = model
             self.main.ai302ttsw.close()
+
         def setallmodels():
-            t=self.main.ai302ttsw.edit_allmodels.toPlainText().strip().replace('，',',').rstrip(',')
-            current_text=self.main.ai302ttsw.ai302tts_model.currentText()
+            t = self.main.ai302ttsw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.ai302ttsw.ai302tts_model.currentText()
             self.main.ai302ttsw.ai302tts_model.clear()
             self.main.ai302ttsw.ai302tts_model.addItems([x for x in t.split(',') if x.strip()])
-            self.main.ai302ttsw.ai302tts_model.setCurrentText(current_text)
-            jsdata = json.load(open(config.rootdir + '/videotrans/cfg.json', 'r', encoding='utf-8'))
-            jsdata['ai302tts_models']=t
-            json.dump(jsdata,open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'))
+            if current_text:
+                self.main.ai302ttsw.ai302tts_model.setCurrentText(current_text)
+            config.settings['ai302tts_models'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
 
         from videotrans.component import AI302TTSForm
         self.main.ai302ttsw = AI302TTSForm()
-        jsdata=json.load(open(config.rootdir+'/videotrans/cfg.json','r',encoding='utf-8'))
-        allmodels=jsdata['ai302tts_models'].split(',') if 'ai302tts_models' in jsdata else {}
+
+        allmodels_str = config.settings['ai302tts_models']
+        allmodels = config.settings['ai302tts_models'].split(',')
+        self.main.ai302ttsw.ai302tts_model.clear()
         self.main.ai302ttsw.ai302tts_model.addItems(allmodels)
-        self.main.ai302ttsw.edit_allmodels.setPlainText(jsdata['ai302tts_models'])
+        self.main.ai302ttsw.edit_allmodels.setPlainText(allmodels_str)
         if config.params["ai302tts_model"] and config.params["ai302tts_model"] in allmodels:
             self.main.ai302ttsw.ai302tts_model.setCurrentText(config.params["ai302tts_model"])
         if config.params["ai302tts_key"]:
@@ -460,6 +298,367 @@ class Subform():
         self.main.ai302ttsw.test_ai302tts.clicked.connect(test)
         self.main.ai302ttsw.show()
 
+    def set_doubao(self):
+
+        def save():
+            appid = self.main.doubaow.doubao_appid.text()
+
+            access = self.main.doubaow.doubao_access.text()
+            config.params["doubao_appid"] = appid
+            config.params["doubao_access"] = access
+            self.main.settings.setValue('doubao_access', access)
+            self.main.settings.setValue('doubao_appid', appid)
+
+            self.main.doubaow.close()
+
+        from videotrans.component import DoubaoForm
+        self.main.doubaow = DoubaoForm()
+        if config.params["doubao_appid"]:
+            self.main.doubaow.doubao_appid.setText(config.params["doubao_appid"])
+        else:
+            self.main.settings.setValue('doubao_appid', '')
+        if config.params["doubao_access"]:
+            print('11')
+            self.main.doubaow.doubao_access.setText(config.params["doubao_access"])
+        else:
+            print('22')
+            self.main.settings.setValue('doubao_access', '')
+
+        self.main.doubaow.set_save.clicked.connect(save)
+        self.main.doubaow.show()
+
+    def set_ttsapi(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None, language=None, rate="+0%", role=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.language = language
+                self.rate = rate
+                self.role = role
+
+            def run(self):
+
+                from videotrans.tts.ttsapi import get_voice
+                try:
+
+                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
+                              filename=config.homedir + "/test.mp3")
+
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.mp3")
+                QtWidgets.QMessageBox.information(self.main.ttsapiw, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.ttsapiw, config.transobj['anerror'], d)
+            self.main.ttsapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
+
+        def test():
+            url = self.main.ttsapiw.api_url.text()
+            extra = self.main.ttsapiw.extra.text()
+            role = self.main.ttsapiw.voice_role.text().strip()
+
+            self.main.settings.setValue("ttsapi_url", url)
+            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
+            self.main.settings.setValue("ttsapi_voice_role", role)
+
+            config.params["ttsapi_url"] = url
+            config.params["ttsapi_extra"] = extra
+            config.params["ttsapi_voice_role"] = role
+
+            task = TestTTS(parent=self.main.ttsapiw,
+                           text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
+                           role=self.main.ttsapiw.voice_role.text().strip().split(',')[0],
+                           language="zh-cn" if config.defaulelang == 'zh' else 'en')
+            self.main.ttsapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            task.uito.connect(feed)
+            task.start()
+
+        def save():
+            url = self.main.ttsapiw.api_url.text()
+            extra = self.main.ttsapiw.extra.text()
+            role = self.main.ttsapiw.voice_role.text().strip()
+
+            self.main.settings.setValue("ttsapi_url", url)
+            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
+            self.main.settings.setValue("ttsapi_voice_role", role)
+
+            config.params["ttsapi_url"] = url
+            config.params["ttsapi_extra"] = extra
+            config.params["ttsapi_voice_role"] = role
+            self.main.ttsapiw.close()
+
+        from videotrans.component import TtsapiForm
+        self.main.ttsapiw = TtsapiForm()
+        if config.params["ttsapi_url"]:
+            self.main.ttsapiw.api_url.setText(config.params["ttsapi_url"])
+        if config.params["ttsapi_voice_role"]:
+            self.main.ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
+        if config.params["ttsapi_extra"]:
+            self.main.ttsapiw.extra.setText(config.params["ttsapi_extra"])
+
+        self.main.ttsapiw.save.clicked.connect(save)
+        self.main.ttsapiw.test.clicked.connect(test)
+        self.main.ttsapiw.otherlink.clicked.connect(lambda: self.main.util.open_url('openvoice'))
+        self.main.ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
+        self.main.ttsapiw.show()
+
+    def set_gptsovits(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None, language=None, role=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.language = language
+                self.role = role
+
+            def run(self):
+                from videotrans.tts.gptsovits import get_voice
+                try:
+                    get_voice(text=self.text, language=self.language, set_p=False, role=self.role,
+                              filename=config.homedir + "/test.wav")
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.wav")
+                QtWidgets.QMessageBox.information(self.main.gptsovitsw, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'], d)
+            self.main.gptsovitsw.test.setText('测试api')
+
+        def test():
+            url = self.main.gptsovitsw.api_url.text()
+            config.params["gptsovits_url"] = url
+            task = TestTTS(parent=self.main.gptsovitsw,
+                           text="你好啊我的朋友",
+                           role=getrole(),
+                           language="zh")
+            self.main.gptsovitsw.test.setText('测试中请稍等...')
+            task.uito.connect(feed)
+            task.start()
+
+        def getrole():
+            tmp = self.main.gptsovitsw.role.toPlainText().strip()
+            role = None
+            if not tmp:
+                return role
+
+            for it in tmp.split("\n"):
+                s = it.strip().split('#')
+                if len(s) != 3:
+                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
+                                                   "每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
+                    return
+                if not s[0].endswith(".wav"):
+                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
+                                                   "每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
+                    return
+                if s[2] not in ['zh', 'ja', 'en']:
+                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
+                                                   "每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
+                    return
+                role = s[0]
+            config.params['gptsovits_role'] = tmp
+            self.main.settings.setValue("gptsovits_role", tmp)
+            return role
+
+        def save():
+            url = self.main.gptsovitsw.api_url.text()
+            extra = self.main.gptsovitsw.extra.text()
+            role = self.main.gptsovitsw.role.toPlainText().strip()
+
+            self.main.settings.setValue("gptsovits_role", role)
+            self.main.settings.setValue("gptsovits_url", url)
+            self.main.settings.setValue("gptsovits_extra", extra if extra else "pyvideotrans")
+
+            config.params["gptsovits_url"] = url
+            config.params["gptsovits_extra"] = extra
+            config.params["gptsovits_role"] = role
+
+            self.main.gptsovitsw.close()
+
+        from videotrans.component import GPTSoVITSForm
+        self.main.gptsovitsw = GPTSoVITSForm()
+        if config.params["gptsovits_url"]:
+            self.main.gptsovitsw.api_url.setText(config.params["gptsovits_url"])
+        if config.params["gptsovits_extra"]:
+            self.main.gptsovitsw.extra.setText(config.params["gptsovits_extra"])
+        if config.params["gptsovits_role"]:
+            self.main.gptsovitsw.role.setPlainText(config.params["gptsovits_role"])
+
+        self.main.gptsovitsw.save.clicked.connect(save)
+        self.main.gptsovitsw.test.clicked.connect(test)
+        self.main.gptsovitsw.show()
+
+    def set_cosyvoice(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None, role=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.role = role
+
+            def run(self):
+                from videotrans.tts.cosyvoice import get_voice
+                try:
+                    get_voice(text=self.text, set_p=False, role=self.role, language='zh',
+                              filename=config.homedir + "/test.wav")
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.wav")
+                QtWidgets.QMessageBox.information(self.main.cosyvoicew, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'], d)
+            self.main.cosyvoicew.test.setText('测试api')
+
+        def test():
+            url = self.main.cosyvoicew.api_url.text()
+            config.params["cosyvoice_url"] = url
+            task = TestTTS(parent=self.main.cosyvoicew,
+                           text="你好啊我的朋友",
+                           role=getrole())
+            self.main.cosyvoicew.test.setText('测试中请稍等...')
+            task.uito.connect(feed)
+            task.start()
+
+        def getrole():
+            tmp = self.main.cosyvoicew.role.toPlainText().strip()
+            role = None
+            if not tmp:
+                return role
+
+            for it in tmp.split("\n"):
+                s = it.strip().split('#')
+                if len(s) != 2:
+                    QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
+                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
+                    return
+
+                role = s[0]
+            config.params['cosyvoice_role'] = tmp
+            self.main.settings.setValue("cosyvoice_role", tmp)
+            return role
+
+        def save():
+            url = self.main.cosyvoicew.api_url.text()
+
+            role = self.main.cosyvoicew.role.toPlainText().strip()
+
+            self.main.settings.setValue("cosyvoice_role", role)
+            self.main.settings.setValue("cosyvoice_url", url)
+
+            config.params["cosyvoice_url"] = url
+
+            config.params["cosyvoice_role"] = role
+
+            self.main.cosyvoicew.close()
+
+        from videotrans.component import CosyVoiceForm
+        self.main.cosyvoicew = CosyVoiceForm()
+        if config.params["cosyvoice_url"]:
+            self.main.cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
+        if config.params["cosyvoice_role"]:
+            self.main.cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
+
+        self.main.cosyvoicew.save.clicked.connect(save)
+        self.main.cosyvoicew.test.clicked.connect(test)
+        self.main.cosyvoicew.show()
+
+    def set_fishtts(self):
+        class TestTTS(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, text=None, role=None):
+                super().__init__(parent=parent)
+                self.text = text
+                self.role = role
+
+            def run(self):
+                from videotrans.tts.fishtts import get_voice
+                try:
+                    get_voice(text=self.text, set_p=False, role=self.role,
+                              filename=config.homedir + "/test.wav")
+                    self.uito.emit("ok")
+                except Exception as e:
+                    self.uito.emit(str(e))
+
+        def feed(d):
+            if d == "ok":
+                tools.pygameaudio(config.homedir + "/test.wav")
+                QtWidgets.QMessageBox.information(self.main.fishttsw, "ok", "Test Ok")
+            else:
+                QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'], d)
+            self.main.fishttsw.test.setText('测试api')
+
+        def test():
+            url = self.main.fishttsw.api_url.text()
+            config.params["fishtts_url"] = url
+            task = TestTTS(parent=self.main.fishttsw,
+                           text="你好啊我的朋友",
+                           role=getrole())
+            self.main.fishttsw.test.setText('测试中请稍等...')
+            task.uito.connect(feed)
+            task.start()
+
+        def getrole():
+            tmp = self.main.fishttsw.role.toPlainText().strip()
+            role = None
+            if not tmp:
+                return role
+
+            for it in tmp.split("\n"):
+                s = it.strip().split('#')
+                if len(s) != 2:
+                    QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'],
+                                                   "每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容")
+                    return
+                if not s[0].endswith(".wav"):
+                    QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'],
+                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容")
+                    return
+                role = s[0]
+            config.params['fishtts_role'] = tmp
+            self.main.settings.setValue("fishtts_rolel", tmp)
+            return role
+
+        def save():
+            url = self.main.fishttsw.api_url.text()
+            role = self.main.fishttsw.role.toPlainText().strip()
+
+            self.main.settings.setValue("fishtts_role", role)
+            self.main.settings.setValue("fishtts_url", url)
+
+            config.params["fishtts_url"] = url
+            config.params["fishtts_role"] = role
+
+            self.main.fishttsw.close()
+
+        from videotrans.component import FishTTSForm
+        self.main.fishttsw = FishTTSForm()
+        if config.params["fishtts_url"]:
+            self.main.fishttsw.api_url.setText(config.params["fishtts_url"])
+        if config.params["fishtts_role"]:
+            self.main.fishttsw.role.setPlainText(config.params["fishtts_role"])
+
+        self.main.fishttsw.save.clicked.connect(save)
+        self.main.fishttsw.test.clicked.connect(test)
+        self.main.fishttsw.show()
+
+    # 识别
 
     def set_zh_recogn(self):
         class Test(QThread):
@@ -508,6 +707,373 @@ class Subform():
         self.main.zhrecognw.set.clicked.connect(save)
         self.main.zhrecognw.test.clicked.connect(test)
         self.main.zhrecognw.show()
+
+    # 分离背景音
+
+    def open_separate(self):
+        def get_file():
+            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video", config.last_opendir,
+                                                   "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
+            if fname:
+                self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def update(d):
+            # 更新
+            if d == 'succeed':
+                self.main.sepw.set.setText(config.transobj['Separate End/Restart'])
+                self.main.sepw.fromfile.setText('')
+            elif d == 'end':
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+            else:
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], d)
+
+        def start():
+            if config.separate_status == 'ing':
+                config.separate_status = 'stop'
+                self.main.sepw.set.setText(config.transobj['Start Separate'])
+                return
+            # 开始处理分离，判断是否选择了源文件
+            file = self.main.sepw.fromfile.text()
+            if not file or not os.path.exists(file):
+                QMessageBox.critical(self.main.sepw, config.transobj['anerror'],
+                                     config.transobj['must select audio or video file'])
+                return
+            self.main.sepw.set.setText(config.transobj['Start Separate...'])
+            basename = os.path.basename(file)
+            # 判断名称是否正常
+            rs, newfile, base = tools.rename_move(file, is_dir=False)
+            if rs:
+                file = newfile
+                basename = base
+            # 创建文件夹
+            out = os.path.join(outdir, basename).replace('\\', '/')
+            os.makedirs(out, exist_ok=True)
+            self.main.sepw.url.setText(out)
+            # 开始分离
+            config.separate_status = 'ing'
+            self.main.sepw.task = SeparateWorker(parent=self.main.sepw, out=out, file=file, basename=basename)
+            self.main.sepw.task.finish_event.connect(update)
+            self.main.sepw.task.start()
+
+        from videotrans.component import SeparateForm
+        try:
+            if self.main.sepw is not None:
+                self.main.sepw.show()
+                return
+            self.main.sepw = SeparateForm()
+            self.main.sepw.set.setText(config.transobj['Start Separate'])
+            outdir = os.path.join(config.homedir, 'separate').replace('\\', '/')
+            if not os.path.exists(outdir):
+                os.makedirs(outdir, exist_ok=True)
+            # 创建事件过滤器实例并将其安装到 lineEdit 上
+            self.main.sepw.url.setText(outdir)
+
+            self.main.sepw.selectfile.clicked.connect(get_file)
+
+            self.main.sepw.set.clicked.connect(start)
+            self.main.sepw.show()
+        except Exception:
+            pass
+
+    # 合并2个srt
+    def open_hebingsrt(self):
+        class CompThread(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, file1=None, file2=None):
+                super().__init__(parent=parent)
+                self.file1 = file1
+                self.file2 = file2
+                self.result_dir = config.homedir + "/Mergersrt"
+                os.makedirs(self.result_dir, exist_ok=True)
+                self.result_file = self.result_dir + "/" + os.path.splitext(os.path.basename(file1))[0] + '-plus-' + \
+                                   os.path.splitext(os.path.basename(file2))[0] + '.srt'
+
+            def run(self):
+                try:
+                    text = ""
+                    srt1_list = tools.get_subtitle_from_srt(self.file1)
+                    srt2_list = tools.get_subtitle_from_srt(self.file2)
+                    srt2_len = len(srt2_list)
+                    for i, it in enumerate(srt1_list):
+                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
+                        if i < srt2_len:
+                            text += f"\n{srt2_list[i]['text'].strip()}"
+                        text += "\n\n"
+                    with open(self.result_file, 'w', encoding="utf-8", errors="ignore") as f:
+                        f.write(text.strip())
+
+                    self.uito.emit(self.result_file)
+                except Exception as e:
+                    self.uito.emit('error:' + str(e))
+
+        def feed(d):
+            if d.startswith("error:"):
+                QtWidgets.QMessageBox.critical(self.main.hew, config.transobj['anerror'], d)
+            else:
+                self.main.hew.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
+                self.main.hew.startbtn.setDisabled(False)
+                self.main.hew.resultlabel.setText(d)
+                self.main.hew.resultbtn.setDisabled(False)
+                with open(self.main.hew.resultlabel.text(), 'r', encoding='utf-8') as f:
+                    self.main.hew.resultinput.setPlainText(f.read())
+
+        def get_file(inputname):
+            fname, _ = QFileDialog.getOpenFileName(self.main.hew, "Select subtitles srt", config.last_opendir,
+                                                   "files(*.srt)")
+            if fname:
+                if inputname == 1:
+                    self.main.hew.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                else:
+                    self.main.hew.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def start():
+            # 开始处理分离，判断是否选择了源文件
+            srt1 = self.main.hew.srtinput1.text()
+            srt2 = self.main.hew.srtinput2.text()
+            if not srt1 or not srt2:
+                QMessageBox.critical(self.main.hew, config.transobj['anerror'],
+                                     '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
+                return
+
+            self.main.hew.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
+            self.main.hew.startbtn.setDisabled(True)
+            self.main.hew.resultbtn.setDisabled(True)
+            self.main.hew.resultinput.setPlainText("")
+
+            task = CompThread(parent=self.main.hew, file1=srt1, file2=srt2)
+
+            task.uito.connect(feed)
+            task.start()
+
+        def opendir():
+            filepath = self.main.hew.resultlabel.text()
+            if not filepath:
+                return QMessageBox.critical(self.main.hew, config.transobj['anerror'],
+                                            '尚未生成合并字幕' if config.defaulelang == 'zh' else 'Combined subtitles not yet generated')
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
+
+        from videotrans.component import HebingsrtForm
+        try:
+            print('###')
+            if self.main.hew is not None:
+                self.main.hew.show()
+                return
+            self.main.hew = HebingsrtForm()
+            self.main.hew.srtbtn1.clicked.connect(lambda: get_file(1))
+            self.main.hew.srtbtn2.clicked.connect(lambda: get_file(2))
+
+            self.main.hew.resultbtn.clicked.connect(opendir)
+            self.main.hew.startbtn.clicked.connect(start)
+            self.main.hew.show()
+        except Exception:
+            pass
+
+    # 设置每行角色
+    def set_line_role_fun(self):
+        def get_checked_boxes(widget):
+            checked_boxes = []
+            for child in widget.children():
+                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
+                    checked_boxes.append(child.objectName())
+                else:
+                    checked_boxes.extend(get_checked_boxes(child))
+            return checked_boxes
+
+        def save(role):
+            # 初始化一个列表，用于存放所有选中 checkbox 的名字
+            checked_checkbox_names = get_checked_boxes(self.main.row)
+
+            if len(checked_checkbox_names) < 1:
+                return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
+                                                      config.transobj['zhishaoxuanzeyihang'])
+
+            for n in checked_checkbox_names:
+                _, line = n.split('_')
+                # 设置labe为角色名
+                ck = self.main.row.findChild(QtWidgets.QCheckBox, n)
+                ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
+                ck.setChecked(False)
+                config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
+
+        from videotrans.component import SetLineRole
+        self.main.row = SetLineRole()
+        box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
+        box.setLayout(QtWidgets.QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
+        if config.params['voice_role'] in ['No', '-', 'no']:
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
+                                                  config.transobj['xianxuanjuese'])
+        if not self.main.subtitle_area.toPlainText().strip():
+            return QtWidgets.QMessageBox.critical(self.main.row, config.transobj['anerror'],
+                                                  config.transobj['youzimuyouset'])
+
+        #  获取字幕
+        srt_json = tools.get_subtitle_from_srt(self.main.subtitle_area.toPlainText().strip(), is_file=False)
+        for it in srt_json:
+            # 创建新水平布局
+            h_layout = QtWidgets.QHBoxLayout()
+            check = QtWidgets.QCheckBox()
+            check.setText(
+                config.params['line_roles'][f'{it["line"]}'] if f'{it["line"]}' in config.params['line_roles'] else
+                config.transobj['default'])
+            check.setObjectName(f'check_{it["line"]}')
+            # 创建并配置 QLineEdit
+            line_edit = QtWidgets.QLineEdit()
+            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
+
+            line_edit.setText(f'[{it["line"]}] {it["text"]}')
+            line_edit.setReadOnly(True)
+            # 将标签和编辑线添加到水平布局
+            h_layout.addWidget(check)
+            h_layout.addWidget(line_edit)
+            box.layout().addLayout(h_layout)
+        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.main.row.select_role.addItems(self.main.current_rolelist)
+        self.main.row.set_role_label.setText(config.transobj['shezhijuese'])
+
+        self.main.row.select_role.currentTextChanged.connect(save)
+        # 创建 QScrollArea 并将 box QWidget 设置为小部件
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidget(box)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 将 QScrollArea 添加到主窗口的 layout
+        self.main.row.layout.addWidget(scroll_area)
+
+        self.main.row.set_ok.clicked.connect(lambda: self.main.row.close())
+        self.main.row.show()
+
+    # 下载
+    def open_youtube(self):
+        def download():
+            proxy = self.main.youw.proxy.text().strip()
+            outdir = self.main.youw.outputdir.text()
+            url = self.main.youw.url.text().strip()
+            vid = self.main.youw.formatname.isChecked()
+            if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
+                QtWidgets.QMessageBox.critical(self.main.youw, config.transobj['anerror'],
+                                               config.transobj[
+                                                   'You must fill in the YouTube video playback page address'])
+                return
+            self.main.settings.setValue("youtube_outdir", outdir)
+            if proxy:
+                config.proxy = proxy
+                self.main.settings.setValue("proxy", proxy)
+            from videotrans.task.download_youtube import Download
+            down = Download(proxy=proxy, url=url, out=outdir, parent=self.main, vid=vid)
+            down.start()
+            self.main.youw.set.setText(config.transobj["downing..."])
+
+        def selectdir():
+            dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, "Select Dir", outdir).replace('\\', '/')
+            self.main.youw.outputdir.setText(dirname)
+
+        from videotrans.component import YoutubeForm
+        self.main.youw = YoutubeForm()
+        self.main.youw.set.setText(config.transobj['start download'])
+        self.main.youw.selectdir.setText(config.transobj['Select Out Dir'])
+        outdir = config.params['youtube_outdir'] if 'youtube_outdir' in config.params else os.path.join(config.homedir,
+                                                                                                        'youtube').replace(
+            '\\', '/')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir, exist_ok=True)
+        # 创建事件过滤器实例并将其安装到 lineEdit 上
+
+        self.main.youw.outputdir.setText(outdir)
+        if config.proxy:
+            self.main.youw.proxy.setText(config.proxy)
+        self.main.youw.selectdir.clicked.connect(selectdir)
+
+        self.main.youw.set.clicked.connect(download)
+        self.main.youw.show()
+
+    # 高级设置
+    def open_setini(self):
+        def save():
+            # 创建一个空字典来存储结果
+            line_edit_dict = {}
+
+            # 使用findChildren方法查找所有QLineEdit控件
+            line_edits = self.main.setiniw.findChildren(QLineEdit)
+            # 遍历找到的所有QLineEdit控件
+            for line_edit in line_edits:
+                # 检查QLineEdit是否有objectName
+                if hasattr(line_edit, 'objectName') and line_edit.objectName():
+                    name=line_edit.objectName()
+                    # 将objectName作为key，text作为value添加到字典中
+                    line_edit_dict[name] = line_edit.text()
+            try:
+                json.dump(line_edit_dict, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),ensure_ascii=False)
+            except Exception as e:
+                return QtWidgets.QMessageBox.critical(self.main.setiniw, config.transobj['anerror'], str(e))
+            else:
+                config.settings = line_edit_dict
+
+            self.main.setiniw.close()
+        def alert(btn):
+            name=btn.objectName()[4:]
+            QMessageBox.information(self.main.setiniw,f'Help {name}',self.main.setiniw.notices[name])
+
+        from videotrans.component import SetINIForm
+        self.main.setiniw = SetINIForm()
+        for button in self.main.setiniw.findChildren(QPushButton):
+            if button.objectName().startswith('btn_'):
+                # 绑定clicked事件，lambda表达式传递按钮本身
+                button.clicked.connect(lambda checked, btn=button: alert(btn))
+
+        self.main.setiniw.set_ok.clicked.connect(save)
+        self.main.setiniw.show()
+
+    # 翻译
+
+    # set deepl key
+    def set_deepL_key(self):
+        def save():
+            key = self.main.dlw.deepl_authkey.text()
+            api = self.main.dlw.deepl_api.text().strip()
+            self.main.settings.setValue("deepl_authkey", key)
+            config.params['deepl_authkey'] = key
+            self.main.settings.setValue("deepl_api", api)
+            config.params['deepl_api'] = api
+            self.main.dlw.close()
+
+        from videotrans.component import DeepLForm
+        self.main.dlw = DeepLForm()
+        if config.params['deepl_authkey']:
+            self.main.dlw.deepl_authkey.setText(config.params['deepl_authkey'])
+        if config.params['deepl_api']:
+            self.main.dlw.deepl_api.setText(config.params['deepl_api'])
+        self.main.dlw.set_deepl.clicked.connect(save)
+        self.main.dlw.show()
+
+    def set_deepLX_address(self):
+        def save():
+            key = self.main.dexw.deeplx_address.text()
+            self.main.settings.setValue("deeplx_address", key)
+            config.params["deeplx_address"] = key
+            self.main.dexw.close()
+
+        from videotrans.component import DeepLXForm
+        self.main.dexw = DeepLXForm()
+        if config.params["deeplx_address"]:
+            self.main.dexw.deeplx_address.setText(config.params["deeplx_address"])
+        self.main.dexw.set_deeplx.clicked.connect(save)
+        self.main.dexw.show()
+
+    def set_ott_address(self):
+        def save():
+            key = self.main.ow.ott_address.text()
+            self.main.settings.setValue("ott_address", key)
+            config.params["ott_address"] = key
+            self.main.ow.close()
+
+        from videotrans.component import OttForm
+        self.main.ow = OttForm()
+        if config.params["ott_address"]:
+            self.main.ow.ott_address.setText(config.params["ott_address"])
+        self.main.ow.set_ott.clicked.connect(save)
+        self.main.ow.show()
 
     # set baidu
     def set_baidu_key(self):
@@ -609,6 +1175,9 @@ class Subform():
             self.main.settings.setValue("chatgpt_model", model)
             self.main.settings.setValue("chatgpt_template", template)
 
+            with open(config.rootdir + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
+                      encoding='utf-8') as f:
+                f.write(template)
             os.environ['OPENAI_API_KEY'] = key
             config.params["chatgpt_key"] = key
             config.params["chatgpt_api"] = api
@@ -617,20 +1186,37 @@ class Subform():
 
             self.main.w.close()
 
+        def setallmodels():
+            t = self.main.w.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.w.chatgpt_model.currentText()
+            self.main.w.chatgpt_model.clear()
+            self.main.w.chatgpt_model.addItems([x for x in t.split(',') if x.strip()])
+            if current_text:
+                self.main.w.chatgpt_model.setCurrentText(current_text)
+            config.settings['chatgpt_model'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+
         from videotrans.component import ChatgptForm
         self.main.w = ChatgptForm()
+        allmodels_str = config.settings['chatgpt_model']
+        allmodels = config.settings['chatgpt_model'].split(',')
+        self.main.w.chatgpt_model.clear()
+        self.main.w.chatgpt_model.addItems(allmodels)
+        self.main.w.edit_allmodels.setPlainText(allmodels_str)
+
         if config.params["chatgpt_key"]:
             self.main.w.chatgpt_key.setText(config.params["chatgpt_key"])
         if config.params["chatgpt_api"]:
             self.main.w.chatgpt_api.setText(config.params["chatgpt_api"])
-        if config.params["chatgpt_model"]:
+        if config.params["chatgpt_model"] and config.params['chatgpt_model'] in allmodels:
             self.main.w.chatgpt_model.setCurrentText(config.params["chatgpt_model"])
         if config.params["chatgpt_template"]:
             self.main.w.chatgpt_template.setPlainText(config.params["chatgpt_template"])
+
         self.main.w.set_chatgpt.clicked.connect(save_chatgpt)
         self.main.w.test_chatgpt.clicked.connect(test)
+        self.main.w.edit_allmodels.textChanged.connect(setallmodels)
         self.main.w.show()
-
 
     def set_ai302_key(self):
         class TestAI302(QThread):
@@ -644,7 +1230,7 @@ class Subform():
                     from videotrans.translator.ai302 import trans as trans_ai302
                     raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
                     text = trans_ai302(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
-                                         is_test=True)
+                                       is_test=True)
                     self.uito.emit(f"ok:{raw}\n{text}")
                 except Exception as e:
                     self.uito.emit(str(e))
@@ -687,26 +1273,28 @@ class Subform():
             config.params["ai302_key"] = key
             config.params["ai302_model"] = model
             config.params["ai302_template"] = template
-
+            with open(config.rootdir + f"/videotrans/302ai.txt", 'w', encoding='utf-8') as f:
+                f.write(template)
             self.main.ai302fyw.close()
+
         def setallmodels():
-            t=self.main.ai302fyw.edit_allmodels.toPlainText().strip().replace('，',',').rstrip(',')
-            current_text=self.main.ai302fyw.ai302_model.currentText()
+            t = self.main.ai302fyw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.ai302fyw.ai302_model.currentText()
             self.main.ai302fyw.ai302_model.clear()
             self.main.ai302fyw.ai302_model.addItems([x for x in t.split(',') if x.strip()])
-            self.main.ai302fyw.ai302_model.setCurrentText(current_text)
-            jsdata = json.load(open(config.rootdir + '/videotrans/cfg.json', 'r', encoding='utf-8'))
-            jsdata['ai302_models']=t
-            json.dump(jsdata,open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'))
-
-
+            if current_text:
+                self.main.ai302fyw.ai302_model.setCurrentText(current_text)
+            config.settings['ai302_models'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
 
         from videotrans.component import AI302Form
         self.main.ai302fyw = AI302Form()
-        jsdata = json.load(open(config.rootdir + '/videotrans/cfg.json', 'r', encoding='utf-8'))
-        allmodels = jsdata['ai302_models'].split(',') if 'ai302_models' in jsdata else {}
+        allmodels_str = config.settings['ai302_models']
+        allmodels = config.settings['ai302_models'].split(',')
+
+        self.main.ai302fyw.ai302_model.clear()
         self.main.ai302fyw.ai302_model.addItems(allmodels)
-        self.main.ai302fyw.edit_allmodels.setPlainText(jsdata['ai302_models'])
+        self.main.ai302fyw.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params["ai302_key"]:
             self.main.ai302fyw.ai302_key.setText(config.params["ai302_key"])
@@ -717,11 +1305,9 @@ class Subform():
         self.main.ai302fyw.edit_allmodels.textChanged.connect(setallmodels)
         self.main.ai302fyw.set_ai302.clicked.connect(save_ai302)
         self.main.ai302fyw.test_ai302.clicked.connect(test)
-        self.main.ai302fyw.label_0.clicked.connect(lambda :webbrowser.open_new_tab("https://302.ai"))
-        self.main.ai302fyw.label_01.clicked.connect(lambda :webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
+        self.main.ai302fyw.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
+        self.main.ai302fyw.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
         self.main.ai302fyw.show()
-
-
 
     def set_localllm_key(self):
         class TestLocalLLM(QThread):
@@ -788,19 +1374,38 @@ class Subform():
             config.params["localllm_api"] = api
             config.params["localllm_model"] = model
             config.params["localllm_template"] = template
+            with open(config.rootdir + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
+                      encoding='utf-8') as f:
+                f.write(template)
 
             self.main.llmw.close()
 
+        def setallmodels():
+            t = self.main.llmw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.llmw.localllm_model.currentText()
+            self.main.llmw.localllm_model.clear()
+            self.main.llmw.localllm_model.addItems([x for x in t.split(',') if x.strip()])
+            if current_text:
+                self.main.llmw.localllm_model.setCurrentText(current_text)
+            config.settings['localllm_model'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+
         from videotrans.component import LocalLLMForm
         self.main.llmw = LocalLLMForm()
+        allmodels_str = config.settings['localllm_model']
+        allmodels = config.settings['localllm_model'].split(',')
+        self.main.llmw.localllm_model.clear()
+        self.main.llmw.localllm_model.addItems(allmodels)
+        self.main.llmw.edit_allmodels.setPlainText(allmodels_str)
         if config.params["localllm_key"]:
             self.main.llmw.localllm_key.setText(config.params["localllm_key"])
         if config.params["localllm_api"]:
             self.main.llmw.localllm_api.setText(config.params["localllm_api"])
-        if config.params["localllm_model"]:
+        if config.params["localllm_model"] and config.params["localllm_model"] in allmodels:
             self.main.llmw.localllm_model.setCurrentText(config.params["localllm_model"])
         if config.params["localllm_template"]:
             self.main.llmw.localllm_template.setPlainText(config.params["localllm_template"])
+        self.main.llmw.edit_allmodels.textChanged.connect(setallmodels)
         self.main.llmw.set_localllm.clicked.connect(save_localllm)
         self.main.llmw.test_localllm.clicked.connect(test)
         self.main.llmw.show()
@@ -861,140 +1466,123 @@ class Subform():
             config.params["zijiehuoshan_key"] = key
             config.params["zijiehuoshan_model"] = model
             config.params["zijiehuoshan_template"] = template
+            with open(config.rootdir + f"/videotrans/zijie.txt", 'w', encoding='utf-8') as f:
+                f.write(template)
 
             self.main.zijiew.close()
 
+        def setallmodels():
+            t = self.main.zijiew.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            t_list= [x for x in t.split(',') if x.strip()]
+            current_text = self.main.zijiew.zijiehuoshan_model.currentText()
+            self.main.zijiew.zijiehuoshan_model.clear()
+            self.main.zijiew.zijiehuoshan_model.addItems(t_list)
+            if current_text:
+                self.main.zijiew.zijiehuoshan_model.setCurrentText(current_text)
+            config.settings['zijiehuoshan_model'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+
         from videotrans.component import ZijiehuoshanForm
         self.main.zijiew = ZijiehuoshanForm()
+        allmodels_str = config.settings['zijiehuoshan_model']
+        allmodels = config.settings['zijiehuoshan_model'].split(',')
+        self.main.zijiew.zijiehuoshan_model.clear()
+        self.main.zijiew.zijiehuoshan_model.addItems(allmodels)
+        self.main.zijiew.edit_allmodels.setPlainText(allmodels_str)
         if config.params["zijiehuoshan_key"]:
             self.main.zijiew.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
         else:
-            self.main.settings.setValue('zijiehuoshan_key','')
-        if config.params["zijiehuoshan_model"]:
-            print('11')
+            self.main.settings.setValue('zijiehuoshan_key', '')
+        if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
             self.main.zijiew.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
         else:
-            print('22')
-            self.main.settings.setValue('zijiehuoshan_model','')
+            self.main.settings.setValue('zijiehuoshan_model', '')
 
         if config.params["zijiehuoshan_template"]:
             self.main.zijiew.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
+        self.main.zijiew.edit_allmodels.textChanged.connect(setallmodels)
         self.main.zijiew.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
         self.main.zijiew.test_zijiehuoshan.clicked.connect(test)
         self.main.zijiew.show()
 
-
-
-    def set_doubao(self):
-
+    def set_gemini_key(self):
         def save():
-            appid = self.main.doubaow.doubao_appid.text()
+            key = self.main.gw.gemini_key.text()
+            template = self.main.gw.gemini_template.toPlainText()
+            self.main.settings.setValue("gemini_key", key)
+            self.main.settings.setValue("gemini_template", template)
 
-            access = self.main.doubaow.doubao_access.text()
-            config.params["doubao_appid"] = appid
-            config.params["doubao_access"] = access
-            self.main.settings.setValue('doubao_access',access)
-            self.main.settings.setValue('doubao_appid',appid)
+            os.environ['GOOGLE_API_KEY'] = key
+            config.params["gemini_key"] = key
+            config.params["gemini_template"] = template
+            with open(config.rootdir + f"/videotrans/gemini{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
+                      encoding='utf-8') as f:
+                f.write(template)
+            self.main.gw.close()
 
-            self.main.doubaow.close()
+        from videotrans.component import GeminiForm
+        self.main.gw = GeminiForm()
+        if config.params["gemini_key"]:
+            self.main.gw.gemini_key.setText(config.params["gemini_key"])
+        if config.params["gemini_template"]:
+            self.main.gw.gemini_template.setPlainText(config.params["gemini_template"])
+        self.main.gw.set_gemini.clicked.connect(save)
+        self.main.gw.show()
 
-        from videotrans.component import DoubaoForm
-        self.main.doubaow = DoubaoForm()
-        if config.params["doubao_appid"]:
-            self.main.doubaow.doubao_appid.setText(config.params["doubao_appid"])
-        else:
-            self.main.settings.setValue('doubao_appid','')
-        if config.params["doubao_access"]:
-            print('11')
-            self.main.doubaow.doubao_access.setText(config.params["doubao_access"])
-        else:
-            print('22')
-            self.main.settings.setValue('doubao_access','')
-
-        self.main.doubaow.set_save.clicked.connect(save)
-        self.main.doubaow.show()
-
-
-    def set_ttsapi(self):
-        class TestTTS(QThread):
-            uito = Signal(str)
-
-            def __init__(self, *, parent=None, text=None, language=None, rate="+0%", role=None):
-                super().__init__(parent=parent)
-                self.text = text
-                self.language = language
-                self.rate = rate
-                self.role = role
-
-            def run(self):
-
-                from videotrans.tts.ttsapi import get_voice
-                try:
-
-                    get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
-                              filename=config.homedir + "/test.mp3")
-
-                    self.uito.emit("ok")
-                except Exception as e:
-                    self.uito.emit(str(e))
-
-        def feed(d):
-            if d == "ok":
-                tools.pygameaudio(config.homedir + "/test.mp3")
-                QtWidgets.QMessageBox.information(self.main.ttsapiw, "ok", "Test Ok")
-            else:
-                QtWidgets.QMessageBox.critical(self.main.ttsapiw, config.transobj['anerror'], d)
-            self.main.ttsapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
-
-        def test():
-            url = self.main.ttsapiw.api_url.text()
-            extra = self.main.ttsapiw.extra.text()
-            role = self.main.ttsapiw.voice_role.text().strip()
-
-            self.main.settings.setValue("ttsapi_url", url)
-            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
-            self.main.settings.setValue("ttsapi_voice_role", role)
-
-            config.params["ttsapi_url"] = url
-            config.params["ttsapi_extra"] = extra
-            config.params["ttsapi_voice_role"] = role
-
-            task = TestTTS(parent=self.main.ttsapiw,
-                           text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
-                           role=self.main.ttsapiw.voice_role.text().strip().split(',')[0],
-                           language="zh-cn" if config.defaulelang == 'zh' else 'en')
-            self.main.ttsapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
-            task.uito.connect(feed)
-            task.start()
-
+    def set_azure_key(self):
         def save():
-            url = self.main.ttsapiw.api_url.text()
-            extra = self.main.ttsapiw.extra.text()
-            role = self.main.ttsapiw.voice_role.text().strip()
+            key = self.main.azw.azure_key.text()
+            api = self.main.azw.azure_api.text()
+            model = self.main.azw.azure_model.currentText()
+            template = self.main.azw.azure_template.toPlainText()
+            self.main.settings.setValue("azure_key", key)
+            self.main.settings.setValue("azure_api", api)
 
-            self.main.settings.setValue("ttsapi_url", url)
-            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
-            self.main.settings.setValue("ttsapi_voice_role", role)
+            self.main.settings.setValue("azure_model", model)
+            self.main.settings.setValue("azure_template", template)
 
-            config.params["ttsapi_url"] = url
-            config.params["ttsapi_extra"] = extra
-            config.params["ttsapi_voice_role"] = role
-            self.main.ttsapiw.close()
+            config.params["azure_key"] = key
+            config.params["azure_api"] = api
+            config.params["azure_model"] = model
+            config.params["azure_template"] = template
+            with open(config.rootdir + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
+                      encoding='utf-8') as f:
+                f.write(template)
+            self.main.azw.close()
 
-        from videotrans.component import TtsapiForm
-        self.main.ttsapiw = TtsapiForm()
-        if config.params["ttsapi_url"]:
-            self.main.ttsapiw.api_url.setText(config.params["ttsapi_url"])
-        if config.params["ttsapi_voice_role"]:
-            self.main.ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
-        if config.params["ttsapi_extra"]:
-            self.main.ttsapiw.extra.setText(config.params["ttsapi_extra"])
+        def setallmodels():
+            t = self.main.azw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.azw.azure_model.currentText()
+            self.main.azw.azure_model.clear()
+            print([x for x in t.split(',') if x.strip()])
+            self.main.azw.azure_model.addItems([x for x in t.split(',') if x.strip()])
+            if current_text:
+                self.main.azw.azure_model.setCurrentText(current_text)
+            config.settings['azure_model'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
 
-        self.main.ttsapiw.save.clicked.connect(save)
-        self.main.ttsapiw.test.clicked.connect(test)
-        self.main.ttsapiw.otherlink.clicked.connect(lambda: self.main.util.open_url('openvoice'))
-        self.main.ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
-        self.main.ttsapiw.show()
+        from videotrans.component import AzureForm
+        self.main.azw = AzureForm()
+        allmodels_str = config.settings['azure_model']
+        allmodels = config.settings['azure_model'].split(',')
+        print(f'{allmodels=}')
+        print(f'{config.params["azure_model"]=}')
+        self.main.azw.azure_model.clear()
+        self.main.azw.azure_model.addItems(allmodels)
+        self.main.azw.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["azure_key"]:
+            self.main.azw.azure_key.setText(config.params["azure_key"])
+        if config.params["azure_api"]:
+            self.main.azw.azure_api.setText(config.params["azure_api"])
+        if config.params["azure_model"] and config.params['azure_model'] in allmodels:
+            self.main.azw.azure_model.setCurrentText(config.params["azure_model"])
+        if config.params["azure_template"]:
+            self.main.azw.azure_template.setPlainText(config.params["azure_template"])
+
+        self.main.azw.edit_allmodels.textChanged.connect(setallmodels)
+        self.main.azw.set_azure.clicked.connect(save)
+        self.main.azw.show()
 
     def set_transapi(self):
         class Test(QThread):
@@ -1055,465 +1643,3 @@ class Subform():
         self.main.transapiw.save.clicked.connect(save)
         self.main.transapiw.test.clicked.connect(test)
         self.main.transapiw.show()
-
-    def set_gptsovits(self):
-        class TestTTS(QThread):
-            uito = Signal(str)
-
-            def __init__(self, *, parent=None, text=None, language=None, role=None):
-                super().__init__(parent=parent)
-                self.text = text
-                self.language = language
-                self.role = role
-
-            def run(self):
-                from videotrans.tts.gptsovits import get_voice
-                try:
-                    get_voice(text=self.text, language=self.language, set_p=False, role=self.role,
-                              filename=config.homedir + "/test.wav")
-                    self.uito.emit("ok")
-                except Exception as e:
-                    self.uito.emit(str(e))
-
-        def feed(d):
-            if d == "ok":
-                tools.pygameaudio(config.homedir + "/test.wav")
-                QtWidgets.QMessageBox.information(self.main.gptsovitsw, "ok", "Test Ok")
-            else:
-                QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'], d)
-            self.main.gptsovitsw.test.setText('测试api')
-
-        def test():
-            url = self.main.gptsovitsw.api_url.text()
-            config.params["gptsovits_url"] = url
-            task = TestTTS(parent=self.main.gptsovitsw,
-                           text="你好啊我的朋友",
-                           role=getrole(),
-                           language="zh")
-            self.main.gptsovitsw.test.setText('测试中请稍等...')
-            task.uito.connect(feed)
-            task.start()
-
-        def getrole():
-            tmp = self.main.gptsovitsw.role.toPlainText().strip()
-            role = None
-            if not tmp:
-                return role
-
-            for it in tmp.split("\n"):
-                s = it.strip().split('#')
-                if len(s) != 3:
-                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                                   "每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
-                    return
-                if not s[0].endswith(".wav"):
-                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                                   "每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
-                    return
-                if s[2] not in ['zh', 'ja', 'en']:
-                    QtWidgets.QMessageBox.critical(self.main.gptsovitsw, config.transobj['anerror'],
-                                                   "每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
-                    return
-                role = s[0]
-            config.params['gptsovits_role'] = tmp
-            self.main.settings.setValue("gptsovits_role", tmp)
-            return role
-
-        def save():
-            url = self.main.gptsovitsw.api_url.text()
-            extra = self.main.gptsovitsw.extra.text()
-            role = self.main.gptsovitsw.role.toPlainText().strip()
-
-            self.main.settings.setValue("gptsovits_role", role)
-            self.main.settings.setValue("gptsovits_url", url)
-            self.main.settings.setValue("gptsovits_extra", extra if extra else "pyvideotrans")
-
-            config.params["gptsovits_url"] = url
-            config.params["gptsovits_extra"] = extra
-            config.params["gptsovits_role"] = role
-
-            self.main.gptsovitsw.close()
-
-        from videotrans.component import GPTSoVITSForm
-        self.main.gptsovitsw = GPTSoVITSForm()
-        if config.params["gptsovits_url"]:
-            self.main.gptsovitsw.api_url.setText(config.params["gptsovits_url"])
-        if config.params["gptsovits_extra"]:
-            self.main.gptsovitsw.extra.setText(config.params["gptsovits_extra"])
-        if config.params["gptsovits_role"]:
-            self.main.gptsovitsw.role.setPlainText(config.params["gptsovits_role"])
-
-        self.main.gptsovitsw.save.clicked.connect(save)
-        self.main.gptsovitsw.test.clicked.connect(test)
-        self.main.gptsovitsw.show()
-
-    def set_cosyvoice(self):
-        class TestTTS(QThread):
-            uito = Signal(str)
-
-            def __init__(self, *, parent=None, text=None,  role=None):
-                super().__init__(parent=parent)
-                self.text = text
-                self.role = role
-
-            def run(self):
-                from videotrans.tts.cosyvoice import get_voice
-                try:
-                    get_voice(text=self.text, set_p=False, role=self.role,language='zh',
-                              filename=config.homedir + "/test.wav")
-                    self.uito.emit("ok")
-                except Exception as e:
-                    self.uito.emit(str(e))
-
-        def feed(d):
-            if d == "ok":
-                tools.pygameaudio(config.homedir + "/test.wav")
-                QtWidgets.QMessageBox.information(self.main.cosyvoicew, "ok", "Test Ok")
-            else:
-                QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'], d)
-            self.main.cosyvoicew.test.setText('测试api')
-
-        def test():
-            url = self.main.cosyvoicew.api_url.text()
-            config.params["cosyvoice_url"] = url
-            task = TestTTS(parent=self.main.cosyvoicew,
-                           text="你好啊我的朋友",
-                           role=getrole())
-            self.main.cosyvoicew.test.setText('测试中请稍等...')
-            task.uito.connect(feed)
-            task.start()
-
-        def getrole():
-            tmp = self.main.cosyvoicew.role.toPlainText().strip()
-            role = None
-            if not tmp:
-                return role
-
-            for it in tmp.split("\n"):
-                s = it.strip().split('#')
-                if len(s) !=2:
-                    QtWidgets.QMessageBox.critical(self.main.cosyvoicew, config.transobj['anerror'],
-                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
-                    return
-
-                role = s[0]
-            config.params['cosyvoice_role'] = tmp
-            self.main.settings.setValue("cosyvoice_role", tmp)
-            return role
-
-        def save():
-            url = self.main.cosyvoicew.api_url.text()
-
-            role = self.main.cosyvoicew.role.toPlainText().strip()
-
-            self.main.settings.setValue("cosyvoice_role", role)
-            self.main.settings.setValue("cosyvoice_url", url)
-
-
-            config.params["cosyvoice_url"] = url
-
-            config.params["cosyvoice_role"] = role
-
-            self.main.cosyvoicew.close()
-
-        from videotrans.component import CosyVoiceForm
-        self.main.cosyvoicew = CosyVoiceForm()
-        if config.params["cosyvoice_url"]:
-            self.main.cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
-        if config.params["cosyvoice_role"]:
-            self.main.cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
-
-        self.main.cosyvoicew.save.clicked.connect(save)
-        self.main.cosyvoicew.test.clicked.connect(test)
-        self.main.cosyvoicew.show()
-
-    def set_fishtts(self):
-        class TestTTS(QThread):
-            uito = Signal(str)
-
-            def __init__(self, *, parent=None, text=None, role=None):
-                super().__init__(parent=parent)
-                self.text = text
-                self.role = role
-
-            def run(self):
-                from videotrans.tts.fishtts import get_voice
-                try:
-                    get_voice(text=self.text, set_p=False, role=self.role,
-                              filename=config.homedir + "/test.wav")
-                    self.uito.emit("ok")
-                except Exception as e:
-                    self.uito.emit(str(e))
-
-        def feed(d):
-            if d == "ok":
-                tools.pygameaudio(config.homedir + "/test.wav")
-                QtWidgets.QMessageBox.information(self.main.fishttsw, "ok", "Test Ok")
-            else:
-                QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'], d)
-            self.main.fishttsw.test.setText('测试api')
-
-        def test():
-            url = self.main.fishttsw.api_url.text()
-            config.params["fishtts_url"] = url
-            task = TestTTS(parent=self.main.fishttsw,
-                           text="你好啊我的朋友",
-                           role=getrole())
-            self.main.fishttsw.test.setText('测试中请稍等...')
-            task.uito.connect(feed)
-            task.start()
-
-        def getrole():
-            tmp = self.main.fishttsw.role.toPlainText().strip()
-            role = None
-            if not tmp:
-                return role
-
-            for it in tmp.split("\n"):
-                s = it.strip().split('#')
-                if len(s) != 2:
-                    QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'],
-                                                   "每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容")
-                    return
-                if not s[0].endswith(".wav"):
-                    QtWidgets.QMessageBox.critical(self.main.fishttsw, config.transobj['anerror'],
-                                                   "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容")
-                    return
-                role = s[0]
-            config.params['fishtts_role'] = tmp
-            self.main.settings.setValue("fishtts_rolel", tmp)
-            return role
-
-        def save():
-            url = self.main.fishttsw.api_url.text()
-            role = self.main.fishttsw.role.toPlainText().strip()
-
-            self.main.settings.setValue("fishtts_role", role)
-            self.main.settings.setValue("fishtts_url", url)
-
-            config.params["fishtts_url"] = url
-            config.params["fishtts_role"] = role
-
-            self.main.fishttsw.close()
-
-        from videotrans.component import FishTTSForm
-        self.main.fishttsw = FishTTSForm()
-        if config.params["fishtts_url"]:
-            self.main.fishttsw.api_url.setText(config.params["fishtts_url"])
-        if config.params["fishtts_role"]:
-            self.main.fishttsw.role.setPlainText(config.params["fishtts_role"])
-
-        self.main.fishttsw.save.clicked.connect(save)
-        self.main.fishttsw.test.clicked.connect(test)
-        self.main.fishttsw.show()
-
-
-    def set_gemini_key(self):
-        def save():
-            key = self.main.gw.gemini_key.text()
-            template = self.main.gw.gemini_template.toPlainText()
-            self.main.settings.setValue("gemini_key", key)
-            self.main.settings.setValue("gemini_template", template)
-
-            os.environ['GOOGLE_API_KEY'] = key
-            config.params["gemini_key"] = key
-            config.params["gemini_template"] = template
-            self.main.gw.close()
-
-        from videotrans.component import GeminiForm
-        self.main.gw = GeminiForm()
-        if config.params["gemini_key"]:
-            self.main.gw.gemini_key.setText(config.params["gemini_key"])
-        if config.params["gemini_template"]:
-            self.main.gw.gemini_template.setPlainText(config.params["gemini_template"])
-        self.main.gw.set_gemini.clicked.connect(save)
-        self.main.gw.show()
-
-    def set_azure_key(self):
-        def save():
-            key = self.main.azw.azure_key.text()
-            api = self.main.azw.azure_api.text()
-            model = self.main.azw.azure_model.currentText()
-            template = self.main.azw.azure_template.toPlainText()
-            self.main.settings.setValue("azure_key", key)
-            self.main.settings.setValue("azure_api", api)
-
-            self.main.settings.setValue("azure_model", model)
-            self.main.settings.setValue("azure_template", template)
-
-            config.params["azure_key"] = key
-            config.params["azure_api"] = api
-            config.params["azure_model"] = model
-            config.params["azure_template"] = template
-            self.main.azw.close()
-
-        from videotrans.component import AzureForm
-        self.main.azw = AzureForm()
-        if config.params["azure_key"]:
-            self.main.azw.azure_key.setText(config.params["azure_key"])
-        if config.params["azure_api"]:
-            self.main.azw.azure_api.setText(config.params["azure_api"])
-        if config.params["azure_model"]:
-            self.main.azw.azure_model.setCurrentText(config.params["azure_model"])
-        if config.params["azure_template"]:
-            self.main.azw.azure_template.setPlainText(config.params["azure_template"])
-        self.main.azw.set_azure.clicked.connect(save)
-        self.main.azw.show()
-
-    def open_separate(self):
-        def get_file():
-            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video", config.last_opendir,
-                                                   "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
-            if fname:
-                self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
-
-        def update(d):
-            # 更新
-            if d == 'succeed':
-                self.main.sepw.set.setText(config.transobj['Separate End/Restart'])
-                self.main.sepw.fromfile.setText('')
-            elif d == 'end':
-                self.main.sepw.set.setText(config.transobj['Start Separate'])
-            else:
-                QMessageBox.critical(self.main.sepw, config.transobj['anerror'], d)
-
-        def start():
-            if config.separate_status == 'ing':
-                config.separate_status = 'stop'
-                self.main.sepw.set.setText(config.transobj['Start Separate'])
-                return
-            # 开始处理分离，判断是否选择了源文件
-            file = self.main.sepw.fromfile.text()
-            if not file or not os.path.exists(file):
-                QMessageBox.critical(self.main.sepw, config.transobj['anerror'],
-                                     config.transobj['must select audio or video file'])
-                return
-            self.main.sepw.set.setText(config.transobj['Start Separate...'])
-            basename = os.path.basename(file)
-            # 判断名称是否正常
-            rs, newfile, base = tools.rename_move(file, is_dir=False)
-            if rs:
-                file = newfile
-                basename = base
-            # 创建文件夹
-            out = os.path.join(outdir, basename).replace('\\', '/')
-            os.makedirs(out, exist_ok=True)
-            self.main.sepw.url.setText(out)
-            # 开始分离
-            config.separate_status = 'ing'
-            self.main.sepw.task = SeparateWorker(parent=self.main.sepw, out=out, file=file, basename=basename)
-            self.main.sepw.task.finish_event.connect(update)
-            self.main.sepw.task.start()
-
-        from videotrans.component import SeparateForm
-        try:
-            if self.main.sepw is not None:
-                self.main.sepw.show()
-                return
-            self.main.sepw = SeparateForm()
-            self.main.sepw.set.setText(config.transobj['Start Separate'])
-            outdir = os.path.join(config.homedir, 'separate').replace('\\', '/')
-            if not os.path.exists(outdir):
-                os.makedirs(outdir, exist_ok=True)
-            # 创建事件过滤器实例并将其安装到 lineEdit 上
-            self.main.sepw.url.setText(outdir)
-
-            self.main.sepw.selectfile.clicked.connect(get_file)
-
-            self.main.sepw.set.clicked.connect(start)
-            self.main.sepw.show()
-        except Exception:
-            pass
-
-    def open_hebingsrt(self):
-        class CompThread(QThread):
-            uito = Signal(str)
-
-            def __init__(self, *, parent=None, file1=None, file2=None):
-                super().__init__(parent=parent)
-                self.file1 = file1
-                self.file2 = file2
-                self.result_dir = config.homedir + "/Mergersrt"
-                os.makedirs(self.result_dir, exist_ok=True)
-                self.result_file = self.result_dir + "/" + os.path.splitext(os.path.basename(file1))[0] + '-plus-' + \
-                                   os.path.splitext(os.path.basename(file2))[0] + '.srt'
-
-            def run(self):
-                try:
-                    text = ""
-                    srt1_list = tools.get_subtitle_from_srt(self.file1)
-                    srt2_list = tools.get_subtitle_from_srt(self.file2)
-                    srt2_len = len(srt2_list)
-                    for i, it in enumerate(srt1_list):
-                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
-                        if i < srt2_len:
-                            text += f"\n{srt2_list[i]['text'].strip()}"
-                        text += "\n\n"
-                    with open(self.result_file, 'w', encoding="utf-8", errors="ignore") as f:
-                        f.write(text.strip())
-
-                    self.uito.emit(self.result_file)
-                except Exception as e:
-                    self.uito.emit('error:' + str(e))
-
-        def feed(d):
-            if d.startswith("error:"):
-                QtWidgets.QMessageBox.critical(self.main.hew, config.transobj['anerror'], d)
-            else:
-                self.main.hew.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
-                self.main.hew.startbtn.setDisabled(False)
-                self.main.hew.resultlabel.setText(d)
-                self.main.hew.resultbtn.setDisabled(False)
-                with open(self.main.hew.resultlabel.text(), 'r', encoding='utf-8') as f:
-                    self.main.hew.resultinput.setPlainText(f.read())
-
-        def get_file(inputname):
-            fname, _ = QFileDialog.getOpenFileName(self.main.hew, "Select subtitles srt", config.last_opendir,
-                                                   "files(*.srt)")
-            if fname:
-                if inputname == 1:
-                    self.main.hew.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
-                else:
-                    self.main.hew.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
-
-        def start():
-            # 开始处理分离，判断是否选择了源文件
-            srt1 = self.main.hew.srtinput1.text()
-            srt2 = self.main.hew.srtinput2.text()
-            if not srt1 or not srt2:
-                QMessageBox.critical(self.main.hew, config.transobj['anerror'],
-                                     '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
-                return
-
-            self.main.hew.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
-            self.main.hew.startbtn.setDisabled(True)
-            self.main.hew.resultbtn.setDisabled(True)
-            self.main.hew.resultinput.setPlainText("")
-
-            task = CompThread(parent=self.main.hew, file1=srt1, file2=srt2)
-
-            task.uito.connect(feed)
-            task.start()
-
-        def opendir():
-            filepath = self.main.hew.resultlabel.text()
-            if not filepath:
-                return QMessageBox.critical(self.main.hew, config.transobj['anerror'],
-                                            '尚未生成合并字幕' if config.defaulelang == 'zh' else 'Combined subtitles not yet generated')
-            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
-
-        from videotrans.component import HebingsrtForm
-        try:
-            print('###')
-            if self.main.hew is not None:
-                self.main.hew.show()
-                return
-            self.main.hew = HebingsrtForm()
-            self.main.hew.srtbtn1.clicked.connect(lambda: get_file(1))
-            self.main.hew.srtbtn2.clicked.connect(lambda: get_file(2))
-
-            self.main.hew.resultbtn.clicked.connect(opendir)
-            self.main.hew.startbtn.clicked.connect(start)
-            self.main.hew.show()
-        except Exception:
-            pass

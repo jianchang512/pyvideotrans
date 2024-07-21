@@ -21,6 +21,7 @@ from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
+from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.tencent import Ui_tencentform
@@ -138,6 +139,15 @@ class AI302TTSForm(QDialog, Ui_ai302ttsform):  # <===
 
 
 
+class SetINIForm(QDialog, Ui_setini):  # <===
+    def __init__(self, parent=None):
+        super(SetINIForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
+
 
 class DeepLForm(QDialog, Ui_deeplform):  # <===
     def __init__(self, parent=None):
@@ -223,7 +233,7 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
     def __init__(self, parent=None):
         super(ChatgptForm, self).__init__(parent)
         self.setupUi(self)
-        self.chatgpt_model.addItems(config.chatgpt_model_list)
+
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 

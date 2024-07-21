@@ -73,7 +73,7 @@ p, li { white-space: pre-wrap; }a{text-decoration:none}
     <img src=":/png/mp.jpg" width="200" /></p>
 <hr />
 
-<h2 style=" margin-top:16px; margin-bottom:30px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600;color:#ff0" href="https://github.com/jianchang512/pyvideotrans/blob/main/about.md">
+<h2 style=" margin-top:16px; margin-bottom:30px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600;color:#ff0" href="https://pyvideotrans.com/about">
 感谢所有捐助者，本项目的每一点改善都离不开您的帮助,点击查看所有捐助者</a></h2>
 <hr />
 <h2>免责声明：</h2>

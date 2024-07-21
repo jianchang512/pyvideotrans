@@ -302,7 +302,7 @@
     "Train voice": "Train voice",
     "Set role by line": "Set role by line",
     "&Setting": "&Setting",
-    "&Tools": "&Tools",
+    "&Tools": "&Tools/ADVSet(set.ini)",
     "&Help": "&Help",
     "toolBar": "toolBar",
     "Video Toolbox": "Video Toolbox",

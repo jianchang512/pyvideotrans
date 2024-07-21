@@ -1239,7 +1239,7 @@ class Runstep():
                     f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
 
 
-{os.path.basename(self.init['targetdir_mp4'])} = 最终完成的目标视频文件
+*.mp4 = 最终完成的目标视频文件
 {self.init['source_language_code']}.m4a|.wav = 原始视频中的音频文件(包含所有背景音和人声)
 {self.init['target_language_code']}.m4a = 配音后的音频文件(若选择了保留背景音乐则已混入)
 {self.init['source_language_code']}.srt = 原始视频中根据声音识别出的字幕文件
@@ -1256,7 +1256,7 @@ instrument.wav = 原始视频中分离出的背景音乐音频文件
 
 Here are the descriptions of all possible files that might exist. Depending on the configuration options when executing, some files may not be generated.
 
-{os.path.basename(self.init['targetdir_mp4'])} = The final completed target video file
+*.mp4 = The final completed target video file
 {self.init['source_language_code']}.m4a|.wav = The audio file in the original video (containing all sounds)
 {self.init['target_language_code']}.m4a = The dubbed audio file (if you choose to keep the background music, it is already mixed in)
 {self.init['source_language_code']}.srt = Subtitles recognized in the original video
