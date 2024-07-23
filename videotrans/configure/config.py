@@ -217,8 +217,7 @@ def parse_init():
     if not os.path.exists(rootdir + "/videotrans/cfg.json"):
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
         return default
-    try:
-        
+    try:   
         
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
