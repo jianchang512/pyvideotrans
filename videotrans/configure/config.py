@@ -162,7 +162,7 @@ except Exception:
 
 def parse_init():
     default = {
-            "ai302_models": "gpt-3.5-turbo,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
+            "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
             "ai302tts_models": "tts-1,tts-1-hd",
             "lang": "",
             "crf": 13,
@@ -172,8 +172,8 @@ def parse_init():
             "video_codec": 264,
             "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen,moonshot-v1-8k,deepseek-chat",
             "azure_model": "gpt-4o,gpt-4,gpt-35-turbo",
-            "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat,gpt-3.5-turbo,a3",
-            "zijiehuoshan_model": "a4",
+            "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat",
+            "zijiehuoshan_model": "",
             "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
             "audio_rate": 3,
             "video_rate": 20,
@@ -209,6 +209,7 @@ def parse_init():
             "fontbordercolor": "&h000000",
             "subtitle_bottom": 10,
             "cjk_len": 20,
+            "cors_run":True,
             "other_len": 54,
             "zh_hant_s": True,
             "azure_lines": 150,
@@ -226,9 +227,9 @@ def parse_init():
         settings = {}
         for key, val in tmpjson.items():
             value = str(val).strip()
-            if re.match(r'^\d+$', value):
+            if value.isdigit():
                 settings[key] = int(value)
-            elif re.match(r'^\d+\.\d$', value):
+            elif re.match(r'^\d*\.\d+$', value):
                 settings[key] = float(value)
             elif value.lower() == 'true':
                 settings[key] = True
@@ -237,6 +238,7 @@ def parse_init():
             else:
                 settings[key] = value.lower() if value else ""
         default.update(settings)
+        #print(default)
         return default
 
 

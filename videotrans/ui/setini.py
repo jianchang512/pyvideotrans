@@ -90,6 +90,7 @@ class Ui_setini(object):
             "other_len": "其他语言硬字幕时换行长度，多于这个字符数量将换行",
             "zh_hant_s": "强制将繁体字幕转为简体",
             "azure_lines": "azureTTS 批量行数",
+            "cors_run":"true=批量时交叉执行加快速度，false=批量时完成上个后再执行下一个",
             "chattts_voice": "chatTTS音色值"
         }
         if config.defaulelang != 'zh':
@@ -143,6 +144,7 @@ class Ui_setini(object):
                 "other_len": "The line break length for other languages when using hard subtitles, more than this number of characters will be wrapped",
                 "zh_hant_s": "Force traditional Chinese subtitles to be converted to simplified Chinese",
                 "azure_lines": "AzureTTS batch line count",
+                "cors_run":"true=Batch to speed up cross-execution, false=Batch to finish the previous one before executing the next one.",
                 "chattts_voice": "chatTTS voice value"
             }
 

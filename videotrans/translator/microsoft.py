@@ -67,7 +67,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
-        if iter_num >= config.settings['retries']:
+        if iter_num >= int(config.settings['retries']):
             err=f'{err}'
             break
         iter_num += 1

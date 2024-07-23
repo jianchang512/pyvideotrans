@@ -1166,7 +1166,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                     self.update_status('stop')
                     return
 
-        config.task_countdown = config.settings['countdown_sec']
+        config.task_countdown = int(config.settings['countdown_sec'])
         config.settings = config.parse_init()
 
         # 目标文件夹

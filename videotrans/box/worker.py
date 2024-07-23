@@ -255,6 +255,7 @@ class WorkerTTS(QThread):
 
     #   移除2个字幕间的间隔 config.settings[remove_white_ms] ms
     def _remove_white_ms(self, queue_tts):
+        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
         offset = 0
         for i, it in enumerate(queue_tts):
             if i > 0:
@@ -338,6 +339,7 @@ class WorkerTTS(QThread):
         # 整合一个队列到 exec_tts 执行
         length = len(self.all_text)
         errs = 0
+        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
         for n, item in enumerate(self.all_text):
             queue_tts = []
             # 获取字幕

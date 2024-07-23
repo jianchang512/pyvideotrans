@@ -69,9 +69,9 @@ def recogn(*,
     ]
     if detect_language[:2].lower() in ['zh', 'ja', 'ko']:
         flag.append(" ")
-        maxlen = config.settings['cjk_len']
+        maxlen = int(config.settings['cjk_len'])
     else:
-        maxlen = config.settings['other_len']
+        maxlen = int(config.settings['other_len'])
     model = whisper.load_model(
             model_name,
             device="cuda" if is_cuda else "cpu",

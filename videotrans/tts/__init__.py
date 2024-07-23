@@ -91,7 +91,7 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None):
         return False
 
     n = 0
-    dub_nums=config.settings['dubbing_thread']
+    dub_nums=int(config.settings['dubbing_thread'])
     if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
         return True
     if len(queue_tts)>0 and queue_tts[0]['tts_type']=='AzureTTS':
