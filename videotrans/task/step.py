@@ -116,8 +116,8 @@ class Runstep():
             'source_language'] or not tools.vail_file(self.init['source_sub']):
             return True
 
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else config.settings[
-            'countdown_sec']
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings[
+            'countdown_sec'])
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
         if self._srt_vail(self.init['target_sub']):
@@ -185,8 +185,8 @@ class Runstep():
         if self.config_params['app_mode'] in ['tiqu']:
             return True
         self.precent += 3
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else config.settings[
-            'countdown_sec']
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings[
+            'countdown_sec'])
 
         # 不需要配音
         if self.config_params['voice_role'] == 'No' or \
@@ -205,7 +205,7 @@ class Runstep():
                 time.sleep(1)
                 # 倒计时中
                 config.task_countdown -= 1
-                if config.task_countdown <= config.settings['countdown_sec']:
+                if config.task_countdown <= int(config.settings['countdown_sec']):
                     tools.set_process(f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
                                       'show_djs',
                                       btnkey=self.init['btnkey'])
@@ -471,6 +471,7 @@ class Runstep():
     #   移除2个字幕间的空白间隔 config.settings[remove_white_ms] ms
     # 配音时长不变。raw_duration不变
     def _remove_white_ms(self, queue_tts):
+        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
         offset = 0
         for i, it in enumerate(queue_tts):
             if i > 0:
@@ -540,8 +541,8 @@ class Runstep():
             shound_speed = round(it['dubb_time'] / able_time, 2)
 
             # 仅当开启视频慢速，shound_speed大于1.5，diff大于1s，才考虑视频慢速
-            if self.config_params['video_autorate'] and config.settings[
-                'video_rate'] > 1 and diff > 1000 and shound_speed > 1.5:
+            if self.config_params['video_autorate'] and int(config.settings[
+                'video_rate']) > 1 and diff > 1000 and shound_speed > 1.5:
                 # 开启了视频慢速，音频加速一半
                 # 音频加速一半后实际时长应该变为
                 audio_extend = it['dubb_time'] - int(diff / 2)
@@ -576,7 +577,7 @@ class Runstep():
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self, queue_tts):
-        if not self.config_params['video_autorate'] or config.settings['video_rate'] <= 1:
+        if not self.config_params['video_autorate'] or int(config.settings['video_rate']) <= 1:
             return queue_tts
         concat_txt_arr = []
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
@@ -587,7 +588,7 @@ class Runstep():
         self.parent.status_text = config.transobj['videodown..']
 
         length = len(queue_tts)
-        max_pts = config.settings['video_rate']
+        max_pts = int(config.settings['video_rate'])
         # 按照原始字幕截取
         for i, it in enumerate(queue_tts):
             jindu = (length * 10) / (i + 1)
@@ -741,11 +742,12 @@ class Runstep():
             queue_tts = self._remove_srt_silence(queue_tts)
 
         # 5.从字幕间隔移除多余的毫秒数
+        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
         if config.settings['remove_white_ms'] > 0:
             queue_tts = self._remove_white_ms(queue_tts)
 
         # 4. 如果需要配音加速
-        if self.config_params['voice_autorate'] and config.settings['audio_rate'] > 1:
+        if self.config_params['voice_autorate'] and int(config.settings['audio_rate']) > 1:
             queue_tts = self._ajust_audio(queue_tts)
 
         # 如果仅需配音
@@ -766,7 +768,7 @@ class Runstep():
         # 6.处理视频慢速
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
         print(f'视频慢速前时长{video_time=}')
-        if self.config_params['app_mode'] not in ['tiqu','peiyin'] and self.config_params['video_autorate'] and config.settings['video_rate'] > 1:
+        if self.config_params['app_mode'] not in ['tiqu','peiyin'] and self.config_params['video_autorate'] and int(config.settings['video_rate']) > 1:
             queue_tts = self._ajust_video(queue_tts)
 
         # 获取 novoice_mp4的长度
@@ -939,16 +941,16 @@ class Runstep():
             vh = ""
             try:
                 remain_h = 20
-                if config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > (
+                if config.settings['subtitle_bottom'] and int(config.settings['subtitle_bottom']) > (
                         self.init['video_info']['height'] - remain_h):
                     vh = f",MarginV={self.init['video_info']['height'] - remain_h}"
-                elif config.settings['subtitle_bottom'] and config.settings['subtitle_bottom'] > 0:
+                elif config.settings['subtitle_bottom'] and int(config.settings['subtitle_bottom']) > 0:
                     vh = f",MarginV={vh}"
             except Exception:
                 pass
                 
-            maxlen_source = config.settings['cjk_len'] if self.init['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len']
-            maxlen = config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len']
+            maxlen_source = int(config.settings['cjk_len'] if self.init['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len'])
+            maxlen = int(config.settings['cjk_len'] if self.init['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else config.settings['other_len'])
             
             if tools.vail_file(self.init['source_sub']):
                 try:

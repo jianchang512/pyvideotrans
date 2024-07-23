@@ -14,7 +14,7 @@ from videotrans.util import tools
 # split audio by silence
 def shorten_voice_old(normalized_sound):
     normalized_sound = tools.match_target_amplitude(normalized_sound, -20.0)
-    max_interval = config.settings['interval_split'] * 1000
+    max_interval = int(config.settings['interval_split']) * 1000
     buffer = int(config.settings['voice_silence'])
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),

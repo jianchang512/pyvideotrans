@@ -211,7 +211,7 @@ class Worker(QThread):
             # 添加进度按钮 unid
             set_process(obj_format['unid'], 'add_process', btnkey=obj_format['unid'])
         # 如果是批量，则不允许中途暂停修改字幕
-        if len(videolist) > 1:
+        if len(videolist) > 1 and config.settings['cors_run']:
             self.is_batch = True
         config.params.update(
             {"is_batch": self.is_batch, 'subtitles': self.txt, 'app_mode': self.app_mode})
