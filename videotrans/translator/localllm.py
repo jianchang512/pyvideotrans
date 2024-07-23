@@ -75,8 +75,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     split_size = int(config.settings['trans_thread'])
 
     prompt=config.params['localllm_template'].replace('{lang}', target_language)
-    with open(config.rootdir+"/videotrans/localllm.txt",'r',encoding="utf-8") as f:
-        prompt=f.read().replace('{lang}', target_language)
+
 
     assiant=f"Sure, please provide the text you need translated into {target_language}"
 
@@ -95,7 +94,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
             return
-        if iter_num >= config.settings['retries']:
+        if iter_num >= int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
         iter_num += 1

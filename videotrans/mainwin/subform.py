@@ -1149,7 +1149,6 @@ class Subform():
             self.main.settings.setValue("chatgpt_api", api)
 
             self.main.settings.setValue("chatgpt_model", model)
-            self.main.settings.setValue("chatgpt_template", template)
 
             os.environ['OPENAI_API_KEY'] = key
             config.params["chatgpt_key"] = key
@@ -1173,7 +1172,6 @@ class Subform():
             self.main.settings.setValue("chatgpt_api", api)
 
             self.main.settings.setValue("chatgpt_model", model)
-            self.main.settings.setValue("chatgpt_template", template)
 
             with open(config.rootdir + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
@@ -1249,7 +1247,6 @@ class Subform():
             self.main.settings.setValue("ai302_key", key)
 
             self.main.settings.setValue("ai302_model", model)
-            self.main.settings.setValue("ai302_template", template)
 
             config.params["ai302_key"] = key
             config.params["ai302_model"] = model
@@ -1346,7 +1343,6 @@ class Subform():
             self.main.settings.setValue("localllm_api", api)
 
             self.main.settings.setValue("localllm_model", model)
-            self.main.settings.setValue("localllm_template", template)
 
             config.params["localllm_key"] = key
             config.params["localllm_api"] = api
@@ -1368,7 +1364,6 @@ class Subform():
             self.main.settings.setValue("localllm_api", api)
 
             self.main.settings.setValue("localllm_model", model)
-            self.main.settings.setValue("localllm_template", template)
 
             config.params["localllm_key"] = key
             config.params["localllm_api"] = api
@@ -1442,7 +1437,6 @@ class Subform():
             template = self.main.zijiew.zijiehuoshan_template.toPlainText()
             self.main.settings.setValue("zijiehuoshan_key", key)
             self.main.settings.setValue("zijiehuoshan_model", model)
-            self.main.settings.setValue("zijiehuoshan_template", template)
 
             config.params["zijiehuoshan_key"] = key
             config.params["zijiehuoshan_model"] = model
@@ -1461,7 +1455,6 @@ class Subform():
             self.main.settings.setValue("zijiehuoshan_key", key)
 
             self.main.settings.setValue("zijiehuoshan_model", model)
-            self.main.settings.setValue("zijiehuoshan_template", template)
 
             config.params["zijiehuoshan_key"] = key
             config.params["zijiehuoshan_model"] = model
@@ -1510,7 +1503,6 @@ class Subform():
             key = self.main.gw.gemini_key.text()
             template = self.main.gw.gemini_template.toPlainText()
             self.main.settings.setValue("gemini_key", key)
-            self.main.settings.setValue("gemini_template", template)
 
             os.environ['GOOGLE_API_KEY'] = key
             config.params["gemini_key"] = key
@@ -1539,7 +1531,6 @@ class Subform():
             self.main.settings.setValue("azure_api", api)
 
             self.main.settings.setValue("azure_model", model)
-            self.main.settings.setValue("azure_template", template)
 
             config.params["azure_key"] = key
             config.params["azure_api"] = api

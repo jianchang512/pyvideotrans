@@ -112,8 +112,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     split_size = int(config.settings['trans_thread'])
     #if is_srt and split_size>1:
     prompt=config.params['chatgpt_template'].replace('{lang}', target_language)
-    with open(config.rootdir+"/videotrans/chatgpt"+("" if config.defaulelang=='zh' else '-en')+".txt",'r',encoding="utf-8") as f:
-        prompt=f.read().replace('{lang}', target_language)
+
 
     assiant=f"Sure, please provide the text you need translated into {target_language}" if config.defaulelang!='zh' else f'好的，请提供您需要翻译成{target_language}的文本'
 

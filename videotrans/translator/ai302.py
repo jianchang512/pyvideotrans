@@ -71,9 +71,8 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     # 切割为每次翻译多少行，值在 set.ini中设定，默认10
     split_size = int(config.settings['trans_thread'])
 
-    prompt=config.params['chatgpt_template'].replace('{lang}', target_language)
-    with open(config.rootdir+"/videotrans/chatgpt"+("" if config.defaulelang=='zh' else '-en')+".txt",'r',encoding="utf-8") as f:
-        prompt=f.read().replace('{lang}', target_language)
+    prompt=config.params['ai302_template'].replace('{lang}', target_language)
+
 
 
 

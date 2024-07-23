@@ -59,8 +59,6 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     split_size = int(config.settings['trans_thread'])
     #if is_srt and split_size>1:
     prompt=config.params['zijiehuoshan_template'].replace('{lang}', target_language)
-    with open(config.rootdir+"/videotrans/zijie.txt",'r',encoding="utf-8") as f:
-        prompt=f.read().replace('{lang}', target_language)
 
     assiant=f"好的，请提供你要翻译到{target_language}的内容。"
 
