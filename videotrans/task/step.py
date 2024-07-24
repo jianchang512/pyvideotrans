@@ -804,15 +804,33 @@ class Runstep():
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
         shutil.copy2(self.init['novoice_mp4'], self.init['novoice_mp4'] + ".raw.mp4")
         try:
+        
+            
+        
             tools.cut_from_video(
                 source=self.init['novoice_mp4'],
-                ss=tools.ms_to_time_string(ms=video_time - 500).replace(',', '.'),
+                ss=tools.ms_to_time_string(ms=video_time - 100).replace(',', '.'),
+                pts='20',
+                out=self.init['cache_folder'] + "/last-clip-novoicepts20.mp4"
+            )
+            video_time2 = tools.get_video_duration(self.init['cache_folder'] + "/last-clip-novoicepts20.mp4")
+            
+            #shutil.copy2(self.init['cache_folder'] + "/last-clip-novoicepts20.mp4", self.init['novoice_mp4'] + f".pts20-time2-{video_time2}.mp4")
+            
+            tools.cut_from_video(
+                source=self.init['cache_folder'] + "/last-clip-novoicepts20.mp4",
+                ss=tools.ms_to_time_string(ms=video_time2 - 100).replace(',', '.'),
                 out=self.init['cache_folder'] + "/last-clip-novoice.mp4"
             )
+            #video_time3 = tools.get_video_duration(self.init['cache_folder'] + "/last-clip-novoice.mp4")
+            #shutil.copy2(self.init['cache_folder'] + "/last-clip-novoice.mp4", self.init['novoice_mp4'] + f".pts20-video3-time3-{video_time3}.mp4")
+            
+            
+            
             tools.runffmpeg([
                 '-y',
                 '-stream_loop',
-                f'{math.ceil(duration_ms / 500)}',
+                f'{math.ceil(duration_ms / 100)}',
                 '-i',
                 self.init['cache_folder'] + "/last-clip-novoice.mp4",
                 '-c:v',
@@ -892,6 +910,7 @@ class Runstep():
                 # 获取音频长度
                 atime = tools.get_audio_time(self.init['instrument'])
                 beishu = math.ceil(vtime / atime)
+                config.logger.info(f'合并背景音 {beishu=},{atime=},{vtime=}')
                 if config.settings['loop_backaudio'] and atime + 1 < vtime:
                     # 背景音连接延长片段
                     tools.concat_multi_audio(filelist=[self.init['instrument'] for n in range(beishu + 1)],
@@ -1023,8 +1042,7 @@ class Runstep():
             
         # 分离背景音和添加背景音乐
 
-        self._back_music()
-        self._separate()
+        
         # 有配音 延长视频或音频对齐
         if self.config_params['voice_role'] != 'No' and self.config_params['append_video']:
             video_time = tools.get_video_duration(novoice_mp4)
@@ -1055,6 +1073,9 @@ class Runstep():
                     format="mp4" if ext == 'm4a' else ext) + AudioSegment.silent(
                     duration=video_time - audio_length)
                 m.export(self.init['target_wav'], format="mp4" if ext == 'm4a' else ext)
+        
+        self._back_music()
+        self._separate()
         # process
         # 开启进度线程
         protxt=config.TEMP_DIR+f"/compose{time.time()}.txt"
