@@ -487,6 +487,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
     try:
         path = Path(targe_audio).parent.as_posix()
         vocal_file = path+'/vocal.wav'
+        print(f'{vocal_file=}')
         if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
