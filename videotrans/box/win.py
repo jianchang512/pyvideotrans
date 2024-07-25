@@ -708,7 +708,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         t = PlayMp3(obj, self)
         t.mp3_ui.connect(feed)
         t.start()
-
+    def isMircosoft(self,type):
+        if type in ['edgeTTS', 'AzureTTS']:
+            return True
+        if type=='302.ai' and config.params['ai302tts_model']=='azure':
+            return True
+        return False
     # tab-4 语音合成
     def hecheng_start_fun(self):
         config.settings = config.parse_init()
@@ -730,6 +735,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if tts_type == '302.ai' and not config.params['ai302tts_key']:
             return QMessageBox.critical(self, config.transobj['anerror'],
                                         config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
+        if tts_type == "AzureTTS" and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
+            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['azureinfo'])
         if tts_type == 'GPT-SoVITS' and langcode[:2] not in ['zh', 'ja', 'en']:
             # 除此指望不支持
             tts_type = 'edgeTTS'
@@ -780,10 +787,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
 
         wavname = f"{config.homedir}/tts/{filename}"
-        print(f'{wavname=}')
-
-
-
         issrt = self.tts_issrt.isChecked()
         if len(self.hecheng_files)>0:
             self.tts_issrt.setChecked(True)
@@ -815,7 +818,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # tts类型改变
     def tts_type_change(self, type):
-        if type in ['edgeTTS','AzureTTS']:
+        if self.isMircosoft(type):
             self.volume_rate.setDisabled(False)
             self.pitch_rate.setDisabled(False)
         else:
@@ -836,14 +839,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif type == "openaiTTS":
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['openaitts_role'].split(","))
-        elif type == "302.ai":
-            self.hecheng_role.clear()
-            self.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
+
         elif type == 'elevenlabsTTS':
             self.hecheng_role.clear()
             self.hecheng_role.addItems(config.params['elevenlabstts_role'])
-        elif type in ['edgeTTS', 'AzureTTS']:
+        elif self.isMircosoft(type):
+            if type == "AzureTTS" and (
+                    not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
+                return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['azureinfo'])
+            if type=='302.ai' and not config.params['ai302tts_key']:
+                return QMessageBox.critical(self, config.transobj['anerror'], '请在菜单--设置--302.ai接入配音中填写 API KEY')
             self.hecheng_language_fun(self.hecheng_language.currentText())
+        elif type == "302.ai":
+            self.hecheng_role.clear()
+            self.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
         elif type == 'clone-voice':
             self.hecheng_role.clear()
             self.hecheng_role.addItems([it for it in config.clone_voicelist if it != 'clone'])
@@ -904,7 +913,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
             return
 
-        if tts_type not in ["edgeTTS", "AzureTTS"]:
+        if not self.isMircosoft(tts_type):
             return
         self.hecheng_role.clear()
         if t == '-':

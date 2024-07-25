@@ -234,7 +234,12 @@ class Subform():
             def run(self):
                 from videotrans.tts.ai302tts import get_voice
                 try:
-                    get_voice(text=self.text, role="alloy", set_p=False, filename=config.homedir + "/test.mp3")
+                    get_voice(
+                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
+                        role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
+                        language="zh-CN" if config.defaulelang == 'zh' else 'en-US',
+                        rate='+0%',
+                        set_p=False, filename=config.homedir + "/test.mp3")
                     self.uito.emit("ok")
                 except Exception as e:
                     self.uito.emit(str(e))

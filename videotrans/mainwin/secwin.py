@@ -764,9 +764,17 @@ class SecWindow():
                                     'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
 
+    # 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
+    def isMircosoft(self,type):
+        if type in ['edgeTTS', 'AzureTTS']:
+            return True
+        if type=='302.ai' and config.params['ai302tts_model']=='azure':
+            return True
+        return False
+
     # tts类型改变
     def tts_type_change(self, type):
-        self.hide_show_element(self.main.edge_volume_layout, True if type in ['edgeTTS', 'AzureTTS'] else False)
+        self.hide_show_element(self.main.edge_volume_layout, self.isMircosoft(type))
         if self.main.app_mode == 'peiyin' and type == 'clone-voice' and config.params['voice_role'] == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
                 'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
@@ -797,6 +805,10 @@ class SecWindow():
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
             self.main.subform.set_chattts_address()
             return
+        if type == '302.ai' and not config.params['ai302tts_key']:
+            self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
+            self.main.subform.set_ai302tts_address()
+            return
 
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-' and type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
@@ -826,23 +838,24 @@ class SecWindow():
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == "302.ai":
-            self.main.voice_role.clear()
-            self.main.current_rolelist = config.params['ai302tts_role'].split(',')
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+
         elif type == 'elevenlabsTTS':
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['elevenlabstts_role']
             if len(self.main.current_rolelist) < 1:
                 self.main.current_rolelist = tools.get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type in ['edgeTTS', 'AzureTTS']:
+        elif self.isMircosoft(type):
             if type == "AzureTTS" and (
                     not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['azureinfo'])
                 self.main.subform.set_auzuretts_key()
                 return
             self.set_voice_role(self.main.target_language.currentText())
+        elif type == "302.ai":
+            self.main.voice_role.clear()
+            self.main.current_rolelist = config.params['ai302tts_role'].split(',')
+            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == 'clone-voice':
             self.main.voice_role.clear()
             self.main.current_rolelist = config.clone_voicelist
@@ -953,7 +966,7 @@ class SecWindow():
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
 
         # 除 edgeTTS外，其他的角色不会随语言变化
-        if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
+        if not self.isMircosoft(config.params['tts_type']):
             if role != 'No' and self.main.app_mode in ['biaozhun', 'peiyin']:
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
@@ -967,11 +980,9 @@ class SecWindow():
         if t == '-':
             self.main.voice_role.addItems(['No'])
             return
-        show_rolelist = tools.get_edge_rolelist() if config.params[
-                                                         'tts_type'] == 'edgeTTS' else tools.get_azure_rolelist()
+        show_rolelist = tools.get_edge_rolelist() if config.params['tts_type'] == 'edgeTTS' else tools.get_azure_rolelist()
 
-        if not show_rolelist:
-            show_rolelist = tools.get_edge_rolelist()
+
         if not show_rolelist:
             self.main.target_language.setCurrentText('-')
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])

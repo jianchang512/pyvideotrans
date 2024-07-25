@@ -163,7 +163,7 @@ except Exception:
 def parse_init():
     default = {
             "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
-            "ai302tts_models": "tts-1,tts-1-hd",
+            "ai302tts_models": "tts-1,tts-1-hd,azure",
             "lang": "",
             "crf": 13,
             "cuda_qp": False,
@@ -222,6 +222,7 @@ def parse_init():
         
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
+        print(e)
         raise Exception('videotrans/cfg.json not found  or  error')
     else:
         settings = {}
@@ -238,7 +239,9 @@ def parse_init():
             else:
                 settings[key] = value.lower() if value else ""
         default.update(settings)
-        #print(default)
+        if default['ai302tts_models'].find('azure')==-1:
+            default["ai302tts_models"]="tts-1,tts-1-hd,azure"
+            json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
         return default
 
 
