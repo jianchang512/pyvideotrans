@@ -75,9 +75,11 @@ class Runstep():
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
-                msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model'
+                msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 {msg} ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
             elif re.search(r'out\s+?of.*?memory', msg, re.I):
-                msg = f'显存不足，请使用较小模型，比如 tiny/base/small' if config.defaulelang == 'zh' else 'Insufficient video memory, use a smaller model such as tiny/base/small'
+                msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'
+            elif re.search(r'cudnn',msg,re.I):
+                msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
             raise Exception(f'{msg}')
         else:
             if config.current_status == 'stop':
@@ -1116,7 +1118,9 @@ class Runstep():
                         time.sleep(1)
 
         threading.Thread(target=hebing_pro).start()
-
+        if self.config_params['subtitle_type'] in [2, 4]:
+            soft_srt_name=os.path.basename(soft_srt)
+            os.chdir(os.path.dirname(soft_srt))
         try:
             self.parent.status_text='视频+字幕+配音合并中' if config.defaulelang=='zh' else 'Video + Subtitles + Dubbing in merge'
             # 有配音有字幕
@@ -1156,7 +1160,7 @@ class Runstep():
                         "-i",
                         Path(self.init['target_wav']).as_posix(),
                         "-i",
-                        soft_srt,
+                        soft_srt_name,
                         "-c:v",
                         "copy",
                         "-c:a",
@@ -1231,7 +1235,7 @@ class Runstep():
                 # 目标字幕流
                 cmd += [
                     "-i",
-                    soft_srt,
+                    soft_srt_name,
                     "-c:v",
                     "copy"
                 ]

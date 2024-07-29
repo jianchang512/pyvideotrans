@@ -884,7 +884,7 @@ class Ui_MainWindow(object):
         self.action_dll.setText(config.uilanglist["Download cuBLASxx.dll"])
         self.action_gtrans.setText(config.transobj["miandailigoogle"])
         self.action_cuda.setText('CUDA')
-        self.action_online.setText('免责声明')
+        self.action_online.setText('免责声明' if config.defaulelang=='zh' else 'Disclaimer')
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang=='zh' else "Tencent Key")
         self.action_about.setText(config.uilanglist.get("Donating developers"))
         self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
@@ -910,7 +910,7 @@ class Ui_MainWindow(object):
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
 
-        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang=='zh' else 'Merge 2 subtitles')
+        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang=='zh' else 'Combine two subtitles')
         self.action_hebingsrt.setToolTip('将2个字幕文件合并为一个，组成双语字幕' if config.defaulelang=='zh' else 'Combine 2 subtitle files into one to form bilingual subtitles')
 
         self.action_clearcache.setText("Clear Cache" if config.defaulelang!='zh' else '清理缓存和配置')

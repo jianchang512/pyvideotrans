@@ -265,7 +265,7 @@ def runffmpeg(arg, *, noextname=None,
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
             cmd.insert(-1,str(it))
-    # print(f'ffmpeg:{" ".join(cmd)}')
+    print(f'ffmpeg:{" ".join(cmd)}')
     # config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
@@ -312,13 +312,15 @@ def runffmpeg(arg, *, noextname=None,
         raise Exception(str(e.stderr))
     except Exception as e:
         config.logger.error(f'执行出错 Exception:{cmd=},{str(e)}')
-        raise Exception(str(e))
+        err=""
+        if re.match(r'^[a-zA-Z0-9:/_.\[\](),;\s-]+$',cmd,re.I):
+            err='视频名字或视频完整路径中可能存在特殊字符，请尝试更改视频为英文名字并移动到英文文件夹下重试。' if config.defaulelang=='zh' else 'There may be special characters in the video name or the full path of the video, please try to change the video to an English name and move it to an English folder and try again.'
+        err+=str(e)
+        raise Exception(err)
 
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
-    # cmd[-1] = os.path.normpath(cmd[-1])
-    # print(f'ffprobe:{cmd=}')
     try:
         p = subprocess.run( cmd if isinstance(cmd,str) else ['ffprobe'] + cmd,
                            stdout=subprocess.PIPE,
@@ -1220,7 +1222,7 @@ def format_video(name, out=None):
 
     output_path=Path(f'{out}/{raw_noextname}' if out else f'{raw_dirname}/_video_out/{raw_noextname}')
     output_path.mkdir(parents=True, exist_ok=True)
-    print(f'{output_path=}')
+
     obj = {
         "raw_name": name,
         # 原始视频所在原始目录
@@ -1251,20 +1253,20 @@ def format_video(name, out=None):
     h.update(obj['raw_name'].encode('utf-8'))
     obj['unid'] = h.hexdigest()
 
-    if re.match(r'^([a-zA-Z]:)?/[a-zA-Z0-9_/.-]+$', name):
+    # if True:#re.match(r'^([a-zA-Z]:)?/[a-zA-Z0-9_/.-]+$', name):
         # 符合规则，原始和目标相同
-        obj['dirname'] = obj['raw_dirname']
-        obj['basename'] = obj['raw_basename']
-        obj['noextname'] = obj['raw_noextname']
-    else:
-        # 不符合，需要移动到 tmp 下
-        obj['basename'] = f'{obj["unid"]}.{obj["raw_ext"]}'
-        obj['noextname'] = obj['unid']
-        obj['dirname'] = config.TEMP_DIR + f"/{obj['unid']}"
-        obj['source_mp4'] = f'{obj["dirname"]}/{obj["basename"]}'
-        # 目标存放位置，完成后再复制到 output
-        obj['linshi_output'] = f'{obj["dirname"]}/_video_out'
-        Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
+    obj['dirname'] = obj['raw_dirname']
+    obj['basename'] = obj['raw_basename']
+    obj['noextname'] = obj['raw_noextname']
+    # else:
+    #     # 不符合，需要移动到 tmp 下
+    #     obj['basename'] = f'{obj["unid"]}.{obj["raw_ext"]}'
+    #     obj['noextname'] = obj['unid']
+    #     obj['dirname'] = config.TEMP_DIR + f"/{obj['unid']}"
+    #     obj['source_mp4'] = f'{obj["dirname"]}/{obj["basename"]}'
+    #     # 目标存放位置，完成后再复制到 output
+    #     obj['linshi_output'] = f'{obj["dirname"]}/_video_out'
+    #     Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
 
     return obj
 

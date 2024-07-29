@@ -36,7 +36,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
 
     # 翻译后的文本
     target_text = []
-    index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
+    index = -1  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     proxies=None
@@ -96,7 +96,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
         for i,it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
                 break
-            if i < index:
+            if i <= index:
                 continue
             if stop>0:
                 time.sleep(stop)
@@ -138,7 +138,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 break
             else:
                 err=''
-                index=0 if i<=1 else i
+                index= i
                 iter_num=0
         else:
             break

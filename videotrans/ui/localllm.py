@@ -59,7 +59,7 @@ class Ui_localllmform(object):
         self.label_allmodels = QtWidgets.QLabel(localllmform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
+        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang=='zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
 
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
@@ -87,9 +87,6 @@ class Ui_localllmform(object):
         self.test_localllm.setGeometry(QtCore.QRect(130, 515, 93, 30))
         self.test_localllm.setMinimumSize(QtCore.QSize(0, 30))
         self.test_localllm.setObjectName("test_localllm")
-
-
-
 
         self.retranslateUi(localllmform)
         QtCore.QMetaObject.connectSlotsByName(localllmform)
