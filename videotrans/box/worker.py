@@ -4,6 +4,7 @@ import copy
 import datetime
 
 import os
+import re
 import time
 
 from PySide6.QtCore import QThread
@@ -100,9 +101,15 @@ class WorkerWhisper(QThread):
                     f.write(text)
                 self.post_message(type="replace", text=f'{text}')
             except Exception as e:
-                print(e)
-                errs.append(f'失败，{str(e)}')
-                self.post_message(type='error', text=str(e))
+                msg = f'{str(e)}{str(e.args)}'
+                errs.append(f'失败，{msg}')
+                if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M):
+                    msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型  {msg}' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
+                elif re.search(r'out\s+?of.*?memory', msg, re.I):
+                    msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'
+                elif re.search(r'cudnn', msg, re.I):
+                    msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
+                self.post_message(type='error', text=msg)
                 config.box_recogn = 'stop'
                 return
         self.post_message(type='end', text="" if len(errs) < 1 else "\n".join(errs))

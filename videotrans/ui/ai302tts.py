@@ -29,7 +29,7 @@ class Ui_ai302ttsform(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setMinimumSize(QtCore.QSize(580, 35))
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_0.setText('在此填写 https://302.ai 管理后台-Api超市-Api管理-创建的API KEY,若没有可点此去创建,7元免费额度')
+        self.label_0.setText('在此填写 https://302.ai 管理后台-Api超市-Api管理-创建的API KEY,若没有可点此去创建')
 
         self.label_01 = QtWidgets.QPushButton(ai302ttsform)
         self.label_01.setCursor(QtCore.Qt.PointingHandCursor)
@@ -57,6 +57,7 @@ class Ui_ai302ttsform(object):
         self.ai302tts_model.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302tts_model.setObjectName("ai302tts_model")
 
+
         self.label_allmodels = QtWidgets.QLabel(ai302ttsform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 200, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
@@ -64,6 +65,7 @@ class Ui_ai302ttsform(object):
         self.edit_allmodels = QtWidgets.QPlainTextEdit(ai302ttsform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 235, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        self.edit_allmodels.setReadOnly(True)
 
 
 

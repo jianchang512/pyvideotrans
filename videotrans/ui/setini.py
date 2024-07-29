@@ -166,7 +166,10 @@ class Ui_setini(object):
             tmp_1.setMinimumSize(QtCore.QSize(0, 30))
             tmp_1.setText(str(val))
             tmp_1.setToolTip(hlp)
+            tmp_1.setPlaceholderText(hlp)
             tmp_1.setObjectName(key)
+            if key=='ai302tts_models':
+                tmp_1.setReadOnly(True)
             tmp.addWidget(tmp_0)
             tmp.addWidget(tmp_1)
             box.layout().addLayout(tmp)

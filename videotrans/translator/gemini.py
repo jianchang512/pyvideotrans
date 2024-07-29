@@ -128,7 +128,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     # 翻译后的文本
     target_text = {"0": [],"srts":[]}
-    index = 0  # 当前循环需要开始的 i 数字,小于index的则跳过
+    index = -1  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
     is_srt = False if  isinstance(text_list, str) else True
@@ -168,7 +168,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return
-            if i < index:
+            if i <= index:
                 continue
             if stop > 0:
                 time.sleep(stop)
@@ -198,9 +198,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     sep_res=[]
                     for line_res in it:
                         sep_res.append(get_content(line_res.strip(),model=model,prompt=prompt))
-
-                
-
             except Exception as e:
                 err = str(e)
                 if err.find('Resource has been exhausted')>-1:
@@ -223,7 +220,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     target_text["srts"] += tmp
                 err = ''
                 iter_num = 0
-                index = 0 if i <= 1 else i
+                index = i#0 if i <= 1 else i
         else:
             break
     update_proxy(type='del')
