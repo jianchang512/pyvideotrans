@@ -190,6 +190,7 @@ def parse_init():
             "interval_split": 10,
             "trans_thread": 15,
             "retries": 2,
+            "translation_wait": 0.1,
             "dubbing_thread": 5,
             "countdown_sec": 15,
             "backaudio_volume": 0.8,
@@ -218,8 +219,7 @@ def parse_init():
     if not os.path.exists(rootdir + "/videotrans/cfg.json"):
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
         return default
-    try:   
-        
+    try:
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
         print(e)
@@ -241,7 +241,7 @@ def parse_init():
         default.update(settings)
         if default['ai302tts_models'].find('azure')==-1:
             default["ai302tts_models"]="tts-1,tts-1-hd,azure"
-            json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
         return default
 
 

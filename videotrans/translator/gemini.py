@@ -118,7 +118,11 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     set_p:
         是否实时输出日志，主界面中需要
     """
-
+    wait_sec=0.5
+    try:
+        wait_sec=int(config.settings['translation_wait'])
+    except Exception:
+        pass
     try:
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel('gemini-1.5-pro', safety_settings=safetySettings)
@@ -153,17 +157,18 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     while 1:
         if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
             return
-
-        if iter_num >= int(config.settings['retries']):
+        time.sleep(wait_sec)
+        if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
-        iter_num += 1
 
-        if iter_num > 1:
+        if iter_num >= 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
+        iter_num += 1
+        print(f'{wait_sec=},{iter_num=}')
 
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
@@ -197,11 +202,12 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
                     sep_res=[]
                     for line_res in it:
+                        time.sleep(wait_sec)
                         sep_res.append(get_content(line_res.strip(),model=model,prompt=prompt))
             except Exception as e:
                 err = str(e)
                 if err.find('Resource has been exhausted')>-1:
-                    time.sleep(60)
+                    time.sleep(30)
                 break
             else:
                 # 未出错
