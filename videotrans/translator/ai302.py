@@ -73,7 +73,11 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
 
     prompt=config.params['ai302_template'].replace('{lang}', target_language)
 
-
+    wait_sec=0.5
+    try:
+        wait_sec=int(config.settings['translation_wait'])
+    except Exception:
+        pass
 
 
 
@@ -89,16 +93,18 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing' and not is_test):
             return
-        if iter_num >= int(config.settings['retries']):
+        time.sleep(wait_sec)
+
+        if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
-        iter_num += 1
-        if iter_num > 1:
+        if iter_num >= 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
-
+        iter_num += 1
+        print(f'{wait_sec=},{iter_num=}')
         for i,it in enumerate(split_source_text):
             if config.exit_soft or  (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return
@@ -134,6 +140,7 @@ def trans(text_list, target_language="English", *, set_p=True,inst=None,stop=0,s
                     config.logger.error(f'翻译前后数量不一致，重新单个进行翻译')
                     sep_res = []
                     for it_n in it:
+                        time.sleep(wait_sec)
                         t= get_content(it_n.strip(),prompt=prompt)
                         sep_res.append(t)
 

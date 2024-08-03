@@ -91,10 +91,12 @@ class Ui_setini(object):
             "zh_hant_s": "强制将繁体字幕转为简体",
             "azure_lines": "azureTTS 批量行数",
             "cors_run":"true=批量时交叉执行加快速度，false=批量时完成上个后再执行下一个",
-            "chattts_voice": "chatTTS音色值"
+            "chattts_voice": "chatTTS音色值",
+            "translation_wait":"每次翻译后暂停时间/秒,用于限制请求频率"
         }
         if config.defaulelang != 'zh':
             self.notices = {
+                "translation_wait":"Pause time/second after each translation, to limit the frequency of requests.",
                 "ai302_models": "Enter the names of the models used by 302.ai for translation, separated by English commas",
                 "ai302tts_models": "Enter the names of the models used by 302.ai for dubbing, separated by English commas",
                 "lang": "Set the language of the software interface. Restart the software after modification",

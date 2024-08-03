@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import os
+import textwrap
 from datetime import timedelta
 import json
 from pathlib import Path
@@ -342,56 +343,55 @@ def runffprobe(cmd):
 
 
 # 获取视频信息
-def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False):
+# nocache=True表示禁止使用缓存，默认False优先使用缓存
+def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False,get_codec=False):
     # 如果存在缓存并且没有禁用缓存
     mp4_file=Path(mp4_file).as_posix()
-    if not nocache and mp4_file in config.video_cache:
-        result = config.video_cache[mp4_file]
-    else:
-        out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
-        if out is False:
-            raise Exception(f'ffprobe error:dont get video information')
-        out = json.loads(out)
-        result = {
-            "video_fps": 30,
-            "video_codec_name": "",
-            "audio_codec_name": "aac",
-            "width": 0,
-            "height": 0,
-            "time": 0,
-            "streams_len": 0,
-            "streams_audio": 0
-        }
-        if "streams" not in out or len(out["streams"]) < 1:
-            raise Exception(f'ffprobe error:streams is 0')
+    # if not nocache and mp4_file in config.video_cache:
+    #     result = config.video_cache[mp4_file]
+    # else:
+    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
+    if out is False:
+        raise Exception(f'ffprobe error:dont get video information')
+    out = json.loads(out)
+    result = {
+        "video_fps": 30,
+        "video_codec_name": "",
+        "audio_codec_name": "",
+        "width": 0,
+        "height": 0,
+        "time": 0,
+        "streams_len": 0,
+        "streams_audio": 0
+    }
+    if "streams" not in out or len(out["streams"]) < 1:
+        raise Exception(f'ffprobe error:streams is 0')
 
-        if "format" in out and out['format']['duration']:
-            result['time'] = int(float(out['format']['duration']) * 1000)
-        for it in out['streams']:
-            result['streams_len'] += 1
-            if it['codec_type'] == 'video':
-                result['video_codec_name'] = it['codec_name']
-                result['width'] = int(it['width'])
-                result['height'] = int(it['height'])
+    if "format" in out and out['format']['duration']:
+        result['time'] = int(float(out['format']['duration']) * 1000)
+    for it in out['streams']:
+        result['streams_len'] += 1
+        if it['codec_type'] == 'video':
+            result['video_codec_name'] = it['codec_name']
+            result['width'] = int(it['width'])
+            result['height'] = int(it['height'])
 
-                fps_split = it['r_frame_rate'].split('/')
-                if len(fps_split) != 2 or fps_split[1] == '0':
-                    fps1 = 30
-                else:
-                    fps1 = round(int(fps_split[0]) / int(fps_split[1]), 2)
+            fps_split = it['r_frame_rate'].split('/')
+            if len(fps_split) != 2 or fps_split[1] == '0':
+                fps1 = 30
+            else:
+                fps1 = round(int(fps_split[0]) / int(fps_split[1]), 2)
 
-                fps_split = it['avg_frame_rate'].split('/')
-                if len(fps_split) != 2 or fps_split[1] == '0':
-                    fps = fps1
-                else:
-                    fps = round(int(fps_split[0]) / int(fps_split[1]), 2)
+            fps_split = it['avg_frame_rate'].split('/')
+            if len(fps_split) != 2 or fps_split[1] == '0':
+                fps = fps1
+            else:
+                fps = round(int(fps_split[0]) / int(fps_split[1]), 2)
 
-                result['video_fps'] = fps if fps >= 16 and fps <= 60 else 30
-            elif it['codec_type'] == 'audio':
-                result['streams_audio'] += 1
-                result['audio_codec_name'] = it['codec_name']
-        if not nocache:
-            config.video_cache[mp4_file] = result
+            result['video_fps'] = fps if fps >= 16 and fps <= 60 else 30
+        elif it['codec_type'] == 'audio':
+            result['streams_audio'] += 1
+            result['audio_codec_name'] = it['codec_name']
 
     if video_time:
         return result['time']
@@ -399,6 +399,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         return ['video_fps']
     if video_scale:
         return result['width'], result['height']
+    if get_codec:
+        return result['video_codec_name'],result['audio_codec_name']
     return result
 
 
@@ -414,6 +416,10 @@ def get_video_fps(file_path):
 
 # 获取宽高分辨率
 def get_video_resolution(file_path):
+    return get_video_info(file_path, video_scale=True)
+
+# 获取视频编码和
+def get_codec_name(file_path):
     return get_video_info(file_path, video_scale=True)
 
 
@@ -504,6 +510,61 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
         msg = f"separate vocal and background music:{str(e)}"
         set_process(msg)
         raise Exception(msg)
+
+# 将字符串做 md5 hash处理
+def get_md5(input_string:str):
+    # 创建一个md5对象
+    md5 = hashlib.md5()
+    # 更新md5对象，使用UTF-8编码
+    md5.update(input_string.encode('utf-8'))
+    # 获取md5哈希值的十六进制表示
+    return md5.hexdigest()
+
+
+# 根据输入的原始视频，分离出音频并转为 shibie.wav做字幕识别
+def separate_volcal(video_file=None,path=None):
+    # 继续人声分离
+    tmpfile = config.TEMP_DIR + f"/{time.time()}.wav"
+    try:
+        runffmpeg([
+            "-y",
+            "-i",
+            video_file,
+            "-vn",
+            "-ac",
+            "2",
+            "-ar",
+            "44100",
+            "-c:a",
+            "pcm_s16le",
+            tmpfile
+        ])
+        from videotrans.separate import st
+        # path = Path(targe_audio).parent.as_posix()
+        vocal_file = path + '/vocal.wav'
+        print(f'{vocal_file=}')
+        if not vail_file(vocal_file):
+            st.start(audio=tmpfile, path=path, btnkey=None)
+        if not vail_file(vocal_file):
+            raise Exception(' error ')
+        # 分离
+    except Exception as e:
+        msg = f"separate vocal and background music:{str(e)}"
+        # set_process(msg)
+        raise Exception(msg)
+    else:
+        runffmpeg([
+            "-y",
+            "-i",
+            vocal_file,
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-c:a",
+            "pcm_s16le",
+            path + '/shibie.wav'
+        ])
 
 
 def conver_to_8k(audio, target_audio):
@@ -819,7 +880,57 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
     return new_result
 
+# 将srt字幕转为 ass字幕
+def srt2ass(srt_file,ass_file,maxlen=40):
+    srt_list=get_subtitle_from_srt(srt_file)
+    text=""
+    for i, it in enumerate(srt_list):
+        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip()
+        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+    tmp_srt=config.TEMP_DIR+f"/{time.time()}.srt"
+    with open(tmp_srt,'w',encoding='utf-8',errors='ignore') as f:
+        f.write(text)
 
+
+    runffmpeg(['-y', '-i', tmp_srt, ass_file])
+    with open(ass_file, 'r', encoding='utf-8') as f:
+        ass_str = f.readlines()
+
+    for i, it in enumerate(ass_str):
+        if it.find('Style: ') == 0:
+            ass_str[
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
+                fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
+                subtitle_bottom=config.settings['subtitle_bottom'])
+            break
+
+    with open(ass_file, 'w', encoding='utf-8') as f:
+        f.write("".join(ass_str))
+
+
+# 将字幕list写入srt文件
+# 保存字幕文件 到目标文件夹
+def save_srt(srt_list, srt_file):
+    # 是字幕列表形式，重新组装
+    if isinstance(srt_list, list):
+        txt = ""
+        line = 0
+        for it in srt_list:
+            line += 1
+            if "startraw" not in it:
+                startraw, endraw = it['time'].strip().split(" --> ")
+                startraw = startraw.strip().replace('.', ',')
+                endraw = endraw.strip().replace('.', ',')
+                startraw = format_time(startraw, ',')
+                endraw = format_time(endraw, ',')
+            else:
+                startraw = it['startraw']
+                endraw = it['endraw']
+            txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
+        with open(srt_file, 'w', encoding="utf-8") as f:
+            f.write(txt)
+    return True
 # 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
 # 对不规范字幕格式，eg  001:01:2,4500  01:54,14 等做处理
 def format_time(s_time="", separate=','):

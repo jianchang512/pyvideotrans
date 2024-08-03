@@ -17,6 +17,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
+    wait_sec=0.5
+    try:
+        wait_sec=int(config.settings['translation_wait'])
+    except Exception:
+        pass
     url=config.params['ott_address'].strip().rstrip('/').lower().replace('/translate','')+'/translate'
     url=url.replace('//translate','/translate')
     if not url.startswith('http'):
@@ -44,15 +49,16 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
-        if iter_num >= int(config.settings['retries']):
+        time.sleep(wait_sec)
+        if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
-        iter_num += 1
-        if iter_num > 1:
+        if iter_num >= 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
+        iter_num += 1
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
             source_text = text_list.strip().split("\n")
@@ -87,6 +93,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     result=[]
                     for line_res in it:
                         data['q']=line_res
+                        time.sleep(wait_sec)
                         result.append(get_content(data))
 
                 if inst and inst.precent < 75:

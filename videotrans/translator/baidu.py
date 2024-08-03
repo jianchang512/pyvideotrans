@@ -15,8 +15,11 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     set_p:
         是否实时输出日志，主界面中需要
     """
-
-        # 翻译后的文本
+    wait_sec=0.5
+    try:
+        wait_sec=int(config.settings['translation_wait'])
+    except Exception:
+        pass
     target_text = []
     index = -1  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
@@ -52,15 +55,16 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
-        if iter_num >= int(config.settings['retries']):
+        time.sleep(wait_sec)
+        if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
-        iter_num += 1
-        if iter_num > 1:
+        if iter_num >= 1:
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
+        iter_num += 1
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
             source_text = text_list.strip().split("\n")
@@ -88,6 +92,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                     print(f'翻译前后数量不一致，需要重新切割')
                     result=[]
                     for line_res in it:
+                        time.sleep(wait_sec)
                         result.append(get_content({"text":line_res,"target_language":target_language})[0])
 
                 if inst and inst.precent < 75:
