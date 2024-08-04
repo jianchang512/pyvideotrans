@@ -84,7 +84,7 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
     while 1:
         if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
             return
-        time.sleep(wait_sec)
+
         if iter_num > int(config.settings['retries']):
             err = f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
@@ -150,6 +150,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 break
             except Exception as e:
                 err = f'Google:{str(e)}'
+                time.sleep(wait_sec)
+                config.logger.error(f'翻译出错:暂停{wait_sec}s')
                 break
             else:
                 # 未出错

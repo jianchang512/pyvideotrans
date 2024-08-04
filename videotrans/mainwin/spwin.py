@@ -523,6 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.params["fishtts_role"] = self.settings.value("fishtts_role", "")
 
         config.params["gemini_key"] = self.settings.value("gemini_key", "")
+        config.params["gemini_model"] = self.settings.value("gemini_model", "gemini-1.5-pro")
         config.params["zh_recogn_api"] = self.settings.value("zh_recogn_api", "")
 
         config.params["azure_api"] = self.settings.value("azure_api", "")

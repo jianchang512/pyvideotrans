@@ -124,8 +124,9 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     except Exception:
         pass
     try:
+        print(f"{config.params['gemini_model']=}")
         genai.configure(api_key=config.params['gemini_key'])
-        model = genai.GenerativeModel('gemini-1.5-pro', safety_settings=safetySettings)
+        model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
         raise Exception(f'请正确设置http代理,{err}')
@@ -157,7 +158,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     while 1:
         if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
             return
-        time.sleep(wait_sec)
+
         if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
@@ -206,8 +207,10 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                         sep_res.append(get_content(line_res.strip(),model=model,prompt=prompt))
             except Exception as e:
                 err = str(e)
-                if err.find('Resource has been exhausted')>-1:
-                    time.sleep(30)
+                time.sleep(wait_sec)
+                config.logger.error(f'翻译出错:暂停{wait_sec}s')
+                # if err.find('Resource has been exhausted')>-1:
+                #     time.sleep(30)
                 break
             else:
                 # 未出错
