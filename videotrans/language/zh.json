@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "shutdownerror": "关机失败",
     "onlycnanden": "ChatTTS仅支持中文和英文配音",
 
     "peiyindayu31": "配音出错数量大于1/3，请检查",

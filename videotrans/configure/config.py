@@ -210,7 +210,6 @@ def parse_init():
             "fontbordercolor": "&h000000",
             "subtitle_bottom": 10,
             "cjk_len": 20,
-            "cors_run":True,
             "other_len": 54,
             "gemini_model":"gemini-1.5-pro,gemini-pro",
             "zh_hant_s": True,

@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "shutdownerror": "computer shutdown error",
     "onlycnanden": "ChatTTS suporta apenas Chinês e Inglês",
     "peiyindayu31": "O número de erros de dublagem é maior que 1/3, por favor, verifique-os",
     "chaochu255": "O caminho e o nome do vídeo original são muito longos. Abrevie o nome do vídeo e mova-o para um caminho mais curto para evitar erros subsequentes.",

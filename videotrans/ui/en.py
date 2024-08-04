@@ -439,11 +439,19 @@ class Ui_MainWindow(object):
         
         
         self.clear_cache = QtWidgets.QCheckBox(self.layoutWidget)
-        self.clear_cache.setMinimumSize(QtCore.QSize(50, 30))
+        self.clear_cache.setMinimumSize(QtCore.QSize(50, 20))
         self.clear_cache.setObjectName("clear_cache")
         self.clear_cache.setToolTip('清理上次执行时已处理好的文件，比如已识别或翻译的字幕文件' if config.defaulelang=='zh'else 'Cleaning up files that have been processed in previous executions, such as recognized or translated subtitle files')
-        self.clear_cache.setText('清理缓存' if config.defaulelang=='zh'else 'Clear Cache')
-        
+        self.clear_cache.setText('清理已生成' if config.defaulelang=='zh'else 'Del Generated')
+        self.clear_cache.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
+        self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
+        self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
+        self.shutdown.setObjectName("shutdown")
+        self.shutdown.setToolTip('完成全部任务后自动关机' if config.defaulelang=='zh'else 'Automatic shutdown after completing all tasks')
+        self.shutdown.setText('完成后关机' if config.defaulelang=='zh' else 'Automatic shutdown')
+        self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -452,7 +460,13 @@ class Ui_MainWindow(object):
         self.startbtn.setSizePolicy(sizePolicy)
         self.startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.startbtn.setObjectName("startbtn")
-        self.horizontalLayout_3.addWidget(self.clear_cache)
+
+        vhlayout=QtWidgets.QVBoxLayout()
+        vhlayout.setAlignment(Qt.AlignVCenter)
+        vhlayout.addWidget(self.clear_cache)
+        vhlayout.addWidget(self.shutdown)
+
+        self.horizontalLayout_3.addLayout(vhlayout)
         self.horizontalLayout_3.addWidget(self.startbtn)
         
         
