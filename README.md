@@ -312,12 +312,12 @@ pip install ctranslate2==3.24.0
 
 > 本程序主要依赖的部分开源项目
 
-1. ffmpeg
-2. PySide6
-3. edge-tts
-4. faster-whisper
-5. openai-whisper
-6. pydub
+1. [ffmpeg](https://github.com/FFmpeg/FFmpeg)
+2. [PySide6](https://pypi.org/project/PySide6/)
+3. [edge-tts](https://github.com/rany2/edge-tts)
+4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+5. [openai-whisper](https://github.com/openai/whisper)
+6. [pydub](https://github.com/jiaaro/pydub)
 
 ## 关注作者微信公众号
 
