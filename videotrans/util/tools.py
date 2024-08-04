@@ -1560,3 +1560,19 @@ def _unlink_tmp():
             Path(config.TEMP_DIR + f"/{it}").unlink(missing_ok=True)
         else:
             shutil.rmtree(config.TEMP_DIR + f"/{it}", ignore_errors=True)
+
+def shutdown_system():
+    # 获取当前操作系统类型
+    system = platform.system()
+
+    if system == "Windows":
+        # Windows 下的关机命令
+        subprocess.call("shutdown /s /t 1")
+    elif system == "Linux":
+        # Linux 下的关机命令
+        subprocess.call("poweroff")
+    elif system == "Darwin":
+        # macOS 下的关机命令
+        subprocess.call("sudo shutdown -h now", shell=True)
+    else:
+        print(f"Unsupported system: {system}")

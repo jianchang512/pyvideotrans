@@ -496,6 +496,8 @@ class SecWindow():
     # 开启执行后，禁用按钮，停止或结束后，启用按钮
     def disabled_widget(self, type):
         self.main.clear_cache.setDisabled(type)
+        self.main.volume_rate.setDisabled(type)
+        self.main.pitch_rate.setDisabled(type)
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
@@ -1441,6 +1443,13 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             if type == 'end':
                 # 成功完成
                 self.main.source_mp4.setText(config.transobj["No select videos"])
+                # 关机
+                if self.main.shutdown.isChecked():
+                    try:
+                        print('需要关机')
+                        tools.shutdown_system()
+                    except Exception as e:
+                        QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['shutdownerror']+str(e))
             else:
                 # 停止
                 self.main.continue_compos.hide()
