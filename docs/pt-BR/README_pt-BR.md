@@ -301,20 +301,9 @@ Para aprender a usar o pyvideotrans, consulte o guia completo em: [https://pyvid
 
 > Este programa depende principalmente dos seguintes projetos de código aberto:
 
-1. ffmpeg
-2. PySide6
-3. edge-tts
-4. faster-whisper
-5. openai-whisper
-6. pydub
-
-## Siga o WeChat Oficial do Autor
-
-<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/f9337111-9084-41fe-8840-1fb8fedca92d">
-
-
-Se você acha que este projeto é extremamente útil e deseja que ele continue sendo mantido de forma continua, considere fazer uma doação.
-
-<img width="200" src="https://github.com/jianchang512/pyvideotrans/raw/main/images/wx.png">
-
-<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/fe1aa29d-c26d-46d3-b7f3-e9c030ef32c7">
+1. [ffmpeg](https://github.com/FFmpeg/FFmpeg)
+2. [PySide6](https://pypi.org/project/PySide6/)
+3. [edge-tts](https://github.com/rany2/edge-tts)
+4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+5. [openai-whisper](https://github.com/openai/whisper)
+6. [pydub](https://github.com/jiaaro/pydub)
