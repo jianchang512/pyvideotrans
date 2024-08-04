@@ -1506,10 +1506,12 @@ class Subform():
     def set_gemini_key(self):
         def save():
             key = self.main.gw.gemini_key.text()
+            model = self.main.gw.model.currentText()
             template = self.main.gw.gemini_template.toPlainText()
             self.main.settings.setValue("gemini_key", key)
 
             os.environ['GOOGLE_API_KEY'] = key
+            config.params["gemini_model"] = model
             config.params["gemini_key"] = key
             config.params["gemini_template"] = template
             with open(config.rootdir + f"/videotrans/gemini{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
@@ -1517,13 +1519,31 @@ class Subform():
                 f.write(template)
             self.main.gw.close()
 
+        def setallmodels():
+            t = self.main.gw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+            current_text = self.main.gw.model.currentText()
+            self.main.gw.model.clear()
+            self.main.gw.model.addItems([x for x in t.split(',') if x.strip()])
+            if current_text:
+                self.main.gw.model.setCurrentText(current_text)
+            config.settings['gemini_model'] = t
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+
         from videotrans.component import GeminiForm
         self.main.gw = GeminiForm()
+        allmodels_str = config.settings['gemini_model']
+        allmodels = config.settings['gemini_model'].split(',')
+        self.main.gw.model.clear()
+        self.main.gw.model.addItems(allmodels)
+        self.main.gw.edit_allmodels.setPlainText(allmodels_str)
         if config.params["gemini_key"]:
             self.main.gw.gemini_key.setText(config.params["gemini_key"])
+        if config.params["gemini_model"]:
+            self.main.gw.model.setCurrentText(config.params["gemini_model"])
         if config.params["gemini_template"]:
             self.main.gw.gemini_template.setPlainText(config.params["gemini_template"])
         self.main.gw.set_gemini.clicked.connect(save)
+        self.main.gw.edit_allmodels.textChanged.connect(setallmodels)
         self.main.gw.show()
 
     def set_azure_key(self):

@@ -1028,12 +1028,15 @@ class SecWindow():
         self.main.target_dir.setText(dirname)
 
     # 添加进度条
-    def add_process_btn(self):
+    def add_process_btn(self,target_dir=None):
         clickable_progress_bar = ClickableProgressBar(self)
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(config.transobj["waitforstart"])
         clickable_progress_bar.setMinimumSize(500, 50)
         # # 将按钮添加到布局中
+        if target_dir:
+            clickable_progress_bar.setTarget(target_dir)
+            clickable_progress_bar.setCursor(Qt.PointingHandCursor)
         self.main.processlayout.addWidget(clickable_progress_bar)
         return clickable_progress_bar
 
@@ -1474,7 +1477,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'add_process':
-            self.main.processbtns[d['btnkey']] = self.add_process_btn()
+            self.main.processbtns[d['btnkey']] = self.add_process_btn(d['text'])
         elif d['type'] == 'rename':
             self.main.show_tips.setText(d['text'])
         elif d['type'] == 'set_target_dir':

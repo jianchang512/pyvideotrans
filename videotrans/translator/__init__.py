@@ -38,7 +38,7 @@ TRANSNAMES = [
     TRANSAPI_NAME,
     FREEGOOGLE_NAME
 ]
-#
+# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2
 LANG_CODE = {
     "zh-cn": [
         "zh-cn",  # google通道
@@ -269,6 +269,16 @@ LANG_CODE = {
         "No",
         "pl",
         "Polish language" if config.defaulelang !='zh' else '波兰语'
+    ],
+    "nl":[
+        "nl",  # google通道
+        "dut",  # 字幕嵌入语言
+        "nl",  # 百度通道
+        "NL",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "nl",# 微软翻译
+        "Dutch" if config.defaulelang !='zh' else '荷兰语' #AI翻译
     ]
 }
 

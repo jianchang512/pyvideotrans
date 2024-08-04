@@ -29,10 +29,10 @@ class Worker(QThread):
     def srt2audio(self):
         # 添加进度按钮
         self.is_batch = False
-        set_process('srt2wav', 'add_process', btnkey="srt2wav")
         config.params.update({"is_batch": False, 'subtitles': self.txt, 'app_mode': self.app_mode})
         try:
             self.video = TransCreate(copy.deepcopy(config.params))
+            set_process(self.video.init['target_dir'], 'add_process', btnkey="srt2wav")
         except Exception as e:
             set_process(str(e), 'error', btnkey="srt2wav")
             return
@@ -59,12 +59,12 @@ class Worker(QThread):
     # 字幕嵌入视频
     def hebing(self):
         self.is_batch = False
-        set_process('', 'add_process', btnkey="hebing")
         self.precent = 1
         it = config.queue_mp4.pop()
         obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
-        if obj_format['linshi_output'] != obj_format['output']:
-            shutil.copy2(it, obj_format['source_mp4'])
+        set_process(obj_format['output'], 'add_process', btnkey="hebing")
+        # if obj_format['linshi_output'] != obj_format['output']:
+        #     shutil.copy2(it, obj_format['source_mp4'])
         target_dir_mp4 = obj_format['output'] + f"/{obj_format['raw_noextname']}.mp4"
         if config.params['only_video']:
             target_dir_mp4 = os.path.dirname(obj_format['output']) + f"/{obj_format['raw_noextname']}.mp4"
@@ -209,7 +209,7 @@ class Worker(QThread):
             videolist.append(obj_format)
             self.unidlist.append(obj_format['unid'])
             # 添加进度按钮 unid
-            set_process(obj_format['unid'], 'add_process', btnkey=obj_format['unid'])
+            set_process(obj_format['output'], 'add_process', btnkey=obj_format['unid'])
         # 如果是批量，则不允许中途暂停修改字幕
         if len(videolist) > 1 and config.settings['cors_run']:
             self.is_batch = True

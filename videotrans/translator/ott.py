@@ -49,7 +49,7 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
     while 1:
         if config.exit_soft or (config.current_status!='ing' and config.box_trans!='ing'):
             return
-        time.sleep(wait_sec)
+
         if iter_num > int(config.settings['retries']):
             err=f'{iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{err}'
             break
@@ -111,6 +111,8 @@ def trans(text_list, target_language="en", *, set_p=True,inst=None,stop=0,source
                 target_text.extend(result)
             except Exception as e:
                 err = f'请检查部署和地址:{str(e)}'
+                time.sleep(wait_sec)
+                config.logger.error(f'翻译出错:暂停{wait_sec}s')
                 break
             else:
                 err=''

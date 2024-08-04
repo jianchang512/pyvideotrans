@@ -212,6 +212,7 @@ def parse_init():
             "cjk_len": 20,
             "cors_run":True,
             "other_len": 54,
+            "gemini_model":"gemini-1.5-pro,gemini-pro",
             "zh_hant_s": True,
             "azure_lines": 150,
             "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
@@ -241,6 +242,8 @@ def parse_init():
         default.update(settings)
         if default['ai302tts_models'].find('azure')==-1:
             default["ai302tts_models"]="tts-1,tts-1-hd,azure"
+        if default['gemini_model'].find('azure')==-1:
+            default["gemini_model"]="gemini-pro,gemini-1.5-pro"
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
         return default
 

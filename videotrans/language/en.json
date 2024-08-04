@@ -25,7 +25,7 @@
     "srtgeshierror": "Error while formatting subtitle, please check if the subtitle file conforms to the srt format",
 
 
-    "endopendir": "Click to open the save directory when done",
+    "endopendir": "Click to open the save directory",
     "xinshoumoshitips": "Select the video you want to translate and set the original language of the video and the language you want to translate to",
 
     "enmodelerror": "Models with the .en suffix can only be used if the original language is English",
@@ -422,6 +422,7 @@
     "ms": "Malay",
     "kk": "Kazakh",
 	"cs":"Czech",
-	"pl":"Polish"
+	"pl":"Polish",
+    "nl": "Dutch"
   }
 }
