@@ -18,6 +18,9 @@ api.py
 ffmpeg.exe
 ffprobe.exe
 ffplay.exe
+ytwin32.exe
+ytlinux
+ytdarwin
 __pycache__
 *.spec
 *.ui

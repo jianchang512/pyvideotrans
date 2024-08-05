@@ -1242,9 +1242,11 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['back_audio'] = self.main.back_audio.text().strip()
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
-        if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(,\d+)?', txt):
-            txt = ""
-            self.main.subtitle_area.clear()
+        if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
+            #txt = ""
+            #self.main.subtitle_area.clear()
+            QMessageBox.critical(self.main, config.transobj['anerror'], '字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang=='zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.')
+            return False
 
         # 无视频选择 ，也无导入字幕，无法处理
         if len(config.queue_mp4) < 1 and not txt:
@@ -1577,6 +1579,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         self.main.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
         txt = self.main.subtitle_area.toPlainText().strip()
+        txt=re.sub(r':\d+\.\d+',lambda m: m.group().replace('.', ','),txt,re.S|re.M)
         config.task_countdown = 0
         if not btnkey or not txt:
             return
