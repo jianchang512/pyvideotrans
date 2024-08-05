@@ -205,7 +205,8 @@ class TransCreate():
                 # 原始和目标语言都存在，并且不相等，需要翻译，作为待翻译字幕
                 sub_file = self.init['source_sub']
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
-                f.write(self.config_params['subtitles'].strip())
+                txt=re.sub(r':\d+\.\d+',lambda m: m.group().replace('.', ','),self.config_params['subtitles'].strip(),re.S|re.M)
+                f.write(txt)
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
         if self.config_params['app_mode'] not in ['peiyin']:
             # 判断是否存在原始视频同名同目录的srt字幕文件
