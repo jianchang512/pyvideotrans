@@ -17,7 +17,6 @@ from pathlib import Path
 
 import requests
 
-
 from videotrans.configure import config
 import time
 
@@ -38,27 +37,27 @@ def get_gptsovits_role():
         rolelist[tmp[0]] = {"refer_wav_path": tmp[0], "prompt_text": tmp[1], "prompt_language": tmp[2]}
     return rolelist
 
-def get_cosyvoice_role():
 
+def get_cosyvoice_role():
     rolelist = {
-        "clone":'clone'
+        "clone": 'clone'
     }
-    if config.defaulelang=='zh':
-        rolelist['中文男']='中文男'
-        rolelist['中文女']='中文女'
-        rolelist['英文男']='英文男'
-        rolelist['英文女']='英文女'
-        rolelist['日语男']='日语男'
-        rolelist['韩语女']='韩语女'
-        rolelist['粤语女']='粤语女'
+    if config.defaulelang == 'zh':
+        rolelist['中文男'] = '中文男'
+        rolelist['中文女'] = '中文女'
+        rolelist['英文男'] = '英文男'
+        rolelist['英文女'] = '英文女'
+        rolelist['日语男'] = '日语男'
+        rolelist['韩语女'] = '韩语女'
+        rolelist['粤语女'] = '粤语女'
     else:
-        rolelist['Chinese Male']='中文男'
-        rolelist['Chinese Female']='中文女'
-        rolelist['English Male']='英文男'
-        rolelist['English Female']='英文女'
-        rolelist['Japanese Male']='日语男'
-        rolelist['Korean Female']='韩语女'
-        rolelist['Cantonese Female']='粤语女'
+        rolelist['Chinese Male'] = '中文男'
+        rolelist['Chinese Female'] = '中文女'
+        rolelist['English Male'] = '英文男'
+        rolelist['English Female'] = '英文女'
+        rolelist['Japanese Male'] = '日语男'
+        rolelist['Korean Female'] = '韩语女'
+        rolelist['Cantonese Female'] = '粤语女'
     if not config.params['cosyvoice_role'].strip():
         return rolelist
     for it in config.params['cosyvoice_role'].strip().split("\n"):
@@ -67,6 +66,7 @@ def get_cosyvoice_role():
             continue
         rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
     return rolelist
+
 
 def get_fishtts_role():
     if not config.params['fishtts_role'].strip():
@@ -118,7 +118,7 @@ def get_elevenlabs_role(force=False):
 
 def set_proxy(set_val=''):
     if set_val == 'del':
-        config.proxy = None
+        config.params['proxy'] = None
         # 删除代理
         if os.environ.get('http_proxy'):
             os.environ.pop('http_proxy')
@@ -129,14 +129,14 @@ def set_proxy(set_val=''):
         # 设置代理
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
-        config.proxy = set_val
-        os.environ['http_proxy']=set_val
-        os.environ['https_proxy']=set_val
-        os.environ['all_proxy']=set_val
+        config.params['proxy'] = set_val
+        os.environ['http_proxy'] = set_val
+        os.environ['https_proxy'] = set_val
+        os.environ['all_proxy'] = set_val
         return set_val
 
     # 获取代理
-    http_proxy = config.proxy or os.environ.get('http_proxy') or os.environ.get('https_proxy')
+    http_proxy = config.params['proxy'] or os.environ.get('http_proxy') or os.environ.get('https_proxy')
     if http_proxy:
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
@@ -237,26 +237,26 @@ def runffmpeg(arg, *, noextname=None,
         cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown"]
     # 启用了CUDA 并且没有禁用GPU
     # 默认视频编码 libx264 / libx265
-    default_codec=f"libx{config.settings['video_codec']}"
+    default_codec = f"libx{config.settings['video_codec']}"
 
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
-            arg[i + 1] = os.path.normpath(arg[i + 1]).replace('\\','/')
+            arg[i + 1] = os.path.normpath(arg[i + 1]).replace('\\', '/')
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
     if default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
-            config.video_codec=get_video_codec()
+            config.video_codec = get_video_codec()
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = config.video_codec
-            elif it=='-crf' and '_nvenc' in config.video_codec and config.settings['cuda_qp']:
-                arg[i]='-qp'
-    
+            elif it == '-crf' and '_nvenc' in config.video_codec and config.settings['cuda_qp']:
+                arg[i] = '-qp'
+
     if fps:
-        arg.insert(-1,'-r')
-        arg.insert(-1,f'{fps}')
+        arg.insert(-1, '-r')
+        arg.insert(-1, f'{fps}')
     # else:
     #     arg.insert(-1,'-fps_mode')
     #     arg.insert(-1,f"{config.settings['vsync']}")
@@ -265,7 +265,7 @@ def runffmpeg(arg, *, noextname=None,
     # 插入自定义 ffmpeg 参数
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
-            cmd.insert(-1,str(it))
+            cmd.insert(-1, str(it))
     print(f'ffmpeg:{" ".join(cmd)}')
     # config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
@@ -281,29 +281,29 @@ def runffmpeg(arg, *, noextname=None,
         if noextname:
             config.queue_novice[noextname] = "end"
         return True
-    except subprocess.CalledProcessError as e:       
-        retry=False
+    except subprocess.CalledProcessError as e:
+        retry = False
         config.logger.error(f'出错了:{cmd=}')
         config.logger.error(f'before:{retry=},{arg_copy=}')
         # 处理视频时如果出错，尝试回退
         if cmd[-1].endswith('.mp4'):
-            #存在视频的copy操作时，尝试回退使用重新编码
+            # 存在视频的copy操作时，尝试回退使用重新编码
             if "copy" in cmd:
                 for i, it in enumerate(arg_copy):
-                    if i > 0 and arg_copy[i - 1] == '-c:v' and it=='copy':
+                    if i > 0 and arg_copy[i - 1] == '-c:v' and it == 'copy':
                         arg_copy[i] = config.video_codec if config.video_codec is not None else default_codec
-                        retry=True
-            #如果不是copy并且也不是 libx264，则替换为libx264编码
-            if not retry and config.video_codec!= default_codec:
-                config.video_codec=default_codec
+                        retry = True
+            # 如果不是copy并且也不是 libx264，则替换为libx264编码
+            if not retry and config.video_codec != default_codec:
+                config.video_codec = default_codec
                 # 切换为cpu
                 if not is_box:
                     set_process(config.transobj['huituicpu'])
                 config.logger.error(f'cuda上执行出错，退回到CPU执行')
                 for i, it in enumerate(arg_copy):
-                    if i > 0 and arg_copy[i - 1] == '-c:v' and it!= default_codec:
+                    if i > 0 and arg_copy[i - 1] == '-c:v' and it != default_codec:
                         arg_copy[i] = default_codec
-                        retry=True
+                        retry = True
             config.logger.error(f'after:{retry=},{arg_copy=}')
             if retry:
                 return runffmpeg(arg_copy, noextname=noextname, is_box=is_box)
@@ -313,17 +313,17 @@ def runffmpeg(arg, *, noextname=None,
         raise Exception(str(e.stderr))
     except Exception as e:
         config.logger.error(f'执行出错 Exception:{cmd=},{str(e)}')
-        err=""
-        if re.match(r'^[a-zA-Z0-9:/_.\[\](),;\s-]+$',cmd,re.I):
-            err='视频名字或视频完整路径中可能存在特殊字符，请尝试更改视频为英文名字并移动到英文文件夹下重试。' if config.defaulelang=='zh' else 'There may be special characters in the video name or the full path of the video, please try to change the video to an English name and move it to an English folder and try again.'
-        err+=str(e)
+        err = ""
+        if re.match(r'^[a-zA-Z0-9:/_.\[\](),;\s-]+$', cmd, re.I):
+            err = '视频名字或视频完整路径中可能存在特殊字符，请尝试更改视频为英文名字并移动到英文文件夹下重试。' if config.defaulelang == 'zh' else 'There may be special characters in the video name or the full path of the video, please try to change the video to an English name and move it to an English folder and try again.'
+        err += str(e)
         raise Exception(err)
 
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        p = subprocess.run( cmd if isinstance(cmd,str) else ['ffprobe'] + cmd,
+        p = subprocess.run(cmd if isinstance(cmd, str) else ['ffprobe'] + cmd,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
@@ -344,9 +344,9 @@ def runffprobe(cmd):
 
 # 获取视频信息
 # nocache=True表示禁止使用缓存，默认False优先使用缓存
-def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False,get_codec=False):
+def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False, get_codec=False):
     # 如果存在缓存并且没有禁用缓存
-    mp4_file=Path(mp4_file).as_posix()
+    mp4_file = Path(mp4_file).as_posix()
     # if not nocache and mp4_file in config.video_cache:
     #     result = config.video_cache[mp4_file]
     # else:
@@ -400,7 +400,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     if video_scale:
         return result['width'], result['height']
     if get_codec:
-        return result['video_codec_name'],result['audio_codec_name']
+        return result['video_codec_name'], result['audio_codec_name']
     return result
 
 
@@ -418,6 +418,7 @@ def get_video_fps(file_path):
 def get_video_resolution(file_path):
     return get_video_info(file_path, video_scale=True)
 
+
 # 获取视频编码和
 def get_codec_name(file_path):
     return get_video_info(file_path, video_scale=True)
@@ -425,7 +426,7 @@ def get_codec_name(file_path):
 
 # 视频转为 mp4格式 nv12 + not h264_cuvid
 def conver_mp4(source_file, out_mp4, *, is_box=False):
-    video_codec=config.settings['video_codec']
+    video_codec = config.settings['video_codec']
     return runffmpeg([
         '-y',
         '-i',
@@ -457,9 +458,9 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
 
 
 # 从原始视频中分离出音频 cuda + h264_cuvid
-def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
-    source_mp4=Path(source_mp4).as_posix()
-    targe_audio=Path(targe_audio).as_posix()
+def split_audio_byraw(source_mp4, targe_audio, is_separate=False, btnkey=None):
+    source_mp4 = Path(source_mp4).as_posix()
+    targe_audio = Path(targe_audio).as_posix()
     cmd = [
         "-y",
         "-i",
@@ -494,12 +495,12 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
     from videotrans.separate import st
     try:
         path = Path(targe_audio).parent.as_posix()
-        vocal_file = path+'/vocal.wav'
+        vocal_file = path + '/vocal.wav'
         print(f'{vocal_file=}')
         if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
-                st.start(audio=tmpfile, path=path,btnkey=btnkey)
+                st.start(audio=tmpfile, path=path, btnkey=btnkey)
             except Exception as e:
                 msg = f"separate vocal and background music:{str(e)}"
                 set_process(msg)
@@ -511,8 +512,9 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False,btnkey=None):
         set_process(msg)
         raise Exception(msg)
 
+
 # 将字符串做 md5 hash处理
-def get_md5(input_string:str):
+def get_md5(input_string: str):
     # 创建一个md5对象
     md5 = hashlib.md5()
     # 更新md5对象，使用UTF-8编码
@@ -522,7 +524,7 @@ def get_md5(input_string:str):
 
 
 # 根据输入的原始视频，分离出音频并转为 shibie.wav做字幕识别
-def separate_volcal(video_file=None,path=None):
+def separate_volcal(video_file=None, path=None):
     # 继续人声分离
     tmpfile = config.TEMP_DIR + f"/{time.time()}.wav"
     try:
@@ -582,10 +584,10 @@ def conver_to_8k(audio, target_audio):
 
 #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
 def backandvocal(backwav, peiyinm4a):
-    backwav=Path(backwav).as_posix()
-    peiyinm4a=Path(peiyinm4a).as_posix()
-    tmpwav = Path((os.environ["TEMP"] or os.environ['temp'])+ f'/{time.time()}-1.m4a').as_posix()
-    tmpm4a = Path((os.environ["TEMP"] or os.environ['temp'])+ f'/{time.time()}.m4a').as_posix()
+    backwav = Path(backwav).as_posix()
+    peiyinm4a = Path(peiyinm4a).as_posix()
+    tmpwav = Path((os.environ["TEMP"] or os.environ['temp']) + f'/{time.time()}-1.m4a').as_posix()
+    tmpm4a = Path((os.environ["TEMP"] or os.environ['temp']) + f'/{time.time()}.m4a').as_posix()
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
@@ -655,23 +657,25 @@ def create_concat_txt(filelist, filename):
 def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
-    video_codec=config.settings['video_codec']
+    video_codec = config.settings['video_codec']
     create_concat_txt(filelist, txt)
     if out:
-        out=Path(out).as_posix()
+        out = Path(out).as_posix()
     if maxsec:
         print(f'maxsec={maxsec=}')
-        return os.system(f'ffmpeg -y -f  concat -safe 0 -i "{txt}"  -c:v libx{video_codec}  -crf {config.settings["crf"]} -preset {config.settings["preset"]} -an {out}')
+        return os.system(
+            f'ffmpeg -y -f  concat -safe 0 -i "{txt}"  -c:v libx{video_codec}  -crf {config.settings["crf"]} -preset {config.settings["preset"]} -an {out}')
         # return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-crf',  f'{config.settings["crf"]}', '-preset', config.settings['preset'], '-an', out], fps=fps)
     return runffmpeg(
-        ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf', f'{config.settings["crf"]}',
+        ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
+         f'{config.settings["crf"]}',
          '-preset', config.settings['preset'], out], fps=fps)
 
 
 # 多个音频片段连接 
 def concat_multi_audio(*, filelist=[], out=None):
     if out:
-        out=Path(out).as_posix()
+        out = Path(out).as_posix()
     # 创建txt文件
     txt = config.TEMP_DIR + f"/{time.time()}.txt"
     create_concat_txt(filelist, txt)
@@ -722,7 +726,7 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None,
     return True
 
 
-def show_popup(title, text,parent=None):
+def show_popup(title, text, parent=None):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QMessageBox
@@ -735,7 +739,6 @@ def show_popup(title, text,parent=None):
     msg.addButton(QMessageBox.Cancel)
     msg.setWindowModality(Qt.ApplicationModal)  # 设置为应用模态
     msg.setWindowFlags(msg.windowFlags() | Qt.WindowStaysOnTopHint)  # 置于顶层
-
 
     # msg.addButton(a2)
     msg.setIcon(QMessageBox.Information)
@@ -838,18 +841,18 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     else:
         content = srtfile.strip().splitlines()
     # remove whitespace
-    content=[c for c in content if c.strip()]
-    
+    content = [c for c in content if c.strip()]
+
     if len(content) < 1:
         raise Exception("srt content is empty")
-    
+
     result = format_srt(content)
-    
+
     # txt 文件转为一条字幕
     if len(result) < 1:
         if is_file and srtfile.endswith('.txt'):
-            result= [
-                {"line":1,"time":"00:00:00,000 --> 05:00:00,000","text":"\n".join(content)}
+            result = [
+                {"line": 1, "time": "00:00:00,000 --> 05:00:00,000", "text": "\n".join(content)}
             ]
         else:
             return []
@@ -875,22 +878,22 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['end_time'] = end_time
             new_result.append(it)
             line += 1
-    if len(new_result)<1:
+    if len(new_result) < 1:
         raise Exception(config.transobj['zimuwenjianbuzhengque'])
 
     return new_result
 
+
 # 将srt字幕转为 ass字幕
-def srt2ass(srt_file,ass_file,maxlen=40):
-    srt_list=get_subtitle_from_srt(srt_file)
-    text=""
+def srt2ass(srt_file, ass_file, maxlen=40):
+    srt_list = get_subtitle_from_srt(srt_file)
+    text = ""
     for i, it in enumerate(srt_list):
         it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip()
         text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-    tmp_srt=config.TEMP_DIR+f"/{time.time()}.srt"
-    with open(tmp_srt,'w',encoding='utf-8',errors='ignore') as f:
+    tmp_srt = config.TEMP_DIR + f"/{time.time()}.srt"
+    with open(tmp_srt, 'w', encoding='utf-8', errors='ignore') as f:
         f.write(text)
-
 
     runffmpeg(['-y', '-i', tmp_srt, ass_file])
     with open(ass_file, 'r', encoding='utf-8') as f:
@@ -931,6 +934,8 @@ def save_srt(srt_list, srt_file):
         with open(srt_file, 'w', encoding="utf-8") as f:
             f.write(txt)
     return True
+
+
 # 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
 # 对不规范字幕格式，eg  001:01:2,4500  01:54,14 等做处理
 def format_time(s_time="", separate=','):
@@ -1012,16 +1017,15 @@ def is_novoice_mp4(novoice_mp4, noextname):
             continue
         return True
 
+
 def match_target_amplitude(sound, target_dBFS):
     change_in_dBFS = target_dBFS - sound.dBFS
     return sound.apply_gain(change_in_dBFS)
 
 
-
-
 # 从视频中切出一段时间的视频片段 cuda + h264_cuvid
 def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
-    video_codec=config.settings['video_codec']
+    video_codec = config.settings['video_codec']
     cmd1 = [
         "-y",
         "-ss",
@@ -1072,7 +1076,7 @@ def get_clone_role(set_p=False):
         url = config.params['clone_api'].strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         if res.status_code == 200:
-            config.clone_voicelist = ["clone"] + res.json()
+            config.params["clone_voicelist"] = ["clone"] + res.json()
             set_process('', 'set_clone_role')
             return True
         raise Exception(
@@ -1089,7 +1093,7 @@ def set_process_box(text, type='logs', *, func_name=""):
 
 
 # 综合写入日志，默认sp界面
-def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="",nologs=False):
+def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="", nologs=False):
     try:
         if text:
             if not nologs:
@@ -1100,8 +1104,8 @@ def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="",nologs
 
             # 移除html
             if type == 'error':
-                text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>','',text,re.I|re.M|re.S)
-                text = text.replace('\\n',' ').strip()
+                text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>', '', text, re.I | re.M | re.S)
+                text = text.replace('\\n', ' ').strip()
 
         if qname == 'sp':
             config.queue_logs.put_nowait({"text": text, "type": type, "btnkey": btnkey})
@@ -1222,8 +1226,8 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     format = "wav"
     if isinstance(input_file_path, str):
         format = input_file_path.split('.')[-1].lower()
-        if format in ['wav', 'mp3','m4a']:
-            audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav','mp3'] else 'mp4')
+        if format in ['wav', 'mp3', 'm4a']:
+            audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
         else:
             # 转为mp3
             try:
@@ -1254,8 +1258,8 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
         trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
     if isinstance(input_file_path, str):
-        if format in ['wav', 'mp3','m4a']:
-            trimmed_audio.export(input_file_path, format=format if format in ['wav','mp3'] else 'mp4')
+        if format in ['wav', 'mp3', 'm4a']:
+            trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
             return input_file_path
         try:
             trimmed_audio.export(input_file_path + ".mp3", format="mp3")
@@ -1269,7 +1273,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 # 从 google_url 中获取可用地址
 def get_google_url():
     google_url = 'https://translate.google.com'
-    if vail_file(config.rootdir+'/google.txt'):
+    if vail_file(config.rootdir + '/google.txt'):
         with open(os.path.join(config.rootdir, 'google.txt'), 'r') as f:
             t = f.read().strip().splitlines()
             urls = [x for x in t if x.strip() and x.startswith('http')]
@@ -1292,6 +1296,10 @@ def get_google_url():
 
 
 def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
+    try:
+        os.remove(config.rootdir + "/videotrans/params.json")
+    except Exception:
+        pass
     from PySide6.QtCore import QSettings
     import platform
     # Create a QSettings object with the specified organization and application
@@ -1324,14 +1332,13 @@ def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
 # 格式化视频信息
 def format_video(name, out=None):
     from pathlib import Path
-    raw_pathlib=Path(name)
+    raw_pathlib = Path(name)
     raw_basename = raw_pathlib.name
-    raw_noextname=raw_pathlib.stem
+    raw_noextname = raw_pathlib.stem
     ext = raw_pathlib.suffix
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
-
-    output_path=Path(f'{out}/{raw_noextname}' if out else f'{raw_dirname}/_video_out/{raw_noextname}')
+    output_path = Path(f'{out}/{raw_noextname}' if out else f'{raw_dirname}/_video_out/{raw_noextname}')
     output_path.mkdir(parents=True, exist_ok=True)
 
     obj = {
@@ -1365,7 +1372,7 @@ def format_video(name, out=None):
     obj['unid'] = h.hexdigest()
 
     # if True:#re.match(r'^([a-zA-Z]:)?/[a-zA-Z0-9_/.-]+$', name):
-        # 符合规则，原始和目标相同
+    # 符合规则，原始和目标相同
     obj['dirname'] = obj['raw_dirname']
     obj['basename'] = obj['raw_basename']
     obj['noextname'] = obj['raw_noextname']
@@ -1395,41 +1402,40 @@ def open_dir(self, dirname=None):
     QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
 
 
-
 def vail_file(file=None):
     if not file:
         return False
-    p=Path(file)
+    p = Path(file)
     if not p.exists() or not p.is_file():
         return False
-    if p.stat().st_size<1:
+    if p.stat().st_size < 1:
         return False
     return True
 
 
 # 获取最终视频应该输出的编码格式
 def get_video_codec():
-    plat=platform.system()
+    plat = platform.system()
     # 264 / 265
-    video_codec=int(config.settings['video_codec'])
-    hhead='h264'
-    if video_codec!=264:
-        hhead='hevc'
-    mp4_test=config.rootdir+"/videotrans/styles/no-remove.mp4"
+    video_codec = int(config.settings['video_codec'])
+    hhead = 'h264'
+    if video_codec != 264:
+        hhead = 'hevc'
+    mp4_test = config.rootdir + "/videotrans/styles/no-remove.mp4"
     if not Path(mp4_test).is_file():
         return f'libx{video_codec}'
-    mp4_target=config.TEMP_DIR+"/test.mp4"
-    codec=''
-    if plat in ['Windows','Linux']:
-        import torch    
+    mp4_target = config.TEMP_DIR + "/test.mp4"
+    codec = ''
+    if plat in ['Windows', 'Linux']:
+        import torch
         if torch.cuda.is_available():
-            codec=f'{hhead}_nvenc'
-        elif plat=='Windows':
-            codec=f'{hhead}_qsv'
-        elif plat=='Linux':
-            codec=f'{hhead}_vaapi'
-    elif plat=='Darwin':
-        codec=f'{hhead}_videotoolbox'
+            codec = f'{hhead}_nvenc'
+        elif plat == 'Windows':
+            codec = f'{hhead}_qsv'
+        elif plat == 'Linux':
+            codec = f'{hhead}_vaapi'
+    elif plat == 'Darwin':
+        codec = f'{hhead}_videotoolbox'
 
     if not codec:
         return f"libx{video_codec}"
@@ -1447,12 +1453,12 @@ def get_video_codec():
             codec,
             mp4_target
         ],
-        check=True,
-        creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+            check=True,
+            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
     except Exception as e:
-        if sys.platform=='win32':
+        if sys.platform == 'win32':
             try:
-                codec=f"{hhead}_amf"
+                codec = f"{hhead}_amf"
                 subprocess.run([
                     "ffmpeg",
                     "-y",
@@ -1467,34 +1473,38 @@ def get_video_codec():
                     check=True,
                     creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
             except Exception:
-                codec=f"libx{video_codec}"
+                codec = f"libx{video_codec}"
     return codec
-
 
 
 # 设置ass字体格式
 def set_ass_font(srtfile=None):
-    if not os.path.exists(srtfile) or os.path.getsize(srtfile)==0:
+    if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
         return os.path.basename(srtfile)
-    runffmpeg(['-y','-i',srtfile,f'{srtfile}.ass'])
-    assfile=f'{srtfile}.ass'
-    with open(assfile,'r',encoding='utf-8') as f:
-        ass_str=f.readlines()
-    
-    for i,it in enumerate(ass_str):
-        if it.find('Style: ')==0:
-            ass_str[i]='Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(fontname=config.settings['fontname'],fontsize=config.settings['fontsize'],fontcolor=config.settings['fontcolor'],fontbordercolor=config.settings['fontbordercolor'],subtitle_bottom=config.settings['subtitle_bottom'])
+    runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
+    assfile = f'{srtfile}.ass'
+    with open(assfile, 'r', encoding='utf-8') as f:
+        ass_str = f.readlines()
+
+    for i, it in enumerate(ass_str):
+        if it.find('Style: ') == 0:
+            ass_str[
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
+                fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
+                subtitle_bottom=config.settings['subtitle_bottom'])
             break
-    
-    with open(assfile,'w',encoding='utf-8') as f:
+
+    with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
     return os.path.basename(assfile)
 
 
 # 删除翻译结果的特殊字符
 def cleartext(text):
-    return text.replace('"','').replace("'",'').replace('&#39;','').replace('&quot;',"").strip()
-    
+    return text.replace('"', '').replace("'", '').replace('&#39;', '').replace('&quot;', "").strip()
+
+
 # 如果仅相差一行，直接拆分最后一行内容为两行
 '''
 ['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello, my friend, today is']
@@ -1509,48 +1519,52 @@ def cleartext(text):
 ['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦,是吧！']
 ['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦', '是吧']
 '''
+
+
 def split_line(sep_list):
     # 先移除最后一行开头结尾的无效字符
-    sep=sep_list[-1].strip()
+    sep = sep_list[-1].strip()
     if not sep:
         return False
-    flag=[",",".","?",";",":","'","\"","-","_","/","\\","+","-","=","!","*","(",")","{","}","，","。","·","？","！","（","）","｛","｝","【","】"]
+    flag = [",", ".", "?", ";", ":", "'", "\"", "-", "_", "/", "\\", "+", "-", "=", "!", "*", "(", ")", "{", "}", "，",
+            "。", "·", "？", "！", "（", "）", "｛", "｝", "【", "】"]
     if sep[0] in flag:
-        sep=sep[1:].strip()
+        sep = sep[1:].strip()
     if sep and sep[-1] in flag:
-        sep=sep[:-1].strip()
+        sep = sep[:-1].strip()
 
     # 移除后最后一行 无有效文字或字符少于3
-    if not sep or len(sep)<3:
+    if not sep or len(sep) < 3:
         return False
-        
+
     # 先尝试标点符号拆分
-    res1=re.split(r'[,.，。；？?、]',sep)
-    if len(res1)>1:
-        sep_list[-1]=",".join(res1[:-1])
+    res1 = re.split(r'[,.，。；？?、]', sep)
+    if len(res1) > 1:
+        sep_list[-1] = ",".join(res1[:-1])
         sep_list.append(res1[-1])
         return sep_list
-    
+
     # 再尝试空格拆分，
-    res2=sep.split(" ")
+    res2 = sep.split(" ")
     # 不存在空格 强制按字符分割
-    if len(res2)<2:
-        pos=int(len(sep)/-3)
-        sep_list[-1]=sep[:pos]
+    if len(res2) < 2:
+        pos = int(len(sep) / -3)
+        sep_list[-1] = sep[:pos]
         sep_list.append(sep[pos:])
         return sep_list
-    
+
     # 存在一个空格则平分
-    if len(res2)==2:
-        sep_list[-1]=res2[0]
+    if len(res2) == 2:
+        sep_list[-1] = res2[0]
         sep_list.append(res2[1])
         return sep_list
 
     # 取后三分之一
-    pos=int(len(res2)/-3)
-    sep_list[-1]=" ".join(res2[:pos])
+    pos = int(len(res2) / -3)
+    sep_list[-1] = " ".join(res2[:pos])
     sep_list.append(" ".join(res2[pos:]))
     return sep_list
+
 
 def _unlink_tmp():
     if not os.path.isdir(config.TEMP_DIR):
@@ -1560,6 +1574,7 @@ def _unlink_tmp():
             Path(config.TEMP_DIR + f"/{it}").unlink(missing_ok=True)
         else:
             shutil.rmtree(config.TEMP_DIR + f"/{it}", ignore_errors=True)
+
 
 def shutdown_system():
     # 获取当前操作系统类型

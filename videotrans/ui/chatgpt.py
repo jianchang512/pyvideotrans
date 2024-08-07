@@ -26,7 +26,8 @@ class Ui_chatgptform(object):
 
         self.label_0 = QtWidgets.QLabel(chatgptform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText('兼容ChatGPT接口的AI也在此使用，videotrans/set.ini中chatgpt_model参数内添加模型名称' if config.defaulelang=='zh' else 'AIs compatible with the ChatGPT also used here, model added within the chatgpt_model parameter in videotrans/set.ini')
+        self.label_0.setText(
+            '兼容ChatGPT接口的AI也在此使用，videotrans/set.ini中chatgpt_model参数内添加模型名称' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here, model added within the chatgpt_model parameter in videotrans/set.ini')
 
         self.label = QtWidgets.QLabel(chatgptform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
@@ -55,18 +56,15 @@ class Ui_chatgptform(object):
         self.chatgpt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_model.setObjectName("chatgpt_model")
 
-
         self.label_allmodels = QtWidgets.QLabel(chatgptform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang=='zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
-
+        self.label_allmodels.setText(
+            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(chatgptform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
-
-
 
         self.label_4 = QtWidgets.QLabel(chatgptform)
         self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
@@ -86,22 +84,23 @@ class Ui_chatgptform(object):
         self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
         self.test_chatgpt.setObjectName("test_chatgpt")
 
-
-
-
         self.retranslateUi(chatgptform)
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle("ChatGPT API")
-        self.label_3.setText('选择模型' if config.defaulelang=='zh' else "Model")
+        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.chatgpt_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
-        self.set_chatgpt.setText('保存' if config.defaulelang=='zh' else "Save")
-        self.test_chatgpt.setText('测试..' if config.defaulelang=='zh' else "Test..")
-        self.chatgpt_api.setPlaceholderText('若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang=='zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
-        self.chatgpt_api.setToolTip('若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang=='zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+        self.label_4.setText(
+            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
+        self.set_chatgpt.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test_chatgpt.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+        self.chatgpt_api.setPlaceholderText(
+            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+        self.chatgpt_api.setToolTip(
+            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
         self.chatgpt_key.setPlaceholderText("Secret key")
-        self.chatgpt_key.setToolTip("必须是付费账号，免费账号频率受限无法使用" if config.defaulelang=='zh' else 'Must be a paid account, free account frequency is limited and cannot be used')
+        self.chatgpt_key.setToolTip(
+            "必须是付费账号，免费账号频率受限无法使用" if config.defaulelang == 'zh' else 'Must be a paid account, free account frequency is limited and cannot be used')
         self.label.setText("API URL")
         self.label_2.setText("SK")

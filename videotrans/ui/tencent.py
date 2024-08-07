@@ -11,6 +11,7 @@
 from PySide6 import QtCore, QtWidgets
 from videotrans.configure import config
 
+
 class Ui_tencentform(object):
     def setupUi(self, tencentform):
         tencentform.setObjectName("tencentform")
@@ -31,7 +32,7 @@ class Ui_tencentform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(tencentform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -40,7 +41,7 @@ class Ui_tencentform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.tencent_SecretId = QtWidgets.QLineEdit(tencentform)
@@ -55,7 +56,7 @@ class Ui_tencentform(object):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout.setObjectName("formLayout")
         self.label_2 = QtWidgets.QLabel(tencentform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -91,4 +92,4 @@ class Ui_tencentform(object):
         tencentform.setWindowTitle("腾讯翻译")
         self.label.setText("Tencent SecretId")
         self.label_2.setText("Tencent SecretKey")
-        self.set_tencent.setText('保存' if config.defaulelang=='zh' else "Save" )
+        self.set_tencent.setText('保存' if config.defaulelang == 'zh' else "Save")

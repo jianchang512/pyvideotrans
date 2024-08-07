@@ -38,7 +38,6 @@ class Ui_ai302form(object):
         self.label_01.setStyleSheet("""text-align:left;background-color:transparent""")
         self.label_01.setText('点此查看使用教程 https://pyvideotrans.com/302ai')
 
-
         self.label_2 = QtWidgets.QLabel(ai302form)
         self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -65,7 +64,6 @@ class Ui_ai302form(object):
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 235, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
 
-
         self.label_4 = QtWidgets.QLabel(ai302form)
         self.label_4.setGeometry(QtCore.QRect(10, 340, 571, 21))
         self.label_4.setObjectName("label_4")
@@ -73,7 +71,6 @@ class Ui_ai302form(object):
         self.ai302_template = QtWidgets.QPlainTextEdit(ai302form)
         self.ai302_template.setGeometry(QtCore.QRect(10, 370, 571, 100))
         self.ai302_template.setObjectName("ai302_template")
-
 
         self.set_ai302 = QtWidgets.QPushButton(ai302form)
         self.set_ai302.setGeometry(QtCore.QRect(10, 480, 93, 35))
@@ -93,7 +90,7 @@ class Ui_ai302form(object):
         self.label_3.setText('选择模型')
         self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
         self.ai302_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。")
+        self.label_4.setText("{lang}代表目标语言名称，不要删除。")
         self.set_ai302.setText('保存')
         self.test_ai302.setText('测试..')
         self.ai302_key.setPlaceholderText("在api超市-api管理-创建API KEY")

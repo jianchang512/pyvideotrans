@@ -13,23 +13,23 @@ class DropButton(QPushButton):
         super(DropButton, self).__init__(text)
         self.setAcceptDrops(True)
         self.clicked.connect(self.get_file)
-        self.filelist=[]
+        self.filelist = []
 
     def get_file(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
-                                               config.last_opendir,
-                                               filter="Video/Audio files(*.mp4 *.mkv *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
+                                                 config.params['last_opendir'],
+                                                 filter="Video/Audio files(*.mp4 *.mkv *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
-        self.filelist=fnames
+        self.filelist = fnames
         self.setText(f'{len(self.filelist)} files')
 
     def dragEnterEvent(self, event):
         files = event.mimeData().text().strip().lower()
-        allow=True
+        allow = True
         for it in files.split("\n"):
-            if it.split('.')[-1] not in ["mp4","mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
-                allow=False
+            if it.split('.')[-1] not in ["mp4", "mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+                allow = False
                 break
         if allow:
             event.accept()
@@ -38,7 +38,7 @@ class DropButton(QPushButton):
 
     def dropEvent(self, event):
         filepath = event.mimeData().text().strip().split("\n")
-        self.filelist=[file.replace('file:///', '') for file in filepath]
+        self.filelist = [file.replace('file:///', '') for file in filepath]
         self.setText(f'{len(self.filelist)} files')
 
 
@@ -59,13 +59,15 @@ class Textedit(QPlainTextEdit):
         filepath = event.mimeData().text().replace('file:///', '')
         with open(filepath, 'r', encoding="utf-8") as f:
             self.setPlainText(f.read().strip())
-    def setText(self,filepath=None):
+
+    def setText(self, filepath=None):
         try:
             with open(filepath, 'r', encoding="utf-8") as f:
                 self.setPlainText(f.read().strip())
         except:
             with open(filepath, 'r', encoding="GBK") as f:
                 self.setPlainText(f.read().strip())
+
 
 class TextGetdir(QPlainTextEdit):
     def __init__(self):
@@ -76,7 +78,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac","mkv"]:
+            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac", "mkv"]:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -89,13 +91,11 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac","mkv"]:
+            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac", "mkv"]:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)
         self.setPlainText("\n".join(result))
-
-
 
 
 # VLC播放器

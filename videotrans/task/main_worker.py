@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import threading
 
+
 class Worker(QThread):
     def __init__(self, *, parent=None, app_mode=None, txt=None):
         super().__init__(parent=parent)
@@ -63,12 +64,10 @@ class Worker(QThread):
         it = config.queue_mp4.pop()
         obj_format = tools.format_video(it.replace('\\', '/'), config.params['target_dir'])
         set_process(obj_format['output'], 'add_process', btnkey="hebing")
-        # if obj_format['linshi_output'] != obj_format['output']:
-        #     shutil.copy2(it, obj_format['source_mp4'])
         target_dir_mp4 = obj_format['output'] + f"/{obj_format['raw_noextname']}.mp4"
         if config.params['only_video']:
             target_dir_mp4 = os.path.dirname(obj_format['output']) + f"/{obj_format['raw_noextname']}.mp4"
-            shutil.rmtree(obj_format['output'],ignore_errors=True)
+            shutil.rmtree(obj_format['output'], ignore_errors=True)
 
         video_info = tools.get_video_info(obj_format['source_mp4'])
         self.precent = 10
@@ -85,37 +84,38 @@ class Worker(QThread):
         os.chdir(config.rootdir)
         try:
             # 开启进度线程
-            protxt=config.TEMP_DIR+f"/hebing{time.time()}.txt"
-            
+            protxt = config.TEMP_DIR + f"/hebing{time.time()}.txt"
+
             def hebing_pro():
                 while 1:
-                    if self.precent>=100:
+                    if self.precent >= 100:
                         return
                     if not os.path.exists(protxt):
                         time.sleep(1)
                         continue
-                    with open(protxt,'r',encoding='utf-8') as f:
-                        content=f.read().strip().split("\n")
-                        if content[-1]=='progress=end':
+                    with open(protxt, 'r', encoding='utf-8') as f:
+                        content = f.read().strip().split("\n")
+                        if content[-1] == 'progress=end':
                             return
-                        idx=len(content)-1
-                        end_time="00:00:00"
-                        while idx>0:
+                        idx = len(content) - 1
+                        end_time = "00:00:00"
+                        while idx > 0:
                             if content[idx].startswith('out_time='):
-                                end_time=content[idx].split('=')[1].strip()
+                                end_time = content[idx].split('=')[1].strip()
                                 break
-                            idx-=1
+                            idx -= 1
                         try:
-                            h,m,s=end_time.split(':')
+                            h, m, s = end_time.split(':')
                         except Exception:
                             time.sleep(1)
                             continue
                         else:
-                            self.precent=(int(h)*3600000+int(m)*60000+int(s[:2])*1000)*100/video_info['time']
+                            self.precent = (int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * 100 / video_info[
+                                'time']
                             set_process('', btnkey="hebing")
                             time.sleep(1)
-                        
-            threading.Thread(target=hebing_pro).start()       
+
+            threading.Thread(target=hebing_pro).start()
             if config.params['subtitle_type'] in [0, 1, 3]:
                 # 硬字幕仅名字 需要和视频在一起
                 tools.runffmpeg([
@@ -237,76 +237,13 @@ class Worker(QThread):
                 config.logger.exception(err)
                 config.errorlist[video.init['btnkey']] = err
                 set_process(err, 'error', btnkey=video.init['btnkey'])
-                # if self.is_batch:
                 self.unidlist.remove(video.init['btnkey'])
                 continue
 
-            # if self.is_batch:
-                # 压入识别队列开始执行
+            # 压入识别队列开始执行
             config.regcon_queue.append(self.tasklist[video.init['btnkey']])
-                # continue
-            # # 非批量并发
-            # try:
-            #     if config.exit_soft or config.current_status != 'ing':
-            #         return self.stop()
-            #     video.recogn()
-            # except Exception as e:
-            #     err = f'{config.transobj["shibiechucuo"]}:' + str(e)
-            #     config.logger.exception(err)
-            #     config.errorlist[video.init['btnkey']] = err
-            #     set_process(err, 'error', btnkey=video.init['btnkey'])
-            #     continue
-            # try:
-            #     if config.exit_soft or config.current_status != 'ing':
-            #         return self.stop()
-            #     video.trans()
-            # except Exception as e:
-            #     err = f'{config.transobj["fanyichucuo"]}:' + str(e)
-            #     config.logger.exception(err)
-            #     config.errorlist[video.init['btnkey']] = err
-            #     set_process(err, 'error', btnkey=video.init['btnkey'])
-            #     continue
-            # try:
-            #     if config.exit_soft or config.current_status != 'ing':
-            #         return self.stop()
-            #     video.dubbing()
-            # except Exception as e:
-            #     err = f'{config.transobj["peiyinchucuo"]}:' + str(e)
-            #     config.logger.exception(err)
-            #     config.errorlist[video.init['btnkey']] = err
-            #     set_process(err, 'error', btnkey=video.init['btnkey'])
-            #     continue
-            # try:
-            #     if config.exit_soft or config.current_status != 'ing':
-            #         return self.stop()
-            #     video.hebing()
-            # except Exception as e:
-            #     err = f'{config.transobj["hebingchucuo"]}:' + str(e)
-            #     config.logger.exception(err)
-            #     config.errorlist[video.init['btnkey']] = err
-            #     set_process(err, 'error', btnkey=video.init['btnkey'])
-            #     continue
-            # try:
-            #     if config.exit_soft or config.current_status != 'ing':
-            #         return self.stop()
-            #     video.move_at_end()
-            # except Exception as e:
-            #     err = f'{config.transobj["hebingchucuo"]}:' + str(e)
-            #     config.logger.exception(err)
-            #     config.errorlist[video.init['btnkey']] = err
-            #     set_process(err, 'error', btnkey=video.init['btnkey'])
-            #     send_notification(err, f'{video.obj["raw_basename"]}')
-            #     continue
-
         # 批量进入等待
-        # if self.is_batch:
         return self.wait_end()
-        # 非批量直接结束
-        # config.queue_mp4 = []
-        # config.unidlist = []
-        # set_process("", 'end')
-        # tools._unlink_tmp()
-
 
     def wait_end(self):
         # 开始等待任务执行完毕
@@ -329,10 +266,10 @@ class Worker(QThread):
         set_process("", 'end')
         tools._unlink_tmp()
         config.queue_mp4 = []
-        config.unidlist=[]
+        config.unidlist = []
 
     def stop(self):
         set_process("", 'stop')
         tools._unlink_tmp()
         config.queue_mp4 = []
-        config.unidlist=[]
+        config.unidlist = []

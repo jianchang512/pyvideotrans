@@ -33,7 +33,7 @@ class Worker(QThread):
         for cmd in self.cmd_list:
             logger.info(f"[box]Will execute: ffmpeg {cmd=}")
             try:
-                rs = runffmpeg(cmd,  is_box=True)
+                rs = runffmpeg(cmd, is_box=True)
                 if not rs:
                     set_process_box(f'exec {cmd=} error', type='error')
             except Exception as e:
@@ -67,7 +67,7 @@ class WorkerWhisper(QThread):
                 config.box_recogn = 'ing'
                 audio_path = self.audio_paths.pop(0)
                 if not audio_path.endswith('.wav'):
-                    outfile=config.TEMP_HOME+"/"+os.path.basename(audio_path)+'.wav'
+                    outfile = config.TEMP_HOME + "/" + os.path.basename(audio_path) + '.wav'
                     cmd = [
                         "-y",
                         "-i",
@@ -79,14 +79,15 @@ class WorkerWhisper(QThread):
                         outfile
                     ]
                     tools.runffmpeg(cmd)
-                    audio_path=outfile
+                    audio_path = outfile
                 if not os.path.exists(audio_path):
                     errs.append(f'{audio_path} 不存在')
                     continue
-                self.post_message(type="logs",text=f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
+                self.post_message(type="logs",
+                                  text=f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
                 print(f'{audio_path=}')
                 jindu = f'{int((length - len(self.audio_paths)) * 49 / length)}%'
-                self.post_message(type='logs',text=f'{jindu}')
+                self.post_message(type='logs', text=f'{jindu}')
                 srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
                                   detect_language=self.language,
                                   set_p=False,
@@ -135,8 +136,8 @@ class WorkerTTS(QThread):
                  # audio_ajust=False,
                  tts_issrt=False):
         super(WorkerTTS, self).__init__(parent)
-        self.volume=volume
-        self.pitch=pitch
+        self.volume = volume
+        self.pitch = pitch
         self.all_text = []
         self.func_name = func_name
         self.files = files
@@ -237,7 +238,8 @@ class WorkerTTS(QThread):
 
             if tools.vail_file(it['filename']):
                 the_ext = it['filename'].split('.')[-1]
-                it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
+                it['dubb_time'] = len(
+                    AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
             else:
                 # 不存在配音
                 it['dubb_time'] = 0
@@ -258,11 +260,9 @@ class WorkerTTS(QThread):
             queue_tts[i] = it
         return queue_tts
 
-
-
     #   移除2个字幕间的间隔 config.settings[remove_white_ms] ms
     def _remove_white_ms(self, queue_tts):
-        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
+        config.settings['remove_white_ms'] = int(config.settings['remove_white_ms'])
         offset = 0
         for i, it in enumerate(queue_tts):
             if i > 0:
@@ -271,12 +271,12 @@ class WorkerTTS(QThread):
                 # 配音小于 原时长，移除默认静音
                 dt = it['start_time'] - queue_tts[i - 1]['end_time']
                 if dt > config.settings['remove_white_ms']:
-                    diff = config.settings['remove_white_ms'] if config.settings['remove_white_ms']>-1 else dt
+                    diff = config.settings['remove_white_ms'] if config.settings['remove_white_ms'] > -1 else dt
                     it['end_time'] -= diff
                     it['start_time'] -= diff
                     offset += diff
-                it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
-                it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
+                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 queue_tts[i] = it
         return queue_tts
 
@@ -298,7 +298,7 @@ class WorkerTTS(QThread):
                 queue_tts[i] = it
                 continue
 
-            it['speed']=True
+            it['speed'] = True
             queue_tts[i] = it
 
         # 再次遍历，调整字幕开始结束时间对齐实际音频时长
@@ -315,23 +315,20 @@ class WorkerTTS(QThread):
                 # 调整音频
                 tmp_mp3 = os.path.join(self.tmpdir, f'{it["filename"]}-speed.mp3')
                 # 需要加速的倍数如果大于2，并且大于1s才需要判断是否视频慢速，否则不慢速，以避免过差效果
-                speed=it['dubb_time']/it['raw_duration']
+                speed = it['dubb_time'] / it['raw_duration']
                 # 确定变化后的配音时长，如果倍数低于 audio_rate 限制，则设为原字幕时长，否则设定 配音时长/最大倍数
-                audio_extend = it['raw_duration'] if speed <= float(config.settings['audio_rate']) else int(it['dubb_time'] / float(config.settings['audio_rate']))
+                audio_extend = it['raw_duration'] if speed <= float(config.settings['audio_rate']) else int(
+                    it['dubb_time'] / float(config.settings['audio_rate']))
                 tools.precise_speed_up_audio(file_path=it['filename'], out=tmp_mp3,
                                              target_duration_ms=audio_extend,
                                              max_rate=100)
 
                 # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
-                #如果视频需要变化，更新视频时长需要变化的长度
+                # 如果视频需要变化，更新视频时长需要变化的长度
                 if tools.vail_file(tmp_mp3):
                     mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
                     it['dubb_time'] = mp3_len
                     it['filename'] = tmp_mp3
-
-
-
-
 
             # 更改时间戳
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
@@ -346,7 +343,7 @@ class WorkerTTS(QThread):
         # 整合一个队列到 exec_tts 执行
         length = len(self.all_text)
         errs = 0
-        config.settings['remove_white_ms']=int(config.settings['remove_white_ms'])
+        config.settings['remove_white_ms'] = int(config.settings['remove_white_ms'])
         for n, item in enumerate(self.all_text):
             queue_tts = []
             # 获取字幕
@@ -354,7 +351,6 @@ class WorkerTTS(QThread):
             set_process_box(text=item['text'], type='replace', func_name=self.func_name)
             set_process_box(text=f'{percent + 1}%', type='logs', func_name=self.func_name)
             subs = get_subtitle_from_srt(item["text"], is_file=False)
-
 
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
             for it in subs:
@@ -368,8 +364,8 @@ class WorkerTTS(QThread):
                     "endraw": it['endraw'],
                     "tts_type": self.tts_type,
                     "language": self.langcode,
-                    "pitch":self.pitch,
-                    "volume":self.volume,
+                    "pitch": self.pitch,
+                    "volume": self.volume,
                     "filename": f"{self.tmpdir}/tts-{time.time()}-{it['start_time']}.mp3"})
             try:
                 run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, set_p=False)
@@ -433,8 +429,8 @@ class WorkerTTS(QThread):
             if diff >= 0:
                 it['end_time'] += diff
                 offset += diff
-            #else:
-                # 配音小于原时长，添加静音
+            # else:
+            # 配音小于原时长，添加静音
             #    merged_audio += AudioSegment.silent(duration=abs(diff))
 
             if i > 0:
@@ -448,8 +444,8 @@ class WorkerTTS(QThread):
             queue_tts[i] = it
             merged_audio += segment
 
-        #if video_time > 0 and (len(merged_audio) < video_time):
-            # 末尾补静音
+        # if video_time > 0 and (len(merged_audio) < video_time):
+        # 末尾补静音
         #    silence = AudioSegment.silent(duration=video_time - len(merged_audio))
         #    merged_audio += silence
         # 创建配音后的文件
@@ -471,11 +467,11 @@ class FanyiWorker(QThread):
         self.target_language = target_language
         self.files = files
         self.srts = ""
-        self.func_name="fanyi"
+        self.func_name = "fanyi"
 
     def run(self):
         # 开始翻译,从目标文件夹读取原始字幕
-        set_process_box(text=f'start translate',type='logs')
+        set_process_box(text=f'start translate', type='logs')
         config.box_trans = "ing"
         if not self.files:
             set_process_box(text="no srt file", type="error", func_name=self.func_name)
@@ -486,11 +482,13 @@ class FanyiWorker(QThread):
             try:
                 rawsrt = get_subtitle_from_srt(f, is_file=True)
             except Exception as e:
-                set_process_box(text=f"\n{config.transobj['srtgeshierror']}:{f}" + str(e), type='error',  func_name=self.func_name)
+                set_process_box(text=f"\n{config.transobj['srtgeshierror']}:{f}" + str(e), type='error',
+                                func_name=self.func_name)
                 continue
             try:
-                set_process_box(text=f'正在翻译字幕{f}',type='logs', func_name=self.func_name)
-                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,set_p=False)
+                set_process_box(text=f'正在翻译字幕{f}', type='logs', func_name=self.func_name)
+                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,
+                                set_p=False)
                 srts_tmp = ""
                 for it in srt:
                     srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"

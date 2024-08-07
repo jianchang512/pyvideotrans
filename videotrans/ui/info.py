@@ -11,7 +11,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtGui import QPixmap, QDesktopServices
 
-from . import wx,alipay,mp
+from . import wx, alipay, mp
 from ..configure import config
 
 
@@ -32,11 +32,12 @@ class Ui_infoform(object):
         self.textBrowser.setOpenExternalLinks(True)
         self.textBrowser.anchorClicked.connect(self.openExternalLink)
         self.gridLayout.addWidget(self.textBrowser, 0, 0, 1, 1)
-        if config.defaulelang=='zh':
+        if config.defaulelang == 'zh':
             self.retranslateUi(infoform)
         else:
             self.retranslateUi_en(infoform)
         QtCore.QMetaObject.connectSlotsByName(infoform)
+
     def openExternalLink(self, url):
         # Open the link in the system browser
         QDesktopServices.openUrl(url)

@@ -7,7 +7,7 @@ from . import layers_new
 
 class BaseNet(nn.Module):
     def __init__(
-        self, nin, nout, nin_lstm, nout_lstm, dilations=((4, 2), (8, 4), (12, 6))
+            self, nin, nout, nin_lstm, nout_lstm, dilations=((4, 2), (8, 4), (12, 6))
     ):
         super(BaseNet, self).__init__()
         self.enc1 = layers_new.Conv2DBNActiv(nin, nout, 3, 1, 1)
@@ -117,7 +117,7 @@ class CascadedNet(nn.Module):
         mask = self.forward(x)
 
         if self.offset > 0:
-            mask = mask[:, :, :, self.offset : -self.offset]
+            mask = mask[:, :, :, self.offset: -self.offset]
             assert mask.size()[3] > 0
 
         return mask
@@ -127,7 +127,7 @@ class CascadedNet(nn.Module):
         pred_mag = x * mask
 
         if self.offset > 0:
-            pred_mag = pred_mag[:, :, :, self.offset : -self.offset]
+            pred_mag = pred_mag[:, :, :, self.offset: -self.offset]
             assert pred_mag.size()[3] > 0
 
         return pred_mag

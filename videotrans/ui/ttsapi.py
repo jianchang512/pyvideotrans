@@ -9,8 +9,9 @@
 ################################################################################
 
 from PySide6.QtCore import QMetaObject, QRect, QSize, Qt
-from PySide6.QtWidgets import   QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 from videotrans.configure import config
+
 
 class Ui_ttsapiform(object):
     def setupUi(self, ttsapiform):
@@ -61,19 +62,20 @@ class Ui_ttsapiform(object):
         self.test.setGeometry(QRect(490, 350, 93, 35))
         self.test.setMinimumSize(QSize(0, 35))
 
-        self.otherlink=QPushButton(ttsapiform)
+        self.otherlink = QPushButton(ttsapiform)
         self.otherlink.setStyleSheet("""background-color:transparent;border:0;""")
         self.otherlink.setText("第三方实现OpenVoice接口 https://github.com/kungful/openvoice-api")
-        self.otherlink.setGeometry(QRect(10,400,400,35))
+        self.otherlink.setGeometry(QRect(10, 400, 400, 35))
 
         self.retranslateUi(ttsapiform)
 
         QMetaObject.connectSlotsByName(ttsapiform)
+
     # setupUi
 
     def retranslateUi(self, ttsapiform):
-        if config.defaulelang=='zh':
-            tips="""
+        if config.defaulelang == 'zh':
+            tips = """
 将以POST请求向填写的API地址发送application/www-urlencode数据：
 
 text:需要合成的文本/字符串
@@ -96,7 +98,7 @@ https://github.com/kungful/openvoice-api
      
 """
         else:
-            tips="""
+            tips = """
             
 The application/www-urlencode data will be sent in a POST request to the filled API address:
 
@@ -114,16 +116,18 @@ Expect data to be returned from the interface in json format:
     data:On successful synthesis, return the full url of the mp3 file for downloading within the software. When it fails, the url will be empty.
 }            
 """
-        ttsapiform.setWindowTitle("自定义TTS-API/无编码能力勿使用该功能" if config.defaulelang=='zh' else "Customizing the TTS-API")
-        self.label_3.setText("额外参数" if config.defaulelang=='zh' else "additional parameter")
+        ttsapiform.setWindowTitle("自定义TTS-API/无编码能力勿使用该功能" if config.defaulelang == 'zh' else "Customizing the TTS-API")
+        self.label_3.setText("额外参数" if config.defaulelang == 'zh' else "additional parameter")
         self.tips.setPlainText(tips)
         self.tips.setPlaceholderText("")
-        self.save.setText("保存" if config.defaulelang=='zh' else "Save")
-        self.api_url.setPlaceholderText("填写http开头的完整地址" if config.defaulelang=='zh' else "Fill in the full address starting with http")
-        self.label.setText("自定义TTS API" if config.defaulelang=='zh' else "Customizing TTS-API")
-        self.voice_role.setPlaceholderText("填写可用的配音角色名称，以英文逗号分隔多个"  if config.defaulelang=='zh' else "")
-        self.label_2.setText("配音角色名称" if config.defaulelang=='zh' else "Fill in the names of the available voiceover characters, separating multiple ones with English commas")
-        self.extra.setPlaceholderText("填写通过extra键向api传递的额外参数，为空则传递pyvideotrans" if config.defaulelang=='zh' else "Fill in the extra parameters passed to the api via the extra key, null to pass pyvideotrans")
-        self.test.setText("测试Api" if config.defaulelang=='zh' else "Test API" )
+        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.api_url.setPlaceholderText(
+            "填写http开头的完整地址" if config.defaulelang == 'zh' else "Fill in the full address starting with http")
+        self.label.setText("自定义TTS API" if config.defaulelang == 'zh' else "Customizing TTS-API")
+        self.voice_role.setPlaceholderText("填写可用的配音角色名称，以英文逗号分隔多个" if config.defaulelang == 'zh' else "")
+        self.label_2.setText(
+            "配音角色名称" if config.defaulelang == 'zh' else "Fill in the names of the available voiceover characters, separating multiple ones with English commas")
+        self.extra.setPlaceholderText(
+            "填写通过extra键向api传递的额外参数，为空则传递pyvideotrans" if config.defaulelang == 'zh' else "Fill in the extra parameters passed to the api via the extra key, null to pass pyvideotrans")
+        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
     # retranslateUi
-

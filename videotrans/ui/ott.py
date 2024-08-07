@@ -12,6 +12,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QLabel
 from videotrans.configure import config
 
+
 class Ui_ottform(object):
     def setupUi(self, ottform):
         ottform.setObjectName("ottform")
@@ -32,7 +33,7 @@ class Ui_ottform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(ottform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -41,7 +42,7 @@ class Ui_ottform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.ott_address = QtWidgets.QLineEdit(ottform)
@@ -58,10 +59,10 @@ class Ui_ottform(object):
         self.set_ott = QtWidgets.QPushButton(ottform)
         self.set_ott.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ott.setObjectName("set_ott")
-        
-        label=QLabel(config.transobj['The ott project at'])
+
+        label = QLabel(config.transobj['The ott project at'])
         self.verticalLayout_2.addWidget(label)
-        
+
         self.verticalLayout_2.addWidget(self.set_ott)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
@@ -69,7 +70,8 @@ class Ui_ottform(object):
         QtCore.QMetaObject.connectSlotsByName(ottform)
 
     def retranslateUi(self, ottform):
-        ottform.setWindowTitle("OTT离线翻译" if config.defaulelang=='zh' else 'Offline Text Translate')
+        ottform.setWindowTitle("OTT离线翻译" if config.defaulelang == 'zh' else 'Offline Text Translate')
         self.label.setText("OTT_api")
-        self.ott_address.setPlaceholderText('在此填写你的OTT项目部署后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address for your OTT project deployment here')
-        self.set_ott.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.ott_address.setPlaceholderText(
+            '在此填写你的OTT项目部署后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address for your OTT project deployment here')
+        self.set_ott.setText('保存' if config.defaulelang == 'zh' else "Save")

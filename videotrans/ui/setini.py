@@ -299,7 +299,7 @@ class Ui_setini(object):
         label_title.setStyleSheet("""color:#eeeeee;text-align:center""")
         # tmp.addWidget(label_title)
         box.layout().addWidget(label_title)
-        helptext='show help' if config.defaulelang!='zh' else '点击查看帮助信息'
+        helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
         for key, val in self.notices.items():
             tmp = QtWidgets.QHBoxLayout()
             tmp_0 = QtWidgets.QPushButton()
@@ -323,7 +323,7 @@ class Ui_setini(object):
 
             if key in ["lang", "ai302_models", "crf", "vad", "model_list", "fontsize", "trans_thread", "chattts_voice"]:
                 label_title = QtWidgets.QLabel()
-                label_title.setText("↓"+self.heads[key])
+                label_title.setText("↓" + self.heads[key])
                 label_title.setStyleSheet("""color:#999999""")
                 label_title.setObjectName(f"label_{key}")
                 box.layout().addWidget(label_title)

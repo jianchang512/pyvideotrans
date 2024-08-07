@@ -7,9 +7,10 @@ import torch
 from videotrans.configure import config
 from videotrans.util import tools
 
+
 def load_data(file_name: str = "") -> dict:
     if not file_name:
-        file_name=os.path.join(config.rootdir, "uvr5_weights/name_params.json")
+        file_name = os.path.join(config.rootdir, "uvr5_weights/name_params.json")
     with open(file_name, "r") as f:
         data = json.load(f)
 
@@ -26,13 +27,13 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data,source="logs",btnkey=None):
+def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey=None):
     """
     data : dic configs
     """
 
     def _execute(
-        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True,source="logs"
+            X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True, source="logs"
     ):
         model.eval()
         with torch.no_grad():
@@ -42,15 +43,16 @@ def inference(X_spec, device, model, aggressiveness, data,source="logs",btnkey=N
 
             total_iterations = sum(iterations)
             for i in range(n_window):
-                if source!='logs' and config.separate_status !='ing':
+                if source != 'logs' and config.separate_status != 'ing':
                     return
-                jd=(i+1)*100/n_window
-                tools.set_process(f"{config.transobj['Separating background music']} {round(jd,1)}%",source,btnkey=btnkey)
-                print(f"{config.transobj['Separating background music']} {round(jd,1)}%")
+                jd = (i + 1) * 100 / n_window
+                tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", source,
+                                  btnkey=btnkey)
+                print(f"{config.transobj['Separating background music']} {round(jd, 1)}%")
                 start = i * roi_size
                 X_mag_window = X_mag_pad[
-                    None, :, :, start : start + data["window_size"]
-                ]
+                               None, :, :, start: start + data["window_size"]
+                               ]
                 X_mag_window = torch.from_numpy(X_mag_window)
                 if is_half:
                     X_mag_window = X_mag_window.half()
@@ -86,7 +88,7 @@ def inference(X_spec, device, model, aggressiveness, data,source="logs",btnkey=N
     else:
         is_half = False
     pred = _execute(
-        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half,source
+        X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half, source
     )
     pred = pred[:, :, :n_frame]
 
@@ -100,7 +102,7 @@ def inference(X_spec, device, model, aggressiveness, data,source="logs",btnkey=N
         pred_tta = _execute(
             X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half
         )
-        pred_tta = pred_tta[:, :, roi_size // 2 :]
+        pred_tta = pred_tta[:, :, roi_size // 2:]
         pred_tta = pred_tta[:, :, :n_frame]
 
         return (pred + pred_tta) * 0.5 * coef, X_mag, np.exp(1.0j * X_phase)

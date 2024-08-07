@@ -28,7 +28,6 @@ class Ui_doubaoform(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText('使用方法见 https://pyvideotrans.com/doubao')
 
-
         # line2
         self.label_2 = QtWidgets.QLabel(doubaoform)
         self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
@@ -48,9 +47,6 @@ class Ui_doubaoform(object):
         self.doubao_access.setGeometry(QtCore.QRect(150, 150, 431, 35))
         self.doubao_access.setMinimumSize(QtCore.QSize(0, 35))
         self.doubao_access.setObjectName("doubao_access")
-        
-        
-
 
         self.set_save = QtWidgets.QPushButton(doubaoform)
         self.set_save.setGeometry(QtCore.QRect(10, 200, 93, 35))
@@ -61,7 +57,7 @@ class Ui_doubaoform(object):
         QtCore.QMetaObject.connectSlotsByName(doubaoform)
 
     def retranslateUi(self, doubaoform):
-        doubaoform.setWindowTitle("豆包模型音视频识别" if config.defaulelang=='zh' else 'Doubao')
+        doubaoform.setWindowTitle("豆包模型音视频识别" if config.defaulelang == 'zh' else 'Doubao')
         self.label_3.setText('填写 Access Token')
 
         self.set_save.setText('保存')

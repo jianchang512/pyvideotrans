@@ -11,6 +11,7 @@
 from PySide6 import QtCore, QtWidgets
 from videotrans.configure import config
 
+
 class Ui_deeplxform(object):
     def setupUi(self, deeplxform):
         deeplxform.setObjectName("deeplxform")
@@ -31,7 +32,7 @@ class Ui_deeplxform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(deeplxform)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -40,7 +41,7 @@ class Ui_deeplxform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.deeplx_address = QtWidgets.QLineEdit(deeplxform)
@@ -66,5 +67,6 @@ class Ui_deeplxform(object):
     def retranslateUi(self, deeplxform):
         deeplxform.setWindowTitle("DeepLx")
         self.label.setText("DeepLx_Api")
-        self.deeplx_address.setPlaceholderText('在此填写你部署的DeepLx地址' if config.defaulelang=='zh' else 'Input your deeplx api url')
-        self.set_deeplx.setText('保存' if config.defaulelang=='zh' else "Save")
+        self.deeplx_address.setPlaceholderText(
+            '在此填写你部署的DeepLx地址' if config.defaulelang == 'zh' else 'Input your deeplx api url')
+        self.set_deeplx.setText('保存' if config.defaulelang == 'zh' else "Save")

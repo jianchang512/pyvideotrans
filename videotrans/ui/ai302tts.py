@@ -16,7 +16,7 @@ class Ui_ai302ttsform(object):
     def setupUi(self, ai302ttsform):
         ai302ttsform.setObjectName("ai302ttsform")
         ai302ttsform.setWindowModality(QtCore.Qt.NonModal)
-        ai302ttsform.resize(600,450)
+        ai302ttsform.resize(600, 450)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -57,7 +57,6 @@ class Ui_ai302ttsform(object):
         self.ai302tts_model.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302tts_model.setObjectName("ai302tts_model")
 
-
         self.label_allmodels = QtWidgets.QLabel(ai302ttsform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 200, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
@@ -66,8 +65,6 @@ class Ui_ai302ttsform(object):
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 235, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
         self.edit_allmodels.setReadOnly(True)
-
-
 
         self.set_ai302tts = QtWidgets.QPushButton(ai302ttsform)
         self.set_ai302tts.setGeometry(QtCore.QRect(10, 350, 93, 35))

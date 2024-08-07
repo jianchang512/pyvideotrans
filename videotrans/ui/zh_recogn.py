@@ -34,7 +34,7 @@ class Ui_zhrecognform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(zhrecogn)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -43,7 +43,7 @@ class Ui_zhrecognform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -55,14 +55,10 @@ class Ui_zhrecognform(object):
         self.zhrecogn_address.setSizePolicy(sizePolicy)
         self.zhrecogn_address.setMinimumSize(QtCore.QSize(210, 35))
         self.zhrecogn_address.setObjectName("zhrecogn_address")
-        
-        
-        
+
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.zhrecogn_address)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-
-        
 
         self.set = QtWidgets.QPushButton(zhrecogn)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -72,7 +68,7 @@ class Ui_zhrecognform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        label=QLabel("该项目地址 https://github.com/jianchang512/zh_recogn")
+        label = QLabel("该项目地址 https://github.com/jianchang512/zh_recogn")
         self.verticalLayout_2.addWidget(label)
 
         self.layout_btn = QtWidgets.QHBoxLayout()

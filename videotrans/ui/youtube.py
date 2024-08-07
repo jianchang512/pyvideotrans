@@ -25,6 +25,8 @@ class LineEditClickFilter(QObject):
             return True  # 表示事件已处理，不再传递
         # 其他事件交给基类处理，保持默认行为
         return False
+
+
 class Ui_youtubeform(object):
     def setupUi(self, youtubeform):
         youtubeform.setObjectName("youtubeform")
@@ -36,12 +38,11 @@ class Ui_youtubeform(object):
         sizePolicy.setHeightForWidth(youtubeform.sizePolicy().hasHeightForWidth())
         youtubeform.setSizePolicy(sizePolicy)
         youtubeform.setMaximumSize(QtCore.QSize(500, 300))
-        
-        
-        self.formatname=QtWidgets.QCheckBox(youtubeform)
-        self.formatname.setText("使用VID作为视频名称/防出错" if config.defaulelang=='zh' else 'Use VID for video name') 
+
+        self.formatname = QtWidgets.QCheckBox(youtubeform)
+        self.formatname.setText("使用VID作为视频名称/防出错" if config.defaulelang == 'zh' else 'Use VID for video name')
         self.formatname.setGeometry(QtCore.QRect(120, 140, 200, 35))
-        
+
         self.set = QtWidgets.QPushButton(youtubeform)
         self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -62,7 +63,7 @@ class Ui_youtubeform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
         self.label_2 = QtWidgets.QLabel(self.layoutWidget)
@@ -115,14 +116,8 @@ class Ui_youtubeform(object):
         self.click_filter = LineEditClickFilter()
         self.outputdir.installEventFilter(self.click_filter)
 
-
-        
-
         self.verticalLayout_2.addWidget(self.outputdir)
-        
-        
-        
-        
+
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
         self.logs = QtWidgets.QLabel(youtubeform)
         self.logs.setGeometry(QtCore.QRect(30, 250, 441, 35))
@@ -133,9 +128,10 @@ class Ui_youtubeform(object):
         QtCore.QMetaObject.connectSlotsByName(youtubeform)
 
     def retranslateUi(self, youtubeform):
-        youtubeform.setWindowTitle( '下载Youtube视频' if config.defaulelang=='zh' else "Youtube Download")
-        self.set.setText( '立即开始' if config.defaulelang=='zh' else "Start Download")
-        self.label.setText( '网络代理地址' if config.defaulelang=='zh' else "Proxy")
-        self.label_2.setText( '视频播放页url' if config.defaulelang=='zh' else "Video URL")
-        self.selectdir.setText( '保存目录' if config.defaulelang=='zh' else "Select Out Dir")
-        self.proxy.setPlaceholderText( '填写代理地址，格式 http://127.0.0.1:端口号' if config.defaulelang=='zh' else "eg http://127.0.0.1:7890")
+        youtubeform.setWindowTitle('下载Youtube视频' if config.defaulelang == 'zh' else "Youtube Download")
+        self.set.setText('立即开始' if config.defaulelang == 'zh' else "Start Download")
+        self.label.setText('网络代理地址' if config.defaulelang == 'zh' else "Proxy")
+        self.label_2.setText('视频播放页url' if config.defaulelang == 'zh' else "Video URL")
+        self.selectdir.setText('保存目录' if config.defaulelang == 'zh' else "Select Out Dir")
+        self.proxy.setPlaceholderText(
+            '填写代理地址，格式 http://127.0.0.1:端口号' if config.defaulelang == 'zh' else "eg http://127.0.0.1:7890")

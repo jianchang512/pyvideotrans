@@ -15,7 +15,7 @@ from videotrans.util import tools
 import hashlib
 
 
-def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=None):
+def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey=None):
     infos = []
     try:
         func = AudioPre
@@ -35,7 +35,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=No
                 need_reformat = 0
                 pre_fun._path_audio_(
                     inp_path,
-                    ins_root=save_root,btnkey=btnkey
+                    ins_root=save_root, btnkey=btnkey
                 )
                 done = 1
             else:
@@ -60,7 +60,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=No
         try:
             if done == 0:
                 pre_fun._path_audio_(
-                    inp_path, ins_root=save_root,btnkey=btnkey
+                    inp_path, ins_root=save_root, btnkey=btnkey
                 )
             infos.append("%s->Success" % (os.path.basename(inp_path)))
             yield "\n".join(infos)
@@ -68,7 +68,7 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=No
             try:
                 if done == 0:
                     pre_fun._path_audio_(
-                        inp_path, ins_root=save_root,btnkey=btnkey
+                        inp_path, ins_root=save_root, btnkey=btnkey
                     )
                 infos.append("%s->Success" % (os.path.basename(inp_path)))
                 yield "\n".join(infos)
@@ -91,8 +91,6 @@ def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=No
     yield "\n".join(infos)
 
 
-
-
 def convert_to_pure_eng_num(string):
     # 将输入字符串转换为UTF-8编码的bytes
     encoded_string = string.encode('utf-8')
@@ -106,16 +104,14 @@ def convert_to_pure_eng_num(string):
 
 
 # path 是需要保存vocal.wav的目录
-def start(audio,path,source="logs",btnkey=None):
+def start(audio, path, source="logs", btnkey=None):
     try:
         # 获取总时长秒
-        sec=tools.get_audio_time(audio)
-        #if sec<=dist:
-        gr = uvr(model_name="HP2", save_root=path, inp_path=audio,source=source,btnkey=btnkey)
+        sec = tools.get_audio_time(audio)
+        # if sec<=dist:
+        gr = uvr(model_name="HP2", save_root=path, inp_path=audio, source=source, btnkey=btnkey)
         print(next(gr))
         print(next(gr))
     except Exception as e:
-        msg=f"保留背景音:{str(e)}"
+        msg = f"保留背景音:{str(e)}"
         raise Exception(msg)
-
-

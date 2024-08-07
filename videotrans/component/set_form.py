@@ -43,6 +43,7 @@ class SetLineRole(QDialog, Ui_setlinerole):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class BaiduForm(QDialog, Ui_baiduform):  # <===
     def __init__(self, parent=None):
         super(BaiduForm, self).__init__(parent)
@@ -57,22 +58,25 @@ class YoutubeForm(QDialog, Ui_youtubeform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        config.canceldown=False
+        config.canceldown = False
+
     def closeEvent(self, event):
-        config.canceldown=True
+        config.canceldown = True
+
 
 class SeparateForm(QDialog, Ui_separateform):  # <===
     def __init__(self, parent=None):
         super(SeparateForm, self).__init__(parent)
-        self.task=None
+        self.task = None
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
     def closeEvent(self, event):
-        config.separate_status='stop'
+        config.separate_status = 'stop'
         if self.task:
             self.task.finish_event.emit("end")
-            self.task=None
+            self.task = None
         self.hide()
         event.ignore()
 
@@ -84,12 +88,14 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
     def __init__(self, parent=None):
         super(TtsapiForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class TransapiForm(QDialog, Ui_transapiform):  # <===
     def __init__(self, parent=None):
@@ -105,6 +111,7 @@ class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class CosyVoiceForm(QDialog, Ui_cosyvoiceform):  # <===
     def __init__(self, parent=None):
@@ -138,7 +145,6 @@ class AI302TTSForm(QDialog, Ui_ai302ttsform):  # <===
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
 
-
 class SetINIForm(QDialog, Ui_setini):  # <===
     def __init__(self, parent=None):
         super(SetINIForm, self).__init__(parent)
@@ -147,21 +153,21 @@ class SetINIForm(QDialog, Ui_setini):  # <===
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
 
-
-
 class DeepLForm(QDialog, Ui_deeplform):  # <===
     def __init__(self, parent=None):
         super(DeepLForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-        
+
+
 class AzurettsForm(QDialog, Ui_azurettsform):  # <===
     def __init__(self, parent=None):
         super(AzurettsForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class ElevenlabsForm(QDialog, Ui_elevenlabsform):  # <===
     def __init__(self, parent=None):
@@ -178,6 +184,7 @@ class InfoForm(QDialog, Ui_infoform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class ArticleForm(QDialog, Ui_articleform):  # <===
     def __init__(self, parent=None):
         super(ArticleForm, self).__init__(parent)
@@ -193,24 +200,30 @@ class DeepLXForm(QDialog, Ui_deeplxform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class OttForm(QDialog, Ui_ottform):  # <===
     def __init__(self, parent=None):
         super(OttForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
 class CloneForm(QDialog, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super(CloneForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
 class ChatttsForm(QDialog, Ui_chatttsform):  # <===
     def __init__(self, parent=None):
         super(ChatttsForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class ZhrecognForm(QDialog, Ui_zhrecognform):  # <===
     def __init__(self, parent=None):
@@ -237,21 +250,24 @@ class ChatgptForm(QDialog, Ui_chatgptform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class LocalLLMForm(QDialog, Ui_localllmform):  # <===
     def __init__(self, parent=None):
         super(LocalLLMForm, self).__init__(parent)
         self.setupUi(self)
-        self.localllm_model.addItems(config.localllm_model_list)
+        # self.localllm_model.addItems(config.localllm_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
     def __init__(self, parent=None):
         super(ZijiehuoshanForm, self).__init__(parent)
         self.setupUi(self)
-        self.zijiehuoshan_model.addItems(config.zijiehuoshan_model_list)
+        # self.zijiehuoshan_model.addItems(config.zijiehuoshan_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
 
 class HebingsrtForm(QDialog, Ui_srthebing):  # <===
     def __init__(self, parent=None):
@@ -268,11 +284,11 @@ class GeminiForm(QDialog, Ui_geminiform):  # <===
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
 
+
 class AzureForm(QDialog, Ui_azureform):  # <===
     def __init__(self, parent=None):
         super(AzureForm, self).__init__(parent)
         self.setupUi(self)
-        self.azure_model.addItems(config.azure_model_list)
+        # self.azure_model.addItems(config.azure_model_list)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
-

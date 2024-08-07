@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -28,8 +29,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setIconSize(QtCore.QSize(20, 20))
         self.tabWidget.setObjectName("tabWidget")
 
-
-        #===
+        # ===
 
         self.tab_4 = QtWidgets.QWidget()
         self.tab_4.setObjectName("tab_4")
@@ -46,7 +46,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
 
         self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout.setObjectName("formLayout")
         self.label_3 = QtWidgets.QLabel(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
@@ -68,17 +68,14 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_language)
         self.horizontalLayout.addLayout(self.formLayout)
 
-
-
         self.formLayout_2 = QtWidgets.QFormLayout()
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
 
         self.formLayout_2.setObjectName("formLayout_2")
 
         self.is_cuda = QtWidgets.QCheckBox(self.tab_4)
         self.is_cuda.setObjectName("is_cuda")
-        self.is_cuda.setText("启用CUDA?" if config.defaulelang=='zh' else 'Enable CUDA?')
+        self.is_cuda.setText("启用CUDA?" if config.defaulelang == 'zh' else 'Enable CUDA?')
 
         self.shibie_model_type = QtWidgets.QComboBox(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
@@ -92,12 +89,11 @@ class Ui_MainWindow(object):
             config.uilanglist['faster model'],
             config.uilanglist['openai model'],
             "GoogleSpeech",
-            "zh_recogn中文识别" if config.defaulelang=='zh' else "zh_recogn only Chinese",
-            "豆包模型识别" if config.defaulelang=='zh' else "Doubao"
+            "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese",
+            "豆包模型识别" if config.defaulelang == 'zh' else "Doubao"
         ])
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)
-
 
         self.shibie_model = QtWidgets.QComboBox(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
@@ -108,7 +104,6 @@ class Ui_MainWindow(object):
         self.shibie_model.setMinimumSize(QtCore.QSize(0, 30))
         self.shibie_model.setObjectName("shibie_model")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_model)
-
 
         self.shibie_whisper_type = QtWidgets.QComboBox(self.tab_4)
         self.shibie_whisper_type.addItems(
@@ -131,7 +126,6 @@ class Ui_MainWindow(object):
         self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 30))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
 
-
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
         self.shibie_text = QtWidgets.QPlainTextEdit(self.tab_4)
@@ -142,7 +136,6 @@ class Ui_MainWindow(object):
         self.shibie_text.setSizePolicy(sizePolicy)
         self.shibie_text.setObjectName("shibie_text")
         self.verticalLayout_3.addWidget(self.shibie_text)
-
 
         self.shibie_savebtn = QtWidgets.QPushButton(self.tab_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -161,7 +154,7 @@ class Ui_MainWindow(object):
         self.shibie_opendir.setSizePolicy(sizePolicy)
         self.shibie_opendir.setFixedHeight(30)
         self.shibie_opendir.setObjectName("shibie_opendir")
-        self.shibie_opendir.setText('打开识别结果保存目录' if config.defaulelang=='zh' else 'Open Output dir')
+        self.shibie_opendir.setText('打开识别结果保存目录' if config.defaulelang == 'zh' else 'Open Output dir')
         self.shibie_opendir.setDisabled(True)
 
         self.horizontalLayout_shibie8 = QtWidgets.QHBoxLayout()
@@ -172,9 +165,6 @@ class Ui_MainWindow(object):
 
         self.label_shibie10 = QtWidgets.QLabel(self.tab_4)
         self.verticalLayout_3.addWidget(self.label_shibie10)
-
-
-
 
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
         self.tabWidget.addTab(self.tab_4, "")
@@ -192,7 +182,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10_1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10_1.setObjectName("horizontalLayout_10_1")
         self.formLayout_3 = QtWidgets.QFormLayout()
-        self.formLayout_3.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout_3.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
         self.label_10 = QtWidgets.QLabel(self.tab_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -214,7 +204,7 @@ class Ui_MainWindow(object):
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
         self.formLayout_7 = QtWidgets.QFormLayout()
-        self.formLayout_7.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout_7.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout_7.setObjectName("formLayout_7")
         self.label_8 = QtWidgets.QLabel(self.tab_2)
         self.label_8.setMinimumSize(QtCore.QSize(0, 30))
@@ -226,7 +216,7 @@ class Ui_MainWindow(object):
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
         self.formLayout_4 = QtWidgets.QFormLayout()
-        self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout_4.setObjectName("formLayout_4")
         self.label_11 = QtWidgets.QLabel(self.tab_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -247,17 +237,15 @@ class Ui_MainWindow(object):
         self.hecheng_role.setObjectName("hecheng_role")
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
         self.horizontalLayout_10.addLayout(self.formLayout_4)
-        
+
         self.listen_btn = QtWidgets.QPushButton(self.tab_2)
         self.listen_btn.setFixedWidth(80)
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
         self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
         self.horizontalLayout_10.addWidget(self.listen_btn)
 
-
-
         self.formLayout_5 = QtWidgets.QFormLayout()
-        self.formLayout_5.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.formLayout_5.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout_5.setObjectName("formLayout_5")
         self.label_12 = QtWidgets.QLabel(self.tab_2)
         self.label_12.setMinimumSize(QtCore.QSize(0, 30))
@@ -271,7 +259,6 @@ class Ui_MainWindow(object):
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_rate)
         self.horizontalLayout_10_1.addLayout(self.formLayout_5)
 
-
         self.tts_issrt = QtWidgets.QCheckBox(self.tab_2)
         self.tts_issrt.setObjectName("tts_issrt")
 
@@ -282,7 +269,6 @@ class Ui_MainWindow(object):
         # self.audio_ajust = QtWidgets.QCheckBox(self.tab_2)
         # self.audio_ajust.setEnabled(False)
         # self.audio_ajust.setObjectName("audio_ajust")
-
 
         self.horizontalLayout_10_1.addWidget(self.tts_issrt)
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
@@ -311,10 +297,7 @@ class Ui_MainWindow(object):
         self.edge_volume_layout.addWidget(self.pitch_label)
         self.edge_volume_layout.addWidget(self.pitch_rate)
 
-
         self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
-
-
 
         self.hecheng_startbtn = QtWidgets.QPushButton(self.tab_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -328,8 +311,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
         self.verticalLayout_4.addLayout(self.horizontalLayout_10_1)
-
-
 
         self.verticalLayout_4.addWidget(self.hecheng_startbtn)
         self.gridLayout_3 = QtWidgets.QGridLayout()
@@ -349,7 +330,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.gridLayout_3)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
         self.tabWidget.addTab(self.tab_2, "")
-
 
         self.tab_7 = QtWidgets.QWidget()
         self.tab_7.setObjectName("tab_7")
@@ -522,12 +502,12 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
         self.label_4.setSizePolicy(sizePolicy)
         self.label_4.setMinimumSize(QtCore.QSize(100, 40))
-        self.label_4.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.label_4.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_3.addWidget(self.label_4, 0, QtCore.Qt.AlignTop)
         self.ysphb_videoinput = QtWidgets.QLineEdit(self.tab_3)
         self.ysphb_videoinput.setMinimumSize(QtCore.QSize(0, 40))
-        self.ysphb_videoinput.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.ysphb_videoinput.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.ysphb_videoinput.setReadOnly(True)
         self.ysphb_videoinput.setObjectName("ysphb_videoinput")
         self.horizontalLayout_3.addWidget(self.ysphb_videoinput, 0, QtCore.Qt.AlignTop)
@@ -573,8 +553,6 @@ class Ui_MainWindow(object):
         self.ysphb_selectsrt.setMinimumSize(QtCore.QSize(150, 40))
         self.ysphb_selectsrt.setObjectName("ysphb_selectsrt")
         self.horizontalLayout_6.addWidget(self.ysphb_selectsrt, 0, QtCore.Qt.AlignTop)
-
-
 
         self.horizontalLayout_replace = QtWidgets.QHBoxLayout()
         self.horizontalLayout_replace.setObjectName("horizontalLayout_replace")
@@ -623,9 +601,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addLayout(self.verticalLayout_9)
         self.tabWidget.addTab(self.tab_3, "")
 
-
-
-
         self.tab_5 = QtWidgets.QWidget()
         self.tab_5.setObjectName("tab_5")
         self.horizontalLayout_17 = QtWidgets.QHBoxLayout(self.tab_5)
@@ -643,12 +618,12 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.label_131.sizePolicy().hasHeightForWidth())
         self.label_131.setSizePolicy(sizePolicy)
         self.label_131.setMinimumSize(QtCore.QSize(100, 40))
-        self.label_131.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.label_131.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_131.setObjectName("label_131")
         self.horizontalLayout_12.addWidget(self.label_131, 0, QtCore.Qt.AlignTop)
         self.hun_file1 = QtWidgets.QLineEdit(self.tab_5)
         self.hun_file1.setMinimumSize(QtCore.QSize(0, 40))
-        self.hun_file1.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.hun_file1.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.hun_file1.setReadOnly(True)
         self.hun_file1.setObjectName("hun_file1")
         self.horizontalLayout_12.addWidget(self.hun_file1, 0, QtCore.Qt.AlignTop)
@@ -715,11 +690,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_17.addLayout(self.verticalLayout_10)
         self.tabWidget.addTab(self.tab_5, "")
 
-
-
-
-
-
         self.horizontalLayout_2.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -755,7 +725,8 @@ class Ui_MainWindow(object):
         # self.label_9.setText(box_lang.get("Whisper model"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
         self.shibie_savebtn.setText(box_lang.get("Save to srt.."))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), '批量音视频转字幕' if config.defaulelang=='zh'else 'Audio Video to Subtitle')
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4),
+                                  '批量音视频转字幕' if config.defaulelang == 'zh' else 'Audio Video to Subtitle')
         self.label_10.setText(box_lang.get("Subtitle lang"))
         self.label_8.setText("TTS")
         self.label_11.setText(box_lang.get("Select role"))
@@ -767,7 +738,8 @@ class Ui_MainWindow(object):
         # self.audio_ajust.setText(config.transobj.get("auto_ajust"))
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.label_7.setText(box_lang.get("Output audio name"))
-        self.hecheng_out.setPlaceholderText(box_lang.get("Set the name of the generated audio file here. If not filled in, use the time and date command"))
+        self.hecheng_out.setPlaceholderText(box_lang.get(
+            "Set the name of the generated audio file here. If not filled in, use the time and date command"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), box_lang.get("Text to speech"))
 
@@ -776,13 +748,15 @@ class Ui_MainWindow(object):
         self.label_141.setText(box_lang.get("Audio file 2"))
         self.hun_file2btn.setText(box_lang.get("Select the second audio file"))
         self.hun_startbtn.setText(box_lang.get("Start"))
-        self.hun_out.setPlaceholderText(box_lang.get("You can customize the output file name here. If not filled in, use a date name"))
+        self.hun_out.setPlaceholderText(
+            box_lang.get("You can customize the output file name here. If not filled in, use a date name"))
         self.hun_opendir.setText(box_lang.get("Open output dir"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), box_lang.get("Mixing two audio streams"))
         self.label_13.setText(box_lang.get("Translation channels"))
         self.label_613.setText(box_lang.get("Target lang"))
         self.label_614.setText(box_lang.get("Proxy"))
-        self.fanyi_proxy.setPlaceholderText(box_lang.get("Failed to access Google services. Please set up the proxy correctly"))
+        self.fanyi_proxy.setPlaceholderText(
+            box_lang.get("Failed to access Google services. Please set up the proxy correctly"))
         self.fanyi_import.setText(box_lang.get("Import text to be translated from a file.."))
         self.fanyi_issrt.setToolTip(box_lang.get("shuoming1"))
         self.fanyi_issrt.setText(box_lang.get("Is srt?"))

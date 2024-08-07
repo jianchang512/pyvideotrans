@@ -106,8 +106,8 @@ class CascadedASPPNet(nn.Module):
                     mask[:, :, : aggressiveness["split_bin"]],
                     1 + aggressiveness["value"] / 3,
                 )
-                mask[:, :, aggressiveness["split_bin"] :] = torch.pow(
-                    mask[:, :, aggressiveness["split_bin"] :],
+                mask[:, :, aggressiveness["split_bin"]:] = torch.pow(
+                    mask[:, :, aggressiveness["split_bin"]:],
                     1 + aggressiveness["value"],
                 )
 
@@ -117,7 +117,7 @@ class CascadedASPPNet(nn.Module):
         h = self.forward(x_mag, aggressiveness)
 
         if self.offset > 0:
-            h = h[:, :, :, self.offset : -self.offset]
+            h = h[:, :, :, self.offset: -self.offset]
             assert h.size()[3] > 0
 
         return h

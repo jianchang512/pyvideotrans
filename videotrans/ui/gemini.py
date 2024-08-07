@@ -11,6 +11,7 @@
 from PySide6 import QtCore, QtWidgets
 from videotrans.configure import config
 
+
 class Ui_geminiform(object):
     def setupUi(self, geminiform):
         geminiform.setObjectName("geminiform")
@@ -51,9 +52,6 @@ class Ui_geminiform(object):
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 175, 571, 60))
         self.edit_allmodels.setObjectName("edit_allmodels")
 
-
-
-
         self.label_4 = QtWidgets.QLabel(geminiform)
         self.label_4.setGeometry(QtCore.QRect(10, 250, 571, 21))
         self.label_4.setObjectName("label_4")
@@ -61,24 +59,20 @@ class Ui_geminiform(object):
         self.gemini_template.setGeometry(QtCore.QRect(10, 275, 571, 151))
         self.gemini_template.setObjectName("gemini_template")
 
-
-
-
         self.set_gemini = QtWidgets.QPushButton(geminiform)
-        self.set_gemini.setGeometry(QtCore.QRect(10,440, 93, 35))
+        self.set_gemini.setGeometry(QtCore.QRect(10, 440, 93, 35))
         self.set_gemini.setMinimumSize(QtCore.QSize(0, 35))
         self.set_gemini.setObjectName("set_gemini")
-
-
 
         self.retranslateUi(geminiform)
         QtCore.QMetaObject.connectSlotsByName(geminiform)
 
     def retranslateUi(self, geminiform):
-        geminiform.setWindowTitle( "Gemini Pro")
-        self.gemini_template.setPlaceholderText( "prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
-        self.set_gemini.setText('保存' if config.defaulelang=='zh' else "Save")
+        geminiform.setWindowTitle("Gemini Pro")
+        self.gemini_template.setPlaceholderText("prompt")
+        self.label_4.setText(
+            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
+        self.set_gemini.setText('保存' if config.defaulelang == 'zh' else "Save")
         self.gemini_key.setPlaceholderText("secret key")
-        self.label_2.setText( "Gemini  Key ")
-        self.label_3.setText( '选择模型' if config.defaulelang=='zh' else "Select model")
+        self.label_2.setText("Gemini  Key ")
+        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Select model")

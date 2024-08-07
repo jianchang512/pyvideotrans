@@ -12,11 +12,11 @@ from videotrans.util import tools
 class SeparateWorker(QThread):
     finish_event = pyqtSignal(str)
 
-    def __init__(self, *,basename=None, file=None,out=None,parent=None):
+    def __init__(self, *, basename=None, file=None, out=None, parent=None):
         super().__init__(parent=parent)
-        self.basename=basename
-        self.file=file
-        self.out=out
+        self.basename = basename
+        self.file = file
+        self.out = out
 
     def run(self):
         try:
@@ -37,17 +37,16 @@ class SeparateWorker(QThread):
                     cmd.insert(3, '-vn')
                 tools.runffmpeg(cmd, is_box=True)
                 self.file = newfile
-            st.start(self.file,self.out,"win")
-            #gr = st.uvr(model_name="HP2", save_root=self.out, inp_path=self.file,source="win")
-            
-            if config.separate_status=='ing':
+            st.start(self.file, self.out, "win")
+            # gr = st.uvr(model_name="HP2", save_root=self.out, inp_path=self.file,source="win")
+
+            if config.separate_status == 'ing':
                 self.finish_event.emit("succeed")
             else:
                 self.finish_event.emit("end")
         except Exception as e:
-            if config.separate_status=='ing':
-                msg=f"separate vocal and background music:{str(e)}"
+            if config.separate_status == 'ing':
+                msg = f"separate vocal and background music:{str(e)}"
                 self.finish_event.emit(msg)
         finally:
-            config.separate_status='stop'
-
+            config.separate_status = 'stop'

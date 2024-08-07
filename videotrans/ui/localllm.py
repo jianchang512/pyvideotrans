@@ -26,7 +26,8 @@ class Ui_localllmform(object):
 
         self.label_0 = QtWidgets.QLabel(localllmform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText('兼容ChatGPT接口的本地LLM大模型AI在此使用，videotrans/set.ini中localllm_model参数内添加模型名称' if config.defaulelang=='zh' else 'AIs compatible with the ChatGPT Local LLM also used here, model added within the localllm_model parameter in videotrans/set.ini')
+        self.label_0.setText(
+            '兼容ChatGPT接口的本地LLM大模型AI在此使用，videotrans/set.ini中localllm_model参数内添加模型名称' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here, model added within the localllm_model parameter in videotrans/set.ini')
 
         self.label = QtWidgets.QLabel(localllmform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
@@ -55,18 +56,15 @@ class Ui_localllmform(object):
         self.localllm_model.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_model.setObjectName("localllm_model")
 
-
         self.label_allmodels = QtWidgets.QLabel(localllmform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang=='zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
-
+        self.label_allmodels.setText(
+            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
-
-
 
         self.label_4 = QtWidgets.QLabel(localllmform)
         self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
@@ -75,8 +73,6 @@ class Ui_localllmform(object):
         self.localllm_template = QtWidgets.QPlainTextEdit(localllmform)
         self.localllm_template.setGeometry(QtCore.QRect(10, 340, 571, 151))
         self.localllm_template.setObjectName("localllm_template")
-
-
 
         self.set_localllm = QtWidgets.QPushButton(localllmform)
         self.set_localllm.setGeometry(QtCore.QRect(10, 510, 93, 35))
@@ -92,14 +88,15 @@ class Ui_localllmform(object):
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle("Local LLM API" if config.defaulelang !='zh' else '本地大模型API')
-        self.label_3.setText('选择模型' if config.defaulelang=='zh' else "Model")
+        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '本地大模型API')
+        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.localllm_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
-        self.set_localllm.setText('保存' if config.defaulelang=='zh' else "Save")
-        self.test_localllm.setText('测试..' if config.defaulelang=='zh' else "Test..")
-        self.localllm_api.setPlaceholderText('本地模型api地址' if config.defaulelang=='zh' else 'Local LLM API url')
+        self.label_4.setText(
+            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
+        self.set_localllm.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test_localllm.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+        self.localllm_api.setPlaceholderText('本地模型api地址' if config.defaulelang == 'zh' else 'Local LLM API url')
         self.localllm_key.setPlaceholderText("Secret key")
-        self.localllm_key.setToolTip("若未设置留空即可" if config.defaulelang=='zh' else 'If not remain empty')
+        self.localllm_key.setToolTip("若未设置留空即可" if config.defaulelang == 'zh' else 'If not remain empty')
         self.label.setText("API URL")
         self.label_2.setText("SK")

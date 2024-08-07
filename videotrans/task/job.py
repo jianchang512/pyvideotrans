@@ -7,16 +7,17 @@ from videotrans.util.tools import set_process
 
 
 class WorkerRegcon(QThread):
-    def __init__(self, *,parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent=parent)
+
     def run(self) -> None:
         while 1:
             if config.exit_soft:
                 return
-            if len(config.regcon_queue)<1:
+            if len(config.regcon_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk=config.regcon_queue.pop(0)
+            trk = config.regcon_queue.pop(0)
             try:
                 trk.recogn()
                 # 插入翻译队列
@@ -24,23 +25,24 @@ class WorkerRegcon(QThread):
             except Exception as e:
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])
-                msg=f'{config.transobj["shibiechucuo"]}:'+str(e)
+                msg = f'{config.transobj["shibiechucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg,'error',btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']]=msg
+                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                config.errorlist[trk.init['btnkey']] = msg
 
 
 class WorkerTrans(QThread):
-    def __init__(self, *,parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent=parent)
+
     def run(self) -> None:
         while 1:
             if config.exit_soft:
                 return
-            if len(config.trans_queue)<1:
+            if len(config.trans_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk=config.trans_queue.pop(0)
+            trk = config.trans_queue.pop(0)
             try:
                 trk.trans()
                 config.dubb_queue.append(trk)
@@ -52,48 +54,52 @@ class WorkerTrans(QThread):
                 set_process(msg, 'error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
 
+
 class WorkerDubb(QThread):
-    def __init__(self, *,parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent=parent)
+
     def run(self) -> None:
         while 1:
             if config.exit_soft:
                 return
-            if len(config.dubb_queue)<1:
+            if len(config.dubb_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk=config.dubb_queue.pop(0)
+            trk = config.dubb_queue.pop(0)
             try:
                 trk.dubbing()
                 config.compose_queue.append(trk)
             except Exception as e:
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])
-                msg=f'{config.transobj["peiyinchucuo"]}:'+str(e)
+                msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg,'error',btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']]=msg
+                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                config.errorlist[trk.init['btnkey']] = msg
+
 
 class WorkerCompose(QThread):
-    def __init__(self, *,parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent=parent)
+
     def run(self) -> None:
         while 1:
             if config.exit_soft:
                 return
-            if len(config.compose_queue)<1:
+            if len(config.compose_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk=config.compose_queue.pop(0)
+            trk = config.compose_queue.pop(0)
             try:
                 trk.hebing()
                 trk.move_at_end()
-                config.errorlist[trk.init['btnkey']]=""
+                config.errorlist[trk.init['btnkey']] = ""
             except Exception as e:
-                msg=f'{config.transobj["hebingchucuo"]}:'+str(e)
+                msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg,'error',btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']]=msg
+                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                config.errorlist[trk.init['btnkey']] = msg
             finally:
                 if trk.init['btnkey'] not in config.unidlist:
                     config.unidlist.append(trk.init['btnkey'])

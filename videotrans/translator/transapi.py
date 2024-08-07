@@ -41,9 +41,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
     set_p:
         是否实时输出日志，主界面中需要
     """
-    wait_sec=0.5
+    wait_sec = 0.5
     try:
-        wait_sec=int(config.settings['translation_wait'])
+        wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
     # 翻译后的文本
@@ -142,7 +142,7 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ',
                                       btnkey=inst.init['btnkey'] if inst else "")
                 elif not is_test:
-                    tools.set_process_box("\n".join(result), func_name="fanyi",type="set")
+                    tools.set_process_box("\n".join(result), func_name="fanyi", type="set")
                 result_length = len(result)
                 while result_length < source_length:
                     result.append("")
@@ -158,7 +158,7 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 # 未出错
                 err = ''
                 iter_num = 0
-                index =   i
+                index = i
         else:
             break
 

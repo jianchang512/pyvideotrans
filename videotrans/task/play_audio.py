@@ -9,14 +9,17 @@ from videotrans.util import tools
 from videotrans.util.tools import pygameaudio
 from pathlib import Path
 
+
 class PlayMp3(QThread):
-    mp3_ui=pyqtSignal(str)
-    def __init__(self,obj,parent=None):
+    mp3_ui = pyqtSignal(str)
+
+    def __init__(self, obj, parent=None):
         super(PlayMp3, self).__init__(parent)
-        self.obj=obj
+        self.obj = obj
+
     def run(self):
         try:
-            self.obj['voice_file']=self.obj['voice_file'].replace('%','')
+            self.obj['voice_file'] = self.obj['voice_file'].replace('%', '')
             if not tools.vail_file(self.obj['voice_file']):
                 text_to_speech(
                     text=self.obj['text'],
@@ -31,4 +34,3 @@ class PlayMp3(QThread):
                 pygameaudio(self.obj['voice_file'])
         except Exception as e:
             self.mp3_ui.emit(str(e))
-
