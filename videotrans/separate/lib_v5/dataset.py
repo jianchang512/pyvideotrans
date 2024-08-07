@@ -144,8 +144,8 @@ def make_training_set(filelist, cropsize, patches, sr, hop_length, n_fft, offset
         ends = starts + cropsize
         for j in range(patches):
             idx = i * patches + j
-            X_dataset[idx] = X_pad[:, :, starts[j] : ends[j]]
-            y_dataset[idx] = y_pad[:, :, starts[j] : ends[j]]
+            X_dataset[idx] = X_pad[:, :, starts[j]: ends[j]]
+            y_dataset[idx] = y_pad[:, :, starts[j]: ends[j]]
 
     return X_dataset, y_dataset
 
@@ -175,8 +175,8 @@ def make_validation_set(filelist, cropsize, sr, hop_length, n_fft, offset):
             if not os.path.exists(outpath):
                 np.savez(
                     outpath,
-                    X=X_pad[:, :, start : start + cropsize],
-                    y=y_pad[:, :, start : start + cropsize],
+                    X=X_pad[:, :, start: start + cropsize],
+                    y=y_pad[:, :, start: start + cropsize],
                 )
             patch_list.append(outpath)
 

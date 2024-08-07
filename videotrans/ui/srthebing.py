@@ -132,6 +132,7 @@ class Ui_srthebing(object):
         self.srtbtn2.setText("选择第二个字幕" if config.defaulelang == 'zh' else 'Select the second subtitle')
         self.startbtn.setText("开始执行合并" if config.defaulelang == 'zh' else 'commencement of execution')
         self.resultlabel.setText("")
-        self.resultinput.setPlaceholderText("这里显示合并结果" if config.defaulelang == 'zh' else "The merge result is shown here") 
+        self.resultinput.setPlaceholderText(
+            "这里显示合并结果" if config.defaulelang == 'zh' else "The merge result is shown here")
         self.resultbtn.setText("打开保存结果目录" if config.defaulelang == 'zh' else 'Open the save results directory')
     # retranslateUi

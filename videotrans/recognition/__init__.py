@@ -24,8 +24,7 @@ def run(*,
         inst=None,
         model_type='faster',
         is_cuda=None
-    ):
-
+        ):
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     if model_name.startswith('distil-'):
@@ -52,7 +51,7 @@ def run(*,
             cache_folder=cache_folder,
             set_p=set_p,
             inst=None)
-    elif model_type=='doubao':
+    elif model_type == 'doubao':
         rs = doubao_recogn(
             detect_language=detect_language,
             audio_file=audio_file,

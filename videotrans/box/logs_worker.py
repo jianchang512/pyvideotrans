@@ -5,6 +5,7 @@ from PySide6.QtCore import QThread, Signal as pyqtSignal
 from videotrans.configure import config
 from videotrans.configure.config import queuebox_logs
 
+
 class LogsWorker(QThread):
     post_logs = pyqtSignal(str)
 

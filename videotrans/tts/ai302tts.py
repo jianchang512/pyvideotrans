@@ -88,15 +88,15 @@ def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+
                                      verify=False)
             if response.status_code != 200:
                 raise Exception(response.text)
-            with open(filename+".wav", 'wb') as f:
+            with open(filename + ".wav", 'wb') as f:
                 f.write(response.content)
         except ConnectionError as e:
             raise
         except Exception as e:
             raise
-        if tools.vail_file(filename+".wav") and config.settings['remove_silence']:
-            tools.remove_silence_from_end(filename+".wav")
-        tools.wav2mp3(filename+".wav",filename)
+        if tools.vail_file(filename + ".wav") and config.settings['remove_silence']:
+            tools.remove_silence_from_end(filename + ".wav")
+        tools.wav2mp3(filename + ".wav", filename)
         if set_p and inst and inst.precent < 80:
             inst.precent += 0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")

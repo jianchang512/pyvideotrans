@@ -34,7 +34,7 @@ class Ui_cloneform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(clone)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -43,7 +43,7 @@ class Ui_cloneform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -55,14 +55,10 @@ class Ui_cloneform(object):
         self.clone_address.setSizePolicy(sizePolicy)
         self.clone_address.setMinimumSize(QtCore.QSize(400, 35))
         self.clone_address.setObjectName("clone_address")
-        
-        
-        
+
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-
-        
 
         self.set_clone = QtWidgets.QPushButton(clone)
         self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
@@ -72,7 +68,7 @@ class Ui_cloneform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        label=QLabel(config.transobj['The project at'])
+        label = QLabel(config.transobj['The project at'])
         self.verticalLayout_2.addWidget(label)
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -89,7 +85,8 @@ class Ui_cloneform(object):
 
     def retranslateUi(self, clone):
         clone.setWindowTitle("clone-voice")
-        self.label.setText("http地址" if config.defaulelang=='zh' else 'clone-voice url')
-        self.clone_address.setPlaceholderText('填写clone-voice项目启动后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address after the clone voice program starts')
-        self.set_clone.setText('保存' if config.defaulelang=='zh' else "Save")
-        self.test.setText('测试' if config.defaulelang=='zh' else "Test")
+        self.label.setText("http地址" if config.defaulelang == 'zh' else 'clone-voice url')
+        self.clone_address.setPlaceholderText(
+            '填写clone-voice项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the clone voice program starts')
+        self.set_clone.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

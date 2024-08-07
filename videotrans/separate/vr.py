@@ -10,11 +10,12 @@ from videotrans.separate.lib_v5.model_param_init import ModelParameters
 from videotrans.separate.utils import inference
 from videotrans.configure import config
 
+
 class AudioPre:
-    def __init__(self, agg, model_path, device, is_half, tta=False,source="logs"):
+    def __init__(self, agg, model_path, device, is_half, tta=False, source="logs"):
         self.model_path = model_path
         self.device = device
-        self.source=source
+        self.source = source
         self.data = {
             # Processing Options
             "postprocess": False,
@@ -25,7 +26,7 @@ class AudioPre:
             "high_end_process": "mirroring",
         }
         # mp = ModelParameters("%s/uvr5_weights/modelparams/4band_v2.json"%config.rootdir)
-        mp = ModelParameters("%s/uvr5_weights/modelparams/2band_44100_lofi.json"%config.rootdir)
+        mp = ModelParameters("%s/uvr5_weights/modelparams/2band_44100_lofi.json" % config.rootdir)
         model = Nets.CascadedASPPNet(mp.param["bins"] * 2)
         cpk = torch.load(model_path, map_location="cpu")
         model.load_state_dict(cpk)
@@ -39,23 +40,23 @@ class AudioPre:
         self.model = model
 
     def _path_audio_(
-        self, music_file, ins_root=None, format="wav", is_hp3=False,btnkey=None
+            self, music_file, ins_root=None, format="wav", is_hp3=False, btnkey=None
     ):
         if ins_root is None:
             return "No save root."
         name = os.path.splitext(os.path.basename(music_file))[0]
         if ins_root is not None:
             os.makedirs(ins_root, exist_ok=True)
-        vocal_root=ins_root
+        vocal_root = ins_root
         # if vocal_root is not None:
         #     os.makedirs(vocal_root, exist_ok=True)
         X_wave, y_wave, X_spec_s, y_spec_s = {}, {}, {}, {}
         bands_n = len(self.mp.param["band"])
 
         for d in range(bands_n, 0, -1):
-            if self.source!='logs' and config.separate_status !='ing':
+            if self.source != 'logs' and config.separate_status != 'ing':
                 return
-            if self.source=='logs' and config.current_status!='ing':
+            if self.source == 'logs' and config.current_status != 'ing':
                 return
             bp = self.mp.param["band"][d]
             if d == bands_n:  # high-end band
@@ -90,11 +91,11 @@ class AudioPre:
             # pdb.set_trace()
             if d == bands_n and self.data["high_end_process"] != "none":
                 input_high_end_h = (bp["n_fft"] // 2 - bp["crop_stop"]) + (
-                    self.mp.param["pre_filter_stop"] - self.mp.param["pre_filter_start"]
+                        self.mp.param["pre_filter_stop"] - self.mp.param["pre_filter_start"]
                 )
                 input_high_end = X_spec_s[d][
-                    :, bp["n_fft"] // 2 - input_high_end_h : bp["n_fft"] // 2, :
-                ]
+                                 :, bp["n_fft"] // 2 - input_high_end_h: bp["n_fft"] // 2, :
+                                 ]
 
         X_spec_m = spec_utils.combine_spectrograms(X_spec_s, self.mp)
         aggresive_set = float(self.data["agg"] / 100)
@@ -104,7 +105,7 @@ class AudioPre:
         }
         with torch.no_grad():
             pred, X_mag, X_phase = inference(
-                X_spec_m, self.device, self.model, aggressiveness, self.data,self.source,btnkey=btnkey
+                X_spec_m, self.device, self.model, aggressiveness, self.data, self.source, btnkey=btnkey
             )
         # Postprocess
         if self.data["postprocess"]:
@@ -157,9 +158,8 @@ class AudioPre:
                 sf.write(
                     os.path.join(
                         vocal_root,
-                        head + ".{}".format( format),
+                        head + ".{}".format(format),
                     ),
                     (np.array(wav_vocals) * 32768).astype("int16"),
                     self.mp.param["sr"],
                 )
-

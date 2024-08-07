@@ -9,8 +9,9 @@
 ################################################################################
 
 from PySide6.QtCore import QMetaObject, QRect, QSize, Qt
-from PySide6.QtWidgets import   QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 from videotrans.configure import config
+
 
 class Ui_cosyvoiceform(object):
     def setupUi(self, cosyvoiceform):
@@ -48,9 +49,6 @@ class Ui_cosyvoiceform(object):
         self.tips.setGeometry(QRect(10, 250, 571, 150))
         self.tips.setReadOnly(True)
 
-
-
-
         self.api_url = QLineEdit(cosyvoiceform)
         self.api_url.setObjectName("api_url")
         self.api_url.setGeometry(QRect(130, 10, 441, 35))
@@ -59,8 +57,6 @@ class Ui_cosyvoiceform(object):
         self.label.setObjectName("label")
         self.label.setGeometry(QRect(10, 10, 101, 35))
         self.label.setMinimumSize(QSize(0, 35))
-
-
 
         self.save = QPushButton(cosyvoiceform)
         self.save.setObjectName("save")
@@ -75,10 +71,11 @@ class Ui_cosyvoiceform(object):
         self.retranslateUi(cosyvoiceform)
 
         QMetaObject.connectSlotsByName(cosyvoiceform)
+
     # setupUi
 
     def retranslateUi(self, cosyvoiceform):
-        tips="""
+        tips = """
 # 需要预先部署CosyVoice项目，并放入了CosyVoice-api项目中的api.py
 # CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
 # CosyVoice-api项目地址 https://github.com/jianchang512/CosyVoice-api
@@ -126,10 +123,8 @@ reference_audio:定义的参考音频
 
         self.role.setPlaceholderText("在此填写参考音频信息,可以不填写，格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
         self.tips.setPlainText(tips)
-        self.save.setText("保存" if config.defaulelang=='zh' else "Save")
+        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
         self.api_url.setPlaceholderText("填写http开头的完整地址,CosyVoice-api默认 http://127.0.0.1:9233")
         self.label.setText("CosyVoice API")
         self.label_3.setText("需部署并启动CosyVoice-api，项目地址 https://github.com/jianchang512/CosyVoice-api")
-        self.test.setText("测试Api" if config.defaulelang=='zh' else "Test API" )
-
-
+        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")

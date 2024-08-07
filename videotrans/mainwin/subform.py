@@ -53,8 +53,6 @@ class Subform():
             region = self.main.aztw.speech_region.text().strip()
             if not region or not region.startswith('https:'):
                 region = self.main.aztw.azuretts_area.currentText()
-            self.main.settings.setValue("azure_speech_key", key)
-            self.main.settings.setValue("azure_speech_region", region)
 
             config.params['azure_speech_key'] = key
             config.params['azure_speech_region'] = region
@@ -73,11 +71,10 @@ class Subform():
             region = self.main.aztw.speech_region.text().strip()
             if not region or not region.startswith('https:'):
                 region = self.main.aztw.azuretts_area.currentText()
-            self.main.settings.setValue("azure_speech_key", key)
-            self.main.settings.setValue("azure_speech_region", region)
 
             config.params['azure_speech_key'] = key
             config.params['azure_speech_region'] = region
+            config.getset_params(config.params)
             self.main.aztw.close()
 
         from videotrans.component import AzurettsForm
@@ -95,8 +92,8 @@ class Subform():
     def set_elevenlabs_key(self):
         def save():
             key = self.main.ew.elevenlabstts_key.text()
-            self.main.settings.setValue("elevenlabstts_key", key)
             config.params['elevenlabstts_key'] = key
+            config.getset_params(config.params)
             self.main.ew.close()
 
         from videotrans.component import ElevenlabsForm
@@ -120,9 +117,10 @@ class Subform():
                 from videotrans.tts.clone import get_voice
                 try:
                     tools.get_clone_role(True)
-                    if len(config.clone_voicelist) < 2:
+                    if len(config.params["clone_voicelist"]) < 2:
                         raise Exception('没有可供测试的声音')
-                    get_voice(text=self.text, language=self.language, role=config.clone_voicelist[1], set_p=False,
+                    get_voice(text=self.text, language=self.language, role=config.params["clone_voicelist"][1],
+                              set_p=False,
                               filename=config.homedir + "/test.mp3")
 
                     self.uito.emit("ok")
@@ -153,8 +151,8 @@ class Subform():
             key = self.main.clonw.clone_address.text().strip()
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '')
-            self.main.settings.setValue("clone_api", key)
             config.params["clone_api"] = key
+            config.getset_params(config.params)
             self.main.clonw.close()
 
         from videotrans.component import CloneForm
@@ -211,8 +209,8 @@ class Subform():
             key = self.main.chatttsw.chattts_address.text().strip()
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '').replace('/tts', '')
-            self.main.settings.setValue("chattts_api", key)
             config.params["chattts_api"] = key
+            config.getset_params(config.params)
             self.main.chatttsw.close()
 
         from videotrans.component import ChatttsForm
@@ -258,8 +256,6 @@ class Subform():
             if not key or not model:
                 return QtWidgets.QMessageBox.critical(self.main.ai302ttsw, config.transobj['anerror'],
                                                       '必须填写 302.ai 的API KEY 和 model')
-            self.main.settings.setValue("ai302tts_key", key)
-            self.main.settings.setValue("ai302tts_model", model)
             config.params["ai302tts_key"] = key
             config.params["ai302tts_model"] = model
             task = TestTTS(parent=self.main.ai302ttsw, text="你好啊我的朋友")
@@ -270,10 +266,9 @@ class Subform():
         def save():
             key = self.main.ai302ttsw.ai302tts_key.text().strip()
             model = self.main.ai302ttsw.ai302tts_model.currentText()
-            self.main.settings.setValue("ai302tts_key", key)
-            self.main.settings.setValue("ai302tts_model", model)
             config.params["ai302tts_key"] = key
             config.params["ai302tts_model"] = model
+            config.getset_params(config.params)
             self.main.ai302ttsw.close()
 
         def setallmodels():
@@ -284,7 +279,8 @@ class Subform():
             if current_text:
                 self.main.ai302ttsw.ai302tts_model.setCurrentText(current_text)
             config.settings['ai302tts_models'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import AI302TTSForm
         self.main.ai302ttsw = AI302TTSForm()
@@ -311,8 +307,7 @@ class Subform():
             access = self.main.doubaow.doubao_access.text()
             config.params["doubao_appid"] = appid
             config.params["doubao_access"] = access
-            self.main.settings.setValue('doubao_access', access)
-            self.main.settings.setValue('doubao_appid', appid)
+            config.getset_params(config.params)
 
             self.main.doubaow.close()
 
@@ -320,14 +315,8 @@ class Subform():
         self.main.doubaow = DoubaoForm()
         if config.params["doubao_appid"]:
             self.main.doubaow.doubao_appid.setText(config.params["doubao_appid"])
-        else:
-            self.main.settings.setValue('doubao_appid', '')
         if config.params["doubao_access"]:
-            print('11')
             self.main.doubaow.doubao_access.setText(config.params["doubao_access"])
-        else:
-            print('22')
-            self.main.settings.setValue('doubao_access', '')
 
         self.main.doubaow.set_save.clicked.connect(save)
         self.main.doubaow.show()
@@ -368,10 +357,6 @@ class Subform():
             extra = self.main.ttsapiw.extra.text()
             role = self.main.ttsapiw.voice_role.text().strip()
 
-            self.main.settings.setValue("ttsapi_url", url)
-            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
-            self.main.settings.setValue("ttsapi_voice_role", role)
-
             config.params["ttsapi_url"] = url
             config.params["ttsapi_extra"] = extra
             config.params["ttsapi_voice_role"] = role
@@ -389,13 +374,10 @@ class Subform():
             extra = self.main.ttsapiw.extra.text()
             role = self.main.ttsapiw.voice_role.text().strip()
 
-            self.main.settings.setValue("ttsapi_url", url)
-            self.main.settings.setValue("ttsapi_extra", extra if extra else "pyvideotrans")
-            self.main.settings.setValue("ttsapi_voice_role", role)
-
             config.params["ttsapi_url"] = url
             config.params["ttsapi_extra"] = extra
             config.params["ttsapi_voice_role"] = role
+            config.getset_params(config.params)
             self.main.ttsapiw.close()
 
         from videotrans.component import TtsapiForm
@@ -473,7 +455,6 @@ class Subform():
                     return
                 role = s[0]
             config.params['gptsovits_role'] = tmp
-            self.main.settings.setValue("gptsovits_role", tmp)
             return role
 
         def save():
@@ -481,13 +462,10 @@ class Subform():
             extra = self.main.gptsovitsw.extra.text()
             role = self.main.gptsovitsw.role.toPlainText().strip()
 
-            self.main.settings.setValue("gptsovits_role", role)
-            self.main.settings.setValue("gptsovits_url", url)
-            self.main.settings.setValue("gptsovits_extra", extra if extra else "pyvideotrans")
-
             config.params["gptsovits_url"] = url
             config.params["gptsovits_extra"] = extra
             config.params["gptsovits_role"] = role
+            config.getset_params(config.params)
 
             self.main.gptsovitsw.close()
 
@@ -555,7 +533,6 @@ class Subform():
 
                 role = s[0]
             config.params['cosyvoice_role'] = tmp
-            self.main.settings.setValue("cosyvoice_role", tmp)
             return role
 
         def save():
@@ -563,12 +540,10 @@ class Subform():
 
             role = self.main.cosyvoicew.role.toPlainText().strip()
 
-            self.main.settings.setValue("cosyvoice_role", role)
-            self.main.settings.setValue("cosyvoice_url", url)
-
             config.params["cosyvoice_url"] = url
 
             config.params["cosyvoice_role"] = role
+            config.getset_params(config.params)
 
             self.main.cosyvoicew.close()
 
@@ -637,19 +612,16 @@ class Subform():
                     return
                 role = s[0]
             config.params['fishtts_role'] = tmp
-            self.main.settings.setValue("fishtts_rolel", tmp)
             return role
 
         def save():
             url = self.main.fishttsw.api_url.text()
             role = self.main.fishttsw.role.toPlainText().strip()
 
-            self.main.settings.setValue("fishtts_role", role)
-            self.main.settings.setValue("fishtts_url", url)
-
             config.params["fishtts_url"] = url
             config.params["fishtts_role"] = role
 
+            config.getset_params(config.params)
             self.main.fishttsw.close()
 
         from videotrans.component import FishTTSForm
@@ -701,8 +673,8 @@ class Subform():
             key = self.main.zhrecognw.zhrecogn_address.text().strip()
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '')
-            self.main.settings.setValue("zh_recogn_api", key)
             config.params["zh_recogn_api"] = key
+            config.getset_params(config.params)
             self.main.zhrecognw.close()
 
         from videotrans.component import ZhrecognForm
@@ -717,7 +689,8 @@ class Subform():
 
     def open_separate(self):
         def get_file():
-            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video", config.last_opendir,
+            fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video",
+                                                   config.params['last_opendir'],
                                                    "files(*.wav *.mp3 *.aac *.m4a *.flac *.mp4 *.mov *.mkv)")
             if fname:
                 self.main.sepw.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -824,7 +797,7 @@ class Subform():
                     self.main.hew.resultinput.setPlainText(f.read())
 
         def get_file(inputname):
-            fname, _ = QFileDialog.getOpenFileName(self.main.hew, "Select subtitles srt", config.last_opendir,
+            fname, _ = QFileDialog.getOpenFileName(self.main.hew, "Select subtitles srt", config.params['last_opendir'],
                                                    "files(*.srt)")
             if fname:
                 if inputname == 1:
@@ -961,10 +934,8 @@ class Subform():
                                                config.transobj[
                                                    'You must fill in the YouTube video playback page address'])
                 return
-            self.main.settings.setValue("youtube_outdir", outdir)
             if proxy:
-                config.proxy = proxy
-                self.main.settings.setValue("proxy", proxy)
+                config.params['proxy'] = proxy
             from videotrans.task.download_youtube import Download
             down = Download(proxy=proxy, url=url, out=outdir, parent=self.main, vid=vid)
             down.start()
@@ -986,8 +957,8 @@ class Subform():
         # 创建事件过滤器实例并将其安装到 lineEdit 上
 
         self.main.youw.outputdir.setText(outdir)
-        if config.proxy:
-            self.main.youw.proxy.setText(config.proxy)
+        if config.params['proxy']:
+            self.main.youw.proxy.setText(config.params['proxy'])
         self.main.youw.selectdir.clicked.connect(selectdir)
 
         self.main.youw.set.clicked.connect(download)
@@ -1005,20 +976,22 @@ class Subform():
             for line_edit in line_edits:
                 # 检查QLineEdit是否有objectName
                 if hasattr(line_edit, 'objectName') and line_edit.objectName():
-                    name=line_edit.objectName()
+                    name = line_edit.objectName()
                     # 将objectName作为key，text作为value添加到字典中
                     line_edit_dict[name] = line_edit.text()
             try:
-                json.dump(line_edit_dict, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),ensure_ascii=False)
+                json.dump(line_edit_dict, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+                          ensure_ascii=False)
             except Exception as e:
                 return QtWidgets.QMessageBox.critical(self.main.setiniw, config.transobj['anerror'], str(e))
             else:
                 config.settings = line_edit_dict
 
             self.main.setiniw.close()
+
         def alert(btn):
-            name=btn.objectName()[4:]
-            QMessageBox.information(self.main.setiniw,f'Help {name}',self.main.setiniw.notices[name])
+            name = btn.objectName()[4:]
+            QMessageBox.information(self.main.setiniw, f'Help {name}', self.main.setiniw.notices[name])
 
         from videotrans.component import SetINIForm
         self.main.setiniw = SetINIForm()
@@ -1037,10 +1010,9 @@ class Subform():
         def save():
             key = self.main.dlw.deepl_authkey.text()
             api = self.main.dlw.deepl_api.text().strip()
-            self.main.settings.setValue("deepl_authkey", key)
             config.params['deepl_authkey'] = key
-            self.main.settings.setValue("deepl_api", api)
             config.params['deepl_api'] = api
+            config.getset_params(config.params)
             self.main.dlw.close()
 
         from videotrans.component import DeepLForm
@@ -1055,8 +1027,8 @@ class Subform():
     def set_deepLX_address(self):
         def save():
             key = self.main.dexw.deeplx_address.text()
-            self.main.settings.setValue("deeplx_address", key)
             config.params["deeplx_address"] = key
+            config.getset_params(config.params)
             self.main.dexw.close()
 
         from videotrans.component import DeepLXForm
@@ -1069,8 +1041,8 @@ class Subform():
     def set_ott_address(self):
         def save():
             key = self.main.ow.ott_address.text()
-            self.main.settings.setValue("ott_address", key)
             config.params["ott_address"] = key
+            config.getset_params(config.params)
             self.main.ow.close()
 
         from videotrans.component import OttForm
@@ -1085,10 +1057,9 @@ class Subform():
         def save_baidu():
             appid = self.main.baw.baidu_appid.text()
             miyue = self.main.baw.baidu_miyue.text()
-            self.main.settings.setValue("baidu_appid", appid)
-            self.main.settings.setValue("baidu_miyue", miyue)
             config.params["baidu_appid"] = appid
             config.params["baidu_miyue"] = miyue
+            config.getset_params(config.params)
             self.main.baw.close()
 
         from videotrans.component import BaiduForm
@@ -1104,10 +1075,9 @@ class Subform():
         def save():
             SecretId = self.main.tew.tencent_SecretId.text()
             SecretKey = self.main.tew.tencent_SecretKey.text()
-            self.main.settings.setValue("tencent_SecretId", SecretId)
-            self.main.settings.setValue("tencent_SecretKey", SecretKey)
             config.params["tencent_SecretId"] = SecretId
             config.params["tencent_SecretKey"] = SecretKey
+            config.getset_params(config.params)
             self.main.tew.close()
 
         from videotrans.component import TencentForm
@@ -1150,10 +1120,6 @@ class Subform():
             api = api if api else 'https://api.openai.com/v1'
             model = self.main.w.chatgpt_model.currentText()
             template = self.main.w.chatgpt_template.toPlainText()
-            self.main.settings.setValue("chatgpt_key", key)
-            self.main.settings.setValue("chatgpt_api", api)
-
-            self.main.settings.setValue("chatgpt_model", model)
 
             os.environ['OPENAI_API_KEY'] = key
             config.params["chatgpt_key"] = key
@@ -1173,10 +1139,6 @@ class Subform():
             api = api if api else 'https://api.openai.com/v1'
             model = self.main.w.chatgpt_model.currentText()
             template = self.main.w.chatgpt_template.toPlainText()
-            self.main.settings.setValue("chatgpt_key", key)
-            self.main.settings.setValue("chatgpt_api", api)
-
-            self.main.settings.setValue("chatgpt_model", model)
 
             with open(config.rootdir + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
@@ -1186,7 +1148,7 @@ class Subform():
             config.params["chatgpt_api"] = api
             config.params["chatgpt_model"] = model
             config.params["chatgpt_template"] = template
-
+            config.getset_params(config.params)
             self.main.w.close()
 
         def setallmodels():
@@ -1197,7 +1159,8 @@ class Subform():
             if current_text:
                 self.main.w.chatgpt_model.setCurrentText(current_text)
             config.settings['chatgpt_model'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import ChatgptForm
         self.main.w = ChatgptForm()
@@ -1249,9 +1212,6 @@ class Subform():
             key = self.main.ai302fyw.ai302_key.text()
             model = self.main.ai302fyw.ai302_model.currentText()
             template = self.main.ai302fyw.ai302_template.toPlainText()
-            self.main.settings.setValue("ai302_key", key)
-
-            self.main.settings.setValue("ai302_model", model)
 
             config.params["ai302_key"] = key
             config.params["ai302_model"] = model
@@ -1267,16 +1227,13 @@ class Subform():
             key = self.main.ai302fyw.ai302_key.text()
             model = self.main.ai302fyw.ai302_model.currentText()
             template = self.main.ai302fyw.ai302_template.toPlainText()
-            self.main.settings.setValue("ai302_key", key)
-
-            self.main.settings.setValue("ai302_model", model)
-            self.main.settings.setValue("ai302_template", template)
 
             config.params["ai302_key"] = key
             config.params["ai302_model"] = model
             config.params["ai302_template"] = template
             with open(config.rootdir + f"/videotrans/302ai.txt", 'w', encoding='utf-8') as f:
                 f.write(template)
+            config.getset_params(config.params)
             self.main.ai302fyw.close()
 
         def setallmodels():
@@ -1287,7 +1244,8 @@ class Subform():
             if current_text:
                 self.main.ai302fyw.ai302_model.setCurrentText(current_text)
             config.settings['ai302_models'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import AI302Form
         self.main.ai302fyw = AI302Form()
@@ -1344,10 +1302,6 @@ class Subform():
 
             model = self.main.llmw.localllm_model.currentText()
             template = self.main.llmw.localllm_template.toPlainText()
-            self.main.settings.setValue("localllm_key", key)
-            self.main.settings.setValue("localllm_api", api)
-
-            self.main.settings.setValue("localllm_model", model)
 
             config.params["localllm_key"] = key
             config.params["localllm_api"] = api
@@ -1365,10 +1319,6 @@ class Subform():
 
             model = self.main.llmw.localllm_model.currentText()
             template = self.main.llmw.localllm_template.toPlainText()
-            self.main.settings.setValue("localllm_key", key)
-            self.main.settings.setValue("localllm_api", api)
-
-            self.main.settings.setValue("localllm_model", model)
 
             config.params["localllm_key"] = key
             config.params["localllm_api"] = api
@@ -1377,7 +1327,7 @@ class Subform():
             with open(config.rootdir + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
                 f.write(template)
-
+            config.getset_params(config.params)
             self.main.llmw.close()
 
         def setallmodels():
@@ -1388,7 +1338,8 @@ class Subform():
             if current_text:
                 self.main.llmw.localllm_model.setCurrentText(current_text)
             config.settings['localllm_model'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import LocalLLMForm
         self.main.llmw = LocalLLMForm()
@@ -1440,9 +1391,6 @@ class Subform():
                 return QtWidgets.QMessageBox.critical(self.main.zijiew, config.transobj['anerror'], '必须填写API key和推理接入点')
 
             template = self.main.zijiew.zijiehuoshan_template.toPlainText()
-            self.main.settings.setValue("zijiehuoshan_key", key)
-            self.main.settings.setValue("zijiehuoshan_model", model)
-
             config.params["zijiehuoshan_key"] = key
             config.params["zijiehuoshan_model"] = model
             config.params["zijiehuoshan_template"] = template
@@ -1457,28 +1405,26 @@ class Subform():
 
             model = self.main.zijiew.zijiehuoshan_model.currentText()
             template = self.main.zijiew.zijiehuoshan_template.toPlainText()
-            self.main.settings.setValue("zijiehuoshan_key", key)
-
-            self.main.settings.setValue("zijiehuoshan_model", model)
 
             config.params["zijiehuoshan_key"] = key
             config.params["zijiehuoshan_model"] = model
             config.params["zijiehuoshan_template"] = template
             with open(config.rootdir + f"/videotrans/zijie.txt", 'w', encoding='utf-8') as f:
                 f.write(template)
-
+            config.getset_params(config.params)
             self.main.zijiew.close()
 
         def setallmodels():
             t = self.main.zijiew.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-            t_list= [x for x in t.split(',') if x.strip()]
+            t_list = [x for x in t.split(',') if x.strip()]
             current_text = self.main.zijiew.zijiehuoshan_model.currentText()
             self.main.zijiew.zijiehuoshan_model.clear()
             self.main.zijiew.zijiehuoshan_model.addItems(t_list)
             if current_text:
                 self.main.zijiew.zijiehuoshan_model.setCurrentText(current_text)
             config.settings['zijiehuoshan_model'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import ZijiehuoshanForm
         self.main.zijiew = ZijiehuoshanForm()
@@ -1489,12 +1435,8 @@ class Subform():
         self.main.zijiew.edit_allmodels.setPlainText(allmodels_str)
         if config.params["zijiehuoshan_key"]:
             self.main.zijiew.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
-        else:
-            self.main.settings.setValue('zijiehuoshan_key', '')
         if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
             self.main.zijiew.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
-        else:
-            self.main.settings.setValue('zijiehuoshan_model', '')
 
         if config.params["zijiehuoshan_template"]:
             self.main.zijiew.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
@@ -1508,8 +1450,6 @@ class Subform():
             key = self.main.gw.gemini_key.text()
             model = self.main.gw.model.currentText()
             template = self.main.gw.gemini_template.toPlainText()
-            self.main.settings.setValue("gemini_key", key)
-
             os.environ['GOOGLE_API_KEY'] = key
             config.params["gemini_model"] = model
             config.params["gemini_key"] = key
@@ -1517,6 +1457,7 @@ class Subform():
             with open(config.rootdir + f"/videotrans/gemini{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
                 f.write(template)
+            config.getset_params(config.params)
             self.main.gw.close()
 
         def setallmodels():
@@ -1527,7 +1468,8 @@ class Subform():
             if current_text:
                 self.main.gw.model.setCurrentText(current_text)
             config.settings['gemini_model'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import GeminiForm
         self.main.gw = GeminiForm()
@@ -1552,10 +1494,6 @@ class Subform():
             api = self.main.azw.azure_api.text()
             model = self.main.azw.azure_model.currentText()
             template = self.main.azw.azure_template.toPlainText()
-            self.main.settings.setValue("azure_key", key)
-            self.main.settings.setValue("azure_api", api)
-
-            self.main.settings.setValue("azure_model", model)
 
             config.params["azure_key"] = key
             config.params["azure_api"] = api
@@ -1564,6 +1502,7 @@ class Subform():
             with open(config.rootdir + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
                 f.write(template)
+            config.getset_params(config.params)
             self.main.azw.close()
 
         def setallmodels():
@@ -1575,14 +1514,13 @@ class Subform():
             if current_text:
                 self.main.azw.azure_model.setCurrentText(current_text)
             config.settings['azure_model'] = t
-            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+            json.dump(config.settings, open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
         from videotrans.component import AzureForm
         self.main.azw = AzureForm()
         allmodels_str = config.settings['azure_model']
         allmodels = config.settings['azure_model'].split(',')
-        print(f'{allmodels=}')
-        print(f'{config.params["azure_model"]=}')
         self.main.azw.azure_model.clear()
         self.main.azw.azure_model.addItems(allmodels)
         self.main.azw.edit_allmodels.setPlainText(allmodels_str)
@@ -1631,8 +1569,6 @@ class Subform():
                                                       "必须填写自定义翻译的url" if config.defaulelang == 'zh' else "The url of the custom translation must be filled in")
             url = self.main.transapiw.api_url.text()
             miyue = self.main.transapiw.miyue.text()
-            self.main.settings.setValue("trans_api_url", url)
-            self.main.settings.setValue("trans_secret", miyue)
             config.params["trans_api_url"] = url
             config.params["trans_secret"] = miyue
             task = Test(parent=self.main.transapiw, text="你好啊我的朋友")
@@ -1643,10 +1579,9 @@ class Subform():
         def save():
             url = self.main.transapiw.api_url.text()
             miyue = self.main.transapiw.miyue.text()
-            self.main.settings.setValue("trans_api_url", url)
-            self.main.settings.setValue("trans_secret", miyue)
             config.params["trans_api_url"] = url
             config.params["trans_secret"] = miyue
+            config.getset_params(config.params)
             self.main.transapiw.close()
 
         from videotrans.component import TransapiForm

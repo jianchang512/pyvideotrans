@@ -34,7 +34,7 @@ class Ui_chatttsform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label = QtWidgets.QLabel(chattts)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -43,7 +43,7 @@ class Ui_chatttsform(object):
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -55,14 +55,10 @@ class Ui_chatttsform(object):
         self.chattts_address.setSizePolicy(sizePolicy)
         self.chattts_address.setMinimumSize(QtCore.QSize(400, 35))
         self.chattts_address.setObjectName("chattts_address")
-        
-        
-        
+
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.chattts_address)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-
-        
 
         self.set_chattts = QtWidgets.QPushButton(chattts)
         self.set_chattts.setMinimumSize(QtCore.QSize(0, 35))
@@ -72,7 +68,7 @@ class Ui_chatttsform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        label=QLabel('https://github.com/jianchang512/chatTTS-ui')
+        label = QLabel('https://github.com/jianchang512/chatTTS-ui')
         self.verticalLayout_2.addWidget(label)
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -89,7 +85,8 @@ class Ui_chatttsform(object):
 
     def retranslateUi(self, chattts):
         chattts.setWindowTitle("ChatTTS API")
-        self.label.setText("http地址" if config.defaulelang=='zh' else 'ChatTTS URL')
-        self.chattts_address.setPlaceholderText('填写 ChatTTS webUI 项目启动后的http地址' if config.defaulelang=='zh' else 'Fill in the HTTP address after the ChatTTS webUI program starts')
-        self.set_chattts.setText('保存' if config.defaulelang=='zh' else "Save")
-        self.test.setText('测试' if config.defaulelang=='zh' else "Test")
+        self.label.setText("http地址" if config.defaulelang == 'zh' else 'ChatTTS URL')
+        self.chattts_address.setPlaceholderText(
+            '填写 ChatTTS webUI 项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the ChatTTS webUI program starts')
+        self.set_chattts.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

@@ -9,8 +9,9 @@
 ################################################################################
 
 from PySide6.QtCore import QMetaObject, QRect, QSize, Qt
-from PySide6.QtWidgets import   QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 from videotrans.configure import config
+
 
 class Ui_fishttsform(object):
     def setupUi(self, fishttsform):
@@ -27,7 +28,6 @@ class Ui_fishttsform(object):
         self.label_3 = QLabel(fishttsform)
         self.label_3.setObjectName("label_3")
         self.label_3.setGeometry(QRect(10, 60, 101, 16))
-
 
         self.label_4 = QLabel(fishttsform)
         self.label_4.setObjectName("label_4")
@@ -49,9 +49,6 @@ class Ui_fishttsform(object):
         self.tips.setGeometry(QRect(10, 250, 571, 150))
         self.tips.setReadOnly(True)
 
-
-
-
         self.api_url = QLineEdit(fishttsform)
         self.api_url.setObjectName("api_url")
         self.api_url.setGeometry(QRect(130, 10, 441, 35))
@@ -60,8 +57,6 @@ class Ui_fishttsform(object):
         self.label.setObjectName("label")
         self.label.setGeometry(QRect(10, 10, 101, 35))
         self.label.setMinimumSize(QSize(0, 35))
-
-
 
         self.save = QPushButton(fishttsform)
         self.save.setObjectName("save")
@@ -76,10 +71,11 @@ class Ui_fishttsform(object):
         self.retranslateUi(fishttsform)
 
         QMetaObject.connectSlotsByName(fishttsform)
+
     # setupUi
 
     def retranslateUi(self, fishttsform):
-        tips="""
+        tips = """
 FishTTS 开源地址 https://github.com/fishaudio/fish-speech
 
 将以POST请求向填写的API地址发送application/json数据：
@@ -103,9 +99,8 @@ reference_text:参考音频的文本
         fishttsform.setWindowTitle("FishTTS API")
         self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
         self.tips.setPlainText(tips)
-        self.save.setText("保存" if config.defaulelang=='zh' else "Save")
+        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
         self.api_url.setPlaceholderText("填写http开头的API地址,FishTTS默认 http://127.0.0.1:8000/v1/invoke")
         self.label.setText("FishTTS API")
-        self.test.setText("测试Api" if config.defaulelang=='zh' else "Test API" )
+        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
     # retranslateUi
-

@@ -2,23 +2,23 @@ import os
 
 from videotrans.util.tools import runffmpeg
 
-
 import librosa
 import numpy as np
 import soundfile as sf
 import torch
+
 # from tqdm import tqdm
 cpu = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class ConvTDFNetTrim:
     def __init__(
-        self, device, model_name, target_name, L, dim_f, dim_t, n_fft, hop=1024
+            self, device, model_name, target_name, L, dim_f, dim_t, n_fft, hop=1024
     ):
         super(ConvTDFNetTrim, self).__init__()
 
         self.dim_f = dim_f
-        self.dim_t = 2**dim_t
+        self.dim_t = 2 ** dim_t
         self.n_fft = n_fft
         self.hop = hop
         self.n_bins = self.n_fft // 2 + 1
@@ -157,7 +157,7 @@ class Predictor:
             mix_waves = []
             i = 0
             while i < n_sample + pad:
-                waves = np.array(mix_p[:, i : i + model.chunk_size])
+                waves = np.array(mix_p[:, i: i + model.chunk_size])
                 mix_waves.append(waves)
                 i += gen_size
             mix_waves = torch.tensor(mix_waves, dtype=torch.float32).to(cpu)
@@ -166,8 +166,8 @@ class Predictor:
                 spek = model.stft(mix_waves)
                 if self.args.denoise:
                     spec_pred = (
-                        -_ort.run(None, {"input": -spek.cpu().numpy()})[0] * 0.5
-                        + _ort.run(None, {"input": spek.cpu().numpy()})[0] * 0.5
+                            -_ort.run(None, {"input": -spek.cpu().numpy()})[0] * 0.5
+                            + _ort.run(None, {"input": spek.cpu().numpy()})[0] * 0.5
                     )
                     tar_waves = model.istft(torch.tensor(spec_pred))
                 else:
@@ -176,9 +176,9 @@ class Predictor:
                     )
                 tar_signal = (
                     tar_waves[:, :, trim:-trim]
-                    .transpose(0, 1)
-                    .reshape(2, -1)
-                    .numpy()[:, :-pad]
+                        .transpose(0, 1)
+                        .reshape(2, -1)
+                        .numpy()[:, :-pad]
                 )
 
                 start = 0 if mix == 0 else margin_size
@@ -224,11 +224,11 @@ class Predictor:
                 runffmpeg([
                     "-y",
                     "-i",
-                    path_vocal.replace('\\','/'),
+                    path_vocal.replace('\\', '/'),
                     "-vn",
                     "-q:a",
                     "2",
-                    opt_path_vocal.replace('\\','/'),
+                    opt_path_vocal.replace('\\', '/'),
 
                 ])
                 if os.path.exists(opt_path_vocal):

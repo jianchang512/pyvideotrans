@@ -90,7 +90,6 @@ sys.excepthook = log_uncaught_exceptions
 if sys.platform == 'win32':
     PWD = rootdir.replace('/', '\\')
     os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;' + os.environ['PATH']
-
 else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
 
@@ -104,16 +103,15 @@ queuebox_logs = Queue(1000)
 current_status = "stop"
 # video toolbox 状态
 box_status = "stop"
-# 工具箱 需格式化的文件数量
-geshi_num = 0
 
 # 存放一次性多选的视频
 queue_mp4 = []
+
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice = {}
 
 # 倒计时
-task_countdown = 60
+task_countdown = 30
 # 获取的视频信息 全局缓存
 video_cache = {}
 
@@ -128,7 +126,6 @@ box_recogn = 'stop'
 # 中断win背景分离
 separate_status = 'stop'
 # 最后一次打开的目录
-last_opendir = homedir
 # 软件退出
 exit_soft = False
 
@@ -150,8 +147,13 @@ video_codec = None
 
 # 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
 video_min_ms = 50
-clone_voicelist = ["clone"]
+
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
+# 识别-翻译-配音-合并 线程启动标志
+task_thread = False
+# 存放 edget-tts 角色列表
+edgeTTS_rolelist = None
+AzureTTS_rolelist = None
 
 # 语言
 try:
@@ -162,62 +164,62 @@ except Exception:
 
 def parse_init():
     default = {
-            "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
-            "ai302tts_models": "tts-1,tts-1-hd,azure",
-            "lang": "",
-            "crf": 13,
-            "cuda_qp": False,
-            "preset": "slow",
-            "ffmpeg_cmd": "",
-            "video_codec": 264,
-            "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen,moonshot-v1-8k,deepseek-chat",
-            "azure_model": "gpt-4o,gpt-4,gpt-35-turbo",
-            "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat",
-            "zijiehuoshan_model": "",
-            "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
-            "audio_rate": 3,
-            "video_rate": 20,
-            "remove_silence": False,
-            "remove_srt_silence": False,
-            "remove_white_ms": 0,
-            "force_edit_srt": True,
-            "vad": True,
-            "overall_silence": 250,
-            "overall_maxsecs": 6,
-            "overall_threshold": 0.5,
-            "overall_speech_pad_ms": 100,
-            "voice_silence": 250,
-            "interval_split": 10,
-            "trans_thread": 15,
-            "retries": 2,
-            "translation_wait": 0.1,
-            "dubbing_thread": 5,
-            "countdown_sec": 15,
-            "backaudio_volume": 0.8,
-            "separate_sec": 600,
-            "loop_backaudio": True,
-            "cuda_com_type": "float32",
-            "initial_prompt_zh": "add punctuation after end of each line. 就比如说，我要先去吃饭。segment at end of each  sentence.",
-            "whisper_threads": 4,
-            "whisper_worker": 1,
-            "beam_size": 5,
-            "best_of": 5,
-            "temperature": 0,
-            "condition_on_previous_text": False,
-            "fontsize": 16,
-            "fontname": "黑体",
-            "fontcolor": "&hffffff",
-            "fontbordercolor": "&h000000",
-            "subtitle_bottom": 10,
-            "cjk_len": 20,
-            "other_len": 54,
-            "gemini_model":"gemini-1.5-pro,gemini-pro",
-            "zh_hant_s": True,
-            "azure_lines": 150,
-            "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
+        "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
+        "ai302tts_models": "tts-1,tts-1-hd,azure",
+        "lang": "",
+        "crf": 13,
+        "cuda_qp": False,
+        "preset": "slow",
+        "ffmpeg_cmd": "",
+        "video_codec": 264,
+        "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen,moonshot-v1-8k,deepseek-chat",
+        "azure_model": "gpt-4o,gpt-4,gpt-35-turbo",
+        "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat",
+        "zijiehuoshan_model": "",
+        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
+        "audio_rate": 3,
+        "video_rate": 20,
+        "remove_silence": False,
+        "remove_srt_silence": False,
+        "remove_white_ms": 0,
+        "force_edit_srt": True,
+        "vad": True,
+        "overall_silence": 250,
+        "overall_maxsecs": 6,
+        "overall_threshold": 0.5,
+        "overall_speech_pad_ms": 100,
+        "voice_silence": 250,
+        "interval_split": 10,
+        "trans_thread": 15,
+        "retries": 2,
+        "translation_wait": 0.1,
+        "dubbing_thread": 5,
+        "countdown_sec": 15,
+        "backaudio_volume": 0.8,
+        "separate_sec": 600,
+        "loop_backaudio": True,
+        "cuda_com_type": "float32",
+        "initial_prompt_zh": "add punctuation after end of each line. 就比如说，我要先去吃饭。segment at end of each  sentence.",
+        "whisper_threads": 4,
+        "whisper_worker": 1,
+        "beam_size": 5,
+        "best_of": 5,
+        "temperature": 0,
+        "condition_on_previous_text": False,
+        "fontsize": 16,
+        "fontname": "黑体",
+        "fontcolor": "&hffffff",
+        "fontbordercolor": "&h000000",
+        "subtitle_bottom": 10,
+        "cjk_len": 20,
+        "other_len": 54,
+        "gemini_model": "gemini-1.5-pro,gemini-pro",
+        "zh_hant_s": True,
+        "azure_lines": 150,
+        "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
     }
     if not os.path.exists(rootdir + "/videotrans/cfg.json"):
-        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
     try:
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
@@ -239,11 +241,11 @@ def parse_init():
             else:
                 settings[key] = value.lower() if value else ""
         default.update(settings)
-        if default['ai302tts_models'].find('azure')==-1:
-            default["ai302tts_models"]="tts-1,tts-1-hd,azure"
-        if default['gemini_model'].find('azure')==-1:
-            default["gemini_model"]="gemini-pro,gemini-1.5-pro"
-        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'),ensure_ascii=False)
+        if default['ai302tts_models'].find('azure') == -1:
+            default["ai302tts_models"] = "tts-1,tts-1-hd,azure"
+        if default['gemini_model'].find('azure') == -1:
+            default["gemini_model"] = "gemini-pro,gemini-1.5-pro"
+        json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
 
 
@@ -272,12 +274,9 @@ langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = obj['toolbox_lang']
 
-# 识别-翻译-配音-合并 线程启动标志
-task_thread = False
-
+# openai  faster-whisper 识别模型
 model_list = re.split('\,|，', settings['model_list'])
 ChatTTS_voicelist = re.split('\,|，', settings['chattts_voice'])
-
 chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
 azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
@@ -288,145 +287,168 @@ if len(localllm_model_list) < 1:
     localllm_model_list = ['']
 if len(zijiehuoshan_model_list) < 1:
     zijiehuoshan_model_list = ['']
+# 设置或获取 config.params
+def getset_params(obj=None):
+    if obj is not None:
+        with open(rootdir + "/videotrans/params.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(obj, ensure_ascii=False))
+        return None
+    default = {
+        "last_opendir": homedir,
+        "cuda": False,
 
-# 存放 edget-tts 角色列表
-edgeTTS_rolelist = None
-AzureTTS_rolelist = None
+        "only_video": False,
+        "is_separate": False,
 
-proxy = None
+        "target_dir": "",
 
-# 配置
-params = {
-    "source_mp4": "",
-    "target_dir": "",
+        "source_language": "en",
+        "target_language": "zh-cn",
+        "subtitle_language": "chi",
+        "translate_type": "Google",
+        "subtitle_type": 0,  # embed soft
 
-    "source_language": "en",
-    "detect_language": "en",
+        "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
+        "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
+        "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
+        "listen_text_fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
+        "listen_text_de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",
+        "listen_text_ja": "こんにちは私の親愛なる友人。 あなたの毎日が美しく楽しいものでありますように！",
+        "listen_text_ko": "안녕, 내 사랑하는 친구. 당신의 매일이 아름답고 즐겁기를 바랍니다!",
+        "listen_text_ru": "Привет, мой дорогой друг. Желаю, чтобы каждый твой день был прекрасен и приятен!",
+        "listen_text_es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
+        "listen_text_th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
+        "listen_text_it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
+        "listen_text_pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
+        "listen_text_vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
+        "listen_text_ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
+        "listen_text_tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
+        "listen_text_hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
+        "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
+        "listen_text_uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
+        "listen_text_id": "Halo, temanku, semoga kamu cantik setiap hari!",
+        "listen_text_ms": "Helo, sahabat saya, saya harap anda cantik setiap hari!",
+        "listen_text_kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
+        "listen_text_cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
+        "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
+        "listen_text_nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
 
-    "target_language": "zh-cn",
-    "subtitle_language": "chi",
+        "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
+        "tts_type_list": ["edgeTTS", 'CosyVoice', "ChatTTS", "302.ai", "FishTTS", "AzureTTS", "GPT-SoVITS",
+                          "clone-voice",
+                          "openaiTTS", "elevenlabsTTS", "gtts", "TTS-API"],
 
-    "cuda": False,
-    "is_separate": False,
+        "whisper_type": "all",
+        "whisper_model": "tiny",
+        "model_type": "faster",
 
-    "voice_role": "No",
-    "voice_rate": "0",
+        "voice_autorate": False,
+        "voice_role": "No",
+        "voice_rate": "0",
+        "video_autorate":False,
+        "append_video":True,
 
-    "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
-    "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
-    "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
-    "listen_text_fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
-    "listen_text_de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",
-    "listen_text_ja": "こんにちは私の親愛なる友人。 あなたの毎日が美しく楽しいものでありますように！",
-    "listen_text_ko": "안녕, 내 사랑하는 친구. 당신의 매일이 아름답고 즐겁기를 바랍니다!",
-    "listen_text_ru": "Привет, мой дорогой друг. Желаю, чтобы каждый твой день был прекрасен и приятен!",
-    "listen_text_es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
-    "listen_text_th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
-    "listen_text_it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
-    "listen_text_pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
-    "listen_text_vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
-    "listen_text_ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
-    "listen_text_tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
-    "listen_text_hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
-    "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
-    "listen_text_uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
-    "listen_text_id": "Halo, temanku, semoga kamu cantik setiap hari!",
-    "listen_text_ms": "Helo, sahabat saya, saya harap anda cantik setiap hari!",
-    "listen_text_kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
-    "listen_text_cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
-    "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
+        "deepl_authkey": "",
+        "deepl_api": "",
+        "deeplx_address": "",
 
-    "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS", 'CosyVoice', "ChatTTS", "302.ai", "FishTTS", "AzureTTS", "GPT-SoVITS", "clone-voice",
-                      "openaiTTS", "elevenlabsTTS", "gtts", "TTS-API"],
+        "ott_address": "",
 
-    "whisper_type": "all",
-    "whisper_model": "tiny",
-    "model_type": "faster",
-    "only_video": False,
-    "translate_type": "google",
-    "subtitle_type": 0,  # embed soft
-    "voice_autorate": False,
-    "auto_ajust": True,
+        "tencent_SecretId": "",
+        "tencent_SecretKey": "",
 
-    "deepl_authkey": "",
-    "deepl_api": "",
-    "deeplx_address": "",
-    "ott_address": "",
+        "baidu_appid": "",
+        "baidu_miyue": "",
 
-    "tencent_SecretId": "",
-    "tencent_SecretKey": "",
+        "coquitts_role": "",
+        "coquitts_key": "",
 
-    "baidu_appid": "",
-    "baidu_miyue": "",
+        "elevenlabstts_role": [],
+        "elevenlabstts_key": "",
 
-    "coquitts_role": "",
-    "coquitts_key": "",
+        "clone_api": "",
+        "clone_voicelist": ["clone"],
 
-    "elevenlabstts_role": [],
-    "elevenlabstts_key": "",
+        "zh_recogn_api": "",
 
-    "clone_api": "",
-    "zh_recogn_api": "",
+        "chatgpt_api": "",
+        "chatgpt_key": "",
+        "chatgpt_model": chatgpt_model_list[0],
+        "chatgpt_template": "",
 
-    "chatgpt_api": "",
-    "chatgpt_key": "",
-    "localllm_api": "",
-    "localllm_key": "",
-    "zijiehuoshan_key": "",
-    "chatgpt_model": chatgpt_model_list[0],
-    "localllm_model": localllm_model_list[0],
-    "zijiehuoshan_model": zijiehuoshan_model_list[0],
-    "chatgpt_template": "",
-    "localllm_template": "",
-    "zijiehuoshan_template": "",
-    "azure_api": "",
-    "azure_key": "",
-    "azure_model": azure_model_list[0],
-    "azure_template": "",
-    "openaitts_role": openaiTTS_rolelist,
-    "ai302tts_role": openaiTTS_rolelist,
-    "gemini_key": "",
-    "gemini_template": "",
+        "localllm_api": "",
+        "localllm_key": "",
+        "localllm_model": localllm_model_list[0],
+        "localllm_template": "",
 
-    "ttsapi_url": "",
-    "ttsapi_voice_role": "",
-    "ttsapi_extra": "pyvideotrans",
+        "zijiehuoshan_key": "",
+        "zijiehuoshan_model": zijiehuoshan_model_list[0],
+        "zijiehuoshan_template": "",
 
-    "trans_api_url": "",
-    "trans_secret": "",
+        "azure_api": "",
+        "azure_key": "",
+        "azure_model": azure_model_list[0],
+        "azure_template": "",
 
-    "ai302_key": "",
-    "ai302_model": "",
-    "ai302tts_key": "",
-    "ai302tts_model": "",
-    "ai302_template": "",
+        "openaitts_role": openaiTTS_rolelist,
+        "ai302tts_role": openaiTTS_rolelist,
 
-    "azure_speech_region": "",
-    "azure_speech_key": "",
+        "gemini_key": "",
+        "gemini_template": "",
 
-    "gptsovits_url": "",
-    "gptsovits_role": "",
-    "cosyvoice_url": "",
-    "cosyvoice_role": "",
-    "fishtts_url": "",
-    "fishtts_role": "",
-    "gptsovits_extra": "pyvideotrans"
-}
+        "ttsapi_url": "",
+        "ttsapi_voice_role": "",
+        "ttsapi_extra": "pyvideotrans",
 
-chatgpt_path = root_path / f'videotrans/chatgpt{"" if defaulelang == "zh" else "-en"}.txt'
-localllm_path = root_path / f'videotrans/localllm{"" if defaulelang == "zh" else "-en"}.txt'
-azure_path = root_path / f'videotrans/azure{"" if defaulelang == "zh" else "-en"}.txt'
-gemini_path = root_path / f'videotrans/gemini{"" if defaulelang == "zh" else "-en"}.txt'
-zijiehuoshan_path = root_path / f'videotrans/zijie.txt'
-ai302_path = root_path / f'videotrans/302ai.txt'
-params['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
-params['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
-params['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
-params['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
-params['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
-params['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
+        "trans_api_url": "",
+        "trans_secret": "",
 
+        "ai302_key": "",
+        "ai302_model": "",
+        "ai302_template": "",
+
+        "ai302tts_key": "",
+        "ai302tts_model": "",
+
+        "azure_speech_region": "",
+        "azure_speech_key": "",
+
+        "gptsovits_url": "",
+        "gptsovits_role": "",
+        "gptsovits_extra": "pyvideotrans",
+
+        "cosyvoice_url": "",
+        "cosyvoice_role": "",
+
+        "fishtts_url": "",
+        "fishtts_role": "",
+
+        "app_mode": "biaozhun",
+
+        "proxy": ""
+    }
+
+    chatgpt_path = root_path / f'videotrans/chatgpt{"" if defaulelang == "zh" else "-en"}.txt'
+    localllm_path = root_path / f'videotrans/localllm{"" if defaulelang == "zh" else "-en"}.txt'
+    azure_path = root_path / f'videotrans/azure{"" if defaulelang == "zh" else "-en"}.txt'
+    gemini_path = root_path / f'videotrans/gemini{"" if defaulelang == "zh" else "-en"}.txt'
+    zijiehuoshan_path = root_path / f'videotrans/zijie.txt'
+    ai302_path = root_path / f'videotrans/302ai.txt'
+
+    default['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
+    default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
+    default['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
+    default['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
+    default['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
+    default['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
+
+    try:
+        if os.path.exists(rootdir + "/videotrans/params.json"):
+            default.update(json.load(open(rootdir + "/videotrans/params.json", 'r', encoding='utf-8')))
+    except Exception:
+        pass
+    return default
+params = getset_params()
 if not os.path.exists(rootdir + '/videotrans/cfg.json'):
     with open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
         f.write('{}')

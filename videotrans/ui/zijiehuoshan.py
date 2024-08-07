@@ -50,11 +50,9 @@ class Ui_zijiehuoshanform(object):
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText('填写所有推理接入点，填写后可在上方选择')
 
-
         self.edit_allmodels = QtWidgets.QPlainTextEdit(zijiehuoshanform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 175, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
-
 
         self.label_4 = QtWidgets.QLabel(zijiehuoshanform)
         self.label_4.setGeometry(QtCore.QRect(10, 285, 571, 21))
@@ -63,7 +61,6 @@ class Ui_zijiehuoshanform(object):
         self.zijiehuoshan_template = QtWidgets.QPlainTextEdit(zijiehuoshanform)
         self.zijiehuoshan_template.setGeometry(QtCore.QRect(10, 310, 571, 151))
         self.zijiehuoshan_template.setObjectName("zijiehuoshan_template")
-
 
         self.set_zijiehuoshan = QtWidgets.QPushButton(zijiehuoshanform)
         self.set_zijiehuoshan.setGeometry(QtCore.QRect(10, 480, 93, 35))
@@ -75,15 +72,14 @@ class Ui_zijiehuoshanform(object):
         self.test_zijiehuoshan.setMinimumSize(QtCore.QSize(0, 30))
         self.test_zijiehuoshan.setObjectName("test_zijiehuoshan")
 
-
         self.retranslateUi(zijiehuoshanform)
         QtCore.QMetaObject.connectSlotsByName(zijiehuoshanform)
 
     def retranslateUi(self, zijiehuoshanform):
-        zijiehuoshanform.setWindowTitle("字节火山引擎接入翻译" if config.defaulelang=='zh' else 'ByteDance Ark')
+        zijiehuoshanform.setWindowTitle("字节火山引擎接入翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
         self.label_3.setText('选择推理接入点')
         self.zijiehuoshan_template.setPlaceholderText("prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。")
+        self.label_4.setText("{lang}代表目标语言名称，不要删除。")
         self.set_zijiehuoshan.setText('保存')
         self.test_zijiehuoshan.setText('测试..')
         self.zijiehuoshan_key.setPlaceholderText("填写API key")

@@ -11,6 +11,7 @@
 from PySide6 import QtCore, QtWidgets
 from videotrans.configure import config
 
+
 class Ui_azureform(object):
     def setupUi(self, azureform):
         azureform.setObjectName("azureform")
@@ -53,13 +54,12 @@ class Ui_azureform(object):
         self.label_allmodels = QtWidgets.QLabel(azureform)
         self.label_allmodels.setGeometry(QtCore.QRect(10, 160, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang=='zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
-
+        self.label_allmodels.setText(
+            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(azureform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 190, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
-
 
         self.label_4 = QtWidgets.QLabel(azureform)
         self.label_4.setGeometry(QtCore.QRect(10, 300, 571, 21))
@@ -68,24 +68,22 @@ class Ui_azureform(object):
         self.azure_template.setGeometry(QtCore.QRect(10, 320, 571, 151))
         self.azure_template.setObjectName("azure_template")
 
-
         self.set_azure = QtWidgets.QPushButton(azureform)
         self.set_azure.setGeometry(QtCore.QRect(10, 490, 93, 35))
         self.set_azure.setMinimumSize(QtCore.QSize(0, 35))
         self.set_azure.setObjectName("set_azure")
 
-
-
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)
 
     def retranslateUi(self, azureform):
-        azureform.setWindowTitle( "AzureGPT")
-        self.label_3.setText( "Azure Model")
-        self.azure_template.setPlaceholderText( "prompt")
-        self.label_4.setText( "{lang}代表目标语言名称，不要删除。" if config.defaulelang =='zh' else  "{lang} represents the target language name, do not delete it.")
-        self.set_azure.setText( '保存' if config.defaulelang=='zh' else "Save")
-        self.azure_api.setPlaceholderText('填写你的api地址' if config.defaulelang=='zh' else "Api url")
-        self.azure_key.setPlaceholderText('填写你的密钥' if config.defaulelang=='zh' else "Secret key")
-        self.label.setText( "API URL")
-        self.label_2.setText( "Azure  Key ")
+        azureform.setWindowTitle("AzureGPT")
+        self.label_3.setText("Azure Model")
+        self.azure_template.setPlaceholderText("prompt")
+        self.label_4.setText(
+            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
+        self.set_azure.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.azure_api.setPlaceholderText('填写你的api地址' if config.defaulelang == 'zh' else "Api url")
+        self.azure_key.setPlaceholderText('填写你的密钥' if config.defaulelang == 'zh' else "Secret key")
+        self.label.setText("API URL")
+        self.label_2.setText("Azure  Key ")

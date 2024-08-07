@@ -64,7 +64,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(
-        self, nin, nout, ksize=3, stride=1, pad=1, activ=nn.ReLU, dropout=False
+            self, nin, nout, ksize=3, stride=1, pad=1, activ=nn.ReLU, dropout=False
     ):
         super(Decoder, self).__init__()
         self.conv = Conv2DBNActiv(nin, nout, ksize, 1, pad, activ=activ)
