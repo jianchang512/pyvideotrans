@@ -99,7 +99,6 @@ def recogn(*,
                     text = recognizer.recognize_google(audio_data, language=detect_language)
                 except sr.UnknownValueError:
                     text = ""
-                    print("Speech recognition could not understand the audio.")
                 except sr.RequestError as e:
                     raise Exception(f"Google识别出错，请检查代理是否正确：{e}")
         except Exception as e:

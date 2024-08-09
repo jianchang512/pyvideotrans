@@ -241,7 +241,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tts_issrt.setDisabled(True)
             self.hecheng_importbtn.setText(
                 f'导入{len(fnames)}个srt文件' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles')
-
+        self.hecheng_out.setDisabled(False)
+        self.hecheng_out.setText('')
+        
     def render_play(self, t):
         if t != 'ok':
             return
@@ -260,7 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def opendir_fn(self, dirname=None):
         if not dirname:
             return
-        if not os.path.isdir(dirname):
+        if not os.path.isdir(dirname) or not os.path.exists(dirname):
             dirname = os.path.dirname(dirname)
         QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
 
@@ -311,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.hecheng_plaintext.clear()
                 self.hecheng_plaintext.setPlainText(data['text'])
             elif type == 'error' or type == 'end':
+                self.hecheng_out.setDisabled(False)
                 self.hecheng_startbtn.setDisabled(False)
                 self.hecheng_startbtn.setText(data['text'] if type == 'error' else config.transobj["zhixingwc"])
             else:
@@ -437,8 +440,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(f'{config.TEMP_DIR}'):
             os.makedirs(f'{config.TEMP_DIR}', exist_ok=True)
         tmpname = f'{config.TEMP_DIR}/{time.time()}.mp4'
-        print(f'{tmpname=}')
-        print(f'{videofile=}')
         video_info = tools.get_video_info(videofile)
 
         if wavfile:
@@ -497,7 +498,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             if self.precent_hb + precent < 99.9:
                                 self.precent_hb += precent
 
-                            print(f'{self.precent_hb=}')
                             self.ysphb_startbtn.setText(f'{self.precent_hb}%')
                             time.sleep(1)
 
@@ -721,7 +721,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         txt = self.hecheng_plaintext.toPlainText().strip()
         language = self.hecheng_language.currentText()
         role = self.hecheng_role.currentText()
-        print(f'{role=}')
         rate = int(self.hecheng_rate.value())
         tts_type = self.tts_type.currentText()
         langcode = translator.get_code(show_text=language)

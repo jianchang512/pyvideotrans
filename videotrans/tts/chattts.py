@@ -12,7 +12,6 @@ from videotrans.util import tools
 
 def get_voice(*, text=None, role="2222", rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None,
               set_p=True, inst=None):
-    print(f'role={role}')
     try:
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
         if not api_url:

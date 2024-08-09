@@ -85,7 +85,6 @@ class WorkerWhisper(QThread):
                     continue
                 self.post_message(type="logs",
                                   text=f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
-                print(f'{audio_path=}')
                 jindu = f'{int((length - len(self.audio_paths)) * 49 / length)}%'
                 self.post_message(type='logs', text=f'{jindu}')
                 srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
@@ -188,7 +187,6 @@ class WorkerTTS(QThread):
             return
 
         mp3 = self.wavname + ".mp3"
-        print(f'{mp3=}')
         try:
             text_to_speech(
                 text=self.files,

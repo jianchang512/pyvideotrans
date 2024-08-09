@@ -67,7 +67,6 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             </prosody>
         </voice>
         </speak>""".format(language, role, rate, pitch, volume, text_xml)
-        print(ssml)
         config.logger.info(f'{ssml=}')
 
         if is_list:
@@ -113,7 +112,6 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print(f'###{cancellation_details.error_details}')
                     tools.set_process(f"{config.transobj['azureinfo']}", btnkey=inst.init['btnkey'] if inst else "")
                     raise Exception(config.transobj['azureinfo'])
             raise Exception("Speech synthesis canceled: {},text={}".format(cancellation_details.reason, text))
@@ -121,7 +119,6 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             raise Exception('配音出错，请检查 Azure TTS')
     except Exception as e:
         error = str(e)
-        print(f'{error}')
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = error
         config.logger.error(f"Azure TTS合成失败" + str(e))

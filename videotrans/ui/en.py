@@ -436,12 +436,7 @@ class Ui_MainWindow(object):
 
         self.continue_compos = QtWidgets.QPushButton(self.layoutWidget)
         self.continue_compos.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.continue_compos.sizePolicy().hasHeightForWidth())
-        self.continue_compos.setSizePolicy(sizePolicy)
-        self.continue_compos.setMinimumSize(QtCore.QSize(260, 30))
+        self.continue_compos.setMinimumSize(QtCore.QSize(260, 40))
 
         self.continue_compos.setObjectName("continue_compos")
         self.horizontalLayout_3.addWidget(self.continue_compos)
