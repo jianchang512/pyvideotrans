@@ -1458,7 +1458,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 # 关机
                 if self.main.shutdown.isChecked():
                     try:
-                        print('需要关机')
                         tools.shutdown_system()
                     except Exception as e:
                         QMessageBox.critical(self.main, config.transobj['anerror'],

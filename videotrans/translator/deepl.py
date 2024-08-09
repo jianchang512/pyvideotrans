@@ -104,7 +104,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length < source_length:
-                    print(f'翻译前后数量不一致，需要重新切割')
                     result = []
                     for line_res in it:
                         data['text'] = line_res

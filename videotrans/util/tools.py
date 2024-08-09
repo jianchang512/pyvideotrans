@@ -208,7 +208,6 @@ def get_edge_rolelist():
         return voice_list
     except Exception as e:
         config.logger.error('获取edgeTTS角色失败' + str(e))
-        print('获取edgeTTS角色失败' + str(e))
 
 
 def get_azure_rolelist():
@@ -266,8 +265,6 @@ def runffmpeg(arg, *, noextname=None,
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
             cmd.insert(-1, str(it))
-    print(f'ffmpeg:{" ".join(cmd)}')
-    # config.logger.info(f'runffmpeg-tihuan:{cmd=}')
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
@@ -334,7 +331,6 @@ def runffprobe(cmd):
             return p.stdout.strip()
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
-        print(f"ffprobe---error{e=},{e.args=}")
         msg = f'ffprobe error,:{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
@@ -347,9 +343,6 @@ def runffprobe(cmd):
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False, get_codec=False):
     # 如果存在缓存并且没有禁用缓存
     mp4_file = Path(mp4_file).as_posix()
-    # if not nocache and mp4_file in config.video_cache:
-    #     result = config.video_cache[mp4_file]
-    # else:
     out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
     if out is False:
         raise Exception(f'ffprobe error:dont get video information')
@@ -496,7 +489,6 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, btnkey=None):
     try:
         path = Path(targe_audio).parent.as_posix()
         vocal_file = path + '/vocal.wav'
-        print(f'{vocal_file=}')
         if not vail_file(vocal_file):
             set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
             try:
@@ -542,9 +534,7 @@ def separate_volcal(video_file=None, path=None):
             tmpfile
         ])
         from videotrans.separate import st
-        # path = Path(targe_audio).parent.as_posix()
         vocal_file = path + '/vocal.wav'
-        print(f'{vocal_file=}')
         if not vail_file(vocal_file):
             st.start(audio=tmpfile, path=path, btnkey=None)
         if not vail_file(vocal_file):
@@ -662,10 +652,8 @@ def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
     if out:
         out = Path(out).as_posix()
     if maxsec:
-        print(f'maxsec={maxsec=}')
         return os.system(
             f'ffmpeg -y -f  concat -safe 0 -i "{txt}"  -c:v libx{video_codec}  -crf {config.settings["crf"]} -preset {config.settings["preset"]} -an {out}')
-        # return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-crf',  f'{config.settings["crf"]}', '-preset', config.settings['preset'], '-an', out], fps=fps)
     return runffmpeg(
         ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
          f'{config.settings["crf"]}',
@@ -750,8 +738,6 @@ def show_popup(title, text, parent=None):
 print(ms_to_time_string(ms=12030))
 -> 00:00:12,030
 '''
-
-
 def ms_to_time_string(*, ms=0, seconds=None):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:

@@ -11,13 +11,13 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_content(d, *, prompt=None, assiant=None):
-    text = "\n".join([i.strip() for i in d]) if isinstance(d, list) else d
+def get_content(d, *, prompt=None):
+
     payload = {
         "model": config.params['ai302_model'],
         "messages": [
-            {'role': 'system', 'content': prompt},
-            {'role': 'user', 'content': f'{prompt}"""{text}"""'},
+            {'role': 'system', 'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results"  if config.defaulelang !='zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+            {'role': 'user', 'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
         ]
     }
 
@@ -99,7 +99,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
         iter_num += 1
-        print(f'{wait_sec=},{iter_num=}')
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return

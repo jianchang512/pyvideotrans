@@ -213,7 +213,7 @@ def parse_init():
         "subtitle_bottom": 10,
         "cjk_len": 20,
         "other_len": 54,
-        "gemini_model": "gemini-1.5-pro,gemini-pro",
+        "gemini_model": "gemini-1.5-pro,gemini-pro,gemini-1.5-flash",
         "zh_hant_s": True,
         "azure_lines": 150,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
@@ -224,8 +224,7 @@ def parse_init():
     try:
         tmpjson = json.load(open(rootdir + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
-        print(e)
-        raise Exception('videotrans/cfg.json not found  or  error')
+        raise Exception('videotrans/cfg.json not found  or  error'+str(e))
     else:
         settings = {}
         for key, val in tmpjson.items():
@@ -243,8 +242,8 @@ def parse_init():
         default.update(settings)
         if default['ai302tts_models'].find('azure') == -1:
             default["ai302tts_models"] = "tts-1,tts-1-hd,azure"
-        if default['gemini_model'].find('azure') == -1:
-            default["gemini_model"] = "gemini-pro,gemini-1.5-pro"
+        if default['gemini_model'].find('gemini') == -1:
+            default["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
 
@@ -276,6 +275,7 @@ box_lang = obj['toolbox_lang']
 
 # openai  faster-whisper 识别模型
 model_list = re.split('\,|，', settings['model_list'])
+
 ChatTTS_voicelist = re.split('\,|，', settings['chattts_voice'])
 chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
 azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
@@ -287,6 +287,8 @@ if len(localllm_model_list) < 1:
     localllm_model_list = ['']
 if len(zijiehuoshan_model_list) < 1:
     zijiehuoshan_model_list = ['']
+
+
 # 设置或获取 config.params
 def getset_params(obj=None):
     if obj is not None:
@@ -345,8 +347,8 @@ def getset_params(obj=None):
         "voice_autorate": False,
         "voice_role": "No",
         "voice_rate": "0",
-        "video_autorate":False,
-        "append_video":True,
+        "video_autorate": False,
+        "append_video": True,
 
         "deepl_authkey": "",
         "deepl_api": "",
@@ -360,55 +362,225 @@ def getset_params(obj=None):
         "baidu_appid": "",
         "baidu_miyue": "",
 
+        "chatgpt_api": "",
+        "chatgpt_key": "",
+        "chatgpt_model": chatgpt_model_list[0],
+        "chatgpt_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
+
+**格式要求：**
+- 按行翻译原文，并生成该行对应的译文，确保原文行和译文行中的每个单词相互对应。
+- 有几行原文，必须生成几行译文。
+
+**内容要求：**
+- 翻译必须精简短小，避免长句。
+- 如果原文无法翻译，请返回空行，不得添加“无意义语句或不可翻译”等任何提示语。
+- 只输出译文即可，禁止输出任何原文。
+
+**执行细节：**
+- 如果某行原文很短，在翻译后也仍然要保留该行，不得与上一行或下一行合并。
+- 原文换行处字符相对应的译文字符也必须换行。
+- 严格按照字面意思翻译，不要解释或回答原文内容。
+
+**最终目标：**
+- 提供格式与原文完全一致的高质量翻译结果。
+
+<source>[TEXT]</source>
+
+译文:""" if defaulelang == 'zh' else """""",
+
+        "azure_api": "",
+        "azure_key": "",
+        "azure_model": azure_model_list[0],
+        "azure_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
+
+**格式要求：**
+- 按行翻译原文，并生成该行对应的译文，确保原文行和译文行中的每个单词相互对应。
+- 有几行原文，必须生成几行译文。
+
+**内容要求：**
+- 翻译必须精简短小，避免长句。
+- 如果原文无法翻译，请返回空行，不得添加“无意义语句或不可翻译”等任何提示语。
+- 只输出译文即可，禁止输出任何原文。
+
+**执行细节：**
+- 如果某行原文很短，在翻译后也仍然要保留该行，不得与上一行或下一行合并。
+- 原文换行处字符相对应的译文字符也必须换行。
+- 严格按照字面意思翻译，不要解释或回答原文内容。
+
+**最终目标：**
+- 提供格式与原文完全一致的高质量翻译结果。
+
+<source>[TEXT]</source>
+
+译文:""" if defaulelang == 'zh' else """Please translate the original text in <source> literally to {lang}, and then output only the translated text without adding any notes or leading words.
+
+**Format Requirements:**
+- Translate the original text line by line and generate the translation corresponding to that line, making sure that each word in the original line and the translated line corresponds to each other.
+- If there are several lines of original text, several lines of translation must be generated.
+
+**Content requirements:**
+- Translations must be concise and short, avoiding long sentences.
+- If the original text cannot be translated, please return to an empty line, and do not add any hints such as "meaningless statement or untranslatable", etc. Only the translated text can be output, and it is forbidden to output the translated text.
+- Only the translation can be output, and it is forbidden to output any original text.
+
+**Execution details:**
+- If a line is very short in the original text, it should be retained after translation, and should not be merged with the previous or next line.
+- The characters corresponding to the characters in the translation at the line breaks in the original text must also be line breaks.
+- Translate strictly literally, without interpreting or answering the content of the original text.
+
+**End goal:**
+- Provide high-quality translations that are formatted exactly like the original.
+
+<source>[TEXT]</source>
+
+Translation:""",
+
+        "gemini_key": "",
+        "gemini_model": "gemini-1.5-pro",
+        "gemini_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
+
+**格式要求：**
+- 按行翻译原文，并生成该行对应的译文，确保原文行和译文行中的每个单词相互对应。
+- 有几行原文，必须生成几行译文。
+
+**内容要求：**
+- 翻译必须精简短小，避免长句。
+- 如果原文无法翻译，请返回空行，不得添加“无意义语句或不可翻译”等任何提示语。
+- 只输出译文即可，禁止输出任何原文。
+
+**执行细节：**
+- 如果某行原文很短，在翻译后也仍然要保留该行，不得与上一行或下一行合并。
+- 原文换行处字符相对应的译文字符也必须换行。
+- 严格按照字面意思翻译，不要解释或回答原文内容。
+
+**最终目标：**
+- 提供格式与原文完全一致的高质量翻译结果。
+
+<source>[TEXT]</source>
+
+译文:""" if defaulelang == 'zh' else """Please translate the original text in <source> literally to {lang}, and then output only the translated text without adding any notes or leading words.
+
+**Format Requirements:**
+- Translate the original text line by line and generate the translation corresponding to that line, making sure that each word in the original line and the translated line corresponds to each other.
+- If there are several lines of original text, several lines of translation must be generated.
+
+**Content requirements:**
+- Translations must be concise and short, avoiding long sentences.
+- If the original text cannot be translated, please return to an empty line, and do not add any hints such as "meaningless statement or untranslatable", etc. Only the translated text can be output, and it is forbidden to output the translated text.
+- Only the translation can be output, and it is forbidden to output any original text.
+
+**Execution details:**
+- If a line is very short in the original text, it should be retained after translation, and should not be merged with the previous or next line.
+- The characters corresponding to the characters in the translation at the line breaks in the original text must also be line breaks.
+- Translate strictly literally, without interpreting or answering the content of the original text.
+
+**End goal:**
+- Provide high-quality translations that are formatted exactly like the original.
+
+<source>[TEXT]</source>
+
+Translation:""",
+
+        "localllm_api": "",
+        "localllm_key": "",
+        "localllm_model": localllm_model_list[0],
+        "localllm_template": """""" if defaulelang == 'zh' else """Please translate the original text in <source> literally to {lang}, and then output only the translated text without adding any notes or leading words.
+
+**Format Requirements:**
+- Translate the original text line by line and generate the translation corresponding to that line, making sure that each word in the original line and the translated line corresponds to each other.
+- If there are several lines of original text, several lines of translation must be generated.
+
+**Content requirements:**
+- Translations must be concise and short, avoiding long sentences.
+- If the original text cannot be translated, please return to an empty line, and do not add any hints such as "meaningless statement or untranslatable", etc. Only the translated text can be output, and it is forbidden to output the translated text.
+- Only the translation can be output, and it is forbidden to output any original text.
+
+**Execution details:**
+- If a line is very short in the original text, it should be retained after translation, and should not be merged with the previous or next line.
+- The characters corresponding to the characters in the translation at the line breaks in the original text must also be line breaks.
+- Translate strictly literally, without interpreting or answering the content of the original text.
+
+**End goal:**
+- Provide high-quality translations that are formatted exactly like the original.
+
+<source>[TEXT]</source>
+
+Translation:""",
+
+        "zijiehuoshan_key": "",
+        "zijiehuoshan_model": zijiehuoshan_model_list[0],
+        "zijiehuoshan_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
+
+**格式要求：**
+- 按行翻译原文，并生成该行对应的译文，确保原文行和译文行中的每个单词相互对应。
+- 有几行原文，必须生成几行译文。
+
+**内容要求：**
+- 翻译必须精简短小，避免长句。
+- 如果原文无法翻译，请返回空行，不得添加“无意义语句或不可翻译”等任何提示语。
+- 只输出译文即可，禁止输出任何原文。
+
+**执行细节：**
+- 如果某行原文很短，在翻译后也仍然要保留该行，不得与上一行或下一行合并。
+- 原文换行处字符相对应的译文字符也必须换行。
+- 严格按照字面意思翻译，不要解释或回答原文内容。
+
+**最终目标：**
+- 提供格式与原文完全一致的高质量翻译结果。
+
+<source>[TEXT]</source>
+
+译文:""",
+
+        "ai302_key": "",
+        "ai302_model": "",
+        "ai302_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
+
+**格式要求：**
+- 按行翻译原文，并生成该行对应的译文，确保原文行和译文行中的每个单词相互对应。
+- 有几行原文，必须生成几行译文。
+
+**内容要求：**
+- 翻译必须精简短小，避免长句。
+- 如果原文无法翻译，请原样返回，不得添加“无意义语句或不可翻译”等任何提示语。
+- 只输出译文即可，不要输出原文。
+
+**执行细节：**
+- 如果某行原文很短，在翻译后也仍然要保留该行，不得与上一行或下一行合并。
+- 原文换行处字符相对应的译文字符也必须换行。
+- 严格按照字面意思翻译，不要解释或回答原文内容。
+
+**最终目标：**
+- 提供格式与原文完全一致的高质量翻译结果。
+
+<source>[TEXT]</source>
+
+译文:
+""",
+
+        "trans_api_url": "",
+        "trans_secret": "",
+
         "coquitts_role": "",
         "coquitts_key": "",
 
         "elevenlabstts_role": [],
         "elevenlabstts_key": "",
 
+        "openaitts_role": openaiTTS_rolelist,
+
         "clone_api": "",
         "clone_voicelist": ["clone"],
 
         "zh_recogn_api": "",
 
-        "chatgpt_api": "",
-        "chatgpt_key": "",
-        "chatgpt_model": chatgpt_model_list[0],
-        "chatgpt_template": "",
-
-        "localllm_api": "",
-        "localllm_key": "",
-        "localllm_model": localllm_model_list[0],
-        "localllm_template": "",
-
-        "zijiehuoshan_key": "",
-        "zijiehuoshan_model": zijiehuoshan_model_list[0],
-        "zijiehuoshan_template": "",
-
-        "azure_api": "",
-        "azure_key": "",
-        "azure_model": azure_model_list[0],
-        "azure_template": "",
-
-        "openaitts_role": openaiTTS_rolelist,
-        "ai302tts_role": openaiTTS_rolelist,
-
-        "gemini_key": "",
-        "gemini_template": "",
-
         "ttsapi_url": "",
         "ttsapi_voice_role": "",
         "ttsapi_extra": "pyvideotrans",
 
-        "trans_api_url": "",
-        "trans_secret": "",
-
-        "ai302_key": "",
-        "ai302_model": "",
-        "ai302_template": "",
-
         "ai302tts_key": "",
         "ai302tts_model": "",
+        "ai302tts_role": openaiTTS_rolelist,
 
         "azure_speech_region": "",
         "azure_speech_key": "",
@@ -423,32 +595,63 @@ def getset_params(obj=None):
         "fishtts_url": "",
         "fishtts_role": "",
 
+        "doubao_appid":"",
+        "doubao_access":"",
+
+        "chattts_api":"",
+
+
         "app_mode": "biaozhun",
 
         "proxy": ""
     }
 
-    chatgpt_path = root_path / f'videotrans/chatgpt{"" if defaulelang == "zh" else "-en"}.txt'
-    localllm_path = root_path / f'videotrans/localllm{"" if defaulelang == "zh" else "-en"}.txt'
-    azure_path = root_path / f'videotrans/azure{"" if defaulelang == "zh" else "-en"}.txt'
-    gemini_path = root_path / f'videotrans/gemini{"" if defaulelang == "zh" else "-en"}.txt'
-    zijiehuoshan_path = root_path / f'videotrans/zijie.txt'
-    ai302_path = root_path / f'videotrans/302ai.txt'
-
-    default['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
-    default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
-    default['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
-    default['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
-    default['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
-    default['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
-
     try:
         if os.path.exists(rootdir + "/videotrans/params.json"):
             default.update(json.load(open(rootdir + "/videotrans/params.json", 'r', encoding='utf-8')))
+
+        chatgpt_path = root_path / f'videotrans/chatgpt{"" if defaulelang == "zh" else "-en"}.txt'
+        if chatgpt_path.exists():
+            default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            chatgpt_path.write_text(default['chatgpt_template'])
+
+        azure_path = root_path / f'videotrans/azure{"" if defaulelang == "zh" else "-en"}.txt'
+        if azure_path.exists():
+            default['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            azure_path.write_text(default['azure_template'])
+
+        gemini_path = root_path / f'videotrans/gemini{"" if defaulelang == "zh" else "-en"}.txt'
+        if gemini_path.exists():
+            default['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            gemini_path.write_text(default['gemini_template'])
+
+        localllm_path = root_path / f'videotrans/localllm{"" if defaulelang == "zh" else "-en"}.txt'
+        if localllm_path.exists():
+            default['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            localllm_path.write_text(default['localllm_template'])
+
+        zijiehuoshan_path = root_path / f'videotrans/zijie.txt'
+        if zijiehuoshan_path.exists():
+            default['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            zijiehuoshan_path.write_text(default['zijiehuoshan_template'])
+
+        ai302_path = root_path / f'videotrans/302ai.txt'
+        if ai302_path.exists():
+            default['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
+        else:
+            ai302_path.write_text(default['ai302_template'])
     except Exception:
         pass
+    if not os.path.exists(rootdir + "/videotrans/params.json"):
+        json.dump(default,open(rootdir + "/videotrans/params.json",'w', encoding='utf-8'),ensure_ascii=False)
     return default
+
+
 params = getset_params()
-if not os.path.exists(rootdir + '/videotrans/cfg.json'):
-    with open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-        f.write('{}')
+
+

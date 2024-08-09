@@ -7,11 +7,10 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def get_content(d, *, prompt=None, assiant=None):
+def get_content(d, *, prompt=None):
     message = [
-        {'role': 'system', 'content': prompt},
-        {'role': 'assistant', 'content': assiant},
-        {'role': 'user', 'content': "\n".join([i.strip() for i in d]) if isinstance(d, list) else d},
+        {'role': 'system', 'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results"  if config.defaulelang !='zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+        {'role': 'user', 'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
     ]
     config.logger.info(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params['zijiehuoshan_model']}")
 
@@ -64,8 +63,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     # if is_srt and split_size>1:
     prompt = config.params['zijiehuoshan_template'].replace('{lang}', target_language)
 
-    assiant = f"好的，请提供你要翻译到{target_language}的内容。"
-
     end_point = "。" if config.defaulelang == 'zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
@@ -99,7 +96,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             if stop > 0:
                 time.sleep(stop)
             try:
-                result = get_content(it, prompt=prompt, assiant=assiant)
+                result = get_content(it, prompt=prompt)
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
                 if not is_srt:
@@ -124,7 +121,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     sep_res = []
                     for line_res in it:
                         time.sleep(wait_sec)
-                        sep_res.append(get_content(line_res.strip(), prompt=prompt, assiant=assiant))
+                        sep_res.append(get_content(line_res.strip(), prompt=prompt))
 
                 for x, result_item in enumerate(sep_res):
                     if x < len(it):

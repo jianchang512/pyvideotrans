@@ -125,7 +125,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     except Exception:
         pass
     try:
-        print(f"{config.params['gemini_model']=}")
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
     except Exception as e:
@@ -168,7 +167,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     btnkey=inst.init['btnkey'] if inst else "")
             time.sleep(10)
         iter_num += 1
-        print(f'{wait_sec=},{iter_num=}')
 
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):

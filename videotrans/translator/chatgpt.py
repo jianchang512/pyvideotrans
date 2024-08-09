@@ -62,11 +62,10 @@ def create_openai_client():
     return client, api_url
 
 
-def get_content(d, *, model=None, prompt=None, assiant=None):
+def get_content(d, *, model=None, prompt=None):
     message = [
-        {'role': 'system', 'content': prompt},
-        {'role': 'assistant', 'content': assiant},
-        {'role': 'user', 'content': "\n".join([i.strip() for i in d]) if isinstance(d, list) else d},
+        {'role': 'system', 'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results"  if config.defaulelang !='zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+        {'role': 'user', 'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
     ]
     config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
     try:
@@ -123,8 +122,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     # if is_srt and split_size>1:
     prompt = config.params['chatgpt_template'].replace('{lang}', target_language)
 
-    assiant = f"Sure, please provide the text you need translated into {target_language}" if config.defaulelang != 'zh' else f'好的，请提供您需要翻译成{target_language}的文本'
-
     end_point = "。" if config.defaulelang == 'zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
@@ -161,7 +158,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 time.sleep(stop)
 
             try:
-                result = get_content(it, model=client, prompt=prompt, assiant=assiant)
+                result = get_content(it, model=client, prompt=prompt)
 
                 if inst and inst.precent < 75:
                     inst.precent += 0.01
@@ -187,7 +184,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     sep_res = []
                     for it_n in it:
                         time.sleep(wait_sec)
-                        t = get_content(it_n.strip(), model=client, prompt=prompt, assiant=assiant)
+                        t = get_content(it_n.strip(), model=client, prompt=prompt)
                         sep_res.append(t)
 
                 for x, result_item in enumerate(sep_res):

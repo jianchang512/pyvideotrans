@@ -833,7 +833,6 @@ class Subform():
 
         from videotrans.component import HebingsrtForm
         try:
-            print('###')
             if self.main.hew is not None:
                 self.main.hew.show()
                 return
@@ -1509,7 +1508,7 @@ class Subform():
             t = self.main.azw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
             current_text = self.main.azw.azure_model.currentText()
             self.main.azw.azure_model.clear()
-            print([x for x in t.split(',') if x.strip()])
+
             self.main.azw.azure_model.addItems([x for x in t.split(',') if x.strip()])
             if current_text:
                 self.main.azw.azure_model.setCurrentText(current_text)

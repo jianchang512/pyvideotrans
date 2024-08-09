@@ -388,7 +388,6 @@ class Runstep():
             if it['end_time'] <= it['start_time']:
                 continue
             # 是克隆
-            print(f'{voice_role=}')
             if self.config_params['tts_type'] in ['clone-voice', 'CosyVoice'] and voice_role == 'clone':
                 if self.config_params['is_separate'] and not tools.vail_file(self.init['vocal']):
                     raise Exception(f"背景分离出错 {self.init['vocal']}")
@@ -629,10 +628,8 @@ class Runstep():
                 if it['video_extend'] > 0:
                     pts = round((it['video_extend'] + duration) / duration, 2)
                     if pts > max_pts:
-                        print(f'{i=},{pts=} > {max_pts=}')
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                    print(f'{i}/{length},{it["dubb_time"]=},{able_time=},视频应延长{it["video_extend"]}ms,pts={pts}')
                 tools.set_process(f"{config.transobj['videodown..']} {pts=}", btnkey=self.init['btnkey'])
                 before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
                 try:
@@ -672,10 +669,8 @@ class Runstep():
                 if it['video_extend'] > 0:
                     pts = round((it['video_extend'] + duration) / duration, 2)
                     if pts > max_pts:
-                        print(f'{i=},{pts=} > {max_pts=}')
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                    print(f'{i}/{length},{it["dubb_time"]=},{able_time=},视频应延长{it["video_extend"]}ms,pts={pts}')
                 tools.set_process(f"{config.transobj['videodown..']} {pts=}", btnkey=self.init['btnkey'])
                 before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
 
@@ -768,7 +763,6 @@ class Runstep():
 
         # 6.处理视频慢速
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
-        print(f'视频慢速前时长{video_time=}')
         if self.config_params['app_mode'] not in ['tiqu', 'peiyin'] and self.config_params['video_autorate'] and int(
                 config.settings['video_rate']) > 1:
             queue_tts = self._ajust_video(queue_tts)
@@ -777,7 +771,6 @@ class Runstep():
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception("not novoice mp4")
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
-        print(f'视频慢速后时长{video_time=}')
         audio_length, queue_tts = self._merge_audio_segments(
             video_time=video_time,
             queue_tts=copy.deepcopy(queue_tts))
@@ -874,7 +867,6 @@ class Runstep():
                     tools.wav2m4a(self.init['background_music'], tmpm4a)
                     self.init['background_music'] = tmpm4a
                 beishu = math.ceil(vtime / atime)
-                print(f'========={vtime=},{atime=},{beishu=}')
                 if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
                     # 获取延长片段
 
@@ -1063,7 +1055,6 @@ class Runstep():
                     self.parent.status_text = '视频末尾延长中' if config.defaulelang == 'zh' else 'Extension at the end of the video'
                     self._novoicemp4_add_time(audio_length - video_time)
                 except Exception as e:
-                    print(f'{config.transobj["moweiyanchangshibai"]}:{str(e)}')
                     config.logger.error(f'视频末尾延长失败:{str(e)}')
             elif audio_length > 0 and video_time > audio_length:
                 ext = self.init['target_wav'].split('.')[-1]
@@ -1111,8 +1102,6 @@ class Runstep():
                                         2)
                         if self.precent + precent < 99.9:
                             self.precent += precent
-
-                        print(f'{self.precent=}')
                         tools.set_process('', btnkey=self.init['btnkey'])
                         time.sleep(1)
 
