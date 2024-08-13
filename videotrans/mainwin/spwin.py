@@ -11,29 +11,23 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-from videotrans.task.get_role_list import GetRoleWorker
-from videotrans.util import tools
 
+from videotrans.util import tools
 from videotrans.translator import TRANSNAMES
 from videotrans.configure import config
 from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
-from videotrans.box import win
-
 from videotrans import configure
 from pathlib import Path
-from videotrans.mainwin.secwin import SecWindow
-from videotrans.mainwin.subform import Subform
 import platform
-from videotrans.task.check_update import CheckUpdateWorker
-from videotrans.task.logs_worker import LogsWorker
+
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=700):
         super(MainWindow, self).__init__(parent)
-        self.setupUi(self)
+
         self.width = int(width * 0.8)
         self.height = int(height * 0.8)
         self.bwidth = int(width * 0.7)
@@ -41,7 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lefttopx = int(width * 0.15)
         self.lefttopy = int(height * 0.15)
         self.resize(self.width, self.height)
-        self.show()
+
         self.task = None
         self.shitingobj = None
         # 各个子窗口
@@ -86,18 +80,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
-        self.util = SecWindow(self)
-        self.subform = Subform(self)
+        self.util = None#SecWindow(self)
+        self.subform = None
+        self.setupUi(self)
         self.initUI()
-
         self.bind_action()
-        QTimer.singleShot(500, self.start_box)
+        self.show()
+        QTimer.singleShot(200, self.start_box)
+        QTimer.singleShot(200, self.start_subform)
 
     def start_box(self):
         # 打开工具箱
+        from videotrans.box import win
         configure.TOOLBOX = win.MainWindow()
         configure.TOOLBOX.resize(self.bwidth, self.bheight)
         configure.TOOLBOX.move(QPoint(self.lefttopx, self.lefttopy))
+    def start_subform(self):
+        # 打开工具箱
+        from videotrans.mainwin.subform import Subform
+        self.subform=Subform(self)
+        self.set_line_role.clicked.connect(self.subform.set_line_role_fun)
+        self.actionbaidu_key.triggered.connect(self.subform.set_baidu_key)
+        self.actionazure_key.triggered.connect(self.subform.set_azure_key)
+        self.actionazure_tts.triggered.connect(self.subform.set_auzuretts_key)
+        self.actiongemini_key.triggered.connect(self.subform.set_gemini_key)
+        self.actiontencent_key.triggered.connect(self.subform.set_tencent_key)
+        self.actionchatgpt_key.triggered.connect(self.subform.set_chatgpt_key)
+        self.actionai302_key.triggered.connect(self.subform.set_ai302_key)
+        self.actionlocalllm_key.triggered.connect(self.subform.set_localllm_key)
+        self.actionzijiehuoshan_key.triggered.connect(self.subform.set_zijiehuoshan_key)
+        self.actiondeepL_key.triggered.connect(self.subform.set_deepL_key)
+        self.actionElevenlabs_key.triggered.connect(self.subform.set_elevenlabs_key)
+        self.actiondeepLX_address.triggered.connect(self.subform.set_deepLX_address)
+        self.actionott_address.triggered.connect(self.subform.set_ott_address)
+        self.actionclone_address.triggered.connect(self.subform.set_clone_address)
+        self.actionchattts_address.triggered.connect(self.subform.set_chattts_address)
+        self.actionai302tts_address.triggered.connect(self.subform.set_ai302tts_address)
+        self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
+        self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
+        self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
+        self.actiontrans_api.triggered.connect(self.subform.set_transapi)
+        self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
+        self.actiontts_cosyvoice.triggered.connect(self.subform.set_cosyvoice)
+        self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
+        self.actionyoutube.triggered.connect(self.subform.open_youtube)
+        self.actionsepar.triggered.connect(self.subform.open_separate)
+        self.actionsetini.triggered.connect(self.subform.open_setini)
+        self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -229,8 +258,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processlayout = QVBoxLayout(viewport)
         # 设置布局管理器的对齐方式为顶部对齐
         self.processlayout.setAlignment(Qt.AlignTop)
+        # 设置QAction的大小
+        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        # 设置QToolBar的大小，影响其中的QAction的大小
+        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
+        self.import_sub.setCursor(Qt.PointingHandCursor)
+        self.import_sub.setToolTip(config.transobj['daoruzimutips'])
+
+        self.export_sub.setText(config.transobj['Export srt'])
+        self.export_sub.setCursor(Qt.PointingHandCursor)
+        self.export_sub.setToolTip(
+            config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
+
+        self.set_line_role.setCursor(Qt.PointingHandCursor)
+        self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
 
     def bind_action(self):
+        from videotrans.mainwin.secwin import SecWindow
+        self.util = SecWindow(self)
+
         if config.params['tts_type'] == 'clone-voice':
             self.voice_role.addItems(config.params["clone_voicelist"])
             threading.Thread(target=tools.get_clone_role).start()
@@ -271,18 +317,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # menubar
         self.import_sub.clicked.connect(self.util.import_sub_fun)
-        self.import_sub.setCursor(Qt.PointingHandCursor)
-        self.import_sub.setToolTip(config.transobj['daoruzimutips'])
 
-        self.export_sub.setText(config.transobj['Export srt'])
+
+
         self.export_sub.clicked.connect(self.util.export_sub_fun)
-        self.export_sub.setCursor(Qt.PointingHandCursor)
-        self.export_sub.setToolTip(
-            config.transobj['When subtitles exist, the subtitle content can be saved to a local SRT file'])
 
-        self.set_line_role.clicked.connect(self.subform.set_line_role_fun)
-        self.set_line_role.setCursor(Qt.PointingHandCursor)
-        self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
+
         self.startbtn.clicked.connect(self.util.check_start)
         self.stop_djs.clicked.connect(self.util.reset_timeid)
         self.continue_compos.clicked.connect(self.util.set_djs_timeout)
@@ -312,34 +352,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
 
-        # 设置QAction的大小
-        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        # 设置QToolBar的大小，影响其中的QAction的大小
-        self.toolBar.setIconSize(QSize(100, 45))  # 设置图标大小
 
-        self.actionbaidu_key.triggered.connect(self.subform.set_baidu_key)
-        self.actionazure_key.triggered.connect(self.subform.set_azure_key)
-        self.actionazure_tts.triggered.connect(self.subform.set_auzuretts_key)
-        self.actiongemini_key.triggered.connect(self.subform.set_gemini_key)
-        self.actiontencent_key.triggered.connect(self.subform.set_tencent_key)
-        self.actionchatgpt_key.triggered.connect(self.subform.set_chatgpt_key)
-        self.actionai302_key.triggered.connect(self.subform.set_ai302_key)
-        self.actionlocalllm_key.triggered.connect(self.subform.set_localllm_key)
-        self.actionzijiehuoshan_key.triggered.connect(self.subform.set_zijiehuoshan_key)
-        self.actiondeepL_key.triggered.connect(self.subform.set_deepL_key)
-        self.actionElevenlabs_key.triggered.connect(self.subform.set_elevenlabs_key)
-        self.actiondeepLX_address.triggered.connect(self.subform.set_deepLX_address)
-        self.actionott_address.triggered.connect(self.subform.set_ott_address)
-        self.actionclone_address.triggered.connect(self.subform.set_clone_address)
-        self.actionchattts_address.triggered.connect(self.subform.set_chattts_address)
-        self.actionai302tts_address.triggered.connect(self.subform.set_ai302tts_address)
-        self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
-        self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
-        self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
-        self.actiontrans_api.triggered.connect(self.subform.set_transapi)
-        self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
-        self.actiontts_cosyvoice.triggered.connect(self.subform.set_cosyvoice)
-        self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
+
+
+
+
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -354,9 +371,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
 
         self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
-        self.actionyoutube.triggered.connect(self.subform.open_youtube)
-        self.actionsepar.triggered.connect(self.subform.open_separate)
-        self.actionsetini.triggered.connect(self.subform.open_setini)
+
         self.action_about.triggered.connect(self.util.about)
 
         self.action_xinshoujandan.triggered.connect(self.util.set_xinshoujandann)
@@ -397,7 +412,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
 
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
-        self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
+
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
 
@@ -419,6 +434,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.startbtn.setStyleSheet("""color:#ff0000""")
 
         try:
+            from videotrans.task.check_update import CheckUpdateWorker
+            from videotrans.task.logs_worker import LogsWorker
+            from videotrans.task.get_role_list import GetRoleWorker
             update_role = GetRoleWorker(parent=self)
             update_role.start()
             self.task_logs = LogsWorker(parent=self)

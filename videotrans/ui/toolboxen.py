@@ -728,7 +728,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4),
                                   '批量音视频转字幕' if config.defaulelang == 'zh' else 'Audio Video to Subtitle')
         self.label_10.setText(box_lang.get("Subtitle lang"))
-        self.label_8.setText("TTS")
+        self.label_8.setText("TTS" if config.defaulelang!='zh'else'配音渠道')
         self.label_11.setText(box_lang.get("Select role"))
         self.label_12.setText(box_lang.get("Speed change"))
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))

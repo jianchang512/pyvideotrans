@@ -10,7 +10,6 @@ from videotrans import VERSION
 
 
 
-
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
@@ -46,27 +45,18 @@ class StartWindow(QtWidgets.QWidget):
         self.resize(560, 350)
         self.show()
         self.center()
-        QTimer.singleShot(200, self.run)
+        QTimer.singleShot(100, self.run)
 
     def run(self):
         # 创建并显示窗口B
-        # try:
-
-        if not Path("./nostyle.txt").exists():
-            import videotrans.ui.dark.darkstyle_rc
-            with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
-                app.setStyleSheet(f.read())
-
-        st = time.time()
+        print(time.time())
+        import videotrans.ui.dark.darkstyle_rc
+        with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
+            app.setStyleSheet(f.read())
         from videotrans.mainwin.spwin import MainWindow
         MainWindow(width=self.width, height=self.height)
-        Path(Path.cwd() / "tmp").mkdir(parents=True, exist_ok=True)
-        et = time.time()
-        print(f'启动用时：{et - st}')
+        print(time.time())
         self.close()
-        # except Exception as e:
-        #     print(e)
-        #     print(f'main window {str(e)}')
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
