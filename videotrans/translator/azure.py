@@ -113,7 +113,7 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
         client = AzureOpenAI(
             api_key=config.params["azure_key"],
-            api_version="2024-02-01",
+            api_version="2024-06-01",
             azure_endpoint=config.params["azure_api"],
             http_client=httpx.Client()
         )

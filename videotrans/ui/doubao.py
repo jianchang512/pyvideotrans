@@ -57,7 +57,7 @@ class Ui_doubaoform(object):
         QtCore.QMetaObject.connectSlotsByName(doubaoform)
 
     def retranslateUi(self, doubaoform):
-        doubaoform.setWindowTitle("豆包模型音视频识别" if config.defaulelang == 'zh' else 'Doubao')
+        doubaoform.setWindowTitle("豆包模型识别" if config.defaulelang == 'zh' else 'Doubao')
         self.label_3.setText('填写 Access Token')
 
         self.set_save.setText('保存')

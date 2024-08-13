@@ -24,12 +24,16 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
             text += '.'
         if len(text) < 4:
             text = f'。{text}，。'
-        data = {"text": text, "text_language": "zh" if language.startswith('zh') else language,
-                "extra": config.params['gptsovits_extra'], "ostype": sys.platform}
+        data = {
+            "text": text,
+            "text_language": "zh" if language.startswith('zh') else language,
+            "extra": config.params['gptsovits_extra'],
+            "ostype": sys.platform}
         if role:
             roledict = tools.get_gptsovits_role()
             if role in roledict:
                 data.update(roledict[role])
+        print(f'{data=}')
         # role=clone是直接复制
         # 克隆声音
         response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)

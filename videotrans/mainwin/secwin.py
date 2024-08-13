@@ -1,3 +1,4 @@
+
 import json
 import os
 import platform
@@ -9,8 +10,8 @@ from PySide6 import QtCore
 from PySide6.QtGui import QTextCursor, QDesktopServices
 from PySide6.QtCore import QUrl, Qt
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QHBoxLayout, QProgressBar
-import warnings
 
+import warnings
 warnings.filterwarnings('ignore')
 from videotrans import configure
 from videotrans.task.job import start_thread
