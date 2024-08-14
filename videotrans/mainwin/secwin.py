@@ -74,6 +74,7 @@ class SecWindow():
     def __init__(self, main=None):
         self.main = main
         self.usetype = None
+        self.edit_subtitle_type=''
 
     def is_separate_fun(self, state):
         config.params['is_separate'] = True if state else False
@@ -607,6 +608,7 @@ class SecWindow():
         self.main.stop_djs.hide()
         if self.main.shitingobj:
             self.main.shitingobj.stop = True
+        self.update_subtitle()
 
     # 手动点击停止自动合并倒计时
     def reset_timeid(self):
@@ -614,9 +616,13 @@ class SecWindow():
         config.task_countdown = 86400
         self.main.continue_compos.setDisabled(False)
         self.main.continue_compos.setText(config.transobj['nextstep'])
+        self.update_data('{"type":"allow_edit"}')
+        
 
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
+        if not self.main.subform:
+            return
         try:
             rs = translator.is_allow_translate(translate_type=name, only_key=True)
             if rs is not True:
@@ -660,6 +666,8 @@ class SecWindow():
 
     # 设定模型类型
     def model_type_change(self):
+        if not self.main.subform:
+            return
         if self.main.model_type.currentIndex() == 1:
             config.params['model_type'] = 'openai'
             self.main.whisper_model.setDisabled(False)
@@ -753,6 +761,8 @@ class SecWindow():
 
     # tts类型改变
     def tts_type_change(self, type):
+        if not self.main.subform:
+            return
         self.hide_show_element(self.main.edge_volume_layout, self.isMircosoft(type))
         if self.main.app_mode == 'peiyin' and type == 'clone-voice' and config.params['voice_role'] == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
@@ -1142,6 +1152,7 @@ class SecWindow():
 
     # 检测开始状态并启动
     def check_start(self):
+        self.edit_subtitle_type=''
         if config.current_status == 'ing':
             # 停止
             question = tools.show_popup(config.transobj['exit'], config.transobj['confirmstop'])
@@ -1470,6 +1481,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 self.main.source_mp4.setText(config.transobj["No select videos"] if len(
                     config.queue_mp4) < 1 else f'{len(config.queue_mp4)} videos')
                 # 清理输入
+            self.main.source_mp4.setText(config.transobj["No select videos"])
             if self.main.task:
                 self.main.task.requestInterruption()
                 self.main.task.quit()
@@ -1522,7 +1534,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type='succeed')
-        elif d['type'] == 'edit_subtitle':
+        elif d['type'] == 'edit_subtitle_source' or d['type']=='edit_subtitle_target':
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
             self.main.subtitle_area.setFocus()
@@ -1530,6 +1542,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(d['text'])
             self.main.stop_djs.show()
+            self.edit_subtitle_type=d['type']
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
             self.main.subtitle_area.setReadOnly(True)
@@ -1538,6 +1551,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'allow_edit':
             # 允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
+            self.main.subtitle_area.setFocus()
             self.main.export_sub.setDisabled(False)
             self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
@@ -1546,9 +1560,9 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'timeout_djs':
             self.main.stop_djs.hide()
-            self.update_subtitle(step=d['text'], btnkey=d['btnkey'])
             self.main.continue_compos.setDisabled(True)
             self.main.subtitle_area.setReadOnly(True)
+            self.update_subtitle()
         elif d['type'] == 'show_djs':
             self.set_process_btn_text(d['text'], btnkey=d['btnkey'])
         elif d['type'] == 'check_soft_update':
@@ -1584,29 +1598,25 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 self.main.sepw.set.setText(d['text'])
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
-    def update_subtitle(self, step="translate_start", btnkey=""):
+    def update_subtitle(self):
         self.main.stop_djs.hide()
         self.main.continue_compos.setDisabled(True)
         # 如果当前是等待翻译阶段，则更新原语言字幕,然后清空字幕区
         txt = self.main.subtitle_area.toPlainText().strip()
         txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','), txt, re.S | re.M)
         config.task_countdown = 0
-        if not btnkey or not txt:
-            return
-        if btnkey == 'srt2wav':
-            srtfile = self.main.task.video.init['target_sub']
-            with open(srtfile, 'w', encoding='utf-8') as f:
-                f.write(txt)
+        if not txt:
             return
 
-        if not self.main.task.is_batch and btnkey in self.main.task.tasklist:
-            if step == 'translate_start':
-                srtfile = self.main.task.tasklist[btnkey].init['source_sub']
+        if not self.main.task.is_batch and self.main.task.tasklist:
+            tk=list(self.main.task.tasklist.values())[0]
+            if self.edit_subtitle_type == 'edit_subtitle_source':
+                srtfile = tk.init['source_sub']
             else:
-                srtfile = self.main.task.tasklist[btnkey].init['target_sub']
+                srtfile = tk.init['target_sub']
             # 不是批量才允许更新字幕
             with open(srtfile, 'w', encoding='utf-8') as f:
                 f.write(txt)
-        if step == 'translate_start':
+        if self.edit_subtitle_type == 'edit_subtitle_source':
             self.main.subtitle_area.clear()
         return True
