@@ -207,16 +207,22 @@ class Subform():
 
         def save():
             key = self.main.chatttsw.chattts_address.text().strip()
+            voice = self.main.chatttsw.chattts_voice.text().strip()
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '').replace('/tts', '')
             config.params["chattts_api"] = key
             config.getset_params(config.params)
+            config.settings['chattts_voice']=voice
+            json.dump(config.settings, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),ensure_ascii=False)
+            
             self.main.chatttsw.close()
 
         from videotrans.component import ChatttsForm
         self.main.chatttsw = ChatttsForm()
         if config.params["chattts_api"]:
             self.main.chatttsw.chattts_address.setText(config.params["chattts_api"])
+        if config.settings["chattts_voice"]:
+            self.main.chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
         self.main.chatttsw.set_chattts.clicked.connect(save)
         self.main.chatttsw.test.clicked.connect(test)
         self.main.chatttsw.show()

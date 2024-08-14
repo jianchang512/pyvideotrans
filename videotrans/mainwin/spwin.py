@@ -69,6 +69,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ai302fyw = None
         self.ai302ttsw = None
         self.setiniw = None
+        self.util = None#SecWindow(self)
+        self.subform = None
 
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         self.processbtns = {}
@@ -80,8 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
         # 检查窗口是否打开
-        self.util = None#SecWindow(self)
-        self.subform = None
+        
         self.setupUi(self)
         self.initUI()
         self.bind_action()
@@ -127,6 +128,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsepar.triggered.connect(self.subform.open_separate)
         self.actionsetini.triggered.connect(self.subform.open_setini)
         self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
+        if config.params['tts_type'] and not config.params['tts_type'] in ['edgeTTS','AzureTTS']:
+            self.util.tts_type_change(config.params['tts_type'])
 
     def initUI(self):
         self.settings = QSettings("Jameson", "VideoTranslate")
@@ -272,6 +275,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.set_line_role.setCursor(Qt.PointingHandCursor)
         self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
+        
+        if config.params['subtitle_type'] and int(config.params['subtitle_type'])>0:
+            self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
 
     def bind_action(self):
         from videotrans.mainwin.secwin import SecWindow
@@ -297,7 +303,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type']:
             if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
                 self.voice_role.addItems(['No'])
-            self.util.tts_type_change(config.params['tts_type'])
+                
+        if config.params['is_separate']:
+            self.is_separate.setChecked(True)
+            
 
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
@@ -308,10 +317,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # 根据目标语言更新角色列表
             self.util.set_voice_role(config.params['target_language'])
             # 设置默认角色列表
-            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and \
-                    config.params['voice_role'] in self.current_rolelist:
+            print(config.params['voice_role'])
+            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and  config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.util.show_listen_btn(config.params['voice_role'])
+                print('2222')
 
         self.proxy.textChanged.connect(self.util.change_proxy)
 

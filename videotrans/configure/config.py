@@ -111,7 +111,7 @@ queue_mp4 = []
 queue_novice = {}
 
 # 倒计时
-task_countdown = 30
+task_countdown = 0
 # 获取的视频信息 全局缓存
 video_cache = {}
 

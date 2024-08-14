@@ -49,6 +49,8 @@ class Runstep():
             if self.config_params['app_mode'] == 'tiqu':
                 shutil.copy2(self.init['source_sub'], f"{self.obj['output']}/{self.obj['raw_noextname']}.srt")
             self._unlink(self.init['shibie_audio'])
+            with open(self.init['source_sub'],'r',encoding='utf-8') as f:
+                tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.init['btnkey'])
             return True
 
         # 分离未完成，需等待
@@ -112,6 +114,8 @@ class Runstep():
 
     # 翻译字幕
     def trans(self):
+        if config.current_status !='ing':
+            return
         self.precent += 3
         # 是否需要翻译，存在识别后字幕并且不存在目标语言字幕，并且原语言和目标语言不同，则需要翻译
         if self.config_params['target_language'] == '-' or \
@@ -119,8 +123,7 @@ class Runstep():
             'source_language'] or not tools.vail_file(self.init['source_sub']):
             return True
 
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings[
-                                                                                                  'countdown_sec'])
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings['countdown_sec'])
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
         if self._srt_vail(self.init['target_sub']):
@@ -132,11 +135,11 @@ class Runstep():
                     shutil.copy2(self.init['target_sub'],
                                  f"{self.obj['output']}/{Path(self.init['target_sub']).name}")
                 return True
-
+        
         # 批量不允许修改字幕
         if not self.config_params['is_batch']:
             # 等待编辑原字幕后翻译,允许修改字幕
-            tools.set_process(config.transobj["xiugaiyuanyuyan"], 'edit_subtitle', btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj["xiugaiyuanyuyan"], 'edit_subtitle_source', btnkey=self.init['btnkey'])
             while config.task_countdown > 0:
                 config.task_countdown -= 1
                 if config.task_countdown <= config.settings['countdown_sec']:
@@ -149,11 +152,11 @@ class Runstep():
             time.sleep(2)
 
         # 如果已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
-        if self._srt_vail(self.init['target_sub']):
-            if self.obj and self.obj['output'] != self.obj['linshi_output'] and tools.vail_file(
-                    self.init['target_sub']):
-                shutil.copy2(self.init['target_sub'], f"{self.obj['output']}/{Path(self.init['target_sub']).name}")
-            return True
+        #if self._srt_vail(self.init['target_sub']):
+        #    if self.obj and self.obj['output'] != self.obj['linshi_output'] and tools.vail_file(
+        #            self.init['target_sub']):
+        #        shutil.copy2(self.init['target_sub'], f"{self.obj['output']}/{Path(self.init['target_sub']).name}")
+        #    return True
         tools.set_process(config.transobj['starttrans'], btnkey=self.init['btnkey'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = tools.get_subtitle_from_srt(self.init['source_sub'], is_file=True)
@@ -185,11 +188,12 @@ class Runstep():
 
     # 配音处理
     def dubbing(self):
+        if config.current_status !='ing':
+            return
         if self.config_params['app_mode'] in ['tiqu']:
             return True
         self.precent += 3
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings[
-                                                                                                  'countdown_sec'])
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(config.settings['countdown_sec'])
 
         # 不需要配音
         if self.config_params['voice_role'] == 'No' or \
@@ -202,7 +206,7 @@ class Runstep():
             return True
         # 允许修改字幕
         if not self.config_params['is_batch']:
-            tools.set_process(config.transobj["xiugaipeiyinzimu"], "edit_subtitle", btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj["xiugaipeiyinzimu"], "edit_subtitle_target", btnkey=self.init['btnkey'])
             while config.task_countdown > 0:
                 # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
                 time.sleep(1)
@@ -850,6 +854,8 @@ class Runstep():
 
     # 添加背景音乐
     def _back_music(self):
+        if config.current_status !='ing':
+            return
         if self.config_params['app_mode'] not in ["tiqu", "peiyin"] and self.config_params[
             'voice_role'] != 'No' and tools.vail_file(self.init['target_wav']) and tools.vail_file(
             self.init['background_music']):
@@ -890,6 +896,8 @@ class Runstep():
                 config.logger.error(f'添加背景音乐失败:{str(e)}')
 
     def _separate(self):
+        if config.current_status !='ing':
+            return
         if self.config_params['is_separate'] and tools.vail_file(self.init['target_wav']):
             try:
                 self.parent.status_text = '重新嵌入背景音' if config.defaulelang == 'zh' else 'Re-embedded background sounds'
@@ -913,9 +921,9 @@ class Runstep():
 
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
     def _compos_video(self):
-        if self.config_params['app_mode'] in ['tiqu', 'peiyin']:
+        if self.config_params['app_mode'] in ['tiqu', 'peiyin'] or config.current_status !='ing':
             return True
-
+        
         # 判断novoice_mp4是否完成
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
             raise Exception(config.transobj['fenlinoviceerror'])
