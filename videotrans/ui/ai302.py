@@ -29,7 +29,7 @@ class Ui_ai302form(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setMinimumSize(QtCore.QSize(580, 35))
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_0.setText('填写 https://302.ai 管理后台-Api超市-Api管理-创建的API KEY,点击去创建,7元免费额度')
+        self.label_0.setText('填写 https://302.ai 管理后台-Api超市-Api管理-创建的API KEY')
 
         self.label_01 = QtWidgets.QPushButton(ai302form)
         self.label_01.setCursor(QtCore.Qt.PointingHandCursor)

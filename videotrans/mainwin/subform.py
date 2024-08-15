@@ -1498,16 +1498,19 @@ class Subform():
             key = self.main.azw.azure_key.text()
             api = self.main.azw.azure_api.text()
             model = self.main.azw.azure_model.currentText()
+            version = self.main.azw.azure_version.currentText()
             template = self.main.azw.azure_template.toPlainText()
 
             config.params["azure_key"] = key
             config.params["azure_api"] = api
+            config.params["azure_version"] = version
             config.params["azure_model"] = model
             config.params["azure_template"] = template
             with open(config.rootdir + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                       encoding='utf-8') as f:
                 f.write(template)
             config.getset_params(config.params)
+
             self.main.azw.close()
 
         def setallmodels():
@@ -1534,6 +1537,8 @@ class Subform():
             self.main.azw.azure_key.setText(config.params["azure_key"])
         if config.params["azure_api"]:
             self.main.azw.azure_api.setText(config.params["azure_api"])
+        if config.params["azure_version"]:
+            self.main.azw.azure_version.setCurrentText(config.params["azure_version"])
         if config.params["azure_model"] and config.params['azure_model'] in allmodels:
             self.main.azw.azure_model.setCurrentText(config.params["azure_model"])
         if config.params["azure_template"]:

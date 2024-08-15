@@ -27,7 +27,7 @@ class Ui_chatgptform(object):
         self.label_0 = QtWidgets.QLabel(chatgptform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            '兼容ChatGPT接口的AI也在此使用，videotrans/set.ini中chatgpt_model参数内添加模型名称' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here, model added within the chatgpt_model parameter in videotrans/set.ini')
+            '兼容ChatGPT接口的AI也在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
 
         self.label = QtWidgets.QLabel(chatgptform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))

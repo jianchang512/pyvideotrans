@@ -27,7 +27,7 @@ class Ui_localllmform(object):
         self.label_0 = QtWidgets.QLabel(localllmform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            '兼容ChatGPT接口的本地LLM大模型AI在此使用，videotrans/set.ini中localllm_model参数内添加模型名称' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here, model added within the localllm_model parameter in videotrans/set.ini')
+            '兼容ChatGPT接口的本地LLM大模型AI在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
 
         self.label = QtWidgets.QLabel(localllmform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))

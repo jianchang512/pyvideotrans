@@ -157,8 +157,8 @@ torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
 traitlets==5.14.1
-typer==0.3.2
-typing_extensions==4.8.0
+typer
+typing_extensions
 uritemplate==4.1.1
 urllib3==2.0.5
 wcwidth==0.2.12
