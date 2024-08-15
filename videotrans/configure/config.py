@@ -390,6 +390,7 @@ def getset_params(obj=None):
 
         "azure_api": "",
         "azure_key": "",
+        "azure_version":"2024-06-01",
         "azure_model": azure_model_list[0],
         "azure_template": """请将<source>中的原文内容按字面意思翻译到{lang}，然后只输出译文，不要添加任何说明或引导词。
 

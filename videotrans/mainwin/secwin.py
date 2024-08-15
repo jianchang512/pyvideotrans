@@ -551,7 +551,7 @@ class SecWindow():
     def open_url(self, title):
         import webbrowser
         if title == 'blog':
-            webbrowser.open_new_tab("https://juejin.cn/user/4441682704623992/columns")
+            webbrowser.open_new_tab("https://bbs.pyvideotrans.com/questions")
         elif title == 'ffmpeg':
             webbrowser.open_new_tab("https://www.ffmpeg.org/download.html")
         elif title == 'git':
@@ -559,26 +559,25 @@ class SecWindow():
         elif title == 'issue':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/issues")
         elif title == 'discord':
-            webbrowser.open_new_tab("https://discord.gg/y9gUweVCCJ")
+            webbrowser.open_new_tab("https://discord.gg/7ZWbwKGMcx")
         elif title == 'models':
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/0.0")
         elif title == 'dll':
             webbrowser.open_new_tab("https://github.com/jianchang512/stt/releases/tag/v0.0.1")
         elif title == 'gtrans':
-            webbrowser.open_new_tab("https://www.pyvideotrans.com/15.html")
+            webbrowser.open_new_tab("https://pyvideotrans.com/15.html")
         elif title == 'cuda':
-            webbrowser.open_new_tab("https://www.pyvideotrans.com/gpu.html")
+            webbrowser.open_new_tab("https://pyvideotrans.com/gpu.html")
         elif title in ('website', 'help'):
             webbrowser.open_new_tab("https://pyvideotrans.com")
         elif title == 'xinshou':
-            webbrowser.open_new_tab("https://www.pyvideotrans.com/guide.html")
+            webbrowser.open_new_tab("https://pyvideotrans.com/getstart")
         elif title == "about":
             webbrowser.open_new_tab("https://pyvideotrans.com/about")
         elif title == 'download':
             webbrowser.open_new_tab("https://github.com/jianchang512/pyvideotrans/releases")
         elif title == 'openvoice':
             webbrowser.open_new_tab("https://github.com/kungful/openvoice-api")
-
         elif title == 'online':
             self.about()
 
@@ -1358,6 +1357,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['clear_cache'] = False
         if self.main.clear_cache.isChecked():
             config.params['clear_cache'] = True
+        
+        if len(config.queue_mp4)>0:
+            for vurl in config.queue_mp4:
+                if re.search(r'[:\?\*<>\|\"\']',vurl[4:]):
+                    return QMessageBox.critical(self.main, config.transobj['anerror'], '视频所在路径和视频名字中不可含有  :  * ? < > | " \' 符号，请修正 ' if config.defaulelang=='zh' else 'The path and name of the video must not contain the  : * ? < > | " \' symbols, please revise. ')
+
 
         if len(config.queue_mp4) > 0 and self.main.app_mode not in ['hebing', 'peiyin']:
             self.main.show_tips.setText("")
