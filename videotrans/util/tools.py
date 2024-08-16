@@ -343,7 +343,7 @@ def runffprobe(cmd):
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False, get_codec=False):
     # 如果存在缓存并且没有禁用缓存
     mp4_file = Path(mp4_file).as_posix()
-    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
+    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
     if out is False:
         raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
