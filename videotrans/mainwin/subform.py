@@ -238,10 +238,15 @@ class Subform():
             def run(self):
                 from videotrans.tts.ai302tts import get_voice
                 try:
+                    role='alloy'
+                    if config.params["ai302tts_model"]=='doubao':
+                        role='zh_female_shuangkuaisisi_moon_bigtts'
+                    elif config.params['ai302tts_model']=='azure':
+                        role="zh-CN-YunjianNeural"
                     get_voice(
-                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
-                        role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
-                        language="zh-CN" if config.defaulelang == 'zh' else 'en-US',
+                        text=self.text,
+                        role=role,
+                        language="zh-CN",
                         rate='+0%',
                         set_p=False, filename=config.homedir + "/test.mp3")
                     self.uito.emit("ok")

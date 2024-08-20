@@ -176,6 +176,58 @@ def delete_temp(noextname=None):
     except:
         pass
 
+def get_302ai_doubao(role_name=None):
+    zh={
+        "爽快思思":"zh_female_shuangkuaisisi_moon_bigtts",
+        "温暖阿虎":"zh_male_wennuanahu_moon_bigtts",
+        "少年梓辛":"zh_male_shaonianzixin_moon_bigtts",
+        "邻家女孩":"zh_female_linjianvhai_moon_bigtts",
+        "渊博小叔":"zh_male_yuanboxiaoshu_moon_bigtts",
+        "阳光青年":"zh_male_yangguangqingnian_moon_bigtts",
+        "京腔侃爷":"zh_male_jingqiangkanye_moon_bigtts",
+        "湾湾小何":"zh_female_wanwanxiaohe_moon_bigtts",
+        "湾区大叔":"zh_female_wanqudashu_moon_bigtts",
+        "呆萌川妹":"zh_female_daimengchuanmei_moon_bigtts",
+        "广州德哥":"zh_male_guozhoudege_moon_bigtts",
+        "北京小爷":"zh_male_beijingxiaoye_moon_bigtts",
+        "浩宇小哥":"zh_male_haoyuxiaoge_moon_bigtts",
+        "广西远舟":"zh_male_guangxiyuanzhou_moon_bigtts",
+        "妹坨洁儿":"zh_female_meituojieer_moon_bigtts",
+        "豫州子轩":"zh_male_yuzhouzixuan_moon_bigtts",
+        "高冷御姐":"zh_female_gaolengyujie_moon_bigtts",
+        "傲娇霸总":"zh_male_aojiaobazong_moon_bigtts",
+        "魅力女友":"zh_female_meilinvyou_moon_bigtts",
+        "深夜播客":"zh_male_shenyeboke_moon_bigtts",
+        "柔美女友":"zh_female_sajiaonvyou_moon_bigtts",
+        "撒娇学妹":"zh_female_yuanqinvyou_moon_bigtts"
+    }
+    en={
+        "爽快思思":"zh_female_shuangkuaisisi_moon_bigtts",
+        "温暖阿虎":"zh_male_wennuanahu_moon_bigtts",
+        "少年梓辛":"zh_male_shaonianzixin_moon_bigtts",
+        "京腔侃爷":"zh_male_jingqiangkanye_moon_bigtts"
+    }
+    ja={
+        "和音":"multi_male_jingqiangkanye_moon_bigtts",
+        "晴子":"multi_female_shuangkuaisisi_moon_bigtts",
+        "朱美":"multi_female_gaolengyujie_moon_bigtts",
+        "広志":"multi_male_wanqudashu_moon_bigtts"
+    }
+    if role_name:
+        if role_name in zh:
+            return zh[role_name]
+        if role_name in en:
+            return en[role_name]
+        if role_name in ja:
+            return ja[role_name]
+        return role_name
+
+
+    return {
+        "zh":list(zh.keys()),
+        "ja":list(ja.keys()),
+        "en":list(en.keys())
+    }
 
 #  get role by edge tts
 def get_edge_rolelist():

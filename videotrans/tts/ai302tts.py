@@ -1,6 +1,10 @@
+import base64
 import os
 import re
+import shutil
 import time
+from pathlib import Path
+
 import httpx
 import requests
 from openai import OpenAI, APIError
@@ -10,11 +14,16 @@ from videotrans.util import tools
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
               inst=None):
-    if config.params['ai302tts_model'] != 'azure':
-        return get_voice_openai(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                                filename=filename, set_p=set_p, inst=inst)
-    return get_voice_azure(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
+    if config.params['ai302tts_model'] == 'azure':
+        return get_voice_azure(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
                            filename=filename, set_p=set_p, inst=inst)
+    elif config.params['ai302tts_model'] == 'doubao':
+        return get_voice_doubao(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
+                           filename=filename, set_p=set_p, inst=inst)
+    # if config.params['ai302tts_model'] != 'azure':
+    # else openai
+    return get_voice_openai(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
+                                filename=filename, set_p=set_p, inst=inst)
 
 
 def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,
@@ -108,3 +117,72 @@ def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+
         raise
     else:
         return True
+
+def base64_to_wav(encoded_str, output_path):
+    if not encoded_str:
+        raise ValueError("Base64 encoded string is empty.")
+
+    # 将base64编码的字符串解码为字节
+    wav_bytes = base64.b64decode(encoded_str)
+
+    # 检查输出路径是否存在，如果不存在则创建
+    # Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+    # 将解码后的字节写入文件
+    with open(output_path, "wb") as wav_file:
+        wav_file.write(wav_bytes)
+    # shutil.copy2(output_path,f'C:/users/c1/videos/test/{os.path.basename(output_path)}')
+    # print(f"WAV file has been saved to {output_path}")
+
+def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,set_p=True, inst=None):
+
+    try:
+        speed = 1.0
+        if rate:
+            rate = float(rate.replace('%', '')) / 100
+            speed += rate
+        try:
+            payload={
+               "audio": {
+                  "voice_type": tools.get_302ai_doubao(role_name=role),
+                  "encoding": "mp3",
+                  "speed_ratio": speed
+               },
+               "request": {
+                  "reqid": f'pyvideotrans-{time.time()}',
+                  "text": text,
+                  "operation": "query"
+               }
+            }
+            config.logger.info(payload)
+
+            response = requests.post('https://api.302.ai/doubao/tts_hd', headers={
+                'Authorization': f'Bearer {config.params["ai302tts_key"]}',
+                'User-Agent': 'pyvideotrans',
+                'Content-Type': 'application/json'
+            }, json=payload, verify=False)
+            if response.status_code != 200:
+                raise Exception(response.text)
+            res=response.json()
+            if res['code']!=3000:
+                raise Exception(f"302.ai doubao,{res['code']}:{res['message']}:{text=},{role=}")
+            base64_to_wav(res['data'],filename)
+        except ConnectionError as e:
+            raise
+        except Exception as e:
+            raise
+        else:
+            if tools.vail_file(filename) and config.settings['remove_silence']:
+                tools.remove_silence_from_end(filename)
+            if set_p and inst and inst.precent < 80:
+                inst.precent += 0.1
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+    except Exception as e:
+        error = str(e)
+        config.logger.error(f"302.ai tts doubao 合成失败：request error:{error}")
+        if inst and inst.init['btnkey']:
+            config.errorlist[inst.init['btnkey']] = error
+        raise
+    else:
+        return True
+
