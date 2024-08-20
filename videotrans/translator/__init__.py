@@ -38,7 +38,12 @@ TRANSNAMES = [
     TRANSAPI_NAME,
     FREEGOOGLE_NAME
 ]
-# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2
+# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
+# 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
+# google翻译 https://translate.google.com/
+# 百度翻译 https://fanyi.baidu.com/
+# deepl  https://deepl.com/
+# microsoft https://api-edge.cognitive.microsofttranslator.com/translate?from=&to
 LANG_CODE = {
     "zh-cn": [
         "zh-cn",  # google通道
@@ -279,6 +284,16 @@ LANG_CODE = {
         "No",  # OTT通道
         "nl",  # 微软翻译
         "Dutch" if config.defaulelang != 'zh' else '荷兰语'  # AI翻译
+    ],
+    "sv":[
+        "sv",  # google通道
+        "swe",  # 字幕嵌入语言
+        "swe",  # 百度通道
+        "SV",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "sv",  # 微软翻译
+        "Swedish" if config.defaulelang != 'zh' else '瑞典语'  # AI翻译
     ]
 }
 

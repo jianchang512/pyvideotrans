@@ -713,6 +713,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return True
         if type == '302.ai' and config.params['ai302tts_model'] == 'azure':
             return True
+        if type == '302.ai' and config.params['ai302tts_model'] == 'doubao':
+            return True
         return False
 
     # tab-4 语音合成
@@ -735,6 +737,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if tts_type == '302.ai' and not config.params['ai302tts_key']:
             return QMessageBox.critical(self, config.transobj['anerror'],
                                         config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
+        if tts_type=='302.ai' and  config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja', 'en']:
+            QMessageBox.critical(self, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
+            return
         if tts_type == "AzureTTS" and (
                 not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['azureinfo'])
@@ -851,6 +856,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['azureinfo'])
             if type == '302.ai' and not config.params['ai302tts_key']:
                 return QMessageBox.critical(self, config.transobj['anerror'], '请在菜单--设置--302.ai接入配音中填写 API KEY')
+            if type=='302.ai' and code[:2] not in ['zh', 'ja', 'en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                QMessageBox.critical(self, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
+                return
             self.hecheng_language_fun(self.hecheng_language.currentText())
         elif type == "302.ai":
             self.hecheng_role.clear()
@@ -895,27 +904,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def hecheng_language_fun(self, t):
         code = translator.get_code(show_text=t)
         tts_type = self.tts_type.currentText()
-        if code and code != '-' and tts_type == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
-            # 除此指望不支持
-            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
-            self.tts_type.setCurrentText('edgeTTS')
-            return
-        if code and code != '-' and tts_type == 'CosyVoice' and code[:2] not in ['zh', 'ja', 'en', 'ko']:
-            # 除此指望不支持
-            QMessageBox.critical(self, config.transobj['anerror'],
-                                 'CosyVoice仅支持中英日韩四种语言' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
-            self.tts_type.setCurrentText('edgeTTS')
-            return
-        if code and code != '-' and tts_type == 'ChatTTS' and code[:2] not in ['zh', 'en']:
-            self.tts_type.setCurrentText('edgeTTS')
-            # 除此指望不支持
-            QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
-            return
-        if code and code != '-' and tts_type == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
-            self.tts_type.setCurrentText('edgeTTS')
-            # 除此指望不支持
-            QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
-            return
+        if code and code != '-':
+            if tts_type == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
+                # 除此指望不支持
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+                self.tts_type.setCurrentText('edgeTTS')
+                return
+            if tts_type == 'CosyVoice' and code[:2] not in ['zh', 'ja', 'en', 'ko']:
+                # 除此指望不支持
+                QMessageBox.critical(self, config.transobj['anerror'],
+                                     'CosyVoice仅支持中英日韩四种语言' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
+                self.tts_type.setCurrentText('edgeTTS')
+                return
+            if tts_type == 'ChatTTS' and code[:2] not in ['zh', 'en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                # 除此指望不支持
+                QMessageBox.critical(self, config.transobj['anerror'], config.transobj['onlycnanden'])
+                return
+            if tts_type == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                # 除此指望不支持
+                QMessageBox.critical(self, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
+                return
+            if tts_type=='302.ai' and config.params['ai302tts_model'] == 'doubao' and code[:2] not in ['zh', 'ja', 'en']:
+                self.tts_type.setCurrentText('edgeTTS')
+                QMessageBox.critical(self, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
+                return
 
         if not self.isMircosoft(tts_type):
             return
@@ -924,9 +938,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hecheng_role.addItems(['No'])
             return
 
-        show_rolelist = get_edge_rolelist() if tts_type == 'edgeTTS' else get_azure_rolelist()
-        if not show_rolelist:
-            show_rolelist = get_edge_rolelist()
+        show_rolelist = None
+
+        if tts_type == 'edgeTTS':
+            show_rolelist = tools.get_edge_rolelist()
+        elif tts_type=='302.ai' and config.params['ai302tts_model'] == 'doubao':
+            show_rolelist=tools.get_302ai_doubao()
+        else:
+            # AzureTTS或 302.ai选择doubao模型
+            show_rolelist =tools.get_azure_rolelist()
+
         if not show_rolelist:
             self.hecheng_language.setCurrentText('-')
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['nojueselist'])
