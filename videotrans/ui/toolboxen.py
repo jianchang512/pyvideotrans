@@ -29,8 +29,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setIconSize(QtCore.QSize(20, 20))
         self.tabWidget.setObjectName("tabWidget")
 
-        # ===
-
+        # 语音识别
         self.tab_4 = QtWidgets.QWidget()
         self.tab_4.setObjectName("tab_4")
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout(self.tab_4)
@@ -168,6 +167,9 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
         self.tabWidget.addTab(self.tab_4, "")
+
+
+        # 语音合成
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout(self.tab_2)
@@ -266,13 +268,8 @@ class Ui_MainWindow(object):
         self.voice_autorate.setEnabled(False)
         self.voice_autorate.setObjectName("voice_autorate")
 
-        # self.audio_ajust = QtWidgets.QCheckBox(self.tab_2)
-        # self.audio_ajust.setEnabled(False)
-        # self.audio_ajust.setObjectName("audio_ajust")
-
         self.horizontalLayout_10_1.addWidget(self.tts_issrt)
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
-        # self.horizontalLayout_10_1.addWidget(self.audio_ajust)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
 
@@ -280,7 +277,6 @@ class Ui_MainWindow(object):
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
 
         self.volume_rate = QtWidgets.QSpinBox(self.tab_2)
-        # self.volume_rate.setMinimumSize(QtCore.QSize(0, 30))
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setMaximum(100)
         self.volume_rate.setObjectName("volume_rate")
@@ -331,6 +327,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
         self.tabWidget.addTab(self.tab_2, "")
 
+
+        # 字幕翻译
         self.tab_7 = QtWidgets.QWidget()
         self.tab_7.setObjectName("tab_7")
         self.horizontalLayout_23 = QtWidgets.QHBoxLayout(self.tab_7)
@@ -421,71 +419,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_23.addLayout(self.verticalLayout_13)
         self.tabWidget.addTab(self.tab_7, "")
 
-        self.tab = QtWidgets.QWidget()
-        self.tab.setObjectName("tab")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.tab)
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.yspfl_wrap = QtWidgets.QFrame(self.tab)
-        self.yspfl_wrap.setObjectName("yspfl_wrap")
-        self.horizontalLayout_4.addWidget(self.yspfl_wrap)
-        self.verticalLayout_6 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.yspfl_widget = QtWidgets.QVBoxLayout()
-        self.yspfl_widget.setObjectName("yspfl_widget")
-        self.yspfl_startbtn = QtWidgets.QPushButton(self.tab)
-        self.yspfl_startbtn.setMinimumSize(QtCore.QSize(300, 40))
-        self.yspfl_startbtn.setMaximumSize(QtCore.QSize(300, 40))
-        self.yspfl_startbtn.setObjectName("yspfl_startbtn")
-        self.yspfl_widget.addWidget(self.yspfl_startbtn, 0, QtCore.Qt.AlignHCenter)
-        self.verticalLayout_6.addLayout(self.yspfl_widget)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setObjectName("gridLayout")
-        self.label = QtWidgets.QLabel(self.tab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setMinimumSize(QtCore.QSize(100, 30))
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-        self.yspfl_videoinput = QtWidgets.QLineEdit(self.tab)
-        self.yspfl_videoinput.setMinimumSize(QtCore.QSize(0, 30))
-        self.yspfl_videoinput.setReadOnly(True)
-        self.yspfl_videoinput.setObjectName("yspfl_videoinput")
-        self.gridLayout.addWidget(self.yspfl_videoinput, 0, 1, 1, 1)
-        self.yspfl_openbtn1 = QtWidgets.QPushButton(self.tab)
-        self.yspfl_openbtn1.setObjectName("yspfl_openbtn1")
-        self.gridLayout.addWidget(self.yspfl_openbtn1, 0, 2, 1, 1)
-        self.verticalLayout_2.addLayout(self.gridLayout)
-        self.gridLayout_2 = QtWidgets.QGridLayout()
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        self.label_2 = QtWidgets.QLabel(self.tab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setMinimumSize(QtCore.QSize(100, 30))
-        self.label_2.setObjectName("label_2")
-        self.gridLayout_2.addWidget(self.label_2, 0, 0, 1, 1)
-        self.yspfl_wavinput = QtWidgets.QLineEdit(self.tab)
-        self.yspfl_wavinput.setMinimumSize(QtCore.QSize(0, 30))
-        self.yspfl_wavinput.setReadOnly(True)
-        self.yspfl_wavinput.setPlaceholderText("")
-        self.yspfl_wavinput.setObjectName("yspfl_wavinput")
-        self.gridLayout_2.addWidget(self.yspfl_wavinput, 0, 1, 1, 1)
-        self.yspfl_openbtn2 = QtWidgets.QPushButton(self.tab)
-        self.yspfl_openbtn2.setObjectName("yspfl_openbtn2")
-        self.gridLayout_2.addWidget(self.yspfl_openbtn2, 0, 2, 1, 1)
-        self.verticalLayout_2.addLayout(self.gridLayout_2)
-        self.verticalLayout_6.addLayout(self.verticalLayout_2)
-        self.horizontalLayout_4.addLayout(self.verticalLayout_6)
-        self.tabWidget.addTab(self.tab, "")
+
+        # 声画字幕合并
         self.tab_3 = QtWidgets.QWidget()
-        # self.tab_3.setMinimumSize(QtCore.QSize(0, 674))
         self.tab_3.setObjectName("tab_3")
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.tab_3)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
@@ -601,6 +537,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addLayout(self.verticalLayout_9)
         self.tabWidget.addTab(self.tab_3, "")
 
+
+        # 2个音频混乱
         self.tab_5 = QtWidgets.QWidget()
         self.tab_5.setObjectName("tab_5")
         self.horizontalLayout_17 = QtWidgets.QHBoxLayout(self.tab_5)
@@ -690,6 +628,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_17.addLayout(self.verticalLayout_10)
         self.tabWidget.addTab(self.tab_5, "")
 
+
         self.horizontalLayout_2.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -706,12 +645,6 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(box_lang.get("Video Toolbox"))
-        self.yspfl_startbtn.setText(box_lang.get("Start"))
-        self.label.setText(box_lang.get("No voice video"))
-        self.yspfl_openbtn1.setText(box_lang.get("Open dir"))
-        self.label_2.setText(box_lang.get("Audio Wav"))
-        self.yspfl_openbtn2.setText(box_lang.get("Open dir"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), box_lang.get("Video audio separation"))
         self.label_4.setText(box_lang.get("Video file"))
         self.ysphb_selectvideo.setText(box_lang.get("Select video"))
         self.label_5.setText(box_lang.get("Audio file"))
@@ -722,7 +655,6 @@ class Ui_MainWindow(object):
         self.ysphb_opendir.setText(box_lang.get("Open output dir"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), box_lang.get("Video subtitle merging"))
         self.label_3.setText(box_lang.get("Source lang"))
-        # self.label_9.setText(box_lang.get("Whisper model"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
         self.shibie_savebtn.setText(box_lang.get("Save to srt.."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4),
@@ -735,7 +667,6 @@ class Ui_MainWindow(object):
         self.tts_issrt.setToolTip(box_lang.get("If so, the line number and time value will skip reading aloud"))
         self.tts_issrt.setText(box_lang.get("Is srt?"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
-        # self.audio_ajust.setText(config.transobj.get("auto_ajust"))
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.label_7.setText(box_lang.get("Output audio name"))
         self.hecheng_out.setPlaceholderText(box_lang.get(

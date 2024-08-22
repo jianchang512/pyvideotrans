@@ -28,14 +28,7 @@ temp_path = root_path / "tmp"
 temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = temp_path.as_posix()
 
-# home 
-homepath = Path.home() / 'Videos/pyvideotrans'
-homepath.mkdir(parents=True, exist_ok=True)
-homedir = homepath.as_posix()
 
-# home tmp
-TEMP_HOME = homedir + "/tmp"
-Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
 # logs 
 
@@ -161,11 +154,13 @@ try:
 except Exception:
     defaulelang = "zh"
 
+defaulthomedir=(Path.home() / 'Videos/pyvideotrans').as_posix()
 
 def parse_init():
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,llama3-70b-8192,qwen2-72b-instruct",
         "ai302tts_models": "tts-1,tts-1-hd,azure,doubao",
+        "homedir":defaulthomedir,
         "lang": "",
         "crf": 13,
         "cuda_qp": False,
@@ -190,6 +185,7 @@ def parse_init():
         "overall_speech_pad_ms": 100,
         "voice_silence": 250,
         "interval_split": 10,
+        "bgm_split_time":300,
         "trans_thread": 15,
         "retries": 2,
         "translation_wait": 0.1,
@@ -219,6 +215,7 @@ def parse_init():
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
     }
     if not os.path.exists(rootdir + "/videotrans/cfg.json"):
+        Path(default['homedir']).mkdir(parents=True,exist_ok=True)
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
     try:
@@ -240,8 +237,10 @@ def parse_init():
             else:
                 settings[key] = value.lower() if value else ""
         default.update(settings)
-        # if default['ai302tts_models'].find('azure') == -1:
         default["ai302tts_models"] = "tts-1,tts-1-hd,azure,doubao"
+        if not default['homedir']:
+            default['homedir']=defaulthomedir
+        Path(default['homedir']).mkdir(parents=True,exist_ok=True)
         if default['gemini_model'].find('gemini') == -1:
             default["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         json.dump(default, open(rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
@@ -250,6 +249,13 @@ def parse_init():
 
 # 初始化一个字典变量
 settings = parse_init()
+homedir = settings['homedir']
+# home tmp
+TEMP_HOME = settings['homedir'] + "/tmp"
+Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
+
+
+
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 if settings['lang']:
     defaulelang = settings['lang'].lower()

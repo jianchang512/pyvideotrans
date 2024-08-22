@@ -40,24 +40,23 @@ class AudioPre:
         self.model = model
 
     def _path_audio_(
-            self, music_file, ins_root=None, format="wav", is_hp3=False, btnkey=None
+            self, music_file, ins_root=None, format="wav", is_hp3=False, btnkey=None,percent=[0,1]
     ):
+        print(f'{music_file=}')
+        print(f'{ins_root=}')
         if ins_root is None:
             return "No save root."
         name = os.path.splitext(os.path.basename(music_file))[0]
         if ins_root is not None:
             os.makedirs(ins_root, exist_ok=True)
         vocal_root = ins_root
-        # if vocal_root is not None:
-        #     os.makedirs(vocal_root, exist_ok=True)
+
         X_wave, y_wave, X_spec_s, y_spec_s = {}, {}, {}, {}
         bands_n = len(self.mp.param["band"])
-
         for d in range(bands_n, 0, -1):
-            if self.source != 'logs' and config.separate_status != 'ing':
+            if config.exit_soft:
                 return
-            if self.source == 'logs' and config.current_status != 'ing':
-                return
+
             bp = self.mp.param["band"][d]
             if d == bands_n:  # high-end band
                 (
@@ -105,7 +104,9 @@ class AudioPre:
         }
         with torch.no_grad():
             pred, X_mag, X_phase = inference(
-                X_spec_m, self.device, self.model, aggressiveness, self.data, self.source, btnkey=btnkey
+                X_spec_m, self.device, self.model, aggressiveness, self.data, self.source,
+                btnkey=btnkey,
+                percent=percent
             )
         # Postprocess
         if self.data["postprocess"]:

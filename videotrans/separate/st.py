@@ -3,6 +3,9 @@ import os
 import shutil
 import time
 import traceback
+from pathlib import Path
+
+from pydub import AudioSegment
 
 from videotrans.util import tools
 
@@ -15,7 +18,7 @@ from videotrans.util import tools
 import hashlib
 
 
-def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey=None):
+def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey=None,percent=[0,1]):
     infos = []
     try:
         func = AudioPre
@@ -31,52 +34,16 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey
             y, sr = librosa.load(inp_path, sr=None)
             info = sf.info(inp_path)
             channels = info.channels
-            if channels == 2 and sr == 16000:
-                need_reformat = 0
-                pre_fun._path_audio_(
-                    inp_path,
-                    ins_root=save_root, btnkey=btnkey
-                )
-                done = 1
-            else:
-                need_reformat = 1
-        except:
-            need_reformat = 1
-            traceback.print_exc()
-        if need_reformat == 1:
-            tmp_path = "%s/%s.reformatted.wav" % (
-                os.path.join(os.environ["TEMP"]),
-                f'{os.path.basename(inp_path)}-{time.time()}',
-            )
-            tools.runffmpeg([
-                "-y",
-                "-i",
+            need_reformat = 0
+            pre_fun._path_audio_(
                 inp_path,
-                "-ar",
-                "44100",
-                tmp_path
-            ])
-            inp_path = tmp_path
-        try:
-            if done == 0:
-                pre_fun._path_audio_(
-                    inp_path, ins_root=save_root, btnkey=btnkey
-                )
-            infos.append("%s->Success" % (os.path.basename(inp_path)))
-            yield "\n".join(infos)
-        except:
-            try:
-                if done == 0:
-                    pre_fun._path_audio_(
-                        inp_path, ins_root=save_root, btnkey=btnkey
-                    )
-                infos.append("%s->Success" % (os.path.basename(inp_path)))
-                yield "\n".join(infos)
-            except:
-                infos.append(
-                    "%s->%s" % (os.path.basename(inp_path), traceback.format_exc())
-                )
-                yield "\n".join(infos)
+                ins_root=save_root,
+                btnkey=btnkey,
+                percent=percent
+            )
+            done = 1
+        except  Exception:
+            traceback.print_exc()
     except:
         infos.append(traceback.format_exc())
         yield "\n".join(infos)
@@ -102,16 +69,97 @@ def convert_to_pure_eng_num(string):
     hex_digest = hasher.hexdigest()
     return hex_digest
 
+def split_audio(file_path):
+    # Load the audio file
+    audio = AudioSegment.from_wav(file_path)
+    segment_length=10
+    output_folder=Path(config.TEMP_DIR)/"separate"
+    output_folder.mkdir(parents=True,exist_ok=True)
+    output_folder=output_folder.as_posix()
+
+    # Calculate the total number of segments
+    total_length = len(audio)  # Total length in milliseconds
+    segment_length_ms = segment_length * 1000  # Convert segment length to milliseconds
+    segments = []
+
+    # Split the audio and save each segment
+    for i in range(0, total_length, segment_length_ms):
+        start = i
+        end = min(i + segment_length_ms, total_length)
+        segment = audio[start:end]
+
+        # Create a segment file name and save it
+        segment_filename = os.path.join(output_folder, f"segment_{i // 1000}.wav")
+        # 如果音频不是2通道，16kHz，则进行转换
+        if segment.channels != 2:
+            segment = segment.set_channels(2)
+        if segment.frame_rate != 44100:
+            segment = segment.set_frame_rate(44100)
+        segment.export(segment_filename, format="wav")
+        segments.append(segment_filename)
+
+    return segments
+
+def concatenate_audio(input_wav_list, out_wav):
+    # Initialize an empty AudioSegment
+    combined = AudioSegment.empty()
+
+    # Iterate over each wav file in the input list
+    for wav_file in input_wav_list:
+        # Load the current wav file
+        audio = AudioSegment.from_wav(wav_file)
+        if audio.channels != 2:
+            audio = audio.set_channels(2)
+        if audio.frame_rate != 44100:
+            audio = audio.set_frame_rate(44100)
+        # Append it to the combined AudioSegment
+        combined += audio
+
+    # Export the combined AudioSegment to the output file
+    combined.export(out_wav, format="wav")
+
 
 # path 是需要保存vocal.wav的目录
 def start(audio, path, source="logs", btnkey=None):
-    try:
-        # 获取总时长秒
-        sec = tools.get_audio_time(audio)
-        # if sec<=dist:
-        gr = uvr(model_name="HP2", save_root=path, inp_path=audio, source=source, btnkey=btnkey)
-        print(next(gr))
-        print(next(gr))
-    except Exception as e:
-        msg = f"保留背景音:{str(e)}"
-        raise Exception(msg)
+    Path(path).mkdir(parents=True,exist_ok=True)
+    reslist=split_audio(audio)
+    vocal_list=[]
+    instr_list=[]
+
+    grouplen=len(reslist)
+    per=round(1/grouplen,2)
+    for i,audio_seg in enumerate(reslist):
+        audio_path=Path(audio_seg)
+        path_dir=audio_path.parent/audio_path.stem
+        path_dir.mkdir(parents=True,exist_ok=True)
+        try:
+            gr = uvr(model_name="HP2", save_root=path_dir.as_posix(), inp_path=Path(audio_seg).as_posix(), source=source, btnkey=btnkey,percent=[i*per,per])
+            print(next(gr))
+            print(next(gr))
+        except StopIteration:
+            vocal_list.append((path_dir/'vocal.wav').as_posix())
+            instr_list.append((path_dir/'instrument.wav').as_posix())
+        except Exception as e:
+            print('异常'+str(e))
+            raise
+
+    if len(vocal_list)<1 or len(instr_list)<1:
+        raise Exception('separate bgm error')
+    concatenate_audio(instr_list,Path(f"{path}/instrument.wav").as_posix())
+    concatenate_audio(vocal_list,Path(f"{path}/vocal.wav").as_posix())
+    # try:
+    #     # 获取总时长秒
+    #     # sec = tools.get_audio_time(audio)
+    #     # print(f'{path=}')
+    #     Path(path).mkdir(parents=True,exist_ok=True)
+    #     # print(f'222{path=}')
+    #     # if sec<=dist:
+    #     gr = uvr(model_name="HP2", save_root=path, inp_path=audio, source=source, btnkey=btnkey)
+    #     print(next(gr))
+    #     print(next(gr))
+    # except StopIteration:
+    #     pass
+    # except Exception as e:
+    #     print(type(e))
+    #     msg = f"保留背景音:{str(e)}"
+    #     raise Exception(msg)

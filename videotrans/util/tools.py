@@ -566,51 +566,6 @@ def get_md5(input_string: str):
     # 获取md5哈希值的十六进制表示
     return md5.hexdigest()
 
-
-# 根据输入的原始视频，分离出音频并转为 shibie.wav做字幕识别
-def separate_volcal(video_file=None, path=None):
-    # 继续人声分离
-    tmpfile = config.TEMP_DIR + f"/{time.time()}.wav"
-    try:
-        runffmpeg([
-            "-y",
-            "-i",
-            video_file,
-            "-vn",
-            "-ac",
-            "2",
-            "-ar",
-            "44100",
-            "-c:a",
-            "pcm_s16le",
-            tmpfile
-        ])
-        from videotrans.separate import st
-        vocal_file = path + '/vocal.wav'
-        if not vail_file(vocal_file):
-            st.start(audio=tmpfile, path=path, btnkey=None)
-        if not vail_file(vocal_file):
-            raise Exception(' error ')
-        # 分离
-    except Exception as e:
-        msg = f"separate vocal and background music:{str(e)}"
-        # set_process(msg)
-        raise Exception(msg)
-    else:
-        runffmpeg([
-            "-y",
-            "-i",
-            vocal_file,
-            "-ac",
-            "1",
-            "-ar",
-            "16000",
-            "-c:a",
-            "pcm_s16le",
-            path + '/shibie.wav'
-        ])
-
-
 def conver_to_8k(audio, target_audio):
     return runffmpeg([
         "-y",

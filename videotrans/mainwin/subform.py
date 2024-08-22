@@ -1,7 +1,11 @@
 import json
 import os
 import re
+import sys
+import time
+import traceback
 import webbrowser
+from pathlib import Path
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal, QUrl
@@ -11,7 +15,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog, QLineEdit, QPushButton
 from videotrans.configure import config
 from videotrans.task.separate_worker import SeparateWorker
 from videotrans.util import tools
-
+from moviepy.editor import VideoFileClip, CompositeVideoClip, ImageClip
 
 class Subform():
     def __init__(self, main=None):
@@ -212,9 +216,10 @@ class Subform():
             key = 'http://' + key.replace('http://', '').replace('/tts', '')
             config.params["chattts_api"] = key
             config.getset_params(config.params)
-            config.settings['chattts_voice']=voice
-            json.dump(config.settings, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),ensure_ascii=False)
-            
+            config.settings['chattts_voice'] = voice
+            json.dump(config.settings, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+                      ensure_ascii=False)
+
             self.main.chatttsw.close()
 
         from videotrans.component import ChatttsForm
@@ -238,11 +243,11 @@ class Subform():
             def run(self):
                 from videotrans.tts.ai302tts import get_voice
                 try:
-                    role='alloy'
-                    if config.params["ai302tts_model"]=='doubao':
-                        role='zh_female_shuangkuaisisi_moon_bigtts'
-                    elif config.params['ai302tts_model']=='azure':
-                        role="zh-CN-YunjianNeural"
+                    role = 'alloy'
+                    if config.params["ai302tts_model"] == 'doubao':
+                        role = 'zh_female_shuangkuaisisi_moon_bigtts'
+                    elif config.params['ai302tts_model'] == 'azure':
+                        role = "zh-CN-YunjianNeural"
                     get_voice(
                         text=self.text,
                         role=role,
@@ -697,7 +702,6 @@ class Subform():
         self.main.zhrecognw.show()
 
     # 分离背景音
-
     def open_separate(self):
         def get_file():
             fname, _ = QFileDialog.getOpenFileName(self.main.sepw, "Select audio or video",
@@ -856,6 +860,260 @@ class Subform():
             self.main.hew.show()
         except Exception:
             pass
+    # 水印
+    def open_watermark(self):
+        class CompThread(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None, video=None, png=None, x=10, y=10, width=50, height=50, pos=0):
+                super().__init__(parent=parent)
+                self.video = video
+                self.png = png
+                self.x = int(x)
+                self.y = int(y)
+                self.width = int(width)
+                self.height = int(height)
+                self.pos = int(pos)
+                self.result_dir = config.homedir + "/watermark"
+                os.makedirs(self.result_dir, exist_ok=True)
+                name = os.path.splitext(os.path.basename(video))[0]
+                self.result_file = self.result_dir + f"/{name}-{int(time.time())}.mp4"
+
+            def run(self):
+                # import tempfile
+                # 使用系统的临时文件
+                # temp_audio = tempfile.NamedTemporaryFile(suffix=".m4a", delete=False).name
+                # temp_video = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False).name
+                os.chdir(config.homedir + "/watermark")
+                # 创建日志文件
+                log_file = open(config.LOGS_DIR+"/watermark.log", "w")
+
+                # 重定向标准输出和标准错误输出到日志文件
+                sys.stdout = log_file
+                sys.stderr = log_file
+                try:
+
+                    # 加载视频和图片
+                    video = VideoFileClip(self.video)
+                    watermark = ImageClip(self.png).set_duration(video.duration)
+
+                    # 设置水印尺寸
+                    watermark = watermark.resize((self.width, self.height))
+
+                    # 计算水印位置
+                    positions = [
+                        (self.x, self.y),  # 左上角
+                        (int(video.w - self.width - self.x), self.y),  # 右上角
+                        (int(video.w - self.width - self.x), int(video.h - self.height - self.y)),  # 右下角
+                        (self.x, int(video.h - self.height - self.y)),  # 左下角
+                        (int(video.w/2-self.width/2), int( video.h/2 -self.height/2 ))
+                    ]
+
+
+                    # 创建包含四个水印的列表
+                    watermarks = [
+                        watermark.set_position(positions[self.pos])
+                    ]
+
+                    # 合成视频和水印
+                    video_with_watermarks = CompositeVideoClip([video] + watermarks)
+
+                    # 指定临时文件路径
+                    temp_dir = config.TEMP_HOME
+                    os.makedirs(temp_dir, exist_ok=True)
+
+                    # 输出最终视频
+                    video_with_watermarks.write_videofile(
+                        self.result_file,
+                        codec='libx264',
+                        audio_codec='aac',
+                        ffmpeg_params=['-crf', f"{config.settings['crf']}", '-preset', f"{config.settings['preset']}",  '-pix_fmt', 'yuv420p']  # 确保视频在所有播放器中兼容
+                    )
+                except Exception as e:
+                    self.uito.emit('error:' + str(e))
+                    log_file.write(f"Error: {str(e)}\n")
+                else:
+                    self.uito.emit(self.result_file)
+                finally:
+                    log_file.close()
+                    sys.stdout = sys.__stdout__  # 恢复标准输出
+                    sys.stderr = sys.__stderr__  # 恢复标准错误输出
+
+        def feed(d):
+            if d.startswith("error:"):
+                QtWidgets.QMessageBox.critical(self.main.waterform, config.transobj['anerror'], d)
+                self.main.waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+                self.main.waterform.startbtn.setDisabled(False)
+                self.main.waterform.resultlabel.setText('')
+            else:
+                self.main.waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+                self.main.waterform.startbtn.setDisabled(False)
+                self.main.waterform.resultlabel.setText(d)
+                self.main.waterform.resultbtn.setDisabled(False)
+
+        def get_file(type):
+            if type == 1:
+                fname, _ = QFileDialog.getOpenFileName(self.main.waterform, "Select Video",
+                                                       config.params['last_opendir'],
+                                                       "files(*.mp4 *.mov *.mkv *.avi *.mpeg)")
+                if fname:
+                    self.main.waterform.videourl.setText(fname.replace('file:///', '').replace('\\', '/'))
+            else:
+                fname, _ = QFileDialog.getOpenFileName(self.main.waterform, "Select Image",
+                                                       config.params['last_opendir'],
+                                                       "files(*.png *.jpg *.jpeg *.gif)")
+                if fname:
+                    self.main.waterform.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
+
+        def start():
+            # 开始处理分离，判断是否选择了源文件
+            video = self.main.waterform.videourl.text()
+            png = self.main.waterform.pngurl.text()
+            if not video or not png:
+                QMessageBox.critical(self.main.waterform, config.transobj['anerror'],
+                                     '必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
+                return
+
+            self.main.waterform.startbtn.setText(
+                '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+            self.main.waterform.startbtn.setDisabled(True)
+            self.main.waterform.resultbtn.setDisabled(True)
+
+            x, y = 10, 10
+            try:
+                x = int(self.main.waterform.linex.text())
+            except Exception:
+                pass
+            try:
+                y = int(self.main.waterform.liney.text())
+            except Exception:
+                pass
+            w, h = 50, 50
+            try:
+                tmp_w = self.main.waterform.linew.text().strip().split('x')
+                w,h = int(tmp_w[0]), int(tmp_w[1])
+            except Exception:
+                pass
+
+            task = CompThread(parent=self.main.waterform, video=video, png=png, x=max(x, 0), y=max(y, 0),
+                              width=max(w, 1), height=max(h, 1), pos=int(self.main.waterform.compos.currentIndex()))
+
+            task.uito.connect(feed)
+            task.start()
+
+        def opendir():
+            filepath = self.main.waterform.resultlabel.text()
+            if not filepath:
+                return QMessageBox.critical(self.main.waterform, config.transobj['anerror'],
+                                            '尚未创建完毕' if config.defaulelang == 'zh' else 'Combined  not yet generated')
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
+
+        from videotrans.component import WatermarkForm
+        try:
+            if self.main.waterform is not None:
+                self.main.waterform.show()
+                return
+            self.main.waterform = WatermarkForm()
+            self.main.waterform.videobtn.clicked.connect(lambda: get_file(1))
+            self.main.waterform.pngbtn.clicked.connect(lambda: get_file(2))
+
+            self.main.waterform.resultbtn.clicked.connect(opendir)
+            self.main.waterform.startbtn.clicked.connect(start)
+            self.main.waterform.show()
+        except Exception:
+            pass
+
+    # 从视频分离音频
+    def open_audiofromvideo(self):
+        class CompThread(QThread):
+            uito = Signal(str)
+
+            def __init__(self, *, parent=None,videourls=None):
+                super().__init__(parent=parent)
+                self.resultdir=config.homedir+"/audiofromvideo"
+                os.makedirs(self.resultdir, exist_ok=True)
+                self.videourls=videourls
+
+            def run(self):
+                try:
+                    jd=1
+                    for i,v in enumerate(self.videourls):
+                        tools.runffmpeg([
+                           "-y",
+                           "-i",
+                           os.path.normpath(v),
+                           "-vn",
+                           "-ac",
+                           "2",
+                           "-ar",
+                           "44100",
+                           "-c:a",
+                           "pcm_s16le",
+                           self.resultdir+f"/{Path(v).stem}.wav"
+                        ])
+                        jd=round((i+1)*100/len(self.videourls),2)
+                        self.uito.emit(f'jindu:{jd}%')
+                except Exception as e:
+                    self.uito.emit('error:' + str(e))
+                else:
+                    self.uito.emit("ok")
+
+        def feed(d):
+            if d.startswith("error:"):
+                QtWidgets.QMessageBox.critical(self.main.audioform, config.transobj['anerror'], d)
+                self.main.audioform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+                self.main.audioform.startbtn.setDisabled(False)
+                self.main.audioform.resultbtn.setDisabled(False)
+            elif d.startswith('jindu:'):
+                self.main.audioform.startbtn.setText(d[6:])
+            else:
+                self.main.audioform.startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
+                self.main.audioform.startbtn.setDisabled(False)
+                self.main.audioform.resultbtn.setDisabled(False)
+                self.main.audioform.videourls=[]
+
+        def get_file():
+            fnames, _ = QFileDialog.getOpenFileNames(self.main.audioform, config.transobj['selectmp4'], config.params['last_opendir'],  "Video files(*.mp4 *.avi *.mov *.mpg *.mkv)")
+            if len(fnames) < 1:
+                return
+            self.main.audioform.videourls=[]
+            for it in fnames:
+                self.main.audioform.videourls.append(it.replace('\\', '/'))
+
+            if len(self.main.audioform.videourls) > 0:
+                config.params['last_opendir'] = os.path.dirname(fnames[0])
+                self.main.audioform.videourl.setText(",".join(self.main.audioform.videourls))
+
+        def start():
+            # 开始处理分离，判断是否选择了源文件
+            if len(self.main.audioform.videourls)<1:
+                QMessageBox.critical(self.main.audioform, config.transobj['anerror'],
+                                     '必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
+                return
+
+            self.main.audioform.startbtn.setText(
+                '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+            self.main.audioform.startbtn.setDisabled(True)
+            self.main.audioform.resultbtn.setDisabled(True)
+            task = CompThread(parent=self.main.audioform,videourls=self.main.audioform.videourls)
+            task.uito.connect(feed)
+            task.start()
+
+        def opendir():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(config.homedir+"/audiofromvideo"))
+
+        from videotrans.component import GetaudioForm
+        try:
+            if self.main.audioform is not None:
+                self.main.audioform.show()
+                return
+            self.main.audioform = GetaudioForm()
+            self.main.audioform.videobtn.clicked.connect(lambda: get_file())
+            self.main.audioform.resultbtn.clicked.connect(opendir)
+            self.main.audioform.startbtn.clicked.connect(start)
+            self.main.audioform.show()
+        except Exception:
+            pass
 
     # 设置每行角色
     def set_line_role_fun(self):
@@ -990,8 +1248,7 @@ class Subform():
                     # 将objectName作为key，text作为value添加到字典中
                     line_edit_dict[name] = line_edit.text()
             try:
-                json.dump(line_edit_dict, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),
-                          ensure_ascii=False)
+                json.dump(line_edit_dict, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'), ensure_ascii=False)
             except Exception as e:
                 return QtWidgets.QMessageBox.critical(self.main.setiniw, config.transobj['anerror'], str(e))
             else:
@@ -1001,7 +1258,7 @@ class Subform():
 
         def alert(btn):
             name = btn.objectName()[4:]
-            QMessageBox.information(self.main.setiniw, f'Help {name}', self.main.setiniw.notices[name])
+            QMessageBox.information(self.main.setiniw, f'Help {name}', self.main.setiniw.alertnotice[name])
 
         from videotrans.component import SetINIForm
         self.main.setiniw = SetINIForm()

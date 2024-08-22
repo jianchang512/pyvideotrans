@@ -69,8 +69,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ai302fyw = None
         self.ai302ttsw = None
         self.setiniw = None
-        self.util = None#SecWindow(self)
+        self.util = None
         self.subform = None
+        self.waterform = None
+        self.audioform=None
 
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         self.processbtns = {}
@@ -125,9 +127,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_cosyvoice.triggered.connect(self.subform.set_cosyvoice)
         self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
         self.actionyoutube.triggered.connect(self.subform.open_youtube)
+        self.actionwatermark.triggered.connect(self.subform.open_watermark)
         self.actionsepar.triggered.connect(self.subform.open_separate)
         self.actionsetini.triggered.connect(self.subform.open_setini)
         self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
+        self.action_yinshipinfenli.triggered.connect(self.subform.open_audiofromvideo)
         if config.params['tts_type'] and not config.params['tts_type'] in ['edgeTTS','AzureTTS']:
             self.util.tts_type_change(config.params['tts_type'])
 
@@ -415,11 +419,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(1, False))
 
-        self.action_yinshipinfenli.triggered.connect(lambda: self.util.open_toolbox(3, False))
 
-        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(4, False))
 
-        self.action_hun.triggered.connect(lambda: self.util.open_toolbox(5, False))
+        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(3, False))
+
+        self.action_hun.triggered.connect(lambda: self.util.open_toolbox(4, False))
 
         self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
 

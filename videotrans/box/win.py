@@ -59,20 +59,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(config.TEMP_HOME):
             os.makedirs(config.TEMP_HOME, exist_ok=True)
         # tab-1
-        self.yspfl_video_wrap = Player(self)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.yspfl_video_wrap.sizePolicy().hasHeightForWidth())
-        self.yspfl_video_wrap.setSizePolicy(sizePolicy)
-        self.yspfl_widget.insertWidget(0, self.yspfl_video_wrap)
-        self.yspfl_video_wrap.setStyleSheet("""background-color:rgb(10,10,10)""")
-        self.yspfl_video_wrap.setAcceptDrops(True)
 
-        # 启动音视频分离
-        self.yspfl_startbtn.clicked.connect(self.yspfl_start_fn)
-        self.yspfl_openbtn1.clicked.connect(lambda: self.yspfl_open_fn("video"))
-        self.yspfl_openbtn2.clicked.connect(lambda: self.yspfl_open_fn("wav"))
 
         # tab-2 音视频字幕合并
         self.ysphb_selectvideo.clicked.connect(lambda: self.ysphb_select_fun("video"))
@@ -243,21 +230,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f'导入{len(fnames)}个srt文件' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles')
         self.hecheng_out.setDisabled(False)
         self.hecheng_out.setText('')
-        
-    def render_play(self, t):
-        if t != 'ok':
-            return
-        self.yspfl_video_wrap.close()
-        self.yspfl_video_wrap = None
-        self.yspfl_video_wrap = Player(self)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.yspfl_video_wrap.sizePolicy().hasHeightForWidth())
-        self.yspfl_video_wrap.setSizePolicy(sizePolicy)
-        self.yspfl_widget.insertWidget(0, self.yspfl_video_wrap)
-        self.yspfl_video_wrap.setStyleSheet("""background-color:rgb(10,10,10)""")
-        self.yspfl_video_wrap.setAcceptDrops(True)
+
 
     def opendir_fn(self, dirname=None):
         if not dirname:
@@ -272,16 +245,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # fun_name 方法名，type类型，text具体文本
         func = data['func_name']
         type = data['type']
-        if func == 'yspfl':
-            if type == 'end' or type == 'error':
-                self.yspfl_startbtn.setDisabled(False)
-                self.yspfl_startbtn.setText(config.transobj["zhixingwc"])
-                if type == 'error':
-                    QMessageBox.critical(self, config.transobj['anerror'], data['text'])
-            else:
-                self.yspfl_startbtn.setText(data['text'])
-                self.yspfl_startbtn.setDisabled(True)
-        elif func == 'ysphb':
+        if func == 'ysphb':
             if type == 'end' or type == 'error':
                 self.ysphb_startbtn.setDisabled(False)
                 self.ysphb_startbtn.setText(config.transobj["zhixingwc"])
@@ -346,35 +310,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.hun_startbtn.setText(data['text'])
 
-    # tab-1 音视频分离启动
-    def yspfl_start_fn(self):
-        if not self.yspfl_video_wrap.filepath:
-            return QMessageBox.critical(self, config.transobj['anerror'], config.transobj['selectvideodir'])
-        file = self.yspfl_video_wrap.filepath
-        basename = os.path.basename(file)
-
-        video_out = f"{config.homedir}/{basename}"
-        if not os.path.exists(video_out):
-            os.makedirs(video_out, exist_ok=True)
-        self.yspfl_task = Worker(
-            [['-y', '-i', file, '-an', f"{video_out}/{basename}.mp4", f"{video_out}/{basename}.wav"]], "yspfl",
-            self)
-
-        self.yspfl_task.start()
-        self.yspfl_startbtn.setText(config.transobj['running'])
-        self.yspfl_startbtn.setDisabled(True)
-
-        self.yspfl_videoinput.setText(f"{video_out}/{basename}.mp4")
-        self.yspfl_wavinput.setText(f"{video_out}/{basename}.wav")
-
-    # 音视频打开目录
-    def yspfl_open_fn(self, name):
-        pathdir = config.homedir
-        if name == "video":
-            pathdir = os.path.dirname(self.yspfl_videoinput.text())
-        elif name == "wav":
-            pathdir = os.path.dirname(self.yspfl_wavinput.text())
-        QDesktopServices.openUrl(QUrl.fromLocalFile(pathdir))
 
     # tab-2音视频合并
     def ysphb_select_fun(self, name):
@@ -419,19 +354,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj["yinpinhezimu"])
             return
 
-        # if os.path.exists(videofile):
-        #     rs, newfile, base = tools.rename_move(videofile, is_dir=False)
-        #     if rs:
-        #         videofile = newfile
-        #         basename = base
-        # if os.path.exists(srtfile):
-        #     rs, newsrtfile, _ = tools.rename_move(srtfile, is_dir=False)
-        #     if rs:
-        #         srtfile = newsrtfile
-        # if os.path.exists(wavfile):
-        #     rs, newwavfile, _ = tools.rename_move(wavfile, is_dir=False)
-        #     if rs:
-        #         wavfile = newwavfile
 
         savedir = f"{config.homedir}/hebing-{basename}"
         os.makedirs(savedir, exist_ok=True)

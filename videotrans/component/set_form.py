@@ -15,6 +15,7 @@ from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.fishtts import Ui_fishttsform
+from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.ott import Ui_ottform
@@ -28,6 +29,7 @@ from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.transapi import Ui_transapiform
 from videotrans.ui.ttsapi import Ui_ttsapiform
+from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.azuretts import Ui_azurettsform
@@ -290,5 +292,19 @@ class AzureForm(QDialog, Ui_azureform):  # <===
         super(AzureForm, self).__init__(parent)
         self.setupUi(self)
         # self.azure_model.addItems(config.azure_model_list)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class WatermarkForm(QDialog, Ui_watermark):  # <===
+    def __init__(self, parent=None):
+        super(WatermarkForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class GetaudioForm(QDialog, Ui_getaudio):  # <===
+    def __init__(self, parent=None):
+        super(GetaudioForm, self).__init__(parent)
+        self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
