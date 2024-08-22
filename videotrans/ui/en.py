@@ -646,6 +646,8 @@ class Ui_MainWindow(object):
         self.actionElevenlabs_key.setObjectName("actionElevenlabs_key")
         self.actionyoutube = QtGui.QAction(MainWindow)
         self.actionyoutube.setObjectName("actionyoutube")
+        self.actionwatermark = QtGui.QAction(MainWindow)
+        self.actionwatermark.setObjectName("actionwatermark")
         self.actionsepar = QtGui.QAction(MainWindow)
         self.actionsepar.setObjectName("actionsepar")
         self.actionsetini = QtGui.QAction(MainWindow)
@@ -708,6 +710,8 @@ class Ui_MainWindow(object):
         self.menu.addAction(self.action_tool)
         self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
+        self.menu.addSeparator()
+        self.menu.addAction(self.actionwatermark)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
         self.menu.addSeparator()
@@ -875,7 +879,7 @@ class Ui_MainWindow(object):
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
 
-        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang == 'zh' else 'Combine two subtitles')
+        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang == 'zh' else 'Combine Two Subtitles')
         self.action_hebingsrt.setToolTip(
             '将2个字幕文件合并为一个，组成双语字幕' if config.defaulelang == 'zh' else 'Combine 2 subtitle files into one to form bilingual subtitles')
 
@@ -886,5 +890,6 @@ class Ui_MainWindow(object):
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs.io TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
+        self.actionwatermark.setText('视频添加水印' if config.defaulelang=='zh' else 'Add watermark to video')
         self.actionsepar.setText('人声/背景音分离' if config.defaulelang == 'zh' else 'Vocal & instrument Separate')
         self.actionsetini.setText('高级设置/set.ini' if config.defaulelang == 'zh' else 'Advanced Settings/set.ini')

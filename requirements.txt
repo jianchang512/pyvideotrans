@@ -99,7 +99,7 @@ packaging==23.1
 pandas==1.5.3
 parso==0.8.3
 pefile==2023.2.7
-Pillow==10.0.1
+Pillow==8.4.0
 platformdirs==3.11.0
 plyer==2.1.0
 pooch==1.7.0
@@ -149,7 +149,7 @@ SpeechRecognition==3.10.0
 srt==3.5.2
 stack-data==0.6.3
 sympy==1.12
-tbb==2021.11.0
+tbb==2021.11.0;sys_platform == 'win32'
 tencentcloud-sdk-python-common==3.0.1032
 tencentcloud-sdk-python-tmt==3.0.1032
 termcolor==2.3.0

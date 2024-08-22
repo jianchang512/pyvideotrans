@@ -27,7 +27,7 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey=None):
+def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey=None,percent=[0,1]):
     """
     data : dic configs
     """
@@ -43,9 +43,10 @@ def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey
 
             total_iterations = sum(iterations)
             for i in range(n_window):
-                if source != 'logs' and config.separate_status != 'ing':
+                if  config.exit_soft:
                     return
-                jd = (i + 1) * 100 / n_window
+                jd =  (percent[0] +   (percent[1]*(i + 1) / n_window))*100
+                jd=100 if jd>=100 else jd
                 tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", source,
                                   btnkey=btnkey)
                 print(f"{config.transobj['Separating background music']} {round(jd, 1)}%")
