@@ -38,7 +38,7 @@ class Ui_setini(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(setini.sizePolicy().hasHeightForWidth())
         setini.setSizePolicy(sizePolicy)
-        setini.setMaximumSize(QtCore.QSize(900, 670))
+        # setini.setMaximumSize(QtCore.QSize(900, 670))
 
         self.verticalLayoutWidget = QtWidgets.QWidget(setini)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 20, 860, 600))

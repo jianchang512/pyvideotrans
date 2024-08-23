@@ -122,6 +122,45 @@ separate_status = 'stop'
 # 软件退出
 exit_soft = False
 
+# 子窗口
+separatew = None
+hebingw = None
+chatgptw=None
+azurew = None
+geminiw = None
+gptsovitsw = None
+fishttsw = None
+transapiw = None
+ttsapiw = None
+zijiew = None
+baiduw = None
+zhrecognw = None
+chatttsw = None
+clonew = None
+ottw = None
+elevenlabsw = None
+deeplxw = None
+azurettsw = None
+deeplw = None
+youw = None
+linerolew = None
+llmw = None
+tencentw = None
+
+doubaow = None
+cosyvoicew = None
+ai302fyw = None
+ai302ttsw = None
+setiniw = None
+
+waterform = None
+audioform=None
+hunliuform=None
+vasform=None
+fanyiform=None
+recognform=None
+peiyinform=None
+
 # 翻译队列
 trans_queue = []
 # 配音队列

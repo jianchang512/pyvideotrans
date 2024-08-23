@@ -279,7 +279,6 @@ def get_azure_rolelist():
 def runffmpeg(arg, *, noextname=None,
               is_box=False,
               fps=None):
-    # config.logger.info(f'runffmpeg-arg={arg}')
     arg_copy = copy.deepcopy(arg)
 
     if fps:
@@ -308,9 +307,6 @@ def runffmpeg(arg, *, noextname=None,
     if fps:
         arg.insert(-1, '-r')
         arg.insert(-1, f'{fps}')
-    # else:
-    #     arg.insert(-1,'-fps_mode')
-    #     arg.insert(-1,f"{config.settings['vsync']}")
 
     cmd = cmd + arg
     # 插入自定义 ffmpeg 参数
@@ -827,7 +823,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 content = f.read().strip().splitlines()
         except:
             try:
-                with open(srtfile, 'r', encoding='gbk') as f:
+                with open(srtfile, 'r', encoding='gbk',errors='ignore') as f:
                     content = f.read().strip().splitlines()
             except Exception as e:
                 raise Exception(f'get srtfile error:{str(e)}')
@@ -1291,33 +1287,7 @@ def get_google_url():
 def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
     try:
         os.remove(config.rootdir + "/videotrans/params.json")
-    except Exception:
-        pass
-    from PySide6.QtCore import QSettings
-    import platform
-    # Create a QSettings object with the specified organization and application
-    settings = QSettings(organization, application)
-
-    # Clear all settings in QSettings
-    settings.clear()
-    settings.sync()  # Make sure changes are written to the disk
-
-    # Determine if the platform is Windows
-    if platform.system() == "Windows":
-        # On Windows, the settings are stored in the registry, so no further action is needed
-        return
-    try:
-        # On MacOS and Linux, settings are usually stored in a config file within the user's home directory
-        config_dir = os.path.join(os.path.expanduser("~"), ".config", organization)
-        config_file_path = os.path.join(config_dir, f"{application}.ini")
-
-        # Check if the config file exists and remove it
-        if os.path.isfile(config_file_path):
-            os.remove(config_file_path)
-        # If the whole directory for the organization should be removed, you would use shutil.rmtree as follows
-        # Warning: This will remove all settings for all applications under this organization
-        elif os.path.isdir(config_dir):
-            shutil.rmtree(config_dir, ignore_errors=True)
+        os.remove(config.rootdir + "/videotrans/cfg.json")
     except Exception:
         pass
 
@@ -1380,6 +1350,10 @@ def format_video(name, out=None):
     #     Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
 
     return obj
+
+def open_url(url):
+    import webbrowser
+    webbrowser.open_new_tab(url)
 
 
 def open_dir(self, dirname=None):

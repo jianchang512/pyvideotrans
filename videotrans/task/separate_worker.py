@@ -38,8 +38,6 @@ class SeparateWorker(QThread):
                 tools.runffmpeg(cmd, is_box=True)
                 self.file = newfile
             st.start(self.file, self.out, "win")
-            # gr = st.uvr(model_name="HP2", save_root=self.out, inp_path=self.file,source="win")
-
             if config.separate_status == 'ing':
                 self.finish_event.emit("succeed")
             else:

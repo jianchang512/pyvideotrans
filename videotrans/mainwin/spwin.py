@@ -2,15 +2,12 @@ import os
 import shutil
 import threading
 import time
-
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import QSettings, Qt, QSize, QTimer, QPoint
+from PySide6.QtCore import QSettings, Qt, QSize, QTimer
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 import warnings
-
 warnings.filterwarnings('ignore')
-
 
 from videotrans.util import tools
 from videotrans.translator import TRANSNAMES
@@ -18,11 +15,8 @@ from videotrans.configure import config
 from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
-from videotrans import configure
 from pathlib import Path
 import platform
-
-
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=700):
@@ -38,41 +32,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.task = None
         self.shitingobj = None
-        # 各个子窗口
-        self.youw = None
-        self.sepw = None
-        self.hew = None
-        self.azw = None
-        self.gw = None
-        self.gptsovitsw = None
-        self.fishttsw = None
-        self.transapiw = None
-        self.ttsapiw = None
-        self.zijiew = None
-        self.baw = None
-        self.zhrecognw = None
-        self.chatttsw = None
-        self.clonw = None
-        self.ow = None
-        self.ew = None
-        self.dexw = None
-        self.aztw = None
-        self.dlw = None
-        self.youw = None
-        self.row = None
-        self.llmw = None
-        self.tew = None
         self.util = None
         self.moshis = None
-        self.doubaow = None
-        self.cosyvoicew = None
-        self.ai302fyw = None
-        self.ai302ttsw = None
-        self.setiniw = None
-        self.util = None
-        self.subform = None
-        self.waterform = None
-        self.audioform=None
+        # 各个子窗口
 
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         self.processbtns = {}
@@ -83,56 +45,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
         self.rawtitle = f"{config.transobj['softname']}{VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
-        # 检查窗口是否打开
-        
         self.setupUi(self)
         self.initUI()
         self.bind_action()
         self.show()
-        QTimer.singleShot(200, self.start_box)
         QTimer.singleShot(200, self.start_subform)
 
-    def start_box(self):
-        # 打开工具箱
-        from videotrans.box import win
-        configure.TOOLBOX = win.MainWindow()
-        configure.TOOLBOX.resize(self.bwidth, self.bheight)
-        configure.TOOLBOX.move(QPoint(self.lefttopx, self.lefttopy))
     def start_subform(self):
         # 打开工具箱
-        from videotrans.mainwin.subform import Subform
-        self.subform=Subform(self)
-        self.set_line_role.clicked.connect(self.subform.set_line_role_fun)
-        self.actionbaidu_key.triggered.connect(self.subform.set_baidu_key)
-        self.actionazure_key.triggered.connect(self.subform.set_azure_key)
-        self.actionazure_tts.triggered.connect(self.subform.set_auzuretts_key)
-        self.actiongemini_key.triggered.connect(self.subform.set_gemini_key)
-        self.actiontencent_key.triggered.connect(self.subform.set_tencent_key)
-        self.actionchatgpt_key.triggered.connect(self.subform.set_chatgpt_key)
-        self.actionai302_key.triggered.connect(self.subform.set_ai302_key)
-        self.actionlocalllm_key.triggered.connect(self.subform.set_localllm_key)
-        self.actionzijiehuoshan_key.triggered.connect(self.subform.set_zijiehuoshan_key)
-        self.actiondeepL_key.triggered.connect(self.subform.set_deepL_key)
-        self.actionElevenlabs_key.triggered.connect(self.subform.set_elevenlabs_key)
-        self.actiondeepLX_address.triggered.connect(self.subform.set_deepLX_address)
-        self.actionott_address.triggered.connect(self.subform.set_ott_address)
-        self.actionclone_address.triggered.connect(self.subform.set_clone_address)
-        self.actionchattts_address.triggered.connect(self.subform.set_chattts_address)
-        self.actionai302tts_address.triggered.connect(self.subform.set_ai302tts_address)
-        self.actiontts_api.triggered.connect(self.subform.set_ttsapi)
-        self.actionzhrecogn_api.triggered.connect(self.subform.set_zh_recogn)
-        self.actiondoubao_api.triggered.connect(self.subform.set_doubao)
-        self.actiontrans_api.triggered.connect(self.subform.set_transapi)
-        self.actiontts_gptsovits.triggered.connect(self.subform.set_gptsovits)
-        self.actiontts_cosyvoice.triggered.connect(self.subform.set_cosyvoice)
-        self.actiontts_fishtts.triggered.connect(self.subform.set_fishtts)
-        self.actionyoutube.triggered.connect(self.subform.open_youtube)
-        self.actionwatermark.triggered.connect(self.subform.open_watermark)
-        self.actionsepar.triggered.connect(self.subform.open_separate)
-        self.actionsetini.triggered.connect(self.subform.open_setini)
-        self.action_hebingsrt.triggered.connect(self.subform.open_hebingsrt)
-        self.action_yinshipinfenli.triggered.connect(self.subform.open_audiofromvideo)
-        if config.params['tts_type'] and not config.params['tts_type'] in ['edgeTTS','AzureTTS']:
+        from videotrans.winform import baidu, ai302, ai302tts, audiofromvideo, azure, azuretts, chatgpt, chattts, clone, \
+            cosyvoice, deepL, deepLX, doubao, elevenlabs, fanyisrt, fishtts, gemini, gptsovits, hebingsrt, hunliu, \
+            localllm, ott, peiyin, recogn, separate, setini, tencent, transapi, ttsapi, vas, watermark, youtube, \
+            zh_recogn, zijiehuoshan
+
+        self.actionbaidu_key.triggered.connect(baidu.open)
+        self.actionazure_key.triggered.connect(azure.open)
+        self.actionazure_tts.triggered.connect(azuretts.open)
+        self.actiongemini_key.triggered.connect(gemini.open)
+        self.actiontencent_key.triggered.connect(tencent.open)
+        self.actionchatgpt_key.triggered.connect(chatgpt.open)
+        self.actionai302_key.triggered.connect(ai302.open)
+        self.actionlocalllm_key.triggered.connect(localllm.open)
+        self.actionzijiehuoshan_key.triggered.connect(zijiehuoshan.open)
+        self.actiondeepL_key.triggered.connect(deepL.open)
+        self.actionElevenlabs_key.triggered.connect(elevenlabs.open)
+        self.actiondeepLX_address.triggered.connect(deepLX.open)
+        self.actionott_address.triggered.connect(ott.open)
+        self.actionclone_address.triggered.connect(clone.open)
+        self.actionchattts_address.triggered.connect(chattts.open)
+        self.actionai302tts_address.triggered.connect(ai302tts.open)
+        self.actiontts_api.triggered.connect(ttsapi.open)
+        self.actionzhrecogn_api.triggered.connect(zh_recogn.open)
+        self.actiondoubao_api.triggered.connect(doubao.open)
+        self.actiontrans_api.triggered.connect(transapi.open)
+        self.actiontts_gptsovits.triggered.connect(gptsovits.open)
+        self.actiontts_cosyvoice.triggered.connect(cosyvoice.open)
+        self.actiontts_fishtts.triggered.connect(fishtts.open)
+        self.actionyoutube.triggered.connect(youtube.open)
+        self.actionwatermark.triggered.connect(watermark.open)
+        self.actionsepar.triggered.connect(separate.open)
+        self.actionsetini.triggered.connect(setini.open)
+        self.action_hebingsrt.triggered.connect(hebingsrt.open)
+        self.action_yinshipinfenli.triggered.connect(audiofromvideo.open)
+        self.action_hun.triggered.connect(hunliu.open)
+        self.action_yingyinhebing.triggered.connect(vas.open)
+        self.action_fanyi.triggered.connect(fanyisrt.open)
+        self.action_yuyinshibie.triggered.connect(recogn.open)
+        self.action_yuyinhecheng.triggered.connect(peiyin.open)
+        if config.params['tts_type'] and not config.params['tts_type'] in ['edgeTTS', 'AzureTTS']:
             self.util.tts_type_change(config.params['tts_type'])
 
     def initUI(self):
@@ -279,8 +239,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.set_line_role.setCursor(Qt.PointingHandCursor)
         self.set_line_role.setToolTip(config.transobj['Set up separate dubbing roles for each subtitle to be used'])
-        
-        if config.params['subtitle_type'] and int(config.params['subtitle_type'])>0:
+
+        if config.params['subtitle_type'] and int(config.params['subtitle_type']) > 0:
             self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
 
     def bind_action(self):
@@ -307,14 +267,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['tts_type']:
             if config.params['tts_type'] not in ['edgeTTS', 'AzureTTS']:
                 self.voice_role.addItems(['No'])
-                
+
         if config.params['is_separate']:
             self.is_separate.setChecked(True)
-            
 
         # 设置 tts_type
         self.tts_type.addItems(config.params['tts_type_list'])
         self.tts_type.setCurrentText(config.params['tts_type'])
+        self.set_line_role.clicked.connect(self.util.set_line_role_fun)
 
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
@@ -322,7 +282,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.util.set_voice_role(config.params['target_language'])
             # 设置默认角色列表
             print(config.params['voice_role'])
-            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and  config.params['voice_role'] in self.current_rolelist:
+            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and \
+                    config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.util.show_listen_btn(config.params['voice_role'])
                 print('2222')
@@ -332,10 +293,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # menubar
         self.import_sub.clicked.connect(self.util.import_sub_fun)
 
-
-
         self.export_sub.clicked.connect(self.util.export_sub_fun)
-
 
         self.startbtn.clicked.connect(self.util.check_start)
         self.stop_djs.clicked.connect(self.util.reset_timeid)
@@ -366,11 +324,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.toggled.connect(self.util.is_separate_fun)
         self.enable_cuda.toggled.connect(self.util.check_cuda)
 
-
-
-
-
-
         self.action_ffmpeg.triggered.connect(lambda: self.util.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.util.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.util.open_url('discord'))
@@ -383,8 +336,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_blog.triggered.connect(lambda: self.util.open_url('blog'))
         self.statusLabel.clicked.connect(lambda: self.util.open_url('help'))
         self.action_issue.triggered.connect(lambda: self.util.open_url('issue'))
-
-        self.action_tool.triggered.connect(lambda: self.util.open_toolbox(0, False))
 
         self.action_about.triggered.connect(self.util.about)
 
@@ -415,18 +366,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "hebing": self.action_zimu_video,
             "peiyin": self.action_zimu_peiyin
         }
-        self.action_yuyinshibie.triggered.connect(lambda: self.util.open_toolbox(0, False))
-
-        self.action_yuyinhecheng.triggered.connect(lambda: self.util.open_toolbox(1, False))
-
-
-
-        self.action_yingyinhebing.triggered.connect(lambda: self.util.open_toolbox(3, False))
-
-        self.action_hun.triggered.connect(lambda: self.util.open_toolbox(4, False))
-
-        self.action_fanyi.triggered.connect(lambda: self.util.open_toolbox(2, False))
-
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
 
@@ -466,12 +405,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.exit_soft = True
         config.current_status = 'end'
         self.hide()
-
-        if configure.TOOLBOX is not None:
-            configure.TOOLBOX.close()
         try:
             shutil.rmtree(config.rootdir + "/tmp", ignore_errors=True)
             shutil.rmtree(config.homedir + "/tmp", ignore_errors=True)
+            for w in [config.separatew,
+                      config.hebingw,
+                      config.chatgptw,
+                      config.azurew,
+                      config.geminiw,
+                      config.gptsovitsw,
+                      config.fishttsw,
+                      config.transapiw,
+                      config.ttsapiw,
+                      config.zijiew,
+                      config.baiduw,
+                      config.zhrecognw,
+                      config.chatttsw,
+                      config.clonew,
+                      config.ottw,
+                      config.elevenlabsw,
+                      config.deeplxw,
+                      config.azurettsw,
+                      config.deeplw,
+                      config.youw,
+                      config.linerolew,
+                      config.llmw,
+                      config.tencentw, config.doubaow,
+                      config.cosyvoicew,
+                      config.ai302fyw,
+                      config.ai302ttsw,
+                      config.setiniw,
+                      config.waterform,
+                      config.audioform,
+                      config.hunliuform,
+                      config.vasform,
+                      config.fanyiform,
+                      config.recognform,
+                      config.peiyinform]:
+                if w and hasattr(w, 'close'):
+                    w.close()
+
+
         except Exception:
             pass
         try:

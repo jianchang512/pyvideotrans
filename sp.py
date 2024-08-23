@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+# 代码是一坨屎，但又不是不能跑O(∩_∩)O~
 import sys, os
-from pathlib import Path
 import time
 
 from PySide6 import QtWidgets
@@ -8,10 +8,7 @@ from PySide6.QtCore import Qt, QTimer, QPoint
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 from videotrans import VERSION
 
-
-
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-
 
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):
@@ -54,7 +51,11 @@ class StartWindow(QtWidgets.QWidget):
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
         from videotrans.mainwin.spwin import MainWindow
-        MainWindow(width=self.width, height=self.height)
+        try:
+            MainWindow(width=self.width, height=self.height)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
         print(time.time())
         self.close()
 
@@ -70,5 +71,6 @@ if __name__ == "__main__":
     try:
         startwin = StartWindow()
     except Exception as e:
-        print(f"error:{str(e)}")
+        import traceback
+        traceback.print_exc()
     sys.exit(app.exec())

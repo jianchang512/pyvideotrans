@@ -30,27 +30,21 @@ class Ui_srthebing(object):
         srthebing.resize(643, 535)
         srthebing.setWindowModality(QtCore.Qt.NonModal)
 
-        # sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        # sizePolicy.setHorizontalStretch(1)
-        # sizePolicy.setVerticalStretch(1)
-        # sizePolicy.setHeightForWidth(srthebing.sizePolicy().hasHeightForWidth())
-        # srthebing.setSizePolicy(sizePolicy)
-
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(srthebing.sizePolicy().hasHeightForWidth())
         srthebing.setSizePolicy(sizePolicy)
-        srthebing.setMaximumSize(QtCore.QSize(643, 535))
+        # srthebing.setMaximumSize(QtCore.QSize(643, 535))
 
-        # self.centralwidget = QWidget(srthebing)
-        # self.centralwidget.setObjectName(u"centralwidget")
+
         self.horizontalLayout_3 = QHBoxLayout(srthebing)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
+
         self.srtinput1 = QLineEdit(srthebing)
         self.srtinput1.setObjectName(u"srtinput1")
         self.srtinput1.setMinimumSize(QSize(0, 35))
@@ -112,8 +106,6 @@ class Ui_srthebing(object):
         self.verticalLayout.addWidget(self.resultbtn)
 
         self.horizontalLayout_3.addLayout(self.verticalLayout)
-
-        # srthebing.setCentralWidget(srthebing)
 
         self.retranslateUi(srthebing)
 

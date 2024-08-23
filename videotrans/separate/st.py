@@ -72,7 +72,11 @@ def convert_to_pure_eng_num(string):
 def split_audio(file_path):
     # Load the audio file
     audio = AudioSegment.from_wav(file_path)
-    segment_length=10
+    segment_length=300
+    try:
+        segment_length=int(config.settings['bgm_split_time'])
+    except Exception:
+        pass
     output_folder=Path(config.TEMP_DIR)/"separate"
     output_folder.mkdir(parents=True,exist_ok=True)
     output_folder=output_folder.as_posix()
