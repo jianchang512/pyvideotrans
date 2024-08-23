@@ -9,28 +9,63 @@
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QMetaObject
 
+from videotrans.box.component import Textedit
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
 
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+class Ui_peiyin(object):
+    def setupUi(self, peiyin):
+        if not peiyin.objectName():
+            peiyin.setObjectName(u"peiyin")
+        peiyin.resize(643, 500)
+        peiyin.setWindowModality(QtCore.Qt.NonModal)
 
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(peiyin.sizePolicy().hasHeightForWidth())
+        peiyin.setSizePolicy(sizePolicy)
+        # peiyin.setMaximumSize(QtCore.QSize(643, 500))
+
+        self.hecheng_files=[]
+
+        # self.centralwidget = QtWidgets.QWidget(peiyin)
+        # self.centralwidget.setObjectName("centralwidget")
+        # self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
+        # self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 
 
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_11 = QtWidgets.QHBoxLayout(peiyin)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.hecheng_layout = QtWidgets.QVBoxLayout()
         self.hecheng_layout.setObjectName("hecheng_layout")
+
+
+        self.hecheng_plaintext = Textedit()
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.hecheng_plaintext.sizePolicy().hasHeightForWidth())
+        self.hecheng_plaintext.setSizePolicy(sizePolicy)
+        self.hecheng_plaintext.setMinimumSize(0, 150)
+        self.hecheng_plaintext.setPlaceholderText(config.transobj['tuodonghuoshuru'])
+        self.hecheng_importbtn = QtWidgets.QPushButton()
+        self.hecheng_importbtn.setObjectName("hecheng_importbtn")
+        self.hecheng_importbtn.setFixedHeight(150)
+        self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
+
+        self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+
+        self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
+        self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
+
+
+
         self.verticalLayout_4.addLayout(self.hecheng_layout)
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
@@ -56,6 +91,10 @@ class Ui_MainWindow(object):
         self.hecheng_language.setSizePolicy(sizePolicy)
         self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_language.setObjectName("hecheng_language")
+        self.hecheng_language.addItems(['-'] + config.langnamelist)
+
+
+
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
         self.formLayout_7 = QtWidgets.QFormLayout()
@@ -68,6 +107,7 @@ class Ui_MainWindow(object):
         self.tts_type = QtWidgets.QComboBox()
         self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_type.setObjectName("tts_type")
+        self.tts_type.addItems([i for i in config.params['tts_type_list']])
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -90,6 +130,7 @@ class Ui_MainWindow(object):
         self.hecheng_role.setSizePolicy(sizePolicy)
         self.hecheng_role.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_role.setObjectName("hecheng_role")
+        self.hecheng_role.addItems(['No'])
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
         self.horizontalLayout_10.addLayout(self.formLayout_4)
 
@@ -168,23 +209,26 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         self.gridLayout_3.addWidget(self.label_7, 0, 0, 1, 1)
         self.hecheng_out = QtWidgets.QLineEdit()
-        self.hecheng_out.setMinimumSize(QtCore.QSize(0, 30))
+        self.hecheng_out.setMinimumSize(QtCore.QSize(0, 35))
         self.hecheng_out.setReadOnly(False)
         self.hecheng_out.setObjectName("hecheng_out")
         self.gridLayout_3.addWidget(self.hecheng_out, 0, 1, 1, 1)
         self.hecheng_opendir = QtWidgets.QPushButton()
         self.hecheng_opendir.setObjectName("hecheng_opendir")
+        self.hecheng_opendir.setMinimumSize(QtCore.QSize(100,35))
         self.gridLayout_3.addWidget(self.hecheng_opendir, 0, 2, 1, 1)
         self.verticalLayout_4.addLayout(self.gridLayout_3)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
-        MainWindow.setCentralWidget(self.centralwidget)
 
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(peiyin)
 
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(box_lang.get("Video Toolbox"))
+         # tab-4 语音合成
+
+        QMetaObject.connectSlotsByName(peiyin)
+
+    def retranslateUi(self, peiyin):
+        peiyin.setWindowTitle('批量字幕配音' if config.defaulelang=='zh' else 'Batch Subtitle Dubbing')
 
         self.label_10.setText(box_lang.get("Subtitle lang"))
         self.label_8.setText("TTS" if config.defaulelang!='zh'else'配音渠道')

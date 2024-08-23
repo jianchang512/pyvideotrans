@@ -14,14 +14,18 @@ from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.fanyi import Ui_fanyisrt
 from videotrans.ui.fishtts import Ui_fishttsform
 from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
+from videotrans.ui.hunliu import Ui_hunliu
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.info import Ui_infoform
+from videotrans.ui.peiyin import Ui_peiyin
+from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.srthebing import Ui_srthebing
@@ -29,6 +33,7 @@ from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.transapi import Ui_transapiform
 from videotrans.ui.ttsapi import Ui_ttsapiform
+from videotrans.ui.vasrt import Ui_vasrt
 from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.separate import Ui_separateform
@@ -305,6 +310,42 @@ class WatermarkForm(QDialog, Ui_watermark):  # <===
 class GetaudioForm(QDialog, Ui_getaudio):  # <===
     def __init__(self, parent=None):
         super(GetaudioForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class HunliuForm(QDialog, Ui_hunliu):  # <===
+    def __init__(self, parent=None):
+        super(HunliuForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+
+class VASForm(QDialog, Ui_vasrt):  # <===
+    def __init__(self, parent=None):
+        super(VASForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class Fanyisrt(QDialog, Ui_fanyisrt):  # <===
+    def __init__(self, parent=None):
+        super(Fanyisrt, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class Recognform(QDialog, Ui_recogn):  # <===
+    def __init__(self, parent=None):
+        super(Recognform, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+
+class Peiyinform(QDialog, Ui_peiyin):  # <===
+    def __init__(self, parent=None):
+        super(Peiyinform, self).__init__(parent)
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))

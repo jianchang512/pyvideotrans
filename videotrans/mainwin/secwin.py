@@ -1,18 +1,24 @@
-
 import json
 import os
 import platform
 import re
 import shutil
-import sys
+
 import threading
-from PySide6 import QtCore
-from PySide6.QtGui import QTextCursor, QDesktopServices
-from PySide6.QtCore import QUrl, Qt
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QLabel, QPushButton, QHBoxLayout, QProgressBar
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtGui import QTextCursor
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
 import warnings
+
+from videotrans.component.progressbar import ClickableProgressBar
+
 warnings.filterwarnings('ignore')
+
+from videotrans.winform import transapi, chatgpt, ai302, localllm, gemini, azure, baidu, tencent, deepL, deepLX, ott, \
+    zijiehuoshan, zh_recogn, doubao, clone, ttsapi, gptsovits, cosyvoice, fishtts, chattts, ai302tts, azuretts
+
 from videotrans import configure
 from videotrans.task.job import start_thread
 from videotrans.util import tools
@@ -22,59 +28,12 @@ from pathlib import Path
 from videotrans.task.main_worker import Worker
 
 
-class ClickableProgressBar(QLabel):
-    def __init__(self, parent=None):
-        super().__init__()
-        self.target_dir = None
-        self.msg = None
-        self.parent = parent
-
-        self.progress_bar = QProgressBar(self)
-        self.progress_bar.setFixedHeight(35)
-        self.progress_bar.setRange(0, 100)  # 设置进度范围
-        self.progress_bar.setTextVisible(True)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                background-color: transparent;
-                border:1px solid #32414B;
-                color:#fff;
-                height:35px;
-                text-align:left;
-                border-radius:3px;                
-            }
-            QProgressBar::chunk {
-                width: 8px;
-                border-radius:0;           
-            }
-        """)
-        layout = QHBoxLayout(self)
-        layout.addWidget(self.progress_bar)  # 将进度条添加到布局
-
-    def setTarget(self, url):
-        self.target_dir = url
-
-    def setMsg(self, text):
-        if text and config.defaulelang == 'zh':
-            text += '\n\n请尝试在文档站 pyvideotrans.com 搜索错误解决方案\n'
-        self.msg = text
-
-    def setText(self, text):
-        if self.progress_bar:
-            self.progress_bar.setFormat(f' {text}')  # set text format
-
-    def mousePressEvent(self, event):
-        if self.target_dir and event.button() == Qt.LeftButton:
-            QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
-        elif not self.target_dir and self.msg:
-            QMessageBox.critical(self, config.transobj['anerror'], self.msg)
-
-
 # primary ui
 class SecWindow():
     def __init__(self, main=None):
         self.main = main
         self.usetype = None
-        self.edit_subtitle_type=''
+        self.edit_subtitle_type = ''
 
     def is_separate_fun(self, state):
         config.params['is_separate'] = True if state else False
@@ -581,24 +540,6 @@ class SecWindow():
         elif title == 'online':
             self.about()
 
-    # 工具箱
-    def open_toolbox(self, index=0, is_hide=True):
-        try:
-            if configure.TOOLBOX is None:
-                QMessageBox.information(self.main, "pyVideoTrans",
-                                        "尚未完成初始化，请稍等重试" if config.defaulelang == 'zh' else "Retry hold on a monment!")
-                return
-            if is_hide:
-                configure.TOOLBOX.hide()
-                return
-            configure.TOOLBOX.show()
-            configure.TOOLBOX.tabWidget.setCurrentIndex(index)
-            configure.TOOLBOX.raise_()
-        except Exception as e:
-            configure.TOOLBOX = None
-            QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
-            config.logger.error("box" + str(e))
-
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
         config.task_countdown = 0
@@ -616,40 +557,37 @@ class SecWindow():
         self.main.continue_compos.setDisabled(False)
         self.main.continue_compos.setText(config.transobj['nextstep'])
         self.update_data('{"type":"allow_edit"}')
-        
 
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, name):
-        if not self.main.subform:
-            return
         try:
             rs = translator.is_allow_translate(translate_type=name, only_key=True)
             if rs is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], rs)
                 if name == translator.TRANSAPI_NAME:
-                    self.main.subform.set_transapi()
+                    transapi.open()
                 elif name == translator.CHATGPT_NAME:
-                    self.main.subform.set_chatgpt_key()
+                    chatgpt.open()
                 elif name == translator.AI302_NAME:
-                    self.main.subform.set_ai302_key()
+                    ai302.open()
                 elif name == translator.LOCALLLM_NAME:
-                    self.main.subform.set_localllm_key()
+                    localllm.open()
                 elif name == translator.GEMINI_NAME:
-                    self.main.subform.set_gemini_key()
+                    gemini.open()
                 elif name == translator.AZUREGPT_NAME:
-                    self.main.subform.set_azure_key()
+                    azure.open()
                 elif name == translator.BAIDU_NAME:
-                    self.main.subform.set_baidu_key()
+                    baidu.open()
                 elif name == translator.TENCENT_NAME:
-                    self.main.subform.set_tencent_key()
+                    tencent.open()
                 elif name == translator.DEEPL_NAME:
-                    self.main.subform.set_deepL_key()
+                    deepL.open()
                 elif name == translator.DEEPLX_NAME:
-                    self.main.subform.set_deepLX_address()
+                    deepLX.open()
                 elif name == translator.OTT_NAME:
-                    self.main.subform.set_ott_address()
+                    ott.open()
                 elif name == translator.ZIJIE_NAME:
-                    self.main.subform.set_zijiehuoshan_key()
+                    zijiehuoshan.open()
                 return
             config.params['translate_type'] = name
         except Exception as e:
@@ -665,8 +603,6 @@ class SecWindow():
 
     # 设定模型类型
     def model_type_change(self):
-        if not self.main.subform:
-            return
         if self.main.model_type.currentIndex() == 1:
             config.params['model_type'] = 'openai'
             self.main.whisper_model.setDisabled(False)
@@ -687,7 +623,7 @@ class SecWindow():
             self.main.whisper_model.setDisabled(True)
             self.main.whisper_type.setDisabled(True)
             if not config.params['zh_recogn_api']:
-                self.main.subform.set_zh_recogn()
+                zh_recogn.open()
         elif self.main.model_type.currentIndex() == 4:
             lang = self.main.source_language.currentText()
             langcode = translator.get_code(show_text=lang)
@@ -698,7 +634,7 @@ class SecWindow():
             self.main.whisper_model.setDisabled(True)
             self.main.whisper_type.setDisabled(True)
             if not config.params['doubao_appid']:
-                self.main.subform.set_doubao()
+                doubao.open()
         else:
             self.main.whisper_type.setDisabled(False)
             self.main.whisper_model.setDisabled(False)
@@ -762,48 +698,47 @@ class SecWindow():
 
     # tts类型改变
     def tts_type_change(self, type):
-        if not self.main.subform:
-            return
+
         self.hide_show_element(self.main.edge_volume_layout, self.isMircosoft(type))
         if self.main.app_mode == 'peiyin' and type == 'clone-voice' and config.params['voice_role'] == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj[
                 'Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices'])
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_clone_address()
+            clone.open()
             return
         if type == 'TTS-API' and not config.params['ttsapi_url']:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['ttsapi_nourl'])
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_ttsapi()
+            ttsapi.open()
             return
         if type == 'GPT-SoVITS' and not config.params['gptsovits_url']:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitsurl'])
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_gptsovits()
+            gptsovits.open()
             return
         if type == 'CosyVoice' and not config.params['cosyvoice_url']:
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  'You must deploy the CosyVoice-api project and start the api service, then fill in the api address' if config.defaulelang != 'zh' else '必须部署CosyVoice-api项目并启动api服务，然后填写api地址')
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_cosyvoice()
+            cosyvoice.open()
             return
         if type == 'FishTTS' and not config.params['fishtts_url']:
             QMessageBox.critical(self.main, config.transobj['anerror'], '必须填写FishTTS的api地址')
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_fishtts()
+            fishtts.open()
             return
         if type == 'ChatTTS' and not config.params['chattts_api']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_chattts_address()
+            chattts.open()
             return
         if type == '302.ai' and not config.params['ai302tts_key']:
             self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
-            self.main.subform.set_ai302tts_address()
+            ai302tts.open()
             return
 
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-':
-            if  type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
+            if type == 'GPT-SoVITS' and lang[:2] not in ['zh', 'ja', 'en']:
                 self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
                 return
@@ -812,15 +747,15 @@ class SecWindow():
                 QMessageBox.critical(self.main, config.transobj['anerror'],
                                      'CosyVoice only supports Chinese, English, Japanese and Korean' if config.defaulelang == 'zh' else '')
                 return
-            if  type == 'ChatTTS' and lang[:2] not in ['zh', 'en']:
+            if type == 'ChatTTS' and lang[:2] not in ['zh', 'en']:
                 self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
                 return
-            if  type == 'FishTTS' and lang[:2] not in ['zh', 'ja', 'en']:
+            if type == 'FishTTS' and lang[:2] not in ['zh', 'ja', 'en']:
                 self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
                 return
-            if  type == '302.ai' and  config.params['ai302tts_model'] == 'doubao' and lang[:2] not in ['zh', 'ja', 'en']:
+            if type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and lang[:2] not in ['zh', 'ja', 'en']:
                 self.main.tts_type.setCurrentText(config.params['tts_type_list'][0])
                 QMessageBox.critical(self.main, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
                 return
@@ -843,9 +778,10 @@ class SecWindow():
                 self.main.current_rolelist = tools.get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif self.isMircosoft(type):
-            if type == "AzureTTS" and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
+            if type == "AzureTTS" and (
+                    not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['azureinfo'])
-                self.main.subform.set_auzuretts_key()
+                azuretts.open()
                 return
             self.set_voice_role(self.main.target_language.currentText())
         elif type == "302.ai":
@@ -942,13 +878,14 @@ class SecWindow():
         # 是edgeTTS时需要改变
         code = translator.get_code(show_text=t)
         if code and code != '-':
-            if  config.params['tts_type'] == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
+            if config.params['tts_type'] == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
                 # 除此指望不支持
                 config.params['tts_type'] = 'edgeTTS'
                 self.main.tts_type.setCurrentText('edgeTTS')
-                return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
+                return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                            config.transobj['nogptsovitslanguage'])
             if config.params['tts_type'] == 'CosyVoice' and code[:2] not in ['zh', 'ja', 'en',
-                                                                                                      'ko']:
+                                                                             'ko']:
                 # 除此指望不支持
                 config.params['tts_type'] = 'edgeTTS'
                 self.main.tts_type.setCurrentText('edgeTTS')
@@ -964,7 +901,9 @@ class SecWindow():
                 config.params['tts_type'] = 'edgeTTS'
                 self.main.tts_type.setCurrentText('edgeTTS')
                 return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['onlycnanden'])
-            if config.params['tts_type']=='302.ai' and  config.params['ai302tts_model'] == 'doubao' and code[:2] not in ['zh', 'ja', 'en']:
+            if config.params['tts_type'] == '302.ai' and config.params['ai302tts_model'] == 'doubao' and code[
+                                                                                                         :2] not in [
+                'zh', 'ja', 'en']:
                 config.params['tts_type'] = 'edgeTTS'
                 self.main.tts_type.setCurrentText('edgeTTS')
                 QMessageBox.critical(self.main, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
@@ -985,14 +924,14 @@ class SecWindow():
         if t == '-':
             self.main.voice_role.addItems(['No'])
             return
-        show_rolelist=None
+        show_rolelist = None
         if config.params['tts_type'] == 'edgeTTS':
             show_rolelist = tools.get_edge_rolelist()
-        elif config.params['tts_type']=='302.ai' and config.params['ai302tts_model'] == 'doubao':
-            show_rolelist=tools.get_302ai_doubao()
+        elif config.params['tts_type'] == '302.ai' and config.params['ai302tts_model'] == 'doubao':
+            show_rolelist = tools.get_302ai_doubao()
         else:
             # AzureTTS或 302.ai选择doubao模型
-            show_rolelist =tools.get_azure_rolelist()
+            show_rolelist = tools.get_azure_rolelist()
 
         if not show_rolelist:
             self.main.target_language.setCurrentText('-')
@@ -1169,7 +1108,7 @@ class SecWindow():
 
     # 检测开始状态并启动
     def check_start(self):
-        self.edit_subtitle_type=''
+        self.edit_subtitle_type = ''
         if config.current_status == 'ing':
             # 停止
             question = tools.show_popup(config.transobj['exit'], config.transobj['confirmstop'])
@@ -1329,7 +1268,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         # 除了 peiyin  hebing模式，其他均需要检测模型是否存在
         if config.params['model_type'] in ['openai', 'faster'] and self.main.app_mode not in ['hebing',
                                                                                               'peiyin'] and not self.check_whisper_model(
-                config.params['whisper_model']):
+            config.params['whisper_model']):
             return False
 
         if config.params["cuda"] and platform.system() != 'Darwin':
@@ -1375,12 +1314,12 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         config.params['clear_cache'] = False
         if self.main.clear_cache.isChecked():
             config.params['clear_cache'] = True
-        
-        if len(config.queue_mp4)>0:
-            for vurl in config.queue_mp4:
-                if re.search(r'[:\?\*<>\|\"\']',vurl[4:]):
-                    return QMessageBox.critical(self.main, config.transobj['anerror'], '视频所在路径和视频名字中不可含有  :  * ? < > | " \' 符号，请修正 ' if config.defaulelang=='zh' else 'The path and name of the video must not contain the  : * ? < > | " \' symbols, please revise. ')
 
+        if len(config.queue_mp4) > 0:
+            for vurl in config.queue_mp4:
+                if re.search(r'[:\?\*<>\|\"\']', vurl[4:]):
+                    return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                                '视频所在路径和视频名字中不可含有  :  * ? < > | " \' 符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | " \' symbols, please revise. ')
 
         if len(config.queue_mp4) > 0 and self.main.app_mode not in ['hebing', 'peiyin']:
             self.main.show_tips.setText("")
@@ -1408,8 +1347,8 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         self.delete_process()
 
         config.settings = config.parse_init()
-        if self.main.app_mode in ['biaozhun_jd','biaozhun','peiyin','hebing','tiqu']:
-            config.params['app_mode']=self.main.app_mode
+        if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'peiyin', 'hebing', 'tiqu']:
+            config.params['app_mode'] = self.main.app_mode
         config.getset_params(config.params)
 
         self.main.task = Worker(parent=self.main, app_mode=self.main.app_mode, txt=txt)
@@ -1545,7 +1484,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             if d['type'] == 'error':
                 self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type=d['type'])
             elif d['type'] == 'stop':
-                # self.set_process_btn_text(config.transobj['stop'], d['btnkey'], d['type'])
                 self.main.subtitle_area.clear()
             if d['type'] == 'stop' or d['type'] == 'end':
                 self.update_status(d['type'])
@@ -1557,7 +1495,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         elif d['type'] == 'succeed':
             # 本次任务结束
             self.set_process_btn_text(d['text'], btnkey=d['btnkey'], type='succeed')
-        elif d['type'] == 'edit_subtitle_source' or d['type']=='edit_subtitle_target':
+        elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             self.main.subtitle_area.setReadOnly(False)
             self.main.subtitle_area.setFocus()
@@ -1565,7 +1503,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(d['text'])
             self.main.stop_djs.show()
-            self.edit_subtitle_type=d['type']
+            self.edit_subtitle_type = d['type']
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
             self.main.subtitle_area.setReadOnly(True)
@@ -1596,18 +1534,6 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
                 self.usetype.clicked.connect(lambda: self.open_url('download'))
                 self.main.container.addWidget(self.usetype)
             self.usetype.setText(d['text'])
-
-        elif d['type'] == 'update_download' and self.main.youw is not None:
-            self.main.youw.logs.setText(config.transobj['youtubehasdown'])
-        elif d['type'] == 'youtube_error':
-            self.main.youw.set.setText(config.transobj['start download'])
-            QMessageBox.critical(self.main.youw, config.transobj['anerror'], d['text'][:900])
-
-        elif d['type'] == 'youtube_ok':
-            self.main.youw.set.setText(config.transobj['start download'])
-            QMessageBox.information(self.main.youw, "OK", d['text'])
-        elif d['type'] == 'open_toolbox':
-            self.open_toolbox(0, True)
         elif d['type'] == 'set_clone_role' and config.params['tts_type'] == 'clone-voice':
             if config.current_status == 'ing':
                 return
@@ -1617,8 +1543,8 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             self.main.voice_role.setCurrentText(current)
         elif d['type'] == 'win':
             # 小窗口背景音分离
-            if self.main.sepw is not None:
-                self.main.sepw.set.setText(d['text'])
+            if config.separatew is not None:
+                config.separatew.set.setText(d['text'])
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
@@ -1632,7 +1558,7 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
             return
 
         if not self.main.task.is_batch and self.main.task.tasklist:
-            tk=list(self.main.task.tasklist.values())[0]
+            tk = list(self.main.task.tasklist.values())[0]
             if self.edit_subtitle_type == 'edit_subtitle_source':
                 srtfile = tk.init['source_sub']
             else:
@@ -1643,3 +1569,78 @@ ChatGPT等api地址请填写在菜单-设置-对应配置内。
         if self.edit_subtitle_type == 'edit_subtitle_source':
             self.main.subtitle_area.clear()
         return True
+        # 设置每行角色
+
+    def set_line_role_fun(self):
+        def get_checked_boxes(widget):
+            checked_boxes = []
+            for child in widget.children():
+                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
+                    checked_boxes.append(child.objectName())
+                else:
+                    checked_boxes.extend(get_checked_boxes(child))
+            return checked_boxes
+
+        def save(role):
+            # 初始化一个列表，用于存放所有选中 checkbox 的名字
+            checked_checkbox_names = get_checked_boxes(config.linerolew)
+
+            if len(checked_checkbox_names) < 1:
+                return QtWidgets.QMessageBox.critical(config.linerolew, config.transobj['anerror'],
+                                                      config.transobj['zhishaoxuanzeyihang'])
+
+            for n in checked_checkbox_names:
+                _, line = n.split('_')
+                # 设置labe为角色名
+                ck = config.linerolew.findChild(QtWidgets.QCheckBox, n)
+                ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
+                ck.setChecked(False)
+                config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
+
+        from videotrans.component import SetLineRole
+        config.linerolew = SetLineRole()
+        box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
+        box.setLayout(QtWidgets.QVBoxLayout())  # 设置 QVBoxLayout 为新的 QWidget 的layout
+        if config.params['voice_role'] in ['No', '-', 'no']:
+            return QtWidgets.QMessageBox.critical(config.linerolew, config.transobj['anerror'],
+                                                  config.transobj['xianxuanjuese'])
+        if not self.main.subtitle_area.toPlainText().strip():
+            return QtWidgets.QMessageBox.critical(config.linerolew, config.transobj['anerror'],
+                                                  config.transobj['youzimuyouset'])
+
+        #  获取字幕
+        srt_json = tools.get_subtitle_from_srt(self.main.subtitle_area.toPlainText().strip(), is_file=False)
+        for it in srt_json:
+            # 创建新水平布局
+            h_layout = QtWidgets.QHBoxLayout()
+            check = QtWidgets.QCheckBox()
+            check.setText(
+                config.params['line_roles'][f'{it["line"]}'] if f'{it["line"]}' in config.params['line_roles'] else
+                config.transobj['default'])
+            check.setObjectName(f'check_{it["line"]}')
+            # 创建并配置 QLineEdit
+            line_edit = QtWidgets.QLineEdit()
+            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
+
+            line_edit.setText(f'[{it["line"]}] {it["text"]}')
+            line_edit.setReadOnly(True)
+            # 将标签和编辑线添加到水平布局
+            h_layout.addWidget(check)
+            h_layout.addWidget(line_edit)
+            box.layout().addLayout(h_layout)
+        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
+        config.linerolew.select_role.addItems(self.main.current_rolelist)
+        config.linerolew.set_role_label.setText(config.transobj['shezhijuese'])
+
+        config.linerolew.select_role.currentTextChanged.connect(save)
+        # 创建 QScrollArea 并将 box QWidget 设置为小部件
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidget(box)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 将 QScrollArea 添加到主窗口的 layout
+        config.linerolew.layout.addWidget(scroll_area)
+
+        config.linerolew.set_ok.clicked.connect(lambda: config.linerolew.close())
+        config.linerolew.show()

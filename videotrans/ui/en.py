@@ -527,8 +527,7 @@ class Ui_MainWindow(object):
         self.actionzijiehuoshan_key.setObjectName("actionzijiehuoshan_key")
         self.actiondeepL_key = QtGui.QAction(MainWindow)
         self.actiondeepL_key.setObjectName("actiondeepL_key")
-        self.action_tool = QtGui.QAction(MainWindow)
-        self.action_tool.setObjectName("action_tool")
+
 
         self.actionazure_tts = QtGui.QAction(MainWindow)
         self.actionazure_tts.setObjectName("actionazure_tts")
@@ -707,8 +706,6 @@ class Ui_MainWindow(object):
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
-        self.menu.addAction(self.action_tool)
-        self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
         self.menu.addAction(self.actionwatermark)
@@ -824,8 +821,6 @@ class Ui_MainWindow(object):
         self.actionlocalllm_key.setText("本地兼容openAI大模型翻译" if config.defaulelang == 'zh' else "Local LLM  API")
         self.actionzijiehuoshan_key.setText("字节火山引擎模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
         self.actiondeepL_key.setText("DeepL Key")
-        self.action_tool.setText(config.uilanglist.get("Video Toolbox"))
-        self.action_tool.setToolTip(config.uilanglist.get("Video Toolbox"))
 
         self.action_ffmpeg.setText("FFmpeg")
         self.action_ffmpeg.setToolTip(config.uilanglist.get("Go FFmpeg website"))

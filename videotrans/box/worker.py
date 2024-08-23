@@ -1,127 +1,23 @@
 # -*- coding: utf-8 -*-
 # primary ui
 import copy
-import datetime
-
 import os
-import re
 import time
 
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, Signal
 from pydub import AudioSegment
-
 from videotrans.configure import config
-from videotrans.configure.config import logger, homedir
-from videotrans.translator import run as run_trans
-from videotrans.recognition import run as run_recogn
+from videotrans.configure.config import homedir
 from videotrans.tts import run as run_tts, text_to_speech
 from videotrans.util import tools
-from videotrans.util.tools import runffmpeg, get_subtitle_from_srt, ms_to_time_string, set_process_box, speed_up_mp3
-
-
-# 执行 ffmpeg 线程
-class Worker(QThread):
-    # update_ui = pyqtSignal(str)
-
-    def __init__(self, cmd_list, func_name="logs", parent=None):
-        super(Worker, self).__init__(parent)
-        self.cmd_list = cmd_list
-        self.func_name = func_name
-
-    def run(self):
-        set_process_box(f'starting ffmpeg...', type="start")
-        for cmd in self.cmd_list:
-            logger.info(f"[box]Will execute: ffmpeg {cmd=}")
-            try:
-                rs = runffmpeg(cmd, is_box=True)
-                if not rs:
-                    set_process_box(f'exec {cmd=} error', type='error')
-            except Exception as e:
-                logger.error("[bxo]FFmepg exec error:" + str(e))
-                set_process_box("[bxo]FFmepg exec error:" + str(e), type="error")
-                return f'[error]{str(e)}'
-        set_process_box('ffmpeg succeed', type="end", func_name=self.func_name)
-
-
-# 执行语音识别
-class WorkerWhisper(QThread):
-    def __init__(self, *, audio_paths=None, model=None, language=None, func_name=None, model_type='faster', parent=None,
-                 out_path=None, is_cuda=False, split_type='split'):
-        super(WorkerWhisper, self).__init__(parent)
-        self.func_name = func_name
-        self.audio_paths = audio_paths
-        self.model = model
-        self.model_type = model_type
-        self.language = language
-        self.out_path = out_path
-        self.is_cuda = is_cuda
-        self.split_type = split_type
-
-    def run(self):
-        set_process_box(f'start {self.model} ', type="logs")
-        errs = []
-        length = len(self.audio_paths)
-        time_dur = 1
-        while len(self.audio_paths) > 0:
-            try:
-                config.box_recogn = 'ing'
-                audio_path = self.audio_paths.pop(0)
-                if not audio_path.endswith('.wav'):
-                    outfile = config.TEMP_HOME + "/" + os.path.basename(audio_path) + '.wav'
-                    cmd = [
-                        "-y",
-                        "-i",
-                        audio_path,
-                        "-ac",
-                        "1",
-                        "-ar",
-                        "16000",
-                        outfile
-                    ]
-                    tools.runffmpeg(cmd)
-                    audio_path = outfile
-                if not os.path.exists(audio_path):
-                    errs.append(f'{audio_path} 不存在')
-                    continue
-                self.post_message(type="logs",
-                                  text=f'{config.transobj["kaishitiquzimu"]}:{os.path.basename(audio_path)}')
-                jindu = f'{int((length - len(self.audio_paths)) * 49 / length)}%'
-                self.post_message(type='logs', text=f'{jindu}')
-                srts = run_recogn(type=self.split_type, audio_file=audio_path, model_name=self.model,
-                                  detect_language=self.language,
-                                  set_p=False,
-                                  cache_folder=config.TEMP_DIR,
-                                  model_type=self.model_type,
-                                  is_cuda=self.is_cuda)
-                text = []
-                for it in srts:
-                    text.append(f'{it["line"]}\n{it["time"]}\n{it["text"].strip(".")}')
-                text = "\n\n".join(text)
-                with open(self.out_path + f"/{os.path.basename(audio_path)}.srt", 'w', encoding='utf-8') as f:
-                    f.write(text)
-                self.post_message(type="replace", text=f'{text}')
-            except Exception as e:
-                msg = f'{str(e)}{str(e.args)}'
-                errs.append(f'失败，{msg}')
-                if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M):
-                    msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型  {msg}' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
-                elif re.search(r'out\s+?of.*?memory', msg, re.I):
-                    msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'
-                elif re.search(r'cudnn', msg, re.I):
-                    msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
-                self.post_message(type='error', text=msg)
-                config.box_recogn = 'stop'
-                return
-        self.post_message(type='end', text="" if len(errs) < 1 else "\n".join(errs))
-        config.box_recogn = 'stop'
-
-    def post_message(self, type=None, text=None):
-        set_process_box(text, type=type, func_name=self.func_name)
+from videotrans.util.tools import runffmpeg, get_subtitle_from_srt, ms_to_time_string
 
 
 # 合成
 class WorkerTTS(QThread):
-    def __init__(self, parent=None, *,
+    uito = Signal(str)
+
+    def __init__(self, *,
                  files=None,
                  role=None,
                  rate=None,
@@ -132,8 +28,8 @@ class WorkerTTS(QThread):
                  func_name=None,
                  voice_autorate=False,
                  langcode=None,
-                 # audio_ajust=False,
-                 tts_issrt=False):
+                 tts_issrt=False,
+                 parent=None):
         super(WorkerTTS, self).__init__(parent)
         self.volume = volume
         self.pitch = pitch
@@ -147,7 +43,7 @@ class WorkerTTS(QThread):
         self.tts_issrt = tts_issrt
         self.langcode = langcode
         self.voice_autorate = voice_autorate
-        # self.audio_ajust = audio_ajust
+
         self.tmpdir = f'{homedir}/tmp'
         if not os.path.exists(self.tmpdir):
             os.makedirs(self.tmpdir, exist_ok=True)
@@ -176,14 +72,14 @@ class WorkerTTS(QThread):
                 errs, success = self.before_tts()
                 config.box_tts = 'stop'
                 if success == 0:
-                    self.post_message(type='error', text=f'全部失败了请打开输出目录中txt文件查看失败记录')
+                    self.uito.emit('error:全部失败了请打开输出目录中txt文件查看失败记录')
                 elif errs > 0:
-                    self.post_message(type="end", text=f"失败{errs}个，成功{success}个，请查看输出目录中txt文件查看失败记录")
+                    self.uito.emit(f"error:失败{errs}个，成功{success}个，请查看输出目录中txt文件查看失败记录")
                 else:
-                    self.post_message(type="end", text="Succeed")
+                    self.uito.emit('ok')
             except Exception as e:
                 config.box_tts = 'stop'
-                self.post_message(type='error', text=f'srt create dubbing error:{str(e)}')
+                self.uito.emit(f'error:srt create dubbing error:{str(e)}')
             return
 
         mp3 = self.wavname + ".mp3"
@@ -212,11 +108,11 @@ class WorkerTTS(QThread):
                 os.unlink(mp3)
         except Exception as e:
             config.box_tts = 'stop'
-            self.post_message(type='error', text=f'srt create dubbing error:{str(e)}')
+            self.uito.emit(f'error:srt create dubbing error:{str(e)}')
             return
 
         config.box_tts = 'stop'
-        self.post_message(type="end", text="Succeed")
+        self.uito.emit("ok")
 
     # 1. 将每个配音的实际长度加入 dubb_time
     #
@@ -345,9 +241,7 @@ class WorkerTTS(QThread):
         for n, item in enumerate(self.all_text):
             queue_tts = []
             # 获取字幕
-            percent = round(100 * n / length, 2)
-            set_process_box(text=item['text'], type='replace', func_name=self.func_name)
-            set_process_box(text=f'{percent + 1}%', type='logs', func_name=self.func_name)
+            self.uito.emit(f'replace:{item["text"]}')
             subs = get_subtitle_from_srt(item["text"], is_file=False)
 
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
@@ -375,10 +269,6 @@ class WorkerTTS(QThread):
                 if config.settings['remove_srt_silence']:
                     queue_tts = self._remove_srt_silence(queue_tts)
 
-                # 3.是否需要 前后延展
-                # if self.audio_ajust:
-                #     queue_tts = self._auto_ajust(queue_tts)
-
                 # 4. 如果需要配音加速
                 if self.voice_autorate:
                     queue_tts = self._ajust_audio(queue_tts)
@@ -402,7 +292,7 @@ class WorkerTTS(QThread):
                     f.write(f'srt文件 {item["file"]} 合成失败，原因为:{str(e)}\n\n原字幕内容为\n\n{item["text"]}')
             finally:
                 percent = round(100 * (n + 1) / length, 2)
-                set_process_box(text=f'{percent}%', type='logs', func_name=self.func_name)
+                self.uito.emit(f'jd:{percent}%')
         return errs, length - errs
 
     def merge_audio_segments(self, *, segments=None, queue_tts=None, video_time=0, out=None):
@@ -427,9 +317,6 @@ class WorkerTTS(QThread):
             if diff >= 0:
                 it['end_time'] += diff
                 offset += diff
-            # else:
-            # 配音小于原时长，添加静音
-            #    merged_audio += AudioSegment.silent(duration=abs(diff))
 
             if i > 0:
                 silence_duration = it['start_time'] - queue_tts[i - 1]['end_time']
@@ -442,59 +329,9 @@ class WorkerTTS(QThread):
             queue_tts[i] = it
             merged_audio += segment
 
-        # if video_time > 0 and (len(merged_audio) < video_time):
-        # 末尾补静音
-        #    silence = AudioSegment.silent(duration=video_time - len(merged_audio))
-        #    merged_audio += silence
         # 创建配音后的文件
         try:
             merged_audio.export(out, format="wav")
         except Exception as e:
             raise Exception(f'merge_audio:{str(e)}')
         return len(merged_audio), queue_tts
-
-    def post_message(self, type, text=""):
-        set_process_box(text=text, type=type, func_name=self.func_name)
-
-
-class FanyiWorker(QThread):
-
-    def __init__(self, type, target_language, files, parent=None):
-        super(FanyiWorker, self).__init__(parent)
-        self.type = type
-        self.target_language = target_language
-        self.files = files
-        self.srts = ""
-        self.func_name = "fanyi"
-
-    def run(self):
-        # 开始翻译,从目标文件夹读取原始字幕
-        set_process_box(text=f'start translate', type='logs')
-        config.box_trans = "ing"
-        if not self.files:
-            set_process_box(text="no srt file", type="error", func_name=self.func_name)
-            return
-        target = os.path.join(os.path.dirname(self.files[0]), '_translate')
-        os.makedirs(target, exist_ok=True)
-        for f in self.files:
-            try:
-                rawsrt = get_subtitle_from_srt(f, is_file=True)
-            except Exception as e:
-                set_process_box(text=f"\n{config.transobj['srtgeshierror']}:{f}" + str(e), type='error',
-                                func_name=self.func_name)
-                continue
-            try:
-                set_process_box(text=f'正在翻译字幕{f}', type='logs', func_name=self.func_name)
-                srt = run_trans(translate_type=self.type, text_list=rawsrt, target_language_name=self.target_language,
-                                set_p=False)
-                srts_tmp = ""
-                for it in srt:
-                    srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                with open(os.path.join(target, os.path.basename(f)), 'w', encoding='utf-8') as f:
-                    f.write(srts_tmp)
-                set_process_box(text=srts_tmp, type="replace", func_name=self.func_name)
-
-            except Exception as e:
-                set_process_box(text=f'翻译字幕{f}出错:{str(e)}', type="error", func_name=self.func_name)
-        config.box_trans = "stop"
-        set_process_box(text="end", type="end", func_name=self.func_name)

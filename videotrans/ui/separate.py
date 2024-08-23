@@ -108,12 +108,13 @@ class Ui_separateform(object):
         self.fromfile.setPlaceholderText("显示选择的音视频文件" if config.defaulelang == 'zh' else "show file where you selected")
         self.verticalLayout_2.addWidget(self.fromfile)
 
-        self.url = QtWidgets.QLineEdit(self.layoutWidget)
+        self.url = QtWidgets.QPushButton(self.layoutWidget)
         self.url.setMinimumSize(QtCore.QSize(0, 35))
         self.url.setObjectName("url")
+        self.url.setStyleSheet("""background-color:transparent""")
         self.url.setCursor(Qt.PointingHandCursor)
-        self.url.setToolTip(config.uilanglist['Open target dir'])
-        self.url.setReadOnly(True)
+        self.url.setToolTip('点击打开结果文件夹' if config.defaulelang=='zh' else  'Open target dir' )
+        # self.url.setReadOnly(True)
 
         self.click_filter = LineEditClickFilter()
         self.url.installEventFilter(self.click_filter)
@@ -132,5 +133,5 @@ class Ui_separateform(object):
     def retranslateUi(self, separateform):
         separateform.setWindowTitle('分离人声和背景音' if config.defaulelang == 'zh' else "Separte vocal and instrument")
         self.set.setText('立即开始' if config.defaulelang == 'zh' else "Start Separate")
-        self.label_2.setText('分离到/点击右侧文本框打开' if config.defaulelang == 'zh' else "Outdir click open")
+        self.label_2.setText('分离结果保存到' if config.defaulelang == 'zh' else "Outdir click open")
         self.selectfile.setText('选择音视频文件' if config.defaulelang == 'zh' else "Select file")
