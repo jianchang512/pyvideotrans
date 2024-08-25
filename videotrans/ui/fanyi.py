@@ -38,7 +38,7 @@ class Ui_fanyisrt(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(fanyisrt.sizePolicy().hasHeightForWidth())
         fanyisrt.setSizePolicy(sizePolicy)
-        # fanyisrt.setMaximumSize(QtCore.QSize(760, 535))
+
 
         # start
         self.horizontalLayout_23 = QtWidgets.QHBoxLayout(fanyisrt)
@@ -97,6 +97,10 @@ class Ui_fanyisrt(object):
 
 
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
+
+        self.loglabel=QtWidgets.QLabel()
+        self.loglabel.setStyleSheet('''color:#999''')
+        self.verticalLayout_13.addWidget(self.loglabel)
 
 
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()

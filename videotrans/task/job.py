@@ -27,7 +27,7 @@ class WorkerRegcon(QThread):
                     config.unidlist.append(trk.init['btnkey'])
                 msg = f'{config.transobj["shibiechucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                set_process(msg, type='error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
 
 
@@ -51,7 +51,7 @@ class WorkerTrans(QThread):
                     config.unidlist.append(trk.init['btnkey'])
                 msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                set_process(msg, type='error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
 
 
@@ -75,7 +75,7 @@ class WorkerDubb(QThread):
                     config.unidlist.append(trk.init['btnkey'])
                 msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                set_process(msg, type='error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
 
 
@@ -98,7 +98,7 @@ class WorkerCompose(QThread):
             except Exception as e:
                 msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, 'error', btnkey=trk.init['btnkey'])
+                set_process(msg, type='error', btnkey=trk.init['btnkey'])
                 config.errorlist[trk.init['btnkey']] = msg
             finally:
                 if trk.init['btnkey'] not in config.unidlist:

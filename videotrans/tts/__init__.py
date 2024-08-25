@@ -18,6 +18,7 @@ def text_to_speech(
         language=None,
         filename=None,
         tts_type=None,
+        uuid=None,
         play=False,
         set_p=True):
     global lasterror
@@ -57,6 +58,7 @@ def text_to_speech(
                 rate=rate,
                 language=language,
                 filename=filename,
+                uuid=uuid,
                 set_p=set_p,
                 inst=inst)
         except Exception as e:
@@ -69,7 +71,7 @@ def text_to_speech(
 
 
 # 单独处理 AzureTTS 批量
-def _azuretts(queue_tts, language=None, set_p=False, inst=None):
+def _azuretts(queue_tts, language=None, set_p=False, inst=None,uuid=None):
     from .azuretts import get_voice
     num = int(config.settings['azure_lines'])
     qlist = [queue_tts[i:i + num] for i in range(0, len(queue_tts), num)]
@@ -81,13 +83,14 @@ def _azuretts(queue_tts, language=None, set_p=False, inst=None):
             role=queue_tts[0]["role"],
             rate=queue_tts[0]["rate"],
             language=language,
+            uuid=uuid,
             set_p=set_p)
         if inst:
             inst.precent += 1
-        tools.set_process(f"AzureTTS...", btnkey=inst.init['btnkey'] if inst else "")
+        tools.set_process(f"AzureTTS...", type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
 
 
-def run(*, queue_tts=None, language=None, set_p=True, inst=None):
+def run(*, queue_tts=None, language=None, set_p=True, inst=None,uuid=None):
     queue_tts_copy = copy.deepcopy(queue_tts)
     # 需要并行的数量3
     n_total = len(queue_tts)
@@ -99,7 +102,7 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None):
     if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
         return True
     if len(queue_tts) > 0 and queue_tts[0]['tts_type'] == 'AzureTTS':
-        _azuretts(queue_tts, language=language, set_p=set_p, inst=inst)
+        _azuretts(queue_tts, language=language, set_p=set_p, inst=inst,uuid=uuid)
     else:
         while len(queue_tts) > 0:
             if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing'):
@@ -129,9 +132,9 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None):
                     t.start()
                 for t in tolist:
                     n += 1
-                    if set_p and inst:
-                        tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',
-                                          btnkey=inst.init['btnkey'])
+                    if set_p:
+                        tools.set_process(f'{config.transobj["kaishipeiyin"]} [{n}/{n_total}]',type="logs",
+                                          btnkey=inst.init['btnkey'] if inst else '',uuid=uuid)
                     t.join()
             except Exception as e:
                 print(f'runtts:{str(e)}')

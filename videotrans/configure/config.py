@@ -4,6 +4,7 @@ import json
 import os
 import locale
 import logging
+import queue
 import re
 import sys
 from queue import Queue
@@ -88,10 +89,24 @@ else:
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
+
+
 # spwin主窗口
 queue_logs = Queue(1000)
-# box窗口
-queuebox_logs = Queue(1000)
+
+# 存储所有uuid的日志队列
+queue_dict={}
+def push_queue(uuid,jsondata):
+    if uuid not in queue_dict:
+        queue_dict[uuid]=Queue()
+    print(f'{uuid=} {jsondata}')
+    queue_dict[uuid].put_nowait(jsondata)
+
+
+
+
+
+
 # 开始按钮状态
 current_status = "stop"
 # video toolbox 状态
@@ -122,7 +137,8 @@ separate_status = 'stop'
 # 软件退出
 exit_soft = False
 
-# 子窗口
+
+# 所有设置和功能子窗口
 separatew = None
 hebingw = None
 chatgptw=None
@@ -161,6 +177,7 @@ fanyiform=None
 recognform=None
 peiyinform=None
 
+
 # 翻译队列
 trans_queue = []
 # 配音队列
@@ -174,11 +191,10 @@ unidlist = []
 # 全局错误
 errorlist = {}
 
+
 # 当前可用编码 libx264 h264_qsv h264_nvenc 等
 video_codec = None
 
-# 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
-video_min_ms = 50
 
 openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 # 识别-翻译-配音-合并 线程启动标志

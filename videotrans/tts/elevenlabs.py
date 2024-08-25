@@ -26,7 +26,7 @@ def update_proxy(type='set'):
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     try:
         update_proxy(type='set')
         with open(os.path.join(config.rootdir, 'elevenlabs.json'), 'r', encoding="utf-8") as f:
@@ -42,13 +42,14 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             f.write(audio)
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p:
+            if inst and inst.precent<80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(f'elevenlabs:{error}', btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(f'elevenlabs:{error}', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
         config.logger.error(f"elevenlabsTTS：request error:{error}")
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = error

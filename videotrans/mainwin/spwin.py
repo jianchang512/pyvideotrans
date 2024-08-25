@@ -7,6 +7,9 @@ from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSettings, Qt, QSize, QTimer
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 import warnings
+
+from videotrans.task.job import start_thread
+
 warnings.filterwarnings('ignore')
 
 from videotrans.util import tools
@@ -53,9 +56,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_subform(self):
         # 打开工具箱
-        from videotrans.winform import baidu, ai302, ai302tts, audiofromvideo, azure, azuretts, chatgpt, chattts, clone, \
-            cosyvoice, deepL, deepLX, doubao, elevenlabs, fanyisrt, fishtts, gemini, gptsovits, hebingsrt, hunliu, \
-            localllm, ott, peiyin, recogn, separate, setini, tencent, transapi, ttsapi, vas, watermark, youtube, \
+        from videotrans.winform import baidu, ai302, ai302tts, fn_audiofromvideo, azure, azuretts, chatgpt, chattts, clone, \
+            cosyvoice, deepL, deepLX, doubao, elevenlabs, fn_fanyisrt, fishtts, gemini, gptsovits, fn_hebingsrt, fn_hunliu, \
+            localllm, ott, fn_peiyin, fn_recogn, fn_separate, setini, tencent, transapi, ttsapi, fn_vas, fn_watermark, fn_youtube, \
             zh_recogn, zijiehuoshan
 
         self.actionbaidu_key.triggered.connect(baidu.open)
@@ -81,17 +84,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_gptsovits.triggered.connect(gptsovits.open)
         self.actiontts_cosyvoice.triggered.connect(cosyvoice.open)
         self.actiontts_fishtts.triggered.connect(fishtts.open)
-        self.actionyoutube.triggered.connect(youtube.open)
-        self.actionwatermark.triggered.connect(watermark.open)
-        self.actionsepar.triggered.connect(separate.open)
+        self.actionyoutube.triggered.connect(fn_youtube.open)
+        self.actionwatermark.triggered.connect(fn_watermark.open)
+        self.actionsepar.triggered.connect(fn_separate.open)
         self.actionsetini.triggered.connect(setini.open)
-        self.action_hebingsrt.triggered.connect(hebingsrt.open)
-        self.action_yinshipinfenli.triggered.connect(audiofromvideo.open)
-        self.action_hun.triggered.connect(hunliu.open)
-        self.action_yingyinhebing.triggered.connect(vas.open)
-        self.action_fanyi.triggered.connect(fanyisrt.open)
-        self.action_yuyinshibie.triggered.connect(recogn.open)
-        self.action_yuyinhecheng.triggered.connect(peiyin.open)
+        self.action_hebingsrt.triggered.connect(fn_hebingsrt.open)
+        self.action_yinshipinfenli.triggered.connect(fn_audiofromvideo.open)
+        self.action_hun.triggered.connect(fn_hunliu.open)
+        self.action_yingyinhebing.triggered.connect(fn_vas.open)
+        self.action_fanyi.triggered.connect(fn_fanyisrt.open)
+        self.action_yuyinshibie.triggered.connect(fn_recogn.open)
+        self.action_yuyinhecheng.triggered.connect(fn_peiyin.open)
         if config.params['tts_type'] and not config.params['tts_type'] in ['edgeTTS', 'AzureTTS']:
             self.util.tts_type_change(config.params['tts_type'])
 
@@ -99,7 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings = QSettings("Jameson", "VideoTranslate")
 
         self.languagename = config.langnamelist
-        self.get_setting()
+
         self.splitter.setSizes([self.width - 400, 400])
 
         # 隐藏倒计时
@@ -242,6 +245,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.params['subtitle_type'] and int(config.params['subtitle_type']) > 0:
             self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
+        start_thread(self)
 
     def bind_action(self):
         from videotrans.mainwin.secwin import SecWindow
@@ -345,9 +349,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_tiquzimu.triggered.connect(self.util.set_tiquzimu)
 
-        self.action_zimu_video.triggered.connect(self.util.set_zimu_video)
 
-        self.action_zimu_peiyin.triggered.connect(self.util.set_zimu_peiyin)
 
         if self.app_mode == 'biaozhun_jd':
             self.util.set_xinshoujandann()
@@ -355,16 +357,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.util.set_biaozhun()
         elif self.app_mode == 'tiqu':
             self.util.set_tiquzimu()
-        elif self.app_mode == 'hebing':
-            self.util.set_zimu_video()
-        elif self.app_mode == 'peiyin':
-            self.util.set_zimu_peiyin()
+
         self.moshis = {
             "biaozhun_jd": self.action_xinshoujandan,
             "biaozhun": self.action_biaozhun,
-            "tiqu": self.action_tiquzimu,
-            "hebing": self.action_zimu_video,
-            "peiyin": self.action_zimu_peiyin
+            "tiqu": self.action_tiquzimu
         }
 
         self.action_clearcache.triggered.connect(self.util.clearcache)
@@ -456,108 +453,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         time.sleep(2)
         event.accept()
 
-    def get_setting(self):
-        if len(self.settings.allKeys()) < 1:
-            return None
-        # 从缓存获取默认配置
-        config.params["baidu_appid"] = self.settings.value("baidu_appid", "")
-        config.params["source_language"] = self.settings.value("source_language", "")
-        config.params["target_language"] = self.settings.value("target_language", "")
-        config.params["voice_role"] = self.settings.value("voice_role", "")
-        config.params["voice_autorate"] = self.settings.value("voice_autorate", False, bool)
-        config.params["video_autorate"] = self.settings.value("video_autorate", False, bool)
-        config.params["append_video"] = self.settings.value("append_video", False, bool)
 
-        config.params["baidu_miyue"] = self.settings.value("baidu_miyue", "")
-        config.params["deepl_authkey"] = self.settings.value("deepl_authkey", "")
-        config.params["deepl_api"] = self.settings.value("deepl_api", "")
-        config.params["deeplx_address"] = self.settings.value("deeplx_address", "")
-        config.params["ott_address"] = self.settings.value("ott_address", "")
-        config.params["clone_api"] = self.settings.value("clone_api", "")
-        config.params["chattts_api"] = self.settings.value("chattts_api", "")
-        config.params["tencent_SecretId"] = self.settings.value("tencent_SecretId", "")
-        config.params["tencent_SecretKey"] = self.settings.value("tencent_SecretKey", "")
-
-        config.params["chatgpt_api"] = self.settings.value("chatgpt_api", "")
-        config.params["chatgpt_key"] = self.settings.value("chatgpt_key", "")
-        config.params["ai302_key"] = self.settings.value("ai302_key", "")
-        config.params["ai302tts_key"] = self.settings.value("ai302tts_key", "")
-        config.params["localllm_api"] = self.settings.value("localllm_api", "")
-        config.params["localllm_key"] = self.settings.value("localllm_key", "")
-        config.params["azure_speech_key"] = self.settings.value("azure_speech_key", "")
-        config.params["azure_speech_region"] = self.settings.value("azure_speech_region", "")
-
-        if self.settings.value("clone_voicelist", ""):
-            config.params['clone_voicelist'] = self.settings.value("clone_voicelist", "").split(',')
-
-        config.params["chatgpt_model"] = self.settings.value("chatgpt_model", config.params['chatgpt_model'])
-        config.params["ai302_model"] = self.settings.value("ai302_model", config.params['ai302_model'])
-        config.params["ai302tts_model"] = self.settings.value("ai302tts_model", config.params['ai302tts_model'])
-
-        if not config.settings['localllm_model']:
-            self.settings.setValue('localllm_model', '')
-        else:
-            lastmodel = self.settings.value("localllm_model", '')
-            config.params["localllm_model"] = lastmodel if lastmodel else config.params["localllm_model"]
-
-        if not config.settings['zijiehuoshan_model']:
-            self.settings.setValue('zijiehuoshan_model', '')
-        else:
-            lastmodel = self.settings.value("zijiehuoshan_model", '')
-            config.params["zijiehuoshan_model"] = lastmodel if lastmodel else config.params["zijiehuoshan_model"]
-
-        config.params["zijiehuoshan_key"] = self.settings.value("zijiehuoshan_key", "")
-        os.environ['OPENAI_API_KEY'] = config.params["chatgpt_key"]
-
-        config.params["ttsapi_url"] = self.settings.value("ttsapi_url", "")
-        config.params["ttsapi_extra"] = self.settings.value("ttsapi_extra", "pyvideotrans")
-        config.params["ttsapi_voice_role"] = self.settings.value("ttsapi_voice_role", "")
-
-        config.params["trans_api_url"] = self.settings.value("trans_api_url", "")
-        config.params["trans_secret"] = self.settings.value("trans_secret", "")
-
-        config.params["gptsovits_url"] = self.settings.value("gptsovits_url", "")
-        config.params["gptsovits_extra"] = self.settings.value("gptsovits_extra", "pyvideotrans")
-        config.params["gptsovits_role"] = self.settings.value("gptsovits_role", "")
-
-        config.params["cosyvoice_url"] = self.settings.value("cosyvoice_url", "")
-        config.params["cosyvoice_role"] = self.settings.value("cosyvoice_role", "")
-
-        config.params["fishtts_url"] = self.settings.value("fishtts_url", "")
-        config.params["fishtts_role"] = self.settings.value("fishtts_role", "")
-
-        config.params["gemini_key"] = self.settings.value("gemini_key", "")
-        config.params["gemini_model"] = self.settings.value("gemini_model", "gemini-1.5-pro")
-        config.params["zh_recogn_api"] = self.settings.value("zh_recogn_api", "")
-
-        config.params["azure_api"] = self.settings.value("azure_api", "")
-        config.params["azure_key"] = self.settings.value("azure_key", "")
-        config.params["azure_model"] = self.settings.value("azure_model", config.params['azure_model'])
-
-        config.params["elevenlabstts_key"] = self.settings.value("elevenlabstts_key", "")
-        config.params["doubao_appid"] = self.settings.value("doubao_appid", "")
-        config.params["doubao_access"] = self.settings.value("doubao_access", "")
-
-        config.params['translate_type'] = self.settings.value("translate_type", config.params['translate_type'])
-        if config.params['translate_type'] == 'FreeChatGPT':
-            config.params['translate_type'] = 'FreeGoogle'
-        config.params['subtitle_type'] = self.settings.value("subtitle_type", config.params['subtitle_type'], int)
-        config.params['proxy'] = self.settings.value("proxy", "", str)
-        config.params['voice_rate'] = self.settings.value("voice_rate",
-                                                          config.params['voice_rate'].replace('%', '').replace('+', ''),
-                                                          str)
-        config.params['cuda'] = self.settings.value("cuda", False, bool)
-        config.params['only_video'] = self.settings.value("only_video", False, bool)
-        config.params['whisper_model'] = self.settings.value("whisper_model", config.params['whisper_model'], str)
-        config.params['whisper_type'] = self.settings.value("whisper_type", config.params['whisper_type'], str)
-        if not config.params['whisper_type'] or config.params['whisper_type'] == 'split':
-            config.params['whisper_type'] = 'all'
-        config.params['model_type'] = self.settings.value("model_type", config.params['model_type'], str)
-        config.params['tts_type'] = self.settings.value("tts_type", config.params['tts_type'], str)
-        if not config.params['tts_type']:
-            config.params['tts_type'] = 'edgeTTS'
-        config.getset_params(config.params)
-        self.settings.clear()
 
     # 存储本地数据
     def save_setting(self):

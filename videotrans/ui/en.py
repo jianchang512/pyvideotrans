@@ -601,14 +601,14 @@ class Ui_MainWindow(object):
         self.action_xinshoujandan.setChecked(False)
         self.action_xinshoujandan.setObjectName("action_xinshoujandan")
 
-        self.action_zimu_video = QtGui.QAction(MainWindow)
-        self.action_zimu_video.setCheckable(True)
-
-        self.action_zimu_video.setObjectName("action_zimu_video")
-        self.action_zimu_peiyin = QtGui.QAction(MainWindow)
-        self.action_zimu_peiyin.setCheckable(True)
-
-        self.action_zimu_peiyin.setObjectName("action_zimu_peiyin")
+        # self.action_zimu_video = QtGui.QAction(MainWindow)
+        # self.action_zimu_video.setCheckable(True)
+        #
+        # self.action_zimu_video.setObjectName("action_zimu_video")
+        # self.action_zimu_peiyin = QtGui.QAction(MainWindow)
+        # self.action_zimu_peiyin.setCheckable(True)
+        #
+        # self.action_zimu_peiyin.setObjectName("action_zimu_peiyin")
         self.action_yuyinshibie = QtGui.QAction(MainWindow)
 
         self.action_yuyinshibie.setObjectName("action_yuyinshibie")
@@ -747,8 +747,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
-        self.toolBar.addAction(self.action_zimu_peiyin)
-        self.toolBar.addAction(self.action_zimu_video)
+
 
         self.toolBar.addAction(self.action_yuyinshibie)
         self.toolBar.addAction(self.action_fanyi)
@@ -852,11 +851,11 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setToolTip(config.uilanglist.get("Display all options for video translation and dubbing"))
         self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
         self.action_xinshoujandan.setToolTip(config.uilanglist.get("action_xinshoujandan"))
-        self.action_zimu_video.setText(config.uilanglist.get("Merging Subtitle  Video"))
-        self.action_zimu_video.setToolTip(config.uilanglist.get("Embed locally existing SRT subtitles into the video"))
-        self.action_zimu_peiyin.setText(config.uilanglist.get("Subtitle Create Dubbing"))
-        self.action_zimu_peiyin.setToolTip(
-            config.uilanglist.get("Local existing SRT subtitle generation dubbing WAV files"))
+        # self.action_zimu_video.setText(config.uilanglist.get("Merging Subtitle  Video"))
+        # self.action_zimu_video.setToolTip(config.uilanglist.get("Embed locally existing SRT subtitles into the video"))
+        # self.action_zimu_peiyin.setText(config.uilanglist.get("Subtitle Create Dubbing"))
+        # self.action_zimu_peiyin.setToolTip(
+        #     config.uilanglist.get("Local existing SRT subtitle generation dubbing WAV files"))
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
             config.uilanglist.get("Recognize the sound in audio or video and output SRT text"))

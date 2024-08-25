@@ -1,11 +1,12 @@
 # zh_recogn 识别
 from videotrans.configure import config
 from videotrans.util import tools
-
+import requests
 
 def recogn(*,
            audio_file=None,
            cache_folder=None,
+           uuid=None,
            set_p=None,
            inst=None):
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -18,14 +19,18 @@ def recogn(*,
     if not api_url.endswith('/api'):
         api_url += '/api'
     files = {"audio": open(audio_file, 'rb')}
-    import requests
+
     if set_p:
-        tools.set_process(f"识别可能较久，请耐心等待，进度可查看zh_recogn终端", 'logs', btnkey=inst.init['btnkey'] if inst else "")
+        tools.set_process(
+            f"识别可能较久，请耐心等待，进度可查看zh_recogn终端",
+            type='logs',
+            btnkey=inst.init['btnkey'] if inst else "",
+            uuid=uuid)
     try:
         res = requests.post(f"{api_url}", files=files, proxies={"http": "", "https": ""}, timeout=3600)
         config.logger.info(f'zh_recogn:{res=}')
     except Exception as e:
-        raise Exception(e)
+        raise
     else:
         res = res.json()
         if "code" not in res or res['code'] != 0:

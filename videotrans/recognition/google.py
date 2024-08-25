@@ -3,13 +3,14 @@ import os
 import re
 import time
 from datetime import timedelta
+from pathlib import Path
 
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.util import tools
-
+import speech_recognition as sr
 
 # split audio by silence
 def shorten_voice_old(normalized_sound):
@@ -19,14 +20,11 @@ def shorten_voice_old(normalized_sound):
     nonsilent_data = []
     audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
                                     silence_thresh=-20 - 25)
-    # print(audio_chunks)
     for i, chunk in enumerate(audio_chunks):
-
         start_time, end_time = chunk
         n = 0
         while end_time - start_time >= max_interval:
             n += 1
-            # new_end = start_time + max_interval+buffer
             new_end = start_time + max_interval + buffer
             new_start = start_time
             nonsilent_data.append((new_start, new_end, True))
@@ -40,9 +38,15 @@ def recogn(*,
            audio_file=None,
            cache_folder=None,
            set_p=True,
+           uuid=None,
            inst=None):
     if set_p:
-        tools.set_process(config.transobj['fengeyinpinshuju'], btnkey=inst.init['btnkey'] if inst else "")
+        tools.set_process(
+          config.transobj['fengeyinpinshuju'],
+          type="logs",
+          btnkey=inst.init['btnkey'] if inst else "",
+          uuid=uuid
+        )
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     proxy = tools.set_proxy()
@@ -50,29 +54,24 @@ def recogn(*,
         os.environ['http_proxy'] = proxy
         os.environ['https_proxy'] = proxy
     noextname = os.path.basename(audio_file)
-    tmp_path = f'{cache_folder}/{noextname}_tmp'
-    if not os.path.isdir(tmp_path):
-        try:
-            os.makedirs(tmp_path, 0o777, exist_ok=True)
-        except:
-            raise Exception(config.transobj["createdirerror"])
+    tmp_path = Path(f'{cache_folder}/{noextname}_tmp')
+    tmp_path.mkdir(parents=True,exist_ok=True)
+    tmp_path=tmp_path.as_posix()
+
     if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
     if tools.vail_file(nonslient_file):
-        with open(nonslient_file, 'r') as infile:
-            nonsilent_data = json.load(infile)
+        nonsilent_data = json.load(open(nonslient_file, 'r'))
     else:
         nonsilent_data = shorten_voice_old(normalized_sound)
-        with open(nonslient_file, 'w') as outfile:
-            json.dump(nonsilent_data, outfile)
+        json.dump(nonsilent_data, open(nonslient_file, 'w'))
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
-    start_t = time.time()
 
-    import speech_recognition as sr
+
     try:
         recognizer = sr.Recognizer()
     except Exception as e:
@@ -102,7 +101,7 @@ def recogn(*,
                 except sr.RequestError as e:
                     raise Exception(f"Google识别出错，请检查代理是否正确：{e}")
         except Exception as e:
-            raise Exception('Google识别出错：' + str(e.args))
+            raise
 
         text = f"{text.capitalize()}. ".replace('&#39;', "'")
         text = re.sub(r'&#\d+;', '', text).strip()
@@ -121,15 +120,17 @@ def recogn(*,
         if set_p:
             if inst and inst.precent < 55:
                 inst.precent += 0.1
-            tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
-                              btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(
+                f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",                    type="logs",
+                btnkey=inst.init['btnkey'] if inst else "",
+                uuid=uuid
+            )
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
-            tools.set_process(msg, 'subtitle')
-        else:
-            tools.set_process_box(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", type="set",
-                                  func_name="shibie")
+            tools.set_process(msg, type='subtitle', uuid=uuid)
     if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',
-                          btnkey=inst.init['btnkey'] if inst else "")
-    # 写入原语言字幕到目标文件夹
+        tools.set_process(
+            f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}",
+            type='logs',
+            btnkey=inst.init['btnkey'] if inst else "",
+            uuid=uuid)
     return raw_subtitles

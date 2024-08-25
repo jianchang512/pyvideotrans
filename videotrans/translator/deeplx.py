@@ -2,7 +2,9 @@
 import os
 import re
 import time
+
 import requests
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -27,7 +29,7 @@ def update_proxy(type='set'):
                 os.environ['all_proxy'] = proxy
 
 
-def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code=""):
+def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code="", uuid=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -77,7 +79,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
-                    btnkey=inst.init['btnkey'] if inst else "")
+                    type="logs",
+                    btnkey=inst.init['btnkey'] if inst else "",
+                    uuid=uuid)
             time.sleep(10)
         iter_num += 1
         # 整理待翻译的文字为 List[str]
@@ -119,11 +123,15 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 if inst and inst.precent < 75:
                     inst.precent += round((i + 1) * 5 / len(split_source_text), 2)
                 if set_p:
-                    tools.set_process(f'{result[0]}\n\n' if split_size == 1 else "\n\n".join(result), 'subtitle')
-                    tools.set_process(config.transobj['starttrans'] + f' {i * split_size + 1} ',
-                                      btnkey=inst.init['btnkey'] if inst else "")
-                else:
-                    tools.set_process_box("\n".join(result), func_name="fanyi", type="set")
+                    tools.set_process(
+                        f'{result[0]}\n\n' if split_size == 1 else "\n\n".join(result),
+                        type='subtitle',
+                        uuid=uuid)
+                    tools.set_process(
+                        config.transobj['starttrans'] + f' {i * split_size + 1} ',
+                        type="logs",
+                        btnkey=inst.init['btnkey'] if inst else "",
+                        uuid=uuid)
 
                 result_length = len(result)
                 while result_length < source_length:

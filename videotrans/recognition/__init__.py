@@ -1,13 +1,14 @@
-import torch
-from videotrans.configure import config
 import logging
 
+import torch
+
+from videotrans.configure import config
 from .all import recogn as all_recogn
 from .avg import recogn as avg_recogn
-from .zh import recogn as zh_recogn
-from .openai import recogn as openai_recogn
-from .google import recogn as google_recogn
 from .doubao import recogn as doubao_recogn
+from .google import recogn as google_recogn
+from .openai import recogn as openai_recogn
+from .zh import recogn as zh_recogn
 
 logging.basicConfig()
 logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
@@ -22,6 +23,7 @@ def run(*,
         model_name=None,
         set_p=True,
         inst=None,
+        uuid=None,
         model_type='faster',
         is_cuda=None
         ):
@@ -36,6 +38,7 @@ def run(*,
             cache_folder=cache_folder,
             model_name=model_name,
             set_p=set_p,
+            uuid=uuid,
             inst=inst,
             is_cuda=is_cuda)
     elif model_type == 'GoogleSpeech':
@@ -44,12 +47,14 @@ def run(*,
             audio_file=audio_file,
             cache_folder=cache_folder,
             set_p=set_p,
+            uuid=uuid,
             inst=None)
     elif model_type == 'zh_recogn':
         rs = zh_recogn(
             audio_file=audio_file,
             cache_folder=cache_folder,
             set_p=set_p,
+            uuid=uuid,
             inst=None)
     elif model_type == 'doubao':
         rs = doubao_recogn(
@@ -57,6 +62,7 @@ def run(*,
             audio_file=audio_file,
             cache_folder=cache_folder,
             set_p=set_p,
+            uuid=uuid,
             inst=inst)
     elif type == 'avg':
         rs = avg_recogn(
@@ -66,6 +72,7 @@ def run(*,
             model_name=model_name,
             set_p=set_p,
             inst=inst,
+            uuid=uuid,
             is_cuda=is_cuda)
     else:
         rs = all_recogn(
@@ -74,6 +81,7 @@ def run(*,
             cache_folder=cache_folder,
             model_name=model_name,
             set_p=set_p,
+            uuid=uuid,
             inst=inst,
             is_cuda=is_cuda)
     try:

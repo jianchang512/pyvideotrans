@@ -20,7 +20,7 @@ def wav_to_base64(file_path):
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     try:
         api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
         if not api_url:
@@ -34,7 +34,6 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 "text": text,
                 "speed": 1 + float(rate.replace('%', '')),
                 "new": 0,
-
             }
             if not text:
                 return True
@@ -44,12 +43,16 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 data['speaker'] = '中文女'
             elif role in rolelist:
                 data['speaker'] = rolelist[role]
+            elif role:
+                data['speaker']=role
+                data['new']=1
             else:
                 data['speaker'] = '中文女'
             # 克隆声音
             response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
         else:
-            data = {"text": text,
+            data = {
+                    "text": text,
                     "lang": "zh" if language.startswith('zh') else language
                     }
             if not text:
@@ -89,13 +92,14 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
             os.unlink(filename + ".wav")
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p:
+            if inst and inst.precent < 80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = error
         config.logger.error(f"{error}")

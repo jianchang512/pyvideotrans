@@ -39,7 +39,7 @@ class Runstep():
     # 开始识别出字幕
     def recogn(self):
         self.precent += 3
-        tools.set_process(config.transobj["kaishishibie"], btnkey=self.init['btnkey'])
+        tools.set_process(config.transobj["kaishishibie"],type="logs", btnkey=self.init['btnkey'])
         # 如果不存在视频，或存在已识别过的，或存在目标语言字幕 或合并模式，不需要识别
         if self.config_params['app_mode'] in ['peiyin']:
             self._unlink(self.init['shibie_audio'])
@@ -50,12 +50,12 @@ class Runstep():
                 shutil.copy2(self.init['source_sub'], f"{self.obj['output']}/{self.obj['raw_noextname']}.srt")
             self._unlink(self.init['shibie_audio'])
             with open(self.init['source_sub'],'r',encoding='utf-8') as f:
-                tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.init['btnkey'])
+                tools.set_process(f.read().strip(), type='replace_subtitle', btnkey=self.init['btnkey'])
             return True
 
         # 分离未完成，需等待
         while not tools.vail_file(self.init['source_wav']):
-            tools.set_process(config.transobj["running"], btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj["running"],type="logs", btnkey=self.init['btnkey'])
             time.sleep(1)
         # 识别为字幕
         try:
@@ -130,7 +130,7 @@ class Runstep():
             # 判断已存在的字幕文件中是否存在有效字幕纪录
             # 通知前端替换字幕
             with open(self.init['target_sub'], 'r', encoding="utf-8", errors="ignore") as f:
-                tools.set_process(f.read().strip(), 'replace_subtitle', btnkey=self.init['btnkey'])
+                tools.set_process(f.read().strip(), type='replace_subtitle', btnkey=self.init['btnkey'])
                 if self.obj and self.obj['output'] != self.obj['linshi_output']:
                     shutil.copy2(self.init['target_sub'],
                                  f"{self.obj['output']}/{Path(self.init['target_sub']).name}")
@@ -139,25 +139,20 @@ class Runstep():
         # 批量不允许修改字幕
         if not self.config_params['is_batch']:
             # 等待编辑原字幕后翻译,允许修改字幕
-            tools.set_process(config.transobj["xiugaiyuanyuyan"], 'edit_subtitle_source', btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj["xiugaiyuanyuyan"], type='edit_subtitle_source', btnkey=self.init['btnkey'])
             while config.task_countdown > 0:
                 config.task_countdown -= 1
                 if config.task_countdown <= config.settings['countdown_sec']:
-                    tools.set_process(f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", 'show_djs',
+                    tools.set_process(f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs',
                                       btnkey=self.init['btnkey'])
                 time.sleep(1)
 
             # 禁止修改字幕
-            tools.set_process('translate_start', 'timeout_djs', btnkey=self.init['btnkey'])
+            tools.set_process('translate_start', type='timeout_djs', btnkey=self.init['btnkey'])
             time.sleep(2)
 
-        # 如果已存在目标语言字幕则跳过，比如使用已有字幕，无需翻译时
-        #if self._srt_vail(self.init['target_sub']):
-        #    if self.obj and self.obj['output'] != self.obj['linshi_output'] and tools.vail_file(
-        #            self.init['target_sub']):
-        #        shutil.copy2(self.init['target_sub'], f"{self.obj['output']}/{Path(self.init['target_sub']).name}")
-        #    return True
-        tools.set_process(config.transobj['starttrans'], btnkey=self.init['btnkey'])
+
+        tools.set_process(config.transobj['starttrans'],type="logs", btnkey=self.init['btnkey'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = tools.get_subtitle_from_srt(self.init['source_sub'], is_file=True)
         if not rawsrt or len(rawsrt) < 1:
@@ -206,7 +201,7 @@ class Runstep():
             return True
         # 允许修改字幕
         if not self.config_params['is_batch']:
-            tools.set_process(config.transobj["xiugaipeiyinzimu"], "edit_subtitle_target", btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj["xiugaipeiyinzimu"], type="edit_subtitle_target", btnkey=self.init['btnkey'])
             while config.task_countdown > 0:
                 # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
                 time.sleep(1)
@@ -214,11 +209,11 @@ class Runstep():
                 config.task_countdown -= 1
                 if config.task_countdown <= int(config.settings['countdown_sec']):
                     tools.set_process(f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
-                                      'show_djs',
+                                      type='show_djs',
                                       btnkey=self.init['btnkey'])
             # 禁止修改字幕
-            tools.set_process('dubbing_start', 'timeout_djs', btnkey=self.init['btnkey'])
-        tools.set_process(config.transobj['kaishipeiyin'], btnkey=self.init['btnkey'])
+            tools.set_process('dubbing_start', type='timeout_djs', btnkey=self.init['btnkey'])
+        tools.set_process(config.transobj['kaishipeiyin'], type="logs",btnkey=self.init['btnkey'])
         time.sleep(3)
         try:
             self._exec_tts(self._before_tts())
@@ -303,7 +298,7 @@ class Runstep():
             it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
             it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
             queue_tts[i] = it
-            tools.set_process(text=f"audio concat:{i}", btnkey=self.init['btnkey'])
+            tools.set_process(text=f"audio concat:{i}", type="logs",btnkey=self.init['btnkey'])
 
         print(f'合成音频后时长={len(merged_audio)},{video_time=}')
         # 移除尾部静音
@@ -352,7 +347,7 @@ class Runstep():
             with open(file, 'w', encoding="utf-8") as f:
                 f.write(txt)
             time.sleep(1)
-            tools.set_process(txt, 'replace_subtitle', btnkey=self.init['btnkey'])
+            tools.set_process(txt, type='replace_subtitle', btnkey=self.init['btnkey'])
         return True
 
     # 配音预处理，去掉无效字符，整理开始时间
@@ -425,7 +420,7 @@ class Runstep():
         for i, it in enumerate(queue_tts):
             if it is None:
                 continue
-            tools.set_process(text=f"audio:{i}", btnkey=self.init['btnkey'])
+            tools.set_process(text=f"audio:{i}", type="logs",btnkey=self.init['btnkey'])
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < queue_tts[i - 1]['end_time']:
                 it['start_time'] = queue_tts[i - 1]['end_time']
@@ -531,7 +526,7 @@ class Runstep():
             if not it['speed'] or not tools.vail_file(it['filename']):
                 continue
 
-            tools.set_process(f"{config.transobj['dubbing speed up']} [{i}]", btnkey=self.init['btnkey'])
+            tools.set_process(f"{config.transobj['dubbing speed up']} [{i}]", type="logs",btnkey=self.init['btnkey'])
 
             # 可用时长
             able_time = queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
@@ -634,7 +629,7 @@ class Runstep():
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                tools.set_process(f"{config.transobj['videodown..']} {pts=}", btnkey=self.init['btnkey'])
+                tools.set_process(f"{config.transobj['videodown..']} {pts=}", type="logs",btnkey=self.init['btnkey'])
                 before_dst = self.init['cache_folder'] + f'/{i}-current.mp4'
                 try:
                     tools.cut_from_video(
@@ -797,7 +792,7 @@ class Runstep():
         if duration_ms < 1000:
             return
         tools.set_process(f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms', btnkey=self.init['btnkey'])
-        if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
+        if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname'],btnkey=self.init['btnkey']):
             raise Exception("not novoice mp4")
 
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
@@ -1027,8 +1022,7 @@ class Runstep():
                     maxlen = maxlen if len(target_sub_list) > 0 else maxlen_source
                     text = ""
                     for i, it in enumerate(target_sub_list):
-                        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip().replace('\n',
-                                                                                                                 '\\N')
+                        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip().replace('\n','\\N')
                         text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
                     hard_srt_path.write_text(text, encoding='utf-8', errors="ignore")
                     os.chdir(mp4_dirpath)

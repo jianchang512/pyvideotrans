@@ -19,10 +19,12 @@ class DropButton(QPushButton):
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
                                                  config.params['last_opendir'],
                                                  filter="Video/Audio files(*.mp4 *.mkv *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
+        namestr=[]
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
+            namestr.append(os.path.basename(it))
         self.filelist = fnames
-        self.setText(f'{len(self.filelist)} files')
+        self.setText(f'{len(self.filelist)} files \n{",".join(namestr)}')
 
     def dragEnterEvent(self, event):
         files = event.mimeData().text().strip().lower()

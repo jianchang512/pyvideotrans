@@ -44,7 +44,7 @@ def get_url(url=""):
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     api_url = get_url(config.params['chatgpt_api'])
     if not re.search(r'localhost', api_url) and not re.match(r'https?://(\d+\.){3}\d+', api_url):
         update_proxy(type='set')
@@ -68,9 +68,10 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             raise Exception(e)
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p:
+            if inst and inst.precent < 80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         if error.lower().find('connect timeout') > -1 or error.lower().find('ConnectTimeoutError') > -1:
@@ -79,9 +80,9 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             return False
         if error and re.search(r'Rate limit', error, re.I) is not None:
             if set_p:
-                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试', btnkey=inst.init['btnkey'] if inst else "")
+                tools.set_process(f'chatGPT请求速度被限制，暂停30s后自动重试', type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
             time.sleep(30)
-            return get_voice(text=text, role=role, rate=rate, filename=filename)
+            return get_voice(text=text, role=role, rate=rate, filename=filename,uuid=uuid)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = error

@@ -13,21 +13,20 @@ from videotrans.util import tools
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     if config.params['ai302tts_model'] == 'azure':
         return get_voice_azure(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                           filename=filename, set_p=set_p, inst=inst)
+                           filename=filename, set_p=set_p, inst=inst,uuid=uuid)
     elif config.params['ai302tts_model'] == 'doubao':
         return get_voice_doubao(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                           filename=filename, set_p=set_p, inst=inst)
-    # if config.params['ai302tts_model'] != 'azure':
-    # else openai
+                           filename=filename, set_p=set_p, inst=inst,uuid=uuid)
+
     return get_voice_openai(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                                filename=filename, set_p=set_p, inst=inst)
+                                filename=filename, set_p=set_p, inst=inst,uuid=uuid)
 
 
 def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,
-                     set_p=True, inst=None):
+                     set_p=True, inst=None,uuid=None):
     try:
         speed = 1.0
         if rate:
@@ -54,9 +53,10 @@ def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
             raise
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p :
+            if inst and inst.precent<80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         config.logger.error(f"302.ai tts 合成失败：request error:" + str(e))
@@ -68,7 +68,7 @@ def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
 
 
 def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+0%', language=None, filename=None,
-                    set_p=True, inst=None):
+                    set_p=True, inst=None,uuid=None):
     try:
         if not rate:
             rate = '+0%'
@@ -106,9 +106,10 @@ def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+
         if tools.vail_file(filename + ".wav") and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename + ".wav")
         tools.wav2mp3(filename + ".wav", filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p:
+            if inst and inst.precent < 80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         config.logger.error(f"302.ai tts 合成失败：request error:" + str(e))
@@ -134,7 +135,7 @@ def base64_to_wav(encoded_str, output_path):
     # shutil.copy2(output_path,f'C:/users/c1/videos/test/{os.path.basename(output_path)}')
     # print(f"WAV file has been saved to {output_path}")
 
-def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,set_p=True, inst=None):
+def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,set_p=True, inst=None,uuid=None):
 
     try:
         speed = 1.0
@@ -174,9 +175,10 @@ def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
         else:
             if tools.vail_file(filename) and config.settings['remove_silence']:
                 tools.remove_silence_from_end(filename)
-            if set_p and inst and inst.precent < 80:
-                inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+            if set_p:
+                if inst and inst.precent < 80:
+                    inst.precent += 0.1
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
     except Exception as e:
         error = str(e)
         config.logger.error(f"302.ai tts doubao 合成失败：request error:{error}")

@@ -1,7 +1,9 @@
+import json
 import os
 import os
 import re
 import shutil
+import time
 from pathlib import Path
 
 from PySide6.QtCore import QUrl
@@ -9,7 +11,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans import translator
-from videotrans.box.worker import WorkerTTS
+from videotrans.task.workertts import WorkerTTS
 from videotrans.configure import config
 from videotrans.util import tools
 import builtins
@@ -20,19 +22,21 @@ builtin_open = builtins.open
 # 合成配音
 def open():
     def feed(d):
-        print(f'{d=}')
-        if d.startswith('replace:'):
+        d=json.loads(d)
+        if d['type']=='replace':
             config.peiyinform.hecheng_plaintext.clear()
-            config.peiyinform.hecheng_plaintext.insertPlainText(d[8:])
-        elif d.startswith('error:'):
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], d[6:])
-        elif d.startswith('jd:'):
-            config.peiyinform.hecheng_startbtn.setText(d[3:])
+            config.peiyinform.hecheng_plaintext.insertPlainText(d['text'])
+        elif d['type']=='error':
+            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], d['text'])
+        elif d['type']=='logs':
+            config.peiyinform.loglabel.setText(d['text'])
+        elif d['type']=='jd':
+            config.peiyinform.hecheng_startbtn.setText(d['text'])
         else:
             config.peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             config.peiyinform.hecheng_startbtn.setDisabled(False)
 
-    # s
+
     # 试听配音
     def listen_voice_fun():
         lang = translator.get_code(show_text=config.peiyinform.hecheng_language.currentText())
@@ -109,9 +113,7 @@ def open():
         tts_type = config.peiyinform.tts_type.currentText()
         langcode = translator.get_code(show_text=language)
 
-        if not txt:
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                        config.transobj['neirongweikong'])
+
         if language == '-' or role == 'No':
             return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
                                         config.transobj['yuyanjuesebixuan'])
@@ -121,8 +123,7 @@ def open():
         if tts_type == '302.ai' and not config.params['ai302tts_key']:
             return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
                                         config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
-        if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja',
-                                                                                                         'en']:
+        if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja','en']:
             QMessageBox.critical(config.peiyinform, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
             return
         if tts_type == "AzureTTS" and (
@@ -179,13 +180,18 @@ def open():
             os.makedirs(f"{config.homedir}/tts", exist_ok=True)
 
         wavname = f"{config.homedir}/tts/{filename}"
-        issrt = config.peiyinform.tts_issrt.isChecked()
-        if len(config.peiyinform.hecheng_files) > 0:
-            config.peiyinform.tts_issrt.setChecked(True)
-            issrt = True
+
+        if len(config.peiyinform.hecheng_files)<1 and not txt:
+            return QMessageBox.critical(config.peiyinform,config.transobj['anerror'],'必须导入srt文件或在文本框中填写文字' if config.defaulelang=='zh' else 'Must import srt file or fill in text box with text')
+        elif len(config.peiyinform.hecheng_files)<1:
+            newsrtfile=config.TEMP_HOME+f"/peiyin{time.time()}.srt"
+            tools.save_srt(tools.get_subtitle_from_srt(txt,is_file=False),newsrtfile)
+            config.peiyinform.hecheng_files.append(newsrtfile)
+
+
 
         hecheng_task = WorkerTTS(
-            files=config.peiyinform.hecheng_files if len(config.peiyinform.hecheng_files) > 0 else txt,
+            files=config.peiyinform.hecheng_files,
             role=role,
             rate=rate,
             pitch=pitch,
@@ -193,20 +199,14 @@ def open():
             langcode=langcode,
             wavname=wavname,
             tts_type=config.peiyinform.tts_type.currentText(),
-            voice_autorate=issrt and config.peiyinform.voice_autorate.isChecked(),
-            tts_issrt=issrt,parent=config.peiyinform)
+            voice_autorate=config.peiyinform.voice_autorate.isChecked(),
+            parent=config.peiyinform)
         hecheng_task.uito.connect(feed)
         hecheng_task.start()
         config.peiyinform.hecheng_startbtn.setText(config.transobj["running"])
         config.peiyinform.hecheng_startbtn.setDisabled(True)
         config.peiyinform.hecheng_out.setText(wavname)
         config.peiyinform.hecheng_out.setDisabled(True)
-
-    def tts_issrt_change(state):
-        if state:
-            config.peiyinform.voice_autorate.setDisabled(False)
-        else:
-            config.peiyinform.voice_autorate.setDisabled(True)
 
     # tts类型改变
     def tts_type_change(type):
@@ -361,6 +361,7 @@ def open():
                                                  "Text files(*.srt *.txt)")
         if len(fnames) < 1:
             return
+        namestr=[]
         for (i, it) in enumerate(fnames):
             it = it.replace('\\', '/').replace('file:///', '')
             if it.endswith('.txt'):
@@ -376,20 +377,14 @@ def open():
 
                 it += '.srt'
             fnames[i] = it
+            namestr.append(os.path.basename(it))
+
 
         if len(fnames) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
             config.peiyinform.hecheng_files = fnames
-            content = ""
-            try:
-                content = Path(fnames[0]).read_text(encoding='utf-8')
-            except:
-                content = Path(fnames[0]).read_text(encoding='GBK')
-            config.peiyinform.hecheng_plaintext.setPlainText(content)
-            config.peiyinform.tts_issrt.setChecked(True)
-            config.peiyinform.tts_issrt.setDisabled(True)
             config.peiyinform.hecheng_importbtn.setText(
-                f'导入{len(fnames)}个srt文件' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles')
+                f'导入{len(fnames)}个srt文件 \n{",".join(namestr)}' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles \n{",".join(namestr)}')
         config.peiyinform.hecheng_out.setDisabled(False)
         config.peiyinform.hecheng_out.setText('')
 
@@ -409,9 +404,7 @@ def open():
         config.peiyinform.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         config.peiyinform.listen_btn.clicked.connect(listen_voice_fun)
         config.peiyinform.hecheng_opendir.clicked.connect(opendir_fn)
-
         config.peiyinform.tts_type.currentTextChanged.connect(tts_type_change)
-        config.peiyinform.tts_issrt.stateChanged.connect(tts_issrt_change)
 
         config.peiyinform.show()
     except Exception as e:

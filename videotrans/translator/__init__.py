@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import re
+
+from PySide6.QtWidgets import QMessageBox
+
 from videotrans.configure import config
+from videotrans.winform import chatgpt, gemini, ai302, zijiehuoshan, azure, baidu, tencent, deepL, deepLX, localllm, ott
 
 GOOGLE_NAME = "Google"
 MICROSOFT_NAME = "Microsoft"
@@ -285,7 +289,7 @@ LANG_CODE = {
         "nl",  # 微软翻译
         "Dutch" if config.defaulelang != 'zh' else '荷兰语'  # AI翻译
     ],
-    "sv":[
+    "sv": [
         "sv",  # google通道
         "swe",  # 字幕嵌入语言
         "swe",  # 百度通道
@@ -350,42 +354,64 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*, translate_type=None, show_target=None, only_key=False):
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,win=None):
     lower_translate_type = translate_type.lower()
 
     if lower_translate_type == CHATGPT_NAME.lower() and not config.params['chatgpt_key']:
-        return config.transobj['chatgptkeymust']
+        chatgpt.open()
+        return False
+        # return config.transobj['chatgptkeymust']
     if lower_translate_type == AI302_NAME.lower() and not config.params['ai302_key']:
-        return '必须填写 302.ai 平台的 sk'
+        # return '必须填写 302.ai 平台的 sk'
+        ai302.open()
+        return False
 
     if lower_translate_type == LOCALLLM_NAME.lower() and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang == 'zh' else 'Please input Local LLM API url'
     if lower_translate_type == ZIJIE_NAME.lower() and (
             not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
-        return '必须填写字节火山api_key和推理接入点'
+        zijiehuoshan.open()
+        return False
+        # return '必须填写字节火山api_key和推理接入点'
 
     if lower_translate_type == GEMINI_NAME.lower() and not config.params['gemini_key']:
-        return config.transobj['chatgptkeymust']
+        gemini.open()
+        return False
+        # return config.transobj['chatgptkeymust']
     if lower_translate_type == AZUREGPT_NAME.lower() and (
             not config.params['azure_key'] or not config.params['azure_api']):
-        return 'No Azure key'
+        azure.open()
+        return False
+        # return 'No Azure key'
 
     if lower_translate_type == BAIDU_NAME.lower() and (
             not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
-        return config.transobj['baikeymust']
+        baidu.open()
+        return False
+        # return config.transobj['baikeymust']
     if lower_translate_type == TENCENT_NAME.lower() and (
             not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
-        return config.transobj['tencent_key']
+        tencent.open()
+        return False
+        # return config.transobj['tencent_key']
     if lower_translate_type == DEEPL_NAME.lower() and not config.params["deepl_authkey"]:
-        return config.transobj['deepl_authkey']
+        deepL.open()
+        return False
+        # return config.transobj['deepl_authkey']
     if lower_translate_type == DEEPLX_NAME.lower() and not config.params["deeplx_address"]:
-        return config.transobj['setdeeplx_address']
+        deepLX.open()
+        return False
+        # return config.transobj['setdeeplx_address']
 
     if lower_translate_type == TRANSAPI_NAME.lower() and not config.params["trans_api_url"]:
-        return "必须配置自定义翻译api的地址" if config.defaulelang == 'zh' else "The address of the custom translation api must be configured"
+        localllm.open()
+        return False
+        # return "必须配置自定义翻译api的地址" if config.defaulelang == 'zh' else "The address of the custom translation api must be configured"
 
     if lower_translate_type == OTT_NAME.lower() and not config.params["ott_address"]:
-        return config.transobj['setott_address']
+        ott.open()
+        return False
+        # return config.transobj['setott_address']
 
     if only_key:
         return True
@@ -404,7 +430,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False)
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
         if target_list[index].lower() == 'no':
-            return config.transobj['deepl_nosupport']
+            QMessageBox.critical(win,config.transobj['anerror'],config.transobj['deepl_nosupport'])
+            return False
 
     return True
 
@@ -427,7 +454,9 @@ def get_subtitle_code(*, show_target=None):
 
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
-def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True, inst=None, source_code=None):
+def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True, inst=None,
+        source_code=None,
+        uuid=None):
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
     lower_translate_type = translate_type.lower()
     if lower_translate_type == GOOGLE_NAME.lower():
@@ -462,4 +491,5 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         from videotrans.translator.transapi import trans
     else:
         raise Exception(f"{translate_type=},{target_language_name=}")
-    return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code)
+    print(f'22222{set_p=},{uuid=}')
+    return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code, uuid=uuid)

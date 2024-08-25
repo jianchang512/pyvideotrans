@@ -47,7 +47,7 @@ def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey
                     return
                 jd =  (percent[0] +   (percent[1]*(i + 1) / n_window))*100
                 jd=100 if jd>=100 else jd
-                tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", source,
+                tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", type=source,
                                   btnkey=btnkey)
                 print(f"{config.transobj['Separating background music']} {round(jd, 1)}%")
                 start = i * roi_size
