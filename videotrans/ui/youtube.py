@@ -31,25 +31,22 @@ class Ui_youtubeform(object):
     def setupUi(self, youtubeform):
         youtubeform.setObjectName("youtubeform")
         youtubeform.setWindowModality(QtCore.Qt.NonModal)
-        youtubeform.resize(500, 300)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(youtubeform.sizePolicy().hasHeightForWidth())
-        # youtubeform.setSizePolicy(sizePolicy)
-        youtubeform.setMaximumSize(QtCore.QSize(500, 300))
+        youtubeform.resize(500, 340)
+
+
+        youtubeform.setMaximumSize(QtCore.QSize(500, 340))
 
         self.formatname = QtWidgets.QCheckBox(youtubeform)
         self.formatname.setText("使用VID作为视频名称/防出错" if config.defaulelang == 'zh' else 'Use VID for video name')
-        self.formatname.setGeometry(QtCore.QRect(120, 140, 200, 35))
+        self.formatname.setGeometry(QtCore.QRect(120, 180, 200, 35))
 
         self.set = QtWidgets.QPushButton(youtubeform)
-        self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
+        self.set.setGeometry(QtCore.QRect(170, 215, 141, 35))
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
         self.set.setCursor(Qt.PointingHandCursor)
         self.layoutWidget = QtWidgets.QWidget(youtubeform)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 123))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 160))
         self.layoutWidget.setObjectName("layoutWidget")
         self.formLayout = QtWidgets.QFormLayout(self.layoutWidget)
         self.formLayout.setContentsMargins(0, 0, 0, 0)
@@ -85,7 +82,14 @@ class Ui_youtubeform(object):
         self.selectdir.setObjectName("selectdir")
         self.selectdir.setCursor(Qt.PointingHandCursor)
         self.verticalLayout.addWidget(self.selectdir)
+        
+        self.label_thread = QtWidgets.QLabel(self.layoutWidget)
+        self.verticalLayout.addWidget(self.label_thread)
+        
+        
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.LabelRole, self.verticalLayout)
+        
+        
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
@@ -115,12 +119,22 @@ class Ui_youtubeform(object):
 
         self.click_filter = LineEditClickFilter()
         self.outputdir.installEventFilter(self.click_filter)
+        
+        self.thread = QtWidgets.QLineEdit(self.layoutWidget)
+        self.thread.setMinimumSize(QtCore.QSize(0, 35))
+        self.thread.setText('8')
+        
+        
 
         self.verticalLayout_2.addWidget(self.outputdir)
+        self.verticalLayout_2.addWidget(self.thread)
 
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
+        
+        
+        
         self.logs = QtWidgets.QLabel(youtubeform)
-        self.logs.setGeometry(QtCore.QRect(30, 250, 441, 35))
+        self.logs.setGeometry(QtCore.QRect(30, 280, 441, 35))
         self.logs.setText("")
         self.logs.setObjectName("logs")
 
@@ -132,6 +146,7 @@ class Ui_youtubeform(object):
         self.set.setText('立即开始' if config.defaulelang == 'zh' else "Start Download")
         self.label.setText('网络代理地址' if config.defaulelang == 'zh' else "Proxy")
         self.label_2.setText('视频播放页url' if config.defaulelang == 'zh' else "Video URL")
+        self.label_thread.setText('并发数' if config.defaulelang == 'zh' else "Concurrent")
         self.selectdir.setText('保存目录' if config.defaulelang == 'zh' else "Select Out Dir")
         self.proxy.setPlaceholderText(
             '填写代理地址，格式 http://127.0.0.1:端口号' if config.defaulelang == 'zh' else "eg http://127.0.0.1:7890")

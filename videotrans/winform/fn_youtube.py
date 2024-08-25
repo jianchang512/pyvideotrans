@@ -2,7 +2,7 @@ import os
 import re
 
 from PySide6 import QtWidgets
-
+import json
 from videotrans.configure import config
 
 
@@ -13,6 +13,12 @@ def open():
         outdir = config.youw.outputdir.text()
         url = config.youw.url.text().strip()
         vid = config.youw.formatname.isChecked()
+        thread_num=8
+        try:
+            thread_num=int(config.youw.thread.text())
+        except Exception:
+            pass
+        print(f'{thread_num=}')
         if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
             QtWidgets.QMessageBox.critical(config.youw, config.transobj['anerror'],
                                            config.transobj[
@@ -21,15 +27,16 @@ def open():
         if proxy:
             config.params['proxy'] = proxy
         from videotrans.task.download_youtube import Download
-        down = Download(proxy=proxy, url=url, out=outdir, parent=config.youw, vid=vid)
+        down = Download(proxy=proxy, url=url, out=outdir, parent=config.youw, vid=vid,thread_num=thread_num)
         down.uito.connect(feed)
         down.start()
         config.youw.set.setText(config.transobj["downing..."])
     def feed(d):
-        if d.startswith('error:'):
-            QtWidgets.QMessageBox.critical(config.youw,config.transobj['anerror'],d[6:])
-        elif d.startswith('logs:'):
-            config.youw.set.setText(d[5:])
+        d=json.loads(d)
+        if d['type']=='error':
+            QtWidgets.QMessageBox.critical(config.youw,config.transobj['anerror'],d['text'])
+        elif d['type']=='logs':
+            config.youw.set.setText(d['text'])
         else:
             config.youw.set.setText(config.transobj['start download'])
             QtWidgets.QMessageBox.information(config.youw, "OK", d['text'])

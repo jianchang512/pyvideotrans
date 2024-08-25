@@ -2,7 +2,7 @@
 import subprocess
 import sys, io
 from pathlib import Path
-
+import json
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
@@ -11,16 +11,20 @@ from videotrans.util.tools import set_process
 
 class Download(QThread):
     uito = Signal(str)
+    
+    def post(self,msg):
+        self.uito.emit(json.dumps(msg))
 
-    def __init__(self, *, url=None, proxy=None, out=None, parent=None, vid=False):
+    def __init__(self, *, url=None, proxy=None, out=None, parent=None, vid=False,thread_num=8):
         super().__init__(parent=parent)
         self.url = url
         self.proxy = proxy
         self.out = out
         self.vid = vid
+        self.thread_num=thread_num
 
     def run(self):
-        self.uito.emit(f'logs:{config.transobj["downing..."]}')
+        self.post({"type":"logs","text":f'{config.transobj["downing..."]}'})
         cmd = ""
         p = None
         downlink={
@@ -44,18 +48,18 @@ class Download(QThread):
             outname = ""
             if self.vid:
                 outname = '  -o %(id)s.mp4'
-            cmd = f'{pwd} -c -P {self.out}   {proxy} --windows-filenames --force-overwrites    --ignore-errors --merge-output-format mp4 {self.url}{outname}'
+            cmd = f'{pwd} -c -P {self.out}  -N {self.thread_num} -f bestvideo+bestaudio  -r 10M  {proxy} --windows-filenames --force-overwrites -q  --progress --no-warnings  --ignore-errors --merge-output-format mp4 {self.url}{outname}'
             print(f'{cmd=}')
             p = subprocess.run(cmd, check=True)
             if p.returncode == 0:
-                self.uito.emit(f'下载完成' if config.defaulelang == 'zh' else 'Download succeed')
+                self.post({"type":"ok","text":f'下载完成' if config.defaulelang == 'zh' else 'Download succeed'})
         except subprocess.CalledProcessError as e:
             err = str(e.stderr)
             config.logger.error(f'下载youtube失败:,')
-            self.uito.emit(f"error:下载失败，请检查网络连接/代理地址/播放页地址")
+            self.post({"type":"error","text":"下载失败，请检查网络连接/代理地址/播放页地址"})
         except BrokenPipeError:
             pass
             # sys.stdout = None
         except Exception as e:
             config.logger.error(f'下载youtube失败:{str(e)}')
-            self.uito.emit(f'error:{str(e)}')
+            self.post({"type":"error","text":str(e)})
