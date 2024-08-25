@@ -3,33 +3,31 @@ import json
 import os
 import re
 import time
-from datetime import timedelta
+from pathlib import Path
 
+import zhconv
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.util import tools
-import zhconv
 
 
 # split audio by silence
 def shorten_voice_old(normalized_sound):
     normalized_sound = tools.match_target_amplitude(normalized_sound, -20.0)
     max_interval = int(config.settings['interval_split']) * 1000
-    buffer = int(config.settings['voice_silence'])
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
-                                    silence_thresh=-20 - 25)
-    # print(audio_chunks)
+    audio_chunks = detect_nonsilent(
+        normalized_sound,
+        min_silence_len=int(config.settings['voice_silence']),
+        silence_thresh=-20 - 25)
     for i, chunk in enumerate(audio_chunks):
-
         start_time, end_time = chunk
         n = 0
         while end_time - start_time >= max_interval:
             n += 1
-            # new_end = start_time + max_interval+buffer
             new_end = start_time + max_interval
             new_start = start_time
             nonsilent_data.append((new_start, new_end, True))
@@ -45,34 +43,33 @@ def recogn(*,
            model_name="tiny",
            set_p=True,
            inst=None,
+           uuid=None,
            is_cuda=None):
     config.logger.info('faster模式均等分割')
     if set_p:
-        tools.set_process(config.transobj['fengeyinpinshuju'], btnkey=inst.init['btnkey'] if inst else "")
+        tools.set_process(
+            config.transobj['fengeyinpinshuju'],
+            type="logs",
+            btnkey=inst.init['btnkey'] if inst else "",
+            uuid=uuid)
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     noextname = os.path.basename(audio_file)
-    tmp_path = f'{cache_folder}/{noextname}_tmp'
-    if not os.path.isdir(tmp_path):
-        try:
-            os.makedirs(tmp_path, 0o777, exist_ok=True)
-        except:
-            raise Exception(config.transobj["createdirerror"])
+    tmp_path = Path(f'{cache_folder}/{noextname}_tmp')
+    tmp_path.mkdir(parents=True,exist_ok=True)
+    tmp_path=tmp_path.as_posix()
     if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
     if tools.vail_file(nonslient_file):
-        with open(nonslient_file, 'r') as infile:
-            nonsilent_data = json.load(infile)
+        nonsilent_data = json.load(open(nonslient_file, 'r'))
     else:
         nonsilent_data = shorten_voice_old(normalized_sound)
-        with open(nonslient_file, 'w') as outfile:
-            json.dump(nonsilent_data, outfile)
+        json.dump(nonsilent_data, open(nonslient_file, 'w'))
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
-    start_t = time.time()
     if model_name.startswith('distil-'):
         com_type = "default"
     elif is_cuda:
@@ -81,11 +78,17 @@ def recogn(*,
         com_type = 'default'
     local_res = True if model_name.find('/') == -1 else False
     down_root = config.rootdir + "/models"
-    if set_p and inst and model_name.find('/') > 0:
+    msg = ''
+    if model_name.find('/') > 0:
         if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
-            inst.parent.status_text = '下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Download model from huggingface'
+            msg = '下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Download model from huggingface'
         else:
-            inst.parent.status_text = '加载或下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Load model from local or download model from huggingface'
+            msg = '加载或下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Load model from local or download model from huggingface'
+    if inst:
+        inst.parent.status_text = msg
+    if set_p:
+        tools.set_process(msg, type='logs', btnkey=inst.init['btnkey'] if inst else "", uuid=uuid)
+
     model = WhisperModel(
         model_name,
         device="cuda" if config.params['cuda'] else "cpu",
@@ -102,14 +105,15 @@ def recogn(*,
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
-                                           beam_size=config.settings['beam_size'],
-                                           best_of=config.settings['best_of'],
-                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
-                                           temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,
-                                                                                                      0.6, 0.8, 1.0],
-                                           vad_filter=False,
-                                           language=detect_language,
-                                           initial_prompt=config.settings['initial_prompt_zh'])
+                   beam_size=config.settings['beam_size'],
+                   best_of=config.settings['best_of'],
+                   condition_on_previous_text=config.settings['condition_on_previous_text'],
+                   temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,
+                                                                              0.6, 0.8, 1.0],
+                   vad_filter=False,
+                   language=detect_language,
+                   initial_prompt=config.settings['initial_prompt_zh']
+            )
 
             for t in segments:
                 text += t.text + " "
@@ -124,22 +128,24 @@ def recogn(*,
             end = tools.ms_to_time_string(ms=end_time)
             srt_line = {"line": len(raw_subtitles) + 1, "time": f"{start} --> {end}", "text": text}
             raw_subtitles.append(srt_line)
+            if inst and inst.precent < 55:
+                inst.precent += 0.1
             if set_p:
-                if inst and inst.precent < 55:
-                    inst.precent += 0.1
-                tools.set_process(f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
-                                  btnkey=inst.init['btnkey'] if inst else "")
+                tools.set_process(
+                    f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
+                    type="logs",
+                    btnkey=inst.init['btnkey'] if inst else "",
+                    uuid=uuid)
                 msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
-                tools.set_process(msg, 'subtitle')
-            else:
-                tools.set_process_box(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n",
-                                      type="set", func_name="shibie")
+                tools.set_process(msg, type='subtitle', uuid=uuid)
         except Exception as e:
-            # del model
-            raise Exception(str(e.args) + str(e))
+            raise
 
     if set_p:
-        tools.set_process(f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}", 'logs',
-                          btnkey=inst.init['btnkey'] if inst else "")
-    # 写入原语言字幕到目标文件夹
+        tools.set_process(
+            f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}",
+            type='logs',
+            btnkey=inst.init['btnkey'] if inst else "",
+            uuid=uuid
+        )
     return raw_subtitles

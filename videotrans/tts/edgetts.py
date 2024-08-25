@@ -21,6 +21,7 @@ def get_voice(*,
               filename=None,
               set_p=True,
               inst=None,
+              uuid=None,
               pitch="+0Hz",
               volume="+0%"
               ):
@@ -38,16 +39,17 @@ def get_voice(*,
             return True
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+        if set_p:
+            if inst and inst.precent < 80:
+                inst.precent += 0.1
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',type="logs", btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
 
     except Exception as e:
         err = str(e)
         config.logger.error(f'[edgeTTS]{text=}{err=},')
         if err.find("Invalid response status") > 0 or err.find('WinError 10054') > -1:
             if set_p:
-                tools.set_process("edgeTTS过于频繁暂停5s后重试", btnkey=inst.init['btnkey'] if inst else "")
+                tools.set_process("edgeTTS过于频繁暂停5s后重试",type="logs", btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
             config.settings['dubbing_thread'] = 1
             time.sleep(10)
             return get_voice(
@@ -59,10 +61,11 @@ def get_voice(*,
                 set_p=set_p,
                 inst=inst,
                 pitch=pitch,
-                volume=volume
+                volume=volume,
+                uuid=uuid
             )
         elif set_p:
-            tools.set_process("有一个配音出错", btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process("有一个配音出错", type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
             config.logger.error(f'edgeTTS配音有一个失败:{text=},{filename=}')
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = err

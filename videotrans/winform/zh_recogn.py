@@ -4,7 +4,7 @@ from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
 
 
-def open(self):
+def open():
     class Test(QThread):
         uito = Signal(str)
 

@@ -126,6 +126,14 @@ class Ui_recogn(object):
 
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
+
+        self.loglabel=QtWidgets.QLabel()
+        self.loglabel.setStyleSheet('''color:#999''')
+        self.verticalLayout_3.addWidget(self.loglabel)
+
+
+
+
         self.shibie_text = QtWidgets.QPlainTextEdit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)

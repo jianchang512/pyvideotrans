@@ -11,7 +11,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
-from moviepy.editor import VideoFileClip, CompositeVideoClip, ImageClip
+
 
 from videotrans.configure import config
 import builtins

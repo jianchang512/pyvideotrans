@@ -1,3 +1,4 @@
+import json
 import os
 
 import torch
@@ -7,30 +8,32 @@ from PySide6.QtGui import QDesktopServices, QTextCursor
 from PySide6.QtWidgets import QMessageBox
 
 from videotrans import translator
-from videotrans.box.component import DropButton
+from videotrans.component.component import DropButton
 from videotrans.configure import config
 from videotrans.task.recognworker import RecognWorker
 
 
 def open():
     def feed(d):
-        print(f'{d=}')
-        if d.startswith('replace:'):
+        d=json.loads(d)
+        if d['type']=='replace':
             config.recognform.shibie_text.clear()
-            config.recognform.shibie_text.insertPlainText(d[8:])
-        elif d.startswith('set:'):
+            config.recognform.shibie_text.insertPlainText(d["text"])
+        elif d['type']=='subtitle':
             config.recognform.shibie_text.moveCursor(QTextCursor.End)
-            config.recognform.shibie_text.insertPlainText(d[4:].capitalize())
-        elif d.startswith('error:'):
+            config.recognform.shibie_text.insertPlainText(d['text'].capitalize())
+        elif d['type']=='error':
             config.recognform.shibie_startbtn.setDisabled(False)
-            QMessageBox.critical(config.recognform, config.transobj['anerror'], d[6:])
-        elif d.startswith('jd:'):
-            config.recognform.shibie_startbtn.setText(d[3:])
+            QMessageBox.critical(config.recognform, config.transobj['anerror'], d['text'])
+        elif d['type']=='logs':
+            config.recognform.loglabel.setText(d['text'])
+        elif d['type']=='jindu':
+            config.recognform.shibie_startbtn.setText(d['text'])
         else:
+            config.recognform.loglabel.setText(config.transobj["zhixingwc"])
             config.recognform.shibie_startbtn.setText(config.transobj["zhixingwc"])
             config.recognform.shibie_startbtn.setDisabled(False)
-            config.recognform.shibie_dropbtn.setText(
-                config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
+            config.recognform.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
 
     def opendir_fn(dirname=None):
         if not dirname:
@@ -107,6 +110,8 @@ def open():
         os.makedirs(shibie_out_path, exist_ok=True)
         config.recognform.shibie_opendir.setDisabled(False)
         try:
+            config.recognform.shibie_startbtn.setDisabled(True)
+            config.recognform.loglabel.setText('')
             shibie_task = RecognWorker(
                 audio_paths=wait_list,
                 model=model,
@@ -114,7 +119,7 @@ def open():
                 model_type=model_type,
                 language=langcode,
                 out_path=shibie_out_path,
-                is_cuda=is_cuda,parent=config.recognform)
+                is_cuda=is_cuda, parent=config.recognform)
             shibie_task.uito.connect(feed)
             shibie_task.start()
         except Exception as e:

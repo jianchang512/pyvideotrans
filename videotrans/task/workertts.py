@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 # primary ui
 import copy
+import hashlib
+import json
 import os
+import threading
 import time
+from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 from pydub import AudioSegment
@@ -25,95 +29,74 @@ class WorkerTTS(QThread):
                  pitch="+0Hz",
                  wavname=None,
                  tts_type=None,
-                 func_name=None,
                  voice_autorate=False,
                  langcode=None,
-                 tts_issrt=False,
                  parent=None):
         super(WorkerTTS, self).__init__(parent)
         self.volume = volume
         self.pitch = pitch
         self.all_text = []
-        self.func_name = func_name
         self.files = files
         self.role = role
         self.rate = rate
         self.wavname = wavname
         self.tts_type = tts_type
-        self.tts_issrt = tts_issrt
         self.langcode = langcode
         self.voice_autorate = voice_autorate
-
         self.tmpdir = f'{homedir}/tmp'
-        if not os.path.exists(self.tmpdir):
-            os.makedirs(self.tmpdir, exist_ok=True)
+        Path(self.tmpdir).mkdir(parents=True,exist_ok=True)
+        md5_hash = hashlib.md5()
+        md5_hash.update(f"{time.time()}{role}{rate}{volume}{pitch}{voice_autorate}{len(files)}{tts_type}{langcode}".encode('utf-8'))
+        self.uuid = md5_hash.hexdigest()
+        self.end=False
 
     def run(self):
         config.box_tts = 'ing'
+        def getqueulog(uuid):
+            while 1:
+                if self.end or config.exit_soft:
+                    return
+                q = config.queue_dict.get(uuid)
+                if not q:
+                    continue
+                try:
+                    data = q.get(True, 0.5)
+                    if data:
+                        print(f'@@@@@@@@@@@@@@@@@@@@@@@@@@@@{data=}')
+                        self.post(data)
+                except Exception:
+                    pass
+
+        threading.Thread(target=getqueulog, args=(self.uuid,)).start()
         # 字幕格式
-        if self.tts_issrt:
-            self.all_text = []
-            if isinstance(self.files, str):
-                self.all_text.append({"text": self.files.strip(), "file": "srt-voice"})
-            else:
-                for it in self.files:
-                    content = ""
-                    try:
-                        with open(it, 'r', encoding='utf-8') as f:
-                            content = f.read().strip()
-                    except:
-                        with open(it, 'r', encoding='utf-8') as f:
-                            content = f.read().strip()
-                    finally:
-                        if content:
-                            self.all_text.append({"text": content, "file": os.path.basename(it)})
-
+        self.all_text = []
+        for it in self.files:
+            content = ""
             try:
-                errs, success = self.before_tts()
-                config.box_tts = 'stop'
-                if success == 0:
-                    self.uito.emit('error:全部失败了请打开输出目录中txt文件查看失败记录')
-                elif errs > 0:
-                    self.uito.emit(f"error:失败{errs}个，成功{success}个，请查看输出目录中txt文件查看失败记录")
-                else:
-                    self.uito.emit('ok')
-            except Exception as e:
-                config.box_tts = 'stop'
-                self.uito.emit(f'error:srt create dubbing error:{str(e)}')
-            return
-
-        mp3 = self.wavname + ".mp3"
+                with open(it, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+            except:
+                with open(it, 'r', encoding='gbk') as f:
+                    content = f.read().strip()
+            finally:
+                if content:
+                    self.all_text.append({"text": content, "file": os.path.basename(it)})
         try:
-            text_to_speech(
-                text=self.files,
-                role=self.role,
-                rate=self.rate,
-                filename=mp3,
-                language=self.langcode,
-                tts_type=self.tts_type,
-                volume=self.volume,
-                pitch=self.pitch,
-                set_p=False
-            )
-
-            runffmpeg([
-                '-y',
-                '-i',
-                f'{mp3}',
-                "-c:a",
-                "pcm_s16le",
-                f'{self.wavname}.wav',
-            ])
-            if os.path.exists(mp3):
-                os.unlink(mp3)
-        except Exception as e:
+            errs, success = self.before_tts()
             config.box_tts = 'stop'
-            self.uito.emit(f'error:srt create dubbing error:{str(e)}')
-            return
+            if success == 0:
+                self.post({"type":"error","text":'全部失败了请打开输出目录中txt文件查看失败记录'})
+            elif errs > 0:
+                self.post({"type":"error","text":f"error:失败{errs}个，成功{success}个，请查看输出目录中txt文件查看失败记录"})
+        except Exception as e:
+            self.post({"type":"error","text":f'error:{str(e)}'})
+
 
         config.box_tts = 'stop'
-        self.uito.emit("ok")
+        self.post({"type":"ok","text":""})
 
+    def post(self,jsondata):
+        self.uito.emit(json.dumps(jsondata))
     # 1. 将每个配音的实际长度加入 dubb_time
     #
     def _add_dubb_time(self, queue_tts):
@@ -238,14 +221,18 @@ class WorkerTTS(QThread):
         length = len(self.all_text)
         errs = 0
         config.settings['remove_white_ms'] = int(config.settings['remove_white_ms'])
+        jd=0
         for n, item in enumerate(self.all_text):
+            jd+=(n/length)
             queue_tts = []
             # 获取字幕
-            self.uito.emit(f'replace:{item["text"]}')
+            self.post({"type":"replace","text":item["text"]})
             subs = get_subtitle_from_srt(item["text"], is_file=False)
 
             # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
-            for it in subs:
+            sub_len=len(subs)
+            self.post({"type":"jd","text":f'{round(jd*100,2)}%'})
+            for k,it in enumerate(subs):
                 queue_tts.append({
                     "text": it['text'],
                     "role": self.role,
@@ -260,7 +247,7 @@ class WorkerTTS(QThread):
                     "volume": self.volume,
                     "filename": f"{self.tmpdir}/tts-{time.time()}-{it['start_time']}.mp3"})
             try:
-                run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, set_p=False)
+                run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, set_p=True,uuid=self.uuid)
 
                 # 1.首先添加配音时间
                 queue_tts = self._add_dubb_time(queue_tts)
@@ -283,16 +270,13 @@ class WorkerTTS(QThread):
                         segments.append(AudioSegment.from_file(it['filename'], format="mp3"))
                     else:
                         segments.append(AudioSegment.silent(duration=it['end_time'] - it['start_time']))
-                self.merge_audio_segments(segments=segments, video_time=0, queue_tts=copy.deepcopy(queue_tts),
-                                          out=f'{self.wavname}-{item["file"]}.wav')
+                self.merge_audio_segments(segments=segments, video_time=0, queue_tts=copy.deepcopy(queue_tts), out=f'{self.wavname}-{item["file"]}.wav')
 
             except Exception as e:
                 errs += 1
                 with open(f'{self.wavname}-error.txt', 'w', encoding='utf-8') as f:
                     f.write(f'srt文件 {item["file"]} 合成失败，原因为:{str(e)}\n\n原字幕内容为\n\n{item["text"]}')
-            finally:
-                percent = round(100 * (n + 1) / length, 2)
-                self.uito.emit(f'jd:{percent}%')
+                self.post({"type":"logs","text":f'srt文件 {item["file"]} 合成失败，原因为:{str(e)}\n\n原字幕内容为\n\n{item["text"]}'})
         return errs, length - errs
 
     def merge_audio_segments(self, *, segments=None, queue_tts=None, video_time=0, out=None):

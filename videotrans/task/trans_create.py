@@ -110,34 +110,28 @@ class TransCreate():
         if tools.vail_file(self.config_params['back_audio']):
             self.init['background_music'] = Path(self.config_params['back_audio']).as_posix()
 
-        # 如果是字幕创建配音模式
-        if self.config_params['app_mode'] == 'peiyin':
-            self.init['noextname'] = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            self.init['target_dir'] = self.config_params['target_dir'] if self.config_params[
-                'target_dir'] else f"{config.homedir}/only_dubbing"
-            self.init['btnkey'] = "srt2wav"
-        else:
-            # 不带后缀的视频名字
-            self.init['noextname'] = self.obj['noextname']
-            # 进度按钮
-            self.init['btnkey'] = self.obj['unid']
-            # 临时作为目标目录，最后再根据条件移动
-            self.init['target_dir'] = self.obj['linshi_output']
-            # 如果不是仅提取，则获取视频信息
-            if self.config_params['app_mode'] not in ['tiqu', 'peiyin']:
-                # 获取视频信息
-                try:
-                    tools.set_process("分析视频数据，用时可能较久请稍等.." if config.defaulelang == 'zh' else "Hold on a monment",
-                                      btnkey=self.init['btnkey'])
-                    self.init['video_info'] = tools.get_video_info(self.obj['source_mp4'])
-                except Exception as e:
-                    raise Exception(f"{config.transobj['get video_info error']}:{str(e)}")
 
-                if not self.init['video_info']:
-                    raise Exception(config.transobj['get video_info error'])
-                video_codec = 'h264' if self.video_codec == 264 else 'hevc'
-                if self.init['video_info']['video_codec_name'] == video_codec and self.obj['ext'].lower() == 'mp4':
-                    self.init['h264'] = True
+        # 不带后缀的视频名字
+        self.init['noextname'] = self.obj['noextname']
+        # 进度按钮
+        self.init['btnkey'] = self.obj['unid']
+        # 临时作为目标目录，最后再根据条件移动
+        self.init['target_dir'] = self.obj['output']
+        # 如果不是仅提取，则获取视频信息
+        if self.config_params['app_mode'] not in ['tiqu']:
+            # 获取视频信息
+            try:
+                tools.set_process("分析视频数据，用时可能较久请稍等.." if config.defaulelang == 'zh' else "Hold on a monment",
+                                type="logs",  btnkey=self.init['btnkey'])
+                self.init['video_info'] = tools.get_video_info(self.obj['source_mp4'])
+            except Exception as e:
+                raise Exception(f"{config.transobj['get video_info error']}:{str(e)}")
+
+            if not self.init['video_info']:
+                raise Exception(config.transobj['get video_info error'])
+            video_codec = 'h264' if self.video_codec == 264 else 'hevc'
+            if self.init['video_info']['video_codec_name'] == video_codec and self.obj['ext'].lower() == 'mp4':
+                self.init['h264'] = True
 
         # 临时文件夹
         self.init['cache_folder'] = f"{config.TEMP_DIR}/{self.init['noextname']}"
@@ -172,12 +166,8 @@ class TransCreate():
         self.init['source_wav'] = f"{self.init['target_dir']}/{self.init['source_language_code']}.m4a"
         # 配音后的音频文件
         self.init['target_wav'] = f"{self.init['target_dir']}/{self.init['target_language_code']}.m4a"
-        # 如果是配音操作
-        if self.config_params['app_mode'] == 'peiyin':
-            self.init[
-                'target_wav'] = f"{self.init['target_dir']}/{self.init['target_language_code']}-{self.init['noextname']}.m4a"
-            if self.config_params['clear_cache']:
-                Path(self.init['target_wav']).unlink(missing_ok=True)
+
+
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
         if self.config_params['voice_role'] != 'No' and self.init['source_language_code'] == self.init[
@@ -210,52 +200,50 @@ class TransCreate():
                              self.config_params['subtitles'].strip(), re.S | re.M)
                 f.write(txt)
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
-        if self.config_params['app_mode'] not in ['peiyin']:
-            # 判断是否存在原始视频同名同目录的srt字幕文件
-            raw_source_srt = self.obj['output'] + f"/{self.init['source_language_code']}.srt"
-            raw_srt = self.obj['raw_dirname'] + f"/{self.obj['raw_noextname']}.srt"
-            if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size > 0:
-                config.logger.info(f'{raw_srt=},{raw_source_srt=}使用原始视频同目录下同名字幕文件')
-                shutil.copy2(raw_srt, raw_source_srt)
 
-            raw_source_srt_path = Path(raw_source_srt)
-            if raw_source_srt_path.is_file():
-                if raw_source_srt_path.stat().st_size == 0:
-                    raw_source_srt_path.unlink(missing_ok=True)
+        raw_source_srt = self.obj['output'] + f"/{self.init['source_language_code']}.srt"
+        raw_srt = self.obj['raw_dirname'] + f"/{self.obj['raw_noextname']}.srt"
+        if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size > 0:
+            config.logger.info(f'{raw_srt=},{raw_source_srt=}使用原始视频同目录下同名字幕文件')
+            shutil.copy2(raw_srt, raw_source_srt)
+
+        raw_source_srt_path = Path(raw_source_srt)
+        if raw_source_srt_path.is_file():
+            if raw_source_srt_path.stat().st_size == 0:
+                raw_source_srt_path.unlink(missing_ok=True)
+            elif self.obj['output'] != self.obj['linshi_output']:
+                config.logger.info(f'使用已放置到目标文件夹下的原语言字幕:{raw_source_srt}')
+                shutil.copy2(raw_source_srt, self.init['source_sub'])
+        # 原始目标语言不同时
+        raw_target_srt = self.obj['output'] + f"/{self.init['target_language_code']}.srt"
+        if raw_source_srt != raw_target_srt:
+            raw_target_srt_path = Path(raw_target_srt)
+            if Path(raw_target_srt).is_file():
+                if raw_target_srt_path.stat().st_size == 0:
+                    raw_target_srt_path.unlink(missing_ok=True)
                 elif self.obj['output'] != self.obj['linshi_output']:
-                    config.logger.info(f'使用已放置到目标文件夹下的原语言字幕:{raw_source_srt}')
-                    shutil.copy2(raw_source_srt, self.init['source_sub'])
-            # 原始目标语言不同时
-            raw_target_srt = self.obj['output'] + f"/{self.init['target_language_code']}.srt"
-            if raw_source_srt != raw_target_srt:
-                raw_target_srt_path = Path(raw_target_srt)
-                if Path(raw_target_srt).is_file():
-                    if raw_target_srt_path.stat().st_size == 0:
-                        raw_target_srt_path.unlink(missing_ok=True)
-                    elif self.obj['output'] != self.obj['linshi_output']:
-                        config.logger.info(f'使用已放置到目标文件夹下的目标语言字幕:{raw_target_srt}')
-                        shutil.copy2(raw_target_srt, self.init['target_sub'])
+                    config.logger.info(f'使用已放置到目标文件夹下的目标语言字幕:{raw_target_srt}')
+                    shutil.copy2(raw_target_srt, self.init['target_sub'])
 
     # 启动执行入口
     def prepare(self):
         # 获取set.ini配置
         config.settings = config.parse_init()
         if self.config_params['tts_type'] == 'clone-voice':
-            tools.set_process(config.transobj['test clone voice'], btnkey=self.init['btnkey'])
+            tools.set_process(config.transobj['test clone voice'], type="logs",btnkey=self.init['btnkey'])
             try:
                 tools.get_clone_role(True)
             except Exception as e:
                 raise Exception(str(e))
         # 禁止修改字幕
-        tools.set_process("forbid" if self.config_params['is_batch'] else "no", "disabled_edit",
-                          btnkey=self.init['btnkey'])
+        tools.set_process("forbid" if self.config_params['is_batch'] else "no", type="disabled_edit", btnkey=self.init['btnkey'])
 
         def runing():
             t = 0
             while not self.hasend:
                 time.sleep(2)
                 t += 2
-                tools.set_process(f"{self.status_text} {t}s", btnkey=self.init['btnkey'], nologs=True)
+                tools.set_process(f"{self.status_text} {t}s",type="logs", btnkey=self.init['btnkey'], nologs=True)
 
         if self.config_params['app_mode'] not in ['peiyin']:
             threading.Thread(target=runing).start()
@@ -269,10 +257,6 @@ class TransCreate():
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self):
-        # 存在视频 不是peiyin
-        if self.config_params['app_mode'] == 'peiyin':
-            return True
-
         # 不是 提取字幕时，需要分离出视频
         if self.config_params['app_mode'] not in ['tiqu']:
             config.queue_novice[self.init['noextname']] = 'ing'
@@ -291,7 +275,7 @@ class TransCreate():
         if self.config_params['is_separate'] and not tools.vail_file(self.init['vocal']):
             # 背景分离音
             try:
-                tools.set_process(config.transobj['Separating background music'], btnkey=self.init['btnkey'])
+                tools.set_process(config.transobj['Separating background music'],type="logs", btnkey=self.init['btnkey'])
                 self.status_text = config.transobj['Separating background music']
                 tools.split_audio_byraw(self.obj['source_mp4'], self.init['source_wav'], True,
                                         btnkey=self.init['btnkey'])
@@ -371,7 +355,7 @@ class TransCreate():
         return True
 
     def hebing(self):
-        if self.config_params['app_mode'] in ['tiqu', 'peiyin']:
+        if self.config_params['app_mode'] in ['tiqu']:
             self.step_inst.precent = 100
             return True
         self.status_text = config.transobj['kaishihebing']
@@ -388,18 +372,12 @@ class TransCreate():
     def move_at_end(self):
         self.hasend = True
         self.step_inst.precent = 100
-        if self.config_params['app_mode'] in ['peiyin']:
-            return
+
 
         wait_deldir = None
         linshi_deldir = None
         # 需要移动 linshi移动到 output
-        if self.obj and self.obj['output'] != self.obj['linshi_output']:
-            target_mp4 = Path(self.init['targetdir_mp4'])
-            if target_mp4.exists() and target_mp4.stat().st_size > 0:
-                target_mp4.rename(Path(self.obj['linshi_output'] + f'/{self.obj["raw_noextname"]}.mp4'))
-            shutil.copytree(self.obj['linshi_output'], self.obj['output'], dirs_exist_ok=True)
-            linshi_deldir = self.obj['linshi_output']
+
 
         # 提取时，删除
         if self.config_params['app_mode'] == 'tiqu':
@@ -411,41 +389,33 @@ class TransCreate():
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
                 # 软字幕时也需要保存字幕, 仅删除非 mp4非srt文件
-                if int(self.config_params['subtitle_type']) in [2, 4]:
-                    if ext not in ['.mp4', '.srt']:
-                        it.unlink(missing_ok=True)
+                # if int(self.config_params['subtitle_type']) in [2, 4]:
+                #     if ext not in ['.mp4', '.srt']:
+                #         it.unlink(missing_ok=True)
+                # else:
+                # 其他情况 移动视频到上一级
+                if ext != '.mp4':
+                    it.unlink(missing_ok=True)
                 else:
-                    # 其他情况 移动视频到上一级
-                    if ext != '.mp4':
-                        it.unlink(missing_ok=True)
-                    else:
-                        try:
-                            it.rename(it.parent / "../" / f'{it.name}')
-                        except Exception:
-                            pass
+                    try:
+                        it.rename(it.parent / "../" / f'{it.name}')
+                    except Exception:
+                        pass
             # 不是软字幕则删除文件夹
-            if int(self.config_params['subtitle_type']) not in [2, 4]:
-                try:
-                    self.obj['output'] = outputpath.parent.resolve().as_posix()
-                    # wait_deldir = outputpath.resolve().as_posix()
-                except Exception:
-                    pass
+            # if int(self.config_params['subtitle_type']) not in [2, 4]:
+            try:
+                self.obj['output'] = outputpath.parent.resolve().as_posix()
+            except Exception:
+                pass
 
         # 批量不允许编辑字幕
         if not self.config_params['is_batch']:
-            tools.set_process('', 'allow_edit', btnkey=self.init['btnkey'])
+            tools.set_process('', type='allow_edit', btnkey=self.init['btnkey'])
 
         tools.set_process(
             f"{self.obj['output']}##{self.obj['raw_basename']}",
-            'succeed',
+            type='succeed',
             btnkey=self.init['btnkey']
         )
         tools.send_notification("Succeed", f"{self.obj['raw_basename']}")
-
-        # 删除临时文件
-        # shutil.rmtree(self.init['cache_folder'], ignore_errors=True)
-        # if linshi_deldir:
-        #    shutil.rmtree(linshi_deldir)
-        # if wait_deldir:
-        #    shutil.rmtree(wait_deldir, ignore_errors=True)
         return True

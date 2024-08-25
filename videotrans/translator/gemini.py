@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import re, os
+import os
+import re
 import time
-from videotrans.configure import config
-from videotrans.util import tools
+
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
+from videotrans.configure import config
+from videotrans.util import tools
 
 safetySettings = [
     {
@@ -73,44 +76,52 @@ def get_error(num=5, type='error'):
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
 
-def get_content(d, *, model=None, prompt=None):
-    update_proxy(type='set')
-    response = None
-    try:
-        if '{text}' in prompt:
-            message = prompt.replace('{text}', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)
-        else:
-            message = prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)
-        response = model.generate_content(
-            message
-        )
-        config.logger.info(f'[Gemini]请求发送:{message=}')
 
-        result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        config.logger.info(f'[Gemini]返回:{result=}')
-        if not result:
-            raise Exception("fail")
-        return re.sub(r'\n{2,}', "\n", result)
-    except Exception as e:
-        error = str(e)
-        config.logger.error(f'[Gemini]请求失败:{error=}')
-        if response and response.prompt_feedback.block_reason:
-            raise Exception(get_error(response.prompt_feedback.block_reason, "forbid"))
 
-        if error.find('User location is not supported') > -1 or error.find('time out') > -1:
-            raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
+def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,uuid=None):
+    def get_content(d, *, model=None, prompt=None):
+        update_proxy(type='set')
+        response = None
+        try:
+            if '{text}' in prompt:
+                message = prompt.replace('{text}', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)
+            else:
+                message = prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)
+            response = model.generate_content(
+                message
+            )
+            config.logger.info(f'[Gemini]请求发送:{message=}')
 
-        if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
-            raise Exception(get_error(response.candidates[0].finish_reason))
-
-        if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
-                response.candidates[0].content and response.candidates[0].content.parts:
             result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+            config.logger.info(f'[Gemini]返回:{result=}')
+            if not result:
+                raise Exception("fail")
             return re.sub(r'\n{2,}', "\n", result)
-        raise
+        except Exception as e:
+            error = str(e)
+            if set_p:
+                tools.set_process(
+                    error,
+                    type="logs",
+                    btnkey=inst.init['btnkey'] if inst else "",
+                    uuid=uuid
+                )
+            config.logger.error(f'[Gemini]请求失败:{error=}')
+            if response and response.prompt_feedback.block_reason:
+                raise Exception(get_error(response.prompt_feedback.block_reason, "forbid"))
 
+            if error.find('User location is not supported') > -1 or error.find('time out') > -1:
+                raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
 
-def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False):
+            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
+                raise Exception(get_error(response.candidates[0].finish_reason))
+
+            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
+                    response.candidates[0].content and response.candidates[0].content.parts:
+                result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+                return re.sub(r'\n{2,}', "\n", result)
+            raise
+
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -125,10 +136,26 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     except Exception:
         pass
     try:
+        print(f'########{set_p=},{uuid=}')
+        if set_p:
+            tools.set_process(
+                f'Connecting Gemini API' ,
+                type="logs",
+                btnkey=inst.init['btnkey'] if inst else "",
+                uuid=uuid
+            )
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
+        print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{err},{set_p=},{uuid=}')
+        if set_p:
+            tools.set_process(
+                err,
+                type="error",
+                btnkey=inst.init['btnkey'] if inst else "",
+                uuid=uuid
+            )
         raise Exception(f'请正确设置http代理,{err}')
 
     # 翻译后的文本
@@ -164,7 +191,9 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
-                    btnkey=inst.init['btnkey'] if inst else "")
+                    type="logs",
+                    btnkey=inst.init['btnkey'] if inst else "",
+                    uuid=uuid)
             time.sleep(10)
         iter_num += 1
 
@@ -181,8 +210,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     inst.precent += 0.01
                 if not is_srt:
                     target_text["0"].append(result)
-                    if not set_p:
-                        tools.set_process_box(text=result + "\n", func_name="fanyi", type="set")
                     continue
 
                 sep_res = tools.cleartext(result).split("\n")
@@ -206,8 +233,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 err = str(e)
                 time.sleep(wait_sec)
                 config.logger.error(f'翻译出错:暂停{wait_sec}s')
-                # if err.find('Resource has been exhausted')>-1:
-                #     time.sleep(30)
                 break
             else:
                 # 未出错
@@ -216,18 +241,21 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     if x < len(it):
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
-                            tools.set_process(result_item + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
-                                              btnkey=inst.init['btnkey'] if inst else "")
-                        elif not is_test:
-                            tools.set_process_box(text=result_item + "\n", func_name="fanyi", type="set")
-
+                            tools.set_process(
+                                result_item + "\n",
+                                type='subtitle',
+                                uuid=uuid)
+                            tools.set_process(
+                                config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
+                                type="logs",
+                                btnkey=inst.init['btnkey'] if inst else "",
+                                uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
                 err = ''
                 iter_num = 0
-                index = i  # 0 if i <= 1 else i
+                index = i
         else:
             break
     update_proxy(type='del')

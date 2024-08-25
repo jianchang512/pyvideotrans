@@ -1,5 +1,5 @@
 import os
-import os
+import textwrap
 import threading
 import time
 from pathlib import Path
@@ -9,6 +9,7 @@ from PySide6.QtCore import QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
+from videotrans import translator
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -18,7 +19,7 @@ def open():
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True):
+        def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True,is_soft=False,language=None,maxlen=30):
             super().__init__(parent=parent)
             self.resultdir = config.homedir + "/vas"
             os.makedirs(self.resultdir, exist_ok=True)
@@ -26,6 +27,9 @@ def open():
             self.audio = audio
             self.srt = srt
             self.saveraw = saveraw
+            self.is_soft=is_soft
+            self.language=language
+            self.maxlen=maxlen
             print(f'{saveraw=}')
             self.file = f'{self.resultdir}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
@@ -83,7 +87,6 @@ def open():
                             '[aout]',
                             '-ac',
                             '2', tmp_mp4])
-                        # self.video=tmp_mp4
 
                     # 不保留原声音
                     end_mp4 = config.TEMP_HOME + f"/hb{time.time()}.mp4"
@@ -111,24 +114,53 @@ def open():
                 else:
                     protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
                     threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time,)).start()
-                    os.chdir(os.path.dirname(self.srt))
-                    if self.srt:
-                        tools.runffmpeg([
-                            '-y',
-                            "-progress",
-                            protxt,
-                            '-i',
-                            os.path.normpath(self.video),
-                            "-c:v",
-                            "libx264",
-                            "-vf",
-                            f"subtitles={os.path.basename(self.srt)}",
+
+                    cmd=[
+                        '-y',
+                        "-progress",
+                        protxt,
+                        '-i',
+                        os.path.normpath(self.video)
+                    ]
+                    if not self.is_soft or not self.language:
+                        #硬字幕
+                        sub_list=tools.get_subtitle_from_srt(self.srt,is_file=True)
+                        text=""
+                        for i, it in enumerate(sub_list):
+                            it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
+                            text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                        srtfile=config.TEMP_HOME+f"/vasrt{time.time()}.srt"
+                        Path(srtfile).write_text(text,encoding='utf-8')
+                        assfile=tools.set_ass_font(srtfile)
+                        os.chdir(config.TEMP_HOME)
+                        cmd+=[
+                            '-c:v',
+                            'libx264',
+                            '-vf',
+                            f"subtitles={os.path.basename(assfile)}",
                             '-crf',
                             f'{config.settings["crf"]}',
                             '-preset',
-                            config.settings['preset'],
-                            self.file
-                        ])
+                            config.settings['preset']
+                        ]
+                    else:
+                        os.chdir(os.path.dirname(self.srt))
+                        #软字幕
+                        subtitle_language=translator.get_subtitle_code(
+                            show_target=self.language)
+                        cmd+=[
+                            '-i',
+                            os.path.basename(self.srt),
+                            '-c:v',
+                            'copy',
+                            "-c:s",
+                            "mov_text",
+                            "-metadata:s:s:0",
+                            f"language={subtitle_language}"
+                        ]
+                    cmd.append(self.file)
+                    tools.runffmpeg(cmd)
+
             except Exception as e:
                 print(e)
                 self.uito.emit('error:' + str(e))
@@ -177,7 +209,14 @@ def open():
         video = config.vasform.ysphb_videoinput.text()
         audio = config.vasform.ysphb_wavinput.text()
         srt = config.vasform.ysphb_srtinput.text()
+        is_soft=config.vasform.ysphb_issoft.isChecked()
+        language=config.vasform.language.currentText()
         saveraw = config.vasform.ysphb_replace.isChecked()
+        maxlen=30
+        try:
+            maxlen=int(config.vasform.ysphb_maxlen.text())
+        except Exception:
+            pass
         if not video:
             QMessageBox.critical(config.vasform, config.transobj['anerror'],
                                  '必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
@@ -195,7 +234,10 @@ def open():
                           video=video,
                           audio=audio if audio else None,
                           srt=srt if srt else None,
-                          saveraw=saveraw
+                          saveraw=saveraw,
+                          is_soft=is_soft,
+                          language=language,
+                          maxlen=maxlen
                           )
         task.uito.connect(feed)
         task.start()

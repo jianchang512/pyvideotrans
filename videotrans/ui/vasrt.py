@@ -7,6 +7,8 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
+from pathlib import Path
+
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
                             QMetaObject, QObject, QPoint, QRect,
@@ -27,7 +29,7 @@ class Ui_vasrt(object):
     def setupUi(self, vasrt):
         if not vasrt.objectName():
             vasrt.setObjectName(u"vasrt")
-        vasrt.resize(643, 500)
+        vasrt.resize(700, 500)
         vasrt.setWindowModality(QtCore.Qt.NonModal)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -81,9 +83,11 @@ class Ui_vasrt(object):
 
         self.ysphb_wavinput = QtWidgets.QLineEdit()
         self.ysphb_wavinput.setMinimumSize(QtCore.QSize(0, 40))
-        self.ysphb_wavinput.setReadOnly(True)
+        # self.ysphb_wavinput.setReadOnly(True)
         self.ysphb_wavinput.setObjectName("ysphb_wavinput")
         self.h5.addWidget(self.ysphb_wavinput, 0, QtCore.Qt.AlignTop)
+
+        self.ysphb_wavinput.textChanged.connect(self.remainraw)
 
         self.ysphb_selectwav = QtWidgets.QPushButton()
         self.ysphb_selectwav.setMinimumSize(QtCore.QSize(150, 40))
@@ -101,7 +105,7 @@ class Ui_vasrt(object):
         self.h6.addWidget(self.label_6, 0, QtCore.Qt.AlignTop)
         self.ysphb_srtinput = QtWidgets.QLineEdit()
         self.ysphb_srtinput.setMinimumSize(QtCore.QSize(0, 40))
-        self.ysphb_srtinput.setReadOnly(True)
+        # self.ysphb_srtinput.setReadOnly(True)
         self.ysphb_srtinput.setObjectName("ysphb_srtinput")
 
         self.h6.addWidget(self.ysphb_srtinput, 0, QtCore.Qt.AlignTop)
@@ -114,9 +118,47 @@ class Ui_vasrt(object):
         self.h7.setObjectName("h7")
         self.ysphb_replace = QtWidgets.QCheckBox()
         self.ysphb_replace.setObjectName("ysphb_replace")
-        self.ysphb_replace.setChecked(True)
+        self.ysphb_replace.setDisabled(True)
         self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
-        self.h7.addWidget(self.ysphb_replace, 0, QtCore.Qt.AlignTop)
+
+        self.ysphb_maxlenlabel=QtWidgets.QLabel()
+        self.ysphb_maxlenlabel.setText("硬字幕单行字符数")
+        self.ysphb_maxlen=QtWidgets.QLineEdit()
+        self.ysphb_maxlen.setText('30')
+
+        self.layout_form0 = QtWidgets.QFormLayout()
+        self.layout_form0.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.ysphb_maxlenlabel)
+        self.layout_form0.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ysphb_maxlen)
+
+        self.ysphb_issoft = QtWidgets.QCheckBox()
+        self.ysphb_issoft.setObjectName("ysphb_issoft")
+        self.ysphb_issoft.setChecked(False)
+        self.ysphb_issoft.setText('嵌入软字幕' if config.defaulelang=='zh' else 'Embedded Soft Subtitles')
+
+        self.layout_form = QtWidgets.QFormLayout()
+
+        self.languagelabel=QtWidgets.QLabel()
+        self.languagelabel.setText('软字幕语言' if config.defaulelang=='zh' else 'soft subtitle language')
+        self.languagelabel.setStyleSheet('color:#777')
+        self.language = QtWidgets.QComboBox()
+        self.language.setMinimumSize(QtCore.QSize(0, 30))
+        self.language.setObjectName("language")
+        self.language.addItems(config.langnamelist)
+        self.language.setDisabled(True)
+        self.ysphb_issoft.toggled.connect(self.update_language)
+
+        self.layout_form.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.languagelabel)
+        self.layout_form.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.language)
+
+
+
+
+
+        self.h7.addWidget(self.ysphb_replace)
+        self.h7.addLayout(self.layout_form0)
+        self.h7.addStretch()
+        self.h7.addWidget(self.ysphb_issoft)
+        self.h7.addLayout(self.layout_form)
 
         self.v3.addLayout(self.h6)
         self.v3.addLayout(self.h7)
@@ -147,7 +189,19 @@ class Ui_vasrt(object):
 
         QMetaObject.connectSlotsByName(vasrt)
 
-    # setupUi
+    def remainraw(self,t):
+        print(f'{t=}')
+        if Path(t).is_file():
+            self.ysphb_replace.setDisabled(False)
+            self.ysphb_replace.setChecked(True)
+        else:
+            self.ysphb_replace.setChecked(False)
+            self.ysphb_replace.setDisabled(True)
+
+
+    def update_language(self,state):
+        self.languagelabel.setStyleSheet(f"""color:#f1f1f1""" if state else 'color:#777777')
+        self.language.setDisabled(False if state else True)
 
     def retranslateUi(self, vasrt):
         vasrt.setWindowTitle("视频、音频、字幕三者合并" if config.defaulelang == 'zh' else 'Video, audio, and subtitle merging')

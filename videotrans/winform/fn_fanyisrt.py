@@ -1,8 +1,9 @@
+import json
 import os
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPlainTextEdit
 
 from videotrans import translator
@@ -14,19 +15,27 @@ from videotrans.util import tools
 # 字幕批量翻译
 def open():
     def feed(d):
-        if d.startswith("error:"):
-            QtWidgets.QMessageBox.critical(config.fanyiform, config.transobj['anerror'], d)
+        d=json.loads(d)
+        if d['type']=='error':
+            QtWidgets.QMessageBox.critical(config.fanyiform, config.transobj['anerror'], d['text'])
             config.fanyiform.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             config.fanyiform.fanyi_start.setDisabled(False)
             config.fanyiform.fanyi_import.setDisabled(False)
-        elif d.startswith('replace:'):
+        # 挨个从顶部添加已翻译后的文字
+        elif d['type']=='subtitle':
+            config.fanyiform.fanyi_targettext.moveCursor(QTextCursor.End)
+            config.fanyiform.fanyi_targettext.setPlainText(d['text'])
+        elif d['type']=='replace':
             config.fanyiform.fanyi_targettext.clear()
-            config.fanyiform.fanyi_targettext.setPlainText(d[8:])
-        elif d.startswith('repsour:'):
+            config.fanyiform.fanyi_targettext.setPlainText(d['text'])
+        # 开始时清理目标区域，填充原区域
+        elif d['type']=='clear_target':
+            config.fanyiform.fanyi_targettext.clear()
+        elif d['type']=='set_source':
             config.fanyiform.fanyi_sourcetext.clear()
-            config.fanyiform.fanyi_sourcetext.setPlainText(d[8:])
-        elif d.startswith('jd:'):
-            config.fanyiform.fanyi_start.setText(d[3:])
+            config.fanyiform.fanyi_sourcetext.setPlainText(d['text'])
+        elif d['type']=='logs':
+            config.fanyiform.loglabel.setText(d["text"])
         else:
             config.fanyiform.fanyi_start.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             config.fanyiform.fanyi_import.setDisabled(False)
@@ -40,12 +49,14 @@ def open():
                                                  "Subtitles files(*.srt)")
         if len(fnames) < 1:
             return
+        namestr=[]
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/').replace('file:///', '')
+            namestr.append(os.path.basename(fnames[i]))
         if fnames:
             config.fanyiform.files = fnames
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            config.fanyiform.fanyi_sourcetext.setPlainText(f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}')
+            config.fanyiform.fanyi_sourcetext.setPlainText(f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}\n{",".join(namestr)}')
 
     def fanyi_save_fun():
         QDesktopServices.openUrl(QUrl.fromLocalFile(config.homedir + "/translate"))
@@ -64,9 +75,11 @@ def open():
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         if rs is not True:
-            QMessageBox.critical(config.fanyiform, config.transobj['anerror'], rs)
-            return
+            # QMessageBox.critical(config.fanyiform, config.transobj['anerror'], rs)
+            return False
         config.fanyiform.fanyi_sourcetext.clear()
+        config.fanyiform.loglabel.setText('')
+
         fanyi_task = FanyiWorker(translate_type, target_language, config.fanyiform.files,config.fanyiform)
         fanyi_task.uito.connect(feed)
         fanyi_task.start()

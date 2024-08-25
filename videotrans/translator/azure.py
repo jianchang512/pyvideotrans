@@ -2,8 +2,10 @@
 import os
 import re
 import time
+
 import httpx
 from openai import AzureOpenAI, APIError
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -30,8 +32,10 @@ def update_proxy(type='set'):
 
 def get_content(d, *, model=None, prompt=None):
     message = [
-        {'role': 'system', 'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results"  if config.defaulelang !='zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
-        {'role': 'user', 'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
+        {'role': 'system',
+         'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results" if config.defaulelang != 'zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+        {'role': 'user',
+         'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
     ]
 
     config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
@@ -59,7 +63,8 @@ def get_content(d, *, model=None, prompt=None):
     return re.sub(r'\n{2,}', "\n", result)
 
 
-def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False):
+def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,
+          uuid=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -86,7 +91,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
 
     prompt = config.params['azure_template'].replace('{lang}', target_language)
 
-
     end_point = "。" if config.defaulelang == 'zh' else '. '
     # 整理待翻译的文字为 List[str]
     if not is_srt:
@@ -107,7 +111,9 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
             if set_p:
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
-                    btnkey=inst.init['btnkey'] if inst else "")
+                    type="logs",
+                    btnkey=inst.init['btnkey'] if inst else "",
+                    uuid=uuid)
             time.sleep(10)
         iter_num += 1
 
@@ -131,8 +137,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     inst.precent += 0.01
                 if not is_srt:
                     target_text["0"].append(result)
-                    if not set_p:
-                        tools.set_process_box(text=result + "\n", func_name="fanyi", type="set")
                     continue
 
                 sep_res = tools.cleartext(result).split("\n")
@@ -158,11 +162,15 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                     if x < len(it):
                         target_text["srts"].append(result_item.strip().rstrip(end_point))
                         if set_p:
-                            tools.set_process(result_item + "\n", 'subtitle')
-                            tools.set_process(config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
-                                              btnkey=inst.init['btnkey'] if inst else "")
-                        elif not is_test:
-                            tools.set_process_box(text=result_item + "\n", func_name="fanyi", type="set")
+                            tools.set_process(
+                                result_item + "\n",
+                                type='subtitle',
+                                uuid=uuid)
+                            tools.set_process(
+                                config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
+                                type="logs",
+                                btnkey=inst.init['btnkey'] if inst else "",
+                                uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp

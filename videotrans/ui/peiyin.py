@@ -11,7 +11,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, QMetaObject
 
-from videotrans.box.component import Textedit
+from videotrans.component.component import Textedit
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
 
@@ -28,15 +28,9 @@ class Ui_peiyin(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(peiyin.sizePolicy().hasHeightForWidth())
         peiyin.setSizePolicy(sizePolicy)
-        # peiyin.setMaximumSize(QtCore.QSize(643, 500))
+
 
         self.hecheng_files=[]
-
-        # self.centralwidget = QtWidgets.QWidget(peiyin)
-        # self.centralwidget.setObjectName("centralwidget")
-        # self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
-        # self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-
 
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout(peiyin)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
@@ -63,10 +57,10 @@ class Ui_peiyin(object):
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
-
-
-
         self.verticalLayout_4.addLayout(self.hecheng_layout)
+
+
+
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.horizontalLayout_10_1 = QtWidgets.QHBoxLayout()
@@ -155,14 +149,9 @@ class Ui_peiyin(object):
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_rate)
         self.horizontalLayout_10_1.addLayout(self.formLayout_5)
 
-        self.tts_issrt = QtWidgets.QCheckBox()
-        self.tts_issrt.setObjectName("tts_issrt")
-
         self.voice_autorate = QtWidgets.QCheckBox()
-        self.voice_autorate.setEnabled(False)
         self.voice_autorate.setObjectName("voice_autorate")
 
-        self.horizontalLayout_10_1.addWidget(self.tts_issrt)
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
@@ -202,6 +191,11 @@ class Ui_peiyin(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_10_1)
 
         self.verticalLayout_4.addWidget(self.hecheng_startbtn)
+
+        self.loglabel=QtWidgets.QLabel()
+        self.loglabel.setStyleSheet("""color:#999""")
+        self.verticalLayout_4.addWidget(self.loglabel)
+
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.label_7 = QtWidgets.QLabel()
@@ -235,8 +229,6 @@ class Ui_peiyin(object):
         self.label_11.setText(box_lang.get("Select role"))
         self.label_12.setText(box_lang.get("Speed change"))
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
-        self.tts_issrt.setToolTip(box_lang.get("If so, the line number and time value will skip reading aloud"))
-        self.tts_issrt.setText(box_lang.get("Is srt?"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.label_7.setText(box_lang.get("Output audio name"))

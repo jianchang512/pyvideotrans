@@ -342,8 +342,7 @@ def runffmpeg(arg, *, noextname=None,
             if not retry and config.video_codec != default_codec:
                 config.video_codec = default_codec
                 # 切换为cpu
-                if not is_box:
-                    set_process(config.transobj['huituicpu'])
+                set_process(config.transobj['huituicpu'],type='logs')
                 config.logger.error(f'cuda上执行出错，退回到CPU执行')
                 for i, it in enumerate(arg_copy):
                     if i > 0 and arg_copy[i - 1] == '-c:v' and it != default_codec:
@@ -538,18 +537,18 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, btnkey=None):
         path = Path(targe_audio).parent.as_posix()
         vocal_file = path + '/vocal.wav'
         if not vail_file(vocal_file):
-            set_process(config.transobj['Separating vocals and background music, which may take a longer time'])
+            set_process(config.transobj['Separating vocals and background music, which may take a longer time'],type="logs",btnkey=btnkey)
             try:
                 st.start(audio=tmpfile, path=path, btnkey=btnkey)
             except Exception as e:
                 msg = f"separate vocal and background music:{str(e)}"
-                set_process(msg)
+                set_process(msg,type='logs',btnkey=btnkey)
                 raise Exception(msg)
         if not vail_file(vocal_file):
             return False
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
-        set_process(msg)
+        set_process(msg,type='logs',btnkey=btnkey)
         raise Exception(msg)
 
 
@@ -839,12 +838,9 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
     # txt 文件转为一条字幕
     if len(result) < 1:
-        if is_file and srtfile.endswith('.txt'):
-            result = [
+        result = [
                 {"line": 1, "time": "00:00:00,000 --> 05:00:00,000", "text": "\n".join(content)}
-            ]
-        else:
-            return []
+        ]
 
     new_result = []
     line = 1
@@ -973,7 +969,7 @@ def format_time(s_time="", separate=','):
 
 
 # 判断 novoice.mp4是否创建好
-def is_novoice_mp4(novoice_mp4, noextname):
+def is_novoice_mp4(novoice_mp4, noextname,btnkey=None):
     # 预先创建好的
     # 判断novoice_mp4是否完成
     t = 0
@@ -1000,7 +996,7 @@ def is_novoice_mp4(novoice_mp4, noextname):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}")
+            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",type='logs',btnkey=btnkey)
             time.sleep(3)
             t += 3
             continue
@@ -1066,7 +1062,7 @@ def get_clone_role(set_p=False):
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         if res.status_code == 200:
             config.params["clone_voicelist"] = ["clone"] + res.json()
-            set_process('', 'set_clone_role')
+            set_process('', type='set_clone_role')
             return True
         raise Exception(
             f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
@@ -1076,13 +1072,9 @@ def get_clone_role(set_p=False):
     return False
 
 
-# 工具箱写入日志队列
-def set_process_box(text, type='logs', *, func_name=""):
-    set_process(text, type, qname="box", func_name=func_name)
-
 
 # 综合写入日志，默认sp界面
-def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="", nologs=False):
+def set_process(text="",*, type="logs", uuid=None, btnkey="", nologs=False):
     try:
         if text:
             if not nologs:
@@ -1095,13 +1087,13 @@ def set_process(text, type="logs", *, qname='sp', func_name="", btnkey="", nolog
             if type == 'error':
                 text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>', '', text, re.I | re.M | re.S)
                 text = text.replace('\\n', ' ').strip()
-
-        if qname == 'sp':
-            config.queue_logs.put_nowait({"text": text, "type": type, "btnkey": btnkey})
-        elif qname == 'box':
-            config.queuebox_logs.put_nowait({"text": text, "type": type, "func_name": func_name})
+        logdata={"text": text, "type": type}
+        if not uuid:
+            # 是主界面，老的日志方式，通过队列提取
+            logdata['btnkey']=btnkey
+            config.queue_logs.put_nowait(logdata)
         else:
-            print(f'[{type}]: {text}')
+            config.push_queue(uuid,logdata)
     except Exception as e:
         pass
 
@@ -1123,7 +1115,6 @@ def delete_files(directory, ext):
                 delete_files(item_path)
     except:
         pass
-
 
 def send_notification(title, message):
     from plyer import notification
@@ -1334,21 +1325,9 @@ def format_video(name, out=None):
     h.update(obj['raw_name'].encode('utf-8'))
     obj['unid'] = h.hexdigest()
 
-    # if True:#re.match(r'^([a-zA-Z]:)?/[a-zA-Z0-9_/.-]+$', name):
-    # 符合规则，原始和目标相同
     obj['dirname'] = obj['raw_dirname']
     obj['basename'] = obj['raw_basename']
     obj['noextname'] = obj['raw_noextname']
-    # else:
-    #     # 不符合，需要移动到 tmp 下
-    #     obj['basename'] = f'{obj["unid"]}.{obj["raw_ext"]}'
-    #     obj['noextname'] = obj['unid']
-    #     obj['dirname'] = config.TEMP_DIR + f"/{obj['unid']}"
-    #     obj['source_mp4'] = f'{obj["dirname"]}/{obj["basename"]}'
-    #     # 目标存放位置，完成后再复制到 output
-    #     obj['linshi_output'] = f'{obj["dirname"]}/_video_out'
-    #     Path(obj['linshi_output']).mkdir(parents=True, exist_ok=True)
-
     return obj
 
 def open_url(url):

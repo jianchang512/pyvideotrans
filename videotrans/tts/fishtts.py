@@ -21,7 +21,7 @@ def wav_to_base64(file_path):
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     try:
         api_url = config.params['fishtts_url'].strip().rstrip('/').lower()
         if not api_url:
@@ -57,8 +57,9 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
             os.unlink(filename + ".wav")
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p and inst and inst.precent < 80:
-            inst.precent += 0.1
+        if set_p:
+            if inst and inst.precent < 80:
+                inst.precent += 0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
         else:
             raise Exception(f"FishTTS合成声音出错-3：{text=},{response.text=}")

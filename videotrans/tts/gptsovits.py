@@ -9,7 +9,7 @@ from videotrans.util import tools
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None):
+              inst=None,uuid=None):
     try:
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
         if not api_url:
@@ -33,7 +33,7 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
             roledict = tools.get_gptsovits_role()
             if role in roledict:
                 data.update(roledict[role])
-        print(f'{data=}')
+
         # role=clone是直接复制
         # 克隆声音
         response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
@@ -56,15 +56,16 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 os.unlink(filename + ".wav")
             if tools.vail_file(filename) and config.settings['remove_silence']:
                 tools.remove_silence_from_end(filename)
-            if set_p and inst and inst.precent < 80:
-                inst.precent += 0.1
+            if set_p:
+                if inst and inst.precent < 80:
+                    inst.precent += 0.1
                 tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
         if inst and inst.init['btnkey']:
             config.errorlist[inst.init['btnkey']] = error
         config.logger.error(f"{error}")
