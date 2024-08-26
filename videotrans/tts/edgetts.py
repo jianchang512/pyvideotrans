@@ -2,8 +2,9 @@ import asyncio
 import re
 import sys
 import time
-import os
+
 import edge_tts
+
 from videotrans.configure import config
 from videotrans.util import tools
 

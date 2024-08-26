@@ -1,4 +1,4 @@
-import os
+import json
 from pathlib import Path
 
 from PySide6 import QtWidgets
@@ -12,6 +12,8 @@ from videotrans.util import tools
 
 # 合并2个srt
 def open():
+    RESULT_DIR=config.homedir + "/Mergersrt"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
     class CompThread(QThread):
         uito = Signal(str)
 
@@ -19,10 +21,10 @@ def open():
             super().__init__(parent=parent)
             self.file1 = file1
             self.file2 = file2
-            self.result_dir = config.homedir + "/Mergersrt"
-            os.makedirs(self.result_dir, exist_ok=True)
-            self.result_file = self.result_dir + "/" + os.path.splitext(os.path.basename(file1))[0] + '-plus-' + \
-                               os.path.splitext(os.path.basename(file2))[0] + '.srt'
+            self.result_file = RESULT_DIR + "/" + Path(file1).stem + '-add-' +Path(file2).stem + '.srt'
+
+        def post(self,type='logs',text=""):
+            self.uito.emit(json.dumps({"type":type,"text":text}))
 
         def run(self):
             try:
@@ -36,17 +38,20 @@ def open():
                         text += f"\n{srt2_list[i]['text'].strip()}"
                     text += "\n\n"
                 Path(self.result_file).write_text(text.strip(),encoding="utf-8", errors="ignore")
-                self.uito.emit(self.result_file)
+                self.post(type='ok',text=self.result_file)
             except Exception as e:
-                self.uito.emit('error:' + str(e))
+                self.post(type='error',text=str(e))
 
     def feed(d):
-        if d.startswith("error:"):
-            QtWidgets.QMessageBox.critical(config.hebingw, config.transobj['anerror'], d)
+        d=json.loads(d)
+        if d['type']=="error":
+            QtWidgets.QMessageBox.critical(config.hebingw, config.transobj['anerror'], d['text'])
+        elif d['type']=='logs':
+            config.hebingw.startbtn.setText(d['text'])
         else:
             config.hebingw.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
             config.hebingw.startbtn.setDisabled(False)
-            config.hebingw.resultlabel.setText(d)
+            config.hebingw.resultlabel.setText(d['text'])
             config.hebingw.resultbtn.setDisabled(False)
             config.hebingw.resultinput.setPlainText(Path(config.hebingw.resultlabel.text()).read_text(encoding='utf-8'))
 
@@ -60,7 +65,6 @@ def open():
                 config.hebingw.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        # 开始处理分离，判断是否选择了源文件
         srt1 = config.hebingw.srtinput1.text()
         srt2 = config.hebingw.srtinput2.text()
         if not srt1 or not srt2:
@@ -79,11 +83,7 @@ def open():
         task.start()
 
     def opendir():
-        filepath = config.hebingw.resultlabel.text()
-        if not filepath:
-            return QMessageBox.critical(config.hebingw, config.transobj['anerror'],
-                                        '尚未生成合并字幕' if config.defaulelang == 'zh' else 'Combined subtitles not yet generated')
-        QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import HebingsrtForm
     try:

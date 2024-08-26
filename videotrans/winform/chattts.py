@@ -1,3 +1,4 @@
+import builtins
 import json
 
 from PySide6 import QtWidgets
@@ -5,7 +6,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
 from videotrans.util import tools
-import builtins
+
 # 使用内置的 open 函数
 builtin_open = builtins.open
 
@@ -55,8 +56,9 @@ def open():
     def save():
         key = config.chatttsw.chattts_address.text().strip()
         voice = config.chatttsw.chattts_voice.text().strip()
-        key = key.rstrip('/')
-        key = 'http://' + key.replace('http://', '').replace('/tts', '')
+        if key:
+            key = key.rstrip('/')
+            key = 'http://' + key.replace('http://', '').replace('/tts', '')
         config.params["chattts_api"] = key
         config.getset_params(config.params)
         config.settings['chattts_voice'] = voice

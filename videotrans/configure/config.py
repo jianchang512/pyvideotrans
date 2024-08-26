@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-import os
 import locale
 import logging
-import queue
+import os
 import re
 import sys
-from queue import Queue
 from pathlib import Path
+from queue import Queue
 
 
 def get_executable_path():
@@ -176,6 +175,8 @@ vasform=None
 fanyiform=None
 recognform=None
 peiyinform=None
+vandaform=None
+vandsrtform=None
 
 
 # 翻译队列

@@ -10,7 +10,7 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QSizePolicy, QSpacerItem
+from PySide6.QtWidgets import QSizePolicy
 
 from videotrans.configure import config
 
@@ -528,7 +528,6 @@ class Ui_MainWindow(object):
         self.actiondeepL_key = QtGui.QAction(MainWindow)
         self.actiondeepL_key.setObjectName("actiondeepL_key")
 
-
         self.actionazure_tts = QtGui.QAction(MainWindow)
         self.actionazure_tts.setObjectName("actionazure_tts")
 
@@ -601,14 +600,6 @@ class Ui_MainWindow(object):
         self.action_xinshoujandan.setChecked(False)
         self.action_xinshoujandan.setObjectName("action_xinshoujandan")
 
-        # self.action_zimu_video = QtGui.QAction(MainWindow)
-        # self.action_zimu_video.setCheckable(True)
-        #
-        # self.action_zimu_video.setObjectName("action_zimu_video")
-        # self.action_zimu_peiyin = QtGui.QAction(MainWindow)
-        # self.action_zimu_peiyin.setCheckable(True)
-        #
-        # self.action_zimu_peiyin.setObjectName("action_zimu_peiyin")
         self.action_yuyinshibie = QtGui.QAction(MainWindow)
 
         self.action_yuyinshibie.setObjectName("action_yuyinshibie")
@@ -620,10 +611,8 @@ class Ui_MainWindow(object):
 
         self.action_tiquzimu.setObjectName("action_tiquzimu")
         self.action_yinshipinfenli = QtGui.QAction(MainWindow)
-
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
-
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
         self.action_hun = QtGui.QAction(MainWindow)
 
@@ -651,6 +640,10 @@ class Ui_MainWindow(object):
         self.actionsepar.setObjectName("actionsepar")
         self.actionsetini = QtGui.QAction(MainWindow)
         self.actionsetini.setObjectName("setini")
+        self.actionvideoandaudio = QtGui.QAction(MainWindow)
+        self.actionvideoandaudio.setObjectName("videoandaudio")
+        self.actionvideoandsrt = QtGui.QAction(MainWindow)
+        self.actionvideoandsrt.setObjectName("videoandsrt")
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -706,9 +699,13 @@ class Ui_MainWindow(object):
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
-        self.menu.addAction(self.actionyoutube)
-        self.menu.addSeparator()
         self.menu.addAction(self.actionwatermark)
+        self.menu.addSeparator()
+        self.menu.addAction(self.actionvideoandaudio)
+        self.menu.addSeparator()
+        self.menu.addAction(self.actionvideoandsrt)
+        self.menu.addSeparator()
+        self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
         self.menu.addSeparator()
@@ -748,7 +745,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
 
-
         self.toolBar.addAction(self.action_yuyinshibie)
         self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
@@ -756,8 +752,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yingyinhebing)
         self.toolBar.addAction(self.action_hun)
         self.toolBar.addAction(self.action_hebingsrt)
-
-        # self.retranslateUi(MainWindow)
         # 200ms后渲染文字
         QTimer.singleShot(200, self.retranslateUi)
 
@@ -851,11 +845,6 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setToolTip(config.uilanglist.get("Display all options for video translation and dubbing"))
         self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
         self.action_xinshoujandan.setToolTip(config.uilanglist.get("action_xinshoujandan"))
-        # self.action_zimu_video.setText(config.uilanglist.get("Merging Subtitle  Video"))
-        # self.action_zimu_video.setToolTip(config.uilanglist.get("Embed locally existing SRT subtitles into the video"))
-        # self.action_zimu_peiyin.setText(config.uilanglist.get("Subtitle Create Dubbing"))
-        # self.action_zimu_peiyin.setToolTip(
-        #     config.uilanglist.get("Local existing SRT subtitle generation dubbing WAV files"))
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
             config.uilanglist.get("Recognize the sound in audio or video and output SRT text"))
@@ -880,10 +869,12 @@ class Ui_MainWindow(object):
         self.action_clearcache.setText("Clear Cache" if config.defaulelang != 'zh' else '清理缓存和配置')
 
         self.actionazure_key.setText("AzureGPT 翻译 " if config.defaulelang == 'zh' else 'AzureOpenAI Translation')
-        self.actionazure_tts.setText("AzureAI 配音"  if config.defaulelang == 'zh' else 'AzureAI TTS')
+        self.actionazure_tts.setText("AzureAI 配音" if config.defaulelang == 'zh' else 'AzureAI TTS')
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs.io TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
-        self.actionwatermark.setText('视频添加水印' if config.defaulelang=='zh' else 'Add watermark to video')
+        self.actionwatermark.setText('批量视频添加水印' if config.defaulelang == 'zh' else 'Add watermark to video')
         self.actionsepar.setText('人声/背景音分离' if config.defaulelang == 'zh' else 'Vocal & instrument Separate')
-        self.actionsetini.setText('高级设置/set.ini' if config.defaulelang == 'zh' else 'Advanced Settings/set.ini')
+        self.actionsetini.setText('高级设置' if config.defaulelang == 'zh' else 'Advanced Settings')
+        self.actionvideoandaudio.setText('批量视频音频合并' if config.defaulelang == 'zh' else 'Batch video and audio merger')
+        self.actionvideoandsrt.setText('批量视频字幕合并' if config.defaulelang == 'zh' else 'Batch video and subtitles merger')

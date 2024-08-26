@@ -1,14 +1,12 @@
 # 从日志队列获取日志
-import time
 
 import requests
 from PySide6.QtCore import QThread
 
 import videotrans
-from videotrans.configure import config
+from videotrans.configure.config import transobj
 from videotrans.util import tools
 from videotrans.util.tools import set_process
-from videotrans.configure.config import transobj
 
 
 class CheckUpdateWorker(QThread):

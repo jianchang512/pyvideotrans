@@ -1,12 +1,12 @@
 # 从日志队列获取日志
-import subprocess
-import sys, io
-from pathlib import Path
 import json
+import subprocess
+import sys
+from pathlib import Path
+
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
-from videotrans.util.tools import set_process
 
 
 class Download(QThread):

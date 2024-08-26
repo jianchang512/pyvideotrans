@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QMessageBox, QFileDialog
+from PySide6.QtWidgets import QFileDialog
 
 from videotrans.configure import config
 

@@ -1,5 +1,4 @@
 # 从日志队列获取日志
-import json
 import os
 
 from PySide6.QtCore import QThread, Signal as pyqtSignal

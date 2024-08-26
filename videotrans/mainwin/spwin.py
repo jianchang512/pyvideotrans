@@ -1,14 +1,15 @@
-import os
 import shutil
 import threading
 import time
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QIcon
-from PySide6.QtCore import QSettings, Qt, QSize, QTimer
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 import warnings
 
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QSettings, Qt, QSize, QTimer
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
+
 from videotrans.task.job import start_thread
+from videotrans.winform import fn_videoandaudio, fn_videoandsrt
 
 warnings.filterwarnings('ignore')
 
@@ -88,6 +89,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionwatermark.triggered.connect(fn_watermark.open)
         self.actionsepar.triggered.connect(fn_separate.open)
         self.actionsetini.triggered.connect(setini.open)
+        self.actionvideoandaudio.triggered.connect(fn_videoandaudio.open)
+        self.actionvideoandsrt.triggered.connect(fn_videoandsrt.open)
         self.action_hebingsrt.triggered.connect(fn_hebingsrt.open)
         self.action_yinshipinfenli.triggered.connect(fn_audiofromvideo.open)
         self.action_hun.triggered.connect(fn_hunliu.open)
@@ -397,6 +400,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception as e:
             print('threaqd-----' + str(e))
 
+
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
         config.exit_soft = True
@@ -438,7 +442,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                       config.vasform,
                       config.fanyiform,
                       config.recognform,
-                      config.peiyinform]:
+                      config.peiyinform,
+                      config.vandaform,
+                      config.vandsrtform]:
                 if w and hasattr(w, 'close'):
                     w.close()
 

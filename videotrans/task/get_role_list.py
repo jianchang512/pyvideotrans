@@ -1,10 +1,7 @@
 # 从日志队列获取日志
-import requests
 from PySide6.QtCore import QThread
 
-import videotrans
-from videotrans.util.tools import set_process, get_edge_rolelist, get_elevenlabs_role, get_clone_role
-from videotrans.configure.config import transobj
+from videotrans.util.tools import get_edge_rolelist, get_elevenlabs_role, get_clone_role
 
 
 class GetRoleWorker(QThread):

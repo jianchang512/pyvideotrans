@@ -60,6 +60,8 @@ def get_content(d, *, model=None, prompt=None):
 
 def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,
           uuid=None):
+    if len(config.params['localllm_api'].strip())<10:
+        raise  Exception('本地大模型 API 接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'LocalLLM API interface is not correct, please go to Settings to fill in again')
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组

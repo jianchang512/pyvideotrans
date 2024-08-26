@@ -8,17 +8,11 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                           QFont, QFontDatabase, QGradient, QIcon,
-                           QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform)
-
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
-                               QMainWindow, QMenuBar, QPlainTextEdit, QPushButton,
-                               QSizePolicy, QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtCore import (QMetaObject, QSize, Qt)
+from PySide6.QtGui import (QCursor)
+from PySide6.QtWidgets import (QHBoxLayout, QLineEdit,
+                               QPushButton,
+                               QVBoxLayout)
 
 from videotrans.configure import config
 
@@ -29,14 +23,13 @@ class Ui_getaudio(object):
             getaudio.setObjectName(u"getaudio")
         getaudio.resize(643, 300)
         getaudio.setWindowModality(QtCore.Qt.NonModal)
-        self.videourls=[]
+        self.videourls = []
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(getaudio.sizePolicy().hasHeightForWidth())
         getaudio.setSizePolicy(sizePolicy)
         getaudio.setMaximumSize(QtCore.QSize(643, 300))
-
 
         self.horizontalLayout_3 = QHBoxLayout(getaudio)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -65,7 +58,6 @@ class Ui_getaudio(object):
         self.startbtn.setCursor(QCursor(Qt.PointingHandCursor))
         self.verticalLayout.addWidget(self.startbtn)
 
-
         self.resultbtn = QPushButton(getaudio)
         self.resultbtn.setObjectName(u"resultbtn")
         self.resultbtn.setStyleSheet("""background-color:transparent""")
@@ -81,9 +73,9 @@ class Ui_getaudio(object):
     # setupUi
 
     def retranslateUi(self, getaudio):
-        getaudio.setWindowTitle("从视频分离出音频" if config.defaulelang == 'zh' else 'Separating audio from video')
+        getaudio.setWindowTitle("批量从视频中分离出音频" if config.defaulelang == 'zh' else 'Separating audio from video')
         self.videourl.setPlaceholderText(
-            "选择需要分离出音频的视频文件" if config.defaulelang == 'zh' else 'Video to be separated.')
+            "选择需要分离出音频的视频文件/1或多个" if config.defaulelang == 'zh' else 'Videos to be separated')
         self.videobtn.setText("选择视频" if config.defaulelang == 'zh' else 'Select the videos')
         self.startbtn.setText("开始执行" if config.defaulelang == 'zh' else 'Start of execution')
         self.resultbtn.setText("打开保存结果目录" if config.defaulelang == 'zh' else 'Open the save results directory')

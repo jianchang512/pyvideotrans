@@ -1,13 +1,13 @@
-import datetime
+import re
 import shutil
 import threading
 import time
+from pathlib import Path
+
 from videotrans.configure import config
 from videotrans.task.step import Runstep
 from videotrans.translator import get_audio_code
 from videotrans.util import tools
-from pathlib import Path
-import re
 
 
 class TransCreate():
@@ -85,7 +85,7 @@ class TransCreate():
         self.init['source_wav'] = None
         # 目标语言音频
         self.init['target_wav'] = None
-        # 最终目标生成mp4，在linshioutput下
+        # 最终目标生成mp4
         self.init['targetdir_mp4'] = None
         # 分离出的背景音频
         self.init['instrument'] = None
@@ -115,7 +115,7 @@ class TransCreate():
         self.init['noextname'] = self.obj['noextname']
         # 进度按钮
         self.init['btnkey'] = self.obj['unid']
-        # 临时作为目标目录，最后再根据条件移动
+        # 目标目录
         self.init['target_dir'] = self.obj['output']
         # 如果不是仅提取，则获取视频信息
         if self.config_params['app_mode'] not in ['tiqu']:
@@ -202,18 +202,15 @@ class TransCreate():
         # 如何名字不合规迁移了，并且存在原语言或目标语言字幕
 
         raw_source_srt = self.obj['output'] + f"/{self.init['source_language_code']}.srt"
-        raw_srt = self.obj['raw_dirname'] + f"/{self.obj['raw_noextname']}.srt"
-        if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size > 0:
-            config.logger.info(f'{raw_srt=},{raw_source_srt=}使用原始视频同目录下同名字幕文件')
-            shutil.copy2(raw_srt, raw_source_srt)
+        # raw_srt = self.obj['raw_dirname'] + f"/{self.obj['raw_noextname']}.srt"
+        # if Path(raw_srt).is_file() and Path(raw_srt).stat().st_size > 0:
+        #     config.logger.info(f'{raw_srt=},{raw_source_srt=}使用原始视频同目录下同名字幕文件')
+        #     shutil.copy2(raw_srt, raw_source_srt)
 
         raw_source_srt_path = Path(raw_source_srt)
         if raw_source_srt_path.is_file():
             if raw_source_srt_path.stat().st_size == 0:
                 raw_source_srt_path.unlink(missing_ok=True)
-            elif self.obj['output'] != self.obj['linshi_output']:
-                config.logger.info(f'使用已放置到目标文件夹下的原语言字幕:{raw_source_srt}')
-                shutil.copy2(raw_source_srt, self.init['source_sub'])
         # 原始目标语言不同时
         raw_target_srt = self.obj['output'] + f"/{self.init['target_language_code']}.srt"
         if raw_source_srt != raw_target_srt:
@@ -221,9 +218,6 @@ class TransCreate():
             if Path(raw_target_srt).is_file():
                 if raw_target_srt_path.stat().st_size == 0:
                     raw_target_srt_path.unlink(missing_ok=True)
-                elif self.obj['output'] != self.obj['linshi_output']:
-                    config.logger.info(f'使用已放置到目标文件夹下的目标语言字幕:{raw_target_srt}')
-                    shutil.copy2(raw_target_srt, self.init['target_sub'])
 
     # 启动执行入口
     def prepare(self):
@@ -388,12 +382,6 @@ class TransCreate():
             outputpath = Path(self.obj['output'])
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
-                # 软字幕时也需要保存字幕, 仅删除非 mp4非srt文件
-                # if int(self.config_params['subtitle_type']) in [2, 4]:
-                #     if ext not in ['.mp4', '.srt']:
-                #         it.unlink(missing_ok=True)
-                # else:
-                # 其他情况 移动视频到上一级
                 if ext != '.mp4':
                     it.unlink(missing_ok=True)
                 else:
@@ -401,8 +389,6 @@ class TransCreate():
                         it.rename(it.parent / "../" / f'{it.name}')
                     except Exception:
                         pass
-            # 不是软字幕则删除文件夹
-            # if int(self.config_params['subtitle_type']) not in [2, 4]:
             try:
                 self.obj['output'] = outputpath.parent.resolve().as_posix()
             except Exception:

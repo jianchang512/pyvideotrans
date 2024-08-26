@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -11,15 +12,17 @@ from videotrans.util import tools
 
 
 def open():
+    RESULT_DIR=config.homedir + "/hunliu"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
     class CompThread(QThread):
         uito = Signal(str)
 
         def __init__(self, *, parent=None, videourls=[]):
             super().__init__(parent=parent)
-            self.resultdir = config.homedir + "/hunliu"
-            os.makedirs(self.resultdir, exist_ok=True)
             self.videourls = videourls
-            self.file = f'{self.resultdir}/{Path(self.videourls[0]).stem}-{Path(self.videourls[1]).stem}.wav'
+            self.file = f'{RESULT_DIR}/{Path(self.videourls[0]).stem}-{Path(self.videourls[1]).stem}.wav'
+        def post(self,type='logs',text=""):
+            self.uito.emit(json.dumps({"type":type,"text":text}))
 
         def run(self):
             try:
@@ -36,25 +39,27 @@ def open():
                     self.file
                 ])
             except Exception as e:
-                self.uito.emit('error:' + str(e))
+                self.post(type='error',text=str(e))
             else:
-                self.uito.emit(self.file)
+                self.post(type='ok',text=self.file)
 
     def feed(d):
-        if d.startswith("error:"):
-            QtWidgets.QMessageBox.critical(config.hunliuform, config.transobj['anerror'], d)
+        d=json.loads(d)
+        if d['type']=="error":
+            QtWidgets.QMessageBox.critical(config.hunliuform, config.transobj['anerror'], d['text'])
             config.hunliuform.hun_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             config.hunliuform.hun_startbtn.setDisabled(False)
             config.hunliuform.hun_opendir.setDisabled(False)
+        elif d['type']=='logs':
+            config.hunliuform.hun_startbtn.setText(d['text'])
         else:
             config.hunliuform.hun_startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             config.hunliuform.hun_startbtn.setDisabled(False)
-            config.hunliuform.hun_out.setText(d)
+            config.hunliuform.hun_out.setText(d['text'])
             config.hunliuform.hun_opendir.setDisabled(False)
 
     def get_file(num=1):
-        fname, _ = QFileDialog.getOpenFileName(config.hunliuform, 'Select audio', config.params['last_opendir'],
-                                               "Audio files(*.mp3 *.wav *.m4a *.flac *.aac)")
+        fname, _ = QFileDialog.getOpenFileName(config.hunliuform, 'Select Audio', config.params['last_opendir'], "Audio files(*.mp3 *.wav *.m4a *.flac *.aac)")
         if not fname:
             return
         if num == 1:
@@ -64,7 +69,6 @@ def open():
         config.params['last_opendir'] = os.path.dirname(fname)
 
     def start():
-        # 开始处理分离，判断是否选择了源文件
         audio1 = config.hunliuform.hun_file1.text()
         audio2 = config.hunliuform.hun_file2.text()
         if not audio1 or not audio2:
@@ -81,11 +85,7 @@ def open():
         task.start()
 
     def opendir():
-        filename = config.hunliuform.hun_out.text().strip()
-        if filename:
-            dirname = os.path.dirname(filename)
-            if dirname:
-                QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import HunliuForm
     try:

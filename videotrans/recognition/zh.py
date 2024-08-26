@@ -1,7 +1,9 @@
 # zh_recogn 识别
+import requests
+
 from videotrans.configure import config
 from videotrans.util import tools
-import requests
+
 
 def recogn(*,
            audio_file=None,

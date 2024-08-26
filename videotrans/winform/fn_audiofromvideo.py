@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -12,18 +13,22 @@ from videotrans.util import tools
 
 # 从视频分离音频
 def open():
+    RESULT_DIR=config.homedir + "/audiofromvideo"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
+
     class CompThread(QThread):
         uito = Signal(str)
 
         def __init__(self, *, parent=None, videourls=None):
             super().__init__(parent=parent)
-            self.resultdir = config.homedir + "/audiofromvideo"
-            os.makedirs(self.resultdir, exist_ok=True)
             self.videourls = videourls
+
+        def post(self,type='logs',text=""):
+            self.uito.emit(json.dumps({"type":type,"text":text}))
 
         def run(self):
             try:
-                jd = 1
+
                 for i, v in enumerate(self.videourls):
                     tools.runffmpeg([
                         "-y",
@@ -36,23 +41,24 @@ def open():
                         "44100",
                         "-c:a",
                         "pcm_s16le",
-                        self.resultdir + f"/{Path(v).stem}.wav"
+                        RESULT_DIR + f"/{Path(v).stem}.wav"
                     ])
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
-                    self.uito.emit(f'jindu:{jd}%')
+                    self.post(type='jd',text=f'{jd}%')
             except Exception as e:
-                self.uito.emit('error:' + str(e))
+                self.post(type='error',text=str(e))
             else:
-                self.uito.emit("ok")
+                self.post(type="ok",text='Ended')
 
     def feed(d):
-        if d.startswith("error:"):
-            QtWidgets.QMessageBox.critical(config.audioform, config.transobj['anerror'], d)
+        d=json.loads(d)
+        if d['type']=="error":
+            QtWidgets.QMessageBox.critical(config.audioform, config.transobj['anerror'], d['text'])
             config.audioform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             config.audioform.startbtn.setDisabled(False)
             config.audioform.resultbtn.setDisabled(False)
-        elif d.startswith('jindu:'):
-            config.audioform.startbtn.setText(d[6:])
+        elif d['type']=='jd' or d['type']=='logs':
+            config.audioform.startbtn.setText(d['text'])
         else:
             config.audioform.startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             config.audioform.startbtn.setDisabled(False)
@@ -74,7 +80,6 @@ def open():
             config.audioform.videourl.setText(",".join(config.audioform.videourls))
 
     def start():
-        # 开始处理分离，判断是否选择了源文件
         if len(config.audioform.videourls) < 1:
             QMessageBox.critical(config.audioform, config.transobj['anerror'],
                                  '必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
@@ -89,7 +94,7 @@ def open():
         task.start()
 
     def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(config.homedir + "/audiofromvideo"))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import GetaudioForm
     try:

@@ -1,13 +1,9 @@
-import os
-
 # import pygame
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
-from videotrans.configure import config
 from videotrans.tts import text_to_speech
 from videotrans.util import tools
 from videotrans.util.tools import pygameaudio
-from pathlib import Path
 
 
 class PlayMp3(QThread):

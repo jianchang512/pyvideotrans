@@ -2,9 +2,11 @@
 import os
 import time
 
+import requests
+
 from videotrans.configure import config
 from videotrans.util import tools
-import requests
+
 
 def recogn(*,
            detect_language=None,

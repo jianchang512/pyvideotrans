@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 import copy
-import os
 import shutil
 import time
+from pathlib import Path
+
 from PySide6.QtCore import QThread
 
-from videotrans import translator
 from videotrans.configure import config
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
-from videotrans.util.tools import set_process, send_notification
-from pathlib import Path
-import re
-import threading
+from videotrans.util.tools import set_process
 
 
 class Worker(QThread):

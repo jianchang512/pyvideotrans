@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import textwrap
+import threading
 import time
 from pathlib import Path
 
@@ -12,12 +13,10 @@ from pydub import AudioSegment
 
 from videotrans import translator
 from videotrans.configure import config
-from videotrans.util import tools
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans
 from videotrans.tts import run as run_tts
-import subprocess
-import threading
+from videotrans.util import tools
 
 
 class Runstep():

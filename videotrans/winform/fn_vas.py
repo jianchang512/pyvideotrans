@@ -1,3 +1,4 @@
+import json
 import os
 import textwrap
 import threading
@@ -16,25 +17,29 @@ from videotrans.util import tools
 
 # 视频 字幕 音频 合并
 def open():
+    RESULT_DIR=config.homedir + "/vas"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True,is_soft=False,language=None,maxlen=30):
+        def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
+                     maxlen=30):
             super().__init__(parent=parent)
-            self.resultdir = config.homedir + "/vas"
-            os.makedirs(self.resultdir, exist_ok=True)
             self.video = video
             self.audio = audio
             self.srt = srt
             self.saveraw = saveraw
-            self.is_soft=is_soft
-            self.language=language
-            self.maxlen=maxlen
-            print(f'{saveraw=}')
-            self.file = f'{self.resultdir}/{Path(self.video).stem}-{int(time.time())}.mp4'
+            self.is_soft = is_soft
+            self.language = language
+            self.maxlen = maxlen
+            self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
             self.video_time = tools.get_video_duration(self.video)
 
+        def post(self,type='logs',text=''):
+            self.uito.emit(json.dumps({"type":type,"text":text}))
+
+        #
         def hebing_pro(self, protxt, video_time):
             percent = 0
             while 1:
@@ -43,7 +48,11 @@ def open():
                 if not os.path.exists(protxt):
                     time.sleep(1)
                     continue
-                content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
+                try:
+                    content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
+                except Exception:
+                    continue
+
                 if content[-1] == 'progress=end':
                     return
                 idx = len(content) - 1
@@ -53,34 +62,31 @@ def open():
                         end_time = content[idx].split('=')[1].strip()
                         break
                     idx -= 1
-                try:
-                    h, m, s = end_time.split(':')
-                except Exception:
-                    time.sleep(1)
-                    continue
-                else:
-                    h, m, s = end_time.split(':')
-                    tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
-                    if percent + tmp1 < 99.9:
-                        percent += tmp1
-                    self.uito.emit(f'jd:{percent}%')
-                    time.sleep(1)
+
+                h, m, s = end_time.split(':')
+                tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
+                if percent + tmp1 < 99.9:
+                    percent += tmp1
+                self.post(type='jd',text=f'{percent}%')
+                time.sleep(1)
 
         def run(self):
             try:
+                tmp_mp4 = None
+                end_mp4=None
+                # 存在音频
                 if self.audio:
                     # 需要保留原视频中声音 并且原视频中有声音
-                    tmp_mp4 = None
                     if self.saveraw and self.video_info['streams_audio']:
                         tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.m4a"
                         # 存在声音，则需要混合
                         tools.runffmpeg([
                             '-y',
                             '-i',
-                            self.video,
+                            os.path.normpath(self.video),
                             "-vn",
                             '-i',
-                            self.audio,
+                            os.path.normpath(self.audio),
                             '-filter_complex',
                             "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]",
                             '-map',
@@ -88,8 +94,10 @@ def open():
                             '-ac',
                             '2', tmp_mp4])
 
-                    # 不保留原声音
-                    end_mp4 = config.TEMP_HOME + f"/hb{time.time()}.mp4"
+                    # 视频和音频混合
+                    # 如果存在字幕则生成中间结果end_mp4
+                    if self.srt:
+                        end_mp4 = config.TEMP_HOME + f"/hb{time.time()}.mp4"
                     tools.runffmpeg([
                         '-y',
                         '-i',
@@ -97,7 +105,7 @@ def open():
                         '-i',
                         os.path.normpath(tmp_mp4 if tmp_mp4 else self.audio),
                         '-c:v',
-                        'copy',
+                        'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
                         "-c:a",
                         "aac",
                         "-map",
@@ -105,17 +113,17 @@ def open():
                         "-map",
                         "1:a:0",
                         "-shortest",
-                        end_mp4
-                    ]
-                    )
-                    self.video = end_mp4
-                if not self.srt:
-                    self.file = self.video
-                else:
+                        end_mp4 if self.srt else self.file
+                    ])
+                #存在字幕则继续嵌入
+                if self.srt:
+                    # 存在中间结果mp4
+                    if end_mp4:
+                        self.video = end_mp4
                     protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
                     threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time,)).start()
 
-                    cmd=[
+                    cmd = [
                         '-y',
                         "-progress",
                         protxt,
@@ -123,17 +131,17 @@ def open():
                         os.path.normpath(self.video)
                     ]
                     if not self.is_soft or not self.language:
-                        #硬字幕
-                        sub_list=tools.get_subtitle_from_srt(self.srt,is_file=True)
-                        text=""
+                        # 硬字幕
+                        sub_list = tools.get_subtitle_from_srt(self.srt, is_file=True)
+                        text = ""
                         for i, it in enumerate(sub_list):
                             it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                        srtfile=config.TEMP_HOME+f"/vasrt{time.time()}.srt"
-                        Path(srtfile).write_text(text,encoding='utf-8')
-                        assfile=tools.set_ass_font(srtfile)
+                        srtfile = config.TEMP_HOME + f"/vasrt{time.time()}.srt"
+                        Path(srtfile).write_text(text, encoding='utf-8')
+                        assfile = tools.set_ass_font(srtfile)
                         os.chdir(config.TEMP_HOME)
-                        cmd+=[
+                        cmd += [
                             '-c:v',
                             'libx264',
                             '-vf',
@@ -145,14 +153,14 @@ def open():
                         ]
                     else:
                         os.chdir(os.path.dirname(self.srt))
-                        #软字幕
-                        subtitle_language=translator.get_subtitle_code(
+                        # 软字幕
+                        subtitle_language = translator.get_subtitle_code(
                             show_target=self.language)
-                        cmd+=[
+                        cmd += [
                             '-i',
                             os.path.basename(self.srt),
                             '-c:v',
-                            'copy',
+                            'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
                             "-c:s",
                             "mov_text",
                             "-metadata:s:s:0",
@@ -160,25 +168,27 @@ def open():
                         ]
                     cmd.append(self.file)
                     tools.runffmpeg(cmd)
-
             except Exception as e:
                 print(e)
-                self.uito.emit('error:' + str(e))
+                self.post(type='error',text=str(e))
             else:
-                self.uito.emit(self.file)
+                self.post(type='ok',text=self.file)
 
     def feed(d):
-        if d.startswith("error:"):
-            QtWidgets.QMessageBox.critical(config.vasform, config.transobj['anerror'], d)
+        d=json.loads(d)
+        if d['type']=="error":
+            QtWidgets.QMessageBox.critical(config.vasform, config.transobj['anerror'], d['text'])
             config.vasform.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             config.vasform.ysphb_startbtn.setDisabled(False)
             config.vasform.ysphb_opendir.setDisabled(False)
-        elif d.startswith('jd:'):
-            config.vasform.ysphb_startbtn.setText(d[3:])
+        elif d['type']=='jd':
+            config.vasform.ysphb_startbtn.setText(d['text'])
+        elif d['type']=='logs':
+            config.vasform.ysphb_startbtn.setText(d['text'])
         else:
             config.vasform.ysphb_startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             config.vasform.ysphb_startbtn.setDisabled(False)
-            config.vasform.ysphb_out.setText(d)
+            config.vasform.ysphb_out.setText(d['text'])
             config.vasform.ysphb_opendir.setDisabled(False)
 
     def get_file(type='video'):
@@ -209,12 +219,12 @@ def open():
         video = config.vasform.ysphb_videoinput.text()
         audio = config.vasform.ysphb_wavinput.text()
         srt = config.vasform.ysphb_srtinput.text()
-        is_soft=config.vasform.ysphb_issoft.isChecked()
-        language=config.vasform.language.currentText()
+        is_soft = config.vasform.ysphb_issoft.isChecked()
+        language = config.vasform.language.currentText()
         saveraw = config.vasform.ysphb_replace.isChecked()
-        maxlen=30
+        maxlen = 30
         try:
-            maxlen=int(config.vasform.ysphb_maxlen.text())
+            maxlen = int(config.vasform.ysphb_maxlen.text())
         except Exception:
             pass
         if not video:
@@ -243,11 +253,7 @@ def open():
         task.start()
 
     def opendir():
-        filename = config.vasform.ysphb_out.text().strip()
-        if filename:
-            dirname = os.path.dirname(filename)
-            if dirname:
-                QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import VASForm
     try:

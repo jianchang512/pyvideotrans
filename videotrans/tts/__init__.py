@@ -1,6 +1,6 @@
 import copy
-import os
 import threading
+
 from videotrans.configure import config
 from videotrans.util import tools
 

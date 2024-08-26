@@ -1,11 +1,11 @@
 import os
 import re
-import shutil
 import time
 from pathlib import Path
 
 import requests
 from requests import Timeout
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -14,8 +14,9 @@ def get_voice(*, text=None, role="2222", rate=None, volume="+0%", pitch="+0Hz", 
               set_p=True, inst=None,uuid=None):
     try:
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
-        if not api_url:
-            api_url = 'http://127.0.0.1:9966'
+        if len(config.params['chattts_api'].strip()) < 10:
+            raise Exception(
+                'ChatTTS API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'ChatTTS API interface is not correct, please go to Settings to fill in again')
 
         api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
         config.logger.info(f'ChatTTS:api={api_url}')

@@ -10,6 +10,7 @@
 
 from PySide6.QtCore import QMetaObject, QRect, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
+
 from videotrans.configure import config
 
 
