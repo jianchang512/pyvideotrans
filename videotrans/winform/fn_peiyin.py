@@ -1,5 +1,5 @@
+import builtins
 import json
-import os
 import os
 import re
 import shutil
@@ -11,31 +11,33 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans import translator
-from videotrans.task.workertts import WorkerTTS
 from videotrans.configure import config
+from videotrans.task.workertts import WorkerTTS
 from videotrans.util import tools
-import builtins
+
 # 使用内置的 open 函数
 builtin_open = builtins.open
 
 
 # 合成配音
 def open():
+    RESULT_DIR = config.homedir + "/tts"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
+
     def feed(d):
-        d=json.loads(d)
-        if d['type']=='replace':
+        d = json.loads(d)
+        if d['type'] == 'replace':
             config.peiyinform.hecheng_plaintext.clear()
             config.peiyinform.hecheng_plaintext.insertPlainText(d['text'])
-        elif d['type']=='error':
+        elif d['type'] == 'error':
             QMessageBox.critical(config.peiyinform, config.transobj['anerror'], d['text'])
-        elif d['type']=='logs':
+        elif d['type'] == 'logs':
             config.peiyinform.loglabel.setText(d['text'])
-        elif d['type']=='jd':
+        elif d['type'] == 'jd':
             config.peiyinform.hecheng_startbtn.setText(d['text'])
         else:
             config.peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             config.peiyinform.hecheng_startbtn.setDisabled(False)
-
 
     # 试听配音
     def listen_voice_fun():
@@ -113,7 +115,6 @@ def open():
         tts_type = config.peiyinform.tts_type.currentText()
         langcode = translator.get_code(show_text=language)
 
-
         if language == '-' or role == 'No':
             return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
                                         config.transobj['yuyanjuesebixuan'])
@@ -123,7 +124,8 @@ def open():
         if tts_type == '302.ai' and not config.params['ai302tts_key']:
             return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
                                         config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
-        if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja','en']:
+        if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja',
+                                                                                                         'en']:
             QMessageBox.critical(config.peiyinform, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
             return
         if tts_type == "AzureTTS" and (
@@ -176,19 +178,15 @@ def open():
         else:
             filename = filename.replace('.wav', '')
 
-        if not os.path.exists(f"{config.homedir}/tts"):
-            os.makedirs(f"{config.homedir}/tts", exist_ok=True)
+        wavname = f"{RESULT_DIR}/{filename}"
 
-        wavname = f"{config.homedir}/tts/{filename}"
-
-        if len(config.peiyinform.hecheng_files)<1 and not txt:
-            return QMessageBox.critical(config.peiyinform,config.transobj['anerror'],'必须导入srt文件或在文本框中填写文字' if config.defaulelang=='zh' else 'Must import srt file or fill in text box with text')
-        elif len(config.peiyinform.hecheng_files)<1:
-            newsrtfile=config.TEMP_HOME+f"/peiyin{time.time()}.srt"
-            tools.save_srt(tools.get_subtitle_from_srt(txt,is_file=False),newsrtfile)
+        if len(config.peiyinform.hecheng_files) < 1 and not txt:
+            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
+                                        '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
+        elif len(config.peiyinform.hecheng_files) < 1:
+            newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
+            tools.save_srt(tools.get_subtitle_from_srt(txt, is_file=False), newsrtfile)
             config.peiyinform.hecheng_files.append(newsrtfile)
-
-
 
         hecheng_task = WorkerTTS(
             files=config.peiyinform.hecheng_files,
@@ -361,7 +359,7 @@ def open():
                                                  "Text files(*.srt *.txt)")
         if len(fnames) < 1:
             return
-        namestr=[]
+        namestr = []
         for (i, it) in enumerate(fnames):
             it = it.replace('\\', '/').replace('file:///', '')
             if it.endswith('.txt'):
@@ -379,7 +377,6 @@ def open():
             fnames[i] = it
             namestr.append(os.path.basename(it))
 
-
         if len(fnames) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
             config.peiyinform.hecheng_files = fnames
@@ -388,8 +385,8 @@ def open():
         config.peiyinform.hecheng_out.setDisabled(False)
         config.peiyinform.hecheng_out.setText('')
 
-    def opendir_fn(self):
-        QDesktopServices.openUrl(QUrl.fromLocalFile(config.homedir + "/tts"))
+    def opendir_fn():
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import Peiyinform
     try:
@@ -410,4 +407,3 @@ def open():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print(e)

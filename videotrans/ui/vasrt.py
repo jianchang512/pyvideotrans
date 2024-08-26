@@ -10,17 +10,8 @@
 from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                           QFont, QFontDatabase, QGradient, QIcon,
-                           QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform)
-
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
-                               QMainWindow, QMenuBar, QPlainTextEdit, QPushButton,
-                               QSizePolicy, QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtCore import (QMetaObject)
+from PySide6.QtWidgets import (QHBoxLayout)
 
 from videotrans.configure import config
 
@@ -37,7 +28,6 @@ class Ui_vasrt(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(vasrt.sizePolicy().hasHeightForWidth())
         vasrt.setSizePolicy(sizePolicy)
-        # vasrt.setMaximumSize(QtCore.QSize(643, 500))
 
         self.horizontalLayout_3 = QHBoxLayout(vasrt)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -55,8 +45,6 @@ class Ui_vasrt(object):
         self.label_4.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_4.setObjectName("label_4")
         self.h3.addWidget(self.label_4, 0, QtCore.Qt.AlignTop)
-
-
 
         self.ysphb_videoinput = QtWidgets.QLineEdit()
         self.ysphb_videoinput.setMinimumSize(QtCore.QSize(0, 40))
@@ -83,7 +71,6 @@ class Ui_vasrt(object):
 
         self.ysphb_wavinput = QtWidgets.QLineEdit()
         self.ysphb_wavinput.setMinimumSize(QtCore.QSize(0, 40))
-        # self.ysphb_wavinput.setReadOnly(True)
         self.ysphb_wavinput.setObjectName("ysphb_wavinput")
         self.h5.addWidget(self.ysphb_wavinput, 0, QtCore.Qt.AlignTop)
 
@@ -105,7 +92,6 @@ class Ui_vasrt(object):
         self.h6.addWidget(self.label_6, 0, QtCore.Qt.AlignTop)
         self.ysphb_srtinput = QtWidgets.QLineEdit()
         self.ysphb_srtinput.setMinimumSize(QtCore.QSize(0, 40))
-        # self.ysphb_srtinput.setReadOnly(True)
         self.ysphb_srtinput.setObjectName("ysphb_srtinput")
 
         self.h6.addWidget(self.ysphb_srtinput, 0, QtCore.Qt.AlignTop)
@@ -150,10 +136,6 @@ class Ui_vasrt(object):
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.languagelabel)
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.language)
 
-
-
-
-
         self.h7.addWidget(self.ysphb_replace)
         self.h7.addLayout(self.layout_form0)
         self.h7.addStretch()
@@ -190,7 +172,6 @@ class Ui_vasrt(object):
         QMetaObject.connectSlotsByName(vasrt)
 
     def remainraw(self,t):
-        print(f'{t=}')
         if Path(t).is_file():
             self.ysphb_replace.setDisabled(False)
             self.ysphb_replace.setChecked(True)

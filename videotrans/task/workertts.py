@@ -10,11 +10,12 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 from pydub import AudioSegment
+
 from videotrans.configure import config
 from videotrans.configure.config import homedir
-from videotrans.tts import run as run_tts, text_to_speech
+from videotrans.tts import run as run_tts
 from videotrans.util import tools
-from videotrans.util.tools import runffmpeg, get_subtitle_from_srt, ms_to_time_string
+from videotrans.util.tools import get_subtitle_from_srt, ms_to_time_string
 
 
 # 合成

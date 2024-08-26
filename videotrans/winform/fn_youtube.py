@@ -1,8 +1,9 @@
+import json
 import os
 import re
 
 from PySide6 import QtWidgets
-import json
+
 from videotrans.configure import config
 
 
@@ -18,7 +19,7 @@ def open():
             thread_num=int(config.youw.thread.text())
         except Exception:
             pass
-        print(f'{thread_num=}')
+
         if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
             QtWidgets.QMessageBox.critical(config.youw, config.transobj['anerror'],
                                            config.transobj[

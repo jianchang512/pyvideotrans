@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
 import copy
 import hashlib
-import math
+import json
+import os
 import platform
 import random
-
 import re
 import shutil
 import subprocess
 import sys
-import os
 import textwrap
+import time
 from datetime import timedelta
-import json
 from pathlib import Path
 
 import requests
 
 from videotrans.configure import config
-import time
 
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理

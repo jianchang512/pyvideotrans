@@ -1,8 +1,9 @@
 import os
-import sys
 import re
+import sys
 
 import requests
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -31,8 +32,9 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
               inst=None,uuid=None):
     try:
         api_url = config.params['ttsapi_url'].strip().rstrip('/')
-        if not api_url:
-            raise Exception("get_voice:" + config.transobj['ttsapi_nourl'])
+        if len(config.params['ttsapi_url'].strip()) < 10:
+            raise Exception(
+                'TTSAPI  接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'TTSAPI  interface is not correct, please go to Settings to fill in again')
         config.logger.info(f'TTS-API:api={api_url}')
         if not re.search(r'localhost', api_url) and not re.match(r'https?://(\d+\.){3}\d+', api_url):
             update_proxy(type='set')

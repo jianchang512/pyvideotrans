@@ -1,10 +1,10 @@
-import json
+import os
 import time
+
+import azure.cognitiveservices.speech as speechsdk
 
 from videotrans.configure import config
 from videotrans.util import tools
-import os
-import azure.cognitiveservices.speech as speechsdk
 
 shound_del = False
 

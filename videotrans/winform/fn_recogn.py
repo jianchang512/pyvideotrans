@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import torch
 from PySide6 import QtWidgets
@@ -14,6 +15,8 @@ from videotrans.task.recognworker import RecognWorker
 
 
 def open():
+    RESULT_DIR=config.homedir + f"/recogn"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
     def feed(d):
         d=json.loads(d)
         if d['type']=='replace':
@@ -35,12 +38,8 @@ def open():
             config.recognform.shibie_startbtn.setDisabled(False)
             config.recognform.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
 
-    def opendir_fn(dirname=None):
-        if not dirname:
-            return
-        if not os.path.isdir(dirname) or not os.path.exists(dirname):
-            dirname = os.path.dirname(dirname)
-        QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
+    def opendir_fn():
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     # tab-3 语音识别 预执行，检查
     def shibie_start_fun():
@@ -105,9 +104,6 @@ def open():
             config.recognform.shibie_text.clear()
             wait_list.append(file)
 
-        shibie_out_path = config.homedir + f"/recogn"
-
-        os.makedirs(shibie_out_path, exist_ok=True)
         config.recognform.shibie_opendir.setDisabled(False)
         try:
             config.recognform.shibie_startbtn.setDisabled(True)
@@ -118,7 +114,7 @@ def open():
                 split_type=["all", "avg"][split_type_index],
                 model_type=model_type,
                 language=langcode,
-                out_path=shibie_out_path,
+                out_path=RESULT_DIR,
                 is_cuda=is_cuda, parent=config.recognform)
             shibie_task.uito.connect(feed)
             shibie_task.start()
@@ -184,7 +180,7 @@ def open():
         config.recognform.shibie_language.addItems(config.langnamelist)
         config.recognform.shibie_model.addItems(config.model_list)
         config.recognform.shibie_startbtn.clicked.connect(shibie_start_fun)
-        config.recognform.shibie_opendir.clicked.connect(lambda: opendir_fn(config.homedir + f"/recogn"))
+        config.recognform.shibie_opendir.clicked.connect(opendir_fn)
         config.recognform.is_cuda.toggled.connect(check_cuda)
         config.recognform.shibie_model_type.currentIndexChanged.connect(model_type_change)
 

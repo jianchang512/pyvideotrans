@@ -21,6 +21,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
+    if len(config.params['ott_address'].strip())<10:
+        raise  Exception('OTT API 接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'OTT API interface is not correct, please go to Settings to fill in again')
     url = config.params['ott_address'].strip().rstrip('/').lower().replace('/translate', '') + '/translate'
     url = url.replace('//translate', '/translate')
     if not url.startswith('http'):

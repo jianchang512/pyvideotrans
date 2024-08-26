@@ -51,8 +51,9 @@ def open():
 
     def save():
         key = config.clonew.clone_address.text().strip()
-        key = key.rstrip('/')
-        key = 'http://' + key.replace('http://', '')
+        if key:
+            key = key.rstrip('/')
+            key = 'http://' + key.replace('http://', '')
         config.params["clone_api"] = key
         config.getset_params(config.params)
         config.clonew.close()

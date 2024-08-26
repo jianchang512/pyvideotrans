@@ -9,8 +9,8 @@ import time
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
-from videotrans.util import tools
 from videotrans.recognition import run as run_recogn
+from videotrans.util import tools
 
 
 class RecognWorker(QThread):

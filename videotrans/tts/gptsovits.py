@@ -1,9 +1,9 @@
-import shutil
-import sys
 import os
+import sys
 import time
 
 import requests
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -12,8 +12,9 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
               inst=None,uuid=None):
     try:
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
-        if not api_url:
-            raise Exception("必须填写GPT-SoVITS 的 API 地址")
+        if len(config.params['gptsovits_url'].strip()) < 10:
+            raise Exception(
+                'GPT-SoVITS API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'GPT-SoVITS API interface is not correct, please go to Settings to fill in again')
         api_url = 'http://' + api_url.replace('http://', '')
         config.logger.info(f'GPT-SoVITS API:{api_url}')
         text = text.strip()

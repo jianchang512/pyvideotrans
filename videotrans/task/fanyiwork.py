@@ -9,9 +9,8 @@ from pathlib import Path
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
-
-from videotrans.util.tools import get_subtitle_from_srt
 from videotrans.translator import run as run_trans
+from videotrans.util.tools import get_subtitle_from_srt
 
 
 class FanyiWorker(QThread):

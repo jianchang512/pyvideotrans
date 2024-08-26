@@ -4,17 +4,18 @@ import platform
 import re
 import shutil
 import sys
-
 import threading
-from PySide6 import QtCore, QtWidgets
-from PySide6.QtGui import QTextCursor
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 import warnings
+
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
+
 from videotrans.component.progressbar import ClickableProgressBar
+
 warnings.filterwarnings('ignore')
-from videotrans.winform import transapi, chatgpt, ai302, localllm, gemini, azure, baidu, tencent, deepL, deepLX, ott, \
-    zijiehuoshan, zh_recogn, doubao, clone, ttsapi, gptsovits, cosyvoice, fishtts, chattts, ai302tts, azuretts
+from videotrans.winform import zh_recogn, doubao, clone, ttsapi, gptsovits, cosyvoice, fishtts, chattts, ai302tts, azuretts
 
 
 from videotrans.util import tools

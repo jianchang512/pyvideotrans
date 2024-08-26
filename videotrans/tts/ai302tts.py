@@ -1,13 +1,8 @@
 import base64
-import os
-import re
-import shutil
 import time
-from pathlib import Path
 
-import httpx
 import requests
-from openai import OpenAI, APIError
+
 from videotrans.configure import config
 from videotrans.util import tools
 

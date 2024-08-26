@@ -43,6 +43,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
+    if len(config.params['deeplx_address'].strip())<10:
+        raise  Exception('DeepLX  接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'DeepLX  interface is not correct, please go to Settings to fill in again')
     url = config.params['deeplx_address'].strip().rstrip('/').replace('/translate', '') + '/translate'
     if not url.startswith('http'):
         url = f"http://{url}"

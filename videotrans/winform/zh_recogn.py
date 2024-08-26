@@ -38,8 +38,9 @@ def open():
 
     def save():
         key = config.zhrecognw.zhrecogn_address.text().strip()
-        key = key.rstrip('/')
-        key = 'http://' + key.replace('http://', '')
+        if key:
+            key = key.rstrip('/')
+            key = 'http://' + key.replace('http://', '')
         config.params["zh_recogn_api"] = key
         config.getset_params(config.params)
         config.zhrecognw.close()

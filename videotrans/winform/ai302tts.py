@@ -1,3 +1,4 @@
+import builtins
 import json
 
 from PySide6 import QtWidgets
@@ -5,7 +6,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
 from videotrans.util import tools
-import builtins
+
 # 使用内置的 open 函数
 builtin_open = builtins.open
 

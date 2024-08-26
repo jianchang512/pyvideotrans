@@ -11,8 +11,9 @@ This script is provided "as is", without warranty of any kind, express or implie
 """
 
 import os
-import requests
 import platform
+
+import requests
 
 # Gets the current script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))

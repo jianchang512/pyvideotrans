@@ -8,17 +8,11 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                           QFont, QFontDatabase, QGradient, QIcon,
-                           QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform)
-
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
-                               QMainWindow, QMenuBar, QPlainTextEdit, QPushButton,
-                               QSizePolicy, QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtCore import (QMetaObject, QSize, Qt)
+from PySide6.QtGui import (QCursor)
+from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
+                               QPushButton,
+                               QVBoxLayout)
 
 from videotrans.configure import config
 
@@ -30,6 +24,7 @@ class Ui_watermark(object):
         watermark.resize(643, 350)
         watermark.setWindowModality(QtCore.Qt.NonModal)
 
+        self.videourls = []
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -37,7 +32,6 @@ class Ui_watermark(object):
         sizePolicy.setHeightForWidth(watermark.sizePolicy().hasHeightForWidth())
         watermark.setSizePolicy(sizePolicy)
         watermark.setMaximumSize(QtCore.QSize(643, 350))
-
 
         self.horizontalLayout_3 = QHBoxLayout(watermark)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -82,15 +76,15 @@ class Ui_watermark(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         pos = QtWidgets.QHBoxLayout()
-        self.labelpos=QtWidgets.QLabel()
-        self.compos=QtWidgets.QComboBox()
+        self.labelpos = QtWidgets.QLabel()
+        self.compos = QtWidgets.QComboBox()
         self.compos.addItems([
-            "左上角",
-            "右上角",
-            "右下角",
-            "左下角",
-            "居 中"
-        ] if config.defaulelang=='zh' else [
+                                 "左上角",
+                                 "右上角",
+                                 "右下角",
+                                 "左下角",
+                                 "居 中"
+                             ] if config.defaulelang == 'zh' else [
             "Upper left",
             "Upper right",
             "Bottom right",
@@ -101,27 +95,23 @@ class Ui_watermark(object):
         pos.addWidget(self.compos)
         self.verticalLayout.addLayout(pos)
 
-
         tmpx = QtWidgets.QHBoxLayout()
-        self.labelx=QtWidgets.QLabel()
-        self.linex=QtWidgets.QLineEdit()
+        self.labelx = QtWidgets.QLabel()
+        self.linex = QtWidgets.QLineEdit()
         tmpx.addWidget(self.labelx)
         tmpx.addWidget(self.linex)
 
         tmpy = QtWidgets.QHBoxLayout()
-        self.labely=QtWidgets.QLabel()
-        self.liney=QtWidgets.QLineEdit()
+        self.labely = QtWidgets.QLabel()
+        self.liney = QtWidgets.QLineEdit()
         tmpy.addWidget(self.labely)
         tmpy.addWidget(self.liney)
 
         tmpw = QtWidgets.QHBoxLayout()
-        self.labelw=QtWidgets.QLabel()
-        self.linew=QtWidgets.QLineEdit()
+        self.labelw = QtWidgets.QLabel()
+        self.linew = QtWidgets.QLineEdit()
         tmpw.addWidget(self.labelw)
         tmpw.addWidget(self.linew)
-
-
-
 
         self.startbtn = QPushButton(watermark)
         self.startbtn.setObjectName(u"startbtn")
@@ -132,7 +122,6 @@ class Ui_watermark(object):
         self.verticalLayout.addLayout(tmpy)
         self.verticalLayout.addLayout(tmpw)
         self.verticalLayout.addWidget(self.startbtn)
-
 
         self.resultlabel = QLabel(watermark)
         self.resultlabel.setObjectName(u"resultlabel")
@@ -153,13 +142,10 @@ class Ui_watermark(object):
 
         QMetaObject.connectSlotsByName(watermark)
 
-    # setupUi
-
     def retranslateUi(self, watermark):
-        watermark.setWindowTitle("为视频添加图片水印" if config.defaulelang == 'zh' else 'Adding image watermark to video')
+        watermark.setWindowTitle("批量视频添加图片水印" if config.defaulelang == 'zh' else 'Adding image watermark to videos')
         self.videourl.setPlaceholderText(
-            "选择视频" if config.defaulelang == 'zh' else 'Select a Video.')
-
+            "选择视频1或多个" if config.defaulelang == 'zh' else 'Select  Videos')
 
         self.pngurl.setPlaceholderText("选择水印图片" if config.defaulelang == 'zh' else 'Select a watermark image')
         self.videobtn.setText("选择视频" if config.defaulelang == 'zh' else 'Select a Video')
@@ -168,13 +154,14 @@ class Ui_watermark(object):
         self.resultlabel.setText("")
         self.resultbtn.setText("打开保存结果目录" if config.defaulelang == 'zh' else 'Open the save results directory')
 
-        self.labelx.setText('水印距离左侧/右侧距离'if config.defaulelang == 'zh' else 'Distance of watermark from left or right side')
-        self.labely.setText('水印距离顶部/底部的距离'if config.defaulelang == 'zh' else 'Distance of watermark from top or bottom')
+        self.labelx.setText(
+            '水印距离左侧/右侧距离' if config.defaulelang == 'zh' else 'Distance of watermark from left or right side')
+        self.labely.setText(
+            '水印距离顶部/底部的距离' if config.defaulelang == 'zh' else 'Distance of watermark from top or bottom')
 
-        self.labelw.setText('水印图宽度x高度' if config.defaulelang=='zh' else 'Watermark width x height')
+        self.labelw.setText('水印图宽度x高度' if config.defaulelang == 'zh' else 'Watermark width x height')
         self.linew.setText('50x50')
-        self.labelpos.setText('水印位置' if config.defaulelang=='zh' else 'Watermark Location')
+        self.labelpos.setText('水印位置' if config.defaulelang == 'zh' else 'Watermark Location')
 
         self.linex.setText('10')
         self.liney.setText('10')
-

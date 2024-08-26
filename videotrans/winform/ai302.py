@@ -1,3 +1,4 @@
+import builtins
 import json
 import webbrowser
 from pathlib import Path
@@ -6,7 +7,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
-import builtins
+
 # 使用内置的 open 函数
 builtin_open = builtins.open
 

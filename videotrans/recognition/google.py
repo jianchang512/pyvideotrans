@@ -1,16 +1,16 @@
 import json
 import os
 import re
-import time
 from datetime import timedelta
 from pathlib import Path
 
+import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
 from videotrans.util import tools
-import speech_recognition as sr
+
 
 # split audio by silence
 def shorten_voice_old(normalized_sound):

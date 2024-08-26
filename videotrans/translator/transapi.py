@@ -47,9 +47,11 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
     except Exception:
         pass
     # 翻译后的文本
+
     url = config.params['trans_api_url'].strip().rstrip('/').lower()
-    if not url:
-        raise Exception(f'Please input your api')
+    if len(config.params['trans_api_url'].strip())<10:
+        raise  Exception('TRANS API 接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'TRANS API interface is not correct, please go to Settings to fill in again')
+
     if not url.startswith('http'):
         url = f"http://{url}"
     if url.find('?') > 0:

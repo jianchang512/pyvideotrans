@@ -1,8 +1,9 @@
+import builtins
 import json
 import os
 
 from videotrans.configure import config
-import builtins
+
 # 使用内置的 open 函数
 builtin_open = builtins.open
 

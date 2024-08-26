@@ -9,7 +9,6 @@
 
 
 from PySide6 import QtCore, QtWidgets
-from videotrans.configure import config
 
 
 class Ui_ai302ttsform(object):

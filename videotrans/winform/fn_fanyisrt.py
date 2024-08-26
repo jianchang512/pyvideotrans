@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl
@@ -14,6 +15,8 @@ from videotrans.util import tools
 
 # 字幕批量翻译
 def open():
+    RESULT_DIR=config.homedir + "/translate"
+    Path(RESULT_DIR).mkdir(exist_ok=True)
     def feed(d):
         d=json.loads(d)
         if d['type']=='error':
@@ -59,7 +62,7 @@ def open():
             config.fanyiform.fanyi_sourcetext.setPlainText(f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}\n{",".join(namestr)}')
 
     def fanyi_save_fun():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(config.homedir + "/translate"))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def fanyi_start_fun():
         config.settings = config.parse_init()
@@ -75,7 +78,6 @@ def open():
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         if rs is not True:
-            # QMessageBox.critical(config.fanyiform, config.transobj['anerror'], rs)
             return False
         config.fanyiform.fanyi_sourcetext.clear()
         config.fanyiform.loglabel.setText('')
