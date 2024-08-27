@@ -11,7 +11,8 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import QDesktopServices
 
-from ..configure import config
+from videotrans.configure import config
+from . import wx,alipay,mp
 
 
 class Ui_infoform(object):
