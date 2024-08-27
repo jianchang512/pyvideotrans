@@ -19,6 +19,7 @@ def get_executable_path():
         return str(Path.cwd()).replace('\\', '/')
 
 
+
 # root dir
 rootdir = get_executable_path()
 root_path = Path(rootdir)
@@ -85,6 +86,9 @@ if sys.platform == 'win32':
     os.environ['PATH'] = PWD + f';{PWD}\\ffmpeg;' + os.environ['PATH']
 else:
     os.environ['PATH'] = rootdir + f':{rootdir}/ffmpeg:' + os.environ['PATH']
+
+if sys.platform=='darwin':
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'

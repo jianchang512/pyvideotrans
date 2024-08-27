@@ -4,6 +4,7 @@
 .github
 .idea
 tmp
+images
 models/*.pt
 models/models--Systran--faster-whisper-base
 models/models--Systran--faster-whisper-tiny
