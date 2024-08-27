@@ -34,6 +34,7 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 "text": text,
                 "speed": 1 + float(rate.replace('%', '')),
                 "new": 0,
+                "streaming":0
             }
             if not text:
                 return True
@@ -45,11 +46,14 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 data['speaker'] = rolelist[role]
             elif role:
                 data['speaker']=role
-                data['new']=1
             else:
                 data['speaker'] = '中文女'
+
+            if data['speaker'] not in ["中文男","中文女","英文男","英文女","日语男","韩语女","粤语女"]:
+                data['new']=1
             # 克隆声音
             response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
+            config.logger.info(f'请求数据：{api_url=},{data=}')
         else:
             data = {
                     "text": text,
@@ -73,6 +77,7 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 api_url += '/tts'
             else:
                 data['role'] = '中文女'
+            config.logger.info(f'请求数据：{api_url=},{data=}')
             # 克隆声音
             response = requests.post(f"{api_url}", data=data, proxies={"http": "", "https": ""}, timeout=3600)
 

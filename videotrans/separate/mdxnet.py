@@ -1,11 +1,11 @@
 import os
 
-from videotrans.util.tools import runffmpeg
-
 import librosa
 import numpy as np
 import soundfile as sf
 import torch
+
+from videotrans.util.tools import runffmpeg
 
 # from tqdm import tqdm
 cpu = torch.device("cuda" if torch.cuda.is_available() else "cpu")

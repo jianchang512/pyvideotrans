@@ -407,8 +407,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.current_status = 'end'
         self.hide()
         try:
-            shutil.rmtree(config.rootdir + "/tmp", ignore_errors=True)
-            shutil.rmtree(config.homedir + "/tmp", ignore_errors=True)
+            tools._unlink_tmp()
             for w in [config.separatew,
                       config.hebingw,
                       config.chatgptw,
@@ -447,8 +446,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                       config.vandsrtform]:
                 if w and hasattr(w, 'close'):
                     w.close()
-
-
         except Exception:
             pass
         try:

@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import platform
-import random
 import re
 import shutil
 import subprocess
@@ -166,11 +165,11 @@ def set_proxy(set_val=''):
 # delete tmp files
 def delete_temp(noextname=None):
     try:
-        if noextname and os.path.exists(f"{config.rootdir}/tmp/{noextname}"):
-            shutil.rmtree(f"{config.rootdir}/tmp/{noextname}")
-        elif os.path.exists(f"{config.rootdir}/tmp"):
-            shutil.rmtree(f"{config.rootdir}/tmp")
-            os.makedirs(f"{config.rootdir}/tmp", exist_ok=True)
+        if noextname and os.path.exists(f"{config.TEMP_DIR}/{noextname}"):
+            shutil.rmtree(f"{config.TEMP_DIR}/{noextname}")
+        elif os.path.exists(f"{config.TEMP_DIR}"):
+            shutil.rmtree(f"{config.TEMP_DIR}")
+            os.makedirs(f"{config.TEMP_DIR}", exist_ok=True)
     except:
         pass
 
@@ -559,7 +558,7 @@ def get_md5(input_string: str):
     # 获取md5哈希值的十六进制表示
     return md5.hexdigest()
 
-def conver_to_8k(audio, target_audio):
+def conver_to_16k(audio, target_audio):
     return runffmpeg([
         "-y",
         "-i",
@@ -727,8 +726,6 @@ def show_popup(title, text, parent=None):
     msg.addButton(QMessageBox.Cancel)
     msg.setWindowModality(Qt.ApplicationModal)  # 设置为应用模态
     msg.setWindowFlags(msg.windowFlags() | Qt.WindowStaysOnTopHint)  # 置于顶层
-
-    # msg.addButton(a2)
     msg.setIcon(QMessageBox.Information)
     x = msg.exec()  # 显示消息框
     return x
@@ -1096,24 +1093,6 @@ def set_process(text="",*, type="logs", uuid=None, btnkey="", nologs=False):
         pass
 
 
-# 获取目录下的所有文件和子目录
-def delete_files(directory, ext):
-    try:
-        files_and_dirs = os.listdir(directory)
-
-        # 遍历文件和子目录
-        for item in files_and_dirs:
-            item_path = os.path.join(directory, item)
-            # 如果是文件，且是 mp3 文件，删除之
-            if os.path.isfile(item_path) and item.lower().endswith(ext):
-                os.remove(item_path)
-
-            # 如果是子目录，递归调用删除函数
-            elif os.path.isdir(item_path):
-                delete_files(item_path)
-    except:
-        pass
-
 def send_notification(title, message):
     from plyer import notification
     try:
@@ -1127,34 +1106,6 @@ def send_notification(title, message):
         )
     except:
         pass
-
-
-# 判断是否需要重命名，如果需要则重命名并转移
-def rename_move(file, *, is_dir=False):
-    patter = r'[ \s`"\'!@#$%^&*()=+,?\|{}\[\]]+'
-    if re.search(patter, file):
-        if is_dir:
-            os.makedirs(config.homedir + "/target_dir", exist_ok=True)
-            return True, config.homedir + "/target_dir", False
-        dirname = os.path.dirname(file)
-        basename = os.path.basename(file)
-        # 目录不规则，迁移目录
-        if re.search(patter, dirname):
-            basename = re.sub(patter, '', basename, 0, re.I)
-            basename = basename.replace(':', '')
-            os.makedirs(config.homedir + "/rename", exist_ok=True)
-            newfile = config.homedir + f"/rename/{basename}"
-            shutil.copy2(file, newfile)
-        else:
-            # 目录规则仅名称不规则，只修改名称
-            basename = re.sub(patter, '', basename, 0, re.I)
-            basename = basename.replace(':', '')
-            newfile = dirname + "/" + basename
-            shutil.copy2(file, newfile)
-
-        return True, newfile, basename
-    return False, False, False
-
 
 # 获取音频时长
 def get_audio_time(audio_file):
@@ -1248,32 +1199,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     return trimmed_audio
 
 
-# 从 google_url 中获取可用地址
-def get_google_url():
-    google_url = 'https://translate.google.com'
-    if vail_file(config.rootdir + '/google.txt'):
-        with open(os.path.join(config.rootdir, 'google.txt'), 'r') as f:
-            t = f.read().strip().splitlines()
-            urls = [x for x in t if x.strip() and x.startswith('http')]
-            if len(urls) > 0:
-                n = 0
-                while n < 5:
-                    google_url = random.choice(urls).rstrip('/')
-                    try:
-                        res = requests.head(google_url, proxies={"http": "", "https": ""})
-                        if res.status_code == 200:
-                            return google_url
-                    except:
-                        msg = (f'测试失败: {google_url}')
-                        config.logger.error(msg)
-                        continue
-                    finally:
-                        n += 1
-                raise Exception(f'从google.txt中随机获取5次url，均未找到可用的google翻译反代地址，请检查')
-    return google_url
-
-
-def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
+def remove_qsettings_data():
     try:
         os.remove(config.rootdir + "/videotrans/params.json")
         os.remove(config.rootdir + "/videotrans/cfg.json")
@@ -1283,7 +1209,6 @@ def remove_qsettings_data(organization="Jameson", application="VideoTranslate"):
 
 # 格式化视频信息
 def format_video(name, out=None):
-    from pathlib import Path
     raw_pathlib = Path(name)
     raw_basename = raw_pathlib.name
     raw_noextname = raw_pathlib.stem
@@ -1304,28 +1229,18 @@ def format_video(name, out=None):
         # 原始后缀不带 .
         "raw_ext": ext[1:],
         # 处理后 移动后符合规范的目录名
-        "dirname": "",
+        "dirname": raw_dirname,
         # 符合规范的基本名带后缀
-        "basename": "",
+        "basename": raw_basename,
         # 符合规范的不带后缀
-        "noextname": "",
+        "noextname": raw_noextname,
         # 扩展名
         "ext": ext[1:],
         # 最终存放目标位置，直接存到这里
         "output": output_path.as_posix(),
-        "unid": "",
-        "source_mp4": name,
-        # 临时存放，当名字符合规范时，和output相同
-        "linshi_output": ""
+        "unid": get_md5(name),
+        "source_mp4": name
     }
-    obj['linshi_output'] = obj['output']
-    h = hashlib.md5()
-    h.update(obj['raw_name'].encode('utf-8'))
-    obj['unid'] = h.hexdigest()
-
-    obj['dirname'] = obj['raw_dirname']
-    obj['basename'] = obj['raw_basename']
-    obj['noextname'] = obj['raw_noextname']
     return obj
 
 def open_url(url):
@@ -1333,7 +1248,7 @@ def open_url(url):
     webbrowser.open_new_tab(url)
 
 
-def open_dir(self, dirname=None):
+def open_dir(dirname=None):
     if not dirname:
         return
     from PySide6.QtCore import QUrl
@@ -1352,7 +1267,7 @@ def vail_file(file=None):
     p = Path(file)
     if not p.exists() or not p.is_file():
         return False
-    if p.stat().st_size < 1:
+    if p.stat().st_size ==0:
         return False
     return True
 
@@ -1509,15 +1424,17 @@ def split_line(sep_list):
     sep_list.append(" ".join(res2[pos:]))
     return sep_list
 
-
+# 删除临时文件
 def _unlink_tmp():
-    if not os.path.isdir(config.TEMP_DIR):
-        return
-    for it in os.listdir(config.TEMP_DIR):
-        if os.path.isfile(config.TEMP_DIR + f"/{it}"):
-            Path(config.TEMP_DIR + f"/{it}").unlink(missing_ok=True)
-        else:
-            shutil.rmtree(config.TEMP_DIR + f"/{it}", ignore_errors=True)
+    try:
+        shutil.rmtree(config.TEMP_DIR,ignore_errors=True)
+    except Exception:
+        pass
+    try:
+        shutil.rmtree(config.TEMP_HOME,ignore_errors=True)
+    except Exception:
+        pass
+
 
 
 def shutdown_system():

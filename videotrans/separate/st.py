@@ -1,21 +1,15 @@
-import math
+import hashlib
 import os
-import shutil
-import time
 import traceback
 from pathlib import Path
-
-from pydub import AudioSegment
-
-from videotrans.util import tools
 
 import librosa
 import soundfile as sf
 import torch
-from videotrans.separate.vr import AudioPre
+from pydub import AudioSegment
+
 from videotrans.configure import config
-from videotrans.util import tools
-import hashlib
+from videotrans.separate.vr import AudioPre
 
 
 def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey=None,percent=[0,1]):

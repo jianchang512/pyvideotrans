@@ -5,7 +5,6 @@ import os
 
 import librosa
 import numpy as np
-import soundfile as sf
 
 
 def crop_center(h1, h2):

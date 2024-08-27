@@ -89,7 +89,7 @@ class Ui_fanyisrt(object):
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
 
         self.loglabel=QtWidgets.QLabel()
-        self.loglabel.setStyleSheet('''color:#999''')
+        self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout_13.addWidget(self.loglabel)
 
 

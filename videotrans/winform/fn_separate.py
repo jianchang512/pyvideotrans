@@ -4,7 +4,6 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans.configure import config
 from videotrans.task.separate_worker import SeparateWorker
-from videotrans.util import tools
 
 
 # 分离背景音
@@ -40,10 +39,6 @@ def open():
         config.separatew.set.setText(config.transobj['Start Separate...'])
         basename = os.path.basename(file)
         # 判断名称是否正常
-        rs, newfile, base = tools.rename_move(file, is_dir=False)
-        if rs:
-            file = newfile
-            basename = base
         # 创建文件夹
         out = os.path.join(outdir, basename).replace('\\', '/')
         os.makedirs(out, exist_ok=True)
