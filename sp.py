@@ -23,7 +23,7 @@ class StartWindow(QtWidgets.QWidget):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        self.setWindowIcon(QIcon(".videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
         v1 = QtWidgets.QVBoxLayout()
         v1.addStretch(1)
         h1 = QtWidgets.QHBoxLayout()
