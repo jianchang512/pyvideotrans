@@ -1,9 +1,8 @@
-import layers
 import torch
 import torch.nn.functional as F
 from torch import nn
 
-from . import spec_utils
+import layers
 
 
 class BaseASPPNet(nn.Module):

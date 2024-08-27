@@ -111,6 +111,7 @@ class Ui_videoandsrt(object):
         self.v3.addWidget(self.startbtn)
 
         self.loglabel = QLabel()
+        self.loglabel.setStyleSheet('''color:#148cd2''')
         self.v3.addWidget(self.loglabel)
         self.v3.addStretch()
 

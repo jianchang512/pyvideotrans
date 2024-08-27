@@ -43,7 +43,7 @@ class Worker(QThread):
                     shutil.rmtree(obj_format['output'])
                 except Exception:
                     pass
-                else:
+                finally:
                     Path(obj_format['output']).mkdir(parents=True, exist_ok=True)
             videolist.append(obj_format)
             self.unidlist.append(obj_format['unid'])
@@ -99,12 +99,12 @@ class Worker(QThread):
         # 全部完成
 
         set_process("", type='end')
-        tools._unlink_tmp()
+        # tools._unlink_tmp()
         config.queue_mp4 = []
         config.unidlist = []
 
     def stop(self):
         set_process("", type='stop')
-        tools._unlink_tmp()
+        # tools._unlink_tmp()
         config.queue_mp4 = []
         config.unidlist = []

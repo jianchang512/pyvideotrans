@@ -670,6 +670,8 @@ class SecWindow():
     # 试听配音
     def listen_voice_fun(self):
         lang = translator.get_code(show_text=self.main.target_language.currentText())
+        if not lang:
+            return QMessageBox.critical(self.main,config.transobj['anerror'],'请先选择目标语言' if config.defaulelang=='zh' else 'Please select the target language first')
         text = config.params[f'listen_text_{lang}']
         role = self.main.voice_role.currentText()
         if not role or role == 'No':

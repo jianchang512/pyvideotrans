@@ -4,11 +4,12 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
+
+from videotrans.configure import config
 from videotrans.separate.lib_v5 import nets_61968KB as Nets
 from videotrans.separate.lib_v5 import spec_utils
 from videotrans.separate.lib_v5.model_param_init import ModelParameters
 from videotrans.separate.utils import inference
-from videotrans.configure import config
 
 
 class AudioPre:

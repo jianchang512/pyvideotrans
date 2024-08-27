@@ -677,37 +677,37 @@ Translation:""",
         if chatgpt_path.exists():
             default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            chatgpt_path.write_text(default['chatgpt_template'])
+            chatgpt_path.write_text(default['chatgpt_template'],encoding='utf-8')
 
         azure_path = root_path / f'videotrans/azure{"" if defaulelang == "zh" else "-en"}.txt'
         if azure_path.exists():
             default['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            azure_path.write_text(default['azure_template'])
+            azure_path.write_text(default['azure_template'],encoding='utf-8')
 
         gemini_path = root_path / f'videotrans/gemini{"" if defaulelang == "zh" else "-en"}.txt'
         if gemini_path.exists():
             default['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            gemini_path.write_text(default['gemini_template'])
+            gemini_path.write_text(default['gemini_template'],encoding='utf-8')
 
         localllm_path = root_path / f'videotrans/localllm{"" if defaulelang == "zh" else "-en"}.txt'
         if localllm_path.exists():
             default['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            localllm_path.write_text(default['localllm_template'])
+            localllm_path.write_text(default['localllm_template'],encoding='utf-8')
 
         zijiehuoshan_path = root_path / f'videotrans/zijie.txt'
         if zijiehuoshan_path.exists():
             default['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            zijiehuoshan_path.write_text(default['zijiehuoshan_template'])
+            zijiehuoshan_path.write_text(default['zijiehuoshan_template'],encoding='utf-8')
 
         ai302_path = root_path / f'videotrans/302ai.txt'
         if ai302_path.exists():
             default['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
         else:
-            ai302_path.write_text(default['ai302_template'])
+            ai302_path.write_text(default['ai302_template'],encoding='utf-8')
     except Exception:
         pass
     if not os.path.exists(rootdir + "/videotrans/params.json"):

@@ -127,7 +127,7 @@ class Ui_recogn(object):
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
 
         self.loglabel=QtWidgets.QLabel()
-        self.loglabel.setStyleSheet('''color:#999''')
+        self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout_3.addWidget(self.loglabel)
 
 

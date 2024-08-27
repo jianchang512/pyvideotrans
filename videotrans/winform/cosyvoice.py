@@ -43,7 +43,7 @@ def open():
 
     def getrole():
         tmp = config.cosyvoicew.role.toPlainText().strip()
-        role = None
+        role = "中文女"
         if not tmp:
             return role
 

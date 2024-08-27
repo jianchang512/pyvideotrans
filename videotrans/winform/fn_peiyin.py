@@ -174,7 +174,8 @@ def open():
             filename = ""
         if not filename:
             newrole = role.replace('/', '-').replace('\\', '-')
-            filename = f"{newrole}-rate{rate.replace('%', '')}-volume{volume.replace('%', '')}-pitch{pitch}"
+            filename = f"{newrole}-rate{rate}-volume{volume}-pitch{pitch}"
+            filename=filename.replace('%','').replace('+','')
         else:
             filename = filename.replace('.wav', '')
 

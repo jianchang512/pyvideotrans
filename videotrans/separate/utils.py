@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import torch
+
 # from tqdm import tqdm
 from videotrans.configure import config
 from videotrans.util import tools

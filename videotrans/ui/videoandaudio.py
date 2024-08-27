@@ -84,6 +84,7 @@ class Ui_videoandaudio(object):
         self.resultbtn.setCursor(QCursor(Qt.PointingHandCursor))
 
         self.loglabel=QLabel(videoandaudio)
+        self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout.addWidget(self.resultbtn)
         self.verticalLayout.addWidget(self.loglabel)
         self.horizontalLayout_3.addLayout(self.verticalLayout)
