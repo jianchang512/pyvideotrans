@@ -150,7 +150,6 @@ apt install python3.10
 
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
-pip 23.2.1 from /usr/local/lib/python3.10/site-packages/pip (python 3.10)
 
 sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 
 
