@@ -22,7 +22,7 @@ def open():
         def run(self):
             from videotrans.tts.chattts import get_voice
             try:
-                get_voice(text=self.text, role="boy1", set_p=False, filename=config.homedir + "/test.mp3")
+                get_voice(text=self.text, role="boy1", set_p=False, filename=config.TEMP_HOME + "/test.mp3")
 
                 self.uito.emit("ok")
             except Exception as e:
@@ -30,54 +30,60 @@ def open():
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.homedir + "/test.mp3")
-            QtWidgets.QMessageBox.information(config.chatttsw, "ok", "Test Ok")
+            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
+            QtWidgets.QMessageBox.information(chatttsw, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(config.chatttsw, config.transobj['anerror'], d)
-        config.chatttsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'], d)
+        chatttsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not config.chatttsw.chattts_address.text().strip():
-            QtWidgets.QMessageBox.critical(config.chatttsw, config.transobj['anerror'], '必须填写http地址')
+        if not chatttsw.chattts_address.text().strip():
+            QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'], '必须填写http地址')
             return
-        apiurl = config.chatttsw.chattts_address.text().strip()
+        apiurl = chatttsw.chattts_address.text().strip()
         if not apiurl:
             return QtWidgets.QMessageBox.critical(config.llmw, config.transobj['anerror'],
                                                   '必须填写api地址' if config.defaulelang == 'zh' else 'Please input ChatTTS API url')
 
         config.params['chattts_api'] = apiurl
-        task = TestTTS(parent=config.chatttsw,
+        task = TestTTS(parent=chatttsw,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
                        )
-        config.chatttsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        chatttsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = config.chatttsw.chattts_address.text().strip()
-        voice = config.chatttsw.chattts_voice.text().strip()
+        key = chatttsw.chattts_address.text().strip()
+        voice = chatttsw.chattts_voice.text().strip()
         if key:
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '').replace('/tts', '')
         config.params["chattts_api"] = key
         config.getset_params(config.params)
         config.settings['chattts_voice'] = voice
-        json.dump(config.settings, builtin_open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+        json.dump(config.settings, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
-        config.chatttsw.close()
+        chatttsw.close()
 
     from videotrans.component import ChatttsForm
-    if config.chatttsw is not None:
-        config.chatttsw.show()
-        config.chatttsw.raise_()
-        config.chatttsw.activateWindow()
+    chatttsw = config.child_forms.get('chatttsw')
+    if chatttsw is not None:
+        config.settings = config.parse_init()
+        if config.settings["chattts_voice"]:
+            chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
+        chatttsw.show()
+        chatttsw.raise_()
+        chatttsw.activateWindow()
         return
-    config.chatttsw = ChatttsForm()
+    chatttsw = ChatttsForm()
+    config.child_forms['chatttsw'] = chatttsw
+
     if config.params["chattts_api"]:
-        config.chatttsw.chattts_address.setText(config.params["chattts_api"])
+        chatttsw.chattts_address.setText(config.params["chattts_api"])
     if config.settings["chattts_voice"]:
-        config.chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
-    config.chatttsw.set_chattts.clicked.connect(save)
-    config.chatttsw.test.clicked.connect(test)
-    config.chatttsw.show()
+        chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
+    chatttsw.set_chattts.clicked.connect(save)
+    chatttsw.test.clicked.connect(test)
+    chatttsw.show()

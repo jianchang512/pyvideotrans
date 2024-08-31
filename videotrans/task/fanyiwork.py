@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 import queue
@@ -10,6 +9,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
 from videotrans.translator import run as run_trans
+from videotrans.util import tools
 from videotrans.util.tools import get_subtitle_from_srt
 
 
@@ -22,9 +22,7 @@ class FanyiWorker(QThread):
         self.target_language = target_language
         self.files = files
         self.srts = ""
-        md5_hash = hashlib.md5()
-        md5_hash.update(f"{time.time()}{len(files)}{type}{target_language}".encode('utf-8'))
-        self.uuid = md5_hash.hexdigest()
+        self.uuid = tools.get_md5(f"{time.time()}{','.join(files)}{type}{target_language}")
         self.end = False
 
     def post(self, msg):
@@ -37,12 +35,11 @@ class FanyiWorker(QThread):
                     return
                 q = config.queue_dict.get(uuid)
                 if not q:
-                    config.queue_dict[uuid]=queue.Queue()
+                    config.queue_dict[uuid] = queue.Queue()
                     continue
                 try:
                     data = q.get(True, 0.5)
                     if data:
-                        print(f'@@@@@@@@@@@@@@@@@@@@@@@@@@@@{data=}')
                         self.post(data)
                 except Exception:
                     pass
@@ -54,11 +51,10 @@ class FanyiWorker(QThread):
         if not self.files:
             self.post({"type": 'error', 'text': 'no srt file'})
             return
-        target = config.homedir + '/translate'
+        target = config.HOME_DIR + '/translate'
         Path(target).mkdir(parents=True, exist_ok=True)
 
         for i, f in enumerate(self.files):
-            print(f'{i=},{f=}')
             if config.exit_soft:
                 return
             try:
@@ -73,7 +69,7 @@ class FanyiWorker(QThread):
                 })
                 return
             try:
-                self.post({'type':"logs","text":f"processing {Path(f).name}"})
+                self.post({'type': "logs", "text": f"processing {Path(f).name}"})
                 self.post({"type": "set_source", "text": Path(f).read_text(encoding='utf-8')})
                 srt = run_trans(
                     translate_type=self.type,

@@ -26,7 +26,6 @@ def recogn(*,
         tools.set_process(
             f"识别可能较久，请耐心等待，进度可查看zh_recogn终端",
             type='logs',
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid)
     try:
         res = requests.post(f"{api_url}", files=files, proxies={"http": "", "https": ""}, timeout=3600)

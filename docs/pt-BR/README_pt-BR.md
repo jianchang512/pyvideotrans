@@ -20,18 +20,18 @@ Traduza e duble seus vídeos com facilidade! Esta ferramenta converte vídeos de
 
 
 > **[Patrocinadores]**
-> 
+>
 > [![](https://github.com/user-attachments/assets/48f4ac8f-e321-4bd3-ab2e-d6053d932f49)](https://302.ai/)
-> [302.AI](https://302.ai) é uma plataforma self-service que reúne as melhores IAs do mundo, com pagamento sob demanda, sem mensalidades e sem barreiras para usar vários tipos de IA.
-> 
+>[302.AI](https://302.ai) é uma plataforma self-service que reúne as melhores IAs do mundo, com pagamento sob demanda, sem mensalidades e sem barreiras para usar vários tipos de IA.
+>
 > [Clique para se registrar](https://302.ai): Ganhe 1 PTC (1 PTC = 1 dólar americano, cerca de R$ 7) instantaneamente. Experimente através do link com um limite diário de 5 PTC.
-> 
+>
 > **Funcionalidades completas:** Integra as melhores IAs na plataforma, incluindo, mas não limitado a, chat de IA, geração de imagens, processamento de imagens, geração de vídeos e cobertura completa.
-> 
+>
 > **Fácil de usar:** Oferece várias formas de uso, como robôs, ferramentas e APIs, atendendo às necessidades de iniciantes a desenvolvedores.
-> 
+>
 > **Pagamento sob demanda, sem barreiras:** Não oferece planos mensais, não impõe barreiras aos produtos, pagamento sob demanda, acesso total. O saldo recarregado é válido para sempre.
-> 
+>
 > **Separação de administradores e usuários:** Os administradores compartilham com um clique, os usuários não precisam fazer login. Os usuários não precisam se preocupar com configurações complexas de IA, permitindo que especialistas em IA configurem e simplifiquem o processo de uso.
 
 
@@ -139,7 +139,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
   cd Python-3.10.4
   ./configure --enable-optimizations
   sudo make && sudo make install
-  sudo alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10
+  sudo alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 1
   sudo yum install -y ffmpeg
   ```
 
@@ -153,7 +153,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
   sudo apt-get install libxcb-cursor0
   apt install python3.10
   curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-  sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 
+  sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10  1
   sudo update-alternatives --config python
   apt-get install ffmpeg
   ```

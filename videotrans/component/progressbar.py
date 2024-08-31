@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import QUrl, Qt
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QProgressBar, QHBoxLayout, QMessageBox
@@ -11,6 +13,9 @@ class ClickableProgressBar(QLabel):
         self.target_dir = None
         self.msg = None
         self.parent = parent
+        self.basename = ""
+        self.name = ""
+        self.precent = 0
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -33,17 +38,22 @@ class ClickableProgressBar(QLabel):
         layout = QHBoxLayout(self)
         layout.addWidget(self.progress_bar)  # 将进度条添加到布局
 
-    def setTarget(self, url):
-        self.target_dir = url
+    def setTarget(self, target_dir=None, name=None):
+        self.target_dir = target_dir
+        self.name = name
+        self.basename = Path(name).name
 
-    def setMsg(self, text):
-        if text and config.defaulelang == 'zh':
-            text += '\n\n请尝试在文档站 pyvideotrans.com 搜索错误解决方案\n'
-        self.msg = text
+    def setEnd(self):
+        self.precent = 100
+        self.setCursor(Qt.PointingHandCursor)
+        self.setText(config.transobj["endandopen"])
+        self.progress_bar.setValue(100)
 
-    def setText(self, text):
+    def setText(self, text=''):
         if self.progress_bar:
-            self.progress_bar.setFormat(f' {text}')  # set text format
+            if not text:
+                text = config.transobj['running']
+            self.progress_bar.setFormat(f'  [{self.precent}%]  {text}   {self.basename}')  # set text format
 
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:

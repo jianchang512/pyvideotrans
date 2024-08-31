@@ -29,7 +29,7 @@ def update_proxy(type='set'):
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     try:
         api_url = config.params['ttsapi_url'].strip().rstrip('/')
         if len(config.params['ttsapi_url'].strip()) < 10:
@@ -60,16 +60,16 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
         if set_p:
             if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ',type="logs", btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs", uuid=uuid)
+    except requests.ConnectionError as e:
+        raise Exception(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(error, type="logs", uuid=uuid)
         config.logger.error(f"TTS-API自定义失败:{error}")
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         raise
-    else:
-        return True
     finally:
-        update_proxy(type='del')
+        if shound_del:
+            update_proxy(type='del')
+    return True

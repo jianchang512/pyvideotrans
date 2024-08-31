@@ -13,6 +13,8 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QSizePolicy
 
 from videotrans.configure import config
+from videotrans.recognition import RECOGN_NAME_LIST
+from videotrans.tts import TTS_NAME_LIST
 
 
 class Ui_MainWindow(object):
@@ -152,9 +154,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5.addLayout(self.layout_source_language)
         self.horizontalLayout_5.addLayout(self.layout_target_language)
-        # 原始语言 目标语言 end
-
-        # self.horizontalLayout_5.addStretch()
         self.layout_proxy = QtWidgets.QFormLayout()
         self.layout_proxy.setObjectName("layout_proxy")
 
@@ -199,6 +198,7 @@ class Ui_MainWindow(object):
         self.tts_type.setSizePolicy(sizePolicy)
         self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_type.setObjectName("tts_type")
+        self.tts_type.addItems(TTS_NAME_LIST)
         self.layout_tts_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout.addLayout(self.layout_tts_type)
         self.layout_voice_role = QtWidgets.QFormLayout()
@@ -231,7 +231,6 @@ class Ui_MainWindow(object):
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
 
         self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
-        # self.volume_rate.setMinimumSize(QtCore.QSize(0, 30))
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setMaximum(100)
         self.volume_rate.setObjectName("volume_rate")
@@ -264,13 +263,7 @@ class Ui_MainWindow(object):
         self.model_type.setMinimumSize(QtCore.QSize(0, 30))
         self.model_type.setObjectName("label_5")
         self.layout_whisper_model.addWidget(self.model_type, 0, 0, 1, 1)
-        self.model_type.addItems([
-            config.uilanglist['faster model'],
-            config.uilanglist['openai model'],
-            "GoogleSpeech",
-            "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese",
-            "豆包模型识别" if config.defaulelang == 'zh' else "Doubao"
-        ])
+        self.model_type.addItems(RECOGN_NAME_LIST)
         self.model_type.setToolTip(config.uilanglist['model_type_tips'])
 
         self.whisper_model = QtWidgets.QComboBox(self.layoutWidget)
@@ -397,7 +390,6 @@ class Ui_MainWindow(object):
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        # self.horizontalLayout_3.addSpacing(5)
         self.horizontalLayout_3.addStretch(1)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
 
@@ -496,6 +488,13 @@ class Ui_MainWindow(object):
         self.menuBar.setObjectName("menuBar")
         self.menu_Key = QtWidgets.QMenu(self.menuBar)
         self.menu_Key.setObjectName("menu_Key")
+
+        self.menu_TTS = QtWidgets.QMenu(self.menuBar)
+        self.menu_TTS.setObjectName("menu_TTS")
+
+        self.menu_RECOGN = QtWidgets.QMenu(self.menuBar)
+        self.menu_RECOGN.setObjectName("menu_RECOGN")
+
         self.menu = QtWidgets.QMenu(self.menuBar)
         self.menu.setObjectName("menu")
         self.menu_H = QtWidgets.QMenu(self.menuBar)
@@ -519,6 +518,10 @@ class Ui_MainWindow(object):
         self.actionbaidu_key.setObjectName("actionbaidu_key")
         self.actionchatgpt_key = QtGui.QAction(MainWindow)
         self.actionchatgpt_key.setObjectName("actionchatgpt_key")
+        self.actionopenaitts_key = QtGui.QAction(MainWindow)
+        self.actionopenaitts_key.setObjectName("actionopenaitts_key")
+        self.actionopenairecognapi_key = QtGui.QAction(MainWindow)
+        self.actionopenairecognapi_key.setObjectName("actionopenairecognapi_key")
         self.actionai302_key = QtGui.QAction(MainWindow)
         self.actionai302_key.setObjectName("actionai302_key")
         self.actionlocalllm_key = QtGui.QAction(MainWindow)
@@ -556,6 +559,8 @@ class Ui_MainWindow(object):
         self.actiontrans_api.setObjectName("actiontrans_api")
         self.actionzhrecogn_api = QtGui.QAction(MainWindow)
         self.actionzhrecogn_api.setObjectName("actionzhrecogn_api")
+        self.actionrecognapi = QtGui.QAction(MainWindow)
+        self.actionrecognapi.setObjectName("actionrecognapi")
 
         self.actiondoubao_api = QtGui.QAction(MainWindow)
         self.actiondoubao_api.setObjectName("actiondoubao_api")
@@ -642,8 +647,14 @@ class Ui_MainWindow(object):
         self.actionsetini.setObjectName("setini")
         self.actionvideoandaudio = QtGui.QAction(MainWindow)
         self.actionvideoandaudio.setObjectName("videoandaudio")
+        self.actionvideoandaudio = QtGui.QAction(MainWindow)
+        self.actionvideoandaudio.setObjectName("videoandaudio")
         self.actionvideoandsrt = QtGui.QAction(MainWindow)
         self.actionvideoandsrt.setObjectName("videoandsrt")
+        self.actionformatcover = QtGui.QAction(MainWindow)
+        self.actionformatcover.setObjectName("formatcover")
+        self.actionsubtitlescover = QtGui.QAction(MainWindow)
+        self.actionsubtitlescover.setObjectName("subtitlescover")
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -670,32 +681,35 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actiontrans_api)
 
         self.menu_Key.addSeparator()
-        self.menu_Key.addSeparator()
 
-        self.menu_Key.addAction(self.actionclone_address)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionchattts_address)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionai302tts_address)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontts_gptsovits)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontts_cosyvoice)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontts_fishtts)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionElevenlabs_key)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionazure_tts)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiontts_api)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actiondoubao_api)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionzhrecogn_api)
+        self.menu_TTS.addAction(self.actionclone_address)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionchattts_address)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionai302tts_address)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_gptsovits)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_cosyvoice)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_fishtts)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionElevenlabs_key)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionazure_tts)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionopenaitts_key)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_api)
+        self.menu_TTS.addSeparator()
 
-        self.menu_Key.addSeparator()
+        self.menu_RECOGN.addAction(self.actiondoubao_api)
+        self.menu_RECOGN.addSeparator()
+        self.menu_RECOGN.addAction(self.actionzhrecogn_api)
+        self.menu_RECOGN.addSeparator()
+        self.menu_RECOGN.addAction(self.actionopenairecognapi_key)
+        self.menu_RECOGN.addSeparator()
+        self.menu_RECOGN.addAction(self.actionrecognapi)
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
@@ -705,12 +719,17 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.actionvideoandsrt)
         self.menu.addSeparator()
+        self.menu.addAction(self.actionformatcover)
+        self.menu.addSeparator()
+        self.menu.addAction(self.actionsubtitlescover)
+        self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
         self.menu.addSeparator()
         self.menu.addAction(self.action_clearcache)
         self.menu.addSeparator()
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_website)
         self.menu_H.addSeparator()
@@ -739,8 +758,11 @@ class Ui_MainWindow(object):
         self.menu_H.addSeparator()
 
         self.menuBar.addAction(self.menu_Key.menuAction())
+        self.menuBar.addAction(self.menu_TTS.menuAction())
+        self.menuBar.addAction(self.menu_RECOGN.menuAction())
         self.menuBar.addAction(self.menu.menuAction())
         self.menuBar.addAction(self.menu_H.menuAction())
+
         self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
@@ -753,7 +775,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_hun)
         self.toolBar.addAction(self.action_hebingsrt)
         # 200ms后渲染文字
-        QTimer.singleShot(200, self.retranslateUi)
+        QTimer.singleShot(50, self.retranslateUi)
 
     def retranslateUi(self):
         self.btn_get_video.setToolTip(
@@ -805,11 +827,16 @@ class Ui_MainWindow(object):
 
         self.set_line_role.setText(config.uilanglist.get("Set role by line"))
         self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
+        self.menu_TTS.setTitle(config.uilanglist.get("&TTSsetting"))
+        self.menu_RECOGN.setTitle(config.uilanglist.get("&RECOGNsetting"))
         self.menu.setTitle(config.uilanglist.get("&Tools"))
         self.menu_H.setTitle(config.uilanglist.get("&Help"))
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译设置" if config.defaulelang == 'zh' else "Baidu Key")
         self.actionchatgpt_key.setText("ChatGPT及兼容API" if config.defaulelang == 'zh' else "ChatGPT API")
+        self.actionopenaitts_key.setText("OpenAI TTS")
+        self.actionopenairecognapi_key.setText(
+            "OpenAI语音识别API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
         self.actionai302_key.setText("302.ai接入翻译" if config.defaulelang == 'zh' else "302.ai for translation")
         self.actionlocalllm_key.setText("本地兼容openAI大模型翻译" if config.defaulelang == 'zh' else "Local LLM  API")
         self.actionzijiehuoshan_key.setText("字节火山引擎模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
@@ -827,6 +854,7 @@ class Ui_MainWindow(object):
         self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese")
+        self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
         self.actiondoubao_api.setText("豆包模型语音识别" if config.defaulelang == 'zh' else "Doubao")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
@@ -875,6 +903,9 @@ class Ui_MainWindow(object):
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
         self.actionwatermark.setText('批量视频添加水印' if config.defaulelang == 'zh' else 'Add watermark to video')
         self.actionsepar.setText('人声/背景音分离' if config.defaulelang == 'zh' else 'Vocal & instrument Separate')
-        self.actionsetini.setText('高级设置' if config.defaulelang == 'zh' else 'Advanced Settings')
+        self.actionsetini.setText('选项' if config.defaulelang == 'zh' else 'Options')
         self.actionvideoandaudio.setText('批量视频音频合并' if config.defaulelang == 'zh' else 'Batch video and audio merger')
         self.actionvideoandsrt.setText('批量视频字幕合并' if config.defaulelang == 'zh' else 'Batch video and subtitles merger')
+        self.actionformatcover.setText('批量音视频格式转换' if config.defaulelang == 'zh' else 'Batch audio or video conversion')
+        self.actionsubtitlescover.setText(
+            '批量字幕格式转换' if config.defaulelang == 'zh' else 'Batch subtitle format conversion')

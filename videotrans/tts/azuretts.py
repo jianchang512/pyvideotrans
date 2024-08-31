@@ -28,7 +28,7 @@ def update_proxy(type='set'):
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     try:
         text_xml = ""
         is_list = isinstance(text, list)
@@ -53,7 +53,7 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             speech_config.set_speech_synthesis_output_format(
                 speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
         except Exception as e:
-            raise Exception(f'====={str(e)=}')
+            raise
 
         # The neural multilingual voice can speak different languages based on the input text.
         # speech_config.speech_synthesis_voice_name=role
@@ -88,7 +88,7 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
                 if set_p:
                     if inst and inst.precent < 80:
                         inst.precent += 0.1
-                    tools.set_process(f'{config.transobj["kaishipeiyin"]} ',type="logs", btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+                    tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs", uuid=uuid)
                 return True
 
             length = len(bookmarks)
@@ -113,19 +113,18 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    tools.set_process(f"{config.transobj['azureinfo']}",type="logs", btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+                    tools.set_process(f"{config.transobj['azureinfo']}", type="logs", uuid=uuid)
                     raise Exception(config.transobj['azureinfo'])
             raise Exception("Speech synthesis canceled: {},text={}".format(cancellation_details.reason, text))
         else:
             raise Exception('配音出错，请检查 Azure TTS')
     except Exception as e:
         error = str(e)
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         config.logger.error(f"Azure TTS合成失败" + str(e))
         if set_p:
-            tools.set_process(error, type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
-        update_proxy(type='del')
+            tools.set_process(error, type="logs", uuid=uuid)
         raise
-    else:
-        update_proxy(type='del')
+    finally:
+        if shound_del:
+            update_proxy(type='del')
+    return True

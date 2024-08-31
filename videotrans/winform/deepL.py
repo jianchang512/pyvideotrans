@@ -6,23 +6,25 @@ from videotrans.configure import config
 # set deepl key
 def open():
     def save():
-        key = config.deeplw.deepl_authkey.text()
-        api = config.deeplw.deepl_api.text().strip()
+        key = deeplw.deepl_authkey.text()
+        api = deeplw.deepl_api.text().strip()
         config.params['deepl_authkey'] = key
         config.params['deepl_api'] = api
         config.getset_params(config.params)
-        config.deeplw.close()
+        deeplw.close()
 
     from videotrans.component import DeepLForm
-    if config.deeplw is not None:
-        config.deeplw.show()
-        config.deeplw.raise_()
-        config.deeplw.activateWindow()
+    deeplw = config.child_forms.get('deeplw')
+    if deeplw is not None:
+        deeplw.show()
+        deeplw.raise_()
+        deeplw.activateWindow()
         return
-    config.deeplw = DeepLForm()
+    deeplw = DeepLForm()
+    config.child_forms['deeplw'] = deeplw
     if config.params['deepl_authkey']:
-        config.deeplw.deepl_authkey.setText(config.params['deepl_authkey'])
+        deeplw.deepl_authkey.setText(config.params['deepl_authkey'])
     if config.params['deepl_api']:
-        config.deeplw.deepl_api.setText(config.params['deepl_api'])
-    config.deeplw.set_deepl.clicked.connect(save)
-    config.deeplw.show()
+        deeplw.deepl_api.setText(config.params['deepl_api'])
+    deeplw.set_deepl.clicked.connect(save)
+    deeplw.show()

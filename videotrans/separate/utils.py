@@ -1,5 +1,4 @@
 import json
-import os
 
 import numpy as np
 import torch
@@ -11,7 +10,7 @@ from videotrans.util import tools
 
 def load_data(file_name: str = "") -> dict:
     if not file_name:
-        file_name = os.path.join(config.rootdir, "uvr5_weights/name_params.json")
+        file_name = config.ROOT_DIR + "/uvr5_weights/name_params.json"
     with open(file_name, "r") as f:
         data = json.load(f)
 
@@ -28,7 +27,7 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey=None,percent=[0,1]):
+def inference(X_spec, device, model, aggressiveness, data, source="logs", uuid=None, percent=[0, 1]):
     """
     data : dic configs
     """
@@ -44,13 +43,12 @@ def inference(X_spec, device, model, aggressiveness, data, source="logs", btnkey
 
             total_iterations = sum(iterations)
             for i in range(n_window):
-                if  config.exit_soft:
+                if config.exit_soft:
                     return
-                jd =  (percent[0] +   (percent[1]*(i + 1) / n_window))*100
-                jd=100 if jd>=100 else jd
+                jd = (percent[0] + (percent[1] * (i + 1) / n_window)) * 100
+                jd = 100 if jd >= 100 else jd
                 tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", type=source,
-                                  btnkey=btnkey)
-                print(f"{config.transobj['Separating background music']} {round(jd, 1)}%")
+                                  uuid=uuid)
                 start = i * roi_size
                 X_mag_window = X_mag_pad[
                                None, :, :, start: start + data["window_size"]

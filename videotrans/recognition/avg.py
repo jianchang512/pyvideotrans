@@ -49,14 +49,13 @@ def recogn(*,
         tools.set_process(
             config.transobj['fengeyinpinshuju'],
             type="logs",
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid)
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     noextname = os.path.basename(audio_file)
     tmp_path = Path(f'{cache_folder}/{noextname}_tmp')
-    tmp_path.mkdir(parents=True,exist_ok=True)
-    tmp_path=tmp_path.as_posix()
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    tmp_path = tmp_path.as_posix()
     if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
@@ -76,7 +75,7 @@ def recogn(*,
     else:
         com_type = 'default'
     local_res = True if model_name.find('/') == -1 else False
-    down_root = config.rootdir + "/models"
+    down_root = config.ROOT_DIR + "/models"
     msg = ''
     if model_name.find('/') > 0:
         if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
@@ -86,7 +85,7 @@ def recogn(*,
     if inst:
         inst.parent.status_text = msg
     if set_p:
-        tools.set_process(msg, type='logs', btnkey=inst.init['btnkey'] if inst else "", uuid=uuid)
+        tools.set_process(msg, type='logs', uuid=uuid)
 
     model = WhisperModel(
         model_name,
@@ -104,15 +103,15 @@ def recogn(*,
         text = ""
         try:
             segments, _ = model.transcribe(chunk_filename,
-                   beam_size=config.settings['beam_size'],
-                   best_of=config.settings['best_of'],
-                   condition_on_previous_text=config.settings['condition_on_previous_text'],
-                   temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,
-                                                                              0.6, 0.8, 1.0],
-                   vad_filter=False,
-                   language=detect_language,
-                   initial_prompt=config.settings['initial_prompt_zh']
-            )
+                                           beam_size=config.settings['beam_size'],
+                                           best_of=config.settings['best_of'],
+                                           condition_on_previous_text=config.settings['condition_on_previous_text'],
+                                           temperature=0 if config.settings['temperature'] == 0 else [0.0, 0.2, 0.4,
+                                                                                                      0.6, 0.8, 1.0],
+                                           vad_filter=False,
+                                           language=detect_language,
+                                           initial_prompt=config.settings['initial_prompt_zh']
+                                           )
 
             for t in segments:
                 text += t.text + " "
@@ -133,7 +132,6 @@ def recogn(*,
                 tools.set_process(
                     f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
                 msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
                 tools.set_process(msg, type='subtitle', uuid=uuid)
@@ -144,7 +142,6 @@ def recogn(*,
         tools.set_process(
             f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}",
             type='logs',
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid
         )
     return raw_subtitles

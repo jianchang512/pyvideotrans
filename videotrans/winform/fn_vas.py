@@ -17,8 +17,9 @@ from videotrans.util import tools
 
 # 视频 字幕 音频 合并
 def open():
-    RESULT_DIR=config.homedir + "/vas"
+    RESULT_DIR = config.HOME_DIR + "/vas"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+
     class CompThread(QThread):
         uito = Signal(str)
 
@@ -36,8 +37,8 @@ def open():
             self.video_info = tools.get_video_info(self.video)
             self.video_time = tools.get_video_duration(self.video)
 
-        def post(self,type='logs',text=''):
-            self.uito.emit(json.dumps({"type":type,"text":text}))
+        def post(self, type='logs', text=''):
+            self.uito.emit(json.dumps({"type": type, "text": text}))
 
         #
         def hebing_pro(self, protxt, video_time):
@@ -67,13 +68,13 @@ def open():
                 tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
                 if percent + tmp1 < 99.9:
                     percent += tmp1
-                self.post(type='jd',text=f'{percent}%')
+                self.post(type='jd', text=f'{percent}%')
                 time.sleep(1)
 
         def run(self):
             try:
                 tmp_mp4 = None
-                end_mp4=None
+                end_mp4 = None
                 # 存在音频
                 if self.audio:
                     # 需要保留原视频中声音 并且原视频中有声音
@@ -115,7 +116,7 @@ def open():
                         "-shortest",
                         end_mp4 if self.srt else self.file
                     ])
-                #存在字幕则继续嵌入
+                # 存在字幕则继续嵌入
                 if self.srt:
                     # 存在中间结果mp4
                     if end_mp4:
@@ -170,77 +171,79 @@ def open():
                     tools.runffmpeg(cmd)
             except Exception as e:
                 print(e)
-                self.post(type='error',text=str(e))
+                self.post(type='error', text=str(e))
             else:
-                self.post(type='ok',text=self.file)
+                self.post(type='ok', text=self.file)
 
     def feed(d):
-        d=json.loads(d)
-        if d['type']=="error":
-            QtWidgets.QMessageBox.critical(config.vasform, config.transobj['anerror'], d['text'])
-            config.vasform.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            config.vasform.ysphb_startbtn.setDisabled(False)
-            config.vasform.ysphb_opendir.setDisabled(False)
-        elif d['type']=='jd':
-            config.vasform.ysphb_startbtn.setText(d['text'])
-        elif d['type']=='logs':
-            config.vasform.ysphb_startbtn.setText(d['text'])
+        d = json.loads(d)
+        if d['type'] == "error":
+            QtWidgets.QMessageBox.critical(vasform, config.transobj['anerror'], d['text'])
+            vasform.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            vasform.ysphb_startbtn.setDisabled(False)
+            vasform.ysphb_opendir.setDisabled(False)
+        elif d['type'] == 'jd':
+            vasform.ysphb_startbtn.setText(d['text'])
+        elif d['type'] == 'logs':
+            vasform.ysphb_startbtn.setText(d['text'])
         else:
-            config.vasform.ysphb_startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
-            config.vasform.ysphb_startbtn.setDisabled(False)
-            config.vasform.ysphb_out.setText(d['text'])
-            config.vasform.ysphb_opendir.setDisabled(False)
+            vasform.ysphb_startbtn.setText(config.transobj['zhixingwc'])
+            vasform.ysphb_startbtn.setDisabled(False)
+            vasform.ysphb_out.setText(d['text'])
+            vasform.ysphb_opendir.setDisabled(False)
 
     def get_file(type='video'):
         fname = None
         if type == 'video':
-            fname, _ = QFileDialog.getOpenFileName(config.hunliuform, 'Select Video', config.params['last_opendir'],
-                                                   "Video files(*.mp4 *.mov *.mkv *.avi *.mepg)")
+            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
+            fname, _ = QFileDialog.getOpenFileName(vasform, 'Select Video', config.params['last_opendir'],
+                                                   f"Video files({format_str})")
         elif type == 'wav':
-            fname, _ = QFileDialog.getOpenFileName(config.hunliuform, 'Select Audio', config.params['last_opendir'],
-                                                   "Audio files(*.mp3 *.wav *.flac *.aac *.m4a)")
+            format_str=" ".join([ '*.'+f  for f in  config.AUDIO_EXITS])
+            fname, _ = QFileDialog.getOpenFileName(vasform, 'Select Audio', config.params['last_opendir'],
+                                                   f"Audio files({format_str})")
         elif type == 'srt':
-            fname, _ = QFileDialog.getOpenFileName(config.hunliuform, 'Select SRT', config.params['last_opendir'],
+            fname, _ = QFileDialog.getOpenFileName(vasform, 'Select SRT', config.params['last_opendir'],
                                                    "Srt files(*.srt)")
 
         if not fname:
             return
 
         if type == 'video':
-            config.vasform.ysphb_videoinput.setText(fname.replace('\\', '/'))
+            vasform.ysphb_videoinput.setText(fname.replace('\\', '/'))
         if type == 'wav':
-            config.vasform.ysphb_wavinput.setText(fname.replace('\\', '/'))
+            vasform.ysphb_wavinput.setText(fname.replace('\\', '/'))
         if type == 'srt':
-            config.vasform.ysphb_srtinput.setText(fname.replace('\\', '/'))
+            vasform.ysphb_srtinput.setText(fname.replace('\\', '/'))
         config.params['last_opendir'] = os.path.dirname(fname)
 
     def start():
         # 开始处理分离，判断是否选择了源文件
-        video = config.vasform.ysphb_videoinput.text()
-        audio = config.vasform.ysphb_wavinput.text()
-        srt = config.vasform.ysphb_srtinput.text()
-        is_soft = config.vasform.ysphb_issoft.isChecked()
-        language = config.vasform.language.currentText()
-        saveraw = config.vasform.ysphb_replace.isChecked()
+        video = vasform.ysphb_videoinput.text()
+        audio = vasform.ysphb_wavinput.text()
+        srt = vasform.ysphb_srtinput.text()
+        is_soft = vasform.ysphb_issoft.isChecked()
+        language = vasform.language.currentText()
+        saveraw = vasform.ysphb_replace.isChecked()
         maxlen = 30
         try:
-            maxlen = int(config.vasform.ysphb_maxlen.text())
+            maxlen = int(vasform.ysphb_maxlen.text())
         except Exception:
             pass
         if not video:
-            QMessageBox.critical(config.vasform, config.transobj['anerror'],
+            QMessageBox.critical(vasform, config.transobj['anerror'],
                                  '必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
             return
         if not audio and not srt:
-            QMessageBox.critical(config.vasform, config.transobj['anerror'],
+            QMessageBox.critical(vasform, config.transobj['anerror'],
                                  '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
             return
 
-        config.vasform.ysphb_startbtn.setText(
+        vasform.ysphb_startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'In Progress...')
-        config.vasform.ysphb_startbtn.setDisabled(True)
-        config.vasform.ysphb_opendir.setDisabled(True)
-        task = CompThread(parent=config.vasform,
+        vasform.ysphb_startbtn.setDisabled(True)
+        vasform.ysphb_opendir.setDisabled(True)
+        task = CompThread(parent=vasform,
                           video=video,
                           audio=audio if audio else None,
                           srt=srt if srt else None,
@@ -257,17 +260,19 @@ def open():
 
     from videotrans.component import VASForm
     try:
-        if config.vasform is not None:
-            config.vasform.show()
-            config.vasform.raise_()
-            config.vasform.activateWindow()
+        vasform = config.child_forms.get('vasform')
+        if vasform is not None:
+            vasform.show()
+            vasform.raise_()
+            vasform.activateWindow()
             return
-        config.vasform = VASForm()
-        config.vasform.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
-        config.vasform.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
-        config.vasform.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
-        config.vasform.ysphb_startbtn.clicked.connect(start)
-        config.vasform.ysphb_opendir.clicked.connect(opendir)
-        config.vasform.show()
+        vasform = VASForm()
+        config.child_forms['vasform'] = vasform
+        vasform.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
+        vasform.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
+        vasform.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
+        vasform.ysphb_startbtn.clicked.connect(start)
+        vasform.ysphb_opendir.clicked.connect(opendir)
+        vasform.show()
     except Exception as e:
         print(e)

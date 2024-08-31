@@ -18,31 +18,31 @@ def open():
             from videotrans.tts.cosyvoice import get_voice
             try:
                 get_voice(text=self.text, set_p=False, role=self.role, language='zh',
-                          filename=config.homedir + "/test.wav")
+                          filename=config.TEMP_HOME + "/test.wav")
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.homedir + "/test.wav")
-            QtWidgets.QMessageBox.information(config.cosyvoicew, "ok", "Test Ok")
+            tools.pygameaudio(config.TEMP_HOME + "/test.wav")
+            QtWidgets.QMessageBox.information(cosyvoicew, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(config.cosyvoicew, config.transobj['anerror'], d)
-        config.cosyvoicew.test.setText('测试api')
+            QtWidgets.QMessageBox.critical(cosyvoicew, config.transobj['anerror'], d)
+        cosyvoicew.test.setText('测试api')
 
     def test():
-        url = config.cosyvoicew.api_url.text()
+        url = cosyvoicew.api_url.text()
         config.params["cosyvoice_url"] = url
-        task = TestTTS(parent=config.cosyvoicew,
+        task = TestTTS(parent=cosyvoicew,
                        text="你好啊我的朋友",
                        role=getrole())
-        config.cosyvoicew.test.setText('测试中请稍等...')
+        cosyvoicew.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
 
     def getrole():
-        tmp = config.cosyvoicew.role.toPlainText().strip()
+        tmp = cosyvoicew.role.toPlainText().strip()
         role = "中文女"
         if not tmp:
             return role
@@ -50,7 +50,7 @@ def open():
         for it in tmp.split("\n"):
             s = it.strip().split('#')
             if len(s) != 2:
-                QtWidgets.QMessageBox.critical(config.cosyvoicew, config.transobj['anerror'],
+                QtWidgets.QMessageBox.critical(cosyvoicew, config.transobj['anerror'],
                                                "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
                 return
 
@@ -59,29 +59,31 @@ def open():
         return role
 
     def save():
-        url = config.cosyvoicew.api_url.text()
+        url = cosyvoicew.api_url.text()
 
-        role = config.cosyvoicew.role.toPlainText().strip()
+        role = cosyvoicew.role.toPlainText().strip()
 
         config.params["cosyvoice_url"] = url
 
         config.params["cosyvoice_role"] = role
         config.getset_params(config.params)
 
-        config.cosyvoicew.close()
+        cosyvoicew.close()
 
     from videotrans.component import CosyVoiceForm
-    if config.cosyvoicew is not None:
-        config.cosyvoicew.show()
-        config.cosyvoicew.raise_()
-        config.cosyvoicew.activateWindow()
+    cosyvoicew = config.child_forms.get('cosyvoicew')
+    if cosyvoicew is not None:
+        cosyvoicew.show()
+        cosyvoicew.raise_()
+        cosyvoicew.activateWindow()
         return
-    config.cosyvoicew = CosyVoiceForm()
+    cosyvoicew = CosyVoiceForm()
+    config.child_forms['cosyvoicew'] = cosyvoicew
     if config.params["cosyvoice_url"]:
-        config.cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
+        cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
     if config.params["cosyvoice_role"]:
-        config.cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
+        cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
 
-    config.cosyvoicew.save.clicked.connect(save)
-    config.cosyvoicew.test.clicked.connect(test)
-    config.cosyvoicew.show()
+    cosyvoicew.save.clicked.connect(save)
+    cosyvoicew.test.clicked.connect(test)
+    cosyvoicew.show()

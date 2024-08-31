@@ -4,7 +4,7 @@ import time
 
 import httpx
 import openai
-from openai import OpenAI, APIError
+from openai import OpenAI
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -18,6 +18,8 @@ def create_openai_client():
     try:
         client = OpenAI(api_key=config.params['localllm_key'], base_url=api_url,
                         http_client=httpx.Client(proxies=proxies))
+    except openai.APIError:
+        raise
     except Exception as e:
         raise Exception(f'API={api_url},{str(e)}')
     return client, api_url
@@ -31,18 +33,12 @@ def get_content(d, *, model=None, prompt=None):
          'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
     ]
     config.logger.info(f"\n[localllm]发送请求数据:{message=}")
-    try:
-        response = model.chat.completions.create(
-            model=config.params['localllm_model'],
-            messages=message
-        )
-        config.logger.info(f'[localllm]响应:{response=}')
-    except APIError as e:
-        config.logger.error(f'[localllm]请求失败:{str(e)}')
-        raise
-    except Exception as e:
-        config.logger.error(f'[localllm]请求失败:{str(e)}')
-        raise
+    response = model.chat.completions.create(
+        model=config.params['localllm_model'],
+        messages=message
+    )
+    config.logger.info(f'[localllm]响应:{response=}')
+
     if isinstance(response, str):
         raise Exception(response)
 
@@ -60,8 +56,9 @@ def get_content(d, *, model=None, prompt=None):
 
 def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,
           uuid=None):
-    if len(config.params['localllm_api'].strip())<10:
-        raise  Exception('本地大模型 API 接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'LocalLLM API interface is not correct, please go to Settings to fill in again')
+    if len(config.params['localllm_api'].strip()) < 10:
+        raise Exception(
+            '本地大模型 API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'LocalLLM API interface is not correct, please go to Settings to fill in again')
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -110,7 +107,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -160,11 +156,17 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(result_item + "\n", type='subtitle', uuid=uuid)
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
-                                btnkey=inst.init['btnkey'] if inst else "",
+                                type='logs',
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
+            except openai.APIError as e:
+                err = str(e)
+                break
+            except ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e) + f',{api_url=}'
                 time.sleep(wait_sec)

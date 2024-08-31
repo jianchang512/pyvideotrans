@@ -31,71 +31,80 @@ def open():
 
     def feed(d):
         if not d.startswith("ok:"):
-            QtWidgets.QMessageBox.critical(config.ai302fyw, config.transobj['anerror'], d)
+            QtWidgets.QMessageBox.critical(ai302fyw, config.transobj['anerror'], d)
         else:
-            QtWidgets.QMessageBox.information(config.ai302fyw, "OK", d[3:])
-        config.ai302fyw.test_ai302.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.information(ai302fyw, "OK", d[3:])
+        ai302fyw.test_ai302.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        key = config.ai302fyw.ai302_key.text()
-        model = config.ai302fyw.ai302_model.currentText()
-        template = config.ai302fyw.ai302_template.toPlainText()
+        key = ai302fyw.ai302_key.text()
+        model = ai302fyw.ai302_model.currentText()
+        template = ai302fyw.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
 
-        task = TestAI302(parent=config.ai302fyw)
-        config.ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestAI302(parent=ai302fyw)
+        ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
-        config.ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_ai302():
-        key = config.ai302fyw.ai302_key.text()
-        model = config.ai302fyw.ai302_model.currentText()
-        template = config.ai302fyw.ai302_template.toPlainText()
+        key = ai302fyw.ai302_key.text()
+        model = ai302fyw.ai302_model.currentText()
+        template = ai302fyw.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
-        Path(config.rootdir + f"/videotrans/302ai.txt").write_text(template,encoding='utf-8')
+        Path(config.ROOT_DIR + f"/videotrans/302ai.txt").write_text(template, encoding='utf-8')
         config.getset_params(config.params)
-        config.ai302fyw.close()
+        ai302fyw.close()
+
+    def update_ui():
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['ai302_models']
+        allmodels = config.settings['ai302_models'].split(',')
+
+        ai302fyw.ai302_model.clear()
+        ai302fyw.ai302_model.addItems(allmodels)
+        ai302fyw.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["ai302_key"]:
+            ai302fyw.ai302_key.setText(config.params["ai302_key"])
+        if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
+            ai302fyw.ai302_model.setCurrentText(config.params["ai302_model"])
+        if config.params["ai302_template"]:
+            ai302fyw.ai302_template.setPlainText(config.params["ai302_template"])
 
     def setallmodels():
-        t = config.ai302fyw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = config.ai302fyw.ai302_model.currentText()
-        config.ai302fyw.ai302_model.clear()
-        config.ai302fyw.ai302_model.addItems([x for x in t.split(',') if x.strip()])
+        t = ai302fyw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        current_text = ai302fyw.ai302_model.currentText()
+        ai302fyw.ai302_model.clear()
+        ai302fyw.ai302_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
-            config.ai302fyw.ai302_model.setCurrentText(current_text)
+            ai302fyw.ai302_model.setCurrentText(current_text)
         config.settings['ai302_models'] = t
-        json.dump(config.settings, builtin_open(config.rootdir + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
+        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+                  ensure_ascii=False)
 
     from videotrans.component import AI302Form
-    if config.ai302fyw is not None:
-        config.ai302fyw.show()
-        config.ai302fyw.raise_()
-        config.ai302fyw.activateWindow()
+    ai302fyw = config.child_forms.get('ai302fyw')
+    if ai302fyw is not None:
+        ai302fyw.show()
+        update_ui()
+        ai302fyw.raise_()
+        ai302fyw.activateWindow()
         return
-    config.ai302fyw = AI302Form()
-    allmodels_str = config.settings['ai302_models']
-    allmodels = config.settings['ai302_models'].split(',')
+    ai302fyw = AI302Form()
+    config.child_forms['ai302fyw'] = ai302fyw
+    update_ui()
 
-    config.ai302fyw.ai302_model.clear()
-    config.ai302fyw.ai302_model.addItems(allmodels)
-    config.ai302fyw.edit_allmodels.setPlainText(allmodels_str)
-
-    if config.params["ai302_key"]:
-        config.ai302fyw.ai302_key.setText(config.params["ai302_key"])
-    if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
-        config.ai302fyw.ai302_model.setCurrentText(config.params["ai302_model"])
-    if config.params["ai302_template"]:
-        config.ai302fyw.ai302_template.setPlainText(config.params["ai302_template"])
-    config.ai302fyw.edit_allmodels.textChanged.connect(setallmodels)
-    config.ai302fyw.set_ai302.clicked.connect(save_ai302)
-    config.ai302fyw.test_ai302.clicked.connect(test)
-    config.ai302fyw.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
-    config.ai302fyw.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
-    config.ai302fyw.show()
+    ai302fyw.edit_allmodels.textChanged.connect(setallmodels)
+    ai302fyw.set_ai302.clicked.connect(save_ai302)
+    ai302fyw.test_ai302.clicked.connect(test)
+    ai302fyw.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
+    ai302fyw.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
+    ai302fyw.show()

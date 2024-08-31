@@ -85,7 +85,7 @@ def pygameaudio(filepath):
 
 # 获取 elenevlabs 的角色列表
 def get_elevenlabs_role(force=False):
-    jsonfile = os.path.join(config.rootdir, 'elevenlabs.json')
+    jsonfile = os.path.join(config.ROOT_DIR, 'elevenlabs.json')
     namelist = []
     if vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
@@ -162,53 +162,42 @@ def set_proxy(set_val=''):
     return None
 
 
-# delete tmp files
-def delete_temp(noextname=None):
-    try:
-        if noextname and os.path.exists(f"{config.TEMP_DIR}/{noextname}"):
-            shutil.rmtree(f"{config.TEMP_DIR}/{noextname}")
-        elif os.path.exists(f"{config.TEMP_DIR}"):
-            shutil.rmtree(f"{config.TEMP_DIR}")
-            os.makedirs(f"{config.TEMP_DIR}", exist_ok=True)
-    except:
-        pass
-
 def get_302ai_doubao(role_name=None):
-    zh={
-        "爽快思思":"zh_female_shuangkuaisisi_moon_bigtts",
-        "温暖阿虎":"zh_male_wennuanahu_moon_bigtts",
-        "少年梓辛":"zh_male_shaonianzixin_moon_bigtts",
-        "邻家女孩":"zh_female_linjianvhai_moon_bigtts",
-        "渊博小叔":"zh_male_yuanboxiaoshu_moon_bigtts",
-        "阳光青年":"zh_male_yangguangqingnian_moon_bigtts",
-        "京腔侃爷":"zh_male_jingqiangkanye_moon_bigtts",
-        "湾湾小何":"zh_female_wanwanxiaohe_moon_bigtts",
-        "湾区大叔":"zh_female_wanqudashu_moon_bigtts",
-        "呆萌川妹":"zh_female_daimengchuanmei_moon_bigtts",
-        "广州德哥":"zh_male_guozhoudege_moon_bigtts",
-        "北京小爷":"zh_male_beijingxiaoye_moon_bigtts",
-        "浩宇小哥":"zh_male_haoyuxiaoge_moon_bigtts",
-        "广西远舟":"zh_male_guangxiyuanzhou_moon_bigtts",
-        "妹坨洁儿":"zh_female_meituojieer_moon_bigtts",
-        "豫州子轩":"zh_male_yuzhouzixuan_moon_bigtts",
-        "高冷御姐":"zh_female_gaolengyujie_moon_bigtts",
-        "傲娇霸总":"zh_male_aojiaobazong_moon_bigtts",
-        "魅力女友":"zh_female_meilinvyou_moon_bigtts",
-        "深夜播客":"zh_male_shenyeboke_moon_bigtts",
-        "柔美女友":"zh_female_sajiaonvyou_moon_bigtts",
-        "撒娇学妹":"zh_female_yuanqinvyou_moon_bigtts"
+    zh = {
+        "爽快思思": "zh_female_shuangkuaisisi_moon_bigtts",
+        "温暖阿虎": "zh_male_wennuanahu_moon_bigtts",
+        "少年梓辛": "zh_male_shaonianzixin_moon_bigtts",
+        "邻家女孩": "zh_female_linjianvhai_moon_bigtts",
+        "渊博小叔": "zh_male_yuanboxiaoshu_moon_bigtts",
+        "阳光青年": "zh_male_yangguangqingnian_moon_bigtts",
+        "京腔侃爷": "zh_male_jingqiangkanye_moon_bigtts",
+        "湾湾小何": "zh_female_wanwanxiaohe_moon_bigtts",
+        "湾区大叔": "zh_female_wanqudashu_moon_bigtts",
+        "呆萌川妹": "zh_female_daimengchuanmei_moon_bigtts",
+        "广州德哥": "zh_male_guozhoudege_moon_bigtts",
+        "北京小爷": "zh_male_beijingxiaoye_moon_bigtts",
+        "浩宇小哥": "zh_male_haoyuxiaoge_moon_bigtts",
+        "广西远舟": "zh_male_guangxiyuanzhou_moon_bigtts",
+        "妹坨洁儿": "zh_female_meituojieer_moon_bigtts",
+        "豫州子轩": "zh_male_yuzhouzixuan_moon_bigtts",
+        "高冷御姐": "zh_female_gaolengyujie_moon_bigtts",
+        "傲娇霸总": "zh_male_aojiaobazong_moon_bigtts",
+        "魅力女友": "zh_female_meilinvyou_moon_bigtts",
+        "深夜播客": "zh_male_shenyeboke_moon_bigtts",
+        "柔美女友": "zh_female_sajiaonvyou_moon_bigtts",
+        "撒娇学妹": "zh_female_yuanqinvyou_moon_bigtts"
     }
-    en={
-        "爽快思思":"zh_female_shuangkuaisisi_moon_bigtts",
-        "温暖阿虎":"zh_male_wennuanahu_moon_bigtts",
-        "少年梓辛":"zh_male_shaonianzixin_moon_bigtts",
-        "京腔侃爷":"zh_male_jingqiangkanye_moon_bigtts"
+    en = {
+        "爽快思思": "zh_female_shuangkuaisisi_moon_bigtts",
+        "温暖阿虎": "zh_male_wennuanahu_moon_bigtts",
+        "少年梓辛": "zh_male_shaonianzixin_moon_bigtts",
+        "京腔侃爷": "zh_male_jingqiangkanye_moon_bigtts"
     }
-    ja={
-        "和音":"multi_male_jingqiangkanye_moon_bigtts",
-        "晴子":"multi_female_shuangkuaisisi_moon_bigtts",
-        "朱美":"multi_female_gaolengyujie_moon_bigtts",
-        "広志":"multi_male_wanqudashu_moon_bigtts"
+    ja = {
+        "和音": "multi_male_jingqiangkanye_moon_bigtts",
+        "晴子": "multi_female_shuangkuaisisi_moon_bigtts",
+        "朱美": "multi_female_gaolengyujie_moon_bigtts",
+        "広志": "multi_male_wanqudashu_moon_bigtts"
     }
     if role_name:
         if role_name in zh:
@@ -219,19 +208,19 @@ def get_302ai_doubao(role_name=None):
             return ja[role_name]
         return role_name
 
-
     return {
-        "zh":list(zh.keys()),
-        "ja":list(ja.keys()),
-        "en":list(en.keys())
+        "zh": list(zh.keys()),
+        "ja": list(ja.keys()),
+        "en": list(en.keys())
     }
+
 
 #  get role by edge tts
 def get_edge_rolelist():
     voice_list = {}
-    if vail_file(config.rootdir + "/voice_list.json"):
+    if vail_file(config.ROOT_DIR + "/voice_list.json"):
         try:
-            voice_list = json.load(open(config.rootdir + "/voice_list.json", "r", encoding="utf-8"))
+            voice_list = json.load(open(config.ROOT_DIR + "/voice_list.json", "r", encoding="utf-8"))
             if len(voice_list) > 0:
                 config.edgeTTS_rolelist = voice_list
                 return voice_list
@@ -252,7 +241,7 @@ def get_edge_rolelist():
                 voice_list[prefix] = ["No", name]
             else:
                 voice_list[prefix].append(name)
-        json.dump(voice_list, open(config.rootdir + "/voice_list.json", "w"))
+        json.dump(voice_list, open(config.ROOT_DIR + "/voice_list.json", "w"))
         config.edgeTTS_rolelist = voice_list
         return voice_list
     except Exception as e:
@@ -261,9 +250,9 @@ def get_edge_rolelist():
 
 def get_azure_rolelist():
     voice_list = {}
-    if vail_file(config.rootdir + "/azure_voice_list.json"):
+    if vail_file(config.ROOT_DIR + "/azure_voice_list.json"):
         try:
-            voice_list = json.load(open(config.rootdir + "/azure_voice_list.json", "r", encoding="utf-8"))
+            voice_list = json.load(open(config.ROOT_DIR + "/azure_voice_list.json", "r", encoding="utf-8"))
             if len(voice_list) > 0:
                 config.AzureTTS_rolelist = voice_list
                 return voice_list
@@ -273,22 +262,17 @@ def get_azure_rolelist():
 
 
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None,
-              is_box=False,
-              fps=None):
+def runffmpeg(arg, *, noextname=None, uuid=None):
     arg_copy = copy.deepcopy(arg)
 
-    if fps:
-        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown"]
-    else:
-        cmd = ["ffmpeg", "-hide_banner", "-ignore_unknown"]
+    cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
     # 启用了CUDA 并且没有禁用GPU
     # 默认视频编码 libx264 / libx265
     default_codec = f"libx{config.settings['video_codec']}"
 
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
-            arg[i + 1] = os.path.normpath(arg[i + 1]).replace('\\', '/')
+            arg[i + 1] = Path(os.path.normpath(arg[i + 1])).as_posix()
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
@@ -301,11 +285,7 @@ def runffmpeg(arg, *, noextname=None,
             elif it == '-crf' and '_nvenc' in config.video_codec and config.settings['cuda_qp']:
                 arg[i] = '-qp'
 
-    if fps:
-        arg.insert(-1, '-r')
-        arg.insert(-1, f'{fps}')
-
-    cmd = cmd + arg
+    cmd += arg
     # 插入自定义 ffmpeg 参数
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
@@ -313,6 +293,7 @@ def runffmpeg(arg, *, noextname=None,
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
+        config.logger.info(f'{cmd=}')
         subprocess.run(cmd,
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,
@@ -325,8 +306,6 @@ def runffmpeg(arg, *, noextname=None,
         return True
     except subprocess.CalledProcessError as e:
         retry = False
-        config.logger.error(f'出错了:{cmd=}')
-        config.logger.error(f'before:{retry=},{arg_copy=}')
         # 处理视频时如果出错，尝试回退
         if cmd[-1].endswith('.mp4'):
             # 存在视频的copy操作时，尝试回退使用重新编码
@@ -339,32 +318,27 @@ def runffmpeg(arg, *, noextname=None,
             if not retry and config.video_codec != default_codec:
                 config.video_codec = default_codec
                 # 切换为cpu
-                set_process(config.transobj['huituicpu'],type='logs')
+                set_process(config.transobj['huituicpu'], type='logs', uuid=uuid)
                 config.logger.error(f'cuda上执行出错，退回到CPU执行')
                 for i, it in enumerate(arg_copy):
                     if i > 0 and arg_copy[i - 1] == '-c:v' and it != default_codec:
                         arg_copy[i] = default_codec
                         retry = True
-            config.logger.error(f'after:{retry=},{arg_copy=}')
             if retry:
-                return runffmpeg(arg_copy, noextname=noextname, is_box=is_box)
+                return runffmpeg(arg_copy, noextname=noextname)
         if noextname:
             config.queue_novice[noextname] = "error"
         config.logger.error(f'cmd执行出错抛出异常:{cmd=},{str(e.stderr)}')
-        raise Exception(str(e.stderr))
+        raise
     except Exception as e:
-        config.logger.error(f'执行出错 Exception:{cmd=},{str(e)}')
-        err = ""
-        if re.match(r'^[a-zA-Z0-9:/_.\[\](),;\s-]+$', cmd, re.I):
-            err = '视频名字或视频完整路径中可能存在特殊字符，请尝试更改视频为英文名字并移动到英文文件夹下重试。' if config.defaulelang == 'zh' else 'There may be special characters in the video name or the full path of the video, please try to change the video to an English name and move it to an English folder and try again.'
-        err += str(e)
-        raise Exception(err)
+        config.logger.exception(e)
+        raise
 
 
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        p = subprocess.run(cmd if isinstance(cmd, str) else ['ffprobe'] + cmd,
+        p = subprocess.run(cmd if isinstance(cmd, str) else [config.FFPROBE_BIN] + cmd,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
@@ -373,21 +347,23 @@ def runffprobe(cmd):
                            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if p.stdout:
             return p.stdout.strip()
+        config.logger.error(str(p) + str(p.stderr))
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
-        msg = f'ffprobe error,:{str(e.stdout)},{str(e.stderr)}'
+        config.logger.exception(e)
+        msg = f'ffprobe error,:{str(e)}{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
     except Exception as e:
-        raise Exception(f'ffprobe except,{cmd=}:{str(e)}')
+        config.logger.exception(e)
+        raise
 
 
 # 获取视频信息
-# nocache=True表示禁止使用缓存，默认False优先使用缓存
-def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, nocache=False, get_codec=False):
-    # 如果存在缓存并且没有禁用缓存
+def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     mp4_file = Path(mp4_file).as_posix()
-    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
+    out = runffprobe(
+        ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
     if out is False:
         raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
@@ -443,7 +419,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
 # 获取某个视频的时长 s
 def get_video_duration(file_path):
-    return get_video_info(file_path, video_time=True, nocache=True)
+    return get_video_info(file_path, video_time=True)
 
 
 # 获取某个视频的fps
@@ -459,23 +435,6 @@ def get_video_resolution(file_path):
 # 获取视频编码和
 def get_codec_name(file_path):
     return get_video_info(file_path, video_scale=True)
-
-
-# 视频转为 mp4格式 nv12 + not h264_cuvid
-def conver_mp4(source_file, out_mp4, *, is_box=False):
-    video_codec = config.settings['video_codec']
-    return runffmpeg([
-        '-y',
-        '-i',
-        Path(source_file).as_posix(),
-        '-c:v',
-        f'libx{video_codec}',
-        "-c:a",
-        "aac",
-        '-crf', f'{config.settings["crf"]}',
-        '-preset', config.settings['preset'],
-        out_mp4
-    ], is_box=is_box)
 
 
 # 从原始视频分离出 无声视频 cuda + h264_cuvid
@@ -495,7 +454,7 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
 
 
 # 从原始视频中分离出音频 cuda + h264_cuvid
-def split_audio_byraw(source_mp4, targe_audio, is_separate=False, btnkey=None):
+def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
     source_mp4 = Path(source_mp4).as_posix()
     targe_audio = Path(targe_audio).as_posix()
     cmd = [
@@ -534,29 +493,28 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, btnkey=None):
         path = Path(targe_audio).parent.as_posix()
         vocal_file = path + '/vocal.wav'
         if not vail_file(vocal_file):
-            set_process(config.transobj['Separating vocals and background music, which may take a longer time'],type="logs",btnkey=btnkey)
+            set_process(config.transobj['Separating vocals and background music, which may take a longer time'],
+                        type="logs", uuid=uuid)
             try:
-                st.start(audio=tmpfile, path=path, btnkey=btnkey)
+                st.start(audio=tmpfile, path=path, uuid=uuid)
             except Exception as e:
                 msg = f"separate vocal and background music:{str(e)}"
-                set_process(msg,type='logs',btnkey=btnkey)
+                set_process(msg, type='logs', uuid=uuid)
                 raise Exception(msg)
         if not vail_file(vocal_file):
             return False
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
-        set_process(msg,type='logs',btnkey=btnkey)
+        set_process(msg, type='logs', uuid=uuid)
         raise Exception(msg)
 
 
 # 将字符串做 md5 hash处理
 def get_md5(input_string: str):
-    # 创建一个md5对象
     md5 = hashlib.md5()
-    # 更新md5对象，使用UTF-8编码
     md5.update(input_string.encode('utf-8'))
-    # 获取md5哈希值的十六进制表示
     return md5.hexdigest()
+
 
 def conver_to_16k(audio, target_audio):
     return runffmpeg([
@@ -632,53 +590,37 @@ def m4a2wav(m4afile, wavfile):
     return runffmpeg(cmd)
 
 
-# 创建 多个视频的连接文件
-def create_concat_txt(filelist, filename):
+# 创建 多个连接文件
+def create_concat_txt(filelist, concat_txt=None):
     txt = []
     for it in filelist:
-        txt.append(f"file '{it}'")
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write("\n".join(txt))
-    return filename
+        txt.append(f"file '{os.path.basename(it)}'")
+    Path(concat_txt).write_text("\n".join(txt), encoding='utf-8')
+    return concat_txt
 
 
 # 多个视频片段连接 cuda + h264_cuvid
-def concat_multi_mp4(*, filelist=[], out=None, maxsec=None, fps=None):
-    # 创建txt文件
-    txt = config.TEMP_DIR + f"/{time.time()}.txt"
+def concat_multi_mp4(*, out=None, concat_txt=None):
     video_codec = config.settings['video_codec']
-    create_concat_txt(filelist, txt)
     if out:
         out = Path(out).as_posix()
-    if maxsec:
-        return os.system(
-            f'ffmpeg -y -f  concat -safe 0 -i "{txt}"  -c:v libx{video_codec}  -crf {config.settings["crf"]} -preset {config.settings["preset"]} -an {out}')
-    return runffmpeg(
-        ['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
-         f'{config.settings["crf"]}',
-         '-preset', config.settings['preset'], out], fps=fps)
+    os.chdir(os.path.dirname(concat_txt))
+    runffmpeg(
+        ['-y', '-f', 'concat', '-i', concat_txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
+         f'{config.settings["crf"]}', '-preset', config.settings['preset'], out])
+    os.chdir(config.ROOT_DIR)
+    return True
 
 
 # 多个音频片段连接 
-def concat_multi_audio(*, filelist=[], out=None):
+def concat_multi_audio(*, out=None, concat_txt=None):
     if out:
         out = Path(out).as_posix()
     # 创建txt文件
-    txt = config.TEMP_DIR + f"/{time.time()}.txt"
-    create_concat_txt(filelist, txt)
-    return runffmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', txt, '-c:a', 'aac', out])
-
-
-# mp3 加速播放 cuda + h264_cuvid
-def speed_up_mp3(*, filename=None, speed=1, out=None):
-    return runffmpeg([
-        "-y",
-        "-i",
-        Path(filename).as_posix(),
-        "-af",
-        f'atempo={speed}',
-        out
-    ])
+    os.chdir(os.path.dirname(concat_txt))
+    runffmpeg(['-y', '-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
+    os.chdir(config.TEMP_DIR)
+    return True
 
 
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None, max_rate=100):
@@ -720,7 +662,7 @@ def show_popup(title, text, parent=None):
 
     msg = QMessageBox()
     msg.setWindowTitle(title)
-    msg.setWindowIcon(QIcon(f"{config.rootdir}/videotrans/styles/icon.ico"))
+    msg.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
     msg.setText(text)
     msg.addButton(QMessageBox.Yes)
     msg.addButton(QMessageBox.Cancel)
@@ -732,9 +674,12 @@ def show_popup(title, text, parent=None):
 
 
 '''
+格式化毫秒或秒为符合srt格式的 2位小时:2位分:2位秒,3位毫秒 形式
 print(ms_to_time_string(ms=12030))
 -> 00:00:12,030
 '''
+
+
 def ms_to_time_string(*, ms=0, seconds=None):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
@@ -791,8 +736,7 @@ def format_srt(content):
             continue
         elif len(result) > 0 and not re.match(textpat, it):
             # 当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
-
-            result[-1]['text'].append(it.capitalize())
+            result[-1]['text'].append(it)  # .capitalize()
 
     # 再次遍历，去掉text为空的
     result = [it for it in result if len(it['text']) > 0]
@@ -800,7 +744,7 @@ def format_srt(content):
     if len(result) > 0:
         for i, it in enumerate(result):
             result[i]['line'] = i + 1
-            result[i]['text'] = "\n".join([tx.capitalize() for tx in it['text']])
+            result[i]['text'] = "\n".join(it['text'])  # capitalize()
             s, e = (it['time'].replace('.', ',')).split('-->')
             s = format_time(s, ',')
             e = format_time(e, ',')
@@ -817,7 +761,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 content = f.read().strip().splitlines()
         except:
             try:
-                with open(srtfile, 'r', encoding='gbk',errors='ignore') as f:
+                with open(srtfile, 'r', encoding='gbk', errors='ignore') as f:
                     content = f.read().strip().splitlines()
             except Exception as e:
                 raise Exception(f'get srtfile error:{str(e)}')
@@ -834,7 +778,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
-                {"line": 1, "time": "00:00:00,000 --> 05:00:00,000", "text": "\n".join(content)}
+            {"line": 1, "time": "00:00:00,000 --> 05:00:00,000", "text": "\n".join(content)}
         ]
 
     new_result = []
@@ -893,26 +837,34 @@ def srt2ass(srt_file, ass_file, maxlen=40):
 
 
 # 将字幕list写入srt文件
-# 保存字幕文件 到目标文件夹
 def save_srt(srt_list, srt_file):
-    # 是字幕列表形式，重新组装
     if isinstance(srt_list, list):
         txt = ""
         line = 0
+        # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
+        # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
+        # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
         for it in srt_list:
             line += 1
             if "startraw" not in it:
-                startraw, endraw = it['time'].strip().split(" --> ")
-                startraw = startraw.strip().replace('.', ',')
-                endraw = endraw.strip().replace('.', ',')
-                startraw = format_time(startraw, ',')
-                endraw = format_time(endraw, ',')
+                # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
+                if 'time' in it:
+                    startraw, endraw = it['time'].strip().split(" --> ")
+                    startraw = format_time(startraw.strip().replace('.', ','), ',')
+                    endraw = format_time(endraw.strip().replace('.', ','), ',')
+                elif 'start_time' in it and 'end_time' in it:
+                    # 存在开始结束毫秒数值
+                    startraw = ms_to_time_string(ms=it['start_time'])
+                    endraw = ms_to_time_string(ms=it['end_time'])
+                else:
+                    raise Exception(
+                        f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
             else:
+                # 存在单独开始和结束  时:分:秒,毫秒 字符串
                 startraw = it['startraw']
                 endraw = it['endraw']
             txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
-        with open(srt_file, 'w', encoding="utf-8") as f:
-            f.write(txt)
+        Path(srt_file).write_text(txt, encoding="utf-8")
     return True
 
 
@@ -964,7 +916,7 @@ def format_time(s_time="", separate=','):
 
 
 # 判断 novoice.mp4是否创建好
-def is_novoice_mp4(novoice_mp4, noextname,btnkey=None):
+def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
     # 判断novoice_mp4是否完成
     t = 0
@@ -991,7 +943,8 @@ def is_novoice_mp4(novoice_mp4, noextname,btnkey=None):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",type='logs',btnkey=btnkey)
+            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",
+                        type='logs', uuid=uuid)
             time.sleep(3)
             t += 3
             continue
@@ -1004,7 +957,7 @@ def match_target_amplitude(sound, target_dBFS):
 
 
 # 从视频中切出一段时间的视频片段 cuda + h264_cuvid
-def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
+def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
         "-y",
@@ -1026,7 +979,7 @@ def cut_from_video(*, ss="", to="", source="", pts="", out="", fps=None):
                   '-preset', config.settings['preset'],
                   f'{out}'
                   ]
-    return runffmpeg(cmd, fps=fps)
+    return runffmpeg(cmd)
 
 
 # 从音频中截取一个片段
@@ -1067,9 +1020,8 @@ def get_clone_role(set_p=False):
     return False
 
 
-
 # 综合写入日志，默认sp界面
-def set_process(text="",*, type="logs", uuid=None, btnkey="", nologs=False):
+def set_process(text="", *, type="logs", uuid=None, nologs=False):
     try:
         if text:
             if not nologs:
@@ -1082,13 +1034,10 @@ def set_process(text="",*, type="logs", uuid=None, btnkey="", nologs=False):
             if type == 'error':
                 text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>', '', text, re.I | re.M | re.S)
                 text = text.replace('\\n', ' ').strip()
-        logdata={"text": text, "type": type}
         if not uuid:
-            # 是主界面，老的日志方式，通过队列提取
-            logdata['btnkey']=btnkey
-            config.queue_logs.put_nowait(logdata)
-        else:
-            config.push_queue(uuid,logdata)
+            uuid = 'global'
+        logdata = {"text": text, "type": type, "uuid": uuid}
+        config.push_queue(uuid, logdata)
     except Exception as e:
         pass
 
@@ -1101,11 +1050,12 @@ def send_notification(title, message):
             message=message[:120],
             ticker="pyVideoTrans",
             app_name="pyVideoTrans",  # config.uilanglist['SP-video Translate Dubbing'],
-            app_icon=os.path.join(config.rootdir, 'videotrans/styles/icon.ico'),
+            app_icon=os.path.join(config.ROOT_DIR, 'videotrans/styles/icon.ico'),
             timeout=10  # Display duration in seconds
         )
     except:
         pass
+
 
 # 获取音频时长
 def get_audio_time(audio_file):
@@ -1201,8 +1151,8 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 
 def remove_qsettings_data():
     try:
-        os.remove(config.rootdir + "/videotrans/params.json")
-        os.remove(config.rootdir + "/videotrans/cfg.json")
+        Path(config.ROOT_DIR + "/videotrans/params.json").unlink(missing_ok=True)
+        Path(config.ROOT_DIR + "/videotrans/cfg.json").unlink(missing_ok=True)
     except Exception:
         pass
 
@@ -1212,6 +1162,9 @@ def format_video(name, out=None):
     raw_pathlib = Path(name)
     raw_basename = raw_pathlib.name
     raw_noextname = raw_pathlib.stem
+    ext_path = raw_noextname.split('/')
+    if len(ext_path) > 1:
+        raw_noextname = ext_path[-1]
     ext = raw_pathlib.suffix
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
@@ -1219,15 +1172,7 @@ def format_video(name, out=None):
     output_path.mkdir(parents=True, exist_ok=True)
 
     obj = {
-        "raw_name": name,
-        # 原始视频所在原始目录
-        "raw_dirname": raw_dirname,
-        # 原始视频原始名字带后缀
-        "raw_basename": raw_basename,
-        # 原始视频名字不带后缀
-        "raw_noextname": raw_noextname,
-        # 原始后缀不带 .
-        "raw_ext": ext[1:],
+        "name": name,
         # 处理后 移动后符合规范的目录名
         "dirname": raw_dirname,
         # 符合规范的基本名带后缀
@@ -1237,15 +1182,35 @@ def format_video(name, out=None):
         # 扩展名
         "ext": ext[1:],
         # 最终存放目标位置，直接存到这里
-        "output": output_path.as_posix(),
+        "target_dir": output_path.as_posix(),
         "unid": get_md5(name),
-        "source_mp4": name
     }
     return obj
 
-def open_url(url):
+
+def open_url(url=None, title: str = None):
     import webbrowser
-    webbrowser.open_new_tab(url)
+    if url:
+        return webbrowser.open_new_tab(url)
+    title_url_dict = {
+        'blog': "https://bbs.pyvideotrans.com/questions",
+        'ffmpeg': "https://www.ffmpeg.org/download.html",
+        'git': "https://github.com/jianchang512/pyvideotrans",
+        'issue': "https://github.com/jianchang512/pyvideotrans/issues",
+        'discord': "https://discord.gg/7ZWbwKGMcx",
+        'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
+        'dll': "https://github.com/jianchang512/stt/releases/tag/v0.0.1",
+        'gtrans': "https://pyvideotrans.com/15.html",
+        'cuda': "https://pyvideotrans.com/gpu.html",
+        'website': "https://pyvideotrans.com",
+        'help': "https://pyvideotrans.com",
+        'xinshou': "https://pyvideotrans.com/getstart",
+        "about": "https://pyvideotrans.com/about",
+        'download': "https://github.com/jianchang512/pyvideotrans/releases",
+        'openvoice': "https://github.com/kungful/openvoice-api"
+    }
+    if title and title in title_url_dict:
+        return webbrowser.open_new_tab(title_url_dict[title])
 
 
 def open_dir(dirname=None):
@@ -1267,7 +1232,7 @@ def vail_file(file=None):
     p = Path(file)
     if not p.exists() or not p.is_file():
         return False
-    if p.stat().st_size ==0:
+    if p.stat().st_size == 0:
         return False
     return True
 
@@ -1280,7 +1245,7 @@ def get_video_codec():
     hhead = 'h264'
     if video_codec != 264:
         hhead = 'hevc'
-    mp4_test = config.rootdir + "/videotrans/styles/no-remove.mp4"
+    mp4_test = config.ROOT_DIR + "/videotrans/styles/no-remove.mp4"
     if not Path(mp4_test).is_file():
         return f'libx{video_codec}'
     mp4_target = config.TEMP_DIR + "/test.mp4"
@@ -1356,7 +1321,7 @@ def set_ass_font(srtfile=None):
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
-    return os.path.basename(assfile)
+    return assfile
 
 
 # 删除翻译结果的特殊字符
@@ -1424,17 +1389,17 @@ def split_line(sep_list):
     sep_list.append(" ".join(res2[pos:]))
     return sep_list
 
+
 # 删除临时文件
 def _unlink_tmp():
     try:
-        shutil.rmtree(config.TEMP_DIR,ignore_errors=True)
+        shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
     except Exception:
         pass
     try:
-        shutil.rmtree(config.TEMP_HOME,ignore_errors=True)
+        shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
     except Exception:
         pass
-
 
 
 def shutdown_system():

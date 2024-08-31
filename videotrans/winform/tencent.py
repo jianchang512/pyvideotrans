@@ -3,23 +3,25 @@ from videotrans.configure import config
 
 def open():
     def save():
-        SecretId = config.tencentw.tencent_SecretId.text()
-        SecretKey = config.tencentw.tencent_SecretKey.text()
+        SecretId = tencentw.tencent_SecretId.text()
+        SecretKey = tencentw.tencent_SecretKey.text()
         config.params["tencent_SecretId"] = SecretId
         config.params["tencent_SecretKey"] = SecretKey
         config.getset_params(config.params)
-        config.tencentw.close()
+        tencentw.close()
 
     from videotrans.component import TencentForm
-    if config.tencentw is not None:
-        config.tencentw.show()
-        config.tencentw.raise_()
-        config.tencentw.activateWindow()
+    tencentw = config.child_forms.get('tencentw')
+    if tencentw is not None:
+        tencentw.show()
+        tencentw.raise_()
+        tencentw.activateWindow()
         return
-    config.tencentw = TencentForm()
+    tencentw = TencentForm()
+    config.child_forms['tencentw'] = tencentw
     if config.params["tencent_SecretId"]:
-        config.tencentw.tencent_SecretId.setText(config.params["tencent_SecretId"])
+        tencentw.tencent_SecretId.setText(config.params["tencent_SecretId"])
     if config.params["tencent_SecretKey"]:
-        config.tencentw.tencent_SecretKey.setText(config.params["tencent_SecretKey"])
-    config.tencentw.set_tencent.clicked.connect(save)
-    config.tencentw.show()
+        tencentw.tencent_SecretKey.setText(config.params["tencent_SecretKey"])
+    tencentw.set_tencent.clicked.connect(save)
+    tencentw.show()

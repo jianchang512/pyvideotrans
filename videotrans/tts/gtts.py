@@ -1,5 +1,6 @@
 import os
 
+import requests
 from gtts import gTTS
 
 from videotrans.configure import config
@@ -27,7 +28,7 @@ def update_proxy(type='set'):
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     update_proxy(type='set')
     try:
         lans = language.split('-')
@@ -41,17 +42,14 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
         if set_p:
             if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs",btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs", uuid=uuid)
+    except requests.ConnectionError as e:
+        config.logger.exception(e)
+        raise Exception(str(e))
     except Exception as e:
-        error = str(e)
-        if error.lower().find('Failed to connect') > -1:
-            if inst and inst.init['btnkey']:
-                config.errorlist[inst.init['btnkey']] = f'无法连接到 Google，请正确填写代理地址:{error}'
-        config.logger.error(f"gtts 合成失败：request error:" + str(e))
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
-        update_proxy(type='del')
+        config.logger.exception(e)
         raise
-    else:
-        update_proxy(type='del')
-        return True
+    finally:
+        if shound_del:
+            update_proxy(type='del')
+    return True

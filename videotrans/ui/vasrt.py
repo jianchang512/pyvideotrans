@@ -107,9 +107,9 @@ class Ui_vasrt(object):
         self.ysphb_replace.setDisabled(True)
         self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
 
-        self.ysphb_maxlenlabel=QtWidgets.QLabel()
+        self.ysphb_maxlenlabel = QtWidgets.QLabel()
         self.ysphb_maxlenlabel.setText("硬字幕单行字符数")
-        self.ysphb_maxlen=QtWidgets.QLineEdit()
+        self.ysphb_maxlen = QtWidgets.QLineEdit()
         self.ysphb_maxlen.setText('30')
 
         self.layout_form0 = QtWidgets.QFormLayout()
@@ -119,12 +119,12 @@ class Ui_vasrt(object):
         self.ysphb_issoft = QtWidgets.QCheckBox()
         self.ysphb_issoft.setObjectName("ysphb_issoft")
         self.ysphb_issoft.setChecked(False)
-        self.ysphb_issoft.setText('嵌入软字幕' if config.defaulelang=='zh' else 'Embedded Soft Subtitles')
+        self.ysphb_issoft.setText('嵌入软字幕' if config.defaulelang == 'zh' else 'Embedded Soft Subtitles')
 
         self.layout_form = QtWidgets.QFormLayout()
 
-        self.languagelabel=QtWidgets.QLabel()
-        self.languagelabel.setText('软字幕语言' if config.defaulelang=='zh' else 'soft subtitle language')
+        self.languagelabel = QtWidgets.QLabel()
+        self.languagelabel.setText('软字幕语言' if config.defaulelang == 'zh' else 'soft subtitle language')
         self.languagelabel.setStyleSheet('color:#777')
         self.language = QtWidgets.QComboBox()
         self.language.setMinimumSize(QtCore.QSize(0, 30))
@@ -171,7 +171,7 @@ class Ui_vasrt(object):
 
         QMetaObject.connectSlotsByName(vasrt)
 
-    def remainraw(self,t):
+    def remainraw(self, t):
         if Path(t).is_file():
             self.ysphb_replace.setDisabled(False)
             self.ysphb_replace.setChecked(True)
@@ -179,22 +179,21 @@ class Ui_vasrt(object):
             self.ysphb_replace.setChecked(False)
             self.ysphb_replace.setDisabled(True)
 
-
-    def update_language(self,state):
+    def update_language(self, state):
         self.languagelabel.setStyleSheet(f"""color:#f1f1f1""" if state else 'color:#777777')
         self.language.setDisabled(False if state else True)
 
     def retranslateUi(self, vasrt):
         vasrt.setWindowTitle("视频、音频、字幕三者合并" if config.defaulelang == 'zh' else 'Video, audio, and subtitle merging')
 
-        self.label_4.setText('视频文件' if config.defaulelang=='zh' else 'Video')
-        self.label_5.setText('音频文件' if config.defaulelang=='zh' else 'Audio')
-        self.label_6.setText('字幕文件/srt' if config.defaulelang=='zh' else 'Subtitles/srt')
-        self.ysphb_selectvideo.setText('选择视频文件' if config.defaulelang=='zh' else 'Select a Video')
-        self.ysphb_videoinput.setPlaceholderText('选择视频文件' if config.defaulelang=='zh' else 'Select a Video')
-        self.ysphb_selectwav.setText('选择音频文件' if config.defaulelang=='zh' else 'Select a Audio')
-        self.ysphb_wavinput.setPlaceholderText('选择音频文件' if config.defaulelang=='zh' else 'Select a Audio')
-        self.ysphb_selectsrt.setText('选择srt字幕文件' if config.defaulelang=='zh' else 'Select a Srt file')
-        self.ysphb_srtinput.setPlaceholderText('选择srt字幕文件' if config.defaulelang=='zh' else 'Select a Srt file')
-        self.ysphb_startbtn.setText('开始执行' if config.defaulelang=='zh' else 'Start operating')
-        self.ysphb_opendir.setText('打开结果目录' if config.defaulelang=='zh' else 'Open the results catalog')
+        self.label_4.setText('视频文件' if config.defaulelang == 'zh' else 'Video')
+        self.label_5.setText('音频文件' if config.defaulelang == 'zh' else 'Audio')
+        self.label_6.setText('字幕文件/srt' if config.defaulelang == 'zh' else 'Subtitles/srt')
+        self.ysphb_selectvideo.setText('选择视频文件' if config.defaulelang == 'zh' else 'Select a Video')
+        self.ysphb_videoinput.setPlaceholderText('选择视频文件' if config.defaulelang == 'zh' else 'Select a Video')
+        self.ysphb_selectwav.setText('选择音频文件' if config.defaulelang == 'zh' else 'Select a Audio')
+        self.ysphb_wavinput.setPlaceholderText('选择音频文件' if config.defaulelang == 'zh' else 'Select a Audio')
+        self.ysphb_selectsrt.setText('选择srt字幕文件' if config.defaulelang == 'zh' else 'Select a Srt file')
+        self.ysphb_srtinput.setPlaceholderText('选择srt字幕文件' if config.defaulelang == 'zh' else 'Select a Srt file')
+        self.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'Start operating')
+        self.ysphb_opendir.setText('打开结果目录' if config.defaulelang == 'zh' else 'Open the results catalog')

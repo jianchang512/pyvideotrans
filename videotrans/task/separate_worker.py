@@ -1,5 +1,4 @@
 # 从日志队列获取日志
-import os
 
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
@@ -21,7 +20,7 @@ class SeparateWorker(QThread):
         try:
             # 如果不是wav，需要先转为wav
             if not self.file.lower().endswith('.wav'):
-                newfile = os.path.join(config.homedir, f'tmp/{self.basename}.wav').replace('\\', '/')
+                newfile = config.TEMP_HOME + f'/{self.basename}.wav'
                 cmd = [
                     "-y",
                     "-i",
@@ -34,7 +33,7 @@ class SeparateWorker(QThread):
                 ]
                 if self.basename.split('.')[-1].lower() in ['mp4', 'mov', 'mkv', 'mpeg']:
                     cmd.insert(3, '-vn')
-                tools.runffmpeg(cmd, is_box=True)
+                tools.runffmpeg(cmd)
                 self.file = newfile
             st.start(self.file, self.out, "win")
             if config.separate_status == 'ing':

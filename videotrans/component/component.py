@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PySide6 import QtWidgets
-from PySide6.QtWidgets import QVBoxLayout, QFileDialog, QPushButton, QPlainTextEdit
+from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure import config
 from videotrans.configure.config import transobj
@@ -16,10 +15,11 @@ class DropButton(QPushButton):
         self.filelist = []
 
     def get_file(self):
+        format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
                                                  config.params['last_opendir'],
-                                                 filter="Video/Audio files(*.mp4 *.mkv *.avi *.mov *.wav *.mp3 *.m4a *.aac *.flac)")
-        namestr=[]
+                                                 filter=f"Video/Audio files({format_str})")
+        namestr = []
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
@@ -30,7 +30,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow = True
         for it in files.split("\n"):
-            if it.split('.')[-1] not in ["mp4", "mkv", "avi", "mov", "m4a", "wav", "aac", "mp3", "flac"]:
+            if it.split('.')[-1] not in config.VIDEO_EXTS+config.AUDIO_EXITS:
                 allow = False
                 break
         if allow:
@@ -80,7 +80,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac", "mkv"]:
+            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS+config.AUDIO_EXITS:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -93,68 +93,8 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in ["mp4", "avi", "mov", "wav", "mp3", "m4a", "aac", "flac", "mkv"]:
+            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS+config.AUDIO_EXITS:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)
         self.setPlainText("\n".join(result))
-
-
-# VLC播放器
-class Player(QtWidgets.QWidget):
-    """A simple Media Player using VLC and Qt
-    """
-
-    def __init__(self, parent=None):
-        self.first = True
-        self.filepath = None
-        super(Player, self).__init__(parent)
-
-        self.instance = None
-        self.mediaplayer = None
-        self.setAcceptDrops(True)
-        self.createUI()
-
-    def createUI(self):
-        layout = QVBoxLayout()
-        self.widget = QtWidgets.QWidget(self)
-        layout.addWidget(self.widget)
-        self.setLayout(layout)
-
-        self.hbuttonbox = QtWidgets.QHBoxLayout()
-
-        self.selectbutton = QtWidgets.QPushButton(transobj['sjselectmp4'])
-        self.selectbutton.setStyleSheet("""background-color:rgb(10,10,10);""")
-        self.selectbutton.setMinimumSize(0, 100)
-        self.hbuttonbox.addWidget(self.selectbutton)
-        self.selectbutton.clicked.connect(self.mouseDoubleClickEvent)
-
-        self.vboxlayout = QtWidgets.QVBoxLayout()
-        self.vboxlayout.addLayout(self.hbuttonbox)
-
-        self.widget.setLayout(self.vboxlayout)
-
-    def mouseDoubleClickEvent(self, e=None):
-        fname, _ = QFileDialog.getOpenFileName(self, transobj['selectmp4'], os.path.expanduser('~') + "\\Videos",
-                                               "Video files(*.mp4 *.avi *.mov)")
-        if fname:
-            self.OpenFile(fname)
-
-    def dragEnterEvent(self, event):
-        ext = event.mimeData().text().lower().split('.')[1]
-        if ext in ["mp4", "avi", "mov"]:
-            event.accept()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        filepath = event.mimeData().text()
-        self.OpenFile(filepath.replace('file:///', ''))
-
-    def OpenFile(self, filepath=None):
-        if filepath is not None:
-            self.filepath = filepath
-        elif self.filepath is None:
-            return
-        self.selectbutton.setText(self.filepath)
-        return

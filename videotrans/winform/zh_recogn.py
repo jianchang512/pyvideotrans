@@ -21,39 +21,41 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(config.zhrecognw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(zhrecognw, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(config.zhrecognw, config.transobj['anerror'], d)
-        config.zhrecognw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(zhrecognw, config.transobj['anerror'], d)
+        zhrecognw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not config.zhrecognw.zhrecogn_address.text().strip():
-            QtWidgets.QMessageBox.critical(config.zhrecognw, config.transobj['anerror'], '必须填写http地址')
+        if not zhrecognw.zhrecogn_address.text().strip():
+            QtWidgets.QMessageBox.critical(zhrecognw, config.transobj['anerror'], '必须填写http地址')
             return
-        config.params['zh_recogn_api'] = config.zhrecognw.zhrecogn_address.text().strip()
-        task = Test(parent=config.zhrecognw)
-        config.zhrecognw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        config.params['zh_recogn_api'] = zhrecognw.zhrecogn_address.text().strip()
+        task = Test(parent=zhrecognw)
+        zhrecognw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = config.zhrecognw.zhrecogn_address.text().strip()
+        key = zhrecognw.zhrecogn_address.text().strip()
         if key:
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '')
         config.params["zh_recogn_api"] = key
         config.getset_params(config.params)
-        config.zhrecognw.close()
+        zhrecognw.close()
 
     from videotrans.component import ZhrecognForm
-    if config.zhrecognw is not None:
-        config.zhrecognw.show()
-        config.zhrecognw.raise_()
-        config.zhrecognw.activateWindow()
+    zhrecognw = config.child_forms.get('zhrecognw')
+    if zhrecognw is not None:
+        zhrecognw.show()
+        zhrecognw.raise_()
+        zhrecognw.activateWindow()
         return
-    config.zhrecognw = ZhrecognForm()
+    zhrecognw = ZhrecognForm()
+    config.child_forms['zhrecognw'] = zhrecognw
     if config.params["zh_recogn_api"]:
-        config.zhrecognw.zhrecogn_address.setText(config.params["zh_recogn_api"])
-    config.zhrecognw.set.clicked.connect(save)
-    config.zhrecognw.test.clicked.connect(test)
-    config.zhrecognw.show()
+        zhrecognw.zhrecogn_address.setText(config.params["zh_recogn_api"])
+    zhrecognw.set.clicked.connect(save)
+    zhrecognw.test.clicked.connect(test)
+    zhrecognw.show()

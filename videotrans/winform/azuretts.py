@@ -19,7 +19,7 @@ def open():
             from videotrans.tts.azuretts import get_voice
             try:
                 get_voice(text=self.text, role=self.role, rate="+0%", language=self.language, set_p=False,
-                          filename=config.homedir + "/test.mp3")
+                          filename=config.TEMP_HOME + "/test.mp3")
 
                 self.uito.emit("ok")
             except Exception as e:
@@ -27,57 +27,59 @@ def open():
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.homedir + "/test.mp3")
-            QtWidgets.QMessageBox.information(config.azurettsw, "ok", "Test Ok")
+            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
+            QtWidgets.QMessageBox.information(azurettsw, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(config.azurettsw, config.transobj['anerror'], d)
-        config.azurettsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(azurettsw, config.transobj['anerror'], d)
+        azurettsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        key = config.azurettsw.speech_key.text().strip()
+        key = azurettsw.speech_key.text().strip()
         if not key:
-            QtWidgets.QMessageBox.critical(config.azurettsw, config.transobj['anerror'], '填写Azure speech key ')
+            QtWidgets.QMessageBox.critical(azurettsw, config.transobj['anerror'], '填写Azure speech key ')
             return
-        region = config.azurettsw.speech_region.text().strip()
+        region = azurettsw.speech_region.text().strip()
         if not region or not region.startswith('https:'):
-            region = config.azurettsw.azuretts_area.currentText()
+            region = azurettsw.azuretts_area.currentText()
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
 
-        task = TestTTS(parent=config.azurettsw,
+        task = TestTTS(parent=azurettsw,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
                        role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
                        language="zh-CN" if config.defaulelang == 'zh' else 'en-US'
                        )
-        config.azurettsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        azurettsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = config.azurettsw.speech_key.text()
-        region = config.azurettsw.speech_region.text().strip()
+        key = azurettsw.speech_key.text()
+        region = azurettsw.speech_region.text().strip()
         if not region or not region.startswith('https:'):
-            region = config.azurettsw.azuretts_area.currentText()
+            region = azurettsw.azuretts_area.currentText()
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
         config.getset_params(config.params)
-        config.azurettsw.close()
+        azurettsw.close()
 
     from videotrans.component import AzurettsForm
-    if config.azurettsw is not None:
-        config.azurettsw.show()
-        config.azurettsw.raise_()
-        config.azurettsw.activateWindow()
+    azurettsw = config.child_forms.get('azurettsw')
+    if azurettsw is not None:
+        azurettsw.show()
+        azurettsw.raise_()
+        azurettsw.activateWindow()
         return
-    config.azurettsw = AzurettsForm()
+    azurettsw = AzurettsForm()
+    config.child_forms['azurettsw'] = azurettsw
     if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
-        config.azurettsw.speech_region.setText(config.params['azure_speech_region'])
+        azurettsw.speech_region.setText(config.params['azure_speech_region'])
     else:
-        config.azurettsw.azuretts_area.setCurrentText(config.params['azure_speech_region'])
+        azurettsw.azuretts_area.setCurrentText(config.params['azure_speech_region'])
     if config.params['azure_speech_key']:
-        config.azurettsw.speech_key.setText(config.params['azure_speech_key'])
-    config.azurettsw.save.clicked.connect(save)
-    config.azurettsw.test.clicked.connect(test)
-    config.azurettsw.show()
+        azurettsw.speech_key.setText(config.params['azure_speech_key'])
+    azurettsw.save.clicked.connect(save)
+    azurettsw.test.clicked.connect(test)
+    azurettsw.show()

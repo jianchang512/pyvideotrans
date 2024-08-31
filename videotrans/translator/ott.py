@@ -21,8 +21,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
-    if len(config.params['ott_address'].strip())<10:
-        raise  Exception('OTT API 接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'OTT API interface is not correct, please go to Settings to fill in again')
+    if len(config.params['ott_address'].strip()) < 10:
+        raise Exception(
+            'OTT API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'OTT API interface is not correct, please go to Settings to fill in again')
     url = config.params['ott_address'].strip().rstrip('/').lower().replace('/translate', '') + '/translate'
     url = url.replace('//translate', '/translate')
     if not url.startswith('http'):
@@ -35,15 +36,10 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
     err = ""
 
     def get_content(data):
-        try:
-            response = requests.post(url=url, json=data, proxies={"https": "", "http": ""})
-        except Exception as e:
-            raise
-
+        response = requests.post(url=url, json=data, proxies={"https": "", "http": ""})
         if response.status_code != 200:
             raise Exception(response.text)
         result = response.json()
-
         if "error" in result:
             raise Exception(result['error'])
         return result['translatedText']
@@ -60,7 +56,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -110,7 +105,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     tools.set_process(
                         config.transobj['starttrans'] + f' {i * split_size + 1} ',
                         type="logs",
-                        btnkey=inst.init['btnkey'] if inst else "",
                         uuid=uuid)
                 result_length = len(result)
                 while result_length < source_length:
@@ -118,6 +112,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
+            except requests.ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = f'请检查部署和地址:{str(e)}'
                 time.sleep(wait_sec)

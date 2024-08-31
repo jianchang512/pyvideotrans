@@ -12,6 +12,7 @@ from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
+from videotrans.recognition import RECOGN_NAME_LIST
 
 
 class Ui_recogn(object):
@@ -35,7 +36,6 @@ class Ui_recogn(object):
         self.shibie_widget = QtWidgets.QVBoxLayout()
         self.shibie_widget.setObjectName("shibie_widget")
         self.verticalLayout_3.addLayout(self.shibie_widget)
-
 
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
@@ -82,13 +82,7 @@ class Ui_recogn(object):
         self.shibie_model_type.setSizePolicy(sizePolicy)
         self.shibie_model_type.setMinimumSize(QtCore.QSize(0, 30))
         self.shibie_model_type.setObjectName("shibie_model_type")
-        self.shibie_model_type.addItems([
-            config.uilanglist['faster model'],
-            config.uilanglist['openai model'],
-            "GoogleSpeech",
-            "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese",
-            "豆包模型识别" if config.defaulelang == 'zh' else "Doubao"
-        ])
+        self.shibie_model_type.addItems(RECOGN_NAME_LIST)
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)
 
@@ -126,12 +120,9 @@ class Ui_recogn(object):
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
 
-        self.loglabel=QtWidgets.QLabel()
+        self.loglabel = QtWidgets.QLabel()
         self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout_3.addWidget(self.loglabel)
-
-
-
 
         self.shibie_text = QtWidgets.QPlainTextEdit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -173,15 +164,11 @@ class Ui_recogn(object):
 
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
 
-
-
-
-
         self.retranslateUi(recogn)
         QtCore.QMetaObject.connectSlotsByName(recogn)
 
     def retranslateUi(self, recogn):
-        recogn.setWindowTitle('音视频识别为字幕' if config.defaulelang=='zh'else 'Audio and video recognized as subtitles')
+        recogn.setWindowTitle('音视频识别为字幕' if config.defaulelang == 'zh' else 'Audio and video recognized as subtitles')
         self.label_3.setText(box_lang.get("Source lang"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
         self.shibie_savebtn.setText(box_lang.get("Save to srt.."))

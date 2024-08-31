@@ -19,7 +19,7 @@ def wav_to_base64(file_path):
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     try:
         api_url = config.params['fishtts_url'].strip().rstrip('/').lower()
         if len(config.params['fishtts_url'].strip()) < 10:
@@ -37,10 +37,10 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                 data.update(roledict[role])
         # role=clone是直接复制
         # 克隆声音
-        if os.path.exists(f'{config.rootdir}/{data["reference_audio"]}'):
-            data['reference_audio'] = wav_to_base64(f'{config.rootdir}/{data["reference_audio"]}')
-        elif os.path.exists(f'{config.rootdir}/fishwavs/{data["reference_audio"]}'):
-            data['reference_audio'] = wav_to_base64(f'{config.rootdir}/fishwavs/{data["reference_audio"]}')
+        if os.path.exists(f'{config.ROOT_DIR}/{data["reference_audio"]}'):
+            data['reference_audio'] = wav_to_base64(f'{config.ROOT_DIR}/{data["reference_audio"]}')
+        elif os.path.exists(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}'):
+            data['reference_audio'] = wav_to_base64(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}')
 
         response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
         if response.status_code != 200:
@@ -59,16 +59,15 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
         if set_p:
             if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
         else:
             raise Exception(f"FishTTS合成声音出错-3：{text=},{response.text=}")
+    except requests.ConnectionError as e:
+        raise Exception(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "")
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
+            tools.set_process(error, uuid=uuid)
         config.logger.error(f"{error}")
         raise
-    else:
-        return True
+    return True

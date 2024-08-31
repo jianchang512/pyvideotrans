@@ -52,13 +52,14 @@ class Ui_azureform(object):
         self.azure_version.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_version.setObjectName("azure_version")
         self.azure_version.addItems([
-                "2024-06-01",
-                "2024-07-01-preview",
-                "2024-05-01-preview",
-                "2024-04-01-preview",
-                "2024-03-01-preview",
-                "2024-02-01"
-            ])
+            "2024-06-01",
+            "2024-08-01-preview",
+            "2024-07-01-preview",
+            "2024-05-01-preview",
+            "2024-04-01-preview",
+            "2024-03-01-preview",
+            "2024-02-01"
+        ])
 
         self.label_3 = QtWidgets.QLabel(azureform)
         self.label_3.setGeometry(QtCore.QRect(10, 160, 121, 16))

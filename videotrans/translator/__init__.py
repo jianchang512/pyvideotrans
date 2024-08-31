@@ -6,41 +6,39 @@ from PySide6.QtWidgets import QMessageBox
 from videotrans.configure import config
 from videotrans.winform import chatgpt, gemini, ai302, zijiehuoshan, azure, baidu, tencent, deepL, deepLX, localllm, ott
 
-GOOGLE_NAME = "Google"
-MICROSOFT_NAME = "Microsoft"
-AI302_NAME = "302.ai"
-BAIDU_NAME = "Baidu"
-DEEPL_NAME = "DeepL"
-DEEPLX_NAME = "DeepLx"
-OTT_NAME = "OTT"
-TENCENT_NAME = "Tencent"
-CHATGPT_NAME = "ChatGPT"
-LOCALLLM_NAME = "LocalLLM"
-ZIJIE_NAME = "ZijieHuoshan"
-AZUREGPT_NAME = "AzureGPT"
-GEMINI_NAME = "Gemini"
-TRANSAPI_NAME = "TransAPI"
-FREEGOOGLE_NAME = "FreeGoogle"
-FREECHATGPT_NAME = "FreeChatGPT"
-SRT_NAME = "srt"
-# 翻译通道
-TRANSNAMES = [
-    MICROSOFT_NAME,
-    # FREECHATGPT_NAME,
-    GOOGLE_NAME,
-    ZIJIE_NAME,
-    AI302_NAME,
-    BAIDU_NAME,
-    DEEPL_NAME,
-    CHATGPT_NAME,
-    LOCALLLM_NAME,
-    AZUREGPT_NAME,
-    GEMINI_NAME,
-    TENCENT_NAME,
-    OTT_NAME,
-    DEEPLX_NAME,
-    TRANSAPI_NAME,
-    FREEGOOGLE_NAME
+# 数字代表显示顺序
+GOOGLE_INDEX = 0
+MICROSOFT_INDEX = 1
+AI302_INDEX = 2
+BAIDU_INDEX = 3
+DEEPL_INDEX = 4
+DEEPLX_INDEX = 5
+OTT_INDEX = 6
+TENCENT_INDEX = 7
+CHATGPT_INDEX = 8
+LOCALLLM_INDEX = 9
+ZIJIE_INDEX = 10
+AZUREGPT_INDEX = 11
+GEMINI_INDEX = 12
+TRANSAPI_INDEX = 13
+FREEGOOGLE_INDEX = 14
+# 翻译通道名字列表，显示在界面
+TRANSLASTE_NAME_LIST = [
+    "Google翻译",
+    "微软翻译" if config.defaulelang == 'zh' else 'Microsoft',
+    "302.ai",
+    "Baidu翻译" if config.defaulelang == 'zh' else 'Baidu',
+    "DeepL",
+    "DeepLx",
+    "离线翻译OTT" if config.defaulelang == 'zh' else 'OTT',
+    "腾讯翻译" if config.defaulelang == 'zh' else 'Tencent',
+    "ChatGPT翻译" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
+    "本地大模型翻译" if config.defaulelang == 'zh' else 'Local LLM',
+    "字节火山引擎" if config.defaulelang == 'zh' else 'volcengine.com',
+    "AzureAI GPT",
+    "Google Gemini",
+    "自定义翻译API" if config.defaulelang == 'zh' else 'Customized Translation API',
+    "Free Google翻译" if config.defaulelang == 'zh' else 'Free Google Translation'
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
@@ -321,29 +319,26 @@ def get_code(*, show_text=None):
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
     target_list = None
-    if not translate_type:
-        return None, None
-    lower_translate_type = translate_type.lower()
     if show_source:
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_source]]
     if show_target:
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if lower_translate_type in [GOOGLE_NAME.lower(), TRANSAPI_NAME.lower(), FREEGOOGLE_NAME.lower()]:
+    if translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
-    elif lower_translate_type == BAIDU_NAME.lower():
+    elif translate_type == BAIDU_INDEX:
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
-    elif lower_translate_type in [DEEPLX_NAME.lower(), DEEPL_NAME.lower()]:
+    elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
         return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
-    elif lower_translate_type == TENCENT_NAME.lower():
+    elif translate_type == TENCENT_INDEX:
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
-    elif lower_translate_type in [CHATGPT_NAME.lower(), AZUREGPT_NAME.lower(), GEMINI_NAME.lower(),
-                                  LOCALLLM_NAME.lower(), ZIJIE_NAME.lower(), AI302_NAME.lower()]:
+    elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
+                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
-    elif lower_translate_type == OTT_NAME.lower():
+    elif translate_type == OTT_INDEX:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
-    elif lower_translate_type == MICROSOFT_NAME.lower():
+    elif translate_type == MICROSOFT_INDEX:
         return (source_list[6] if source_list else "-", target_list[6] if target_list else "-")
     else:
         raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
@@ -354,85 +349,71 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,win=None):
-    lower_translate_type = translate_type.lower()
-
-    if lower_translate_type == CHATGPT_NAME.lower() and not config.params['chatgpt_key']:
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None):
+    if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
         chatgpt.open()
         return False
-        # return config.transobj['chatgptkeymust']
-    if lower_translate_type == AI302_NAME.lower() and not config.params['ai302_key']:
-        # return '必须填写 302.ai 平台的 sk'
+    if translate_type == AI302_INDEX and not config.params['ai302_key']:
         ai302.open()
         return False
 
-    if lower_translate_type == LOCALLLM_NAME.lower() and not config.params['localllm_api']:
+    if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang == 'zh' else 'Please input Local LLM API url'
-    if lower_translate_type == ZIJIE_NAME.lower() and (
+    if translate_type == ZIJIE_INDEX and (
             not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
         zijiehuoshan.open()
         return False
-        # return '必须填写字节火山api_key和推理接入点'
 
-    if lower_translate_type == GEMINI_NAME.lower() and not config.params['gemini_key']:
+    if translate_type == GEMINI_INDEX and not config.params['gemini_key']:
         gemini.open()
         return False
-        # return config.transobj['chatgptkeymust']
-    if lower_translate_type == AZUREGPT_NAME.lower() and (
+    if translate_type == AZUREGPT_INDEX and (
             not config.params['azure_key'] or not config.params['azure_api']):
         azure.open()
         return False
-        # return 'No Azure key'
 
-    if lower_translate_type == BAIDU_NAME.lower() and (
+    if translate_type == BAIDU_INDEX and (
             not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
         baidu.open()
         return False
-        # return config.transobj['baikeymust']
-    if lower_translate_type == TENCENT_NAME.lower() and (
+    if translate_type == TENCENT_INDEX and (
             not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
         tencent.open()
         return False
-        # return config.transobj['tencent_key']
-    if lower_translate_type == DEEPL_NAME.lower() and not config.params["deepl_authkey"]:
+    if translate_type == DEEPL_INDEX and not config.params["deepl_authkey"]:
         deepL.open()
         return False
-        # return config.transobj['deepl_authkey']
-    if lower_translate_type == DEEPLX_NAME.lower() and not config.params["deeplx_address"]:
+    if translate_type == DEEPLX_INDEX and not config.params["deeplx_address"]:
         deepLX.open()
         return False
-        # return config.transobj['setdeeplx_address']
 
-    if lower_translate_type == TRANSAPI_NAME.lower() and not config.params["trans_api_url"]:
+    if translate_type == TRANSAPI_INDEX and not config.params["trans_api_url"]:
         localllm.open()
         return False
-        # return "必须配置自定义翻译api的地址" if config.defaulelang == 'zh' else "The address of the custom translation api must be configured"
-
-    if lower_translate_type == OTT_NAME.lower() and not config.params["ott_address"]:
+    if translate_type == OTT_INDEX and not config.params["ott_address"]:
         ott.open()
         return False
-        # return config.transobj['setott_address']
-
+    # 如果只需要判断是否填写了 api key 等信息，到此返回
     if only_key:
         return True
     # 再判断是否为No，即不支持
     index = 0
-    if lower_translate_type == BAIDU_NAME.lower():
+    if translate_type == BAIDU_INDEX:
         index = 2
-    elif lower_translate_type in [DEEPLX_NAME.lower(), DEEPL_NAME.lower()]:
+    elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
         index = 3
-    elif lower_translate_type == TENCENT_NAME.lower():
+    elif translate_type == TENCENT_INDEX:
         index = 4
-    elif lower_translate_type == MICROSOFT_NAME.lower():
+    elif translate_type == MICROSOFT_INDEX:
         index = 6
 
     if show_target:
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
         if target_list[index].lower() == 'no':
-            QMessageBox.critical(win,config.transobj['anerror'],config.transobj['deepl_nosupport'])
+            QMessageBox.critical(win, config.transobj['anerror'],
+                                 config.transobj['deepl_nosupport'] + f':{show_target}')
             return False
-
     return True
 
 
@@ -449,7 +430,6 @@ def get_subtitle_code(*, show_target=None):
         return LANG_CODE[show_target][1]
     if show_target in config.rev_langlist:
         return LANG_CODE[config.rev_langlist[show_target]][1]
-
     return 'eng'
 
 
@@ -458,38 +438,36 @@ def run(*, translate_type=None, text_list=None, target_language_name=None, set_p
         source_code=None,
         uuid=None):
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
-    lower_translate_type = translate_type.lower()
-    if lower_translate_type == GOOGLE_NAME.lower():
+    if translate_type == GOOGLE_INDEX:
         from videotrans.translator.google import trans
-    elif lower_translate_type == FREEGOOGLE_NAME.lower():
+    elif translate_type == FREEGOOGLE_INDEX:
         from videotrans.translator.freegoogle import trans
-    elif lower_translate_type == BAIDU_NAME.lower():
+    elif translate_type == BAIDU_INDEX:
         from videotrans.translator.baidu import trans
-    elif lower_translate_type == DEEPL_NAME.lower():
+    elif translate_type == DEEPL_INDEX:
         from videotrans.translator.deepl import trans
-    elif lower_translate_type == DEEPLX_NAME.lower():
+    elif translate_type == DEEPLX_INDEX:
         from videotrans.translator.deeplx import trans
-    elif lower_translate_type == OTT_NAME.lower():
+    elif translate_type == OTT_INDEX:
         from videotrans.translator.ott import trans
-    elif lower_translate_type == TENCENT_NAME.lower():
+    elif translate_type == TENCENT_INDEX:
         from videotrans.translator.tencent import trans
-    elif lower_translate_type == CHATGPT_NAME.lower():
+    elif translate_type == CHATGPT_INDEX:
         from videotrans.translator.chatgpt import trans
-    elif lower_translate_type == AI302_NAME.lower():
+    elif translate_type == AI302_INDEX:
         from videotrans.translator.ai302 import trans
-    elif lower_translate_type == LOCALLLM_NAME.lower():
+    elif translate_type == LOCALLLM_INDEX:
         from videotrans.translator.localllm import trans
-    elif lower_translate_type == ZIJIE_NAME.lower():
+    elif translate_type == ZIJIE_INDEX:
         from videotrans.translator.huoshan import trans
-    elif lower_translate_type == GEMINI_NAME.lower():
+    elif translate_type == GEMINI_INDEX:
         from videotrans.translator.gemini import trans
-    elif lower_translate_type == AZUREGPT_NAME.lower():
+    elif translate_type == AZUREGPT_INDEX:
         from videotrans.translator.azure import trans
-    elif lower_translate_type == MICROSOFT_NAME.lower():
+    elif translate_type == MICROSOFT_INDEX:
         from videotrans.translator.microsoft import trans
-    elif lower_translate_type == TRANSAPI_NAME.lower():
+    elif translate_type == TRANSAPI_INDEX:
         from videotrans.translator.transapi import trans
     else:
         raise Exception(f"{translate_type=},{target_language_name=}")
-    print(f'22222{set_p=},{uuid=}')
     return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code, uuid=uuid)

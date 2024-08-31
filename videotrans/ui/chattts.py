@@ -56,10 +56,7 @@ class Ui_chatttsform(object):
         self.chattts_address.setMinimumSize(QtCore.QSize(400, 35))
         self.chattts_address.setObjectName("chattts_address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.chattts_address)
-        
-        
-        
-        
+
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
@@ -73,7 +70,7 @@ class Ui_chatttsform(object):
         self.label3.setMinimumSize(QtCore.QSize(100, 35))
         self.label3.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label3.setObjectName("label3")
-        
+
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label3)
         self.chattts_voice = QtWidgets.QLineEdit(chattts)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -85,8 +82,7 @@ class Ui_chatttsform(object):
         self.chattts_voice.setObjectName("chattts_voice")
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.chattts_voice)
-        
-        
+
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
         self.verticalLayout_2.addLayout(self.verticalLayout)

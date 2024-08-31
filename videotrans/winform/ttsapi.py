@@ -23,7 +23,7 @@ def open():
             try:
 
                 get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
-                          filename=config.homedir + "/test.mp3")
+                          filename=config.TEMP_HOME + "/test.mp3")
 
                 self.uito.emit("ok")
             except Exception as e:
@@ -31,56 +31,58 @@ def open():
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.homedir + "/test.mp3")
-            QtWidgets.QMessageBox.information(config.ttsapiw, "ok", "Test Ok")
+            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
+            QtWidgets.QMessageBox.information(ttsapiw, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(config.ttsapiw, config.transobj['anerror'], d)
-        config.ttsapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
+            QtWidgets.QMessageBox.critical(ttsapiw, config.transobj['anerror'], d)
+        ttsapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
 
     def test():
-        url = config.ttsapiw.api_url.text()
-        extra = config.ttsapiw.extra.text()
-        role = config.ttsapiw.voice_role.text().strip()
+        url = ttsapiw.api_url.text()
+        extra = ttsapiw.extra.text()
+        role = ttsapiw.voice_role.text().strip()
 
         config.params["ttsapi_url"] = url
         config.params["ttsapi_extra"] = extra
         config.params["ttsapi_voice_role"] = role
 
-        task = TestTTS(parent=config.ttsapiw,
+        task = TestTTS(parent=ttsapiw,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
-                       role=config.ttsapiw.voice_role.text().strip().split(',')[0],
+                       role=ttsapiw.voice_role.text().strip().split(',')[0],
                        language="zh-cn" if config.defaulelang == 'zh' else 'en')
-        config.ttsapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        ttsapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        url = config.ttsapiw.api_url.text()
-        extra = config.ttsapiw.extra.text()
-        role = config.ttsapiw.voice_role.text().strip()
+        url = ttsapiw.api_url.text()
+        extra = ttsapiw.extra.text()
+        role = ttsapiw.voice_role.text().strip()
 
         config.params["ttsapi_url"] = url
         config.params["ttsapi_extra"] = extra
         config.params["ttsapi_voice_role"] = role
         config.getset_params(config.params)
-        config.ttsapiw.close()
+        ttsapiw.close()
 
     from videotrans.component import TtsapiForm
-    if config.ttsapiw is not None:
-        config.ttsapiw.show()
-        config.ttsapiw.raise_()
-        config.ttsapiw.activateWindow()
+    ttsapiw = config.child_forms.get('ttsapiw')
+    if ttsapiw is not None:
+        ttsapiw.show()
+        ttsapiw.raise_()
+        ttsapiw.activateWindow()
         return
-    config.ttsapiw = TtsapiForm()
+    ttsapiw = TtsapiForm()
+    config.child_forms['ttsapiw'] = ttsapiw
     if config.params["ttsapi_url"]:
-        config.ttsapiw.api_url.setText(config.params["ttsapi_url"])
+        ttsapiw.api_url.setText(config.params["ttsapi_url"])
     if config.params["ttsapi_voice_role"]:
-        config.ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
+        ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
     if config.params["ttsapi_extra"]:
-        config.ttsapiw.extra.setText(config.params["ttsapi_extra"])
+        ttsapiw.extra.setText(config.params["ttsapi_extra"])
 
-    config.ttsapiw.save.clicked.connect(save)
-    config.ttsapiw.test.clicked.connect(test)
-    config.ttsapiw.otherlink.clicked.connect(lambda: tools.open_url('https://github.com/kungful/openvoice-api'))
-    config.ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
-    config.ttsapiw.show()
+    ttsapiw.save.clicked.connect(save)
+    ttsapiw.test.clicked.connect(test)
+    ttsapiw.otherlink.clicked.connect(lambda: tools.open_url('https://github.com/kungful/openvoice-api'))
+    ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
+    ttsapiw.show()

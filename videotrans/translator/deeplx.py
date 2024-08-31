@@ -43,8 +43,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
-    if len(config.params['deeplx_address'].strip())<10:
-        raise  Exception('DeepLX  接口不正确，请到设置中重新填写' if config.defaulelang=='zh' else 'DeepLX  interface is not correct, please go to Settings to fill in again')
+    if len(config.params['deeplx_address'].strip()) < 10:
+        raise Exception(
+            'DeepLX  接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'DeepLX  interface is not correct, please go to Settings to fill in again')
     url = config.params['deeplx_address'].strip().rstrip('/').replace('/translate', '') + '/translate'
     if not url.startswith('http'):
         url = f"http://{url}"
@@ -82,7 +83,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -132,7 +132,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     tools.set_process(
                         config.transobj['starttrans'] + f' {i * split_size + 1} ',
                         type="logs",
-                        btnkey=inst.init['btnkey'] if inst else "",
                         uuid=uuid)
 
                 result_length = len(result)
@@ -141,6 +140,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
+            except requests.ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e)
                 time.sleep(wait_sec)
@@ -153,8 +155,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 index = i
         else:
             break
-
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[DeepLX]翻译请求失败:{err=}')

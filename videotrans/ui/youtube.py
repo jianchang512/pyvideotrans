@@ -33,7 +33,6 @@ class Ui_youtubeform(object):
         youtubeform.setWindowModality(QtCore.Qt.NonModal)
         youtubeform.resize(500, 340)
 
-
         youtubeform.setMaximumSize(QtCore.QSize(500, 340))
 
         self.formatname = QtWidgets.QCheckBox(youtubeform)
@@ -82,14 +81,12 @@ class Ui_youtubeform(object):
         self.selectdir.setObjectName("selectdir")
         self.selectdir.setCursor(Qt.PointingHandCursor)
         self.verticalLayout.addWidget(self.selectdir)
-        
+
         self.label_thread = QtWidgets.QLabel(self.layoutWidget)
         self.verticalLayout.addWidget(self.label_thread)
-        
-        
+
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.LabelRole, self.verticalLayout)
-        
-        
+
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
@@ -119,20 +116,16 @@ class Ui_youtubeform(object):
 
         self.click_filter = LineEditClickFilter()
         self.outputdir.installEventFilter(self.click_filter)
-        
+
         self.thread = QtWidgets.QLineEdit(self.layoutWidget)
         self.thread.setMinimumSize(QtCore.QSize(0, 35))
         self.thread.setText('8')
-        
-        
 
         self.verticalLayout_2.addWidget(self.outputdir)
         self.verticalLayout_2.addWidget(self.thread)
 
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
-        
-        
-        
+
         self.logs = QtWidgets.QLabel(youtubeform)
         self.logs.setGeometry(QtCore.QRect(30, 280, 441, 35))
         self.logs.setText("")

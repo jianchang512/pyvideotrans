@@ -4,7 +4,6 @@ import time
 from urllib.parse import quote
 
 import requests
-from requests import Timeout
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -93,7 +92,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 tools.set_process(
                     f"出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -140,7 +138,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     tools.set_process(
                         config.transobj['starttrans'] + f' {i * split_size + 1} ',
                         type="logs",
-                        btnkey=inst.init['btnkey'] if inst else "",
                         uuid=uuid)
                 config.logger.info(f'{result_length=},{source_length=}')
                 result_length = len(result)
@@ -149,8 +146,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
-            except ConnectionError or Timeout as e:
-                err = f'无法连接到Google，请正确填写代理地址'
+            except requests.ConnectionError as e:
+                err = f'无法连接到Google，请正确填写代理地址 {str(e)}'
                 break
             except Exception as e:
                 err = f'Google:{str(e)}'
@@ -164,8 +161,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 index = i
         else:
             break
-
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[Google]翻译请求失败:{err=}')

@@ -3,19 +3,21 @@ from videotrans.configure import config
 
 def open():
     def save():
-        key = config.deeplxw.deeplx_address.text()
+        key = deeplxw.deeplx_address.text()
         config.params["deeplx_address"] = key
         config.getset_params(config.params)
-        config.deeplxw.close()
+        deeplxw.close()
 
     from videotrans.component import DeepLXForm
-    if config.deeplxw is not None:
-        config.deeplxw.show()
-        config.deeplxw.raise_()
-        config.deeplxw.activateWindow()
+    deeplxw = config.child_forms.get('deeplxw')
+    if deeplxw is not None:
+        deeplxw.show()
+        deeplxw.raise_()
+        deeplxw.activateWindow()
         return
-    config.deeplxw = DeepLXForm()
+    deeplxw = DeepLXForm()
+    config.child_forms['deeplxw'] = deeplxw
     if config.params["deeplx_address"]:
-        config.deeplxw.deeplx_address.setText(config.params["deeplx_address"])
-    config.deeplxw.set_deeplx.clicked.connect(save)
-    config.deeplxw.show()
+        deeplxw.deeplx_address.setText(config.params["deeplx_address"])
+    deeplxw.set_deeplx.clicked.connect(save)
+    deeplxw.show()

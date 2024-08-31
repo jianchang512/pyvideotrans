@@ -9,6 +9,7 @@ from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 from videotrans import VERSION
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):

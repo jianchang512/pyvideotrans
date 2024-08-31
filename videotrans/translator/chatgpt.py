@@ -5,7 +5,7 @@ import time
 
 import httpx
 import openai
-from openai import OpenAI, APIError
+from openai import OpenAI
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -58,7 +58,8 @@ def create_openai_client():
     else:
         proxies = {"http://": None, "https://": None}
     try:
-        client = OpenAI(base_url=api_url, http_client=httpx.Client(proxies=proxies))
+        client = OpenAI(api_key=config.params['chatgpt_key'], base_url=api_url,
+                        http_client=httpx.Client(proxies=proxies))
     except Exception as e:
         raise Exception(f'API={api_url},{str(e)}')
     return client, api_url
@@ -72,21 +73,13 @@ def get_content(d, *, model=None, prompt=None):
          'content': prompt.replace('[TEXT]', "\n".join([i.strip() for i in d]) if isinstance(d, list) else d)},
     ]
     config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
-    try:
-        response = model.chat.completions.create(
-            model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
-                'chatgpt_model'],
-            messages=message
-        )
-        config.logger.info(f'[chatGPT]响应:{response=}')
-    except APIError as e:
-        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
-        raise
-    except Exception as e:
-        config.logger.error(f'[chatGPT]请求失败:{str(e)}')
-        raise
-    if isinstance(response, str):
-        raise Exception(response)
+    response = model.chat.completions.create(
+        model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
+            'chatgpt_model'],
+        messages=message
+    )
+    config.logger.info(f'[chatGPT]响应:{response=}')
+
     if response.choices:
         result = response.choices[0].message.content.strip()
     elif response.data and response.data['choices']:
@@ -147,7 +140,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -202,12 +194,13 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
                                 type="logs",
-                                btnkey=inst.init['btnkey'] if inst else "",
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-
+            except openai.APIError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e) + f',{api_url=}'
                 time.sleep(wait_sec)
@@ -221,7 +214,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         else:
             break
 
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[ChatGPT]翻译请求失败:{err=}')

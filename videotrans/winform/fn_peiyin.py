@@ -13,65 +13,68 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.task.workertts import WorkerTTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, CHATTTS, \
+    GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang
 from videotrans.util import tools
 
 # 使用内置的 open 函数
+
 builtin_open = builtins.open
 
 
 # 合成配音
 def open():
-    RESULT_DIR = config.homedir + "/tts"
+    RESULT_DIR = config.HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
         d = json.loads(d)
         if d['type'] == 'replace':
-            config.peiyinform.hecheng_plaintext.clear()
-            config.peiyinform.hecheng_plaintext.insertPlainText(d['text'])
+            peiyinform.hecheng_plaintext.clear()
+            peiyinform.hecheng_plaintext.insertPlainText(d['text'])
         elif d['type'] == 'error':
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], d['text'])
+            QMessageBox.critical(peiyinform, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
-            config.peiyinform.loglabel.setText(d['text'])
+            peiyinform.loglabel.setText(d['text'])
         elif d['type'] == 'jd':
-            config.peiyinform.hecheng_startbtn.setText(d['text'])
+            peiyinform.hecheng_startbtn.setText(d['text'])
         else:
-            config.peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
-            config.peiyinform.hecheng_startbtn.setDisabled(False)
+            peiyinform.loglabel.setText(config.transobj['quanbuend'])
+            peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
+            peiyinform.hecheng_startbtn.setDisabled(False)
 
     # 试听配音
     def listen_voice_fun():
-        lang = translator.get_code(show_text=config.peiyinform.hecheng_language.currentText())
+        lang = translator.get_code(show_text=peiyinform.hecheng_language.currentText())
         if not lang or lang == '-':
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
                                         "选择字幕语言" if config.defaulelang == 'zh' else 'Please target language')
         text = config.params[f'listen_text_{lang}']
-        role = config.peiyinform.hecheng_role.currentText()
+        role = peiyinform.hecheng_role.currentText()
         if not role or role == 'No':
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['mustberole'])
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['mustberole'])
         voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
         if not voice_dir or not Path(voice_dir).exists():
-            voice_dir = config.rootdir + "/tmp/voice_tmp"
+            voice_dir = config.TEMP_DIR + "/voice_tmp"
         else:
-            voice_dir = voice_dir.replace('\\', '/') + "/pyvideotrans"
-        if not Path(voice_dir).exists():
-            Path(voice_dir).mkdir(parents=True, exist_ok=True)
+            voice_dir = Path(voice_dir + "/pyvideotrans").as_posix()
+        Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
-        rate = int(config.peiyinform.hecheng_rate.value())
-        tts_type = config.peiyinform.tts_type.currentText()
+        rate = int(peiyinform.hecheng_rate.value())
+        tts_type = peiyinform.tts_type.currentIndex()
 
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        volume = int(config.peiyinform.volume_rate.value())
-        pitch = int(config.peiyinform.pitch_rate.value())
+        volume = int(peiyinform.volume_rate.value())
+        pitch = int(peiyinform.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if tts_type in ['GPT-SoVITS', 'ChatTTS', 'FishTTS', 'CosyVoice']:
+        if tts_type in [GPTSOVITS_TTS, CHATTTS, FISHTTS, COSYVOICE_TTS]:
             voice_file += '.wav'
 
         obj = {
@@ -89,85 +92,54 @@ def open():
             return
 
         def feed(d):
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], d)
+            QMessageBox.critical(peiyinform, config.transobj['anerror'], d)
 
         from videotrans.task.play_audio import PlayMp3
-        t = PlayMp3(obj, config.peiyinform)
+        t = PlayMp3(obj, peiyinform)
         t.mp3_ui.connect(feed)
         t.start()
 
-    def isMircosoft(type):
-        if type in ['edgeTTS', 'AzureTTS']:
+    def change_by_lang(type):
+        if type in [EDGE_TTS, AZURE_TTS]:
             return True
-        if type == '302.ai' and config.params['ai302tts_model'] == 'azure':
+        if type == AI302_TTS and config.params['ai302tts_model'] == 'azure':
             return True
-        if type == '302.ai' and config.params['ai302tts_model'] == 'doubao':
+        if type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             return True
         return False
 
     # tab-4 语音合成
     def hecheng_start_fun():
         config.settings = config.parse_init()
-        txt = config.peiyinform.hecheng_plaintext.toPlainText().strip()
-        language = config.peiyinform.hecheng_language.currentText()
-        role = config.peiyinform.hecheng_role.currentText()
-        rate = int(config.peiyinform.hecheng_rate.value())
-        tts_type = config.peiyinform.tts_type.currentText()
+        txt = peiyinform.hecheng_plaintext.toPlainText().strip()
+        language = peiyinform.hecheng_language.currentText()
+        role = peiyinform.hecheng_role.currentText()
+        rate = int(peiyinform.hecheng_rate.value())
+        tts_type = peiyinform.tts_type.currentIndex()
         langcode = translator.get_code(show_text=language)
 
         if language == '-' or role == 'No':
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
                                         config.transobj['yuyanjuesebixuan'])
-        if tts_type == 'openaiTTS' and not config.params['chatgpt_key']:
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                        config.transobj['bixutianxie'] + "chatGPT key")
-        if tts_type == '302.ai' and not config.params['ai302tts_key']:
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                        config.transobj['bixutianxie'] + " 302.ai 的 API KEY")
-        if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja',
-                                                                                                         'en']:
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
-            return
-        if tts_type == "AzureTTS" and (
-                not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['azureinfo'])
-        if tts_type == 'GPT-SoVITS' and langcode[:2] not in ['zh', 'ja', 'en']:
-            # 除此指望不支持
-            tts_type = 'edgeTTS'
-            config.peiyinform.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['nogptsovitslanguage'])
-            return
-        if tts_type == 'CosyVoice' and langcode[:2] not in ['zh', 'ja', 'en', 'ko']:
-            # 除此指望不支持
-            tts_type = 'edgeTTS'
-            config.peiyinform.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                 'CosyVoice仅支持中英日韩四种语言' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
-            return
-        if tts_type == 'FishTTS' and langcode[:2] not in ['zh', 'ja', 'en']:
-            # 除此指望不支持
-            tts_type = 'edgeTTS'
-            config.peiyinform.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
-            return
-        if tts_type == 'ChatTTS' and langcode[:2] not in ['zh', 'en']:
-            # 除此指望不支持
-            tts_type = 'edgeTTS'
-            config.peiyinform.tts_type.setCurrentText('edgeTTS')
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['onlycnanden'])
-            return
+        if is_input_api(tts_type=tts_type) is not True:
+            return False
+
+        # 语言是否支持
+        is_allow_lang_res = is_allow_lang(langcode=langcode, tts_type=tts_type)
+        if is_allow_lang_res is not True:
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_res)
 
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        volume = int(config.peiyinform.volume_rate.value())
-        pitch = int(config.peiyinform.pitch_rate.value())
+        volume = int(peiyinform.volume_rate.value())
+        pitch = int(peiyinform.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         # 文件名称
-        filename = config.peiyinform.hecheng_out.text()
+        filename = peiyinform.hecheng_out.text()
         if os.path.exists(filename):
             filename = ''
         if filename and re.search(r'[\\/]+', filename):
@@ -175,188 +147,135 @@ def open():
         if not filename:
             newrole = role.replace('/', '-').replace('\\', '-')
             filename = f"{newrole}-rate{rate}-volume{volume}-pitch{pitch}"
-            filename=filename.replace('%','').replace('+','')
+            filename = filename.replace('%', '').replace('+', '')
         else:
             filename = filename.replace('.wav', '')
 
         wavname = f"{RESULT_DIR}/{filename}"
 
-        if len(config.peiyinform.hecheng_files) < 1 and not txt:
-            return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
+        if len(peiyinform.hecheng_files) < 1 and not txt:
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
-        elif len(config.peiyinform.hecheng_files) < 1:
+        elif len(peiyinform.hecheng_files) < 1:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
             tools.save_srt(tools.get_subtitle_from_srt(txt, is_file=False), newsrtfile)
-            config.peiyinform.hecheng_files.append(newsrtfile)
+            peiyinform.hecheng_files.append(newsrtfile)
 
         hecheng_task = WorkerTTS(
-            files=config.peiyinform.hecheng_files,
+            files=peiyinform.hecheng_files,
             role=role,
             rate=rate,
             pitch=pitch,
             volume=volume,
             langcode=langcode,
             wavname=wavname,
-            tts_type=config.peiyinform.tts_type.currentText(),
-            voice_autorate=config.peiyinform.voice_autorate.isChecked(),
-            parent=config.peiyinform)
+            tts_type=tts_type,
+            voice_autorate=peiyinform.voice_autorate.isChecked(),
+            parent=peiyinform)
         hecheng_task.uito.connect(feed)
         hecheng_task.start()
-        config.peiyinform.hecheng_startbtn.setText(config.transobj["running"])
-        config.peiyinform.hecheng_startbtn.setDisabled(True)
-        config.peiyinform.hecheng_out.setText(wavname)
-        config.peiyinform.hecheng_out.setDisabled(True)
+        peiyinform.hecheng_startbtn.setText(config.transobj["running"])
+        peiyinform.hecheng_startbtn.setDisabled(True)
+        peiyinform.hecheng_out.setText(wavname)
+        peiyinform.hecheng_out.setDisabled(True)
 
     # tts类型改变
     def tts_type_change(type):
-        if isMircosoft(type):
-            config.peiyinform.volume_rate.setDisabled(False)
-            config.peiyinform.pitch_rate.setDisabled(False)
+        if change_by_lang(type):
+            peiyinform.volume_rate.setDisabled(False)
+            peiyinform.pitch_rate.setDisabled(False)
         else:
-            config.peiyinform.volume_rate.setDisabled(True)
-            config.peiyinform.pitch_rate.setDisabled(True)
+            peiyinform.volume_rate.setDisabled(True)
+            peiyinform.pitch_rate.setDisabled(True)
 
-        code = translator.get_code(show_text=config.peiyinform.hecheng_language.currentText())
-        if type == 'gtts':
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(['gtts'])
-        elif type == 'ChatTTS':
-            if code and code != '-' and code[:2] not in ['zh', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['onlycnanden'])
-                return
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(['No'] + list(config.ChatTTS_voicelist))
-        elif type == "openaiTTS":
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(config.params['openaitts_role'].split(","))
+        code = translator.get_code(show_text=peiyinform.hecheng_language.currentText())
 
-        elif type == 'elevenlabsTTS':
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(config.params['elevenlabstts_role'])
-        elif isMircosoft(type):
-            if type == "AzureTTS" and (
-                    not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
-                return QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['azureinfo'])
-            if type == '302.ai' and not config.params['ai302tts_key']:
-                return QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                            '请在菜单--设置--302.ai接入配音中填写 API KEY')
-            if type == '302.ai' and code[:2] not in ['zh', 'ja', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
-                return
-            hecheng_language_fun(config.peiyinform.hecheng_language.currentText())
-        elif type == "302.ai":
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
-        elif type == 'clone-voice':
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
-        elif type == 'TTS-API':
-            if not config.params['ttsapi_url']:
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['ttsapi_nourl'])
-                return
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
-        elif type == 'GPT-SoVITS':
-            if code and code != '-' and code[:2] not in ['zh', 'ja', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                     config.transobj['nogptsovitslanguage'])
-                return
+        is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
+        if is_allow_lang_res is not True:
+            return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_res)
+        if is_input_api(tts_type=type) is not True:
+            return False
+
+        if type == GOOGLE_TTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(['gtts'])
+        elif type == CHATTTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(['No'] + list(config.ChatTTS_voicelist))
+        elif type == OPENAI_TTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(config.params['openaitts_role'].split(","))
+        elif type == ELEVENLABS_TTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(config.params['elevenlabstts_role'])
+        elif change_by_lang(type):
+            hecheng_language_fun(peiyinform.hecheng_language.currentText())
+        elif type == AI302_TTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
+        elif type == CLONE_VOICE_TTS:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
+        elif type == TTS_API:
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
+        elif type == GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
-        elif type == 'CosyVoice':
-            if code and code != '-' and code[:2] not in ['zh', 'ja', 'en', 'ko']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                     'CosyVoice仅支持中英日韩四种语言' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
-                return
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+        elif type == COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             del rolelist["clone"]
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
-        elif type == 'FishTTS':
-            if code and code != '-' and code[:2] not in ['zh', 'ja', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
-                return
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
+        elif type == FISHTTS:
             rolelist = tools.get_fishtts_role()
-            config.peiyinform.hecheng_role.clear()
-            config.peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
+            peiyinform.hecheng_role.clear()
+            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
         code = translator.get_code(show_text=t)
-        tts_type = config.peiyinform.tts_type.currentText()
+        tts_type = peiyinform.tts_type.currentIndex()
         if code and code != '-':
-            if tts_type == 'GPT-SoVITS' and code[:2] not in ['zh', 'ja', 'en']:
-                # 除此指望不支持
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                     config.transobj['nogptsovitslanguage'])
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                return
-            if tts_type == 'CosyVoice' and code[:2] not in ['zh', 'ja', 'en', 'ko']:
-                # 除此指望不支持
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'],
-                                     'CosyVoice仅支持中英日韩四种语言' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean')
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                return
-            if tts_type == 'ChatTTS' and code[:2] not in ['zh', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                # 除此指望不支持
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['onlycnanden'])
-                return
-            if tts_type == 'FishTTS' and code[:2] not in ['zh', 'ja', 'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                # 除此指望不支持
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], 'FishTTS仅可用于中日英配音')
-                return
-            if tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao' and code[:2] not in ['zh', 'ja',
-                                                                                                         'en']:
-                config.peiyinform.tts_type.setCurrentText('edgeTTS')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], '302.ai选择doubao模型时仅支持中英日文字配音')
-                return
-
-        if not isMircosoft(tts_type):
+            is_allow_lang_reg = is_allow_lang(langcode=code, tts_type=tts_type)
+            if is_allow_lang_reg is not True:
+                return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_reg)
+        # 不是跟随语言变化的配音渠道，无需继续处理
+        if not change_by_lang(tts_type):
             return
-        config.peiyinform.hecheng_role.clear()
+        peiyinform.hecheng_role.clear()
         if t == '-':
-            config.peiyinform.hecheng_role.addItems(['No'])
+            peiyinform.hecheng_role.addItems(['No'])
             return
 
-        show_rolelist = None
-
-        if tts_type == 'edgeTTS':
+        if tts_type == EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == '302.ai' and config.params['ai302tts_model'] == 'doubao':
+        elif tts_type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             show_rolelist = tools.get_302ai_doubao()
         else:
             # AzureTTS或 302.ai选择doubao模型
             show_rolelist = tools.get_azure_rolelist()
-
         if not show_rolelist:
-            config.peiyinform.hecheng_language.setCurrentText('-')
-            QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['nojueselist'])
+            peiyinform.hecheng_language.setCurrentText('-')
+            QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['nojueselist'])
             return
-
         try:
             vt = code.split('-')[0]
             if vt not in show_rolelist:
-                config.peiyinform.hecheng_role.addItems(['No'])
+                peiyinform.hecheng_role.addItems(['No'])
                 return
             if len(show_rolelist[vt]) < 2:
-                config.peiyinform.hecheng_language.setCurrentText('-')
-                QMessageBox.critical(config.peiyinform, config.transobj['anerror'], config.transobj['waitrole'])
+                peiyinform.hecheng_language.setCurrentText('-')
+                QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['waitrole'])
                 return
-            config.peiyinform.hecheng_role.addItems(show_rolelist[vt])
+            peiyinform.hecheng_role.addItems(show_rolelist[vt])
         except:
-            config.peiyinform.hecheng_role.addItems(['No'])
+            peiyinform.hecheng_role.addItems(['No'])
 
     # 导入字幕
     def hecheng_import_fun():
-        fnames, _ = QFileDialog.getOpenFileNames(config.peiyinform, "Select srt", config.params['last_opendir'],
+        fnames, _ = QFileDialog.getOpenFileNames(peiyinform, "Select srt", config.params['last_opendir'],
                                                  "Text files(*.srt *.txt)")
         if len(fnames) < 1:
             return
@@ -380,31 +299,33 @@ def open():
 
         if len(fnames) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            config.peiyinform.hecheng_files = fnames
-            config.peiyinform.hecheng_importbtn.setText(
+            peiyinform.hecheng_files = fnames
+            peiyinform.hecheng_importbtn.setText(
                 f'导入{len(fnames)}个srt文件 \n{",".join(namestr)}' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles \n{",".join(namestr)}')
-        config.peiyinform.hecheng_out.setDisabled(False)
-        config.peiyinform.hecheng_out.setText('')
+        peiyinform.hecheng_out.setDisabled(False)
+        peiyinform.hecheng_out.setText('')
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import Peiyinform
     try:
-        if config.peiyinform is not None:
-            config.peiyinform.show()
-            config.peiyinform.raise_()
-            config.peiyinform.activateWindow()
+        peiyinform = config.child_forms.get('peiyinform')
+        if peiyinform is not None:
+            peiyinform.show()
+            peiyinform.raise_()
+            peiyinform.activateWindow()
             return
-        config.peiyinform = Peiyinform()
-        config.peiyinform.hecheng_importbtn.clicked.connect(hecheng_import_fun)
-        config.peiyinform.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
-        config.peiyinform.hecheng_startbtn.clicked.connect(hecheng_start_fun)
-        config.peiyinform.listen_btn.clicked.connect(listen_voice_fun)
-        config.peiyinform.hecheng_opendir.clicked.connect(opendir_fn)
-        config.peiyinform.tts_type.currentTextChanged.connect(tts_type_change)
+        peiyinform = Peiyinform()
+        config.child_forms['peiyinform'] = peiyinform
+        peiyinform.hecheng_importbtn.clicked.connect(hecheng_import_fun)
+        peiyinform.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
+        peiyinform.hecheng_startbtn.clicked.connect(hecheng_start_fun)
+        peiyinform.listen_btn.clicked.connect(listen_voice_fun)
+        peiyinform.hecheng_opendir.clicked.connect(opendir_fn)
+        peiyinform.tts_type.currentIndexChanged.connect(tts_type_change)
 
-        config.peiyinform.show()
+        peiyinform.show()
     except Exception as e:
         import traceback
         traceback.print_exc()

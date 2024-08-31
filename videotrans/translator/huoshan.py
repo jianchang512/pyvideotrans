@@ -90,7 +90,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -136,12 +135,13 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
                                 type="logs",
-                                btnkey=inst.init['btnkey'] if inst else "",
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-
+            except requests.ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e)
                 time.sleep(wait_sec)
@@ -158,7 +158,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     if err:
         config.logger.error(f'[字节火山引擎]翻译请求失败:{err=}')
         raise Exception(f'字节火山引擎:{err}')
-
     if not is_srt:
         return "\n".join(target_text["0"])
 
