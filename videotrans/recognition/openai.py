@@ -24,14 +24,13 @@ def recogn(*,
         tools.set_process(
             config.transobj['fengeyinpinshuju'],
             type="logs",
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid)
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
     noextname = os.path.basename(audio_file)
     tmp_path = Path(f'{cache_folder}/{noextname}_tmp')
-    tmp_path.mkdir(parents=True,exist_ok=True)
-    tmp_path=tmp_path.as_posix()
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    tmp_path = tmp_path.as_posix()
 
     if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
@@ -73,7 +72,7 @@ def recogn(*,
     model = whisper.load_model(
         model_name,
         device="cuda" if is_cuda else "cpu",
-        download_root=config.rootdir + "/models"
+        download_root=config.ROOT_DIR + "/models"
     )
 
     def output(srt):
@@ -83,7 +82,6 @@ def recogn(*,
             tools.set_process(
                 f"{config.transobj['yuyinshibiejindu']} {len(raws)} line",
                 type="logs",
-                btnkey=inst.init['btnkey'] if inst else "",
                 uuid=uuid
             )
             tools.set_process(
@@ -116,11 +114,11 @@ def recogn(*,
         audio_chunk.export(chunk_filename, format="wav")
         try:
             result = model.transcribe(
-               chunk_filename,
-               language=detect_language,
-               word_timestamps=True,
-               initial_prompt=config.settings['initial_prompt_zh'],
-               condition_on_previous_text=config.settings['condition_on_previous_text']
+                chunk_filename,
+                language=detect_language,
+                word_timestamps=True,
+                initial_prompt=config.settings['initial_prompt_zh'],
+                condition_on_previous_text=config.settings['condition_on_previous_text']
             )
             for segment in result['segments']:
                 if len(segment['words']) < 1:
@@ -182,9 +180,8 @@ def recogn(*,
 
                 if cur is not None:
                     cur['end_time'] = int(segment["words"][-1]["end"] * 1000) + start_time
-                    # if cur['end_time'] - cur['start_time'] < 1500:
-                    #     continue
-                    cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                    cur[
+                        'time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
                     if len(cur['text']) <= 3:
                         raws[-1]['text'] += cur['text'].strip()
                         raws[-1]['end_time'] = cur['end_time']
@@ -192,7 +189,6 @@ def recogn(*,
                     else:
                         cur['text'] = cur['text'].strip()
                         append_raws(cur)
-
         except Exception as e:
             config.logger.exception(e)
             raise
@@ -200,7 +196,6 @@ def recogn(*,
         tools.set_process(
             f"{config.transobj['yuyinshibiewancheng']} / {len(raws)}",
             type='logs',
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid)
     if detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
         for i, it in enumerate(raws):

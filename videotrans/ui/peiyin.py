@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, QMetaObject
 from videotrans.component.component import Textedit
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
+from videotrans.tts import TTS_NAME_LIST
 
 
 class Ui_peiyin(object):
@@ -29,8 +30,7 @@ class Ui_peiyin(object):
         sizePolicy.setHeightForWidth(peiyin.sizePolicy().hasHeightForWidth())
         peiyin.setSizePolicy(sizePolicy)
 
-
-        self.hecheng_files=[]
+        self.hecheng_files = []
 
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout(peiyin)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
@@ -38,7 +38,6 @@ class Ui_peiyin(object):
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.hecheng_layout = QtWidgets.QVBoxLayout()
         self.hecheng_layout.setObjectName("hecheng_layout")
-
 
         self.hecheng_plaintext = Textedit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -58,8 +57,6 @@ class Ui_peiyin(object):
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
         self.verticalLayout_4.addLayout(self.hecheng_layout)
-
-
 
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
@@ -87,8 +84,6 @@ class Ui_peiyin(object):
         self.hecheng_language.setObjectName("hecheng_language")
         self.hecheng_language.addItems(['-'] + config.langnamelist)
 
-
-
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
         self.formLayout_7 = QtWidgets.QFormLayout()
@@ -101,7 +96,7 @@ class Ui_peiyin(object):
         self.tts_type = QtWidgets.QComboBox()
         self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_type.setObjectName("tts_type")
-        self.tts_type.addItems([i for i in config.params['tts_type_list']])
+        self.tts_type.addItems(TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
         self.formLayout_4 = QtWidgets.QFormLayout()
@@ -192,7 +187,7 @@ class Ui_peiyin(object):
 
         self.verticalLayout_4.addWidget(self.hecheng_startbtn)
 
-        self.loglabel=QtWidgets.QLabel()
+        self.loglabel = QtWidgets.QLabel()
         self.loglabel.setStyleSheet("""color:#148cd2""")
         self.verticalLayout_4.addWidget(self.loglabel)
 
@@ -209,23 +204,22 @@ class Ui_peiyin(object):
         self.gridLayout_3.addWidget(self.hecheng_out, 0, 1, 1, 1)
         self.hecheng_opendir = QtWidgets.QPushButton()
         self.hecheng_opendir.setObjectName("hecheng_opendir")
-        self.hecheng_opendir.setMinimumSize(QtCore.QSize(100,35))
+        self.hecheng_opendir.setMinimumSize(QtCore.QSize(100, 35))
         self.gridLayout_3.addWidget(self.hecheng_opendir, 0, 2, 1, 1)
         self.verticalLayout_4.addLayout(self.gridLayout_3)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
-
         self.retranslateUi(peiyin)
 
-         # tab-4 语音合成
+        # tab-4 语音合成
 
         QMetaObject.connectSlotsByName(peiyin)
 
     def retranslateUi(self, peiyin):
-        peiyin.setWindowTitle('批量字幕配音' if config.defaulelang=='zh' else 'Batch Subtitle Dubbing')
+        peiyin.setWindowTitle('批量字幕配音' if config.defaulelang == 'zh' else 'Batch Subtitle Dubbing')
 
         self.label_10.setText(box_lang.get("Subtitle lang"))
-        self.label_8.setText("TTS" if config.defaulelang!='zh'else'配音渠道')
+        self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')
         self.label_11.setText(box_lang.get("Select role"))
         self.label_12.setText(box_lang.get("Speed change"))
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
@@ -235,5 +229,3 @@ class Ui_peiyin(object):
         self.hecheng_out.setPlaceholderText(box_lang.get(
             "Set the name of the generated audio file here. If not filled in, use the time and date command"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))
-
-

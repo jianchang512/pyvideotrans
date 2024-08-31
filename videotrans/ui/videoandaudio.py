@@ -31,7 +31,6 @@ class Ui_videoandaudio(object):
         videoandaudio.setSizePolicy(sizePolicy)
         videoandaudio.setMaximumSize(QtCore.QSize(643, 300))
 
-
         self.horizontalLayout_3 = QHBoxLayout(videoandaudio)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.verticalLayout = QVBoxLayout()
@@ -45,8 +44,7 @@ class Ui_videoandaudio(object):
         self.folder.setMinimumSize(QSize(0, 35))
         self.folder.setReadOnly(True)
 
-        self.labeltips=QLabel(videoandaudio)
-
+        self.labeltips = QLabel(videoandaudio)
 
         self.horizontalLayout.addWidget(self.folder)
 
@@ -64,11 +62,10 @@ class Ui_videoandaudio(object):
         self.startbtn.setMinimumSize(QSize(150, 35))
         self.startbtn.setCursor(QCursor(Qt.PointingHandCursor))
 
-        self.remain=QCheckBox(videoandaudio)
+        self.remain = QCheckBox(videoandaudio)
         self.remain.setChecked(False)
 
-
-        self.h2=QHBoxLayout()
+        self.h2 = QHBoxLayout()
         self.h2.addStretch()
         self.h2.addWidget(self.remain)
         self.h2.addWidget(self.startbtn)
@@ -76,14 +73,13 @@ class Ui_videoandaudio(object):
 
         self.verticalLayout.addLayout(self.h2)
 
-
         self.resultbtn = QPushButton(videoandaudio)
         self.resultbtn.setObjectName(u"resultbtn")
         self.resultbtn.setStyleSheet("""background-color:transparent""")
         self.resultbtn.setMinimumSize(QSize(0, 30))
         self.resultbtn.setCursor(QCursor(Qt.PointingHandCursor))
 
-        self.loglabel=QLabel(videoandaudio)
+        self.loglabel = QLabel(videoandaudio)
         self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout.addWidget(self.resultbtn)
         self.verticalLayout.addWidget(self.loglabel)
@@ -93,7 +89,6 @@ class Ui_videoandaudio(object):
 
         QMetaObject.connectSlotsByName(videoandaudio)
 
-
     def retranslateUi(self, videoandaudio):
         videoandaudio.setWindowTitle("批量视频音频合并" if config.defaulelang == 'zh' else 'Batch video and audio merger')
         self.folder.setPlaceholderText(
@@ -101,5 +96,6 @@ class Ui_videoandaudio(object):
         self.videobtn.setText("选择文件夹" if config.defaulelang == 'zh' else 'Select the folder')
         self.startbtn.setText("开始执行" if config.defaulelang == 'zh' else 'Start of execution')
         self.resultbtn.setText("打开保存结果目录" if config.defaulelang == 'zh' else 'Open the save results directory')
-        self.labeltips.setText("将把所选文件夹内同名的视频和音频进行合并，例如 1.mp4和 1.wav" if config.defaulelang == 'zh' else 'Will merge video and audio with the same name in that folder, e.g. 1.mp4 and 1.wav')
-        self.remain.setText('保留视频中原声音' if config.defaulelang=='zh' else 'Preserve the original sound in the video')
+        self.labeltips.setText(
+            "将把所选文件夹内同名的视频和音频进行合并，例如 1.mp4和 1.wav" if config.defaulelang == 'zh' else 'Will merge video and audio with the same name in that folder, e.g. 1.mp4 and 1.wav')
+        self.remain.setText('保留视频中原声音' if config.defaulelang == 'zh' else 'Preserve the original sound in the video')

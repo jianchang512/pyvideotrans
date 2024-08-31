@@ -1,7 +1,9 @@
 import os
+import time
 from pathlib import Path
 
 from pydub import AudioSegment
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -10,6 +12,8 @@ from videotrans.util import tools
 对视频进行慢速
 实现对齐操作
 '''
+
+
 class SpeedRate:
 
     def __init__(self,
@@ -17,7 +21,6 @@ class SpeedRate:
                  queue_tts=None,
                  shoud_videorate=False,
                  shoud_audiorate=False,
-                 btnkey=None,
                  uuid=None,
                  novoice_mp4=None,
                  noextname=None,
@@ -25,18 +28,19 @@ class SpeedRate:
                  target_audio=None
                  ):
         self.novoice_mp4 = novoice_mp4
-        self.btnkey = btnkey
         self.queue_tts = queue_tts
         self.shoud_videorate = shoud_videorate
         self.shoud_audiorate = shoud_audiorate
+        config.logger.info(f'SpeedRate1:{noextname=}')
         self.noextname = noextname
-        self.uuid=uuid
-        self.target_audio=target_audio
+        self.uuid = uuid
+        self.target_audio = target_audio
         self.cache_folder = None
         if noextname:
             self.cache_folder = config.TEMP_DIR + f'/{noextname}'
         else:
-            self.cache_folder=config.TEMP_HOME
+            self.cache_folder = config.TEMP_HOME
+        config.logger.info(f'SpeedRate2:{self.cache_folder=},{self.noextname=}')
 
     def run(self):
         self._add_dubb_time()
@@ -55,11 +59,11 @@ class SpeedRate:
 
     # 1. 将每个配音的实际长度加入 dubb_time
     def _add_dubb_time(self):
-        length=len(self.queue_tts)
+        length = len(self.queue_tts)
         for i, it in enumerate(self.queue_tts):
             if it is None:
                 continue
-            tools.set_process(text=f"audio:{i+1}/{length}", type="logs", btnkey=self.btnkey,uuid=self.uuid)
+            tools.set_process(text=f"audio:{i + 1}/{length}", type="logs", uuid=self.uuid)
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < self.queue_tts[i - 1]['end_time']:
                 it['start_time'] = self.queue_tts[i - 1]['end_time']
@@ -91,7 +95,6 @@ class SpeedRate:
                 it['video_extend'] = 0
             self.queue_tts[i] = it
 
-
     # 2.  移除原字幕多于配音的时长，实际是字幕结束时间向前移动，和下一条之间的空白更加多了
     # 配音时长不变， end_time 时间戳变化， raw_duration变化
     def _remove_srt_silence(self):
@@ -104,7 +107,6 @@ class SpeedRate:
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 it['raw_duration'] = it['dubb_time']
             self.queue_tts[i] = it
-
 
     #   移除2个字幕间的空白间隔 config.settings[remove_white_ms] ms
     # 配音时长不变。raw_duration不变
@@ -126,7 +128,6 @@ class SpeedRate:
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 self.queue_tts[i] = it
 
-
     # 2. 先对配音加速，每条字幕信息中写入加速倍数 speed和延长的时间 add_time
     def _ajust_audio(self):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
@@ -144,7 +145,8 @@ class SpeedRate:
                 continue
 
             # 可用时长，从本片段开始到下一个片段开始
-            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it['start_time']
+            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
+                'start_time']
             # 配音时长小于等于可用时长，无需加速
             if it['dubb_time'] <= able_time:
                 self.queue_tts[i] = it
@@ -159,8 +161,8 @@ class SpeedRate:
             if not it['speed'] or not tools.vail_file(it['filename']):
                 continue
 
-            tools.set_process(f"{config.transobj['dubbing speed up']}  {i+1}/{length}", type="logs",
-                              btnkey=self.btnkey,uuid=self.uuid)
+            tools.set_process(f"{config.transobj['dubbing speed up']}  {i + 1}/{length}", type="logs",
+                              uuid=self.uuid)
 
             # 可用时长
             able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
@@ -179,18 +181,18 @@ class SpeedRate:
                 # 开启了视频慢速，音频加速一半
                 # 音频加速一半后实际时长应该变为
                 audio_extend = it['dubb_time'] - int(diff / 2)
-                print(f'[音频加速 视频慢速]音频处理，{audio_extend=}')
+                # print(f'[音频加速 视频慢速]音频处理，{audio_extend=}')
                 # 如果音频加速一半后仍然大于设定，则重新设定加速后音频时长
                 if round(it['dubb_time'] / audio_extend, 2) > max_speed:
                     audio_extend = int(it['dubb_time'] / max_speed)
-                    print(f'[音频加速 视频慢速]音频2次处理，{audio_extend=}')
+                    # print(f'[音频加速 视频慢速]音频2次处理，{audio_extend=}')
             else:
                 # 仅处理音频加速
                 if shound_speed <= max_speed:
                     audio_extend = able_time
                 else:
                     audio_extend = int(it['dubb_time'] / max_speed)
-                print(f'仅音频加速，{shound_speed=},{audio_extend=},{it["dubb_time"]=}')
+                # print(f'仅音频加速，{shound_speed=},{audio_extend=},{it["dubb_time"]=}')
 
             # # 调整音频
             tmp_mp3 = f'{it["filename"]}-speed.mp3'
@@ -206,7 +208,6 @@ class SpeedRate:
                 it['filename'] = tmp_mp3
                 it['dubb_time'] = mp3_len
             self.queue_tts[i] = it
-
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self):
@@ -257,8 +258,8 @@ class SpeedRate:
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                tools.set_process(f"{config.transobj['videodown..']} {pts=} {jindu}", type="logs",
-                                  btnkey=self.btnkey,uuid=self.uuid)
+                pts_text = '' if not pts or pts <= 1 else f'{pts=}'
+                tools.set_process(f"{config.transobj['videodown..']} {pts_text} {jindu}", type="logs", uuid=self.uuid)
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
                 try:
                     tools.cut_from_video(
@@ -299,7 +300,7 @@ class SpeedRate:
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                tools.set_process(f"{config.transobj['videodown..']} {pts=} {jindu}", btnkey=self.btnkey,uuid=self.uuid)
+                tools.set_process(f"{config.transobj['videodown..']} {pts=} {jindu}", uuid=self.uuid)
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
 
                 try:
@@ -341,12 +342,14 @@ class SpeedRate:
             if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
-            tools.set_process(f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...', btnkey=self.btnkey,uuid=self.uuid)
-            tools.concat_multi_mp4(filelist=concat_txt_arr, out=self.novoice_mp4)
-
+            tools.set_process(f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...', uuid=self.uuid)
+            config.logger.info(f'视频片段:{concat_txt_arr=}')
+            concat_txt = self.cache_folder + f'/{time.time()}.txt'
+            tools.create_concat_txt(concat_txt_arr, concat_txt=concat_txt)
+            tools.concat_multi_mp4(out=self.novoice_mp4, concat_txt=concat_txt)
 
     def _merge_audio_segments(self):
-        video_time=0
+        video_time = 0
         if self.novoice_mp4 and Path(self.novoice_mp4).exists():
             video_time = tools.get_video_duration(self.novoice_mp4)
         merged_audio = AudioSegment.empty()
@@ -405,11 +408,10 @@ class SpeedRate:
             it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
             it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
             self.queue_tts[i] = it
-            tools.set_process(text=f"{config.transobj['audio_concat']}:{i+1}/{length}", type="logs",btnkey=self.btnkey,uuid=self.uuid)
+            tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", type="logs", uuid=self.uuid)
 
-        print(f'合成音频后时长={len(merged_audio)},{video_time=}')
+        # print(f'合成音频后时长={len(merged_audio)},{video_time=}')
         # 移除尾部静音
-
         if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
             # 末尾补静音
             silence = AudioSegment.silent(duration=video_time - len(merged_audio))
@@ -422,5 +424,4 @@ class SpeedRate:
             tools.wav2m4a(wavfile, self.target_audio)
         except Exception as e:
             raise Exception(f'[error]merged_audio:{str(e)}')
-        print(f'合成音频返回时 {len(merged_audio)=}')
-        # return len(merged_audio), queue_tts
+        # print(f'合成音频返回时 {len(merged_audio)=}')

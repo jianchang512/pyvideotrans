@@ -85,7 +85,7 @@ a:hover{color:#ff0}
 <li><a href="https://pyvideotrans.com/15">无需代理使用Google翻译的方法</a></li>
 <li><a href="https://pyvideotrans.com/ott">部署OTT文字翻译</a></li>
 
-<li><a href="https://pyvideotrans.com/adv">高级设置参数说明</a></li>
+<li><a href="https://pyvideotrans.com/adv">选项参数说明</a></li>
 <li><a href="https://pyvideotrans.com/09">声音字幕画面对齐方法</a></li>
 <li><a href="https://pyvideotrans.com/03">faster模式与openai模式的区别</a></li>
 <li><a href="https://pyvideotrans.com/04">提高翻译质量的技巧</a></li>

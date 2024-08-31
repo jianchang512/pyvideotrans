@@ -76,9 +76,8 @@ def get_error(num=5, type='error'):
     return REASON_EN[num] if type == 'error' else forbid_en[num]
 
 
-
-
-def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,uuid=None):
+def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0, source_code="", is_test=False,
+          uuid=None):
     def get_content(d, *, model=None, prompt=None):
         update_proxy(type='set')
         response = None
@@ -103,7 +102,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     error,
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid
                 )
             config.logger.error(f'[Gemini]请求失败:{error=}')
@@ -136,24 +134,20 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
     except Exception:
         pass
     try:
-        print(f'########{set_p=},{uuid=}')
         if set_p:
             tools.set_process(
-                f'Connecting Gemini API' ,
+                f'Connecting Gemini API',
                 type="logs",
-                btnkey=inst.init['btnkey'] if inst else "",
                 uuid=uuid
             )
         genai.configure(api_key=config.params['gemini_key'])
         model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
     except Exception as e:
         err = str(e)
-        print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{err},{set_p=},{uuid=}')
         if set_p:
             tools.set_process(
                 err,
                 type="error",
-                btnkey=inst.init['btnkey'] if inst else "",
                 uuid=uuid
             )
         raise Exception(f'请正确设置http代理,{err}')
@@ -192,7 +186,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -248,7 +241,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
                                 type="logs",
-                                btnkey=inst.init['btnkey'] if inst else "",
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
@@ -258,7 +250,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 index = i
         else:
             break
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[Gemini]翻译请求失败:{err=}')

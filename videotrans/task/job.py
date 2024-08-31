@@ -23,12 +23,10 @@ class WorkerRegcon(QThread):
                 # 插入翻译队列
                 config.trans_queue.append(trk)
             except Exception as e:
-                if trk.init['btnkey'] not in config.unidlist:
-                    config.unidlist.append(trk.init['btnkey'])
-                msg = f'{config.transobj["shibiechucuo"]}:' + str(e)
+                if trk.uuid not in config.uuidlist:
+                    config.uuidlist.append(trk.uuid)
                 config.logger.exception(e)
-                set_process(msg, type='error', btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']] = msg
+                set_process(f'{config.transobj["shibiechucuo"]}:' + str(e), type='error', uuid=trk.uuid)
 
 
 class WorkerTrans(QThread):
@@ -47,12 +45,11 @@ class WorkerTrans(QThread):
                 trk.trans()
                 config.dubb_queue.append(trk)
             except Exception as e:
-                if trk.init['btnkey'] not in config.unidlist:
-                    config.unidlist.append(trk.init['btnkey'])
+                if trk.uuid not in config.uuidlist:
+                    config.uuidlist.append(trk.uuid)
                 msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, type='error', btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']] = msg
+                set_process(msg, type='error', uuid=trk.uuid)
 
 
 class WorkerDubb(QThread):
@@ -69,14 +66,36 @@ class WorkerDubb(QThread):
             trk = config.dubb_queue.pop(0)
             try:
                 trk.dubbing()
-                config.compose_queue.append(trk)
+                config.align_queue.append(trk)
             except Exception as e:
-                if trk.init['btnkey'] not in config.unidlist:
-                    config.unidlist.append(trk.init['btnkey'])
+                if trk.uuid not in config.uuidlist:
+                    config.uuidlist.append(trk.uuid)
                 msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, type='error', btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']] = msg
+                set_process(msg, type='error', uuid=trk.uuid)
+
+
+class WorkerAlign(QThread):
+    def __init__(self, *, parent=None):
+        super().__init__(parent=parent)
+
+    def run(self) -> None:
+        while 1:
+            if config.exit_soft:
+                return
+            if len(config.align_queue) < 1:
+                time.sleep(0.5)
+                continue
+            trk = config.align_queue.pop(0)
+            try:
+                trk.align()
+                config.compose_queue.append(trk)
+            except Exception as e:
+                if trk.uuid not in config.uuidlist:
+                    config.uuidlist.append(trk.uuid)
+                msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
+                config.logger.exception(e)
+                set_process(msg, type='error', uuid=trk.uuid)
 
 
 class WorkerCompose(QThread):
@@ -94,15 +113,13 @@ class WorkerCompose(QThread):
             try:
                 trk.hebing()
                 trk.move_at_end()
-                config.errorlist[trk.init['btnkey']] = ""
             except Exception as e:
                 msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
                 config.logger.exception(e)
-                set_process(msg, type='error', btnkey=trk.init['btnkey'])
-                config.errorlist[trk.init['btnkey']] = msg
+                set_process(msg, type='error', uuid=trk.uuid)
             finally:
-                if trk.init['btnkey'] not in config.unidlist:
-                    config.unidlist.append(trk.init['btnkey'])
+                if trk.uuid not in config.uuidlist:
+                    config.uuidlist.append(trk.uuid)
 
 
 def start_thread(parent):
@@ -112,5 +129,7 @@ def start_thread(parent):
     trans_thread.start()
     dubb_thread = WorkerDubb(parent=parent)
     dubb_thread.start()
+    align_thread = WorkerAlign(parent=parent)
+    align_thread.start()
     compose_thread = WorkerCompose(parent=parent)
     compose_thread.start()

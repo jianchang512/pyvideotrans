@@ -9,7 +9,7 @@ from videotrans.util import tools
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     try:
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
         if len(config.params['gptsovits_url'].strip()) < 10:
@@ -60,16 +60,15 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
             if set_p:
                 if inst and inst.precent < 80:
                     inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "")
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
+    except requests.ConnectionError as e:
+        raise Exception(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
+            tools.set_process(error, uuid=uuid)
         config.logger.error(f"{error}")
         raise
-    else:
-        return True
+    return True

@@ -19,8 +19,9 @@ builtin_open = builtins.open
 
 # 水印
 def open():
-    RESULT_DIR=config.homedir + "/watermark"
+    RESULT_DIR = config.HOME_DIR + "/watermark"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+
     class CompThread(QThread):
         uito = Signal(str)
 
@@ -32,12 +33,12 @@ def open():
             self.width = int(width)
             self.height = int(height)
             self.pos = int(pos)
-            self.every_percent = 1 / len(config.waterform.videourls)
+            self.every_percent = 1 / len(waterform.videourls)
             self.percent = 0
             self.end = False
 
-        def post(self,type='logs',text=""):
-            self.uito.emit(json.dumps({"type":type,"text":text}))
+        def post(self, type='logs', text=""):
+            self.uito.emit(json.dumps({"type": type, "text": text}))
 
         def hebing_pro(self, protxt, video_time):
             percent = 0
@@ -66,14 +67,14 @@ def open():
                 if percent + tmp1 < 99.9:
                     percent += tmp1
                 self.percent += percent * self.every_percent / 100
-                self.post(type='jd',text=f'{self.percent * 100}%')
+                self.post(type='jd', text=f'{self.percent * 100}%')
                 time.sleep(1)
 
         def run(self) -> None:
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
 
-            for video in config.waterform.videourls:
+            for video in waterform.videourls:
                 result_file = RESULT_DIR + f'/{Path(video).stem}.mp4'
 
                 # 计算水印位置
@@ -109,75 +110,76 @@ def open():
                 try:
                     tools.runffmpeg(ffmpeg_command)
                 except Exception as e:
-                    self.post(type='error',text=f'{str(e)}')
+                    self.post(type='error', text=f'{str(e)}')
                 finally:
                     self.percent += self.every_percent
-                self.post(type='jd',text=f'{self.percent * 100}%')
-            self.post(type='ok',text='Ended')
+                self.post(type='jd', text=f'{self.percent * 100}%')
+            self.post(type='ok', text='Ended')
             self.end = True
 
     def feed(d):
-        d=json.loads(d)
-        if d['type']=="error":
-            QtWidgets.QMessageBox.critical(config.waterform, config.transobj['anerror'], d['text'])
-            config.waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            config.waterform.startbtn.setDisabled(False)
-            config.waterform.resultlabel.setText('')
-        elif d['type']=='jd':
-            config.waterform.startbtn.setText(d['text'])
-        elif d['type']=='logs':
-            config.waterform.resultlabel.setText(d['text'])
+        d = json.loads(d)
+        if d['type'] == "error":
+            QtWidgets.QMessageBox.critical(waterform, config.transobj['anerror'], d['text'])
+            waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            waterform.startbtn.setDisabled(False)
+            waterform.resultlabel.setText('')
+        elif d['type'] == 'jd':
+            waterform.startbtn.setText(d['text'])
+        elif d['type'] == 'logs':
+            waterform.resultlabel.setText(d['text'])
         else:
-            config.waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            config.waterform.startbtn.setDisabled(False)
-            config.waterform.resultlabel.setText(d['text'])
-            config.waterform.resultbtn.setDisabled(False)
+            waterform.startbtn.setText(config.transobj['zhixingwc'])
+            waterform.startbtn.setDisabled(False)
+            waterform.resultlabel.setText(config.transobj['quanbuend'])
+            waterform.resultbtn.setDisabled(False)
 
     def get_file(type):
         if type == 1:
-            fname, _ = QFileDialog.getOpenFileNames(config.waterform, "Select Video",
+            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
+            fname, _ = QFileDialog.getOpenFileNames(waterform, "Select Video",
                                                     config.params['last_opendir'],
-                                                    "files(*.mp4 *.mov *.mkv *.avi *.mpeg)")
+                                                    f"Video files({format_str})")
             if len(fname) > 0:
-                config.waterform.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
-                config.waterform.videourl.setText(",".join(config.waterform.videourls))
+                waterform.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
+                waterform.videourl.setText(",".join(waterform.videourls))
         else:
-            fname, _ = QFileDialog.getOpenFileName(config.waterform, "Select Image",
+            fname, _ = QFileDialog.getOpenFileName(waterform, "Select Image",
                                                    config.params['last_opendir'],
                                                    "files(*.png *.jpg *.jpeg *.gif)")
             if fname:
-                config.waterform.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
+                waterform.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        png = config.waterform.pngurl.text()
-        if len(config.waterform.videourls) < 1 or not png:
-            QMessageBox.critical(config.waterform, config.transobj['anerror'],
+        png = waterform.pngurl.text()
+        if len(waterform.videourls) < 1 or not png:
+            QMessageBox.critical(waterform, config.transobj['anerror'],
                                  '必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
             return
 
-        config.waterform.startbtn.setText(
+        waterform.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        config.waterform.startbtn.setDisabled(True)
-        config.waterform.resultbtn.setDisabled(True)
+        waterform.startbtn.setDisabled(True)
+        waterform.resultbtn.setDisabled(True)
 
         x, y = 10, 10
         try:
-            x = int(config.waterform.linex.text())
+            x = int(waterform.linex.text())
         except Exception:
             pass
         try:
-            y = int(config.waterform.liney.text())
+            y = int(waterform.liney.text())
         except Exception:
             pass
         w, h = 50, 50
         try:
-            tmp_w = config.waterform.linew.text().strip().split('x')
+            tmp_w = waterform.linew.text().strip().split('x')
             w, h = int(tmp_w[0]), int(tmp_w[1])
         except Exception:
             pass
 
-        task = CompThread(parent=config.waterform, png=png, x=max(x, 0), y=max(y, 0),
-                          width=max(w, 1), height=max(h, 1), pos=int(config.waterform.compos.currentIndex()))
+        task = CompThread(parent=waterform, png=png, x=max(x, 0), y=max(y, 0),
+                          width=max(w, 1), height=max(h, 1), pos=int(waterform.compos.currentIndex()))
 
         task.uito.connect(feed)
         task.start()
@@ -187,17 +189,20 @@ def open():
 
     from videotrans.component import WatermarkForm
     try:
-        if config.waterform is not None:
-            config.waterform.show()
-            config.waterform.raise_()
-            config.waterform.activateWindow()
+        waterform = config.child_forms.get('waterform')
+        if waterform is not None:
+            waterform.show()
+            waterform.raise_()
+            waterform.activateWindow()
             return
-        config.waterform = WatermarkForm()
-        config.waterform.videobtn.clicked.connect(lambda: get_file(1))
-        config.waterform.pngbtn.clicked.connect(lambda: get_file(2))
+        waterform = WatermarkForm()
+        config.child_forms['waterform'] = waterform
 
-        config.waterform.resultbtn.clicked.connect(opendir)
-        config.waterform.startbtn.clicked.connect(start)
-        config.waterform.show()
+        waterform.videobtn.clicked.connect(lambda: get_file(1))
+        waterform.pngbtn.clicked.connect(lambda: get_file(2))
+
+        waterform.resultbtn.clicked.connect(opendir)
+        waterform.startbtn.clicked.connect(start)
+        waterform.show()
     except Exception:
         pass

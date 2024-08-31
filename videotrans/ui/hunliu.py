@@ -20,16 +20,6 @@ class Ui_hunliu(object):
             hunliu.setObjectName(u"hunliu")
         hunliu.resize(643, 400)
         hunliu.setWindowModality(QtCore.Qt.NonModal)
-
-        #
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(hunliu.sizePolicy().hasHeightForWidth())
-        # hunliu.setSizePolicy(sizePolicy)
-        # hunliu.setMaximumSize(QtCore.QSize(643, 400))
-
-
         self.horizontalLayout_3 = QHBoxLayout(hunliu)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
 
@@ -53,13 +43,11 @@ class Ui_hunliu(object):
         self.hun_file1.setObjectName("hun_file1")
         self.h1.addWidget(self.hun_file1, 0, QtCore.Qt.AlignTop)
 
-
         self.hun_file1btn = QtWidgets.QPushButton()
         self.hun_file1btn.setMinimumSize(QtCore.QSize(150, 40))
         self.hun_file1btn.setObjectName("hun_file1btn")
         self.h1.addWidget(self.hun_file1btn, 0, QtCore.Qt.AlignTop)
         self.v1.addLayout(self.h1)
-
 
         self.h2 = QtWidgets.QHBoxLayout()
         self.h2.setObjectName("horizontalLayout_16")
@@ -77,7 +65,6 @@ class Ui_hunliu(object):
         self.hun_file2btn.setObjectName("hun_file2btn")
         self.h2.addWidget(self.hun_file2btn, 0, QtCore.Qt.AlignTop)
         self.v1.addLayout(self.h2)
-
 
         self.hun_startbtn = QtWidgets.QPushButton()
         self.hun_startbtn.setMinimumSize(QtCore.QSize(250, 40))
@@ -100,8 +87,6 @@ class Ui_hunliu(object):
         self.v1.addLayout(self.h3)
         self.v1.addStretch()
 
-
-
         # end
         self.horizontalLayout_3.addLayout(self.v1)
 
@@ -115,11 +100,10 @@ class Ui_hunliu(object):
         hunliu.setWindowTitle("混合2个音频" if config.defaulelang == 'zh' else 'Mix 2 Audio')
         self.l1.setText('Audio 1')
         self.l2.setText('Audio 2')
-        self.hun_file1.setPlaceholderText('Select an audio' if config.defaulelang!='zh' else '选择第一个音频文件')
-        self.hun_file1btn.setText('Select Audio' if config.defaulelang!='zh' else '选择音频文件')
-        self.hun_file2.setPlaceholderText('Select an audio' if config.defaulelang!='zh' else '选择第二个音频文件')
-        self.hun_file2btn.setText('Select Audio' if config.defaulelang!='zh' else '选择音频文件')
-        self.hun_out.setPlaceholderText('Output directory' if config.defaulelang!='zh' else '输出目录')
-        self.hun_opendir.setText('Open output directory' if config.defaulelang!='zh' else '打开输出目录')
-        self.hun_startbtn.setText('开始混合' if config.defaulelang=='zh' else 'Start operate')
-
+        self.hun_file1.setPlaceholderText('Select an audio' if config.defaulelang != 'zh' else '选择第一个音频文件')
+        self.hun_file1btn.setText('Select Audio' if config.defaulelang != 'zh' else '选择音频文件')
+        self.hun_file2.setPlaceholderText('Select an audio' if config.defaulelang != 'zh' else '选择第二个音频文件')
+        self.hun_file2btn.setText('Select Audio' if config.defaulelang != 'zh' else '选择音频文件')
+        self.hun_out.setPlaceholderText('Output directory' if config.defaulelang != 'zh' else '输出目录')
+        self.hun_opendir.setText('Open output directory' if config.defaulelang != 'zh' else '打开输出目录')
+        self.hun_startbtn.setText('开始混合' if config.defaulelang == 'zh' else 'Start operate')

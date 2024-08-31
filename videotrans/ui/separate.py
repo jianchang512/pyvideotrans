@@ -113,7 +113,7 @@ class Ui_separateform(object):
         self.url.setObjectName("url")
         self.url.setStyleSheet("""background-color:transparent""")
         self.url.setCursor(Qt.PointingHandCursor)
-        self.url.setToolTip('点击打开结果文件夹' if config.defaulelang=='zh' else  'Open target dir' )
+        self.url.setToolTip('点击打开结果文件夹' if config.defaulelang == 'zh' else 'Open target dir')
         # self.url.setReadOnly(True)
 
         self.click_filter = LineEditClickFilter()

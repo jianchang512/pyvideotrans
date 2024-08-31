@@ -71,7 +71,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -86,7 +85,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
 
         deepltranslator = deepl.Translator(config.params['deepl_authkey'],
-                                           server_url=None if not config.params['deepl_api'] else config.params['deepl_api'].rstrip('/'))
+                                           server_url=None if not config.params['deepl_api'] else config.params[
+                                               'deepl_api'].rstrip('/'))
 
         for i, it in enumerate(split_source_text):
             if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
@@ -122,7 +122,6 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     tools.set_process(
                         config.transobj['starttrans'] + f' {i * split_size + 1} ',
                         type="logs",
-                        btnkey=inst.init['btnkey'] if inst else "",
                         uuid=uuid)
 
                 result_length = len(result)
@@ -131,6 +130,9 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
+            except ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e)
                 time.sleep(wait_sec)
@@ -144,7 +146,8 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         else:
             break
 
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[DeepL]翻译请求失败:{err=}')

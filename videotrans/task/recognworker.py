@@ -1,5 +1,4 @@
 # 执行语音识别
-import hashlib
 import json
 import os
 import re
@@ -20,7 +19,7 @@ class RecognWorker(QThread):
                  audio_paths=None,
                  model=None,
                  language=None,
-                 model_type='faster',
+                 model_type=0,
                  out_path=None,
                  is_cuda=False,
                  split_type='all',
@@ -33,11 +32,8 @@ class RecognWorker(QThread):
         self.out_path = out_path
         self.is_cuda = is_cuda
         self.split_type = split_type
-        md5_hash = hashlib.md5()
-        md5_hash.update(
-            f"{time.time()}{len(audio_paths)}{model}{model_type}{language}{out_path}{is_cuda}{split_type}".encode(
-                'utf-8'))
-        self.uuid = md5_hash.hexdigest()
+        self.uuid = tools.get_md5(
+            f"{time.time()}{','.join(audio_paths)}{model}{model_type}{language}{out_path}{is_cuda}{split_type}")
         self.end = False
 
     def post(self, msg):
@@ -87,7 +83,7 @@ class RecognWorker(QThread):
                     continue
 
                 jindu = int((length - len(self.audio_paths)) * 100 / length)
-                jindu=jindu-1 if jindu>=1 else jindu
+                jindu = jindu - 1 if jindu >= 1 else jindu
 
                 self.post({"type": "jindu", "text": f'{jindu}%'})
                 srts = run_recogn(

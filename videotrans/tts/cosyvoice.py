@@ -19,7 +19,7 @@ def wav_to_base64(file_path):
 
 
 def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     try:
         api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
         if len(config.params['cosyvoice_url'].strip()) < 10:
@@ -28,37 +28,41 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
         api_url = 'http://' + api_url.replace('http://', '')
         config.logger.info(f'CosyVoice  API:{api_url}')
         text = text.strip()
+        rate = float(rate.replace('%', '')) if rate else 0
 
         if api_url.endswith(':9880'):
             data = {
                 "text": text,
-                "speed": 1 + float(rate.replace('%', '')),
+                "speed": 1 + rate,
                 "new": 0,
-                "streaming":0
+                "streaming": 0
             }
+            print(f'{data=},{role=}')
             if not text:
                 return True
             rolelist = tools.get_cosyvoice_role()
+            print(f'{rolelist=}')
             if role == 'clone':
                 # 克隆音色
                 data['speaker'] = '中文女'
             elif role in rolelist:
-                data['speaker'] = rolelist[role]
-            elif role:
-                data['speaker']=role
+                tmp = rolelist[role]
+                data['speaker'] = tmp if isinstance(tmp, str) or 'reference_audio' not in tmp else tmp[
+                    'reference_audio']
             else:
                 data['speaker'] = '中文女'
 
-            if data['speaker'] not in ["中文男","中文女","英文男","英文女","日语男","韩语女","粤语女"]:
-                data['new']=1
+            if data['speaker'] not in ["中文男", "中文女", "英文男", "英文女", "日语男", "韩语女", "粤语女"]:
+                data['new'] = 1
             # 克隆声音
+            print(f'{data=}')
             response = requests.post(f"{api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
             config.logger.info(f'请求数据：{api_url=},{data=}')
         else:
             data = {
-                    "text": text,
-                    "lang": "zh" if language.startswith('zh') else language
-                    }
+                "text": text,
+                "lang": "zh" if language.startswith('zh') else language
+            }
             if not text:
                 return True
             rolelist = tools.get_cosyvoice_role()
@@ -100,14 +104,13 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
         if set_p:
             if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
+    except requests.ConnectionError as e:
+        raise Exception(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
+            tools.set_process(error, uuid=uuid)
         config.logger.error(f"{error}")
         raise
-    else:
-        return True
+    return True

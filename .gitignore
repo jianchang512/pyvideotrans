@@ -16,10 +16,10 @@ source
 build
 test.py
 api.py
-ffmpeg.exe
-ffprobe.exe
-ffplay.exe
-ytwin32.exe
+ffmpeg/ffmpeg.exe
+ffmpeg/ffprobe.exe
+ffmpeg/ffplay.exe
+ffmpeg/ytwin32.exe
 ytlinux
 ytdarwin
 __pycache__

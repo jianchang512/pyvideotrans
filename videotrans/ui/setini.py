@@ -17,17 +17,17 @@ from videotrans.configure import config
 
 
 class Ui_setini(object):
-    def get_target(self,btn):
-        dirname = QFileDialog.getExistingDirectory(self, config.transobj['selectsavedir'],Path.home().as_posix())
-        print(f'{dirname=}')
+    def get_target(self, btn):
+        dirname = QFileDialog.getExistingDirectory(self, config.transobj['selectsavedir'], Path.home().as_posix())
         if dirname:
             dirpath = Path(dirname)
-            config.homedir=dirpath.as_posix()
-            config.TEMP_HOME=config.homedir+'/tmp'
-            config.settings['homedir']=config.homedir
-            btn.setText(config.homedir)
-            Path(config.TEMP_HOME).mkdir(parents=True,exist_ok=True)
-            json.dump(config.settings, open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'), ensure_ascii=False)
+            config.HOME_DIR = dirpath.as_posix()
+            config.TEMP_HOME = config.HOME_DIR + '/tmp'
+            config.settings['homedir'] = config.HOME_DIR
+            btn.setText(config.HOME_DIR)
+            Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+            json.dump(config.settings, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+                      ensure_ascii=False)
 
     def setupUi(self, setini):
         setini.setObjectName("setini")
@@ -38,7 +38,6 @@ class Ui_setini(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(setini.sizePolicy().hasHeightForWidth())
         setini.setSizePolicy(sizePolicy)
-        # setini.setMaximumSize(QtCore.QSize(900, 670))
 
         self.verticalLayoutWidget = QtWidgets.QWidget(setini)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 20, 860, 600))
@@ -62,12 +61,14 @@ class Ui_setini(object):
                 "backaudio_volume": "背景音频音量值为原本的倍数",
                 "loop_backaudio": "如果背景音频时长短于视频，是否重复播放背景音，默认否",
                 "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
-                "homedir":"家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录"
+                "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录"
             },
             "model": {
                 "ai302_models": "填写302.ai用于翻译的模型名字，以英文逗号分隔",
                 "ai302tts_models": "填写302.ai用于配音的模型名字，以英文逗号分隔",
                 "chatgpt_model": "可供选择的chatGPT模型，以英文逗号分隔",
+                "openaitts_model": "可供选择的OpenAI TTS模型，以英文逗号分隔",
+                "openairecognapi_model": "OpenAI语音识别可供选择的模型，目前仅支持whisper-1",
                 "gemini_model": "Gemini模型列表，以英文逗号分隔",
                 "azure_model": "可供选择的模型，以英文逗号分隔",
                 "localllm_model": "可供选择的模型，以英文逗号分隔",
@@ -134,7 +135,8 @@ class Ui_setini(object):
         self.titles = {
             "ai302_models": "302.ai翻译模型列表",
             "ai302tts_models": "302.aiTTS模型列表",
-            "homedir":"设置家目录",
+            "openairecognapi_model": "OpenAI语音识别模型",
+            "homedir": "设置家目录",
             "lang": "界面语言",
             "crf": "视频转码损失控制",
             "cuda_qp": "NVIDIA使用qp代替crf",
@@ -142,6 +144,7 @@ class Ui_setini(object):
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264或265视频编码",
             "chatgpt_model": "ChatGPT模型列表",
+            "openaitts_model": "OpenAI TTS模型列表",
             "azure_model": "Azure模型列表",
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
@@ -207,12 +210,14 @@ class Ui_setini(object):
                     "backaudio_volume": "Background audio volume multiplier of the original value",
                     "loop_backaudio": "Whether to loop background audio if its duration is shorter than the video, default is no",
                     "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
-                    "homedir":"Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory"
+                    "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory"
                 },
                 "model": {
                     "ai302_models": "Specify the model names for translation used by 302.ai, separated by commas",
                     "ai302tts_models": "Specify the model names for dubbing used by 302.ai, separated by commas",
                     "chatgpt_model": "Available chatGPT models, separated by commas",
+                    "openaitts_model": "Optional OpenAI TTS models, separated by English commas",
+                    "openairecognapi_model": "OpenAI Speech to Text model, whisper-1",
                     "gemini_model": "Gemini model list, separated by commas",
                     "azure_model": "Available models, separated by commas",
                     "localllm_model": "Available models, separated by commas",
@@ -288,9 +293,10 @@ class Ui_setini(object):
             }
 
             self.titles = {
-                "homedir":"Set Home directory",
+                "homedir": "Set Home directory",
                 "ai302_models": "302.ai Translation Models",
                 "ai302tts_models": "302.ai TTS Models",
+                "openairecognapi_model": "OpenAI Speech",
                 "lang": "Software Interface Language",
                 "crf": "Video Transcoding Loss Control",
                 "cuda_qp": "NVIDIA Use QP Instead of CRF",
@@ -298,6 +304,7 @@ class Ui_setini(object):
                 "ffmpeg_cmd": "Custom FFmpeg Command Parameters",
                 "video_codec": "H.264 or H.265 Video Encoding",
                 "chatgpt_model": "ChatGPT Model List",
+                "openaitts_model": "OpenAI TTS models",
                 "azure_model": "Azure Model List",
                 "localllm_model": "Local LLM Model List",
                 "zijiehuoshan_model": "Byte Volcano Inference Access Point",
@@ -343,7 +350,7 @@ class Ui_setini(object):
                 "translation_wait": "Pause Time After Translation",
                 "gemini_model": "Gemini Model List"
             }
-        self.alertnotice={}
+        self.alertnotice = {}
         # 界面语言
         # tmp = QtWidgets.QHBoxLayout()
         label_title = QtWidgets.QLabel()
@@ -361,8 +368,8 @@ class Ui_setini(object):
             label_title.setStyleSheet("""color:#999999""")
             label_title.setObjectName(f"label_{headkey}")
             box.layout().addWidget(label_title)
-            for key,val in item.items():
-                self.alertnotice[key]=val
+            for key, val in item.items():
+                self.alertnotice[key] = val
                 tmp = QtWidgets.QHBoxLayout()
                 tmp_0 = QtWidgets.QPushButton()
                 tmp_0.setStyleSheet("""background-color:transparent;text-align:right""")
@@ -371,12 +378,13 @@ class Ui_setini(object):
                 tmp_0.setObjectName(f'btn_{key}')
                 tmp_0.setToolTip(helptext)
                 tmp_0.setCursor(Qt.PointingHandCursor)
-                if key=='homedir':
-                    tmp_1=QtWidgets.QPushButton()
+                if key == 'homedir':
+                    tmp_1 = QtWidgets.QPushButton()
                     tmp_1.setCursor(Qt.PointingHandCursor)
                     tmp_1.setText(str(config.settings[key]) if key in config.settings else "")
-                    tmp_1.setToolTip('点击设置家目录，用于保存视频分离、字幕翻译、字幕配音等结果文件' if config.defaulelang=='zh' else 'Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc.')
-                    tmp_1.clicked.connect(lambda :self.get_target(tmp_1))
+                    tmp_1.setToolTip(
+                        '点击设置家目录，用于保存视频分离、字幕翻译、字幕配音等结果文件' if config.defaulelang == 'zh' else 'Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc.')
+                    tmp_1.clicked.connect(lambda: self.get_target(tmp_1))
                 else:
                     tmp_1 = QtWidgets.QLineEdit()
                     tmp_1.setMinimumSize(QtCore.QSize(0, 30))
@@ -404,5 +412,5 @@ class Ui_setini(object):
         QtCore.QMetaObject.connectSlotsByName(setini)
 
     def retranslateUi(self, setini):
-        setini.setWindowTitle('高级设置/原set.ini' if config.defaulelang == 'zh' else 'Advanced Settings/set.ini')
+        setini.setWindowTitle('选项' if config.defaulelang == 'zh' else 'Options')
         self.set_ok.setText('保存并关闭' if config.defaulelang == 'zh' else "Save and Close")

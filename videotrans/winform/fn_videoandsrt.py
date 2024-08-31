@@ -16,11 +16,12 @@ from videotrans.util import tools
 
 # 视频 字幕 音频 合并
 def open():
-    RESULT_DIR = config.homedir + "/videoandsrt"
+    RESULT_DIR = config.HOME_DIR + "/videoandsrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     class CompThread(QThread):
         uito = Signal(str)
+
         def __init__(self, *, parent=None, folder=None,
                      is_soft=False, language=None, maxlen=30):
             super().__init__(parent=parent)
@@ -28,8 +29,10 @@ def open():
             self.language = language
             self.maxlen = maxlen
             self.folder = folder
-        def post(self,type='logs',text=""):
-            self.uito.emit(json.dumps({"type":type,"text":text}))
+
+        def post(self, type='logs', text=""):
+            self.uito.emit(json.dumps({"type": type, "text": text}))
+
         # 取出具有相同名称的视频和音频文件，组装为dict待处理
         def get_list(self):
             videos = {}
@@ -37,7 +40,7 @@ def open():
             for it in Path(self.folder).iterdir():
                 if it.is_file():
                     suffix = it.suffix.lower()
-                    if suffix in ['.mp4', '.mkv', '.avi', '.mpeg']:
+                    if suffix in config.VIDEO_EXTS:
                         videos[it.stem] = it.resolve().as_posix()
                     elif suffix in ['.srt']:
                         srts[it.stem] = it.resolve().as_posix()
@@ -46,23 +49,24 @@ def open():
             for key, val in videos.items():
                 if key in srts:
                     vailfiles[key] = {"video": val, "srt": srts[key]}
-            length=len(vailfiles.keys())
+            length = len(vailfiles.keys())
             if length < 1:
-                return None,0
-            return vailfiles,length
+                return None, 0
+            return vailfiles, length
 
         def run(self):
-            vailfiles,length = self.get_list()
+            vailfiles, length = self.get_list()
             if not vailfiles:
                 self.post(type='error',
-                    text='不存在同名视频和srt字幕，无法合并' if config.defaulelang == 'zh' else 'Video and srt of the same name do not exist and cannot be merged')
+                          text='不存在同名视频和srt字幕，无法合并' if config.defaulelang == 'zh' else 'Video and srt of the same name do not exist and cannot be merged')
                 return
             percent = 0
-            self.post(type='logs',text=f'有{length}组同名视频和srt字幕需合并' if config.defaulelang == 'zh' else f'There are {length} sets of videos with the same name and srt subtitles that need to be merged.')
+            self.post(type='logs',
+                      text=f'有{length}组同名视频和srt字幕需合并' if config.defaulelang == 'zh' else f'There are {length} sets of videos with the same name and srt subtitles that need to be merged.')
             for name, info in vailfiles.items():
                 try:
                     srt = info['srt']
-                    self.post(type='logs',text=f'{Path(srt).name} --> {Path(info["video"]).name} ')
+                    self.post(type='logs', text=f'{Path(srt).name} --> {Path(info["video"]).name} ')
                     result_file = RESULT_DIR + f'/{name}.mp4'
                     cmd = [
                         '-y',
@@ -109,53 +113,54 @@ def open():
                     tools.runffmpeg(cmd)
                 except Exception as e:
                     print(e)
-                    self.post(type='error',text=str(e))
+                    self.post(type='error', text=str(e))
                     return
                 finally:
                     percent += round(100 / length, 2)
-                    self.post(type='jd',text=f'{percent if percent <= 100 else 99}%')
-            self.post(type='ok',text='执行完成' if config.defaulelang=='zh' else 'Ended')
+                    self.post(type='jd', text=f'{percent if percent <= 100 else 99}%')
+            self.post(type='ok', text='执行完成' if config.defaulelang == 'zh' else 'Ended')
 
     def feed(d):
-        d=json.loads(d)
-        if d['type']=="error":
-            QtWidgets.QMessageBox.critical(config.vandsrtform, config.transobj['anerror'], d['text'])
-            config.vandsrtform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            config.vandsrtform.startbtn.setDisabled(False)
-            config.vandsrtform.opendir.setDisabled(False)
-        elif d['type']=='jd':
-            config.vandsrtform.startbtn.setText(d['text'])
-        elif d['type']=='logs':
-            config.vandsrtform.loglabel.setText(d['text'])
+        d = json.loads(d)
+        if d['type'] == "error":
+            QtWidgets.QMessageBox.critical(vandsrtform, config.transobj['anerror'], d['text'])
+            vandsrtform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            vandsrtform.startbtn.setDisabled(False)
+            vandsrtform.opendir.setDisabled(False)
+        elif d['type'] == 'jd':
+            vandsrtform.startbtn.setText(d['text'])
+        elif d['type'] == 'logs':
+            vandsrtform.loglabel.setText(d['text'])
         else:
-            config.vandsrtform.startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
-            config.vandsrtform.startbtn.setDisabled(False)
-            config.vandsrtform.loglabel.setText(d['text'])
-            config.vandsrtform.opendir.setDisabled(False)
+            vandsrtform.startbtn.setText(config.transobj['zhixingwc'])
+            vandsrtform.startbtn.setDisabled(False)
+            vandsrtform.loglabel.setText(config.transobj['quanbuend'])
+            vandsrtform.opendir.setDisabled(False)
 
     def get_file():
-        dirname = QFileDialog.getExistingDirectory(config.vandsrtform, config.transobj['selectsavedir'], config.params['last_opendir'])
-        config.vandsrtform.folder.setText(dirname.replace('\\', '/'))
+        dirname = QFileDialog.getExistingDirectory(vandsrtform, config.transobj['selectsavedir'],
+                                                   config.params['last_opendir'])
+        vandsrtform.folder.setText(dirname.replace('\\', '/'))
 
     def start():
-        folder = config.vandsrtform.folder.text()
+        folder = vandsrtform.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            QMessageBox.critical(config.vandsrtform, config.transobj['anerror'],
+            QMessageBox.critical(vandsrtform, config.transobj['anerror'],
                                  '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.')
             return
-        is_soft = config.vandsrtform.issoft.isChecked()
-        language = config.vandsrtform.language.currentText()
+        is_soft = vandsrtform.issoft.isChecked()
+        language = vandsrtform.language.currentText()
         maxlen = 30
         try:
-            maxlen = int(config.vandsrtform.maxlen.text())
+            maxlen = int(vandsrtform.maxlen.text())
         except Exception:
             pass
 
-        config.vandsrtform.startbtn.setText(
+        vandsrtform.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'In Progress...')
-        config.vandsrtform.startbtn.setDisabled(True)
-        config.vandsrtform.opendir.setDisabled(True)
-        task = CompThread(parent=config.vandsrtform,
+        vandsrtform.startbtn.setDisabled(True)
+        vandsrtform.opendir.setDisabled(True)
+        task = CompThread(parent=vandsrtform,
                           folder=folder,
                           is_soft=is_soft,
                           language=language,
@@ -169,15 +174,17 @@ def open():
 
     from videotrans.component import Videoandsrtform
     try:
-        if config.vandsrtform is not None:
-            config.vandsrtform.show()
-            config.vandsrtform.raise_()
-            config.vandsrtform.activateWindow()
+        vandsrtform = config.child_forms.get('vandsrtform')
+        if vandsrtform is not None:
+            vandsrtform.show()
+            vandsrtform.raise_()
+            vandsrtform.activateWindow()
             return
-        config.vandsrtform = Videoandsrtform()
-        config.vandsrtform.folder_btn.clicked.connect(get_file)
-        config.vandsrtform.startbtn.clicked.connect(start)
-        config.vandsrtform.opendir.clicked.connect(opendir)
-        config.vandsrtform.show()
+        vandsrtform = Videoandsrtform()
+        config.child_forms['vandsrtform'] = vandsrtform
+        vandsrtform.folder_btn.clicked.connect(get_file)
+        vandsrtform.startbtn.clicked.connect(start)
+        vandsrtform.opendir.clicked.connect(opendir)
+        vandsrtform.show()
     except Exception as e:
         print(e)

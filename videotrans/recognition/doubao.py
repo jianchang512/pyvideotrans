@@ -37,9 +37,10 @@ def recogn(*,
         raise Exception('读取音频文件失败')
 
     if set_p:
-        tools.set_process(f"识别可能较久，请耐心等待", type='logs', btnkey=inst.init['btnkey'] if inst else "", uuid=uuid)
+        tools.set_process(f"识别可能较久，请耐心等待", type='logs', uuid=uuid)
 
-    languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU",  "fr": "fr-FR"}
+    languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU",
+                    "fr": "fr-FR"}
     langcode = detect_language[:2].lower()
     if langcode not in languagelist:
         raise Exception(f'不支持的语言代码:{langcode=}')
@@ -94,10 +95,9 @@ def recogn(*,
             if result['code'] == 2000:
                 if set_p:
                     tools.set_process(
-                      f"任务处理中，请等待 {delay}s..",
-                      type='logs',
-                      btnkey=inst.init['btnkey'] if inst else "",
-                      uuid=uuid
+                        f"任务处理中，请等待 {delay}s..",
+                        type='logs',
+                        uuid=uuid
                     )
                 time.sleep(1)
             elif result['code'] > 0:

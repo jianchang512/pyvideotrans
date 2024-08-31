@@ -9,6 +9,7 @@ from videotrans.configure import config
 # 使用内置的 open 函数
 builtin_open = builtins.open
 
+
 # 高级设置
 def open():
     def save():
@@ -16,7 +17,7 @@ def open():
         line_edit_dict = {}
 
         # 使用findChildren方法查找所有QLineEdit控件
-        line_edits = config.setiniw.findChildren(QLineEdit)
+        line_edits = setiniw.findChildren(QLineEdit)
         # 遍历找到的所有QLineEdit控件
         for line_edit in line_edits:
             # 检查QLineEdit是否有objectName
@@ -25,30 +26,30 @@ def open():
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.text()
         try:
-            json.dump(line_edit_dict, builtin_open(config.rootdir + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+            json.dump(line_edit_dict, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                       ensure_ascii=False)
         except Exception as e:
-            return QtWidgets.QMessageBox.critical(config.setiniw, config.transobj['anerror'], str(e))
+            return QtWidgets.QMessageBox.critical(setiniw, config.transobj['anerror'], str(e))
         else:
             config.settings = line_edit_dict
 
-        config.setiniw.close()
+        setiniw.close()
 
     def alert(btn):
         name = btn.objectName()[4:]
-        QMessageBox.information(config.setiniw, f'Help {name}', config.setiniw.alertnotice[name])
+        QMessageBox.information(setiniw, f'Help {name}', setiniw.alertnotice[name])
 
     from videotrans.component import SetINIForm
-    if config.setiniw is not None:
-        config.setiniw.show()
-        config.setiniw.raise_()
-        config.setiniw.activateWindow()
+    setiniw = config.child_forms.get('setiniw')
+    if setiniw is not None:
+        setiniw.show()
+        setiniw.raise_()
+        setiniw.activateWindow()
         return
-    config.setiniw = SetINIForm()
-    for button in config.setiniw.findChildren(QPushButton):
+    setiniw = SetINIForm()
+    config.child_forms['setiniw'] = setiniw
+    for button in setiniw.findChildren(QPushButton):
         if button.objectName().startswith('btn_'):
-            # 绑定clicked事件，lambda表达式传递按钮本身
             button.clicked.connect(lambda checked, btn=button: alert(btn))
-
-    config.setiniw.set_ok.clicked.connect(save)
-    config.setiniw.show()
+    setiniw.set_ok.clicked.connect(save)
+    setiniw.show()

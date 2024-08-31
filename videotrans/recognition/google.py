@@ -42,10 +42,9 @@ def recogn(*,
            inst=None):
     if set_p:
         tools.set_process(
-          config.transobj['fengeyinpinshuju'],
-          type="logs",
-          btnkey=inst.init['btnkey'] if inst else "",
-          uuid=uuid
+            config.transobj['fengeyinpinshuju'],
+            type="logs",
+            uuid=uuid
         )
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return False
@@ -55,8 +54,8 @@ def recogn(*,
         os.environ['https_proxy'] = proxy
     noextname = os.path.basename(audio_file)
     tmp_path = Path(f'{cache_folder}/{noextname}_tmp')
-    tmp_path.mkdir(parents=True,exist_ok=True)
-    tmp_path=tmp_path.as_posix()
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    tmp_path = tmp_path.as_posix()
 
     if not tools.vail_file(audio_file):
         raise Exception(f'[error]not exists {audio_file}')
@@ -70,7 +69,6 @@ def recogn(*,
 
     raw_subtitles = []
     total_length = len(nonsilent_data)
-
 
     try:
         recognizer = sr.Recognizer()
@@ -121,8 +119,8 @@ def recogn(*,
             if inst and inst.precent < 55:
                 inst.precent += 0.1
             tools.set_process(
-                f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}",                    type="logs",
-                btnkey=inst.init['btnkey'] if inst else "",
+                f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}", type="logs",
+
                 uuid=uuid
             )
             msg = f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n"
@@ -131,6 +129,5 @@ def recogn(*,
         tools.set_process(
             f"{config.transobj['yuyinshibiewancheng']} / {len(raw_subtitles)}",
             type='logs',
-            btnkey=inst.init['btnkey'] if inst else "",
             uuid=uuid)
     return raw_subtitles

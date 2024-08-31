@@ -12,8 +12,9 @@ from videotrans.util import tools
 
 # 合并2个srt
 def open():
-    RESULT_DIR=config.homedir + "/Mergersrt"
+    RESULT_DIR = config.HOME_DIR + "/Mergersrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+
     class CompThread(QThread):
         uito = Signal(str)
 
@@ -21,10 +22,10 @@ def open():
             super().__init__(parent=parent)
             self.file1 = file1
             self.file2 = file2
-            self.result_file = RESULT_DIR + "/" + Path(file1).stem + '-add-' +Path(file2).stem + '.srt'
+            self.result_file = RESULT_DIR + "/" + Path(file1).stem + '-add-' + Path(file2).stem + '.srt'
 
-        def post(self,type='logs',text=""):
-            self.uito.emit(json.dumps({"type":type,"text":text}))
+        def post(self, type='logs', text=""):
+            self.uito.emit(json.dumps({"type": type, "text": text}))
 
         def run(self):
             try:
@@ -37,47 +38,47 @@ def open():
                     if i < srt2_len:
                         text += f"\n{srt2_list[i]['text'].strip()}"
                     text += "\n\n"
-                Path(self.result_file).write_text(text.strip(),encoding="utf-8", errors="ignore")
-                self.post(type='ok',text=self.result_file)
+                Path(self.result_file).write_text(text.strip(), encoding="utf-8", errors="ignore")
+                self.post(type='ok', text=self.result_file)
             except Exception as e:
-                self.post(type='error',text=str(e))
+                self.post(type='error', text=str(e))
 
     def feed(d):
-        d=json.loads(d)
-        if d['type']=="error":
-            QtWidgets.QMessageBox.critical(config.hebingw, config.transobj['anerror'], d['text'])
-        elif d['type']=='logs':
-            config.hebingw.startbtn.setText(d['text'])
+        d = json.loads(d)
+        if d['type'] == "error":
+            QtWidgets.QMessageBox.critical(hebingw, config.transobj['anerror'], d['text'])
+        elif d['type'] == 'logs':
+            hebingw.startbtn.setText(d['text'])
         else:
-            config.hebingw.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
-            config.hebingw.startbtn.setDisabled(False)
-            config.hebingw.resultlabel.setText(d['text'])
-            config.hebingw.resultbtn.setDisabled(False)
-            config.hebingw.resultinput.setPlainText(Path(config.hebingw.resultlabel.text()).read_text(encoding='utf-8'))
+            hebingw.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
+            hebingw.startbtn.setDisabled(False)
+            hebingw.resultlabel.setText(d['text'])
+            hebingw.resultbtn.setDisabled(False)
+            hebingw.resultinput.setPlainText(Path(hebingw.resultlabel.text()).read_text(encoding='utf-8'))
 
     def get_file(inputname):
-        fname, _ = QFileDialog.getOpenFileName(config.hebingw, "Select subtitles srt", config.params['last_opendir'],
+        fname, _ = QFileDialog.getOpenFileName(hebingw, "Select subtitles srt", config.params['last_opendir'],
                                                "files(*.srt)")
         if fname:
             if inputname == 1:
-                config.hebingw.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                hebingw.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
             else:
-                config.hebingw.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
+                hebingw.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        srt1 = config.hebingw.srtinput1.text()
-        srt2 = config.hebingw.srtinput2.text()
+        srt1 = hebingw.srtinput1.text()
+        srt2 = hebingw.srtinput2.text()
         if not srt1 or not srt2:
-            QMessageBox.critical(config.hebingw, config.transobj['anerror'],
+            QMessageBox.critical(hebingw, config.transobj['anerror'],
                                  '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
             return
 
-        config.hebingw.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
-        config.hebingw.startbtn.setDisabled(True)
-        config.hebingw.resultbtn.setDisabled(True)
-        config.hebingw.resultinput.setPlainText("")
+        hebingw.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
+        hebingw.startbtn.setDisabled(True)
+        hebingw.resultbtn.setDisabled(True)
+        hebingw.resultinput.setPlainText("")
 
-        task = CompThread(parent=config.hebingw, file1=srt1, file2=srt2)
+        task = CompThread(parent=hebingw, file1=srt1, file2=srt2)
 
         task.uito.connect(feed)
         task.start()
@@ -87,17 +88,19 @@ def open():
 
     from videotrans.component import HebingsrtForm
     try:
-        if config.hebingw is not None:
-            config.hebingw.show()
-            config.hebingw.raise_()
-            config.hebingw.activateWindow()
+        hebingw = config.child_forms.get('hebingw')
+        if hebingw is not None:
+            hebingw.show()
+            hebingw.raise_()
+            hebingw.activateWindow()
             return
-        config.hebingw = HebingsrtForm()
-        config.hebingw.srtbtn1.clicked.connect(lambda: get_file(1))
-        config.hebingw.srtbtn2.clicked.connect(lambda: get_file(2))
+        hebingw = HebingsrtForm()
+        config.child_forms['hebingw'] = hebingw
+        hebingw.srtbtn1.clicked.connect(lambda: get_file(1))
+        hebingw.srtbtn2.clicked.connect(lambda: get_file(2))
 
-        config.hebingw.resultbtn.clicked.connect(opendir)
-        config.hebingw.startbtn.clicked.connect(start)
-        config.hebingw.show()
+        hebingw.resultbtn.clicked.connect(opendir)
+        hebingw.startbtn.clicked.connect(start)
+        hebingw.show()
     except Exception:
         pass

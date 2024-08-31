@@ -4,7 +4,7 @@ import re
 import time
 
 import httpx
-from openai import AzureOpenAI, APIError
+from openai import AzureOpenAI
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -39,18 +39,11 @@ def get_content(d, *, model=None, prompt=None):
     ]
 
     config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
-    try:
-        response = model.chat.completions.create(
-            model=config.params["azure_model"],
-            messages=message
-        )
-        config.logger.info(f'[AzureGPT]返回响应:{response=}')
-    except APIError as e:
-        config.logger.error(f'[AzureGPT]请求失败:{str(e)}')
-        raise
-    except Exception as e:
-        config.logger.error(f'[AzureGPT]请求失败:{str(e)}')
-        raise
+    response = model.chat.completions.create(
+        model=config.params["azure_model"],
+        messages=message
+    )
+    config.logger.info(f'[AzureGPT]返回响应:{response=}')
 
     if response.choices:
         result = response.choices[0].message.content.strip()
@@ -112,7 +105,6 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -169,12 +161,13 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
                                 type="logs",
-                                btnkey=inst.init['btnkey'] if inst else "",
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-
+            except ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e)
                 time.sleep(wait_sec)
@@ -188,7 +181,8 @@ def trans(text_list, target_language="English", *, set_p=True, inst=None, stop=0
         else:
             break
 
-    update_proxy(type='del')
+    if shound_del:
+        update_proxy(type='del')
 
     if err:
         config.logger.error(f'[AzureGPT]翻译请求失败:{err=}')

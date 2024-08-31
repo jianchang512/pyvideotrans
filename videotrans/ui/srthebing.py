@@ -31,7 +31,6 @@ class Ui_srthebing(object):
         srthebing.setSizePolicy(sizePolicy)
         # srthebing.setMaximumSize(QtCore.QSize(643, 535))
 
-
         self.horizontalLayout_3 = QHBoxLayout(srthebing)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.verticalLayout = QVBoxLayout()

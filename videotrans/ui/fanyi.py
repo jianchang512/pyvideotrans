@@ -21,14 +21,13 @@ class Ui_fanyisrt(object):
         fanyisrt.resize(760, 535)
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
-        self.files=[]
+        self.files = []
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(fanyisrt.sizePolicy().hasHeightForWidth())
         fanyisrt.setSizePolicy(sizePolicy)
-
 
         # start
         self.horizontalLayout_23 = QtWidgets.QHBoxLayout(fanyisrt)
@@ -59,7 +58,6 @@ class Ui_fanyisrt(object):
         self.label_613.setObjectName("label_613")
         self.horizontalLayout_18.addWidget(self.label_613)
 
-
         self.fanyi_target = QtWidgets.QComboBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -79,19 +77,16 @@ class Ui_fanyisrt(object):
         self.label_614.setObjectName("label_614")
         self.horizontalLayout_18.addWidget(self.label_614)
 
-
         self.fanyi_proxy = QtWidgets.QLineEdit()
         self.fanyi_proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.fanyi_proxy.setObjectName("fanyi_proxy")
         self.horizontalLayout_18.addWidget(self.fanyi_proxy)
 
-
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
 
-        self.loglabel=QtWidgets.QLabel()
+        self.loglabel = QtWidgets.QLabel()
         self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout_13.addWidget(self.loglabel)
-
 
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_19.setContentsMargins(-1, 20, -1, -1)
@@ -113,8 +108,6 @@ class Ui_fanyisrt(object):
         self.horizontalLayout_19.addWidget(self.daochu)
         self.verticalLayout_13.addLayout(self.horizontalLayout_19)
 
-
-
         self.fanyi_layout = QtWidgets.QHBoxLayout()
         self.fanyi_layout.setObjectName("fanyi_layout")
         self.fanyi_start = QtWidgets.QPushButton()
@@ -125,13 +118,11 @@ class Ui_fanyisrt(object):
         self.fanyi_targettext.setObjectName("fanyi_targettext")
         self.fanyi_layout.addWidget(self.fanyi_targettext)
         self.verticalLayout_13.addLayout(self.fanyi_layout)
-        self.reslabel=QtWidgets.QLabel()
+        self.reslabel = QtWidgets.QLabel()
 
         self.verticalLayout_13.addWidget(self.reslabel)
 
         self.horizontalLayout_23.addLayout(self.verticalLayout_13)
-
-
 
         # end
 
@@ -152,4 +143,3 @@ class Ui_fanyisrt(object):
         self.daochu.setText(config.transobj['dakaizimubaocunmulu'])
         self.fanyi_start.setText(box_lang.get("Start>"))
         self.fanyi_targettext.setPlaceholderText(box_lang.get("The translation result is displayed here"))
-

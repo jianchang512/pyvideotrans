@@ -19,30 +19,20 @@ def get_content(d, *, prompt=None):
         ]
     }
 
-    try:
-        response = requests.post('https://api.302.ai/v1/chat/completions', headers={
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {config.params["ai302_key"]}',
-            'User-Agent': 'pyvideotrans',
-            'Content-Type': 'application/json'
-        }, json=payload, verify=False)
-        config.logger.info(f'[302.ai]响应:{response=}')
-        if response.status_code != 200:
-            raise Exception(response.text)
-    except ConnectionError as e:
-        config.logger.error(f'[302.ai]请求失败:{str(e)}')
-        raise
-    except Exception as e:
-        config.logger.error(f'[302.ai]请求失败:{str(e)}')
-        raise
-    else:
-        res = response.json()
-        if res['choices']:
-            result = res['choices'][0]['message']['content']
-            result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-            return re.sub(r'\n{2,}', "\n", result)
-        else:
-            raise Exception(f"{res}")
+    response = requests.post('https://api.302.ai/v1/chat/completions', headers={
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {config.params["ai302_key"]}',
+        'User-Agent': 'pyvideotrans',
+        'Content-Type': 'application/json'
+    }, json=payload, verify=False)
+    config.logger.info(f'[302.ai]响应:{response=}')
+    if response.status_code != 200:
+        raise Exception(response.text)
+    res = response.json()
+    if res['choices']:
+        result = res['choices'][0]['message']['content']
+        result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+        return re.sub(r'\n{2,}', "\n", result)
 
 
 def trans(text_list,
@@ -103,7 +93,6 @@ def trans(text_list,
                 tools.set_process(
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type='logs',
-                    btnkey=inst.init['btnkey'] if inst else "",
                     uuid=uuid)
             time.sleep(10)
         iter_num += 1
@@ -152,12 +141,13 @@ def trans(text_list,
                             tools.set_process(
                                 config.transobj['starttrans'] + f' {i * split_size + x + 1} ',
                                 type='logs',
-                                btnkey=inst.init['btnkey'] if inst else "",
                                 uuid=uuid)
                 if len(sep_res) < len(it):
                     tmp = ["" for x in range(len(it) - len(sep_res))]
                     target_text["srts"] += tmp
-
+            except requests.ConnectionError as e:
+                err = str(e)
+                break
             except Exception as e:
                 err = str(e)
                 time.sleep(wait_sec)

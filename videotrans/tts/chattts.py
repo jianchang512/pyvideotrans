@@ -4,14 +4,13 @@ import time
 from pathlib import Path
 
 import requests
-from requests import Timeout
 
 from videotrans.configure import config
 from videotrans.util import tools
 
 
 def get_voice(*, text=None, role="2222", rate=None, volume="+0%", pitch="+0Hz", language=None, filename=None,
-              set_p=True, inst=None,uuid=None):
+              set_p=True, inst=None, uuid=None):
     try:
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
         if len(config.params['chattts_api'].strip()) < 10:
@@ -51,16 +50,13 @@ def get_voice(*, text=None, role="2222", rate=None, volume="+0%", pitch="+0Hz", 
             if set_p:
                 if inst and inst.precent < 80:
                     inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
-    except ConnectionError or Timeout as e:
-        raise Exception(f'无法连接到ChatTTS服务，请确保已部署并启动了ChatTTS-ui')
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
+    except requests.ConnectionError as e:
+        raise Exception(f'无法连接到ChatTTS服务，请确保已部署并启动了ChatTTS-ui {str(e)}')
     except Exception as e:
         error = str(e)
         if set_p:
-            tools.set_process(error, btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(error, uuid=uuid)
         config.logger.error(f"ChatTTS合成失败:{error}")
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         raise
-    else:
-        return True
+    return True

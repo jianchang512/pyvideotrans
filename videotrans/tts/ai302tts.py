@@ -8,20 +8,20 @@ from videotrans.util import tools
 
 
 def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None, set_p=True,
-              inst=None,uuid=None):
+              inst=None, uuid=None):
     if config.params['ai302tts_model'] == 'azure':
         return get_voice_azure(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                           filename=filename, set_p=set_p, inst=inst,uuid=uuid)
+                               filename=filename, set_p=set_p, inst=inst, uuid=uuid)
     elif config.params['ai302tts_model'] == 'doubao':
         return get_voice_doubao(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                           filename=filename, set_p=set_p, inst=inst,uuid=uuid)
+                                filename=filename, set_p=set_p, inst=inst, uuid=uuid)
 
     return get_voice_openai(text=text, role=role, volume=volume, pitch=pitch, rate=rate, language=language,
-                                filename=filename, set_p=set_p, inst=inst,uuid=uuid)
+                            filename=filename, set_p=set_p, inst=inst, uuid=uuid)
 
 
 def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,
-                     set_p=True, inst=None,uuid=None):
+                     set_p=True, inst=None, uuid=None):
     try:
         speed = 1.0
         if rate:
@@ -42,28 +42,26 @@ def get_voice_openai(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
                 raise Exception(response.text)
             with open(filename, 'wb') as f:
                 f.write(response.content)
-        except ConnectionError as e:
+        except requests.ConnectionError as e:
             raise
         except Exception as e:
             raise
         if tools.vail_file(filename) and config.settings['remove_silence']:
             tools.remove_silence_from_end(filename)
-        if set_p :
-            if inst and inst.precent<80:
+        if set_p:
+            if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
     except Exception as e:
         error = str(e)
         config.logger.error(f"302.ai tts 合成失败：request error:" + str(e))
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         raise
     else:
         return True
 
 
 def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+0%', language=None, filename=None,
-                    set_p=True, inst=None,uuid=None):
+                    set_p=True, inst=None, uuid=None):
     try:
         if not rate:
             rate = '+0%'
@@ -94,8 +92,8 @@ def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+
                 raise Exception(response.text)
             with open(filename + ".wav", 'wb') as f:
                 f.write(response.content)
-        except ConnectionError as e:
-            raise
+        except requests.ConnectionError as e:
+            raise Exception(str(e)) from e
         except Exception as e:
             raise
         if tools.vail_file(filename + ".wav") and config.settings['remove_silence']:
@@ -104,15 +102,13 @@ def get_voice_azure(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate='+
         if set_p:
             if inst and inst.precent < 80:
                 inst.precent += 0.1
-            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+            tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
     except Exception as e:
-        error = str(e)
         config.logger.error(f"302.ai tts 合成失败：request error:" + str(e))
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         raise
     else:
         return True
+
 
 def base64_to_wav(encoded_str, output_path):
     if not encoded_str:
@@ -130,25 +126,26 @@ def base64_to_wav(encoded_str, output_path):
     # shutil.copy2(output_path,f'C:/users/c1/videos/test/{os.path.basename(output_path)}')
     # print(f"WAV file has been saved to {output_path}")
 
-def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,set_p=True, inst=None,uuid=None):
 
+def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, language=None, filename=None,
+                     set_p=True, inst=None, uuid=None):
     try:
         speed = 1.0
         if rate:
             rate = float(rate.replace('%', '')) / 100
             speed += rate
         try:
-            payload={
-               "audio": {
-                  "voice_type": tools.get_302ai_doubao(role_name=role),
-                  "encoding": "mp3",
-                  "speed_ratio": speed
-               },
-               "request": {
-                  "reqid": f'pyvideotrans-{time.time()}',
-                  "text": text,
-                  "operation": "query"
-               }
+            payload = {
+                "audio": {
+                    "voice_type": tools.get_302ai_doubao(role_name=role),
+                    "encoding": "mp3",
+                    "speed_ratio": speed
+                },
+                "request": {
+                    "reqid": f'pyvideotrans-{time.time()}',
+                    "text": text,
+                    "operation": "query"
+                }
             }
             config.logger.info(payload)
 
@@ -159,10 +156,10 @@ def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
             }, json=payload, verify=False)
             if response.status_code != 200:
                 raise Exception(response.text)
-            res=response.json()
-            if res['code']!=3000:
+            res = response.json()
+            if res['code'] != 3000:
                 raise Exception(f"302.ai doubao,{res['code']}:{res['message']}:{text=},{role=}")
-            base64_to_wav(res['data'],filename)
+            base64_to_wav(res['data'], filename)
         except ConnectionError as e:
             raise
         except Exception as e:
@@ -173,13 +170,9 @@ def get_voice_doubao(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=N
             if set_p:
                 if inst and inst.precent < 80:
                     inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', btnkey=inst.init['btnkey'] if inst else "",uuid=uuid)
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
     except Exception as e:
         error = str(e)
         config.logger.error(f"302.ai tts doubao 合成失败：request error:{error}")
-        if inst and inst.init['btnkey']:
-            config.errorlist[inst.init['btnkey']] = error
         raise
-    else:
-        return True
-
+    return True

@@ -21,7 +21,8 @@ class CheckUpdateWorker(QThread):
             if proxy:
                 proxies = {"http": proxy, "https": proxy}
 
-            res = requests.get("https://pyvideotrans.com/version.json", proxies=proxies)
+            res = requests.get(f"https://pyvideotrans.com/version.json?version={videotrans.VERSION_NUM}",
+                               proxies=proxies)
             if res.status_code == 200:
                 d = res.json()
                 if d['version_num'] > videotrans.VERSION_NUM:

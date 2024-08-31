@@ -26,8 +26,7 @@ class AudioPre:
             "agg": agg,
             "high_end_process": "mirroring",
         }
-        # mp = ModelParameters("%s/uvr5_weights/modelparams/4band_v2.json"%config.rootdir)
-        mp = ModelParameters("%s/uvr5_weights/modelparams/2band_44100_lofi.json" % config.rootdir)
+        mp = ModelParameters(f"{config.ROOT_DIR}/uvr5_weights/modelparams/2band_44100_lofi.json")
         model = Nets.CascadedASPPNet(mp.param["bins"] * 2)
         cpk = torch.load(model_path, map_location="cpu")
         model.load_state_dict(cpk)
@@ -41,10 +40,9 @@ class AudioPre:
         self.model = model
 
     def _path_audio_(
-            self, music_file, ins_root=None, format="wav", is_hp3=False, btnkey=None,percent=[0,1]
+            self, music_file, ins_root=None, format="wav", is_hp3=False, uuid=None, percent=[0, 1]
     ):
-        print(f'{music_file=}')
-        print(f'{ins_root=}')
+
         if ins_root is None:
             return "No save root."
         name = os.path.splitext(os.path.basename(music_file))[0]
@@ -106,7 +104,7 @@ class AudioPre:
         with torch.no_grad():
             pred, X_mag, X_phase = inference(
                 X_spec_m, self.device, self.model, aggressiveness, self.data, self.source,
-                btnkey=btnkey,
+                uuid=uuid,
                 percent=percent
             )
         # Postprocess

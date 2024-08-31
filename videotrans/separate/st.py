@@ -12,13 +12,13 @@ from videotrans.configure import config
 from videotrans.separate.vr import AudioPre
 
 
-def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey=None,percent=[0,1]):
+def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=None, percent=[0, 1]):
     infos = []
     try:
         func = AudioPre
         pre_fun = func(
             agg=10,
-            model_path=os.path.join(config.rootdir, f"uvr5_weights/{model_name}.pth"),
+            model_path=config.ROOT_DIR + f"/uvr5_weights/{model_name}.pth",
             device="cuda" if torch.cuda.is_available() else "cpu",
             is_half=False,
             source=source
@@ -32,7 +32,7 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", btnkey
             pre_fun._path_audio_(
                 inp_path,
                 ins_root=save_root,
-                btnkey=btnkey,
+                uuid=uuid,
                 percent=percent
             )
             done = 1
@@ -63,17 +63,18 @@ def convert_to_pure_eng_num(string):
     hex_digest = hasher.hexdigest()
     return hex_digest
 
+
 def split_audio(file_path):
     # Load the audio file
     audio = AudioSegment.from_wav(file_path)
-    segment_length=300
+    segment_length = 300
     try:
-        segment_length=int(config.settings['bgm_split_time'])
+        segment_length = int(config.settings['bgm_split_time'])
     except Exception:
         pass
-    output_folder=Path(config.TEMP_DIR)/"separate"
-    output_folder.mkdir(parents=True,exist_ok=True)
-    output_folder=output_folder.as_posix()
+    output_folder = Path(config.TEMP_DIR) / "separate"
+    output_folder.mkdir(parents=True, exist_ok=True)
+    output_folder = output_folder.as_posix()
 
     # Calculate the total number of segments
     total_length = len(audio)  # Total length in milliseconds
@@ -98,6 +99,7 @@ def split_audio(file_path):
 
     return segments
 
+
 def concatenate_audio(input_wav_list, out_wav):
     # Initialize an empty AudioSegment
     combined = AudioSegment.empty()
@@ -118,46 +120,33 @@ def concatenate_audio(input_wav_list, out_wav):
 
 
 # path 是需要保存vocal.wav的目录
-def start(audio, path, source="logs", btnkey=None):
-    Path(path).mkdir(parents=True,exist_ok=True)
-    reslist=split_audio(audio)
-    vocal_list=[]
-    instr_list=[]
+def start(audio, path, source="logs", uuid=None):
+    Path(path).mkdir(parents=True, exist_ok=True)
+    reslist = split_audio(audio)
+    vocal_list = []
+    instr_list = []
 
-    grouplen=len(reslist)
-    per=round(1/grouplen,2)
-    for i,audio_seg in enumerate(reslist):
-        audio_path=Path(audio_seg)
-        path_dir=audio_path.parent/audio_path.stem
-        path_dir.mkdir(parents=True,exist_ok=True)
+    grouplen = len(reslist)
+    per = round(1 / grouplen, 2)
+    for i, audio_seg in enumerate(reslist):
+        if config.exit_soft:
+            return
+        audio_path = Path(audio_seg)
+        path_dir = audio_path.parent / audio_path.stem
+        path_dir.mkdir(parents=True, exist_ok=True)
         try:
-            gr = uvr(model_name="HP2", save_root=path_dir.as_posix(), inp_path=Path(audio_seg).as_posix(), source=source, btnkey=btnkey,percent=[i*per,per])
+            gr = uvr(model_name="HP2", save_root=path_dir.as_posix(), inp_path=Path(audio_seg).as_posix(),
+                     source=source, uuid=uuid, percent=[i * per, per])
             print(next(gr))
             print(next(gr))
         except StopIteration:
-            vocal_list.append((path_dir/'vocal.wav').as_posix())
-            instr_list.append((path_dir/'instrument.wav').as_posix())
+            vocal_list.append((path_dir / 'vocal.wav').as_posix())
+            instr_list.append((path_dir / 'instrument.wav').as_posix())
         except Exception as e:
-            print('异常'+str(e))
+            print('异常' + str(e))
             raise
 
-    if len(vocal_list)<1 or len(instr_list)<1:
+    if len(vocal_list) < 1 or len(instr_list) < 1:
         raise Exception('separate bgm error')
-    concatenate_audio(instr_list,Path(f"{path}/instrument.wav").as_posix())
-    concatenate_audio(vocal_list,Path(f"{path}/vocal.wav").as_posix())
-    # try:
-    #     # 获取总时长秒
-    #     # sec = tools.get_audio_time(audio)
-    #     # print(f'{path=}')
-    #     Path(path).mkdir(parents=True,exist_ok=True)
-    #     # print(f'222{path=}')
-    #     # if sec<=dist:
-    #     gr = uvr(model_name="HP2", save_root=path, inp_path=audio, source=source, btnkey=btnkey)
-    #     print(next(gr))
-    #     print(next(gr))
-    # except StopIteration:
-    #     pass
-    # except Exception as e:
-    #     print(type(e))
-    #     msg = f"保留背景音:{str(e)}"
-    #     raise Exception(msg)
+    concatenate_audio(instr_list, Path(f"{path}/instrument.wav").as_posix())
+    concatenate_audio(vocal_list, Path(f"{path}/vocal.wav").as_posix())

@@ -24,7 +24,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 
-
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
@@ -179,7 +178,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
         MainWindow.setCentralWidget(self.centralwidget)
 
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -187,7 +185,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(box_lang.get("Video Toolbox"))
 
         self.label_10.setText(box_lang.get("Subtitle lang"))
-        self.label_8.setText("TTS" if config.defaulelang!='zh'else'配音渠道')
+        self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')
         self.label_11.setText(box_lang.get("Select role"))
         self.label_12.setText(box_lang.get("Speed change"))
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
@@ -199,5 +197,3 @@ class Ui_MainWindow(object):
         self.hecheng_out.setPlaceholderText(box_lang.get(
             "Set the name of the generated audio file here. If not filled in, use the time and date command"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))
-
-
