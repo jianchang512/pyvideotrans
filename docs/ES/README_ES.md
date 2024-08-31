@@ -149,7 +149,12 @@ apt install python3.10
 
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
+<<<<<<< HEAD
 sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10  1
+=======
+
+sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 
+>>>>>>> 9485b1096d6a40a3fb6962a49df128397f10bdd5
 
 sudo update-alternatives --config python
 
