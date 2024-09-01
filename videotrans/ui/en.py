@@ -615,8 +615,7 @@ class Ui_MainWindow(object):
         self.action_tiquzimu.setCheckable(True)
 
         self.action_tiquzimu.setObjectName("action_tiquzimu")
-        self.action_yinshipinfenli = QtGui.QAction(MainWindow)
-        self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
+
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
         self.action_hun = QtGui.QAction(MainWindow)
@@ -655,6 +654,10 @@ class Ui_MainWindow(object):
         self.actionformatcover.setObjectName("formatcover")
         self.actionsubtitlescover = QtGui.QAction(MainWindow)
         self.actionsubtitlescover.setObjectName("subtitlescover")
+
+        self.action_yinshipinfenli = QtGui.QAction(MainWindow)
+        self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
+
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -723,12 +726,20 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.actionsubtitlescover)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_yinshipinfenli)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_hun)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_hebingsrt)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_clearcache)
+        self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
         self.menu.addSeparator()
-        self.menu.addAction(self.action_clearcache)
-        self.menu.addSeparator()
+
+
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_website)
@@ -770,10 +781,11 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yuyinshibie)
         self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
-        self.toolBar.addAction(self.action_yinshipinfenli)
+        self.toolBar.addAction(self.actionvideoandaudio)
+        self.toolBar.addAction(self.actionvideoandsrt)
+        self.toolBar.addAction(self.actionsubtitlescover)
+        self.toolBar.addAction(self.actionformatcover)
         self.toolBar.addAction(self.action_yingyinhebing)
-        self.toolBar.addAction(self.action_hun)
-        self.toolBar.addAction(self.action_hebingsrt)
         # 200ms后渲染文字
         QTimer.singleShot(50, self.retranslateUi)
 
@@ -869,26 +881,35 @@ class Ui_MainWindow(object):
         self.action_online.setText('免责声明' if config.defaulelang == 'zh' else 'Disclaimer')
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang == 'zh' else "Tencent Key")
         self.action_about.setText(config.uilanglist.get("Donating developers"))
+
+
         self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
-        self.action_biaozhun.setToolTip(config.uilanglist.get("Display all options for video translation and dubbing"))
+        self.action_biaozhun.setToolTip('批量进行视频翻译，并可按照需求自定义所有配置选项'  if config.defaulelang=='zh' else 'Batch video translation with all configuration options customizable on demand')
+
         self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
-        self.action_xinshoujandan.setToolTip(config.uilanglist.get("action_xinshoujandan"))
+        self.action_xinshoujandan.setToolTip('按照默认设置，一键将视频从一种语言翻译为另一种语言并嵌入字幕和配音' if config.defaulelang=='zh' else 'Translate videos from one language to another and embed subtitles and voiceovers in one click.')
+
+
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
-        self.action_yuyinshibie.setToolTip(
-            config.uilanglist.get("Recognize the sound in audio or video and output SRT text"))
+        self.action_yuyinshibie.setToolTip('批量将音频或视频中的语音识别为srt字幕' if config.defaulelang=='zh' else 'Batch recognize speech in audio or video as srt subtitles')
+
         self.action_yuyinhecheng.setText(config.uilanglist.get("From  Text  Into  Speech"))
-        self.action_yuyinhecheng.setToolTip(config.uilanglist.get("Generate audio WAV from text or SRT subtitle files"))
+        self.action_yuyinhecheng.setToolTip('根据srt字幕文件批量进行配音' if config.defaulelang=='zh' else 'Batch dubbing based on srt subtitle files')
+
         self.action_tiquzimu.setText(config.uilanglist.get("Extract Srt And Translate"))
-        self.action_tiquzimu.setToolTip(config.uilanglist.get(
-            "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language"))
+        self.action_tiquzimu.setToolTip('批量将视频中的语音识别为srt字幕' if config.defaulelang=='zh' else 'Batch recognize speech in video as srt subtitles')
+
         self.action_yinshipinfenli.setText(config.uilanglist.get("Separate Video to audio"))
         self.action_yinshipinfenli.setToolTip(config.uilanglist.get("Separate audio and silent videos from videos"))
+
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
+
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
+
         self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
-        self.action_fanyi.setToolTip(config.uilanglist.get("Translate text or subtitles"))
+        self.action_fanyi.setToolTip('将多个srt字幕文件批量进行翻译' if config.defaulelang=='zh' else 'Batch translation of multiple srt subtitle files')
 
         self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang == 'zh' else 'Combine Two Subtitles')
         self.action_hebingsrt.setToolTip(
@@ -901,11 +922,21 @@ class Ui_MainWindow(object):
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs.io TTS")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
+
         self.actionwatermark.setText('批量视频添加水印' if config.defaulelang == 'zh' else 'Add watermark to video')
         self.actionsepar.setText('人声/背景音分离' if config.defaulelang == 'zh' else 'Vocal & instrument Separate')
-        self.actionsetini.setText('选项' if config.defaulelang == 'zh' else 'Options')
-        self.actionvideoandaudio.setText('批量视频音频合并' if config.defaulelang == 'zh' else 'Batch video and audio merger')
-        self.actionvideoandsrt.setText('批量视频字幕合并' if config.defaulelang == 'zh' else 'Batch video and subtitles merger')
-        self.actionformatcover.setText('批量音视频格式转换' if config.defaulelang == 'zh' else 'Batch audio or video conversion')
-        self.actionsubtitlescover.setText(
-            '批量字幕格式转换' if config.defaulelang == 'zh' else 'Batch subtitle format conversion')
+        self.actionsetini.setText('高级选项' if config.defaulelang == 'zh' else 'Options')
+
+
+        self.actionvideoandaudio.setText('视频音频合并' if config.defaulelang == 'zh' else 'Batch video/audio merger')
+        self.actionvideoandaudio.setToolTip('批量将视频和音频一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and audio one-to-one')
+
+        self.actionvideoandsrt.setText('视频字幕合并' if config.defaulelang == 'zh' else 'Batch video/subtitles merger')
+        self.actionvideoandsrt.setToolTip('批量将视频和srt字幕一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and srt subtitles one by one.')
+
+        self.actionformatcover.setText('音视频格式转换' if config.defaulelang == 'zh' else 'Audio /Video conver')
+        self.actionformatcover.setToolTip('批量将音频和视频转换格式' if config.defaulelang == 'zh' else 'Batch convert audio and video formats')
+
+
+        self.actionsubtitlescover.setText('字幕格式转换' if config.defaulelang == 'zh' else 'Subtitle Conversion')
+        self.actionsubtitlescover.setToolTip('批量将字幕文件进行格式转换(srt/ass/vtt)' if config.defaulelang == 'zh' else 'Batch convert subtitle formats (srt/ass/vtt)')
