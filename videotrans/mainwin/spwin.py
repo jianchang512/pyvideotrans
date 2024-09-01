@@ -10,8 +10,6 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QTo
 
 from videotrans.task.job import start_thread
 from videotrans.tts import CLONE_VOICE_TTS, CHATTTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, OPENAI_TTS
-from videotrans.winform import fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi, openairecognapi, \
-    fn_subtitlescover
 
 warnings.filterwarnings('ignore')
 
@@ -59,7 +57,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fn_hunliu, \
             localllm, ott, fn_peiyin, fn_recogn, fn_separate, setini, tencent, transapi, ttsapi, fn_vas, fn_watermark, \
             fn_youtube, \
-            zh_recogn, zijiehuoshan
+            zh_recogn, zijiehuoshan,fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi, openairecognapi, \
+    fn_subtitlescover
 
         self.actionbaidu_key.triggered.connect(baidu.open)
         self.actionazure_key.triggered.connect(azure.open)
@@ -102,6 +101,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_fanyi.triggered.connect(fn_fanyisrt.open)
         self.action_yuyinshibie.triggered.connect(fn_recogn.open)
         self.action_yuyinhecheng.triggered.connect(fn_peiyin.open)
+
+        tools.del_unused_tmp()
+
 
     def initUI(self):
         self.languagename = config.langnamelist
@@ -389,9 +391,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tools.kill_ffmpeg_processes()
         except Exception:
             pass
-        tools._unlink_tmp()
         print('等待所有进程退出...')
         time.sleep(5)
+        tools._unlink_tmp()
         event.accept()
 
     # 存储本地数据

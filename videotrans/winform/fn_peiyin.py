@@ -38,7 +38,7 @@ def open():
             peiyinform.loglabel.setText(d['text'])
         elif d['type'] == 'jd':
             peiyinform.hecheng_startbtn.setText(d['text'])
-        else:
+        elif d['type']=='ok':
             peiyinform.loglabel.setText(config.transobj['quanbuend'])
             peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             peiyinform.hecheng_startbtn.setDisabled(False)
