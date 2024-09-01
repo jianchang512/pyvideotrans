@@ -63,17 +63,18 @@ class Ui_formatcover(object):
 
         self.formatlist = QtWidgets.QComboBox(formatcover)
         self.formatlist.setFixedHeight(40)
-        self.formatlist.setFixedWidth(150)
+        self.formatlist.setFixedWidth(320)
         self.formatlist.setObjectName("formatlist")
         self.formatlist.addItems(config.VIDEO_EXTS+config.AUDIO_EXITS)
 
         self.formLayout_3.addWidget(self.labelformat)
+        self.formLayout_3.addStretch()
         self.formLayout_3.addWidget(self.formatlist)
         self.gridLayout.addLayout(self.formLayout_3)
         self.gridLayout.addSpacing(30)
 
         self.startbtn = QtWidgets.QPushButton(formatcover)
-        self.startbtn.setMinimumSize(QtCore.QSize(0, 35))
+        self.startbtn.setMinimumSize(QtCore.QSize(200, 35))
         self.startbtn.setObjectName("startbtn")
         self.startbtn.setCursor(Qt.PointingHandCursor)
 
@@ -85,17 +86,25 @@ class Ui_formatcover(object):
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
-
+        self.layout_btn.addStretch()
         self.layout_btn.addWidget(self.startbtn)
-        self.layout_btn.addWidget(self.opendir)
+        self.layout_btn.addStretch()
+
+        self.layout_opendir = QtWidgets.QHBoxLayout()
+        self.layout_opendir.setObjectName("layout_opendir")
+        self.layout_opendir.addStretch()
+        self.layout_opendir.addWidget(self.opendir)
+        self.layout_opendir.addStretch()
 
         self.gridLayout.addLayout(self.layout_btn)
+        self.gridLayout.addSpacing(50)
+        self.gridLayout.addLayout(self.layout_opendir)
 
         self.retranslateUi(formatcover)
         QtCore.QMetaObject.connectSlotsByName(formatcover)
 
     def retranslateUi(self, formatcover):
-        formatcover.setWindowTitle("音视频格式转换" if config.defaulelang == 'zh' else 'Audio and video format conversion')
+        formatcover.setWindowTitle("音频视频批量格式转换" if config.defaulelang == 'zh' else 'Audio and video format conversion')
 
         self.selectbtn.setText(
             '选择要转换的文件/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')

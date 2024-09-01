@@ -63,7 +63,7 @@ class Ui_subtitlescover(object):
 
         self.formatlist = QtWidgets.QComboBox(subtitlescover)
         self.formatlist.setFixedHeight(40)
-        self.formatlist.setFixedWidth(150)
+        self.formatlist.setFixedWidth(320)
         self.formatlist.setObjectName("formatlist")
         self.formatlist.addItems([
             "srt",
@@ -72,12 +72,13 @@ class Ui_subtitlescover(object):
         ])
 
         self.formLayout_3.addWidget(self.labelformat)
+        self.formLayout_3.addStretch()
         self.formLayout_3.addWidget(self.formatlist)
         self.gridLayout.addLayout(self.formLayout_3)
         self.gridLayout.addSpacing(30)
 
         self.startbtn = QtWidgets.QPushButton(subtitlescover)
-        self.startbtn.setMinimumSize(QtCore.QSize(0, 35))
+        self.startbtn.setMinimumSize(QtCore.QSize(200, 35))
         self.startbtn.setObjectName("startbtn")
         self.startbtn.setCursor(Qt.PointingHandCursor)
 
@@ -89,25 +90,33 @@ class Ui_subtitlescover(object):
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
-
+        self.layout_btn.addStretch()
         self.layout_btn.addWidget(self.startbtn)
-        self.layout_btn.addWidget(self.opendir)
+        self.layout_btn.addStretch()
+
+        self.opendir_layout = QtWidgets.QHBoxLayout()
+        self.opendir_layout.setObjectName("opendir_layout")
+        self.opendir_layout.addStretch()
+        self.opendir_layout.addWidget(self.opendir)
+        self.opendir_layout.addStretch()
 
         self.gridLayout.addLayout(self.layout_btn)
+        self.gridLayout.addSpacing(50)
+        self.gridLayout.addLayout(self.opendir_layout)
 
         self.retranslateUi(subtitlescover)
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
 
     def retranslateUi(self, subtitlescover):
-        subtitlescover.setWindowTitle("字幕格式转换" if config.defaulelang == 'zh' else 'Subtitle format conversion')
+        subtitlescover.setWindowTitle("字幕批量格式转换" if config.defaulelang == 'zh' else 'Subtitle format conversion')
 
         self.selectbtn.setText(
-            '选择要转换的文件/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
+            '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
 
-        self.labelformat.setText('要转换到的目标格式' if config.defaulelang == 'zh' else 'Target format')
+        self.labelformat.setText('要转换到的字幕格式' if config.defaulelang == 'zh' else 'Target format')
 
         self.pathdir.setPlaceholderText(
-            '选择要转换的文件/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
+            '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
 
         self.startbtn.setText('开始转换' if config.defaulelang == 'zh' else 'Start')
         self.opendir.setText('打开结果目录' if config.defaulelang == 'zh' else 'Open the results catalog')

@@ -26,7 +26,6 @@ class Ui_videoandaudio(object):
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(videoandaudio.sizePolicy().hasHeightForWidth())
         videoandaudio.setSizePolicy(sizePolicy)
         videoandaudio.setMaximumSize(QtCore.QSize(643, 300))
@@ -82,6 +81,7 @@ class Ui_videoandaudio(object):
         self.loglabel = QLabel(videoandaudio)
         self.loglabel.setStyleSheet('''color:#148cd2''')
         self.verticalLayout.addWidget(self.resultbtn)
+        self.verticalLayout.addSpacing(30)
         self.verticalLayout.addWidget(self.loglabel)
         self.horizontalLayout_3.addLayout(self.verticalLayout)
 
@@ -90,7 +90,7 @@ class Ui_videoandaudio(object):
         QMetaObject.connectSlotsByName(videoandaudio)
 
     def retranslateUi(self, videoandaudio):
-        videoandaudio.setWindowTitle("批量视频音频合并" if config.defaulelang == 'zh' else 'Batch video and audio merger')
+        videoandaudio.setWindowTitle("批量视频和音频合并" if config.defaulelang == 'zh' else 'Batch video and audio merger')
         self.folder.setPlaceholderText(
             "选择要合并的视频音频所在文件夹" if config.defaulelang == 'zh' else 'Select the folder where you want to merge the video and audio')
         self.videobtn.setText("选择文件夹" if config.defaulelang == 'zh' else 'Select the folder')
