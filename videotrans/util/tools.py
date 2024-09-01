@@ -1401,6 +1401,23 @@ def _unlink_tmp():
     except Exception:
         pass
 
+# 启动删除未使用的 临时文件夹，处理关闭时未能正确删除而遗留的
+def del_unused_tmp():
+    remain=Path(config.TEMP_DIR).name
+    def get_tmplist(pathdir):
+        dirs=[]
+        for p in Path(pathdir).iterdir():
+            if p.is_dir() and re.match(r'tmp\d{4}',p.name) and p.name !=remain:
+                dirs.append(p.resolve().as_posix())
+        return dirs
+    wait_remove=[*get_tmplist(config.ROOT_DIR),*get_tmplist(config.HOME_DIR)]
+
+    try:
+        for p in wait_remove:
+            shutil.rmtree(p,ignore_errors=True)
+    except Exception:
+        pass
+
 
 def shutdown_system():
     # 获取当前操作系统类型

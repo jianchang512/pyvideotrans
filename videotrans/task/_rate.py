@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from pathlib import Path
 
@@ -410,7 +411,6 @@ class SpeedRate:
             self.queue_tts[i] = it
             tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", type="logs", uuid=self.uuid)
 
-        # print(f'合成音频后时长={len(merged_audio)},{video_time=}')
         # 移除尾部静音
         if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
             # 末尾补静音
@@ -421,7 +421,19 @@ class SpeedRate:
         try:
             wavfile = self.cache_folder + "/target.wav"
             merged_audio.export(wavfile, format="wav")
-            tools.wav2m4a(wavfile, self.target_audio)
+            ext=Path(self.target_audio).suffix.lower()
+            if ext =='.wav':
+                shutil.copy2(wavfile,self.target_audio)
+            elif ext=='.m4a':
+                tools.wav2m4a(wavfile, self.target_audio)
+            else:
+                cmd = [
+                    "-y",
+                    "-i",
+                    Path(wavfile).as_posix(),
+                    self.target_audio
+                ]
+                tools.runffmpeg(cmd)
+
         except Exception as e:
             raise Exception(f'[error]merged_audio:{str(e)}')
-        # print(f'合成音频返回时 {len(merged_audio)=}')
