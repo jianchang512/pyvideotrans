@@ -52,9 +52,7 @@
 
 ----
 
-
-
-https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-ba24-7a95d2e13d58
+![pyvideotrans-home](https://github.com/user-attachments/assets/b2f95a7f-b4e5-4a6d-b2a5-eb6cd22531e0)
 
 
 # 预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
@@ -292,7 +290,9 @@ pip install ctranslate2==3.24.0
 
 # 软件预览截图
 
-![image](https://github.com/jianchang512/pyvideotrans/assets/3378335/55faecd9-5ac6-4962-b0f3-ef2283000c64)
+![pyvideotrans-home](https://github.com/user-attachments/assets/b2f95a7f-b4e5-4a6d-b2a5-eb6cd22531e0)
+
+![image](https://github.com/user-attachments/assets/b5d1b5fb-c579-477c-bca4-6c5e9aa14d7d)
 
 
 
