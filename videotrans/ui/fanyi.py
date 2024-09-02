@@ -18,7 +18,7 @@ class Ui_fanyisrt(object):
     def setupUi(self, fanyisrt):
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
-        fanyisrt.resize(760, 535)
+        fanyisrt.resize(900, 535)
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
         self.files = []
@@ -67,6 +67,22 @@ class Ui_fanyisrt(object):
         self.fanyi_target.setMinimumSize(QtCore.QSize(120, 30))
         self.fanyi_target.setObjectName("fanyi_target")
         self.horizontalLayout_18.addWidget(self.fanyi_target)
+
+        self.out_format=QtWidgets.QComboBox()
+
+        self.out_format.addItems([
+            "单语字幕" if config.defaulelang=='zh' else 'Monolingual subtitles',
+            "目标语言在上(双语)"if config.defaulelang=='zh' else 'Target language up(Bilingual)',
+            "目标语言在下(双语)"if config.defaulelang=='zh' else 'Target language under(Bilingual)'
+        ])
+
+        label_out=QtWidgets.QLabel()
+        label_out.setText('输出字幕' if config.defaulelang=='zh' else 'Output')
+        label_out.setFixedWidth(60)
+        self.horizontalLayout_18.addWidget(label_out)
+        self.horizontalLayout_18.addWidget(self.out_format)
+
+
         self.label_614 = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -93,8 +109,7 @@ class Ui_fanyisrt(object):
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
         self.fanyi_import = QtWidgets.QPushButton()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
+
         sizePolicy.setHeightForWidth(self.fanyi_import.sizePolicy().hasHeightForWidth())
         self.fanyi_import.setSizePolicy(sizePolicy)
         self.fanyi_import.setMinimumSize(QtCore.QSize(200, 30))
@@ -143,3 +158,4 @@ class Ui_fanyisrt(object):
         self.daochu.setText(config.transobj['dakaizimubaocunmulu'])
         self.fanyi_start.setText(box_lang.get("Start>"))
         self.fanyi_targettext.setPlaceholderText(box_lang.get("The translation result is displayed here"))
+

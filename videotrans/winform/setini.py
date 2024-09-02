@@ -37,7 +37,7 @@ def open():
 
     def alert(btn):
         name = btn.objectName()[4:]
-        QMessageBox.information(setiniw, f'Help {name}', setiniw.alertnotice[name])
+        QMessageBox.information(setiniw, f'Help {setiniw.titles[name]}', setiniw.alertnotice[name])
 
     from videotrans.component import SetINIForm
     setiniw = config.child_forms.get('setiniw')

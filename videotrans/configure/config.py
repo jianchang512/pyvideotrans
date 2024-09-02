@@ -266,7 +266,9 @@ def parse_init():
         "gemini_model": "gemini-1.5-pro,gemini-pro,gemini-1.5-flash",
         "zh_hant_s": True,
         "azure_lines": 150,
-        "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
+        "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
+        "google_trans_newadd":""
+
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)

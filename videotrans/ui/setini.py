@@ -123,6 +123,7 @@ class Ui_setini(object):
                 "trans_thread": "同时翻译的字幕条数",
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
+                "google_trans_newadd":"批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages"
 
             },
             "dubbing": {
@@ -188,7 +189,8 @@ class Ui_setini(object):
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
             "translation_wait": "翻译后暂停时间/s",
-            "gemini_model": "Gemini模型列表"
+            "gemini_model": "Gemini模型列表",
+            "google_trans_newadd":"Google字幕翻译新增语言代码"
         }
         # 中文分区
         self.heads = {
@@ -271,7 +273,8 @@ class Ui_setini(object):
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
                     "retries": "Number of retries when translation fails",
-                    "translation_wait": "Pause time in seconds after each translation, used to limit request frequency"
+                    "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
+                    "google_trans_newadd":"Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages"
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
@@ -348,14 +351,15 @@ class Ui_setini(object):
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",
                 "translation_wait": "Pause Time After Translation",
-                "gemini_model": "Gemini Model List"
+                "gemini_model": "Gemini Model List",
+                "google_trans_newadd":"Google translation subtitles new language code"
             }
         self.alertnotice = {}
         # 界面语言
         # tmp = QtWidgets.QHBoxLayout()
         label_title = QtWidgets.QLabel()
         label_title.setText(
-            "点击左侧标题将弹出帮助说明" if config.defaulelang == 'zh' else 'Clicking  title on the left will show help ')
+            "点击左侧标题将弹出帮助说明,保存设置后，已打开的子功能窗口需关闭后重新打开方生效" if config.defaulelang == 'zh' else 'Clicking  title on the left will show help ')
         label_title.setObjectName(f"label_head")
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center""")

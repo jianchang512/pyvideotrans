@@ -319,6 +319,13 @@ def get_code(*, show_text=None):
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
     target_list = None
+
+    # 新增的自定义语言翻译代码，该代码既不在 LANG_CODE 也不在 config.rev_langlist，原羌返回即可
+    customize_source_code=show_source if show_source and  show_source not in LANG_CODE and show_source not in config.rev_langlist else None
+    customize_target_code=show_target if show_target and  show_target not in LANG_CODE and show_target not in config.rev_langlist else None
+    if customize_source_code or customize_target_code:
+        return customize_source_code,customize_target_code
+
     if show_source:
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_source]]
@@ -350,6 +357,8 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None):
+    if translate_type in [GOOGLE_INDEX,FREEGOOGLE_INDEX]:
+        return True
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
         chatgpt.open()
         return False
@@ -408,6 +417,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 6
 
     if show_target:
+        # 新增自定义语言代码
+        if show_target not in LANG_CODE and show_target not in config.rev_langlist:
+            return True
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
         if target_list[index].lower() == 'no':
