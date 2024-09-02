@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import queue
@@ -16,12 +17,13 @@ from videotrans.util.tools import get_subtitle_from_srt
 class FanyiWorker(QThread):
     uito = Signal(str)
 
-    def __init__(self, type, target_language, files, parent=None):
+    def __init__(self, type=type, target_language=None, files=None, parent=None,bilingual=0):
         super(FanyiWorker, self).__init__(parent)
         self.type = type
         self.target_language = target_language
         self.files = files
         self.srts = ""
+        self.bilingual=bilingual
         self.uuid = tools.get_md5(f"{time.time()}{','.join(files)}{type}{target_language}")
         self.end = False
 
@@ -73,15 +75,21 @@ class FanyiWorker(QThread):
                 self.post({"type": "set_source", "text": Path(f).read_text(encoding='utf-8')})
                 srt = run_trans(
                     translate_type=self.type,
-                    text_list=rawsrt,
+                    text_list=copy.deepcopy(rawsrt),
                     target_language_name=self.target_language,
                     uuid=self.uuid,
                     set_p=True)
                 srts_tmp = ""
-                for it in srt:
-                    srts_tmp += f"{it['line']}\n{it['time']}\n{it['text']}\n\n"
-                with open(target + '/' + os.path.basename(f), 'w', encoding='utf-8') as f:
-                    f.write(srts_tmp)
+                for i,it in enumerate(srt):
+                    srts_tmp += f"{it['line']}\n{it['time']}"
+                    if self.bilingual==2:
+                        srts_tmp+=f"\n{rawsrt[i]['text']}\n{it['text']}"
+                    elif self.bilingual==1:
+                        srts_tmp+=f"\n{it['text']}\n{rawsrt[i]['text']}"
+                    else:
+                        srts_tmp+=f"\n{it['text']}"
+                    srts_tmp+="\n\n"
+                Path(target + f'/{self.target_language}-{self.bilingual}-' + os.path.basename(f)).write_text(srts_tmp,encoding='utf-8')
                 self.post({"type": "replace", "text": srts_tmp})
                 self.post({"type": "logs", "text": f'{round((i + 1) * 100 / len(self.files), 2)}%'})
             except Exception as e:

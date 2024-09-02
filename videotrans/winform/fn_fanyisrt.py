@@ -85,7 +85,7 @@ def open():
         fanyiform.fanyi_sourcetext.clear()
         fanyiform.loglabel.setText('')
 
-        fanyi_task = FanyiWorker(translate_type, target_language, fanyiform.files, fanyiform)
+        fanyi_task = FanyiWorker(type=translate_type, target_language=target_language, files=fanyiform.files, parent=fanyiform,bilingual=fanyiform.out_format.currentIndex())
         fanyi_task.uito.connect(feed)
         fanyi_task.start()
 
@@ -102,24 +102,47 @@ def open():
         if translator.is_allow_translate(translate_type=fanyiform.fanyi_translate_type.currentIndex(), show_target=t,
                                          win=fanyiform) is not True:
             return
+    # 获取新增的google翻译语言代码
+    def get_google_trans_newcode():
+        new_langcode=[]
+        if config.settings['google_trans_newadd']:
+            new_langcode=config.settings['google_trans_newadd'].strip().split(',')
+        return new_langcode
+
+    # 更新目标语言列表
+    def update_target_language(is_google=False):
+        current_target=fanyiform.fanyi_target.currentText()
+        config.settings = config.parse_init()
+        language_namelist=["-"] + config.langnamelist
+        if is_google or fanyiform.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX]:
+            language_namelist+=get_google_trans_newcode()
+        fanyiform.fanyi_target.clear()
+        fanyiform.fanyi_target.addItems(language_namelist)
+        if current_target and current_target!='-' and current_target in language_namelist:
+            fanyiform.fanyi_target.setCurrentText(current_target)
+
+   # 翻译渠道变化时重新设置目标语言
+    def translate_type_change(idx):
+        update_target_language(is_google=idx in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX])
+        target_lang_change(fanyiform.fanyi_target.currentText())
 
     from videotrans.component import Fanyisrt
     try:
         fanyiform = config.child_forms.get('fanyiform')
         if fanyiform is not None:
             fanyiform.show()
+            update_target_language()
             fanyiform.raise_()
             fanyiform.activateWindow()
             return
         fanyiform = Fanyisrt()
         config.child_forms['fanyiform'] = fanyiform
-        fanyiform.fanyi_target.addItems(["-"] + config.langnamelist)
+        fanyiform.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
+        update_target_language(is_google=True)
         fanyiform.fanyi_target.currentTextChanged.connect(target_lang_change)
         fanyiform.fanyi_import.clicked.connect(fanyi_import_fun)
         fanyiform.fanyi_start.clicked.connect(fanyi_start_fun)
-        fanyiform.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
-        fanyiform.fanyi_translate_type.currentIndexChanged.connect(
-            lambda: target_lang_change(fanyiform.fanyi_target.currentText()))
+        fanyiform.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
 
         fanyiform.fanyi_sourcetext = QPlainTextEdit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
