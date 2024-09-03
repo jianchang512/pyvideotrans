@@ -36,6 +36,7 @@ from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.srthebing import Ui_srthebing
+from videotrans.ui.subtitle_editor import Ui_subtitleEditor
 from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.transapi import Ui_transapiform
@@ -371,4 +372,10 @@ class SubtitlescoverForm(QDialog, Ui_subtitlescover):  # <===
     def __init__(self, parent=None):
         super(SubtitlescoverForm, self).__init__(parent)
         self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class SubtitleEditer(Ui_subtitleEditor):  # <===
+    def __init__(self):
+        super(SubtitleEditer, self).__init__()
+        # self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))

@@ -51,7 +51,7 @@ LANG_CODE = {
         "zh-cn",  # google通道
         "chi",  # 字幕嵌入语言
         "zh",  # 百度通道
-        "ZH",  # deepl deeplx通道
+        "ZH-HANS",  # deepl deeplx通道
         "zh",  # 腾讯通道
         "zh",  # OTT通道
         "zh-Hans",  # 微软翻译
@@ -61,7 +61,7 @@ LANG_CODE = {
         "zh-tw",
         "chi",
         "cht",
-        "ZH",
+        "ZH-HANT",
         "zh-TW",
         "zt",
         "zh-Hant",
@@ -312,9 +312,9 @@ def get_code(*, show_text=None):
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
-# translate_type翻译通道
-# show_source翻译后显示的原语言名称
-# show_target 翻译后显示的目标语言名称
+# translate_type翻译通道索引
+# show_source翻译后显示的原语言名称或 -
+# show_target 翻译后显示的目标语言名称 或 -
 # 如果是cli，则show均是语言代码
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
@@ -326,10 +326,10 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if customize_source_code or customize_target_code:
         return customize_source_code,customize_target_code
 
-    if show_source:
+    if show_source and show_source !='-':
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_source]]
-    if show_target:
+    if show_target and show_target!='-':
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
     if translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:

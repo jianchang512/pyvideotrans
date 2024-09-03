@@ -23,7 +23,7 @@ contourpy==1.1.1
 ctranslate2
 cycler==0.12.1
 decorator==4.4.2
-deepl==1.16.1
+deepl
 distro==1.8.0
 edge-tts==6.1.11
 elevenlabs==0.2.27
@@ -150,8 +150,8 @@ srt==3.5.2
 stack-data==0.6.3
 sympy==1.12
 tbb==2021.11.0;sys_platform == 'win32'
-tencentcloud-sdk-python-common==3.0.1032
-tencentcloud-sdk-python-tmt==3.0.1032
+tencentcloud-sdk-python-common
+tencentcloud-sdk-python-tmt
 termcolor==2.3.0
 threadpoolctl==3.2.0
 tiktoken==0.6.0

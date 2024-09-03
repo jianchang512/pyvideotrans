@@ -166,10 +166,21 @@ class Ui_peiyin(object):
         self.pitch_rate.setMaximum(100)
         self.pitch_rate.setObjectName("pitch_rate")
 
+        self.out_format_label=QtWidgets.QLabel(text='输出格式' if config.defaulelang=='zh' else 'Out format')
+
+        self.out_format=QtWidgets.QComboBox()
+        self.out_format.addItems([
+            'wav',
+            "mp3",
+            "m4a"
+        ])
+
         self.edge_volume_layout.addWidget(self.volume_label)
         self.edge_volume_layout.addWidget(self.volume_rate)
         self.edge_volume_layout.addWidget(self.pitch_label)
         self.edge_volume_layout.addWidget(self.pitch_rate)
+        self.edge_volume_layout.addWidget(self.out_format_label)
+        self.edge_volume_layout.addWidget(self.out_format)
 
         self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
         self.hecheng_startbtn = QtWidgets.QPushButton()

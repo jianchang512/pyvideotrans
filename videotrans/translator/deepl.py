@@ -29,7 +29,7 @@ def update_proxy(type='set'):
                 os.environ['all_proxy'] = proxy
 
 
-def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code="", uuid=None):
+def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code=None, uuid=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -52,10 +52,15 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
     err = ""
 
     def get_content(data):
-        config.logger.info(f'[DeepL]请求数据:{data=}')
+        config.logger.info(f'[DeepL]请求数据:{data=},{config.params["deepl_gid"]=}')
+
         result = deepltranslator.translate_text(
             data['text'],
-            target_lang=data["target_language"] if not re.match(r'^zh', data["target_language"], re.I) else "ZH")
+            source_lang=source_code.upper()[:2] if source_code else None,
+            target_lang=data['target_lang'],
+            glossary=config.params['deepl_gid'] if config.params['deepl_gid'] else None
+        )
+
         config.logger.info(f'[DeepL]返回:{result=}')
         return result.text
 
@@ -99,7 +104,7 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 source_length = len(it)
                 data = {
                     "text": "\n".join(it),
-                    "target_language": target_language
+                    "target_lang": target_language
                 }
                 result = get_content(data)
                 result = tools.cleartext(result).split("\n")

@@ -30,6 +30,7 @@ class WorkerTTS(QThread):
                  tts_type=None,
                  voice_autorate=False,
                  langcode=None,
+                 out_ext='wav',
                  parent=None):
         super(WorkerTTS, self).__init__(parent)
         self.volume = volume
@@ -38,6 +39,7 @@ class WorkerTTS(QThread):
         self.files = files
         self.role = role
         self.rate = rate
+        self.out_ext=out_ext
         self.wavname = wavname
         self.tts_type = tts_type
         self.langcode = langcode
@@ -45,7 +47,7 @@ class WorkerTTS(QThread):
         self.tmpdir = config.TEMP_HOME
         Path(self.tmpdir).mkdir(parents=True, exist_ok=True)
         self.uuid = tools.get_md5(
-            f"{time.time()}{role}{rate}{volume}{pitch}{voice_autorate}{','.join(files)}{tts_type}{langcode}")
+            f"{time.time()}{out_ext}{role}{rate}{volume}{pitch}{voice_autorate}{','.join(files)}{tts_type}{langcode}")
         self.end = False
 
     def run(self):
@@ -136,7 +138,7 @@ class WorkerTTS(QThread):
                     shoud_audiorate=self.voice_autorate,
                     uuid=self.uuid,
                     # 处理后的配音文件
-                    target_audio=f'{self.wavname}-{item["file"]}.wav'
+                    target_audio=f'{self.wavname}-{Path(item["file"]).stem}.{self.out_ext}'
                 )
                 audio_inst.run()
             except Exception as e:

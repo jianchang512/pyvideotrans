@@ -551,6 +551,8 @@ def wav2m4a(wavfile, m4afile, extra=None):
         Path(wavfile).as_posix(),
         "-c:a",
         "aac",
+        "-ar",
+        "48000",
         Path(m4afile).as_posix()
     ]
     if extra:
@@ -563,6 +565,8 @@ def wav2mp3(wavfile, mp3file, extra=None):
     cmd = [
         "-y",
         "-i",
+        "-ar",
+        "48000",
         Path(wavfile).as_posix(),
         Path(mp3file).as_posix()
     ]

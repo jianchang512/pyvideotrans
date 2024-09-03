@@ -431,6 +431,8 @@ class SpeedRate:
                     "-y",
                     "-i",
                     Path(wavfile).as_posix(),
+                    "-ar",
+                    "48000",
                     self.target_audio
                 ]
                 tools.runffmpeg(cmd)

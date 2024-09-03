@@ -17,7 +17,7 @@ from videotrans.util.tools import get_subtitle_from_srt
 class FanyiWorker(QThread):
     uito = Signal(str)
 
-    def __init__(self, type=type, target_language=None, files=None, parent=None,bilingual=0):
+    def __init__(self, type=type, target_language=None, files=None, parent=None,bilingual=0,source_code=None):
         super(FanyiWorker, self).__init__(parent)
         self.type = type
         self.target_language = target_language
@@ -26,6 +26,7 @@ class FanyiWorker(QThread):
         self.bilingual=bilingual
         self.uuid = tools.get_md5(f"{time.time()}{','.join(files)}{type}{target_language}")
         self.end = False
+        self.source_code=source_code
 
     def post(self, msg):
         self.uito.emit(json.dumps(msg))
@@ -51,7 +52,7 @@ class FanyiWorker(QThread):
         # 开始翻译,从目标文件夹读取原始字幕
         config.box_trans = "ing"
         if not self.files:
-            self.post({"type": 'error', 'text': 'no srt file'})
+            self.post({"type": 'error', 'text': '必须导入srt字幕文件' if config.defaulelang=='zh' else 'Must import srt subtitle files'})
             return
         target = config.HOME_DIR + '/translate'
         Path(target).mkdir(parents=True, exist_ok=True)
@@ -78,6 +79,7 @@ class FanyiWorker(QThread):
                     text_list=copy.deepcopy(rawsrt),
                     target_language_name=self.target_language,
                     uuid=self.uuid,
+                    source_code=self.source_code,
                     set_p=True)
                 srts_tmp = ""
                 for i,it in enumerate(srt):
