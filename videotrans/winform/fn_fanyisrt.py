@@ -71,6 +71,7 @@ def open():
         config.settings = config.parse_init()
         target_language = fanyiform.fanyi_target.currentText()
         translate_type = fanyiform.fanyi_translate_type.currentIndex()
+        source_language,_=translator.get_source_target_code(show_source=fanyiform.fanyi_source.currentText(), translate_type=translate_type)
         if target_language == '-':
             return QMessageBox.critical(fanyiform, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = fanyiform.fanyi_proxy.text()
@@ -82,10 +83,12 @@ def open():
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         if rs is not True:
             return False
+        if len(fanyiform.files)<1:
+            return QMessageBox.critical(fanyiform,config.transobj['anerror'],'必须导入srt字幕文件' if config.defaulelang=='zh' else 'Must import srt subtitle files')
         fanyiform.fanyi_sourcetext.clear()
         fanyiform.loglabel.setText('')
 
-        fanyi_task = FanyiWorker(type=translate_type, target_language=target_language, files=fanyiform.files, parent=fanyiform,bilingual=fanyiform.out_format.currentIndex())
+        fanyi_task = FanyiWorker(type=translate_type, target_language=target_language, files=fanyiform.files, parent=fanyiform,bilingual=fanyiform.out_format.currentIndex(),source_code=source_language if source_language and source_language!='-' else None)
         fanyi_task.uito.connect(feed)
         fanyi_task.start()
 
@@ -140,6 +143,7 @@ def open():
         fanyiform.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         update_target_language(is_google=True)
         fanyiform.fanyi_target.currentTextChanged.connect(target_lang_change)
+        fanyiform.fanyi_source.addItems(['-']+config.langnamelist)
         fanyiform.fanyi_import.clicked.connect(fanyi_import_fun)
         fanyiform.fanyi_start.clicked.connect(fanyi_start_fun)
         fanyiform.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)

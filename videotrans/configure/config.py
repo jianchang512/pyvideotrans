@@ -459,12 +459,15 @@ Translation:
 
         "deepl_authkey": "",
         "deepl_api": "",
+        "deepl_gid": "",
+
         "deeplx_address": "",
 
         "ott_address": "",
 
         "tencent_SecretId": "",
         "tencent_SecretKey": "",
+        "tencent_termlist":"",
 
         "baidu_appid": "",
         "baidu_miyue": "",

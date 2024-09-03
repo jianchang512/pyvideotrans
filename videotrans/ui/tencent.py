@@ -78,8 +78,26 @@ class Ui_tencentform(object):
         self.tencent_SecretKey.setMinimumSize(QtCore.QSize(210, 35))
         self.tencent_SecretKey.setObjectName("tencent_SecretKey")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tencent_SecretKey)
+
+
         self.verticalLayout.addLayout(self.formLayout)
+
+        self.formLayout_term = QtWidgets.QFormLayout()
+        # self.formLayout_term.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        # self.formLayout_term.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        # self.formLayout_term.setObjectName("formLayout_term")
+        self.label_term = QtWidgets.QLabel(tencentform)
+        self.label_term.setMinimumSize(QtCore.QSize(100, 35))
+        self.tencent_term = QtWidgets.QLineEdit(tencentform)
+        self.tencent_term.setMinimumSize(QtCore.QSize(0, 35))
+        self.formLayout_term.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_term)
+        self.formLayout_term.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tencent_term)
+
+        self.verticalLayout.addLayout(self.formLayout_term)
+
         self.verticalLayout_2.addLayout(self.verticalLayout)
+
+
         self.set_tencent = QtWidgets.QPushButton(tencentform)
         self.set_tencent.setMinimumSize(QtCore.QSize(0, 35))
         self.set_tencent.setObjectName("set_tencent")
@@ -91,6 +109,8 @@ class Ui_tencentform(object):
 
     def retranslateUi(self, tencentform):
         tencentform.setWindowTitle("腾讯翻译")
-        self.label.setText("Tencent SecretId")
-        self.label_2.setText("Tencent SecretKey")
+        self.label.setText("SecretId")
+        self.label_term.setText("术语库id")
+        self.tencent_term.setPlaceholderText("术语库id,多个以英文逗号隔开")
+        self.label_2.setText("SecretKey")
         self.set_tencent.setText('保存' if config.defaulelang == 'zh' else "Save")

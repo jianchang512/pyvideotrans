@@ -148,8 +148,7 @@ def open():
             newrole = role.replace('/', '-').replace('\\', '-')
             filename = f"{newrole}-rate{rate}-volume{volume}-pitch{pitch}"
             filename = filename.replace('%', '').replace('+', '')
-        else:
-            filename = filename.replace('.wav', '')
+
 
         wavname = f"{RESULT_DIR}/{filename}"
 
@@ -169,6 +168,7 @@ def open():
             volume=volume,
             langcode=langcode,
             wavname=wavname,
+            out_ext=peiyinform.out_format.currentText(),
             tts_type=tts_type,
             voice_autorate=peiyinform.voice_autorate.isChecked(),
             parent=peiyinform)

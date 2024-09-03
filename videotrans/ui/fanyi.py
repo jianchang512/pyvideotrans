@@ -18,7 +18,7 @@ class Ui_fanyisrt(object):
     def setupUi(self, fanyisrt):
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
-        fanyisrt.resize(900, 535)
+        fanyisrt.resize(1000, 535)
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
         self.files = []
@@ -47,6 +47,14 @@ class Ui_fanyisrt(object):
         self.fanyi_translate_type.setMinimumSize(QtCore.QSize(100, 30))
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
         self.horizontalLayout_18.addWidget(self.fanyi_translate_type)
+
+        self.label_source=QtWidgets.QLabel()
+        self.label_source.setMinimumSize(QtCore.QSize(0, 30))
+        self.fanyi_source = QtWidgets.QComboBox()
+        self.fanyi_source.setMinimumSize(QtCore.QSize(120, 30))
+
+        self.horizontalLayout_18.addWidget(self.label_source)
+        self.horizontalLayout_18.addWidget(self.fanyi_source)
 
         self.label_613 = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -151,6 +159,7 @@ class Ui_fanyisrt(object):
         fanyisrt.setWindowTitle("批量字幕翻译" if config.defaulelang == 'zh' else 'Translation Subtitles')
         self.label_13.setText(box_lang.get("Translation channels"))
         self.label_613.setText(box_lang.get("Target lang"))
+        self.label_source.setText('原始语言' if config.defaulelang=='zh' else 'Source language')
         self.label_614.setText(box_lang.get("Proxy"))
         self.fanyi_proxy.setPlaceholderText(
             box_lang.get("Failed to access Google services. Please set up the proxy correctly"))

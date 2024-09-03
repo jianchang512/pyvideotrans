@@ -96,9 +96,10 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     "SourceText": "\n".join(it),
                     "Source": "auto",
                     "Target": target_language,
-                    "ProjectId": 0
+                    "ProjectId": 0,
                 }
-
+                if config.params['tencent_termlist']:
+                    data['TermRepoIDList']=config.params['tencent_termlist'].split(',')
                 res_trans = get_content(data)
                 result = tools.cleartext(res_trans).split("\n")
                 result_length = len(result)

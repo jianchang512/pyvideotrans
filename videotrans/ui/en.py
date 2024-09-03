@@ -618,8 +618,11 @@ class Ui_MainWindow(object):
 
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
-        self.action_hun = QtGui.QAction(MainWindow)
 
+        self.action_subtitleediter = QtGui.QAction(MainWindow)
+        self.action_subtitleediter.setObjectName("action_subtitleediter")
+
+        self.action_hun = QtGui.QAction(MainWindow)
         self.action_hun.setObjectName("action_hun")
 
         self.action_fanyi = QtGui.QAction(MainWindow)
@@ -786,6 +789,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionsubtitlescover)
         self.toolBar.addAction(self.actionformatcover)
         self.toolBar.addAction(self.action_yingyinhebing)
+        self.toolBar.addAction(self.action_subtitleediter)
         # 200ms后渲染文字
         QTimer.singleShot(50, self.retranslateUi)
 
@@ -905,6 +909,9 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
 
+        self.action_subtitleediter.setText('导入字幕并编辑' if config.defaulelang=='zh' else 'Subtitle Import Editing ')
+        self.action_subtitleediter.setToolTip('导入字幕并修改后导出' if config.defaulelang=='zh' else 'Importing subtitles and exporting them after modifying them')
+
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
 
@@ -928,10 +935,10 @@ class Ui_MainWindow(object):
         self.actionsetini.setText('高级选项' if config.defaulelang == 'zh' else 'Options')
 
 
-        self.actionvideoandaudio.setText('视频音频合并' if config.defaulelang == 'zh' else 'Batch video/audio merger')
+        self.actionvideoandaudio.setText('视频音频合并' if config.defaulelang == 'zh' else 'video/audio merger')
         self.actionvideoandaudio.setToolTip('批量将视频和音频一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and audio one-to-one')
 
-        self.actionvideoandsrt.setText('视频字幕合并' if config.defaulelang == 'zh' else 'Batch video/subtitles merger')
+        self.actionvideoandsrt.setText('视频字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
         self.actionvideoandsrt.setToolTip('批量将视频和srt字幕一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and srt subtitles one by one.')
 
         self.actionformatcover.setText('音视频格式转换' if config.defaulelang == 'zh' else 'Audio /Video conver')

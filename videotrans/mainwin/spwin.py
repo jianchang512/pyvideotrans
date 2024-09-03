@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QTo
 
 from videotrans.task.job import start_thread
 from videotrans.tts import CLONE_VOICE_TTS, CHATTTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, OPENAI_TTS
+from videotrans.winform import fn_editer
 
 warnings.filterwarnings('ignore')
 
@@ -98,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yinshipinfenli.triggered.connect(fn_audiofromvideo.open)
         self.action_hun.triggered.connect(fn_hunliu.open)
         self.action_yingyinhebing.triggered.connect(fn_vas.open)
+        self.action_subtitleediter.triggered.connect(fn_editer.open)
         self.action_fanyi.triggered.connect(fn_fanyisrt.open)
         self.action_yuyinshibie.triggered.connect(fn_recogn.open)
         self.action_yuyinhecheng.triggered.connect(fn_peiyin.open)

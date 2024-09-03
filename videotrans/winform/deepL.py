@@ -8,8 +8,10 @@ def open():
     def save():
         key = deeplw.deepl_authkey.text()
         api = deeplw.deepl_api.text().strip()
+        gid = deeplw.deepl_gid.text().strip()
         config.params['deepl_authkey'] = key
         config.params['deepl_api'] = api
+        config.params['deepl_gid'] = gid
         config.getset_params(config.params)
         deeplw.close()
 
@@ -26,5 +28,7 @@ def open():
         deeplw.deepl_authkey.setText(config.params['deepl_authkey'])
     if config.params['deepl_api']:
         deeplw.deepl_api.setText(config.params['deepl_api'])
+    if config.params['deepl_gid']:
+        deeplw.deepl_gid.setText(config.params['deepl_gid'])
     deeplw.set_deepl.clicked.connect(save)
     deeplw.show()
