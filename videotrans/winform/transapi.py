@@ -1,6 +1,7 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import translator
 from videotrans.configure import config
 
 
@@ -13,10 +14,12 @@ def open():
             self.text = text
 
         def run(self):
-            from videotrans.translator.transapi import trans
+
             try:
-                t = trans(self.text, target_language="en", set_p=False, is_test=True, source_code="zh")
-                self.uito.emit(f"ok:{self.text}\n{str(t)}")
+                raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
+                text = translator.run(translate_type=translator.TRANSAPI_INDEX, text_list=raw,
+                                      target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
+                self.uito.emit(f"ok:{self.text}\n{str(text)}")
             except Exception as e:
                 self.uito.emit(str(e))
 
