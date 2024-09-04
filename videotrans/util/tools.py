@@ -22,6 +22,8 @@ from videotrans.configure import config
 
 
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
+from videotrans.configure._except import LogExcept
+
 
 def get_gptsovits_role():
     if not config.params['gptsovits_role'].strip():
@@ -274,7 +276,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
         if arg[i] == '-i' and i < len(arg) - 1:
             arg[i + 1] = Path(os.path.normpath(arg[i + 1])).as_posix()
             if not vail_file(arg[i + 1]):
-                raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
+                raise LogExcept(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
     if default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
@@ -353,10 +355,9 @@ def runffprobe(cmd):
         config.logger.exception(e)
         msg = f'ffprobe error,:{str(e)}{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
-        raise Exception(msg)
+        raise LogExcept(e)
     except Exception as e:
-        config.logger.exception(e)
-        raise
+        raise LogExcept(e)
 
 
 # 获取视频信息
@@ -365,7 +366,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     out = runffprobe(
         ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
     if out is False:
-        raise Exception(f'ffprobe error:dont get video information')
+        raise LogExcept(f'ffprobe error:dont get video information')
     out = json.loads(out)
     result = {
         "video_fps": 30,
@@ -378,7 +379,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "streams_audio": 0
     }
     if "streams" not in out or len(out["streams"]) < 1:
-        raise Exception(f'ffprobe error:streams is 0')
+        raise LogExcept(f'ffprobe error:streams is 0')
 
     if "format" in out and out['format']['duration']:
         result['time'] = int(float(out['format']['duration']) * 1000)
@@ -506,7 +507,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
         set_process(msg, type='logs', uuid=uuid)
-        raise Exception(msg)
+        raise LogExcept(msg)
 
 
 # 将字符串做 md5 hash处理
@@ -759,7 +760,7 @@ def format_srt(content):
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
         if os.path.getsize(srtfile) == 0:
-            raise Exception(config.transobj['zimuwenjianbuzhengque'])
+            raise LogExcept(config.transobj['zimuwenjianbuzhengque'])
         try:
             with open(srtfile, 'r', encoding='utf-8') as f:
                 content = f.read().strip().splitlines()
@@ -768,14 +769,14 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 with open(srtfile, 'r', encoding='gbk', errors='ignore') as f:
                     content = f.read().strip().splitlines()
             except Exception as e:
-                raise Exception(f'get srtfile error:{str(e)}')
+                raise LogExcept(f'get srtfile error:{str(e)}')
     else:
         content = srtfile.strip().splitlines()
     # remove whitespace
     content = [c for c in content if c.strip()]
 
     if len(content) < 1:
-        raise Exception("srt content is empty")
+        raise LogExcept("srt content is empty")
 
     result = format_srt(content)
 
@@ -807,7 +808,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             new_result.append(it)
             line += 1
     if len(new_result) < 1:
-        raise Exception(config.transobj['zimuwenjianbuzhengque'])
+        raise LogExcept(config.transobj['zimuwenjianbuzhengque'])
 
     return new_result
 
@@ -861,7 +862,7 @@ def save_srt(srt_list, srt_file):
                     startraw = ms_to_time_string(ms=it['start_time'])
                     endraw = ms_to_time_string(ms=it['end_time'])
                 else:
-                    raise Exception(
+                    raise LogExcept(
                         f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
             else:
                 # 存在单独开始和结束  时:分:秒,毫秒 字符串
@@ -931,7 +932,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     last_size = 0
     while True:
         if config.current_status != 'ing':
-            raise Exception("stop")
+            return
         if vail_file(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
             if last_size > 0 and current_size == last_size and t > 600:
@@ -940,10 +941,10 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
         if noextname not in config.queue_novice:
             msg = f"{noextname} split no voice videoerror:{config.queue_novice=}"
-            raise Exception(msg)
+            raise LogExcept(msg)
         if config.queue_novice[noextname] == 'error':
             msg = f"{noextname} split no voice videoerror"
-            raise Exception(msg)
+            raise LogExcept(msg)
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
@@ -1007,7 +1008,7 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
 def get_clone_role(set_p=False):
     if not config.params['clone_api']:
         if set_p:
-            raise Exception(config.transobj['bixutianxiecloneapi'])
+            raise LogExcept(config.transobj['bixutianxiecloneapi'])
         return False
     try:
         url = config.params['clone_api'].strip().rstrip('/') + "/init"
@@ -1020,7 +1021,7 @@ def get_clone_role(set_p=False):
             f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
     except Exception as e:
         if set_p:
-            raise Exception(f'clone-voice:{str(e)}')
+            raise LogExcept(f'clone-voice:{str(e)}')
     return False
 
 
@@ -1066,7 +1067,7 @@ def get_audio_time(audio_file):
     # 如果存在缓存并且没有禁用缓存
     out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', audio_file])
     if out is False:
-        raise Exception(f'ffprobe error:dont get video information')
+        raise LogExcept(f'ffprobe error:dont get video information')
     out = json.loads(out)
     return float(out['format']['duration'])
 

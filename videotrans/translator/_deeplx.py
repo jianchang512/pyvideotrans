@@ -6,6 +6,7 @@ import time
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -34,5 +35,5 @@ class DeepLX(BaseTrans):
         result = tools.cleartext(result['data'])
         if not result:
             err = f'无有效返回，{response.text=}'
-            raise Exception(err)
+            raise LogExcept(err)
         return result

@@ -1,6 +1,7 @@
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 
 
@@ -27,10 +28,10 @@ class OTT(BaseTrans):
         print(f'{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
         if response.status_code != 200:
-            raise Exception(response.text)
+            raise LogExcept(response.text)
         result = response.json()
         if "error" in result:
-            raise Exception(result['error'])
+            raise LogExcept(result['error'])
         return result['translatedText'].strip()
 
 #

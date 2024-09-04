@@ -6,6 +6,7 @@ import httpx
 from openai import OpenAI, APIError
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 shound_del = False
@@ -84,7 +85,7 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
             time.sleep(30)
             return get_voice(text=text, role=role, rate=rate, filename=filename, uuid=uuid)
         config.logger.error(f"openaiTTS合成失败：request error:" + str(e))
-        raise
+        raise LogExcept(e)
     finally:
         if shound_del:
             update_proxy(type='del')

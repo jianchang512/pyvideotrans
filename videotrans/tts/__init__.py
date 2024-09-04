@@ -2,6 +2,7 @@ import copy
 import threading
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 from videotrans.winform import openaitts as openaitts_win, ai302tts as ai302tts_win, clone as clone_win, \
     elevenlabs as elevenlabs_win, ttsapi as ttsapi_win, gptsovits as gptsovits_win, cosyvoice as cosyvoice_win, \
@@ -232,5 +233,5 @@ def run(*, queue_tts=None, language=None, set_p=True, inst=None, uuid=None):
         if not tools.vail_file(it['filename']):
             err += 1
     if err >= (n_total / 3):
-        raise Exception(f'{config.transobj["peiyindayu31"]}:{lasterror if lasterror is not True else ""}')
+        raise LogExcept(f'{config.transobj["peiyindayu31"]}:{lasterror if lasterror is not True else ""}')
     return True

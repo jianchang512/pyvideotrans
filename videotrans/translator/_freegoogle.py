@@ -2,6 +2,7 @@ import random
 
 import requests
 
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 from urllib.parse import quote
 from videotrans.configure import config
@@ -29,10 +30,10 @@ class FreeGoogle(BaseTrans):
         response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies)
         config.logger.info(f'[Google]返回数据:{response.text=}')
         if response.status_code != 200:
-            raise Exception(f'{response.status_code=},{response.reason=}')
+            raise LogExcept(f'{response.status_code=},{response.reason=}')
 
         re_result = response.json()
         if len(re_result[0]) < 1:
-            raise Exception( f'{response.text}')
+            raise LogExcept( f'{response.text}')
         return ("".join([te[0] for te in re_result[0]])).strip()
 

@@ -4,6 +4,7 @@ import time
 import azure.cognitiveservices.speech as speechsdk
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 shound_del = False
@@ -123,7 +124,7 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
         config.logger.error(f"Azure TTS合成失败" + str(e))
         if set_p:
             tools.set_process(error, type="logs", uuid=uuid)
-        raise
+        raise LogExcept(e)
     finally:
         if shound_del:
             update_proxy(type='del')

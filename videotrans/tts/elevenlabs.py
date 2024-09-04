@@ -4,6 +4,7 @@ import os
 from elevenlabs import generate, Voice, set_api_key
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 shound_del = False
@@ -49,13 +50,13 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
                 inst.precent += 0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ', uuid=uuid)
     except ConnectionError as e:
-        raise Exception(str(e))
+        raise LogExcept(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
             tools.set_process(f'elevenlabs:{error}', uuid=uuid)
         config.logger.error(f"elevenlabsTTS：request error:{error}")
-        raise
+        raise LogExcept(e)
     finally:
         if shound_del:
             update_proxy(type='del')

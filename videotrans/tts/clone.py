@@ -6,6 +6,7 @@ from pathlib import Path
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -14,7 +15,7 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
     try:
         api_url = config.params['clone_api'].strip().rstrip('/').lower()
         if len(config.params['clone_api'].strip()) < 10:
-            raise Exception(
+            raise LogExcept(
                 'clone-voice API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
         api_url = 'http://' + api_url.replace('http://', '')
@@ -63,11 +64,11 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
                     inst.precent += 0.1
                 tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs", uuid=uuid)
     except requests.ConnectionError as e:
-        raise Exception(str(e))
+        raise LogExcept(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
             tools.set_process(error, type="logs", uuid=uuid)
         config.logger.error(f"cloneVoice合成失败:{error}")
-        raise
+        raise LogExcept(e)
     return True

@@ -2,6 +2,7 @@
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -15,7 +16,7 @@ def recogn(*,
         return False
     api_url = config.params['zh_recogn_api'].strip().rstrip('/').lower()
     if not api_url:
-        raise Exception('必须填写地址')
+        raise LogExcept('必须填写地址')
     if not api_url.startswith('http'):
         api_url = f'http://{api_url}'
     if not api_url.endswith('/api'):
@@ -35,7 +36,7 @@ def recogn(*,
     else:
         res = res.json()
         if "code" not in res or res['code'] != 0:
-            raise Exception(f'{res["msg"]}')
+            raise LogExcept(f'{res["msg"]}')
         if "data" not in res or len(res['data']) < 1:
-            raise Exception('识别出错')
+            raise LogExcept('识别出错')
         return res['data']

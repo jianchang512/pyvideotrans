@@ -5,6 +5,7 @@ import sys
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 shound_del = False
@@ -62,13 +63,13 @@ def get_voice(*, text=None, role=None, volume="+0%", pitch="+0Hz", rate=None, la
                 inst.precent += 0.1
             tools.set_process(f'{config.transobj["kaishipeiyin"]} ', type="logs", uuid=uuid)
     except requests.ConnectionError as e:
-        raise Exception(str(e))
+        raise LogExcept(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
             tools.set_process(error, type="logs", uuid=uuid)
         config.logger.error(f"TTS-API自定义失败:{error}")
-        raise
+        raise LogExcept(e)
     finally:
         if shound_del:
             update_proxy(type='del')
