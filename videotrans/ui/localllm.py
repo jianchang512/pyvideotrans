@@ -28,7 +28,7 @@ class Ui_localllmform(object):
         self.label_0 = QtWidgets.QLabel(localllmform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            '兼容ChatGPT接口的本地LLM大模型AI在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
+            '兼容OpenAI ChatGPT接口的大模型可在此使用, 某些接口可能需要以 /v1 结尾' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
 
         self.label = QtWidgets.QLabel(localllmform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
@@ -89,15 +89,15 @@ class Ui_localllmform(object):
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '本地大模型API')
+        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '本地大模型及兼容OpenAI的接口')
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.localllm_template.setPlaceholderText("prompt")
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
         self.set_localllm.setText('保存' if config.defaulelang == 'zh' else "Save")
         self.test_localllm.setText('测试..' if config.defaulelang == 'zh' else "Test..")
-        self.localllm_api.setPlaceholderText('本地模型api地址' if config.defaulelang == 'zh' else 'Local LLM API url')
+        self.localllm_api.setPlaceholderText('大模型Api接口地址，不自动加/v1,如有需要请手动加' if config.defaulelang == 'zh' else 'Local LLM API url')
         self.localllm_key.setPlaceholderText("Secret key")
         self.localllm_key.setToolTip("若未设置留空即可" if config.defaulelang == 'zh' else 'If not remain empty')
-        self.label.setText("API URL")
+        self.label.setText("API接口地址" if config.defaulelang=='zh' else 'API url')
         self.label_2.setText("SK")

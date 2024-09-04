@@ -1329,7 +1329,7 @@ def set_ass_font(srtfile=None):
 
 
 # 删除翻译结果的特殊字符
-def cleartext(text):
+def cleartext(text:str):
     return text.replace('"', '').replace("'", '').replace('&#39;', '').replace('&quot;', "").strip()
 
 

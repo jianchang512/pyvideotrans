@@ -4,7 +4,22 @@ import re
 from PySide6.QtWidgets import QMessageBox
 
 from videotrans.configure import config
-from videotrans.winform import chatgpt, gemini, ai302, zijiehuoshan, azure, baidu, tencent, deepL, deepLX, localllm, ott
+from videotrans.translator._ai302 import AI302
+from videotrans.translator._azure import AzureGPT
+from videotrans.translator._baidu import Baidu
+from videotrans.translator._chatgpt import ChatGPT
+from videotrans.translator._deepl import DeepL
+from videotrans.translator._deeplx import DeepLX
+from videotrans.translator._freegoogle import FreeGoogle
+from videotrans.translator._gemini import Gemini
+from videotrans.translator._google import Google
+from videotrans.translator._huoshan import HuoShan
+from videotrans.translator._localllm import LocalLLM
+from videotrans.translator._ott import OTT
+from videotrans.translator._microsoft import Microsoft
+from videotrans.translator._tencent import Tencent
+from videotrans.translator._transapi import TransAPI
+from videotrans.winform import chatgpt, gemini, azure,baidu,tencent,deepLX,deepL,ott,localllm,transapi,zijiehuoshan,ai302
 
 # 数字代表显示顺序
 GOOGLE_INDEX = 0
@@ -26,19 +41,19 @@ FREEGOOGLE_INDEX = 14
 TRANSLASTE_NAME_LIST = [
     "Google翻译",
     "微软翻译" if config.defaulelang == 'zh' else 'Microsoft',
-    "302.ai",
-    "Baidu翻译" if config.defaulelang == 'zh' else 'Baidu',
+    "302.AI",
+    "百度翻译" if config.defaulelang == 'zh' else 'Baidu',
     "DeepL",
     "DeepLx",
     "离线翻译OTT" if config.defaulelang == 'zh' else 'OTT',
     "腾讯翻译" if config.defaulelang == 'zh' else 'Tencent',
-    "ChatGPT翻译" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
-    "本地大模型翻译" if config.defaulelang == 'zh' else 'Local LLM',
+    "OpenAI ChatGPT" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
+    "本地大模型及兼容AI" if config.defaulelang == 'zh' else 'Local LLM',
     "字节火山引擎" if config.defaulelang == 'zh' else 'volcengine.com',
     "AzureAI GPT",
-    "Google Gemini",
+    "Gemini",
     "自定义翻译API" if config.defaulelang == 'zh' else 'Customized Translation API',
-    "Free Google翻译" if config.defaulelang == 'zh' else 'Free Google Translation'
+    "FreeGoogle翻译" if config.defaulelang == 'zh' else 'Free Google'
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
@@ -365,6 +380,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type == AI302_INDEX and not config.params['ai302_key']:
         ai302.open()
         return False
+    if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
+        transapi.open()
+        return False
 
     if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang == 'zh' else 'Please input Local LLM API url'
@@ -446,40 +464,93 @@ def get_subtitle_code(*, show_target=None):
 
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
-def run(*, translate_type=None, text_list=None, target_language_name=None, set_p=True, inst=None,
+def run(*, translate_type=None,
+        text_list=None,
+        target_language_name=None,
+        set_p=True,
+        inst=None,
+        is_test=False,
         source_code=None,
         uuid=None):
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
-    if translate_type == GOOGLE_INDEX:
-        from videotrans.translator.google import trans
-    elif translate_type == FREEGOOGLE_INDEX:
-        from videotrans.translator.freegoogle import trans
-    elif translate_type == BAIDU_INDEX:
-        from videotrans.translator.baidu import trans
-    elif translate_type == DEEPL_INDEX:
-        from videotrans.translator.deepl import trans
-    elif translate_type == DEEPLX_INDEX:
-        from videotrans.translator.deeplx import trans
-    elif translate_type == OTT_INDEX:
-        from videotrans.translator.ott import trans
-    elif translate_type == TENCENT_INDEX:
-        from videotrans.translator.tencent import trans
-    elif translate_type == CHATGPT_INDEX:
-        from videotrans.translator.chatgpt import trans
-    elif translate_type == AI302_INDEX:
-        from videotrans.translator.ai302 import trans
-    elif translate_type == LOCALLLM_INDEX:
-        from videotrans.translator.localllm import trans
-    elif translate_type == ZIJIE_INDEX:
-        from videotrans.translator.huoshan import trans
-    elif translate_type == GEMINI_INDEX:
-        from videotrans.translator.gemini import trans
-    elif translate_type == AZUREGPT_INDEX:
-        from videotrans.translator.azure import trans
-    elif translate_type == MICROSOFT_INDEX:
-        from videotrans.translator.microsoft import trans
-    elif translate_type == TRANSAPI_INDEX:
-        from videotrans.translator.transapi import trans
-    else:
-        raise Exception(f"{translate_type=},{target_language_name=}")
-    return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code, uuid=uuid)
+    # if translate_type == GOOGLE_INDEX:
+    #     from videotrans.translator.google import trans
+    # elif translate_type == FREEGOOGLE_INDEX:
+    #     from videotrans.translator.freegoogle import trans
+    # elif translate_type == BAIDU_INDEX:
+    #     from videotrans.translator.baidu import trans
+    # if translate_type == DEEPL_INDEX:
+    #     from videotrans.translator.deepl import trans
+    # if translate_type == DEEPLX_INDEX:
+    #     from videotrans.translator.deeplx import trans
+    # elif translate_type == OTT_INDEX:
+    #     from videotrans.translator.ott import trans
+    # elif translate_type == TENCENT_INDEX:
+    #     from videotrans.translator.tencent import trans
+    # if translate_type == CHATGPT_INDEX:
+    #     from videotrans.translator.chatgpt import trans
+    # elif translate_type == AI302_INDEX:
+    #     from videotrans.translator.ai302 import trans
+    # elif translate_type == LOCALLLM_INDEX:
+    #     from videotrans.translator.localllm import trans
+    # elif translate_type == ZIJIE_INDEX:
+    #     from videotrans.translator.huoshan import trans
+    # elif translate_type == GEMINI_INDEX:
+    #     from videotrans.translator.gemini import trans
+    # if translate_type == AZUREGPT_INDEX:
+    #     from videotrans.translator.azure import trans
+    # elif translate_type == MICROSOFT_INDEX:
+    #     from videotrans.translator.microsoft import trans
+    # elif translate_type == TRANSAPI_INDEX:
+    #     from videotrans.translator.transapi import trans
+    # else:
+    #     raise Exception(f"{translate_type=},{target_language_name=}")
+
+    if translate_type==GOOGLE_INDEX:
+        obj=Google(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type==FREEGOOGLE_INDEX:
+        obj=FreeGoogle(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == MICROSOFT_INDEX:
+        obj=Microsoft(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == TENCENT_INDEX:
+        obj=Tencent(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == BAIDU_INDEX:
+        obj=Baidu(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == OTT_INDEX:
+        obj=OTT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == TRANSAPI_INDEX:
+        obj=TransAPI(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == DEEPL_INDEX:
+        obj=DeepL(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == DEEPLX_INDEX:
+        obj=DeepLX(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == AI302_INDEX:
+        obj=AI302(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == LOCALLLM_INDEX:
+        obj=LocalLLM(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == ZIJIE_INDEX:
+        obj=HuoShan(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == CHATGPT_INDEX:
+        obj=ChatGPT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == AZUREGPT_INDEX:
+        obj=AzureGPT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+    if translate_type == GEMINI_INDEX:
+        obj=Gemini(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
+        return obj.run()
+
+
+    # return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code, uuid=uuid)

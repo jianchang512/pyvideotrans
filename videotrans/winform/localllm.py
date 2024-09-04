@@ -4,6 +4,7 @@ import json
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import translator
 from videotrans.configure import config
 
 # 使用内置的 open 函数
@@ -19,10 +20,8 @@ def open():
 
         def run(self):
             try:
-                from videotrans.translator.localllm import trans as trans_localllm
                 raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                text = trans_localllm(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
-                                      is_test=True)
+                text = translator.run(translate_type=translator.LOCALLLM_INDEX,text_list=raw, target_language_name="en" if config.defaulelang != 'zh' else "zh",is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))

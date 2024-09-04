@@ -7,7 +7,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
-
+from videotrans import translator
 # 使用内置的 open 函数
 builtin_open = builtins.open
 
@@ -21,10 +21,8 @@ def open():
 
         def run(self):
             try:
-                from videotrans.translator.ai302 import trans as trans_ai302
                 raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                text = trans_ai302(raw, "English" if config.defaulelang != 'zh' else "Chinese", set_p=False,
-                                   is_test=True)
+                text = translator.run(translate_type=translator.AI302_INDEX,text_list=raw, target_language_name="en" if config.defaulelang != 'zh' else "zh",is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))

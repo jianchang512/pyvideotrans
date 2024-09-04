@@ -2,34 +2,43 @@
 import os
 import re
 import time
+from urllib.parse import quote
 
-import deepl
+import requests
 
 from videotrans.configure import config
+from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-shound_del = False
+
+class TransAPI(BaseTrans):
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        url = config.params['trans_api_url'].strip().rstrip('/').lower()
+        if not url.startswith('http'):
+            url = f"http://{url}"
+        self.api_url=url+ ('&' if url.find('?') > 0 else '/?')
+        pro = self._set_proxy(type='set')
+        if pro:
+            self.proxies = {"https": pro, "http": pro}
 
 
-def update_proxy(type='set'):
-    global shound_del
-    if type == 'del' and shound_del:
-        del os.environ['http_proxy']
-        del os.environ['https_proxy']
-        del os.environ['all_proxy']
-        shound_del = False
-    elif type == 'set':
-        raw_proxy = os.environ.get('http_proxy')
-        if not raw_proxy:
-            proxy = tools.set_proxy()
-            if proxy:
-                shound_del = True
-                os.environ['http_proxy'] = proxy
-                os.environ['https_proxy'] = proxy
-                os.environ['all_proxy'] = proxy
+    # 实际发出请求获取结果
+    def _get_content(self,data:list):
+        text=quote("\n".join(data))
+        requrl = f"{self.api_url}target_language={self.target_language}&source_language={self.source_code}&text={text}&secret={config.params['trans_secret']}"
+        config.logger.info(f'[TransAPI]请求数据：{requrl=}')
+        response = requests.get(url=requrl, proxies=self.proxies)
+        config.logger.info(f'[TransAPI]返回:{response.text=}')
+        if response.status_code != 200:
+            raise Exception(f'code={response.status_code=},{response.text}')
+        jsdata = response.json()
+        if jsdata['code'] != 0:
+            raise Exception(jsdata['msg'])
+        return jsdata['text']
 
-
-def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code=None, uuid=None):
+def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, source_code="", is_test=False, uuid=None):
     """
     text_list:
         可能是多行字符串，也可能是格式化后的字幕对象数组
@@ -43,29 +52,40 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         wait_sec = int(config.settings['translation_wait'])
     except Exception:
         pass
-    update_proxy(type='set')
-    target_language = 'EN-US' if target_language == 'EN' else target_language
     # 翻译后的文本
+
+    url = config.params['trans_api_url'].strip().rstrip('/').lower()
+    if len(config.params['trans_api_url'].strip()) < 10:
+        raise Exception(
+            'TRANS API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'TRANS API interface is not correct, please go to Settings to fill in again')
+
+    if not url.startswith('http'):
+        url = f"http://{url}"
+    if url.find('?') > 0:
+        url += '&'
+    else:
+        url += '/?'
+
+
+    def get_content(data):
+
+        requrl = f"{url}target_language={data['target_language']}&source_language={data['source_language']}&text={data['text']}&secret={data['secret']}"
+        config.logger.info(f'[TransAPI]请求数据：{requrl=}')
+        response = requests.get(url=requrl, proxies=proxies)
+        config.logger.info(f'[TransAPI]返回:{response.text=}')
+        if response.status_code != 200:
+            raise Exception(f'code={response.status_code=},{response.text}')
+        jsdata = response.json()
+        if jsdata['code'] != 0:
+            raise Exception(jsdata['msg'])
+        return jsdata['text']
+
     target_text = []
     index = -1  # 当前循环需要开始的 i 数字,小于index的则跳过
     iter_num = 0  # 当前循环次数，如果 大于 config.settings.retries 出错
     err = ""
-
-    def get_content(data):
-        config.logger.info(f'[DeepL]请求数据:{data=},{config.params["deepl_gid"]=}')
-
-        result = deepltranslator.translate_text(
-            data['text'],
-            source_lang=source_code.upper()[:2] if source_code else None,
-            target_lang=data['target_lang'],
-            glossary=config.params['deepl_gid'] if config.params['deepl_gid'] else None
-        )
-
-        config.logger.info(f'[DeepL]返回:{result=}')
-        return result.text
-
     while 1:
-        if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
+        if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
             return
 
         if iter_num > int(config.settings['retries']):
@@ -77,7 +97,7 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                     f"第{iter_num}次出错重试" if config.defaulelang == 'zh' else f'{iter_num} retries after error',
                     type="logs",
                     uuid=uuid)
-            time.sleep(10)
+            time.sleep(5)
         iter_num += 1
         # 整理待翻译的文字为 List[str]
         if isinstance(text_list, str):
@@ -85,32 +105,35 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
         else:
             source_text = [t['text'] for t in text_list]
 
-        # 切割为每次翻译多少行，值在 set.ini中设定，默认10
+        # 切割为每次翻译多少行，值在 set.ini 中设定，默认10
         split_size = int(config.settings['trans_thread'])
         split_source_text = [source_text[i:i + split_size] for i in range(0, len(source_text), split_size)]
-
-        deepltranslator = deepl.Translator(config.params['deepl_authkey'],
-                                           server_url=None if not config.params['deepl_api'] else config.params[
-                                               'deepl_api'].rstrip('/'))
-
+        response = None
         for i, it in enumerate(split_source_text):
-            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing'):
+            if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not is_test):
                 return
             if i <= index:
                 continue
             if stop > 0:
                 time.sleep(stop)
             try:
-                source_length = len(it)
                 data = {
-                    "text": "\n".join(it),
-                    "target_lang": target_language
+                    "text": quote("\n".join(it)),
+                    "secret": config.params['trans_secret'],
+                    "source_language": '',
+                    "target_language": 'zh' if target_language.startswith('zh') else target_language
                 }
+
                 result = get_content(data)
                 result = tools.cleartext(result).split("\n")
+                if not result:
+                    err = f'no translation result'
+                    break
+                source_length = len(it)
                 result_length = len(result)
                 # 如果返回数量和原始语言数量不一致，则重新切割
                 if result_length < source_length:
+                    config.logger.info(f'翻译前后数量不一致，需要重新按行翻译')
                     result = []
                     for line_res in it:
                         data['text'] = line_res
@@ -128,14 +151,13 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                         config.transobj['starttrans'] + f' {i * split_size + 1} ',
                         type="logs",
                         uuid=uuid)
-
                 result_length = len(result)
                 while result_length < source_length:
                     result.append("")
                     result_length += 1
                 result = result[:source_length]
                 target_text.extend(result)
-            except ConnectionError as e:
+            except requests.ConnectionError as e:
                 err = str(e)
                 break
             except Exception as e:
@@ -150,20 +172,17 @@ def trans(text_list, target_language="en", *, set_p=True, inst=None, stop=0, sou
                 index = i
         else:
             break
-
     if shound_del:
         update_proxy(type='del')
-
     if err:
-        config.logger.error(f'[DeepL]翻译请求失败:{err=}')
-        raise Exception(f'DeepL:{err}')
+        config.logger.error(f'[TransAPI]翻译请求失败:{err=}')
+        raise Exception(f'Trans_API:{err}')
     if isinstance(text_list, str):
         return "\n".join(target_text)
 
     max_i = len(target_text)
     if max_i < len(text_list) / 2:
-        raise Exception(f'DeepL:{config.transobj["fanyicuowu2"]}')
-
+        raise Exception(f'Trans_API:{config.transobj["fanyicuowu2"]}')
     for i, it in enumerate(text_list):
         if i < max_i:
             text_list[i]['text'] = target_text[i]
