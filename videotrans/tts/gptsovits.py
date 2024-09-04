@@ -5,6 +5,7 @@ import time
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -64,11 +65,11 @@ def get_voice(*, text=None, role=None, rate=None, volume="+0%", pitch="+0Hz", la
         else:
             raise Exception(f"GPT-SoVITS合成声音出错-3：{text=},{response.text=}")
     except requests.ConnectionError as e:
-        raise Exception(str(e))
+        raise LogExcept(str(e))
     except Exception as e:
         error = str(e)
         if set_p:
             tools.set_process(error, uuid=uuid)
         config.logger.error(f"{error}")
-        raise
+        raise LogExcept(e)
     return True

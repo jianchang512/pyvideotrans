@@ -58,7 +58,7 @@ class Gemini(BaseTrans):
             result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
             config.logger.info(f'[Gemini]返回:{result=}')
             if not result:
-                raise Exception("fail")
+                raise LogExcept("result is empty")
             return re.sub(r'\n{2,}', "\n", result)
         except Exception as e:
             error = str(e)

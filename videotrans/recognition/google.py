@@ -9,6 +9,7 @@ from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -58,7 +59,7 @@ def recogn(*,
     tmp_path = tmp_path.as_posix()
 
     if not tools.vail_file(audio_file):
-        raise Exception(f'[error]not exists {audio_file}')
+        raise LogExcept(f'[error]not exists {audio_file}')
     normalized_sound = AudioSegment.from_wav(audio_file)  # -20.0
     nonslient_file = f'{tmp_path}/detected_voice.json'
     if tools.vail_file(nonslient_file):
@@ -73,7 +74,7 @@ def recogn(*,
     try:
         recognizer = sr.Recognizer()
     except Exception as e:
-        raise Exception(f'使用Google识别需要设置代理')
+        raise LogExcept(f'使用Google识别需要设置代理')
 
     for i, duration in enumerate(nonsilent_data):
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -97,7 +98,7 @@ def recogn(*,
                 except sr.UnknownValueError:
                     text = ""
                 except sr.RequestError as e:
-                    raise Exception(f"Google识别出错，请检查代理是否正确：{e}")
+                    raise LogExcept(f"Google识别出错，请检查代理是否正确：{e}")
         except Exception as e:
             raise
 

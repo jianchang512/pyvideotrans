@@ -106,10 +106,10 @@ class TransCreate():
                                   type="logs", uuid=self.uuid)
                 self.init['video_info'] = tools.get_video_info(self.init['name'])
             except Exception as e:
-                raise Exception(f"{config.transobj['get video_info error']}:{str(e)}")
+                raise LogExcept(f"{config.transobj['get video_info error']}:{str(e)}")
 
             if not self.init['video_info']:
-                raise Exception(config.transobj['get video_info error'])
+                raise LogExcept(config.transobj['get video_info error'])
             video_codec = 'h264' if self.video_codec == 264 else 'hevc'
             if self.init['video_info']['video_codec_name'] == video_codec and self.init['ext'].lower() == 'mp4':
                 self.init['h264'] = True

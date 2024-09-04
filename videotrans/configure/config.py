@@ -277,7 +277,7 @@ def parse_init():
     try:
         temp_json = json.load(open(ROOT_DIR + "/videotrans/cfg.json", 'r', encoding='utf-8'))
     except Exception as e:
-        raise Exception('videotrans/cfg.json not found  or  error' + str(e))
+        raise
     else:
         _settings = {}
         for key, val in temp_json.items():

@@ -5,6 +5,7 @@ import time
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -31,9 +32,9 @@ class Baidu(BaseTrans):
 
         if "error_code" in res or "trans_result" not in res or len(res['trans_result']) < 1:
             config.logger.info(f'Baidu 返回响应:{resraw}')
-            raise Exception(res['error_msg'])
+            raise LogExcept(res['error_msg'])
 
         result = [tools.cleartext(tres['dst']) for tres in res['trans_result']]
         if not result or len(result) < 1:
-            raise Exception(f'{res}')
+            raise LogExcept(f'{res}')
         return "\n".join(result)

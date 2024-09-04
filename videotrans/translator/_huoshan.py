@@ -6,6 +6,7 @@ import requests
 from requests import JSONDecodeError
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -40,10 +41,10 @@ class HuoShan(BaseTrans):
             config.logger.info(f'[字节火山引擎]响应:{resp.text=}')
             data = resp.json()
             if 'choices' not in data or len(data['choices']) < 1:
-                raise Exception(f'字节火山翻译失败:{resp.text}')
+                raise LogExcept(f'字节火山翻译失败:{resp.text}')
             result = data['choices'][0]['message']['content'].strip()
         except JSONDecodeError as e:
-            raise Exception('字节火山翻译失败，返回数据不是有效json格式')
+            raise LogExcept('字节火山翻译失败，返回数据不是有效json格式')
         else:
             return re.sub(r'\n{2,}', "\n", result)
 

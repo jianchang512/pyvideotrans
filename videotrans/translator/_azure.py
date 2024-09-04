@@ -5,6 +5,7 @@ import httpx
 from openai import AzureOpenAI
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 
 
@@ -44,7 +45,7 @@ class AzureGPT(BaseTrans):
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[AzureGPT]请求失败:{response=}')
-            raise Exception(f"{response}")
+            raise LogExcept(f"{response}")
         result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
         return re.sub(r'\n{2,}', "\n", result)
 
