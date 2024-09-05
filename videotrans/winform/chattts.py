@@ -4,6 +4,7 @@ import json
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -20,17 +21,19 @@ def open():
             self.text = text
 
         def run(self):
-            from videotrans.tts.chattts import get_voice
             try:
-                get_voice(text=self.text, role="boy1", set_p=False, filename=config.TEMP_HOME + "/test.mp3")
-
+                tts.run(
+                    queue_tts=[{"text": self.text, "role": "boy1", "filename": config.TEMP_HOME + "/testchattts.mp3", "tts_type": tts.CHATTTS}],
+                    language="zh",
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
             QtWidgets.QMessageBox.information(chatttsw, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'], d)
@@ -42,12 +45,12 @@ def open():
             return
         apiurl = chatttsw.chattts_address.text().strip()
         if not apiurl:
-            return QtWidgets.QMessageBox.critical(config.llmw, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'],
                                                   '必须填写api地址' if config.defaulelang == 'zh' else 'Please input ChatTTS API url')
 
         config.params['chattts_api'] = apiurl
         task = TestTTS(parent=chatttsw,
-                       text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
+                       text="你好啊我的朋友"
                        )
         chatttsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)

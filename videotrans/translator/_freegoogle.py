@@ -30,10 +30,10 @@ class FreeGoogle(BaseTrans):
         response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies)
         config.logger.info(f'[Google]返回数据:{response.text=}')
         if response.status_code != 200:
-            raise LogExcept(f'{response.status_code=},{response.reason=}')
+            raise Exception(f'{response.status_code=},{response.reason=}')
 
         re_result = response.json()
         if len(re_result[0]) < 1:
-            raise LogExcept( f'{response.text}')
+            raise Exception( f'no result:{response.text}')
         return ("".join([te[0] for te in re_result[0]])).strip()
 

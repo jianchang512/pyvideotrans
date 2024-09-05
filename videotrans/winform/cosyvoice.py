@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans import tts
 
 
 def open():
@@ -15,17 +16,20 @@ def open():
             self.role = role
 
         def run(self):
-            from videotrans.tts.cosyvoice import get_voice
             try:
-                get_voice(text=self.text, set_p=False, role=self.role, language='zh',
-                          filename=config.TEMP_HOME + "/test.wav")
+                tts.run(
+                    queue_tts=[{"text": self.text, "role": self.role,
+                                "filename": config.TEMP_HOME + "/testcosyvoice.mp3", "tts_type": tts.COSYVOICE_TTS}],
+                    language="zh",
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.wav")
             QtWidgets.QMessageBox.information(cosyvoicew, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(cosyvoicew, config.transobj['anerror'], d)
@@ -36,27 +40,11 @@ def open():
         config.params["cosyvoice_url"] = url
         task = TestTTS(parent=cosyvoicew,
                        text="你好啊我的朋友",
-                       role=getrole())
+                       role="中文女")
         cosyvoicew.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
 
-    def getrole():
-        tmp = cosyvoicew.role.toPlainText().strip()
-        role = "中文女"
-        if not tmp:
-            return role
-
-        for it in tmp.split("\n"):
-            s = it.strip().split('#')
-            if len(s) != 2:
-                QtWidgets.QMessageBox.critical(cosyvoicew, config.transobj['anerror'],
-                                               "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容,并且第一部分为.wav结尾的音频名称")
-                return
-
-            role = s[0]
-        config.params['cosyvoice_role'] = tmp
-        return role
 
     def save():
         url = cosyvoicew.api_url.text()

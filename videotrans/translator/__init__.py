@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from typing import Union, List
 
 from PySide6.QtWidgets import QMessageBox
 
@@ -467,90 +468,59 @@ def get_subtitle_code(*, show_target=None):
 def run(*, translate_type=None,
         text_list=None,
         target_language_name=None,
-        set_p=True,
         inst=None,
         is_test=False,
         source_code=None,
-        uuid=None):
+        uuid=None)->Union[List,str,None]:
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
-    # if translate_type == GOOGLE_INDEX:
-    #     from videotrans.translator.google import trans
-    # elif translate_type == FREEGOOGLE_INDEX:
-    #     from videotrans.translator.freegoogle import trans
-    # elif translate_type == BAIDU_INDEX:
-    #     from videotrans.translator.baidu import trans
-    # if translate_type == DEEPL_INDEX:
-    #     from videotrans.translator.deepl import trans
-    # if translate_type == DEEPLX_INDEX:
-    #     from videotrans.translator.deeplx import trans
-    # elif translate_type == OTT_INDEX:
-    #     from videotrans.translator.ott import trans
-    # elif translate_type == TENCENT_INDEX:
-    #     from videotrans.translator.tencent import trans
-    # if translate_type == CHATGPT_INDEX:
-    #     from videotrans.translator.chatgpt import trans
-    # elif translate_type == AI302_INDEX:
-    #     from videotrans.translator.ai302 import trans
-    # elif translate_type == LOCALLLM_INDEX:
-    #     from videotrans.translator.localllm import trans
-    # elif translate_type == ZIJIE_INDEX:
-    #     from videotrans.translator.huoshan import trans
-    # elif translate_type == GEMINI_INDEX:
-    #     from videotrans.translator.gemini import trans
-    # if translate_type == AZUREGPT_INDEX:
-    #     from videotrans.translator.azure import trans
-    # elif translate_type == MICROSOFT_INDEX:
-    #     from videotrans.translator.microsoft import trans
-    # elif translate_type == TRANSAPI_INDEX:
-    #     from videotrans.translator.transapi import trans
-    # else:
-    #     raise Exception(f"{translate_type=},{target_language_name=}")
-
+    kwargs={
+        "inst":inst,
+        "source_code":source_code,
+        "uuid":uuid,
+        "is_test":is_test
+    }
     if translate_type==GOOGLE_INDEX:
-        obj=Google(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return Google(text_list, target_language, **kwargs).run()
     if translate_type==FREEGOOGLE_INDEX:
-        obj=FreeGoogle(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return FreeGoogle(text_list, target_language, **kwargs).run()
+
     if translate_type == MICROSOFT_INDEX:
-        obj=Microsoft(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return Microsoft(text_list, target_language, **kwargs).run()
+
     if translate_type == TENCENT_INDEX:
-        obj=Tencent(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return Tencent(text_list, target_language, **kwargs).run()
+
     if translate_type == BAIDU_INDEX:
-        obj=Baidu(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return Baidu(text_list, target_language, **kwargs).run()
+
     if translate_type == OTT_INDEX:
-        obj=OTT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return OTT(text_list, target_language, **kwargs).run()
+
     if translate_type == TRANSAPI_INDEX:
-        obj=TransAPI(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return TransAPI(text_list, target_language, **kwargs).run()
+
     if translate_type == DEEPL_INDEX:
-        obj=DeepL(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return DeepL(text_list, target_language, **kwargs).run()
+
     if translate_type == DEEPLX_INDEX:
-        obj=DeepLX(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return DeepLX(text_list, target_language, **kwargs).run()
+
     if translate_type == AI302_INDEX:
-        obj=AI302(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return AI302(text_list, target_language, **kwargs).run()
+
     if translate_type == LOCALLLM_INDEX:
-        obj=LocalLLM(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return LocalLLM(text_list, target_language, **kwargs).run()
+
     if translate_type == ZIJIE_INDEX:
-        obj=HuoShan(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return HuoShan(text_list, target_language, **kwargs).run()
+
     if translate_type == CHATGPT_INDEX:
-        obj=ChatGPT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return ChatGPT(text_list, target_language, **kwargs).run()
+
     if translate_type == AZUREGPT_INDEX:
-        obj=AzureGPT(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return AzureGPT(text_list, target_language, **kwargs).run()
+
     if translate_type == GEMINI_INDEX:
-        obj=Gemini(text_list, target_language, inst=inst, source_code=source_code, uuid=uuid,is_test=is_test)
-        return obj.run()
+        return Gemini(text_list, target_language, **kwargs).run()
 
-
-    # return trans(text_list, target_language, set_p=set_p, inst=inst, source_code=source_code, uuid=uuid)
+    raise Exception('No translation channel')

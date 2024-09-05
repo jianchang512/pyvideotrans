@@ -32,9 +32,9 @@ class Baidu(BaseTrans):
 
         if "error_code" in res or "trans_result" not in res or len(res['trans_result']) < 1:
             config.logger.info(f'Baidu 返回响应:{resraw}')
-            raise LogExcept(res['error_msg'])
+            raise Exception(res['error_msg'])
 
         result = [tools.cleartext(tres['dst']) for tres in res['trans_result']]
         if not result or len(result) < 1:
-            raise LogExcept(f'{res}')
+            raise Exception(f'no result:{res=}')
         return "\n".join(result)

@@ -5,6 +5,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
+from videotrans import tts
 
 # 使用内置的 open 函数
 builtin_open = builtins.open
@@ -20,16 +21,14 @@ def open():
             self.text = text
 
         def run(self):
-            from videotrans.tts.openaitts import get_voice
             try:
-                role = 'alloy'
-
-                get_voice(
-                    text=self.text,
-                    role=role,
+                tts.run(
+                    queue_tts=[{"text": self.text, "role":"alloy",
+                                "filename": config.TEMP_HOME + "/testopenaitts", "tts_type": tts.OPENAI_TTS}],
                     language="zh-CN",
-                    rate='+0%',
-                    set_p=False, filename=config.TEMP_HOME + "/test.mp3")
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))

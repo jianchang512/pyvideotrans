@@ -64,8 +64,7 @@ class FanyiWorker(QThread):
                 self.post({"type": "clear_target"})
                 rawsrt = get_subtitle_from_srt(f, is_file=True)
             except Exception as e:
-                import traceback
-                traceback.print_exc()
+                config.logger.exception(e,exc_info=True)
                 self.post({
                     "type": 'error',
                     "text": f"{config.transobj['srtgeshierror']}:{f}{str(e)}"
@@ -79,8 +78,7 @@ class FanyiWorker(QThread):
                     text_list=copy.deepcopy(rawsrt),
                     target_language_name=self.target_language,
                     uuid=self.uuid,
-                    source_code=self.source_code,
-                    set_p=True)
+                    source_code=self.source_code)
                 srts_tmp = ""
                 for i,it in enumerate(srt):
                     srts_tmp += f"{it['line']}\n{it['time']}"

@@ -6,6 +6,7 @@ import openai
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -71,18 +72,17 @@ class BaseTrans:
 
 
     # 实际操作
-    def run(self)->Union[List,str]:
+    def run(self)->Union[List,str,None]:
         # 开始对分割后的每一组进行处理
         for i, it in enumerate(self.split_source_text):
-            print(f'{i=},{it=}')
             # 失败后重试 self.retry 次
             while 1:
                 if config.exit_soft or (
                         config.current_status != 'ing' and config.box_trans != 'ing' and not self.is_test):
                     return None
                 if self.iter_num > self.retry:
-                    raise Exception(
-                        f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "}:{self.error}')
+                    raise LogExcept(
+                        f'[{self.__class__.__name__}]:{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}')
 
                 self.iter_num += 1
                 if self.iter_num > 1:
@@ -97,6 +97,7 @@ class BaseTrans:
                     result = self._get_content(it)
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
+                    # 非srt直接break
                     if not self.is_srt:
                         self.target_list.append(result)
                         self.iter_num=0
@@ -107,7 +108,7 @@ class BaseTrans:
                     sep_len = len(sep_res)
                     # 如果返回结果相差原字幕仅少一行，对最后一行进行拆分
                     if sep_len + 1 == raw_len:
-                        config.logger.error('如果返回结果相差原字幕仅少一行，对最后一行进行拆分')
+                        config.logger.error('返回结果相差原字幕仅少一行，对最后一行进行拆分')
                         sep_res = tools.split_line(sep_res)
                         if sep_res:
                             sep_len = len(sep_res)
@@ -136,15 +137,14 @@ class BaseTrans:
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
                 except requests.ConnectionError as e:
-                    self.error = str(e)
+                    self.error = f'{e}'
                 except openai.APIError as e:
-                    self.error = str(e)
+                    self.error = f'{e}'
                 except ConnectionError as e:
-                    self.error = str(e)
+                    self.error = f'{e}'
                 except Exception as e:
-                    self.error = str(e)
+                    self.error = f'{e}'
                     time.sleep(self.wait_sec)
-                    config.logger.error(f'翻译出错:暂停{self.wait_sec}s')
                 else:
                     # 成功 未出错
                     self.error = ''
@@ -165,7 +165,7 @@ class BaseTrans:
         max_i = len(self.target_list)
         # 出错次数大于原一半
         if max_i < len(self.text_list) / 2:
-            raise Exception(f'{config.transobj["fanyicuowu2"]}')
+            raise LogExcept(f'[{self.__class__.__name__}]:{config.transobj["fanyicuowu2"]}')
 
         for i, it in enumerate(self.text_list):
             if i < max_i:

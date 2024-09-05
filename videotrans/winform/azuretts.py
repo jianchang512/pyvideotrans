@@ -1,6 +1,7 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -16,18 +17,19 @@ def open():
             self.language = language
 
         def run(self):
-            from videotrans.tts.azuretts import get_voice
             try:
-                get_voice(text=self.text, role=self.role, rate="+0%", language=self.language, set_p=False,
-                          filename=config.TEMP_HOME + "/test.mp3")
-
+                tts.run(
+                    queue_tts=[{"text": self.text, "role": self.role, "filename": config.TEMP_HOME + "/testaiazure.mp3", "tts_type": tts.AI302_TTS}],
+                    language=self.language,
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
             QtWidgets.QMessageBox.information(azurettsw, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(azurettsw, config.transobj['anerror'], d)

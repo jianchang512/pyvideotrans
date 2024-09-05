@@ -31,10 +31,10 @@ class AI302(BaseTrans):
         }, json=payload, verify=False,proxies=self.proxies)
         config.logger.info(f'[302.ai]响应:{response.text=}')
         if response.status_code != 200:
-            raise Exception(response.text)
+            raise Exception(f'{response.status_code=}')
         res = response.json()
         if res['choices']:
             result = res['choices'][0]['message']['content']
             result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
             return re.sub(r'\n{2,}', "\n", result)
-        raise Exception("No Data")
+        raise Exception(f"No choices:{res=}")

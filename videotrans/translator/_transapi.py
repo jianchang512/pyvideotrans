@@ -30,8 +30,8 @@ class TransAPI(BaseTrans):
         response = requests.get(url=requrl, proxies=self.proxies)
         config.logger.info(f'[TransAPI]返回:{response.text=}')
         if response.status_code != 200:
-            raise LogExcept(f'code={response.status_code=},{response.text}')
+            raise Exception(f'{response.status_code=},{response.text=}')
         jsdata = response.json()
         if jsdata['code'] != 0:
-            raise LogExcept(jsdata['msg'])
+            raise Exception(f'{jsdata=}')
         return jsdata['text']

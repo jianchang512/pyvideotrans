@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans import tts
 
 
 def open():
@@ -15,17 +16,20 @@ def open():
             self.role = role
 
         def run(self):
-            from videotrans.tts.fishtts import get_voice
             try:
-                get_voice(text=self.text, set_p=False, role=self.role,
-                          filename=config.TEMP_HOME + "/test.wav")
+                tts.run(
+                    queue_tts=[{"text": self.text, "role": self.role,
+                                "filename": config.TEMP_HOME + "/testfishtts.mp3", "tts_type": tts.FISHTTS}],
+                    language="zh",
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.wav")
             QtWidgets.QMessageBox.information(fishttsw, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(fishttsw, config.transobj['anerror'], d)

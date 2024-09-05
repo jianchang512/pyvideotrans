@@ -5,6 +5,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
+from videotrans import tts
 from videotrans.util import tools
 
 # 使用内置的 open 函数
@@ -20,26 +21,25 @@ def open():
             self.text = text
 
         def run(self):
-            from videotrans.tts.ai302tts import get_voice
+            from videotrans.tts import run
             try:
                 role = 'alloy'
                 if config.params["ai302tts_model"] == 'doubao':
                     role = 'zh_female_shuangkuaisisi_moon_bigtts'
                 elif config.params['ai302tts_model'] == 'azure':
                     role = "zh-CN-YunjianNeural"
-                get_voice(
-                    text=self.text,
-                    role=role,
+                run(
+                    queue_tts=[{"text":self.text,"role":role,"filename":config.TEMP_HOME + "/testai302tts.mp3","tts_type":tts.AI302_TTS}],
                     language="zh-CN",
-                    rate='+0%',
-                    set_p=False, filename=config.TEMP_HOME + "/test.mp3")
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
             QtWidgets.QMessageBox.information(ai302ttsw, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(ai302ttsw, config.transobj['anerror'], d)
