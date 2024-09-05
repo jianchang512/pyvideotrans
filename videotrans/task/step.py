@@ -302,7 +302,6 @@ class Runstep:
                 queue_tts=copy.deepcopy(self.queue_tts),
                 language=self.init['target_language_code'],
                 uuid=self.parent.uuid,
-                set_p=True,
                 inst=self
             )
         except Exception as e:

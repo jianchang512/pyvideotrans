@@ -1,6 +1,7 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -16,22 +17,22 @@ def open():
             self.role = role
 
         def run(self):
-            from videotrans.tts.clone import get_voice
             try:
                 tools.get_clone_role(True)
                 if len(config.params["clone_voicelist"]) < 2:
                     raise Exception('没有可供测试的声音')
-                get_voice(text=self.text, language=self.language, role=config.params["clone_voicelist"][1],
-                          set_p=False,
-                          filename=config.TEMP_HOME + "/test.mp3")
-
+                tts.run(
+                    queue_tts=[{"text":self.text,"role":config.params["clone_voicelist"][1],"filename":config.TEMP_HOME + "/testclone.mp3","tts_type":tts.CLONE_VOICE_TTS}],
+                    language=self.language,
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
             QtWidgets.QMessageBox.information(clonew, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(clonew, config.transobj['anerror'], d)

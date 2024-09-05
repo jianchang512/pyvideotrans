@@ -2,6 +2,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import Qt
 
+from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -18,20 +19,20 @@ def open():
             self.role = role
 
         def run(self):
-
-            from videotrans.tts.ttsapi import get_voice
             try:
-
-                get_voice(text=self.text, language=self.language, rate=self.rate, role=self.role, set_p=False,
-                          filename=config.TEMP_HOME + "/test.mp3")
-
+                tts.run(
+                    queue_tts=[{"text": self.text, "role": self.role,
+                                "filename": config.TEMP_HOME + "/testttsapi.mp3", "tts_type": tts.TTS_API}],
+                    language=self.language,
+                    play=True,
+                    is_test=True
+                )
                 self.uito.emit("ok")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
         if d == "ok":
-            tools.pygameaudio(config.TEMP_HOME + "/test.mp3")
             QtWidgets.QMessageBox.information(ttsapiw, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(ttsapiw, config.transobj['anerror'], d)

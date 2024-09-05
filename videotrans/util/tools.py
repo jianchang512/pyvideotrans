@@ -566,9 +566,9 @@ def wav2mp3(wavfile, mp3file, extra=None):
     cmd = [
         "-y",
         "-i",
+        Path(wavfile).as_posix(),
         "-ar",
         "48000",
-        Path(wavfile).as_posix(),
         Path(mp3file).as_posix()
     ]
     if extra:
@@ -599,7 +599,11 @@ def m4a2wav(m4afile, wavfile):
 def create_concat_txt(filelist, concat_txt=None):
     txt = []
     for it in filelist:
+        if Path(it).exists() and Path(it).stat().st_size==0:
+            continue
         txt.append(f"file '{os.path.basename(it)}'")
+    if len(txt)<1:
+        raise LogExcept(f'file list no vail')
     Path(concat_txt).write_text("\n".join(txt), encoding='utf-8')
     return concat_txt
 
@@ -621,7 +625,7 @@ def concat_multi_mp4(*, out=None, concat_txt=None):
 def concat_multi_audio(*, out=None, concat_txt=None):
     if out:
         out = Path(out).as_posix()
-    # 创建txt文件
+
     os.chdir(os.path.dirname(concat_txt))
     runffmpeg(['-y', '-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
     os.chdir(config.TEMP_DIR)

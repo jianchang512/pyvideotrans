@@ -34,6 +34,5 @@ class DeepLX(BaseTrans):
         result = response.json()
         result = tools.cleartext(result['data'])
         if not result:
-            err = f'无有效返回，{response.text=}'
-            raise LogExcept(err)
+            raise Exception(f'无有效返回，{response.text=}')
         return result

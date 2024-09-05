@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore')
 from videotrans.winform import fn_downmodel
 
 from videotrans.util import tools
-from videotrans import translator
+from videotrans import translator, tts
 from videotrans.configure import config
 from pathlib import Path
 from videotrans.task.main_worker import Worker
@@ -527,35 +527,36 @@ class SecWindow():
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
-        volume = int(self.main.volume_rate.value())
-        pitch = int(self.main.pitch_rate.value())
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        rate=int(self.main.voice_rate.value())
+        if rate >= 0:
+            rate = f"+{rate}%"
+        else:
+            rate = f"{rate}%"
 
-        if config.params['tts_type'] in [GPTSOVITS_TTS, COSYVOICE_TTS, CHATTTS, FISHTTS]:
-            voice_file += '.wav'
+        volume = int(self.main.volume_rate.value())
+        volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
+        pitch = int(self.main.pitch_rate.value())
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+
+
+        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
 
         obj = {
             "text": text,
-            "rate": "+0%",
+            "rate": rate,
             "role": role,
-            "voice_file": voice_file,
-            "tts_type": config.params['tts_type'],
+            "filename": voice_file,
+            "tts_type": self.main.tts_type.currentIndex(),
             "language": lang,
-            "volume": f'+{volume}%' if volume > 0 else f'{volume}%',
-            "pitch": f'+{pitch}Hz' if pitch > 0 else f'{pitch}Hz',
+            "volume":volume,
+            "pitch": pitch,
         }
         if role == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
             return
+        threading.Thread(target=tts.run,kwargs={"queue_tts":[obj],"play":True,"is_test":True}).start()
 
-        def feed(d):
-            QMessageBox.critical(self.main, config.transobj['anerror'], d)
-
-        from videotrans.task.play_audio import PlayMp3
-        t = PlayMp3(obj, self.main)
-        t.mp3_ui.connect(feed)
-        t.start()
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):

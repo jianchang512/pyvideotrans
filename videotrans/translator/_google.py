@@ -28,6 +28,6 @@ class Google(BaseTrans):
 
         re_result = response.json()
         if len(re_result[0]) < 1:
-            raise Exception( f'{response.text}')
+            raise Exception( f'no result:{re_result=}')
         return ("".join([te[0] for te in re_result[0]])).strip()
 

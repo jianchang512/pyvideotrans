@@ -1,0 +1,78 @@
+import copy
+
+import re
+
+import time
+from pathlib import Path
+
+import requests
+
+from videotrans.configure import config
+from videotrans.tts._base import BaseTTS
+from videotrans.util import tools
+
+# 线程池并发 返回wav数据，转为mp3
+
+class ChatTTS(BaseTTS):
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.copydata=copy.deepcopy(self.queue_tts)
+        api_url = config.params['chattts_api'].strip().rstrip('/').lower()
+        self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
+
+    def _exec(self):
+        self._local_mul_thread()
+
+    def _item_task(self,data_item:dict=None):
+        if not data_item or tools.vail_file(data_item['filename']):
+            return True
+        try:
+            data = {"text": data_item['text'].strip(), "voice": data_item['role'], 'prompt': '', 'is_split': 1}
+            res = requests.post(f"{self.api_url}/tts", data=data, proxies={"http": "", "https": ""}, timeout=3600)
+            config.logger.info(f'chatTTS:{data=}')
+            res = res.json()
+            if res is None:
+                self.error='ChatTTS端出错，请查看其控制台终端'
+                return False
+
+            if "code" not in res or res['code'] != 0:
+                if "msg" in res:
+                    Path(data_item['filename']).unlink(missing_ok=True)
+                    return True
+                self.error=f'{res}'
+                return False
+
+            if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
+                tools.wav2mp3(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
+                return True
+            resb = requests.get(res['url'])
+            if resb.status_code != 200:
+                self.error=(f'chatTTS:{res["url"]=}')
+                return False
+
+            config.logger.info(f'ChatTTS:resb={resb.status_code=}')
+            with open(data_item['filename'] + ".wav", 'wb') as f:
+                f.write(resb.content)
+            time.sleep(1)
+            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
+
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.has_done+=1
+            self.error=''
+            return True
+        except requests.ConnectionError as e:
+            self.error=f'无法连接到ChatTTS服务，请确保已部署并启动了ChatTTS-ui {str(e)}'
+            config.logger.exception(e, exc_info=True)
+        except Exception as e:
+            self.error=str(e)
+            config.logger.exception(e,exc_info=True)
+        finally:
+            if self.error:
+                tools.set_process(self.error, uuid=self.uuid)
+            else:
+                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
+        return False
+

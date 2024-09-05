@@ -132,7 +132,7 @@ class WorkerTTS(QThread):
                     "volume": self.volume,
                     "filename": f"{self.tmpdir}/tts-{time.time()}-{it['start_time']}.mp3"})
             try:
-                run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, set_p=True, uuid=self.uuid)
+                run_tts(queue_tts=copy.deepcopy(queue_tts), language=self.langcode, uuid=self.uuid)
                 audio_inst = SpeedRate(
                     queue_tts=copy.deepcopy(queue_tts),
                     shoud_audiorate=self.voice_autorate,

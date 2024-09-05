@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import threading
 import time
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-from videotrans import translator
+from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task.workertts import WorkerTTS
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, CHATTTS, \
@@ -69,19 +70,17 @@ def open():
         else:
             rate = f"{rate}%"
         volume = int(peiyinform.volume_rate.value())
-        pitch = int(peiyinform.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
+        pitch = int(peiyinform.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-        if tts_type in [GPTSOVITS_TTS, CHATTTS, FISHTTS, COSYVOICE_TTS]:
-            voice_file += '.wav'
 
         obj = {
             "text": text,
-            "rate": '+0%',
+            "rate": rate,
             "role": role,
-            "voice_file": voice_file,
+            "filename": voice_file,
             "tts_type": tts_type,
             "language": lang,
             "volume": volume,
@@ -91,13 +90,9 @@ def open():
         if role == 'clone':
             return
 
-        def feed(d):
-            QMessageBox.critical(peiyinform, config.transobj['anerror'], d)
+        threading.Thread(target=tts.run,kwargs={"queue_tts":[obj],"play":True,"is_test":True}).start()
 
-        from videotrans.task.play_audio import PlayMp3
-        t = PlayMp3(obj, peiyinform)
-        t.mp3_ui.connect(feed)
-        t.start()
+
 
     def change_by_lang(type):
         if type in [EDGE_TTS, AZURE_TTS]:
