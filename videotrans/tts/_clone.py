@@ -28,7 +28,7 @@ class CloneVoice(BaseTTS):
 
     def _item_task(self,data_item:dict=None):
         if not data_item or tools.vail_file(data_item['filename']):
-            return True
+            return
         try:
             text = data_item['text'].strip()
             if text[-1] not in self.splits:
@@ -49,18 +49,18 @@ class CloneVoice(BaseTTS):
             if "code" not in res or res['code'] != 0:
                 if "msg" in res and res['msg'].find("non-empty") > 0:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                    return True
+                    return
                 self.error=f'{res}'
-                return False
+                return
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
                 tools.wav2mp3(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
-                return True
+                return
 
             resb = requests.get(res['url'])
             if resb.status_code != 200:
                 self.error=f'clonevoice:{res["url"]=}'
-                return False
+                return
             config.logger.info(f'clone-voice:resb={resb.status_code=}')
 
             with open(data_item['filename'] + ".wav", 'wb') as f:
@@ -72,7 +72,6 @@ class CloneVoice(BaseTTS):
                 self.inst.precent+=0.1
             self.error=''
             self.has_done+=1
-            return True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -81,7 +80,7 @@ class CloneVoice(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+

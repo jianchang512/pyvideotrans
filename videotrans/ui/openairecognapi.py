@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_openairecognapiform(object):
     def setupUi(self, openairecognapiform):
+        self.has_done=False
         openairecognapiform.setObjectName("openairecognapiform")
         openairecognapiform.setWindowModality(QtCore.Qt.NonModal)
         openairecognapiform.resize(600, 600)

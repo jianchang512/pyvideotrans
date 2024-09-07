@@ -9,8 +9,8 @@ def open(model_name=None, model_type=None):
 
     from videotrans.component import DownloadModelForm
     try:
-        down_win = DownloadModelForm()
-        config.child_forms['down_win']=down_win
+        winobj = DownloadModelForm()
+        config.child_forms['down_win']=winobj
         if model_type == OPENAI_WHISPER:
             name = f'OpenAI Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['openai'][model_name]
@@ -23,9 +23,9 @@ def open(model_name=None, model_type=None):
             if model_name.startswith('distil'):
                 folder_name = f'models--Systran--faster-{model_name}'
             text_help = f'请下载 {zipname} 后将该压缩包内的文件夹 {folder_name} 复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {zipname}, open the zip file, and copy the folder {folder_name} into {config.ROOT_DIR}/models folder.'
-        down_win.label_name.setText(name)
-        down_win.url.setText(url)
-        down_win.text_help.setPlainText(text_help)
-        down_win.show()
+        winobj.label_name.setText(name)
+        winobj.url.setText(url)
+        winobj.text_help.setPlainText(text_help)
+        winobj.show()
     except Exception as e:
         print(e)

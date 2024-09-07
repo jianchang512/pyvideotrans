@@ -50,47 +50,52 @@ def open():
                 self.post(type="ok", text='Ended')
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(formatcoverform, config.transobj['anerror'], d['text'])
-            formatcoverform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            formatcoverform.startbtn.setDisabled(False)
-            formatcoverform.opendir.setDisabled(False)
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
-            formatcoverform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         else:
-            formatcoverform.startbtn.setText(config.transobj['zhixingwc'])
-            formatcoverform.startbtn.setDisabled(False)
-            formatcoverform.opendir.setDisabled(False)
-            formatcoverform.videourls = []
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.opendir.setDisabled(False)
+            winobj.videourls = []
 
     def get_file():
         format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
-        fnames, _ = QFileDialog.getOpenFileNames(formatcoverform, config.transobj['selectmp4'],
+        fnames, _ = QFileDialog.getOpenFileNames(winobj, config.transobj['selectmp4'],
                                                  config.params['last_opendir'],
                                                  f"Video files({format_str})")
         if len(fnames) < 1:
             return
-        formatcoverform.videourls = []
+        winobj.videourls = []
         for it in fnames:
-            formatcoverform.videourls.append(it.replace('\\', '/'))
+            winobj.videourls.append(it.replace('\\', '/'))
 
-        if len(formatcoverform.videourls) > 0:
+        if len(winobj.videourls) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            formatcoverform.pathdir.setText(",".join(formatcoverform.videourls))
+            winobj.pathdir.setText(",".join(winobj.videourls))
 
     def start():
-        if len(formatcoverform.videourls) < 1:
-            QMessageBox.critical(formatcoverform, config.transobj['anerror'],
+        winobj.has_done=False
+        if len(winobj.videourls) < 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择音频视频文件' if config.defaulelang == 'zh' else 'Must select videos or audios ')
             return
 
-        formatcoverform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        formatcoverform.startbtn.setDisabled(True)
-        formatcoverform.opendir.setDisabled(True)
-        target_format = formatcoverform.formatlist.currentText()
-        task = CompThread(parent=formatcoverform, videourls=formatcoverform.videourls, target_format=target_format)
+        winobj.startbtn.setDisabled(True)
+        winobj.opendir.setDisabled(True)
+        target_format = winobj.formatlist.currentText()
+        task = CompThread(parent=winobj, videourls=winobj.videourls, target_format=target_format)
         task.uito.connect(feed)
         task.start()
 
@@ -99,17 +104,17 @@ def open():
 
     from videotrans.component import FormatcoverForm
     try:
-        formatcoverform = config.child_forms.get('formatcoverform')
-        if formatcoverform is not None:
-            formatcoverform.show()
-            formatcoverform.raise_()
-            formatcoverform.activateWindow()
+        winobj = config.child_forms.get('formatcoverform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        formatcoverform = FormatcoverForm()
-        config.child_forms['formatcoverform'] = formatcoverform
-        formatcoverform.selectbtn.clicked.connect(lambda: get_file())
-        formatcoverform.opendir.clicked.connect(opendir)
-        formatcoverform.startbtn.clicked.connect(start)
-        formatcoverform.show()
+        winobj = FormatcoverForm()
+        config.child_forms['formatcoverform'] = winobj
+        winobj.selectbtn.clicked.connect(lambda: get_file())
+        winobj.opendir.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

@@ -66,12 +66,12 @@ class Runstep:
                 msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'
             elif re.search(r'cudnn', msg, re.I):
                 msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
-            raise Exception(f'{msg}')
+            raise LogExcept(f'{msg}')
         else:
             if config.current_status == 'stop':
                 return True
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception(
+                raise LogExcept(
                     self.init['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
                                                                                               self.config_params[
                                                                                                   'source_language']))
@@ -129,7 +129,7 @@ class Runstep:
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = tools.get_subtitle_from_srt(self.init['source_sub'], is_file=True)
         if not rawsrt or len(rawsrt) < 1:
-            raise Exception(f'{self.init["basename"]}' + config.transobj['No subtitles file'])
+            raise LogExcept(f'{self.init["basename"]}' + config.transobj['No subtitles file'])
         # 开始翻译，禁止修改字幕
         try:
             self.parent.status_text = config.transobj['kaishitiquhefanyi']
@@ -137,7 +137,6 @@ class Runstep:
                 translate_type=self.config_params['translate_type'],
                 text_list=rawsrt,
                 target_language_name=self.config_params['target_language'],
-                set_p=True,
                 inst=self,
                 uuid=self.parent.uuid,
                 source_code=self.init['source_language_code'])
@@ -181,7 +180,7 @@ class Runstep:
             self._before_tts()
             self._exec_tts()
         except Exception as e:
-            raise
+            raise LogExcept(e)
         return True
 
     # 配音生成完毕，开始 连接、调速
@@ -222,7 +221,7 @@ class Runstep:
         try:
             self._compos_video()
         except Exception as e:
-            raise
+            raise LogExcept(e)
         self.precent = 100
         return True
 
@@ -242,7 +241,7 @@ class Runstep:
             if len(subs) < 1:
                 raise Exception("字幕格式不正确，请打开查看")
         except Exception as e:
-            raise
+            raise LogExcept(e)
         rate = int(str(self.config_params['voice_rate']).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
@@ -297,18 +296,15 @@ class Runstep:
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
-        try:
-            run_tts(
+        run_tts(
                 queue_tts=copy.deepcopy(self.queue_tts),
                 language=self.init['target_language_code'],
                 uuid=self.parent.uuid,
                 inst=self
-            )
-        except Exception as e:
-            raise
+        )
         # 获取 novoice_mp4的长度
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
-            raise Exception("not novoice mp4")
+            raise LogExcept("not novoice mp4")
 
     # 延长 novoice.mp4  duration_ms 毫秒
     def _novoicemp4_add_time(self, duration_ms):
@@ -317,7 +313,7 @@ class Runstep:
 
         tools.set_process(f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms', uuid=self.parent.uuid)
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname'], uuid=self.parent.uuid):
-            raise Exception("not novoice mp4")
+            raise LogExcept("not novoice mp4")
 
         video_time = tools.get_video_duration(self.init['novoice_mp4'])
         shutil.copy2(self.init['novoice_mp4'], self.init['novoice_mp4'] + ".raw.mp4")
@@ -347,7 +343,7 @@ class Runstep:
                 self.init['cache_folder'] + "/last-clip-novoice-all.mp4"
             ])
         except Exception as  e:
-            print(e)
+            config.logger.exception(e,exc_info=True)
 
         tools.runffmpeg([
             '-y',
@@ -412,7 +408,7 @@ class Runstep:
                 tools.runffmpeg(cmd)
                 self.init['target_wav'] = self.init['cache_folder'] + f"/lastend.m4a"
             except Exception as e:
-                config.logger.error(f'添加背景音乐失败:{str(e)}')
+                config.logger.exception(f'添加背景音乐失败:{str(e)}',exc_info=True)
 
     def _separate(self):
         if config.current_status != 'ing':
@@ -442,12 +438,12 @@ class Runstep:
                 # 背景音合并配音
                 tools.backandvocal(self.init['instrument'], self.init['target_wav'])
             except Exception as e:
-                config.logger.error('合并原始背景失败' + config.transobj['Error merging background and dubbing'] + str(e))
+                config.logger.exception('合并原始背景失败' + config.transobj['Error merging background and dubbing'] + str(e),exc_info=True)
 
     # 处理所需字幕
     def _process_subtitles(self):
         if not self.init['target_sub'] or not Path(self.init['target_sub']).exists():
-            raise Exception(f'不存在有效的字幕文件' if config.defaulelang == 'zh' else 'No valid subtitle file exists')
+            raise LogExcept(f'不存在有效的字幕文件' if config.defaulelang == 'zh' else 'No valid subtitle file exists')
 
         # 如果原始语言和目标语言相同，或不存原始语言字幕，则强制单字幕
         if (self.init['source_language_code'] == self.init['target_language_code']) or (
@@ -515,10 +511,10 @@ class Runstep:
             return True
         # 判断novoice_mp4是否完成
         if not tools.is_novoice_mp4(self.init['novoice_mp4'], self.init['noextname']):
-            raise Exception(config.transobj['fenlinoviceerror'])
+            raise LogExcept(config.transobj['fenlinoviceerror'])
         # 需要配音但没有配音文件
         if self.parent.shoud_dubbing and not tools.vail_file(self.init['target_wav']):
-            raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.init['target_wav']}")
+            raise LogExcept(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.init['target_wav']}")
         subtitles_file, subtitle_langcode = None, None
         if self.config_params['subtitle_type'] > 0:
             subtitles_file, subtitle_langcode = self._process_subtitles()
@@ -552,7 +548,7 @@ class Runstep:
                     self.parent.status_text = '视频末尾延长中' if config.defaulelang == 'zh' else 'Extension at the end of the video'
                     self._novoicemp4_add_time(audio_length - video_time)
                 except Exception as e:
-                    config.logger.error(f'视频末尾延长失败:{str(e)}')
+                    config.logger.exception(f'视频末尾延长失败:{str(e)}',exc_info=True)
             elif audio_length > 0 and video_time > audio_length:
                 ext = self.init['target_wav'].split('.')[-1]
                 m = AudioSegment.from_file(
@@ -737,7 +733,7 @@ class Runstep:
                 cmd.append(Path(self.init['targetdir_mp4']).as_posix())
                 tools.runffmpeg(cmd)
         except Exception as e:
-            raise Exception(f'compose srt + video + audio:{str(e)}')
+            raise LogExcept(f'compose srt + video + audio:{str(e)}')
         self.precent = 99
         os.chdir(config.ROOT_DIR)
         try:

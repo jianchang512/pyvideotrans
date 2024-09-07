@@ -19,6 +19,7 @@ from videotrans.configure import config
 
 class Ui_videoandaudio(object):
     def setupUi(self, videoandaudio):
+        self.has_done=False
         if not videoandaudio.objectName():
             videoandaudio.setObjectName(u"videoandaudio")
         videoandaudio.resize(643, 300)

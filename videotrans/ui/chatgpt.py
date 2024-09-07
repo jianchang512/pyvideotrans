@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_chatgptform(object):
     def setupUi(self, chatgptform):
+        self.has_done=False
         chatgptform.setObjectName("chatgptform")
         chatgptform.setWindowModality(QtCore.Qt.NonModal)
         chatgptform.resize(600, 600)

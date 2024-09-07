@@ -18,14 +18,13 @@ class ElevenLabs(BaseTTS):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.copydata=copy.deepcopy(self.queue_tts)
-
-
-    # 强制单个线程执行，防止频繁并发失败
-    def _exec(self):
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
+
+    # 强制单个线程执行，防止频繁并发失败
+    def _exec(self):
         while len(self.copydata)>0:
             try:
                 data_item=self.copydata.pop(0)
@@ -56,14 +55,10 @@ class ElevenLabs(BaseTTS):
                 self.has_done+=1
             except Exception as e:
                 error=str(e)
+                self.error=error
                 if error and re.search(r'rate|limit', error, re.I) is not None:
-                    time.sleep(30)
+                    self._signal(text='超过频率限制，等待60s后重试' if config.defaulelang=='zh' else 'Frequency limit exceeded, wait 60s and retry')
                     self.copydata.append(data_item)
-                else:
-                    self.error=error
+                    time.sleep(60)
             finally:
-                if self.error:
-                    tools.set_process(self.error,uuid=self.uuid)
-                else:
-                    tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')

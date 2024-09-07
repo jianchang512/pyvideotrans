@@ -23,16 +23,12 @@ class GTTS(BaseTTS):
 
 
     def _item_task(self,data_item:Union[Dict,List,None]):
-        try:
-            data_item=self.copydata.pop(0)
-            if tools.vail_file(data_item['filename']):
-                return True
-        except:
-            return True
+        if not data_item or tools.vail_file(data_item['filename']):
+            return
         try:
             text = data_item['text'].strip()
             if not text:
-                return True
+                return
             lans = self.language.split('-')
             if len(lans) > 1:
                 self.language = f'{lans[0]}-{lans[1].upper()}'
@@ -43,7 +39,6 @@ class GTTS(BaseTTS):
                 self.inst.precent += 0.1
             self.error=''
             self.has_done+=1
-            return True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -52,7 +47,6 @@ class GTTS(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')

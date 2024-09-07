@@ -11,7 +11,6 @@ from videotrans import translator
 # 使用内置的 open 函数
 builtin_open = builtins.open
 
-
 def open():
     class TestAI302(QThread):
         uito = Signal(str)
@@ -29,80 +28,80 @@ def open():
 
     def feed(d):
         if not d.startswith("ok:"):
-            QtWidgets.QMessageBox.critical(ai302fyw, config.transobj['anerror'], d)
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
-            QtWidgets.QMessageBox.information(ai302fyw, "OK", d[3:])
-        ai302fyw.test_ai302.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
+        winobj.test_ai302.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        key = ai302fyw.ai302_key.text()
-        model = ai302fyw.ai302_model.currentText()
-        template = ai302fyw.ai302_template.toPlainText()
+        key = winobj.ai302_key.text()
+        model = winobj.ai302_model.currentText()
+        template = winobj.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
 
-        task = TestAI302(parent=ai302fyw)
-        ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestAI302(parent=winobj)
+        winobj.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
-        ai302fyw.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_ai302():
-        key = ai302fyw.ai302_key.text()
-        model = ai302fyw.ai302_model.currentText()
-        template = ai302fyw.ai302_template.toPlainText()
+        key = winobj.ai302_key.text()
+        model = winobj.ai302_model.currentText()
+        template = winobj.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
         Path(config.ROOT_DIR + f"/videotrans/302ai.txt").write_text(template, encoding='utf-8')
         config.getset_params(config.params)
-        ai302fyw.close()
+        winobj.close()
 
     def update_ui():
         config.settings = config.parse_init()
         allmodels_str = config.settings['ai302_models']
         allmodels = config.settings['ai302_models'].split(',')
 
-        ai302fyw.ai302_model.clear()
-        ai302fyw.ai302_model.addItems(allmodels)
-        ai302fyw.edit_allmodels.setPlainText(allmodels_str)
+        winobj.ai302_model.clear()
+        winobj.ai302_model.addItems(allmodels)
+        winobj.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params["ai302_key"]:
-            ai302fyw.ai302_key.setText(config.params["ai302_key"])
+            winobj.ai302_key.setText(config.params["ai302_key"])
         if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
-            ai302fyw.ai302_model.setCurrentText(config.params["ai302_model"])
+            winobj.ai302_model.setCurrentText(config.params["ai302_model"])
         if config.params["ai302_template"]:
-            ai302fyw.ai302_template.setPlainText(config.params["ai302_template"])
+            winobj.ai302_template.setPlainText(config.params["ai302_template"])
 
     def setallmodels():
-        t = ai302fyw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = ai302fyw.ai302_model.currentText()
-        ai302fyw.ai302_model.clear()
-        ai302fyw.ai302_model.addItems([x for x in t.split(',') if x.strip()])
+        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        current_text = winobj.ai302_model.currentText()
+        winobj.ai302_model.clear()
+        winobj.ai302_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
-            ai302fyw.ai302_model.setCurrentText(current_text)
+            winobj.ai302_model.setCurrentText(current_text)
         config.settings['ai302_models'] = t
         json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     from videotrans.component import AI302Form
-    ai302fyw = config.child_forms.get('ai302fyw')
-    if ai302fyw is not None:
-        ai302fyw.show()
+    winobj = config.child_forms.get('ai302fyw')
+    if winobj is not None:
+        winobj.show()
         update_ui()
-        ai302fyw.raise_()
-        ai302fyw.activateWindow()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    ai302fyw = AI302Form()
-    config.child_forms['ai302fyw'] = ai302fyw
+    winobj = AI302Form()
+    config.child_forms['ai302fyw'] = winobj
     update_ui()
 
-    ai302fyw.edit_allmodels.textChanged.connect(setallmodels)
-    ai302fyw.set_ai302.clicked.connect(save_ai302)
-    ai302fyw.test_ai302.clicked.connect(test)
-    ai302fyw.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
-    ai302fyw.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
-    ai302fyw.show()
+    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.set_ai302.clicked.connect(save_ai302)
+    winobj.test_ai302.clicked.connect(test)
+    winobj.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
+    winobj.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
+    winobj.show()

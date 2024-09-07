@@ -29,6 +29,7 @@ class LineEditClickFilter(QObject):
 
 class Ui_youtubeform(object):
     def setupUi(self, youtubeform):
+        self.has_done=False
         youtubeform.setObjectName("youtubeform")
         youtubeform.setWindowModality(QtCore.Qt.NonModal)
         youtubeform.resize(500, 340)

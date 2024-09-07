@@ -1,3 +1,5 @@
+from typing import Union, List
+
 import requests
 
 from videotrans.translator._base import BaseTrans
@@ -13,7 +15,7 @@ class Google(BaseTrans):
             self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
-    def _get_content(self,data:list):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         text="\n".join([quote(text) for text in data])
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_language}&q={text}"
         config.logger.info(f'[Google]请求数据:{url=}')

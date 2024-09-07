@@ -2,6 +2,7 @@
 import os
 import re
 import time
+from typing import Union, List
 
 import deepl
 
@@ -19,7 +20,7 @@ class DeepL(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
-    def _get_content(self,data) ->str:
+    def _item_task(self,data:Union[List[str],str]) ->str:
         deepltranslator = deepl.Translator(config.params['deepl_authkey'],server_url=self.api_url,proxy=self.proxies)
         config.logger.info(f'[DeepL]请求数据:{data=},{config.params["deepl_gid"]=}')
 

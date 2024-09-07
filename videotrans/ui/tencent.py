@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_tencentform(object):
     def setupUi(self, tencentform):
+        self.has_done=False
         tencentform.setObjectName("tencentform")
         tencentform.setWindowModality(QtCore.Qt.NonModal)
         tencentform.resize(400, 223)

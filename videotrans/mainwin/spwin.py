@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 from videotrans.util import tools
 from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans.configure import config
-from videotrans import VERSION
+from videotrans import VERSION, winform
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
 import platform
@@ -67,6 +67,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongemini_key.triggered.connect(gemini.open)
         self.actiontencent_key.triggered.connect(tencent.open)
         self.actionchatgpt_key.triggered.connect(chatgpt.open)
+
         self.actionai302_key.triggered.connect(ai302.open)
         self.actionlocalllm_key.triggered.connect(localllm.open)
         self.actionzijiehuoshan_key.triggered.connect(zijiehuoshan.open)

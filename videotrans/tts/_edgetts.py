@@ -33,10 +33,10 @@ class EdgeTTS(BaseTTS):
                 self.has_done+=self.dub_nums
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]', type="logs", uuid=self.uuid)
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
         except Exception as e:
             self.error=str(e)
-            tools.set_process(f'{str(e)}', type="logs", uuid=self.uuid)
+            self._signal(text=f'{str(e)}')
             config.logger.exception(e,exc_info=True)
 
     def _exec(self) ->None:
@@ -45,19 +45,21 @@ class EdgeTTS(BaseTTS):
             t=threading.Thread(target=self._run_as_async)
             t.start()
             t.join()
-            nofile=0
+            err_num=0
             for it in self.queue_tts:
                 if not tools.vail_file(it['filename']):
-                    nofile+=1
-                    break
+                    err_num+=1
+            # 全部失败，不再重试
+            if err_num>=self.len:
+                break
             # 有错误则降低并发，重试
-            if nofile>0:
+            if err_num>0:
                 config.logger.error(f'存在失败的配音，重试')
                 self.dub_nums=1
                 self.has_done = 0
-                self.error=''
             else:
                 break
+
     def _run_as_async(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

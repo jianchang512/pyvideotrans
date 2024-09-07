@@ -35,46 +35,46 @@ def open():
 
     def feed(d):
         if not d.startswith("ok:"):
-            QtWidgets.QMessageBox.critical(openaittsw, config.transobj['anerror'], d)
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
-            QtWidgets.QMessageBox.information(openaittsw, "OK", d[3:])
-        openaittsw.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
+        winobj.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        key = openaittsw.openaitts_key.text()
-        api = openaittsw.openaitts_api.text().strip()
+        key = winobj.openaitts_key.text()
+        api = winobj.openaitts_api.text().strip()
         api = api if api else 'https://api.openai.com/v1'
-        model = openaittsw.openaitts_model.currentText()
+        model = winobj.openaitts_model.currentText()
 
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = api
         config.params["openaitts_model"] = model
 
-        task = TestOpenaitts(parent=openaittsw, text="你好啊我的朋友")
-        openaittsw.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestOpenaitts(parent=winobj, text="你好啊我的朋友")
+        winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
-        openaittsw.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_openaitts():
-        key = openaittsw.openaitts_key.text()
-        api = openaittsw.openaitts_api.text().strip()
+        key = winobj.openaitts_key.text()
+        api = winobj.openaitts_api.text().strip()
         api = api if api else 'https://api.openai.com/v1'
-        model = openaittsw.openaitts_model.currentText()
+        model = winobj.openaitts_model.currentText()
 
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = api
         config.params["openaitts_model"] = model
         config.getset_params(config.params)
-        openaittsw.close()
+        winobj.close()
 
     def setallmodels():
-        t = openaittsw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = openaittsw.openaitts_model.currentText()
-        openaittsw.openaitts_model.clear()
-        openaittsw.openaitts_model.addItems([x for x in t.split(',') if x.strip()])
+        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        current_text = winobj.openaitts_model.currentText()
+        winobj.openaitts_model.clear()
+        winobj.openaitts_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
-            openaittsw.openaitts_model.setCurrentText(current_text)
+            winobj.openaitts_model.setCurrentText(current_text)
         config.settings['openaitts_model'] = t
         json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
@@ -83,30 +83,30 @@ def open():
         config.settings = config.parse_init()
         allmodels_str = config.settings['openaitts_model']
         allmodels = config.settings['openaitts_model'].split(',')
-        openaittsw.openaitts_model.clear()
-        openaittsw.openaitts_model.addItems(allmodels)
-        openaittsw.edit_allmodels.setPlainText(allmodels_str)
+        winobj.openaitts_model.clear()
+        winobj.openaitts_model.addItems(allmodels)
+        winobj.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params["openaitts_key"]:
-            openaittsw.openaitts_key.setText(config.params["openaitts_key"])
+            winobj.openaitts_key.setText(config.params["openaitts_key"])
         if config.params["openaitts_api"]:
-            openaittsw.openaitts_api.setText(config.params["openaitts_api"])
+            winobj.openaitts_api.setText(config.params["openaitts_api"])
         if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
-            openaittsw.openaitts_model.setCurrentText(config.params["openaitts_model"])
+            winobj.openaitts_model.setCurrentText(config.params["openaitts_model"])
 
     from videotrans.component import OpenAITTSForm
-    openaittsw = config.child_forms.get('openaittsw')
-    if openaittsw is not None:
-        openaittsw.show()
+    winobj = config.child_forms.get('openaittsw')
+    if winobj is not None:
+        winobj.show()
         update_ui()
-        openaittsw.raise_()
-        openaittsw.activateWindow()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    openaittsw = OpenAITTSForm()
-    config.child_forms['openaittsw'] = openaittsw
+    winobj = OpenAITTSForm()
+    config.child_forms['openaittsw'] = winobj
     update_ui()
 
-    openaittsw.set_openaitts.clicked.connect(save_openaitts)
-    openaittsw.test_openaitts.clicked.connect(test)
-    openaittsw.edit_allmodels.textChanged.connect(setallmodels)
-    openaittsw.show()
+    winobj.set_openaitts.clicked.connect(save_openaitts)
+    winobj.test_openaitts.clicked.connect(test)
+    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.show()

@@ -19,6 +19,8 @@ from videotrans.configure import config
 
 class Ui_getaudio(object):
     def setupUi(self, getaudio):
+        self.has_done=False
+
         if not getaudio.objectName():
             getaudio.setObjectName(u"getaudio")
         getaudio.resize(643, 300)

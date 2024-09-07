@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_gptsovitsform(object):
     def setupUi(self, gptsovitsform):
+        self.has_done=False
         if not gptsovitsform.objectName():
             gptsovitsform.setObjectName("gptsovitsform")
         gptsovitsform.setWindowModality(Qt.NonModal)

@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_doubaoform(object):
     def setupUi(self, doubaoform):
+        self.has_done=False
         doubaoform.setObjectName("doubaoform")
         doubaoform.setWindowModality(QtCore.Qt.NonModal)
         doubaoform.resize(600, 400)

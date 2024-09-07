@@ -25,48 +25,48 @@ def open():
 
     def feed(d):
         if d.startswith("ok:"):
-            QtWidgets.QMessageBox.information(transapiw, "ok", d[3:])
+            QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
-            QtWidgets.QMessageBox.critical(transapiw, config.transobj['anerror'], d)
-        transapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
 
     def test():
-        url = transapiw.api_url.text()
+        url = winobj.api_url.text()
         config.params["ttsapi_url"] = url
         if not url:
-            return QtWidgets.QMessageBox.critical(transapiw, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                   "必须填写自定义翻译的url" if config.defaulelang == 'zh' else "The url of the custom translation must be filled in")
-        url = transapiw.api_url.text()
-        miyue = transapiw.miyue.text()
+        url = winobj.api_url.text()
+        miyue = winobj.miyue.text()
         config.params["trans_api_url"] = url
         config.params["trans_secret"] = miyue
-        task = Test(parent=transapiw, text="你好啊我的朋友")
-        transapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = Test(parent=winobj, text="你好啊我的朋友")
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        url = transapiw.api_url.text()
-        miyue = transapiw.miyue.text()
+        url = winobj.api_url.text()
+        miyue = winobj.miyue.text()
         config.params["trans_api_url"] = url
         config.params["trans_secret"] = miyue
         config.getset_params(config.params)
-        transapiw.close()
+        winobj.close()
 
     from videotrans.component import TransapiForm
-    transapiw = config.child_forms.get('transapiw')
-    if transapiw is not None:
-        transapiw.show()
-        transapiw.raise_()
-        transapiw.activateWindow()
+    winobj = config.child_forms.get('transapiw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    transapiw = TransapiForm()
-    config.child_forms['transapiw'] = transapiw
+    winobj = TransapiForm()
+    config.child_forms['transapiw'] = winobj
     if config.params["trans_api_url"]:
-        transapiw.api_url.setText(config.params["trans_api_url"])
+        winobj.api_url.setText(config.params["trans_api_url"])
     if config.params["trans_secret"]:
-        transapiw.miyue.setText(config.params["trans_secret"])
+        winobj.miyue.setText(config.params["trans_secret"])
 
-    transapiw.save.clicked.connect(save)
-    transapiw.test.clicked.connect(test)
-    transapiw.show()
+    winobj.save.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

@@ -1,4 +1,5 @@
 import time
+from typing import Union, List
 from urllib.parse import quote
 
 import requests
@@ -23,7 +24,7 @@ class TransAPI(BaseTrans):
 
 
     # 实际发出请求获取结果
-    def _get_content(self,data:list):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         text=quote("\n".join(data))
         requrl = f"{self.api_url}target_language={self.target_language}&source_language={self.source_code}&text={text}&secret={config.params['trans_secret']}"
         config.logger.info(f'[TransAPI]请求数据：{requrl=}')

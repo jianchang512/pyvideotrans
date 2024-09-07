@@ -50,45 +50,50 @@ def open():
                 self.post(type="ok", text='Ended')
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(subtitlescoverform, config.transobj['anerror'], d['text'])
-            subtitlescoverform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            subtitlescoverform.startbtn.setDisabled(False)
-            subtitlescoverform.opendir.setDisabled(False)
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
-            subtitlescoverform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         else:
-            subtitlescoverform.startbtn.setText(config.transobj['zhixingwc'])
-            subtitlescoverform.startbtn.setDisabled(False)
-            subtitlescoverform.opendir.setDisabled(False)
-            subtitlescoverform.subtitlefiles = []
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.opendir.setDisabled(False)
+            winobj.subtitlefiles = []
 
     def get_file():
-        fnames, _ = QFileDialog.getOpenFileNames(subtitlescoverform, config.transobj['selectmp4'],
+        fnames, _ = QFileDialog.getOpenFileNames(winobj, config.transobj['selectmp4'],
                                                  config.params['last_opendir'], "Subtitles files(*.srt *.vtt *.ass)")
         if len(fnames) < 1:
             return
-        subtitlescoverform.subtitlefiles = []
+        winobj.subtitlefiles = []
         for it in fnames:
-            subtitlescoverform.subtitlefiles.append(it.replace('\\', '/'))
+            winobj.subtitlefiles.append(it.replace('\\', '/'))
 
-        if len(subtitlescoverform.subtitlefiles) > 0:
+        if len(winobj.subtitlefiles) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            subtitlescoverform.pathdir.setText(",".join(subtitlescoverform.subtitlefiles))
+            winobj.pathdir.setText(",".join(winobj.subtitlefiles))
 
     def start():
-        if len(subtitlescoverform.subtitlefiles) < 1:
-            QMessageBox.critical(subtitlescoverform, config.transobj['anerror'],
+        if len(winobj.subtitlefiles) < 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ')
             return
+        winobj.has_done=False
 
-        subtitlescoverform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        subtitlescoverform.startbtn.setDisabled(True)
-        subtitlescoverform.opendir.setDisabled(True)
-        target_format = subtitlescoverform.formatlist.currentText()
-        task = CompThread(parent=subtitlescoverform, subtitlefiles=subtitlescoverform.subtitlefiles,
+        winobj.startbtn.setDisabled(True)
+        winobj.opendir.setDisabled(True)
+        target_format = winobj.formatlist.currentText()
+        task = CompThread(parent=winobj, subtitlefiles=winobj.subtitlefiles,
                           target_format=target_format)
         task.uito.connect(feed)
         task.start()
@@ -98,17 +103,17 @@ def open():
 
     from videotrans.component import SubtitlescoverForm
     try:
-        subtitlescoverform = config.child_forms.get('subtitlescoverform')
-        if subtitlescoverform is not None:
-            subtitlescoverform.show()
-            subtitlescoverform.raise_()
-            subtitlescoverform.activateWindow()
+        winobj = config.child_forms.get('subtitlescoverform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        subtitlescoverform = SubtitlescoverForm()
-        config.child_forms['subtitlescoverform'] = subtitlescoverform
-        subtitlescoverform.selectbtn.clicked.connect(lambda: get_file())
-        subtitlescoverform.opendir.clicked.connect(opendir)
-        subtitlescoverform.startbtn.clicked.connect(start)
-        subtitlescoverform.show()
+        winobj = SubtitlescoverForm()
+        config.child_forms['subtitlescoverform'] = winobj
+        winobj.selectbtn.clicked.connect(lambda: get_file())
+        winobj.opendir.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

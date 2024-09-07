@@ -16,6 +16,7 @@ class ClickableProgressBar(QLabel):
         self.basename = ""
         self.name = ""
         self.precent = 0
+        self.ended=False
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -44,13 +45,23 @@ class ClickableProgressBar(QLabel):
         self.basename = Path(name).name
 
     def setEnd(self):
+        self.ended=True
         self.precent = 100
-        self.setCursor(Qt.PointingHandCursor)
-        self.setText(config.transobj["endandopen"])
         self.progress_bar.setValue(100)
+        self.setCursor(Qt.PointingHandCursor)
+        self.progress_bar.setFormat(f' {self.basename}  {config.transobj["endandopen"]}')
+    def setPrecent(self,p):
+        self.precent=p
+        if p>=100:
+            self.setEnd()
+    def setError(self,text=""):
+        self.ended=True
+        self.setText(text)
 
     def setText(self, text=''):
         if self.progress_bar:
+            if self.ended:
+                return
             if not text:
                 text = config.transobj['running']
             self.progress_bar.setFormat(f'  [{self.precent}%]  {text}   {self.basename}')  # set text format

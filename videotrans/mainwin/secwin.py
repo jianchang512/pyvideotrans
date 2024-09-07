@@ -1022,7 +1022,7 @@ class SecWindow():
         if type == 'set_precent' and self.processbtns[uuid].precent < 100:
             t, precent = text.split('???')
             precent = int(float(precent))
-            self.processbtns[uuid].precent = precent
+            self.processbtns[uuid].setPrecent(precent)
             self.processbtns[uuid].setText(f'{config.transobj["running"].replace("..", "")} {t}')
             self.processbtns[uuid].progress_bar.setValue(precent)
         elif type == 'logs' and self.processbtns[uuid].precent < 100:
@@ -1032,9 +1032,9 @@ class SecWindow():
             if self.processbtns[uuid].name in config.queue_mp4:
                 config.queue_mp4.remove(self.processbtns[uuid].name)
         elif type == 'error':
+            self.processbtns[uuid].setError(text)
             self.processbtns[uuid].progress_bar.setStyleSheet('color:#ff0000')
             self.processbtns[uuid].setCursor(Qt.PointingHandCursor)
-            self.processbtns[uuid].setText(f'{type.capitalize()}: ' + text[:120])
 
     # 更新执行状态
     def update_status(self, type):

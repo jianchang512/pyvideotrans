@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import time
+from typing import Union, List
 
 import requests
 
@@ -15,7 +16,7 @@ class Baidu(BaseTrans):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         text ="\n".join(data)
         salt = int(time.time())
         strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"

@@ -30,6 +30,7 @@ class Ui_setini(object):
                       ensure_ascii=False)
 
     def setupUi(self, setini):
+        self.has_done=False
         setini.setObjectName("setini")
         setini.setWindowModality(QtCore.Qt.NonModal)
         setini.resize(900, 670)

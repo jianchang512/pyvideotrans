@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_deeplxform(object):
     def setupUi(self, deeplxform):
+        self.has_done=False
         deeplxform.setObjectName("deeplxform")
         deeplxform.setWindowModality(QtCore.Qt.NonModal)
         deeplxform.resize(400, 223)

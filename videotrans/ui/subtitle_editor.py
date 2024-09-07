@@ -60,6 +60,7 @@ class DropScrollArea(QScrollArea):
 class Ui_subtitleEditor(QWidget):
     def __init__(self):
         super().__init__()
+        self.has_done=False
         self.lastend_time=0
 
         self.setWindowTitle("Subtitle Editor" if config.defaulelang!='zh' else '导入字幕编辑修改后导出')

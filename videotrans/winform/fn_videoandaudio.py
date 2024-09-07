@@ -118,40 +118,45 @@ def open():
             self.post(type='ok', text="执行结束" if config.defaulelang == 'zh' else 'Ended')
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(vandaform, config.transobj['anerror'], d['text'])
-            vandaform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            vandaform.startbtn.setDisabled(False)
-            vandaform.loglabel.setText('')
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.loglabel.setText('')
         elif d['type'] == 'jd':
-            vandaform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
-            vandaform.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text'])
         else:
-            vandaform.startbtn.setText(config.transobj['zhixingwc'])
-            vandaform.startbtn.setDisabled(False)
-            vandaform.loglabel.setText(config.transobj['quanbuend'])
-            vandaform.resultbtn.setDisabled(False)
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.loglabel.setText(config.transobj['quanbuend'])
+            winobj.resultbtn.setDisabled(False)
 
     def get_file():
-        dirname = QFileDialog.getExistingDirectory(vandaform, config.transobj['selectsavedir'],
+        dirname = QFileDialog.getExistingDirectory(winobj, config.transobj['selectsavedir'],
                                                    config.params['last_opendir'])
-        vandaform.folder.setText(dirname.replace('\\', '/'))
+        winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
-        folder = vandaform.folder.text()
+        winobj.has_done=False
+        folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            QMessageBox.critical(vandaform, config.transobj['anerror'],
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.')
             return
 
-        vandaform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        vandaform.startbtn.setDisabled(True)
-        vandaform.resultbtn.setDisabled(True)
+        winobj.startbtn.setDisabled(True)
+        winobj.resultbtn.setDisabled(True)
 
-        task = CompThread(parent=vandaform, folder=folder, remain=vandaform.remain.isChecked())
+        task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked())
 
         task.uito.connect(feed)
         task.start()
@@ -161,18 +166,18 @@ def open():
 
     from videotrans.component import Videoandaudioform
     try:
-        vandaform = config.child_forms.get('vandaform')
-        if vandaform is not None:
-            vandaform.show()
-            vandaform.raise_()
-            vandaform.activateWindow()
+        winobj = config.child_forms.get('vandaform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        vandaform = Videoandaudioform()
-        config.child_forms['vandaform'] = vandaform
-        vandaform.videobtn.clicked.connect(lambda: get_file())
+        winobj = Videoandaudioform()
+        config.child_forms['vandaform'] = winobj
+        winobj.videobtn.clicked.connect(lambda: get_file())
 
-        vandaform.resultbtn.clicked.connect(opendir)
-        vandaform.startbtn.clicked.connect(start)
-        vandaform.show()
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

@@ -17,6 +17,7 @@ from videotrans.configure import config
 class Ui_formatcover(object):
     def setupUi(self, formatcover):
         self.videofiles = []
+        self.has_done=False
 
         formatcover.setObjectName("formatcover")
         formatcover.setWindowModality(QtCore.Qt.NonModal)

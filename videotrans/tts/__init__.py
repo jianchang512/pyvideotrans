@@ -1,6 +1,3 @@
-import copy
-import threading
-
 from videotrans.configure import config
 from videotrans.configure._except import LogExcept
 from videotrans.tts._azuretts import AzureTTS
@@ -21,8 +18,6 @@ from videotrans.winform import openaitts as openaitts_win, ai302tts as ai302tts_
     elevenlabs as elevenlabs_win, ttsapi as ttsapi_win, gptsovits as gptsovits_win, cosyvoice as cosyvoice_win, \
     fishtts as fishtts_win, chattts as chattts_win, \
     azuretts as azuretts_win
-
-lasterror = ""
 
 # 数字代表界面中的显示顺序
 EDGE_TTS = 0
@@ -110,80 +105,13 @@ def is_input_api(tts_type: int = None):
     return True
 
 
-# 文字合成
-def text_to_speech(
-        inst=None,
-        text="",
-        role="",
-        rate='+0%',
-        pitch="+0Hz",
-        volume="+0%",
-        language=None,
-        filename=None,
-        tts_type=None,
-        uuid=None,
-        play=False,
-        set_p=True):
-    pass
-    # global lasterror
-    # get_voice = None
-    # # if tts_type == EDGE_TTS:
-    # #     from .edgetts import get_voice
-    # # elif tts_type == AZURE_TTS:
-    # #     from .azuretts import get_voice
-    # elif tts_type == OPENAI_TTS:
-    #     from .openaitts import get_voice
-    # elif tts_type == CLONE_VOICE_TTS:
-    #     from .clone import get_voice
-    # elif tts_type == TTS_API:
-    #     from .ttsapi import get_voice
-    # elif tts_type == GPTSOVITS_TTS:
-    #     from .gptsovits import get_voice
-    # elif tts_type == COSYVOICE_TTS:
-    #     from .cosyvoice import get_voice
-    # elif tts_type == FISHTTS:
-    #     from .fishtts import get_voice
-    # elif tts_type == ELEVENLABS_TTS:
-    #     from .elevenlabs import get_voice
-    # elif tts_type == GOOGLE_TTS:
-    #     from .gtts import get_voice
-    # elif tts_type == CHATTTS:
-    #     from .chattts import get_voice
-    # elif tts_type == AI302_TTS:
-    #     from .ai302tts import get_voice
-    #
-    # if get_voice:
-    #     try:
-    #         get_voice(
-    #             text=text,
-    #             volume=volume,
-    #             pitch=pitch,
-    #             role=role,
-    #             rate=rate,
-    #             language=language,
-    #             filename=filename,
-    #             uuid=uuid,
-    #             set_p=set_p,
-    #             inst=inst)
-    #     except Exception as e:
-    #         lasterror = str(e)
-    # if tools.vail_file(filename):
-    #     if play:
-    #         threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
-    # else:
-    #     config.logger.error(f'no filename={filename} {tts_type=} {text=},{role=}')
-
-
-
 def run(*, queue_tts=None, language=None, inst=None, uuid=None,play=False,is_test=False)->None:
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
-
     if config.exit_soft  or ( not is_test and config.current_status != 'ing' and config.box_tts != 'ing'):
         return
     tts_type=queue_tts[0]['tts_type']
-    obj=None
     kwargs={
         "queue_tts":queue_tts,
         "language":language,
@@ -193,37 +121,26 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None,play=False,is_tes
         "is_test":is_test
     }
     if tts_type == AZURE_TTS:
-        obj=AzureTTS(**kwargs)
+        AzureTTS(**kwargs).run()
     elif tts_type==EDGE_TTS:
-        obj=EdgeTTS(**kwargs)
+        EdgeTTS(**kwargs).run()
     elif tts_type==AI302_TTS:
-        obj=AI302(**kwargs)
+        AI302(**kwargs).run()
     elif tts_type==COSYVOICE_TTS:
-        obj=CosyVoice(**kwargs)
+        CosyVoice(**kwargs).run()
     elif tts_type==CHATTTS:
-        obj=ChatTTS(**kwargs)
+        ChatTTS(**kwargs).run()
     elif tts_type==FISHTTS:
-        obj=FishTTS(**kwargs)
+        FishTTS(**kwargs).run()
     elif tts_type==GPTSOVITS_TTS:
-        obj=GPTSoVITS(**kwargs)
+        GPTSoVITS(**kwargs).run()
     elif tts_type==CLONE_VOICE_TTS:
-        obj=CloneVoice(**kwargs)
+        CloneVoice(**kwargs).run()
     elif tts_type==OPENAI_TTS:
-        obj=OPENAITTS(**kwargs)
+        OPENAITTS(**kwargs).run()
     elif tts_type==ELEVENLABS_TTS:
-        obj=ElevenLabs(**kwargs)
+        ElevenLabs(**kwargs).run()
     elif tts_type==GOOGLE_TTS:
-        obj=GTTS(**kwargs)
+        GTTS(**kwargs).run()
     elif tts_type==TTS_API:
-        obj=TTSAPI(**kwargs)
-    if obj is None:
-        raise Exception('No dubbing channel')
-    obj.run()
-
-    err = 0
-    for it in queue_tts:
-        if not tools.vail_file(it['filename']):
-            err += 1
-    if err >= (len(queue_tts) / 3):
-        raise LogExcept(f'{config.transobj["peiyindayu31"]}:{obj.error if obj.error  else ""}')
-    return
+        TTSAPI(**kwargs).run()

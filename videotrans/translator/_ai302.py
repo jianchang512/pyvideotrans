@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
+from typing import Union, List
+
 import requests
 
 from videotrans.configure import config
@@ -12,7 +14,7 @@ class AI302(BaseTrans):
         self.proxies={"http":"","https":""}
         self.prompt=config.params['ai302_template'].replace('{lang}', self.target_language)
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         payload = {
             "model": config.params['ai302_model'],
             "messages": [

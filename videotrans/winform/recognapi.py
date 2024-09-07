@@ -21,47 +21,47 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(recognapiw, "ok",
+            QtWidgets.QMessageBox.information(winobj, "ok",
                                               "测试可以连接到该API" if config.defaulelang == 'zh' else 'Tests can connect to this API')
         else:
-            QtWidgets.QMessageBox.critical(recognapiw, config.transobj['anerror'], d)
-        recognapiw.test.setText('测试能否连接' if config.defaulelang == 'zh' else 'Test for connectivity')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试能否连接' if config.defaulelang == 'zh' else 'Test for connectivity')
 
     def test():
-        if not recognapiw.recognapiform_address.text().strip():
-            QtWidgets.QMessageBox.critical(recognapiw, config.transobj['anerror'],
+        if not winobj.recognapiform_address.text().strip():
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                            '必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
             return
-        config.params['recognapi_url'] = recognapiw.recognapiform_address.text().strip()
-        task = Test(parent=recognapiw)
-        recognapiw.test.setText('测试连通性...' if config.defaulelang == 'zh' else 'Testing...')
+        config.params['recognapi_url'] = winobj.recognapiform_address.text().strip()
+        task = Test(parent=winobj)
+        winobj.test.setText('测试连通性...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        url = recognapiw.recognapiform_address.text().strip()
-        key = recognapiw.recognapiform_key.text().strip()
+        url = winobj.recognapiform_address.text().strip()
+        key = winobj.recognapiform_key.text().strip()
         if url:
             url = url.rstrip('/')
             url = 'http://' + url.replace('http://', '')
         config.params["recognapi_url"] = url
         config.params["recognapi_key"] = key
         config.getset_params(config.params)
-        recognapiw.close()
+        winobj.close()
 
     from videotrans.component import RecognAPIForm
-    recognapiw = config.child_forms.get('recognapiw')
-    if recognapiw is not None:
-        recognapiw.show()
-        recognapiw.raise_()
-        recognapiw.activateWindow()
+    winobj = config.child_forms.get('recognapiw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    recognapiw = RecognAPIForm()
-    config.child_forms['recognapiw'] = recognapiw
+    winobj = RecognAPIForm()
+    config.child_forms['recognapiw'] = winobj
     if config.params["recognapi_url"]:
-        recognapiw.recognapiform_address.setText(config.params["recognapi_url"])
+        winobj.recognapiform_address.setText(config.params["recognapi_url"])
     if config.params["recognapi_key"]:
-        recognapiw.recognapiform_key.setText(config.params["recognapi_key"])
-    recognapiw.set.clicked.connect(save)
-    recognapiw.test.clicked.connect(test)
-    recognapiw.show()
+        winobj.recognapiform_key.setText(config.params["recognapi_key"])
+    winobj.set.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

@@ -10,62 +10,67 @@ from videotrans.configure import config
 # 下载
 def open():
     def download():
-        proxy = youw.proxy.text().strip()
-        outdir = youw.outputdir.text()
-        url = youw.url.text().strip()
-        vid = youw.formatname.isChecked()
+        winobj.has_done=False
+        proxy = winobj.proxy.text().strip()
+        outdir = winobj.outputdir.text()
+        url = winobj.url.text().strip()
+        vid = winobj.formatname.isChecked()
         thread_num = 8
         try:
-            thread_num = int(youw.thread.text())
+            thread_num = int(winobj.thread.text())
         except Exception:
             pass
 
         if not url or not re.match(r'^https://(www.)?(youtube.com/(watch|shorts)|youtu.be/\w)', url, re.I):
-            QtWidgets.QMessageBox.critical(youw, config.transobj['anerror'],
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                            config.transobj[
                                                'You must fill in the YouTube video playback page address'])
             return
         if proxy:
             config.params['proxy'] = proxy
         from videotrans.task.download_youtube import Download
-        down = Download(proxy=proxy, url=url, out=outdir, parent=youw, vid=vid, thread_num=thread_num)
+        down = Download(proxy=proxy, url=url, out=outdir, parent=winobj, vid=vid, thread_num=thread_num)
         down.uito.connect(feed)
         down.start()
-        youw.set.setText(config.transobj["downing..."])
+        winobj.set.setText(config.transobj["downing..."])
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == 'error':
-            QtWidgets.QMessageBox.critical(youw, config.transobj['anerror'], d['text'])
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
-            youw.set.setText(d['text'])
+            winobj.set.setText(d['text'])
         else:
-            youw.set.setText(config.transobj['start download'])
-            QtWidgets.QMessageBox.information(youw, "OK", d['text'])
+            winobj.has_done=True
+            winobj.set.setText(config.transobj['start download'])
+            QtWidgets.QMessageBox.information(winobj, "OK", d['text'])
 
     def selectdir():
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(youw, "Select Dir", outdir)
-        youw.outputdir.setText(Path(dirname).as_posix())
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(winobj, "Select Dir", outdir)
+        winobj.outputdir.setText(Path(dirname).as_posix())
 
     from videotrans.component import YoutubeForm
-    youw = config.child_forms.get('youw')
-    if youw is not None:
-        youw.show()
-        youw.raise_()
-        youw.activateWindow()
+    winobj = config.child_forms.get('youw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    youw = YoutubeForm()
-    config.child_forms['youw'] = youw
-    youw.set.setText(config.transobj['start download'])
-    youw.selectdir.setText(config.transobj['Select Out Dir'])
+    winobj = YoutubeForm()
+    config.child_forms['youw'] = winobj
+    winobj.set.setText(config.transobj['start download'])
+    winobj.selectdir.setText(config.transobj['Select Out Dir'])
     outdir = config.params['youtube_outdir'] if 'youtube_outdir' in config.params else Path(
         config.HOME_DIR + '/youtube').as_posix()
     Path(config.HOME_DIR + '/youtube').mkdir(parents=True, exist_ok=True)
     # 创建事件过滤器实例并将其安装到 lineEdit 上
-    youw.outputdir.setText(outdir)
+    winobj.outputdir.setText(outdir)
     if config.params['proxy']:
-        youw.proxy.setText(config.params['proxy'])
-    youw.selectdir.clicked.connect(selectdir)
+        winobj.proxy.setText(config.params['proxy'])
+    winobj.selectdir.clicked.connect(selectdir)
 
-    youw.set.clicked.connect(download)
-    youw.show()
+    winobj.set.clicked.connect(download)
+    winobj.show()

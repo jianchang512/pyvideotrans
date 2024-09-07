@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_hunliu(object):
     def setupUi(self, hunliu):
+        self.has_done=False
         if not hunliu.objectName():
             hunliu.setObjectName(u"hunliu")
         hunliu.resize(643, 400)

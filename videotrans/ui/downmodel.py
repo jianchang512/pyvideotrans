@@ -20,6 +20,7 @@ from videotrans.util import tools
 
 class Ui_downmodel(object):
     def setupUi(self, downmodel):
+        self.has_done=False
         if not downmodel.objectName():
             downmodel.setObjectName(u"downmodel")
         downmodel.resize(643, 400)

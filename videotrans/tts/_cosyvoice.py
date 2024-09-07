@@ -30,11 +30,11 @@ class CosyVoice(BaseTTS):
 
     def _item_task(self,data_item:dict=None):
         if not data_item or tools.vail_file(data_item['filename']):
-            return True
+            return
         try:
             text = data_item['text'].strip()
             if not text:
-                return True
+                return
             rate = float(self.rate.replace('%', '')) if self.rate else 0
             role=data_item['role']
             if self.api_url.endswith(':9880'):
@@ -91,8 +91,8 @@ class CosyVoice(BaseTTS):
             if response.status_code != 200:
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
-                self.error=(f"CosyVoice 返回错误信息-1:{data['msg']}")
-                return False
+                self.error=f"CosyVoice 返回错误信息-1:{data['msg']}"
+                return
 
             # 如果是WAV音频流，获取原始音频数据
             with open(data_item['filename'] + ".wav", 'wb') as f:
@@ -100,7 +100,7 @@ class CosyVoice(BaseTTS):
             time.sleep(1)
             if not os.path.exists(data_item['filename'] + ".wav"):
                 self.error=f'CosyVoice 合成声音失败-2:{text=}'
-                return False
+                return
             tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
             Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
 
@@ -108,7 +108,6 @@ class CosyVoice(BaseTTS):
                 self.inst.precent += 0.1
             self.error=''
             self.has_done+=1
-            return True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -117,8 +116,8 @@ class CosyVoice(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        return
 

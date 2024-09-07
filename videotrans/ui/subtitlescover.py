@@ -17,7 +17,7 @@ from videotrans.configure import config
 class Ui_subtitlescover(object):
     def setupUi(self, subtitlescover):
         self.subtitlefiles = []
-
+        self.has_done=False
         subtitlescover.setObjectName("subtitlescover")
         subtitlescover.setWindowModality(QtCore.Qt.NonModal)
         subtitlescover.resize(500, 400)

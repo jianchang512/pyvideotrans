@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_setlinerole(object):
     def setupUi(self, setlinerole):
+        self.has_done=False
         setlinerole.setObjectName("setlinerole")
         setlinerole.setWindowModality(QtCore.Qt.NonModal)
         setlinerole.resize(600, 600)

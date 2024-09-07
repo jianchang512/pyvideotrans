@@ -25,13 +25,13 @@ class TTSAPI(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self,data_item:Union[Dict,List,None]):
-        if tools.vail_file(data_item['filename']):
-            return True
+        if not data_item or tools.vail_file(data_item['filename']):
+            return
         try:
             text = data_item['text'].strip()
             role=data_item['role']
             if not text:
-                return True
+                return
             data = {"text": text.strip(), "language": self.language, "extra": config.params['ttsapi_extra'], "voice": role,
                     "ostype": sys.platform,
                     "rate": self.rate}
@@ -40,24 +40,22 @@ class TTSAPI(BaseTTS):
             res = resraw.json()
             if "code" not in res or "msg" not in res:
                 self.error=f'TTS-API:{res}'
-                return False
+                return
             if res['code'] != 0:
                 self.error=f'TTS-API:{res["msg"]}'
-                return False
+                return
 
             url = res['data']
             res = requests.get(url)
             if res.status_code != 200:
                 self.error=f'TTS-API:{url}'
-                return False
+                return
             with open(data_item['filename'], 'wb') as f:
                 f.write(res.content)
-
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error=''
             self.has_done+=1
-            return True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -66,7 +64,6 @@ class TTSAPI(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')

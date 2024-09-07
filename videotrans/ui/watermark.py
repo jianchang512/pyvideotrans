@@ -19,6 +19,7 @@ from videotrans.configure import config
 
 class Ui_watermark(object):
     def setupUi(self, watermark):
+        self.has_done=False
         if not watermark.objectName():
             watermark.setObjectName(u"watermark")
         watermark.resize(643, 350)

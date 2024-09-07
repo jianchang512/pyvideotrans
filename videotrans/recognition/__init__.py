@@ -1,20 +1,18 @@
-import logging
+from typing import Union, List, Dict
 
 from videotrans.configure import config
 # 判断各个语音识别模式是否支持所选语言
 # 支持返回True，不支持返回错误文字字符串
 from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win, \
     openairecognapi as openairecognapi_win, doubao as doubao_win
-from ._all import  FasterAll
-from ._avg import  FasterAvg
-from ._doubao import  DoubaoRecogn
-from ._google import  GoogleRecogn
-from ._openai import  OpenaiWhisperRecogn
-from ._openairecognapi import  OpenaiAPIRecogn
-from ._recognapi import  APIRecogn
-from ._zh import  ZhRecogn
-
-
+from ._all import FasterAll
+from ._avg import FasterAvg
+from ._doubao import DoubaoRecogn
+from ._google import GoogleRecogn
+from ._openai import OpenaiWhisperRecogn
+from ._openairecognapi import OpenaiAPIRecogn
+from ._recognapi import APIRecogn
+from ._zh import ZhRecogn
 
 # 数字代表界面中的现实顺序
 FASTER_WHISPER = 0
@@ -73,103 +71,36 @@ def run(*,
         audio_file=None,
         cache_folder=None,
         model_name=None,
-        set_p=True,
         inst=None,
         uuid=None,
         model_type: int = 0,
         is_cuda=None
-        ):
+        ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
-        return False
+        return
     if model_name.startswith('distil-'):
         model_name = model_name.replace('-whisper', '')
-    kwargs={
-        "detect_language":detect_language,
-        "audio_file":audio_file,
-        "cache_folder":cache_folder,
-        "model_name":model_name,
-        "uuid":uuid,
-        "inst":inst,
-        "is_cuda":is_cuda
+    kwargs = {
+        "detect_language": detect_language,
+        "audio_file": audio_file,
+        "cache_folder": cache_folder,
+        "model_name": model_name,
+        "uuid": uuid,
+        "inst": inst,
+        "is_cuda": is_cuda
     }
     if model_type == OPENAI_WHISPER:
         return OpenaiWhisperRecogn(**kwargs).run()
-        # rs = openai_recogn(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     model_name=model_name,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=inst,
-        #     is_cuda=is_cuda)
     if model_type == GOOGLE_SPEECH:
         return GoogleRecogn(**kwargs).run()
-        # rs = google_recogn(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=None)
     if model_type == ZH_RECOGN:
         return ZhRecogn(**kwargs).run()
-        # rs = zh_recogn(
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=None)
     if model_type == DOUBAO_API:
         return DoubaoRecogn(**kwargs).run()
-        # rs = doubao_recogn(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=inst)
     if model_type == CUSTOM_API:
         return APIRecogn(**kwargs).run()
-        # rs = recogn_api(
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=None)
     if model_type == OPENAI_API:
-        return OpenaiAPIRecogn(**kwargs)
-        # rs = openairecogn_api(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=inst)
+        return OpenaiAPIRecogn(**kwargs).run()
     if type == 'avg':
-        return FasterAvg(**kwargs)
-        # rs = avg_recogn(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     model_name=model_name,
-        #     set_p=set_p,
-        #     inst=inst,
-        #     uuid=uuid,
-        #     is_cuda=is_cuda)
-    return FasterAll(**kwargs)
-        # 其他方式均为faster-whisper
-        # rs = all_recogn(
-        #     detect_language=detect_language,
-        #     audio_file=audio_file,
-        #     cache_folder=cache_folder,
-        #     model_name=model_name,
-        #     set_p=set_p,
-        #     uuid=uuid,
-        #     inst=inst,
-        #     is_cuda=is_cuda)
-    # try:
-    #     if torch.cuda.is_available():
-    #         torch.cuda.empty_cache()
-    # except Exception:
-    #     pass
-    # return rs
+        return FasterAvg(**kwargs).run()
+    return FasterAll(**kwargs).run()

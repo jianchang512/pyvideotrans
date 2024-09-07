@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_localllmform(object):
     def setupUi(self, localllmform):
+        self.has_done=False
         localllmform.setObjectName("localllmform")
         localllmform.setWindowModality(QtCore.Qt.NonModal)
         localllmform.resize(600, 600)

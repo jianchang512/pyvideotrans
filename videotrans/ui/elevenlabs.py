@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_elevenlabsform(object):
     def setupUi(self, elevenlabsform):
+        self.has_done=False
         elevenlabsform.setObjectName("elevenlabsform")
         elevenlabsform.setWindowModality(QtCore.Qt.NonModal)
         elevenlabsform.resize(400, 223)

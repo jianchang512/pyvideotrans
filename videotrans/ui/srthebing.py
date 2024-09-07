@@ -19,6 +19,7 @@ from videotrans.configure import config
 
 class Ui_srthebing(object):
     def setupUi(self, srthebing):
+        self.has_done=False
         if not srthebing.objectName():
             srthebing.setObjectName(u"srthebing")
         srthebing.resize(643, 535)

@@ -30,48 +30,48 @@ def open():
 
     def feed(d):
         if not d.startswith("ok:"):
-            QtWidgets.QMessageBox.critical(zijiew, config.transobj['anerror'], d)
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
-            QtWidgets.QMessageBox.information(zijiew, "OK", d[3:])
-        zijiew.test_zijiehuoshan.setText('测试')
+            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
+        winobj.test_zijiehuoshan.setText('测试')
 
     def test():
-        key = zijiew.zijiehuoshan_key.text()
-        model = zijiew.zijiehuoshan_model.currentText()
+        key = winobj.zijiehuoshan_key.text()
+        model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
-            return QtWidgets.QMessageBox.critical(zijiew, config.transobj['anerror'], '必须填写API key和推理接入点')
+            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写API key和推理接入点')
 
-        template = zijiew.zijiehuoshan_template.toPlainText()
+        template = winobj.zijiehuoshan_template.toPlainText()
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
         config.params["zijiehuoshan_template"] = template
 
-        task = TestZijiehuoshan(parent=zijiew)
-        zijiew.test_zijiehuoshan.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestZijiehuoshan(parent=winobj)
+        winobj.test_zijiehuoshan.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save_zijiehuoshan():
-        key = zijiew.zijiehuoshan_key.text()
+        key = winobj.zijiehuoshan_key.text()
 
-        model = zijiew.zijiehuoshan_model.currentText()
-        template = zijiew.zijiehuoshan_template.toPlainText()
+        model = winobj.zijiehuoshan_model.currentText()
+        template = winobj.zijiehuoshan_template.toPlainText()
 
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
         config.params["zijiehuoshan_template"] = template
         Path(config.ROOT_DIR + f"/videotrans/zijie.txt").write_text(template, encoding='utf-8')
         config.getset_params(config.params)
-        zijiew.close()
+        winobj.close()
 
     def setallmodels():
-        t = zijiew.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
         t_list = [x for x in t.split(',') if x.strip()]
-        current_text = zijiew.zijiehuoshan_model.currentText()
-        zijiew.zijiehuoshan_model.clear()
-        zijiew.zijiehuoshan_model.addItems(t_list)
+        current_text = winobj.zijiehuoshan_model.currentText()
+        winobj.zijiehuoshan_model.clear()
+        winobj.zijiehuoshan_model.addItems(t_list)
         if current_text:
-            zijiew.zijiehuoshan_model.setCurrentText(current_text)
+            winobj.zijiehuoshan_model.setCurrentText(current_text)
         config.settings['zijiehuoshan_model'] = t
         json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
@@ -80,29 +80,29 @@ def open():
         config.settings = config.parse_init()
         allmodels_str = config.settings['zijiehuoshan_model']
         allmodels = config.settings['zijiehuoshan_model'].split(',')
-        zijiew.zijiehuoshan_model.clear()
-        zijiew.zijiehuoshan_model.addItems(allmodels)
-        zijiew.edit_allmodels.setPlainText(allmodels_str)
+        winobj.zijiehuoshan_model.clear()
+        winobj.zijiehuoshan_model.addItems(allmodels)
+        winobj.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params["zijiehuoshan_key"]:
-            zijiew.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
+            winobj.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
         if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
-            zijiew.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
+            winobj.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
         if config.params["zijiehuoshan_template"]:
-            zijiew.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
+            winobj.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
 
     from videotrans.component import ZijiehuoshanForm
-    zijiew = config.child_forms.get('zijiew')
-    if zijiew is not None:
-        zijiew.show()
+    winobj = config.child_forms.get('zijiew')
+    if winobj is not None:
+        winobj.show()
         update_ui()
-        zijiew.raise_()
-        zijiew.activateWindow()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    zijiew = ZijiehuoshanForm()
-    config.child_forms['zijiew'] = zijiew
+    winobj = ZijiehuoshanForm()
+    config.child_forms['zijiew'] = winobj
     update_ui()
-    zijiew.edit_allmodels.textChanged.connect(setallmodels)
-    zijiew.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
-    zijiew.test_zijiehuoshan.clicked.connect(test)
-    zijiew.show()
+    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
+    winobj.test_zijiehuoshan.clicked.connect(test)
+    winobj.show()

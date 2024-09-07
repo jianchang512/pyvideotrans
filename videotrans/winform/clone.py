@@ -33,43 +33,43 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(clonew, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(clonew, config.transobj['anerror'], d)
-        clonew.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not clonew.clone_address.text().strip():
-            QtWidgets.QMessageBox.critical(clonew, config.transobj['anerror'], '必须填写http地址')
+        if not winobj.clone_address.text().strip():
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
             return
-        config.params['clone_api'] = clonew.clone_address.text().strip()
-        task = TestTTS(parent=clonew,
+        config.params['clone_api'] = winobj.clone_address.text().strip()
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
                        , language="zh-cn" if config.defaulelang == 'zh' else 'en')
-        clonew.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = clonew.clone_address.text().strip()
+        key = winobj.clone_address.text().strip()
         if key:
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '')
         config.params["clone_api"] = key
         config.getset_params(config.params)
-        clonew.close()
+        winobj.close()
 
     from videotrans.component import CloneForm
-    clonew = config.child_forms.get('clonew')
-    if clonew is not None:
-        clonew.show()
-        clonew.raise_()
-        clonew.activateWindow()
+    winobj = config.child_forms.get('clonew')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    clonew = CloneForm()
-    config.child_forms['clonew'] = clonew
+    winobj = CloneForm()
+    config.child_forms['clonew'] = winobj
     if config.params["clone_api"]:
-        clonew.clone_address.setText(config.params["clone_api"])
-    clonew.set_clone.clicked.connect(save)
-    clonew.test.clicked.connect(test)
-    clonew.show()
+        winobj.clone_address.setText(config.params["clone_api"])
+    winobj.set_clone.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

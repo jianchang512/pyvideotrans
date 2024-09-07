@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_ttsapiform(object):
     def setupUi(self, ttsapiform):
+        self.has_done=False
         if not ttsapiform.objectName():
             ttsapiform.setObjectName("ttsapiform")
         ttsapiform.setWindowModality(Qt.NonModal)

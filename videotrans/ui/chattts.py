@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_chatttsform(object):
     def setupUi(self, chattts):
+        self.has_done=False
         chattts.setObjectName("chattts")
         chattts.setWindowModality(QtCore.Qt.NonModal)
         chattts.resize(500, 223)

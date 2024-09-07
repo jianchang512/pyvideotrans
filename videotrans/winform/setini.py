@@ -17,7 +17,7 @@ def open():
         line_edit_dict = {}
 
         # 使用findChildren方法查找所有QLineEdit控件
-        line_edits = setiniw.findChildren(QLineEdit)
+        line_edits = winobj.findChildren(QLineEdit)
         # 遍历找到的所有QLineEdit控件
         for line_edit in line_edits:
             # 检查QLineEdit是否有objectName
@@ -29,27 +29,27 @@ def open():
             json.dump(line_edit_dict, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                       ensure_ascii=False)
         except Exception as e:
-            return QtWidgets.QMessageBox.critical(setiniw, config.transobj['anerror'], str(e))
+            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
         else:
             config.settings = line_edit_dict
 
-        setiniw.close()
+        winobj.close()
 
     def alert(btn):
         name = btn.objectName()[4:]
-        QMessageBox.information(setiniw, f'Help {setiniw.titles[name]}', setiniw.alertnotice[name])
+        QMessageBox.information(winobj, f'Help {winobj.titles[name]}', winobj.alertnotice[name])
 
     from videotrans.component import SetINIForm
-    setiniw = config.child_forms.get('setiniw')
-    if setiniw is not None:
-        setiniw.show()
-        setiniw.raise_()
-        setiniw.activateWindow()
+    winobj = config.child_forms.get('setiniw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    setiniw = SetINIForm()
-    config.child_forms['setiniw'] = setiniw
-    for button in setiniw.findChildren(QPushButton):
+    winobj = SetINIForm()
+    config.child_forms['setiniw'] = winobj
+    for button in winobj.findChildren(QPushButton):
         if button.objectName().startswith('btn_'):
             button.clicked.connect(lambda checked, btn=button: alert(btn))
-    setiniw.set_ok.clicked.connect(save)
-    setiniw.show()
+    winobj.set_ok.clicked.connect(save)
+    winobj.show()

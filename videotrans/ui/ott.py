@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_ottform(object):
     def setupUi(self, ottform):
+        self.has_done=False
         ottform.setObjectName("ottform")
         ottform.setWindowModality(QtCore.Qt.NonModal)
         ottform.resize(400, 223)

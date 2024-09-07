@@ -34,31 +34,31 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(chatttsw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'], d)
-        chatttsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not chatttsw.chattts_address.text().strip():
-            QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'], '必须填写http地址')
+        if not winobj.chattts_address.text().strip():
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
             return
-        apiurl = chatttsw.chattts_address.text().strip()
+        apiurl = winobj.chattts_address.text().strip()
         if not apiurl:
-            return QtWidgets.QMessageBox.critical(chatttsw, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                   '必须填写api地址' if config.defaulelang == 'zh' else 'Please input ChatTTS API url')
 
         config.params['chattts_api'] = apiurl
-        task = TestTTS(parent=chatttsw,
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友"
                        )
-        chatttsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = chatttsw.chattts_address.text().strip()
-        voice = chatttsw.chattts_voice.text().strip()
+        key = winobj.chattts_address.text().strip()
+        voice = winobj.chattts_voice.text().strip()
         if key:
             key = key.rstrip('/')
             key = 'http://' + key.replace('http://', '').replace('/tts', '')
@@ -68,25 +68,25 @@ def open():
         json.dump(config.settings, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
-        chatttsw.close()
+        winobj.close()
 
     from videotrans.component import ChatttsForm
-    chatttsw = config.child_forms.get('chatttsw')
-    if chatttsw is not None:
+    winobj = config.child_forms.get('chatttsw')
+    if winobj is not None:
         config.settings = config.parse_init()
         if config.settings["chattts_voice"]:
-            chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
-        chatttsw.show()
-        chatttsw.raise_()
-        chatttsw.activateWindow()
+            winobj.chattts_voice.setText(config.settings["chattts_voice"])
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    chatttsw = ChatttsForm()
-    config.child_forms['chatttsw'] = chatttsw
+    winobj = ChatttsForm()
+    config.child_forms['chatttsw'] = winobj
 
     if config.params["chattts_api"]:
-        chatttsw.chattts_address.setText(config.params["chattts_api"])
+        winobj.chattts_address.setText(config.params["chattts_api"])
     if config.settings["chattts_voice"]:
-        chatttsw.chattts_voice.setText(config.settings["chattts_voice"])
-    chatttsw.set_chattts.clicked.connect(save)
-    chatttsw.test.clicked.connect(test)
-    chatttsw.show()
+        winobj.chattts_voice.setText(config.settings["chattts_voice"])
+    winobj.set_chattts.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()
