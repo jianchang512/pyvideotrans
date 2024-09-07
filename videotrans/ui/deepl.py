@@ -15,9 +15,9 @@ from videotrans.configure import config
 
 class Ui_deeplform(object):
     def setupUi(self, deeplform):
+        self.has_done=False
         deeplform.setObjectName("deeplform")
         deeplform.setWindowModality(QtCore.Qt.NonModal)
-        # deeplform.resize(800, 330)
         deeplform.setMinimumSize(QtCore.QSize(550, 330))
 
         self.gridLayout = QtWidgets.QGridLayout(deeplform)

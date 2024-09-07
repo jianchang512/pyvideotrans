@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_fishttsform(object):
     def setupUi(self, fishttsform):
+        self.has_done=False
         if not fishttsform.objectName():
             fishttsform.setObjectName("fishttsform")
         fishttsform.setWindowModality(Qt.NonModal)

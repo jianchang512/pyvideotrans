@@ -29,6 +29,7 @@ class LineEditClickFilter(QObject):
 
 class Ui_separateform(object):
     def setupUi(self, separateform):
+        self.has_done=False
         separateform.setObjectName("separateform")
         separateform.setWindowModality(QtCore.Qt.NonModal)
         separateform.resize(600, 300)

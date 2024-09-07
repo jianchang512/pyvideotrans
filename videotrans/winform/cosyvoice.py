@@ -30,48 +30,48 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(cosyvoicew, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(cosyvoicew, config.transobj['anerror'], d)
-        cosyvoicew.test.setText('测试api')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试api')
 
     def test():
-        url = cosyvoicew.api_url.text()
+        url = winobj.api_url.text()
         config.params["cosyvoice_url"] = url
-        task = TestTTS(parent=cosyvoicew,
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
                        role="中文女")
-        cosyvoicew.test.setText('测试中请稍等...')
+        winobj.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
 
 
     def save():
-        url = cosyvoicew.api_url.text()
+        url = winobj.api_url.text()
 
-        role = cosyvoicew.role.toPlainText().strip()
+        role = winobj.role.toPlainText().strip()
 
         config.params["cosyvoice_url"] = url
 
         config.params["cosyvoice_role"] = role
         config.getset_params(config.params)
 
-        cosyvoicew.close()
+        winobj.close()
 
     from videotrans.component import CosyVoiceForm
-    cosyvoicew = config.child_forms.get('cosyvoicew')
-    if cosyvoicew is not None:
-        cosyvoicew.show()
-        cosyvoicew.raise_()
-        cosyvoicew.activateWindow()
+    winobj = config.child_forms.get('cosyvoicew')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    cosyvoicew = CosyVoiceForm()
-    config.child_forms['cosyvoicew'] = cosyvoicew
+    winobj = CosyVoiceForm()
+    config.child_forms['cosyvoicew'] = winobj
     if config.params["cosyvoice_url"]:
-        cosyvoicew.api_url.setText(config.params["cosyvoice_url"])
+        winobj.api_url.setText(config.params["cosyvoice_url"])
     if config.params["cosyvoice_role"]:
-        cosyvoicew.role.setPlainText(config.params["cosyvoice_role"])
+        winobj.role.setPlainText(config.params["cosyvoice_role"])
 
-    cosyvoicew.save.clicked.connect(save)
-    cosyvoicew.test.clicked.connect(test)
-    cosyvoicew.show()
+    winobj.save.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

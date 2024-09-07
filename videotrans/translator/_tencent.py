@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Union, List
 
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -20,7 +21,7 @@ class Tencent(BaseTrans):
             del os.environ['all_proxy']
 
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
 
         cred = credential.Credential(config.params['tencent_SecretId'], config.params['tencent_SecretKey'])
         # 实例化一个http选项，可选的，没有特殊需求可以跳过

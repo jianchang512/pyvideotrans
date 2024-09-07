@@ -1,4 +1,5 @@
 import random
+from typing import Union, List
 
 import requests
 
@@ -20,7 +21,7 @@ class FreeGoogle(BaseTrans):
             self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
-    def _get_content(self,data:list):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         text="\n".join([quote(text) for text in data])
         url = f"{random.choice(urls)}/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_language}&q={text}"
         config.logger.info(f'[Google]请求数据:{url=}')

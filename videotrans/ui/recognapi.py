@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_recognapiform(object):
     def setupUi(self, recognapiform):
+        self.has_done=False
         recognapiform.setObjectName("recognapiform")
         recognapiform.setWindowModality(QtCore.Qt.NonModal)
         recognapiform.resize(500, 400)

@@ -44,41 +44,46 @@ def open():
                 self.post(type='error', text=str(e))
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(hebingw, config.transobj['anerror'], d['text'])
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
-            hebingw.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         else:
-            hebingw.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
-            hebingw.startbtn.setDisabled(False)
-            hebingw.resultlabel.setText(d['text'])
-            hebingw.resultbtn.setDisabled(False)
-            hebingw.resultinput.setPlainText(Path(hebingw.resultlabel.text()).read_text(encoding='utf-8'))
+            winobj.has_done=True
+            winobj.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
+            winobj.startbtn.setDisabled(False)
+            winobj.resultlabel.setText(d['text'])
+            winobj.resultbtn.setDisabled(False)
+            winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8'))
 
     def get_file(inputname):
-        fname, _ = QFileDialog.getOpenFileName(hebingw, "Select subtitles srt", config.params['last_opendir'],
+        fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", config.params['last_opendir'],
                                                "files(*.srt)")
         if fname:
             if inputname == 1:
-                hebingw.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
             else:
-                hebingw.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        srt1 = hebingw.srtinput1.text()
-        srt2 = hebingw.srtinput2.text()
+        winobj.has_done=False
+        srt1 = winobj.srtinput1.text()
+        srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:
-            QMessageBox.critical(hebingw, config.transobj['anerror'],
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
             return
 
-        hebingw.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
-        hebingw.startbtn.setDisabled(True)
-        hebingw.resultbtn.setDisabled(True)
-        hebingw.resultinput.setPlainText("")
+        winobj.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
+        winobj.startbtn.setDisabled(True)
+        winobj.resultbtn.setDisabled(True)
+        winobj.resultinput.setPlainText("")
 
-        task = CompThread(parent=hebingw, file1=srt1, file2=srt2)
+        task = CompThread(parent=winobj, file1=srt1, file2=srt2)
 
         task.uito.connect(feed)
         task.start()
@@ -88,19 +93,19 @@ def open():
 
     from videotrans.component import HebingsrtForm
     try:
-        hebingw = config.child_forms.get('hebingw')
-        if hebingw is not None:
-            hebingw.show()
-            hebingw.raise_()
-            hebingw.activateWindow()
+        winobj = config.child_forms.get('hebingw')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        hebingw = HebingsrtForm()
-        config.child_forms['hebingw'] = hebingw
-        hebingw.srtbtn1.clicked.connect(lambda: get_file(1))
-        hebingw.srtbtn2.clicked.connect(lambda: get_file(2))
+        winobj = HebingsrtForm()
+        config.child_forms['hebingw'] = winobj
+        winobj.srtbtn1.clicked.connect(lambda: get_file(1))
+        winobj.srtbtn2.clicked.connect(lambda: get_file(2))
 
-        hebingw.resultbtn.clicked.connect(opendir)
-        hebingw.startbtn.clicked.connect(start)
-        hebingw.show()
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

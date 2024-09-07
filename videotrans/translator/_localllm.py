@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
+from typing import Union, List
+
 import httpx
 from openai import OpenAI
 
@@ -21,7 +23,7 @@ class LocalLLM(BaseTrans):
 
         self.prompt=config.params['localllm_template'].replace('{lang}', self.target_language)
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         model = OpenAI(api_key=config.params['localllm_key'], base_url=self.api_url, http_client=httpx.Client(proxies=self.proxies))
         message = [
             {'role': 'system',

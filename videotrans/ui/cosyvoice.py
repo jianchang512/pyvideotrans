@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_cosyvoiceform(object):
     def setupUi(self, cosyvoiceform):
+        self.has_done=False
         if not cosyvoiceform.objectName():
             cosyvoiceform.setObjectName("cosyvoiceform")
         cosyvoiceform.setWindowModality(Qt.NonModal)

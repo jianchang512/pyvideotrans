@@ -23,6 +23,7 @@ class Ui_ai302form(object):
         ai302form.setSizePolicy(sizePolicy)
         ai302form.setMaximumSize(QtCore.QSize(600, 550))
 
+        self.has_done=False
         self.label_0 = QtWidgets.QPushButton(ai302form)
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))

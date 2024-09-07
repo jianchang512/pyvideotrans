@@ -1046,6 +1046,7 @@ def set_process(text="", *, type="logs", uuid=None, nologs=False):
         if not uuid:
             uuid = 'global'
         logdata = {"text": text, "type": type, "uuid": uuid}
+        print(f'set_process日志：{logdata=}')
         config.push_queue(uuid, logdata)
     except Exception as e:
         pass

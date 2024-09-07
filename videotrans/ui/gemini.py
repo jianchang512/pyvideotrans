@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_geminiform(object):
     def setupUi(self, geminiform):
+        self.has_done=False
         geminiform.setObjectName("geminiform")
         geminiform.setWindowModality(QtCore.Qt.NonModal)
         geminiform.resize(600, 500)

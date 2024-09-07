@@ -2,6 +2,7 @@
 import os
 import re
 import time
+from typing import Union, List
 
 import httpx
 import openai
@@ -42,7 +43,7 @@ class ChatGPT(BaseTrans):
             return url + "/v1"
         return url
 
-    def _get_content(self,data) ->str:
+    def _item_task(self,data:Union[List[str],str]) ->str:
         message = [
             {
                 'role': 'system',

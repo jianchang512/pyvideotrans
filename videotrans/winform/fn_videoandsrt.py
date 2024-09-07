@@ -121,46 +121,51 @@ def open():
             self.post(type='ok', text='执行完成' if config.defaulelang == 'zh' else 'Ended')
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(vandsrtform, config.transobj['anerror'], d['text'])
-            vandsrtform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            vandsrtform.startbtn.setDisabled(False)
-            vandsrtform.opendir.setDisabled(False)
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd':
-            vandsrtform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
-            vandsrtform.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text'])
         else:
-            vandsrtform.startbtn.setText(config.transobj['zhixingwc'])
-            vandsrtform.startbtn.setDisabled(False)
-            vandsrtform.loglabel.setText(config.transobj['quanbuend'])
-            vandsrtform.opendir.setDisabled(False)
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.loglabel.setText(config.transobj['quanbuend'])
+            winobj.opendir.setDisabled(False)
 
     def get_file():
-        dirname = QFileDialog.getExistingDirectory(vandsrtform, config.transobj['selectsavedir'],
+        dirname = QFileDialog.getExistingDirectory(winobj, config.transobj['selectsavedir'],
                                                    config.params['last_opendir'])
-        vandsrtform.folder.setText(dirname.replace('\\', '/'))
+        winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
-        folder = vandsrtform.folder.text()
+        winobj.has_done=False
+        folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            QMessageBox.critical(vandsrtform, config.transobj['anerror'],
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.')
             return
-        is_soft = vandsrtform.issoft.isChecked()
-        language = vandsrtform.language.currentText()
+        is_soft = winobj.issoft.isChecked()
+        language = winobj.language.currentText()
         maxlen = 30
         try:
-            maxlen = int(vandsrtform.maxlen.text())
+            maxlen = int(winobj.maxlen.text())
         except Exception:
             pass
 
-        vandsrtform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'In Progress...')
-        vandsrtform.startbtn.setDisabled(True)
-        vandsrtform.opendir.setDisabled(True)
-        task = CompThread(parent=vandsrtform,
+        winobj.startbtn.setDisabled(True)
+        winobj.opendir.setDisabled(True)
+        task = CompThread(parent=winobj,
                           folder=folder,
                           is_soft=is_soft,
                           language=language,
@@ -174,17 +179,17 @@ def open():
 
     from videotrans.component import Videoandsrtform
     try:
-        vandsrtform = config.child_forms.get('vandsrtform')
-        if vandsrtform is not None:
-            vandsrtform.show()
-            vandsrtform.raise_()
-            vandsrtform.activateWindow()
+        winobj = config.child_forms.get('vandsrtform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        vandsrtform = Videoandsrtform()
-        config.child_forms['vandsrtform'] = vandsrtform
-        vandsrtform.folder_btn.clicked.connect(get_file)
-        vandsrtform.startbtn.clicked.connect(start)
-        vandsrtform.opendir.clicked.connect(opendir)
-        vandsrtform.show()
+        winobj = Videoandsrtform()
+        config.child_forms['vandsrtform'] = winobj
+        winobj.folder_btn.clicked.connect(get_file)
+        winobj.startbtn.clicked.connect(start)
+        winobj.opendir.clicked.connect(opendir)
+        winobj.show()
     except Exception as e:
         print(e)

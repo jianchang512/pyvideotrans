@@ -3,6 +3,7 @@
 import os
 import re
 import time
+from typing import Union, List
 
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
@@ -40,7 +41,7 @@ class Gemini(BaseTrans):
         self._set_proxy(type='set')
         self.prompt = config.params['gemini_template'].replace('{lang}', self.target_language)
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         response = None
         try:
             if '{text}' in self.prompt:

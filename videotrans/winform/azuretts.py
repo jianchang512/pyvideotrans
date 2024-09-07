@@ -30,58 +30,58 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(azurettsw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(azurettsw, config.transobj['anerror'], d)
-        azurettsw.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        key = azurettsw.speech_key.text().strip()
+        key = winobj.speech_key.text().strip()
         if not key:
-            QtWidgets.QMessageBox.critical(azurettsw, config.transobj['anerror'], '填写Azure speech key ')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '填写Azure speech key ')
             return
-        region = azurettsw.speech_region.text().strip()
+        region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
-            region = azurettsw.azuretts_area.currentText()
+            region = winobj.azuretts_area.currentText()
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
 
-        task = TestTTS(parent=azurettsw,
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
                        role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
                        language="zh-CN" if config.defaulelang == 'zh' else 'en-US'
                        )
-        azurettsw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = azurettsw.speech_key.text()
-        region = azurettsw.speech_region.text().strip()
+        key = winobj.speech_key.text()
+        region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
-            region = azurettsw.azuretts_area.currentText()
+            region = winobj.azuretts_area.currentText()
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
         config.getset_params(config.params)
-        azurettsw.close()
+        winobj.close()
 
     from videotrans.component import AzurettsForm
-    azurettsw = config.child_forms.get('azurettsw')
-    if azurettsw is not None:
-        azurettsw.show()
-        azurettsw.raise_()
-        azurettsw.activateWindow()
+    winobj = config.child_forms.get('azurettsw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    azurettsw = AzurettsForm()
-    config.child_forms['azurettsw'] = azurettsw
+    winobj = AzurettsForm()
+    config.child_forms['azurettsw'] = winobj
     if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
-        azurettsw.speech_region.setText(config.params['azure_speech_region'])
+        winobj.speech_region.setText(config.params['azure_speech_region'])
     else:
-        azurettsw.azuretts_area.setCurrentText(config.params['azure_speech_region'])
+        winobj.azuretts_area.setCurrentText(config.params['azure_speech_region'])
     if config.params['azure_speech_key']:
-        azurettsw.speech_key.setText(config.params['azure_speech_key'])
-    azurettsw.save.clicked.connect(save)
-    azurettsw.test.clicked.connect(test)
-    azurettsw.show()
+        winobj.speech_key.setText(config.params['azure_speech_key'])
+    winobj.save.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

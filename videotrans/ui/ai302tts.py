@@ -13,6 +13,7 @@ from PySide6 import QtCore, QtWidgets
 
 class Ui_ai302ttsform(object):
     def setupUi(self, ai302ttsform):
+        self.has_done=False
         ai302ttsform.setObjectName("ai302ttsform")
         ai302ttsform.setWindowModality(QtCore.Qt.NonModal)
         ai302ttsform.resize(600, 450)

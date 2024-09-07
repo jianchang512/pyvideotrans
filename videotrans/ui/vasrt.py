@@ -18,6 +18,7 @@ from videotrans.configure import config
 
 class Ui_vasrt(object):
     def setupUi(self, vasrt):
+        self.has_done=False
         if not vasrt.objectName():
             vasrt.setObjectName(u"vasrt")
         vasrt.resize(700, 500)

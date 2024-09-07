@@ -16,6 +16,7 @@ from videotrans.configure.config import box_lang
 
 class Ui_fanyisrt(object):
     def setupUi(self, fanyisrt):
+        self.has_done=False
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
         fanyisrt.resize(1000, 535)

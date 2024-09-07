@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_zijiehuoshanform(object):
     def setupUi(self, zijiehuoshanform):
+        self.has_done=False
         zijiehuoshanform.setObjectName("zijiehuoshanform")
         zijiehuoshanform.setWindowModality(QtCore.Qt.NonModal)
         zijiehuoshanform.resize(600, 570)

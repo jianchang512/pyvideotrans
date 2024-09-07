@@ -10,9 +10,9 @@ builtin_open = builtins.open
 
 def open():
     def save():
-        key = geminiw.gemini_key.text()
-        model = geminiw.model.currentText()
-        template = geminiw.gemini_template.toPlainText()
+        key = winobj.gemini_key.text()
+        model = winobj.model.currentText()
+        template = winobj.gemini_template.toPlainText()
         os.environ['GOOGLE_API_KEY'] = key
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
@@ -21,15 +21,15 @@ def open():
                           encoding='utf-8') as f:
             f.write(template)
         config.getset_params(config.params)
-        geminiw.close()
+        winobj.close()
 
     def setallmodels():
-        t = geminiw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = geminiw.model.currentText()
-        geminiw.model.clear()
-        geminiw.model.addItems([x for x in t.split(',') if x.strip()])
+        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        current_text = winobj.model.currentText()
+        winobj.model.clear()
+        winobj.model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
-            geminiw.model.setCurrentText(current_text)
+            winobj.model.setCurrentText(current_text)
         config.settings['gemini_model'] = t
         json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
@@ -38,27 +38,27 @@ def open():
         config.settings = config.parse_init()
         allmodels_str = config.settings['gemini_model']
         allmodels = config.settings['gemini_model'].split(',')
-        geminiw.model.clear()
-        geminiw.model.addItems(allmodels)
-        geminiw.edit_allmodels.setPlainText(allmodels_str)
+        winobj.model.clear()
+        winobj.model.addItems(allmodels)
+        winobj.edit_allmodels.setPlainText(allmodels_str)
         if config.params["gemini_key"]:
-            geminiw.gemini_key.setText(config.params["gemini_key"])
+            winobj.gemini_key.setText(config.params["gemini_key"])
         if config.params["gemini_model"]:
-            geminiw.model.setCurrentText(config.params["gemini_model"])
+            winobj.model.setCurrentText(config.params["gemini_model"])
         if config.params["gemini_template"]:
-            geminiw.gemini_template.setPlainText(config.params["gemini_template"])
+            winobj.gemini_template.setPlainText(config.params["gemini_template"])
 
     from videotrans.component import GeminiForm
-    geminiw = config.child_forms.get('geminiw')
-    if geminiw is not None:
-        geminiw.show()
+    winobj = config.child_forms.get('geminiw')
+    if winobj is not None:
+        winobj.show()
         update_ui()
-        geminiw.raise_()
-        geminiw.activateWindow()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    geminiw = GeminiForm()
-    config.child_forms['geminiw'] = geminiw
+    winobj = GeminiForm()
+    config.child_forms['geminiw'] = winobj
     update_ui()
-    geminiw.set_gemini.clicked.connect(save)
-    geminiw.edit_allmodels.textChanged.connect(setallmodels)
-    geminiw.show()
+    winobj.set_gemini.clicked.connect(save)
+    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.show()

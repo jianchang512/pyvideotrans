@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from typing import Union, List
 
 import httpx
 from openai import AzureOpenAI
@@ -20,7 +21,7 @@ class AzureGPT(BaseTrans):
         self.prompt = config.params['azure_template'].replace('{lang}', self.target_language)
 
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         model = AzureOpenAI(
             api_key=config.params["azure_key"],
             api_version=config.params['azure_version'],

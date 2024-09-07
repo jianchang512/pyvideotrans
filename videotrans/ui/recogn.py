@@ -17,6 +17,7 @@ from videotrans.recognition import RECOGN_NAME_LIST
 
 class Ui_recogn(object):
     def setupUi(self, recogn):
+        self.has_done=False
         recogn.setObjectName("recogn")
 
         self.centralwidget = QtWidgets.QWidget(recogn)

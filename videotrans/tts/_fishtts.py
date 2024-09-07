@@ -27,18 +27,14 @@ class FishTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self,data_item:Union[Dict,List,None]):
-        try:
-            data_item=self.copydata.pop(0)
-            if tools.vail_file(data_item['filename']):
-                return True
-        except:
-            return True
+        if not data_item or tools.vail_file(data_item['filename']):
+            return
+
         try:
             text = data_item['text'].strip()
             role=data_item['role']
             if not text:
-                return True
-
+                return
             data = {"text": text, }
             if role:
                 roledict = tools.get_fishtts_role()
@@ -54,7 +50,7 @@ class FishTTS(BaseTTS):
             response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
             if response.status_code != 200:
                 self.error=response.json()
-                return False
+                return
 
             # 如果是WAV音频流，获取原始音频数据
             with open(data_item['filename'] + ".wav", 'wb') as f:
@@ -62,7 +58,7 @@ class FishTTS(BaseTTS):
             time.sleep(1)
             if not os.path.exists(data_item['filename'] + ".wav"):
                 self.error=f'FishTTS合成声音失败-2:{text=}'
-                return False
+                return
             tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
             Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
 
@@ -70,7 +66,6 @@ class FishTTS(BaseTTS):
                 self.inst.precent += 0.1
             self.error=''
             self.has_done+=1
-            return True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -79,7 +74,7 @@ class FishTTS(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        return

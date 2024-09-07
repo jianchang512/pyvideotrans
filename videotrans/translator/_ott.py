@@ -1,3 +1,5 @@
+from typing import Union, List
+
 import requests
 
 from videotrans.configure import config
@@ -19,7 +21,7 @@ class OTT(BaseTrans):
             self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
-    def _get_content(self,data:list):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         jsondata={
             "q": "\n".join(data),
             "source": "auto",

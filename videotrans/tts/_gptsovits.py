@@ -26,17 +26,14 @@ class GPTSoVITS(BaseTTS):
     def _exec(self):
         self._local_mul_thread()
     def _item_task(self,data_item:Union[Dict,List,None]):
-        try:
-            data_item=self.copydata.pop(0)
-            if tools.vail_file(data_item['filename']):
-                return True
-        except:
-            return True
+        if not data_item or tools.vail_file(data_item['filename']):
+            return
+
         try:
             text = data_item['text'].strip()
             role=data_item['role']
             if not text:
-                return True
+                return
             if text[-1] not in self.splits:
                 text += '.'
             if len(text) < 4:
@@ -59,7 +56,7 @@ class GPTSoVITS(BaseTTS):
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
                 self.error=f"GPT-SoVITS返回错误信息-1:{data['message']}"
-                return False
+                return
 
             if 'audio/wav' in content_type or 'audio/x-wav' in content_type:
                 # 如果是WAV音频流，获取原始音频数据
@@ -75,7 +72,6 @@ class GPTSoVITS(BaseTTS):
                 self.inst.precent += 0.1
             self.error=''
             self.has_done+=1
-            return  True
         except requests.ConnectionError as e:
             self.error=str(e)
             config.logger.exception(e,exc_info=True)
@@ -84,8 +80,6 @@ class GPTSoVITS(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')

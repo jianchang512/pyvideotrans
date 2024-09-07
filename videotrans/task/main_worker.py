@@ -56,7 +56,7 @@ class Worker(QThread):
                 set_process(config.transobj['kaishichuli'], type="logs", uuid=video.uuid)
                 video.prepare()
             except Exception as e:
-                config.logger.exception(e)
+                config.logger.exception(e,exc_info=True)
                 set_process(f'{config.transobj["yuchulichucuo"]}:' + str(e), type='error', uuid=video.uuid)
                 self.uuidlist.remove(video.uuid)
                 continue

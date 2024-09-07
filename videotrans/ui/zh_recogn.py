@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QLabel
 
 class Ui_zhrecognform(object):
     def setupUi(self, zhrecogn):
+        self.has_done=False
         zhrecogn.setObjectName("zhrecogn")
         zhrecogn.setWindowModality(QtCore.Qt.NonModal)
         zhrecogn.resize(500, 223)

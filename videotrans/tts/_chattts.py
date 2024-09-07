@@ -26,7 +26,7 @@ class ChatTTS(BaseTTS):
 
     def _item_task(self,data_item:dict=None):
         if not data_item or tools.vail_file(data_item['filename']):
-            return True
+            return
         try:
             data = {"text": data_item['text'].strip(), "voice": data_item['role'], 'prompt': '', 'is_split': 1}
             res = requests.post(f"{self.api_url}/tts", data=data, proxies={"http": "", "https": ""}, timeout=3600)
@@ -34,22 +34,22 @@ class ChatTTS(BaseTTS):
             res = res.json()
             if res is None:
                 self.error='ChatTTS端出错，请查看其控制台终端'
-                return False
+                return
 
             if "code" not in res or res['code'] != 0:
                 if "msg" in res:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                    return True
+                    return
                 self.error=f'{res}'
-                return False
+                return
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
                 tools.wav2mp3(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
-                return True
+                return
             resb = requests.get(res['url'])
             if resb.status_code != 200:
                 self.error=(f'chatTTS:{res["url"]=}')
-                return False
+                return
 
             config.logger.info(f'ChatTTS:resb={resb.status_code=}')
             with open(data_item['filename'] + ".wav", 'wb') as f:
@@ -62,7 +62,6 @@ class ChatTTS(BaseTTS):
                 self.inst.precent += 0.1
             self.has_done+=1
             self.error=''
-            return True
         except requests.ConnectionError as e:
             self.error=f'无法连接到ChatTTS服务，请确保已部署并启动了ChatTTS-ui {str(e)}'
             config.logger.exception(e, exc_info=True)
@@ -71,8 +70,8 @@ class ChatTTS(BaseTTS):
             config.logger.exception(e,exc_info=True)
         finally:
             if self.error:
-                tools.set_process(self.error, uuid=self.uuid)
+                self._signal(text=self.error)
             else:
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-        return False
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
 

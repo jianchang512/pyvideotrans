@@ -29,31 +29,35 @@ def open():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == 'replace':
-            peiyinform.hecheng_plaintext.clear()
-            peiyinform.hecheng_plaintext.insertPlainText(d['text'])
+            winobj.hecheng_plaintext.clear()
+            winobj.hecheng_plaintext.insertPlainText(d['text'])
         elif d['type'] == 'error':
-            QMessageBox.critical(peiyinform, config.transobj['anerror'], d['text'])
+            winobj.has_done=True
+            QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
-            peiyinform.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text'])
         elif d['type'] == 'jd':
-            peiyinform.hecheng_startbtn.setText(d['text'])
+            winobj.hecheng_startbtn.setText(d['text'])
         elif d['type']=='ok':
-            peiyinform.loglabel.setText(config.transobj['quanbuend'])
-            peiyinform.hecheng_startbtn.setText(config.transobj["zhixingwc"])
-            peiyinform.hecheng_startbtn.setDisabled(False)
+            winobj.has_done=True
+            winobj.loglabel.setText(config.transobj['quanbuend'])
+            winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
+            winobj.hecheng_startbtn.setDisabled(False)
 
     # 试听配音
     def listen_voice_fun():
-        lang = translator.get_code(show_text=peiyinform.hecheng_language.currentText())
+        lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
+            return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         "选择字幕语言" if config.defaulelang == 'zh' else 'Please target language')
         text = config.params[f'listen_text_{lang}']
-        role = peiyinform.hecheng_role.currentText()
+        role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['mustberole'])
+            return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['mustberole'])
         voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
         if not voice_dir or not Path(voice_dir).exists():
             voice_dir = config.TEMP_DIR + "/voice_tmp"
@@ -62,16 +66,16 @@ def open():
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
-        rate = int(peiyinform.hecheng_rate.value())
-        tts_type = peiyinform.tts_type.currentIndex()
+        rate = int(winobj.hecheng_rate.value())
+        tts_type = winobj.tts_type.currentIndex()
 
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        volume = int(peiyinform.volume_rate.value())
+        volume = int(winobj.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
-        pitch = int(peiyinform.pitch_rate.value())
+        pitch = int(winobj.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
@@ -105,16 +109,17 @@ def open():
 
     # tab-4 语音合成
     def hecheng_start_fun():
+        winobj.has_done=False
         config.settings = config.parse_init()
-        txt = peiyinform.hecheng_plaintext.toPlainText().strip()
-        language = peiyinform.hecheng_language.currentText()
-        role = peiyinform.hecheng_role.currentText()
-        rate = int(peiyinform.hecheng_rate.value())
-        tts_type = peiyinform.tts_type.currentIndex()
+        txt = winobj.hecheng_plaintext.toPlainText().strip()
+        language = winobj.hecheng_language.currentText()
+        role = winobj.hecheng_role.currentText()
+        rate = int(winobj.hecheng_rate.value())
+        tts_type = winobj.tts_type.currentIndex()
         langcode = translator.get_code(show_text=language)
 
         if language == '-' or role == 'No':
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
+            return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         config.transobj['yuyanjuesebixuan'])
         if is_input_api(tts_type=tts_type) is not True:
             return False
@@ -122,19 +127,19 @@ def open():
         # 语言是否支持
         is_allow_lang_res = is_allow_lang(langcode=langcode, tts_type=tts_type)
         if is_allow_lang_res is not True:
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_res)
+            return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
 
         if rate >= 0:
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        volume = int(peiyinform.volume_rate.value())
-        pitch = int(peiyinform.pitch_rate.value())
+        volume = int(winobj.volume_rate.value())
+        pitch = int(winobj.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         # 文件名称
-        filename = peiyinform.hecheng_out.text()
+        filename = winobj.hecheng_out.text()
         if os.path.exists(filename):
             filename = ''
         if filename and re.search(r'[\\/]+', filename):
@@ -147,101 +152,101 @@ def open():
 
         wavname = f"{RESULT_DIR}/{filename}"
 
-        if len(peiyinform.hecheng_files) < 1 and not txt:
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'],
+        if len(winobj.hecheng_files) < 1 and not txt:
+            return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
-        elif len(peiyinform.hecheng_files) < 1:
+        elif len(winobj.hecheng_files) < 1:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
             tools.save_srt(tools.get_subtitle_from_srt(txt, is_file=False), newsrtfile)
-            peiyinform.hecheng_files.append(newsrtfile)
+            winobj.hecheng_files.append(newsrtfile)
 
         hecheng_task = WorkerTTS(
-            files=peiyinform.hecheng_files,
+            files=winobj.hecheng_files,
             role=role,
             rate=rate,
             pitch=pitch,
             volume=volume,
             langcode=langcode,
             wavname=wavname,
-            out_ext=peiyinform.out_format.currentText(),
+            out_ext=winobj.out_format.currentText(),
             tts_type=tts_type,
-            voice_autorate=peiyinform.voice_autorate.isChecked(),
-            parent=peiyinform)
+            voice_autorate=winobj.voice_autorate.isChecked(),
+            parent=winobj)
         hecheng_task.uito.connect(feed)
         hecheng_task.start()
-        peiyinform.hecheng_startbtn.setText(config.transobj["running"])
-        peiyinform.hecheng_startbtn.setDisabled(True)
-        peiyinform.hecheng_out.setText(wavname)
-        peiyinform.hecheng_out.setDisabled(True)
+        winobj.hecheng_startbtn.setText(config.transobj["running"])
+        winobj.hecheng_startbtn.setDisabled(True)
+        winobj.hecheng_out.setText(wavname)
+        winobj.hecheng_out.setDisabled(True)
 
     # tts类型改变
     def tts_type_change(type):
         if change_by_lang(type):
-            peiyinform.volume_rate.setDisabled(False)
-            peiyinform.pitch_rate.setDisabled(False)
+            winobj.volume_rate.setDisabled(False)
+            winobj.pitch_rate.setDisabled(False)
         else:
-            peiyinform.volume_rate.setDisabled(True)
-            peiyinform.pitch_rate.setDisabled(True)
+            winobj.volume_rate.setDisabled(True)
+            winobj.pitch_rate.setDisabled(True)
 
-        code = translator.get_code(show_text=peiyinform.hecheng_language.currentText())
+        code = translator.get_code(show_text=winobj.hecheng_language.currentText())
 
         is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
         if is_allow_lang_res is not True:
-            return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_res)
+            return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
         if is_input_api(tts_type=type) is not True:
             return False
 
         if type == GOOGLE_TTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(['gtts'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(['gtts'])
         elif type == CHATTTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(['No'] + list(config.ChatTTS_voicelist))
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(['No'] + list(config.ChatTTS_voicelist))
         elif type == OPENAI_TTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(config.params['openaitts_role'].split(","))
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(config.params['openaitts_role'].split(","))
         elif type == ELEVENLABS_TTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(config.params['elevenlabstts_role'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(config.params['elevenlabstts_role'])
         elif change_by_lang(type):
-            hecheng_language_fun(peiyinform.hecheng_language.currentText())
+            hecheng_language_fun(winobj.hecheng_language.currentText())
         elif type == AI302_TTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
         elif type == CLONE_VOICE_TTS:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
         elif type == TTS_API:
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
         elif type == GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
         elif type == COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             del rolelist["clone"]
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
         elif type == FISHTTS:
             rolelist = tools.get_fishtts_role()
-            peiyinform.hecheng_role.clear()
-            peiyinform.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
         code = translator.get_code(show_text=t)
-        tts_type = peiyinform.tts_type.currentIndex()
+        tts_type = winobj.tts_type.currentIndex()
         if code and code != '-':
             is_allow_lang_reg = is_allow_lang(langcode=code, tts_type=tts_type)
             if is_allow_lang_reg is not True:
-                return QMessageBox.critical(peiyinform, config.transobj['anerror'], is_allow_lang_reg)
+                return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_reg)
         # 不是跟随语言变化的配音渠道，无需继续处理
         if not change_by_lang(tts_type):
             return
-        peiyinform.hecheng_role.clear()
+        winobj.hecheng_role.clear()
         if t == '-':
-            peiyinform.hecheng_role.addItems(['No'])
+            winobj.hecheng_role.addItems(['No'])
             return
 
         if tts_type == EDGE_TTS:
@@ -252,25 +257,25 @@ def open():
             # AzureTTS或 302.ai选择doubao模型
             show_rolelist = tools.get_azure_rolelist()
         if not show_rolelist:
-            peiyinform.hecheng_language.setCurrentText('-')
-            QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['nojueselist'])
+            winobj.hecheng_language.setCurrentText('-')
+            QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nojueselist'])
             return
         try:
             vt = code.split('-')[0]
             if vt not in show_rolelist:
-                peiyinform.hecheng_role.addItems(['No'])
+                winobj.hecheng_role.addItems(['No'])
                 return
             if len(show_rolelist[vt]) < 2:
-                peiyinform.hecheng_language.setCurrentText('-')
-                QMessageBox.critical(peiyinform, config.transobj['anerror'], config.transobj['waitrole'])
+                winobj.hecheng_language.setCurrentText('-')
+                QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['waitrole'])
                 return
-            peiyinform.hecheng_role.addItems(show_rolelist[vt])
+            winobj.hecheng_role.addItems(show_rolelist[vt])
         except:
-            peiyinform.hecheng_role.addItems(['No'])
+            winobj.hecheng_role.addItems(['No'])
 
     # 导入字幕
     def hecheng_import_fun():
-        fnames, _ = QFileDialog.getOpenFileNames(peiyinform, "Select srt", config.params['last_opendir'],
+        fnames, _ = QFileDialog.getOpenFileNames(winobj, "Select srt", config.params['last_opendir'],
                                                  "Text files(*.srt *.txt)")
         if len(fnames) < 1:
             return
@@ -294,33 +299,33 @@ def open():
 
         if len(fnames) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            peiyinform.hecheng_files = fnames
-            peiyinform.hecheng_importbtn.setText(
+            winobj.hecheng_files = fnames
+            winobj.hecheng_importbtn.setText(
                 f'导入{len(fnames)}个srt文件 \n{",".join(namestr)}' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles \n{",".join(namestr)}')
-        peiyinform.hecheng_out.setDisabled(False)
-        peiyinform.hecheng_out.setText('')
+        winobj.hecheng_out.setDisabled(False)
+        winobj.hecheng_out.setText('')
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import Peiyinform
     try:
-        peiyinform = config.child_forms.get('peiyinform')
-        if peiyinform is not None:
-            peiyinform.show()
-            peiyinform.raise_()
-            peiyinform.activateWindow()
+        winobj = config.child_forms.get('peiyinform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        peiyinform = Peiyinform()
-        config.child_forms['peiyinform'] = peiyinform
-        peiyinform.hecheng_importbtn.clicked.connect(hecheng_import_fun)
-        peiyinform.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
-        peiyinform.hecheng_startbtn.clicked.connect(hecheng_start_fun)
-        peiyinform.listen_btn.clicked.connect(listen_voice_fun)
-        peiyinform.hecheng_opendir.clicked.connect(opendir_fn)
-        peiyinform.tts_type.currentIndexChanged.connect(tts_type_change)
+        winobj = Peiyinform()
+        config.child_forms['peiyinform'] = winobj
+        winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
+        winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
+        winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
+        winobj.listen_btn.clicked.connect(listen_voice_fun)
+        winobj.hecheng_opendir.clicked.connect(opendir_fn)
+        winobj.tts_type.currentIndexChanged.connect(tts_type_change)
 
-        peiyinform.show()
+        winobj.show()
     except Exception as e:
         import traceback
         traceback.print_exc()

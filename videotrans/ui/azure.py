@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_azureform(object):
     def setupUi(self, azureform):
+        self.has_done=False
         azureform.setObjectName("azureform")
         azureform.setWindowModality(QtCore.Qt.NonModal)
         azureform.resize(600, 580)

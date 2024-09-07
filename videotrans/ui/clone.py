@@ -16,6 +16,7 @@ from videotrans.configure import config
 
 class Ui_cloneform(object):
     def setupUi(self, clone):
+        self.has_done=False
         clone.setObjectName("clone")
         clone.setWindowModality(QtCore.Qt.NonModal)
         clone.resize(500, 223)

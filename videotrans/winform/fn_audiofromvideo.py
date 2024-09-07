@@ -51,46 +51,51 @@ def open():
                 self.post(type="ok", text='Ended')
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(audioform, config.transobj['anerror'], d['text'])
-            audioform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            audioform.startbtn.setDisabled(False)
-            audioform.resultbtn.setDisabled(False)
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.resultbtn.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
-            audioform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         else:
-            audioform.startbtn.setText(config.transobj['zhixingwc'])
-            audioform.startbtn.setDisabled(False)
-            audioform.resultbtn.setDisabled(False)
-            audioform.videourls = []
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.resultbtn.setDisabled(False)
+            winobj.videourls = []
 
     def get_file():
         format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
-        fnames, _ = QFileDialog.getOpenFileNames(audioform, config.transobj['selectmp4'],
+        fnames, _ = QFileDialog.getOpenFileNames(winobj, config.transobj['selectmp4'],
                                                  config.params['last_opendir'],
                                                  f"Video files({format_str})")
         if len(fnames) < 1:
             return
-        audioform.videourls = []
+        winobj.videourls = []
         for it in fnames:
-            audioform.videourls.append(it.replace('\\', '/'))
+            winobj.videourls.append(it.replace('\\', '/'))
 
-        if len(audioform.videourls) > 0:
+        if len(winobj.videourls) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
-            audioform.videourl.setText(",".join(audioform.videourls))
+            winobj.videourl.setText(",".join(winobj.videourls))
 
     def start():
-        if len(audioform.videourls) < 1:
-            QMessageBox.critical(audioform, config.transobj['anerror'],
+        if len(winobj.videourls) < 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
             return
+        winobj.has_done=False
 
-        audioform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        audioform.startbtn.setDisabled(True)
-        audioform.resultbtn.setDisabled(True)
-        task = CompThread(parent=audioform, videourls=audioform.videourls)
+        winobj.startbtn.setDisabled(True)
+        winobj.resultbtn.setDisabled(True)
+        task = CompThread(parent=winobj, videourls=winobj.videourls)
         task.uito.connect(feed)
         task.start()
 
@@ -99,17 +104,17 @@ def open():
 
     from videotrans.component import GetaudioForm
     try:
-        audioform = config.child_forms.get('audioform')
-        if audioform is not None:
-            audioform.show()
-            audioform.raise_()
-            audioform.activateWindow()
+        winobj = config.child_forms.get('audioform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        audioform = GetaudioForm()
-        config.child_forms['audioform'] = audioform
-        audioform.videobtn.clicked.connect(lambda: get_file())
-        audioform.resultbtn.clicked.connect(opendir)
-        audioform.startbtn.clicked.connect(start)
-        audioform.show()
+        winobj = GetaudioForm()
+        config.child_forms['audioform'] = winobj
+        winobj.videobtn.clicked.connect(lambda: get_file())
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

@@ -33,7 +33,7 @@ def open():
             self.width = int(width)
             self.height = int(height)
             self.pos = int(pos)
-            self.every_percent = 1 / len(waterform.videourls)
+            self.every_percent = 1 / len(winobj.videourls)
             self.percent = 0
             self.end = False
 
@@ -74,7 +74,7 @@ def open():
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
 
-            for video in waterform.videourls:
+            for video in winobj.videourls:
                 result_file = RESULT_DIR + f'/{Path(video).stem}.mp4'
 
                 # 计算水印位置
@@ -118,68 +118,73 @@ def open():
             self.end = True
 
     def feed(d):
+        if winobj.has_done:
+            return
         d = json.loads(d)
         if d['type'] == "error":
-            QtWidgets.QMessageBox.critical(waterform, config.transobj['anerror'], d['text'])
-            waterform.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
-            waterform.startbtn.setDisabled(False)
-            waterform.resultlabel.setText('')
+            winobj.has_done=True
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setDisabled(False)
+            winobj.resultlabel.setText('')
         elif d['type'] == 'jd':
-            waterform.startbtn.setText(d['text'])
+            winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
-            waterform.resultlabel.setText(d['text'])
+            winobj.resultlabel.setText(d['text'])
         else:
-            waterform.startbtn.setText(config.transobj['zhixingwc'])
-            waterform.startbtn.setDisabled(False)
-            waterform.resultlabel.setText(config.transobj['quanbuend'])
-            waterform.resultbtn.setDisabled(False)
+            winobj.has_done=True
+            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setDisabled(False)
+            winobj.resultlabel.setText(config.transobj['quanbuend'])
+            winobj.resultbtn.setDisabled(False)
 
     def get_file(type):
         if type == 1:
             format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
-            fname, _ = QFileDialog.getOpenFileNames(waterform, "Select Video",
+            fname, _ = QFileDialog.getOpenFileNames(winobj, "Select Video",
                                                     config.params['last_opendir'],
                                                     f"Video files({format_str})")
             if len(fname) > 0:
-                waterform.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
-                waterform.videourl.setText(",".join(waterform.videourls))
+                winobj.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
+                winobj.videourl.setText(",".join(winobj.videourls))
         else:
-            fname, _ = QFileDialog.getOpenFileName(waterform, "Select Image",
+            fname, _ = QFileDialog.getOpenFileName(winobj, "Select Image",
                                                    config.params['last_opendir'],
                                                    "files(*.png *.jpg *.jpeg *.gif)")
             if fname:
-                waterform.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        png = waterform.pngurl.text()
-        if len(waterform.videourls) < 1 or not png:
-            QMessageBox.critical(waterform, config.transobj['anerror'],
+        winobj.has_done=False
+        png = winobj.pngurl.text()
+        if len(winobj.videourls) < 1 or not png:
+            QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
             return
 
-        waterform.startbtn.setText(
+        winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
-        waterform.startbtn.setDisabled(True)
-        waterform.resultbtn.setDisabled(True)
+        winobj.startbtn.setDisabled(True)
+        winobj.resultbtn.setDisabled(True)
 
         x, y = 10, 10
         try:
-            x = int(waterform.linex.text())
+            x = int(winobj.linex.text())
         except Exception:
             pass
         try:
-            y = int(waterform.liney.text())
+            y = int(winobj.liney.text())
         except Exception:
             pass
         w, h = 50, 50
         try:
-            tmp_w = waterform.linew.text().strip().split('x')
+            tmp_w = winobj.linew.text().strip().split('x')
             w, h = int(tmp_w[0]), int(tmp_w[1])
         except Exception:
             pass
 
-        task = CompThread(parent=waterform, png=png, x=max(x, 0), y=max(y, 0),
-                          width=max(w, 1), height=max(h, 1), pos=int(waterform.compos.currentIndex()))
+        task = CompThread(parent=winobj, png=png, x=max(x, 0), y=max(y, 0),
+                          width=max(w, 1), height=max(h, 1), pos=int(winobj.compos.currentIndex()))
 
         task.uito.connect(feed)
         task.start()
@@ -189,20 +194,20 @@ def open():
 
     from videotrans.component import WatermarkForm
     try:
-        waterform = config.child_forms.get('waterform')
-        if waterform is not None:
-            waterform.show()
-            waterform.raise_()
-            waterform.activateWindow()
+        winobj = config.child_forms.get('waterform')
+        if winobj is not None:
+            winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
-        waterform = WatermarkForm()
-        config.child_forms['waterform'] = waterform
+        winobj = WatermarkForm()
+        config.child_forms['waterform'] = winobj
 
-        waterform.videobtn.clicked.connect(lambda: get_file(1))
-        waterform.pngbtn.clicked.connect(lambda: get_file(2))
+        winobj.videobtn.clicked.connect(lambda: get_file(1))
+        winobj.pngbtn.clicked.connect(lambda: get_file(2))
 
-        waterform.resultbtn.clicked.connect(opendir)
-        waterform.startbtn.clicked.connect(start)
-        waterform.show()
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.show()
     except Exception:
         pass

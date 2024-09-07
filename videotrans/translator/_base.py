@@ -66,35 +66,40 @@ class BaseTrans:
         return None
 
 
-    # 发出请求获取内容
-    def _get_content(self,data:Union[List[str],str])->str:
+    # 发出请求获取内容 data=[text1,text2,text] | text
+    def _item_task(self,data:Union[List[str],str])->str:
         raise Exception('The method must be')
 
+    def _exit(self):
+        if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not self.is_test):
+            return True
+        return False
 
-    # 实际操作
+
+    def _signal(self,text="",type="logs",nologs=False):
+        tools.set_process(text=text,type=type,uuid=self.uuid,nologs=nologs)
+    # 实际操作 # 出错时发送停止信号
     def run(self)->Union[List,str,None]:
         # 开始对分割后的每一组进行处理
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
             while 1:
-                if config.exit_soft or (
-                        config.current_status != 'ing' and config.box_trans != 'ing' and not self.is_test):
-                    return None
+                if self._exit():
+                    return
                 if self.iter_num > self.retry:
-                    raise LogExcept(
-                        f'[{self.__class__.__name__}]:{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}')
+                    msg=f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
+                    self._signal(text=msg,type="error")
+                    raise LogExcept(msg)
 
                 self.iter_num += 1
                 if self.iter_num > 1:
-                    tools.set_process(
-                        f"第{self.iter_num}次出错重试" if config.defaulelang == 'zh' else f'{self.iter_num} retries after error',
-                        type="logs",
-                        uuid=self.uuid)
+                    self._signal(
+                        text=f"第{self.iter_num}次出错重试" if config.defaulelang == 'zh' else f'{self.iter_num} retries after error')
                     time.sleep(10)
                     continue
 
                 try:
-                    result = self._get_content(it)
+                    result = self._item_task(it)
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
                     # 非srt直接break
@@ -119,31 +124,47 @@ class BaseTrans:
                         sep_res = []
                         for it_n in it:
                             time.sleep(self.wait_sec)
-                            t = self._get_content(it_n.strip())
+                            t = self._item_task(it_n.strip())
                             sep_res.append(t)
 
                     for x, result_item in enumerate(sep_res):
                         if x < len(it):
                             self.target_list.append(result_item.strip())
-                            tools.set_process(
-                                result_item + "\n",
-                                type='subtitle',
-                                uuid=self.uuid)
-                            tools.set_process(
-                                config.transobj['starttrans'] + f' {i * self.trans_thread + x + 1} ',
-                                type="logs",
-                                uuid=self.uuid)
+                            self._signal(
+                                text=result_item + "\n",
+                                type='subtitle')
+                            self._signal(
+                                text=config.transobj['starttrans'] + f' {i * self.trans_thread + x + 1} ')
                     if len(sep_res) < len(it):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
+                except ValueError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
+                except KeyError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
+                except IndexError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
                 except requests.ConnectionError as e:
                     self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
                 except openai.APIError as e:
                     self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
+                except AttributeError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
                 except ConnectionError as e:
                     self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
+                except OSError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
                 except Exception as e:
                     self.error = f'{e}'
+                    config.logger.exception(e,exc_info=True)
                     time.sleep(self.wait_sec)
                 else:
                     # 成功 未出错
@@ -165,7 +186,9 @@ class BaseTrans:
         max_i = len(self.target_list)
         # 出错次数大于原一半
         if max_i < len(self.text_list) / 2:
-            raise LogExcept(f'[{self.__class__.__name__}]:{config.transobj["fanyicuowu2"]}')
+            msg=f'{config.transobj["fanyicuowu2"]}:{self.error}'
+            self._signal(text=msg,type="error")
+            raise LogExcept(f'[{self.__class__.__name__}]:{msg}')
 
         for i, it in enumerate(self.text_list):
             if i < max_i:

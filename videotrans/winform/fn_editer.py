@@ -6,8 +6,8 @@ from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER
 def open():
     from videotrans.component import SubtitleEditer
     try:
-        edier_win = SubtitleEditer()
-        config.child_forms['edier_win']=edier_win
-        edier_win.show()
+        winobj = SubtitleEditer()
+        config.child_forms['edier_win']=winobj
+        winobj.show()
     except Exception as e:
         print(e)

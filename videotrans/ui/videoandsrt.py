@@ -18,6 +18,7 @@ from videotrans.configure import config
 
 class Ui_videoandsrt(object):
     def setupUi(self, videoandsrt):
+        self.has_done=False
         if not videoandsrt.objectName():
             videoandsrt.setObjectName(u"videoandsrt")
         videoandsrt.resize(700, 400)

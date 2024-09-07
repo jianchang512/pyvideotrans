@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_baiduform(object):
     def setupUi(self, baiduform):
+        self.has_done=False
         baiduform.setObjectName("baiduform")
         baiduform.setWindowModality(QtCore.Qt.NonModal)
         baiduform.resize(400, 223)

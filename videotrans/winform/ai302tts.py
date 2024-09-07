@@ -40,39 +40,39 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(ai302ttsw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(ai302ttsw, config.transobj['anerror'], d)
-        ai302ttsw.test_ai302tts.setText('测试')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test_ai302tts.setText('测试')
 
     def test():
-        key = ai302ttsw.ai302tts_key.text().strip()
-        model = ai302ttsw.ai302tts_model.currentText()
+        key = winobj.ai302tts_key.text().strip()
+        model = winobj.ai302tts_model.currentText()
         if not key or not model:
-            return QtWidgets.QMessageBox.critical(ai302ttsw, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                   '必须填写 302.ai 的API KEY 和 model')
         config.params["ai302tts_key"] = key
         config.params["ai302tts_model"] = model
-        task = TestTTS(parent=ai302ttsw, text="你好啊我的朋友")
-        ai302ttsw.test_ai302tts.setText('测试中请稍等...')
+        task = TestTTS(parent=winobj, text="你好啊我的朋友")
+        winobj.test_ai302tts.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = ai302ttsw.ai302tts_key.text().strip()
-        model = ai302ttsw.ai302tts_model.currentText()
+        key = winobj.ai302tts_key.text().strip()
+        model = winobj.ai302tts_model.currentText()
         config.params["ai302tts_key"] = key
         config.params["ai302tts_model"] = model
         config.getset_params(config.params)
-        ai302ttsw.close()
+        winobj.close()
 
     def setallmodels():
-        t = ai302ttsw.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = ai302ttsw.ai302tts_model.currentText()
-        ai302ttsw.ai302tts_model.clear()
-        ai302ttsw.ai302tts_model.addItems([x for x in t.split(',') if x.strip()])
+        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
+        current_text = winobj.ai302tts_model.currentText()
+        winobj.ai302tts_model.clear()
+        winobj.ai302tts_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
-            ai302ttsw.ai302tts_model.setCurrentText(current_text)
+            winobj.ai302tts_model.setCurrentText(current_text)
         config.settings['ai302tts_models'] = t
         json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
@@ -81,26 +81,26 @@ def open():
         config.settings = config.parse_init()
         allmodels_str = config.settings['ai302tts_models']
         allmodels = config.settings['ai302tts_models'].split(',')
-        ai302ttsw.ai302tts_model.clear()
-        ai302ttsw.ai302tts_model.addItems(allmodels)
-        ai302ttsw.edit_allmodels.setPlainText(allmodels_str)
+        winobj.ai302tts_model.clear()
+        winobj.ai302tts_model.addItems(allmodels)
+        winobj.edit_allmodels.setPlainText(allmodels_str)
         if config.params["ai302tts_model"] and config.params["ai302tts_model"] in allmodels:
-            ai302ttsw.ai302tts_model.setCurrentText(config.params["ai302tts_model"])
+            winobj.ai302tts_model.setCurrentText(config.params["ai302tts_model"])
         if config.params["ai302tts_key"]:
-            ai302ttsw.ai302tts_key.setText(config.params["ai302tts_key"])
+            winobj.ai302tts_key.setText(config.params["ai302tts_key"])
 
     from videotrans.component import AI302TTSForm
-    ai302ttsw = config.child_forms.get('ai302ttsw')
-    if ai302ttsw is not None:
-        ai302ttsw.show()
+    winobj = config.child_forms.get('ai302ttsw')
+    if winobj is not None:
+        winobj.show()
         update_ui()
-        ai302ttsw.raise_()
-        ai302ttsw.activateWindow()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    ai302ttsw = AI302TTSForm()
-    config.child_forms['ai302ttsw'] = ai302ttsw
+    winobj = AI302TTSForm()
+    config.child_forms['ai302ttsw'] = winobj
     update_ui()
-    ai302ttsw.edit_allmodels.textChanged.connect(setallmodels)
-    ai302ttsw.set_ai302tts.clicked.connect(save)
-    ai302ttsw.test_ai302tts.clicked.connect(test)
-    ai302ttsw.show()
+    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.set_ai302tts.clicked.connect(save)
+    winobj.test_ai302tts.clicked.connect(test)
+    winobj.show()

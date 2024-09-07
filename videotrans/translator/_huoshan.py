@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import time
+from typing import Union, List
 
 import requests
 from requests import JSONDecodeError
@@ -18,7 +19,7 @@ class HuoShan(BaseTrans):
         self.proxies={"http":"","https":""}
         self.prompt=config.params['zijiehuoshan_template'].replace('{lang}', self.target_language)
 
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         message = [
             {'role': 'system',
              'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results" if config.defaulelang != 'zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},

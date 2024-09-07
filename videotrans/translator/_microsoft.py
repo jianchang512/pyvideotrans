@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+from typing import Union, List
 
 import requests
 
@@ -19,7 +20,7 @@ class Microsoft(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
-    def _get_content(self,data) ->str:
+    def _item_task(self,data:Union[List[str],str]) ->str:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         }

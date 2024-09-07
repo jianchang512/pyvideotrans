@@ -41,6 +41,7 @@ class RecognWorker(QThread):
 
     def run(self):
         def getqueulog(uuid):
+            st=time.time()
             while 1:
                 if self.end or config.exit_soft:
                     return
@@ -51,7 +52,10 @@ class RecognWorker(QThread):
                 try:
                     data = q.get(True, 0.5)
                     if data:
+                        print(f'q.get：{data=}')
                         self.post(data)
+                    else:
+                        self.post({"type":"logs","text":f'{int(time.time()-st)}s'})
                 except Exception:
                     pass
 
@@ -91,7 +95,6 @@ class RecognWorker(QThread):
                     audio_file=audio_path,
                     model_name=self.model,
                     detect_language=self.language,
-                    set_p=True,
                     uuid=self.uuid,
                     cache_folder=config.TEMP_DIR,
                     model_type=self.model_type,
@@ -104,8 +107,7 @@ class RecognWorker(QThread):
                     f.write(text)
                 self.post({"type": "replace", "text": text})
             except Exception as e:
-                import traceback
-                traceback.print_exc()
+                config.logger.exception(e,exc_info=True)
                 msg = f'{str(e)}{str(e.args)}'
                 errs.append(f'失败，{msg}')
                 if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M):

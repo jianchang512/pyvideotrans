@@ -59,9 +59,10 @@ class AzureTTS(BaseTTS):
                 self.has_done+=1
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
+                self.error=''
                 tools.wav2mp3(filename,items[0]['filename'])
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
-                return True
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+                return
             length = len(bookmarks)
             for i, it in enumerate(bookmarks):
                 if i >= length:
@@ -83,30 +84,25 @@ class AzureTTS(BaseTTS):
                 self.has_done+=1
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                tools.set_process(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}', uuid=self.uuid)
+                self.error=''
+                self._signal(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
+                    self.error=str(cancellation_details.error_details)
                     raise Exception(cancellation_details.error_details)
             raise Exception(cancellation_details.reason)
         else:
+            self.error='请检查 Azure TTS 配置'
             raise Exception('请检查 Azure TTS 配置')
 
-
+    # 鼠标不重试，直接报错停止
     def _exec(self) ->None:
         language = self.language.split("-", maxsplit=1)
         self.language = language[0].lower() + ("" if len(language) < 2 else '-' + language[1].upper())
-        if not re.match(r'^[+-]\d+(\.\d+)?%$', self.rate):
-            self.rate = '+0%'
-        if not re.match(r'^[+-]\d+(\.\d+)?%$', self.volume):
-            self.volume = '+0%'
-        if not re.match(r'^[+-]\d+(\.\d+)?Hz$', self.pitch, re.I):
-            self.pitch = '+0Hz'
-
         if self.len==1:
             return self._item_task(self.queue_tts)
-
         split_queue = [self.queue_tts[i:i + self.con_num] for i in range(0, self.len, self.con_num)]
         for idx, items in enumerate(split_queue):
             self._item_task(items)

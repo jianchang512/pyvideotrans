@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_openaittsform(object):
     def setupUi(self, openaittsform):
+        self.has_done=False
         openaittsform.setObjectName("openaittsform")
         openaittsform.setWindowModality(QtCore.Qt.NonModal)
         openaittsform.resize(600, 600)

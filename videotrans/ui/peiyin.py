@@ -14,11 +14,12 @@ from PySide6.QtCore import Qt, QMetaObject
 from videotrans.component.component import Textedit
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
-from videotrans.tts import TTS_NAME_LIST
+from videotrans import tts
 
 
 class Ui_peiyin(object):
     def setupUi(self, peiyin):
+        self.has_done=False
         if not peiyin.objectName():
             peiyin.setObjectName(u"peiyin")
         peiyin.resize(643, 500)
@@ -96,7 +97,7 @@ class Ui_peiyin(object):
         self.tts_type = QtWidgets.QComboBox()
         self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_type.setObjectName("tts_type")
-        self.tts_type.addItems(TTS_NAME_LIST)
+        self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
         self.formLayout_4 = QtWidgets.QFormLayout()

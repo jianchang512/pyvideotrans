@@ -31,24 +31,24 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(gptsovitsw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(gptsovitsw, config.transobj['anerror'], d)
-        gptsovitsw.test.setText('测试api')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试api')
 
     def test():
-        url = gptsovitsw.api_url.text()
+        url = winobj.api_url.text()
         config.params["gptsovits_url"] = url
-        task = TestTTS(parent=gptsovitsw,
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
                        role=getrole(),
                        language="zh")
-        gptsovitsw.test.setText('测试中请稍等...')
+        winobj.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
 
     def getrole():
-        tmp = gptsovitsw.role.toPlainText().strip()
+        tmp = winobj.role.toPlainText().strip()
         role = None
         if not tmp:
             return role
@@ -56,15 +56,15 @@ def open():
         for it in tmp.split("\n"):
             s = it.strip().split('#')
             if len(s) != 3:
-                QtWidgets.QMessageBox.critical(gptsovitsw, config.transobj['anerror'],
+                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                "每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码")
                 return
             if not s[0].endswith(".wav"):
-                QtWidgets.QMessageBox.critical(gptsovitsw, config.transobj['anerror'],
+                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                "每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称")
                 return
             if s[2] not in ['zh', 'ja', 'en']:
-                QtWidgets.QMessageBox.critical(gptsovitsw, config.transobj['anerror'],
+                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                "每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja")
                 return
             role = s[0]
@@ -72,33 +72,33 @@ def open():
         return role
 
     def save():
-        url = gptsovitsw.api_url.text()
-        extra = gptsovitsw.extra.text()
-        role = gptsovitsw.role.toPlainText().strip()
+        url = winobj.api_url.text()
+        extra = winobj.extra.text()
+        role = winobj.role.toPlainText().strip()
 
         config.params["gptsovits_url"] = url
         config.params["gptsovits_extra"] = extra
         config.params["gptsovits_role"] = role
         config.getset_params(config.params)
 
-        gptsovitsw.close()
+        winobj.close()
 
     from videotrans.component import GPTSoVITSForm
-    gptsovitsw = config.child_forms.get('gptsovitsw')
-    if gptsovitsw is not None:
-        gptsovitsw.show()
-        gptsovitsw.raise_()
-        gptsovitsw.activateWindow()
+    winobj = config.child_forms.get('gptsovitsw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    gptsovitsw = GPTSoVITSForm()
-    config.child_forms['gptsovitsw'] = gptsovitsw
+    winobj = GPTSoVITSForm()
+    config.child_forms['gptsovitsw'] = winobj
     if config.params["gptsovits_url"]:
-        gptsovitsw.api_url.setText(config.params["gptsovits_url"])
+        winobj.api_url.setText(config.params["gptsovits_url"])
     if config.params["gptsovits_extra"]:
-        gptsovitsw.extra.setText(config.params["gptsovits_extra"])
+        winobj.extra.setText(config.params["gptsovits_extra"])
     if config.params["gptsovits_role"]:
-        gptsovitsw.role.setPlainText(config.params["gptsovits_role"])
+        winobj.role.setPlainText(config.params["gptsovits_role"])
 
-    gptsovitsw.save.clicked.connect(save)
-    gptsovitsw.test.clicked.connect(test)
-    gptsovitsw.show()
+    winobj.save.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.show()

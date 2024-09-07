@@ -2,6 +2,7 @@
 import os
 import re
 import time
+from typing import Union, List
 
 import requests
 
@@ -22,7 +23,7 @@ class DeepLX(BaseTrans):
                 self.proxies = {"https": pro, "http": pro}
         else:
             self.proxies={"http":"","https":""}
-    def _get_content(self,data):
+    def _item_task(self,data:Union[List[str],str]) ->str:
         jsondata = {
             "text": "\n".join(data),
             "source_lang":self.source_code.upper()[:2] if self.source_code else None,

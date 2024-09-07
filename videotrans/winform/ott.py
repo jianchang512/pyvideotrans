@@ -3,21 +3,21 @@ from videotrans.configure import config
 
 def open():
     def save():
-        key = ottw.ott_address.text()
+        key = winobj.ott_address.text()
         config.params["ott_address"] = key
         config.getset_params(config.params)
-        ottw.close()
+        winobj.close()
 
     from videotrans.component import OttForm
-    ottw = config.child_forms.get('ottw')
-    if ottw is not None:
-        ottw.show()
-        ottw.raise_()
-        ottw.activateWindow()
+    winobj = config.child_forms.get('ottw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    ottw = OttForm()
-    config.child_forms['ottw'] = ottw
+    winobj = OttForm()
+    config.child_forms['ottw'] = winobj
     if config.params["ott_address"]:
-        ottw.ott_address.setText(config.params["ott_address"])
-    ottw.set_ott.clicked.connect(save)
-    ottw.show()
+        winobj.ott_address.setText(config.params["ott_address"])
+    winobj.set_ott.clicked.connect(save)
+    winobj.show()

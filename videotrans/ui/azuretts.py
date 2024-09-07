@@ -15,6 +15,7 @@ from videotrans.configure import config
 
 class Ui_azurettsform(object):
     def setupUi(self, azurettsform):
+        self.has_done=False
         azurettsform.setObjectName("azurettsform")
         azurettsform.setWindowModality(QtCore.Qt.NonModal)
         azurettsform.resize(400, 250)

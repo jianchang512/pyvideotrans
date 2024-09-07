@@ -33,57 +33,57 @@ def open():
 
     def feed(d):
         if d == "ok":
-            QtWidgets.QMessageBox.information(ttsapiw, "ok", "Test Ok")
+            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(ttsapiw, config.transobj['anerror'], d)
-        ttsapiw.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        winobj.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
 
     def test():
-        url = ttsapiw.api_url.text()
-        extra = ttsapiw.extra.text()
-        role = ttsapiw.voice_role.text().strip()
+        url = winobj.api_url.text()
+        extra = winobj.extra.text()
+        role = winobj.voice_role.text().strip()
 
         config.params["ttsapi_url"] = url
         config.params["ttsapi_extra"] = extra
         config.params["ttsapi_voice_role"] = role
 
-        task = TestTTS(parent=ttsapiw,
+        task = TestTTS(parent=winobj,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
-                       role=ttsapiw.voice_role.text().strip().split(',')[0],
+                       role=winobj.voice_role.text().strip().split(',')[0],
                        language="zh-cn" if config.defaulelang == 'zh' else 'en')
-        ttsapiw.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        url = ttsapiw.api_url.text()
-        extra = ttsapiw.extra.text()
-        role = ttsapiw.voice_role.text().strip()
+        url = winobj.api_url.text()
+        extra = winobj.extra.text()
+        role = winobj.voice_role.text().strip()
 
         config.params["ttsapi_url"] = url
         config.params["ttsapi_extra"] = extra
         config.params["ttsapi_voice_role"] = role
         config.getset_params(config.params)
-        ttsapiw.close()
+        winobj.close()
 
     from videotrans.component import TtsapiForm
-    ttsapiw = config.child_forms.get('ttsapiw')
-    if ttsapiw is not None:
-        ttsapiw.show()
-        ttsapiw.raise_()
-        ttsapiw.activateWindow()
+    winobj = config.child_forms.get('ttsapiw')
+    if winobj is not None:
+        winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
         return
-    ttsapiw = TtsapiForm()
-    config.child_forms['ttsapiw'] = ttsapiw
+    winobj = TtsapiForm()
+    config.child_forms['ttsapiw'] = winobj
     if config.params["ttsapi_url"]:
-        ttsapiw.api_url.setText(config.params["ttsapi_url"])
+        winobj.api_url.setText(config.params["ttsapi_url"])
     if config.params["ttsapi_voice_role"]:
-        ttsapiw.voice_role.setText(config.params["ttsapi_voice_role"])
+        winobj.voice_role.setText(config.params["ttsapi_voice_role"])
     if config.params["ttsapi_extra"]:
-        ttsapiw.extra.setText(config.params["ttsapi_extra"])
+        winobj.extra.setText(config.params["ttsapi_extra"])
 
-    ttsapiw.save.clicked.connect(save)
-    ttsapiw.test.clicked.connect(test)
-    ttsapiw.otherlink.clicked.connect(lambda: tools.open_url('https://github.com/kungful/openvoice-api'))
-    ttsapiw.otherlink.setCursor(Qt.PointingHandCursor)
-    ttsapiw.show()
+    winobj.save.clicked.connect(save)
+    winobj.test.clicked.connect(test)
+    winobj.otherlink.clicked.connect(lambda: tools.open_url('https://github.com/kungful/openvoice-api'))
+    winobj.otherlink.setCursor(Qt.PointingHandCursor)
+    winobj.show()
