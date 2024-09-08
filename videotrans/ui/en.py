@@ -735,11 +735,11 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.action_hebingsrt)
         self.menu.addSeparator()
-        self.menu.addAction(self.action_clearcache)
-        self.menu.addSeparator()
         self.menu.addAction(self.actionyoutube)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_clearcache)
         self.menu.addSeparator()
 
 
@@ -853,7 +853,7 @@ class Ui_MainWindow(object):
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionopenairecognapi_key.setText(
             "OpenAI语音识别API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
-        self.actionai302_key.setText("302.ai接入翻译" if config.defaulelang == 'zh' else "302.ai for translation")
+        self.actionai302_key.setText("302.AI接入翻译" if config.defaulelang == 'zh' else "302.AI for translation")
         self.actionlocalllm_key.setText("本地兼容openAI大模型翻译" if config.defaulelang == 'zh' else "Local LLM  API")
         self.actionzijiehuoshan_key.setText("字节火山引擎模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
         self.actiondeepL_key.setText("DeepL Key")
@@ -866,7 +866,7 @@ class Ui_MainWindow(object):
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang == 'zh' else "OTT Api")
         self.actionclone_address.setText("原音色克隆TTS" if config.defaulelang == 'zh' else "Clone-Voice TTS")
         self.actionchattts_address.setText("ChatTTS")
-        self.actionai302tts_address.setText("302.ai 接入配音")
+        self.actionai302tts_address.setText("302.AI 接入配音" if config.defaulelang=='zh' else '302.AI TTS')
         self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese")
@@ -901,7 +901,7 @@ class Ui_MainWindow(object):
         self.action_yuyinhecheng.setToolTip('根据srt字幕文件批量进行配音' if config.defaulelang=='zh' else 'Batch dubbing based on srt subtitle files')
 
         self.action_tiquzimu.setText(config.uilanglist.get("Extract Srt And Translate"))
-        self.action_tiquzimu.setToolTip('批量将视频中的语音识别为srt字幕' if config.defaulelang=='zh' else 'Batch recognize speech in video as srt subtitles')
+        self.action_tiquzimu.setToolTip('批量将视频中的语音识别为字幕，并可选择是否同时翻译字幕' if config.defaulelang=='zh' else 'Batch recognize speech in video as srt subtitles')
 
         self.action_yinshipinfenli.setText(config.uilanglist.get("Separate Video to audio"))
         self.action_yinshipinfenli.setToolTip(config.uilanglist.get("Separate audio and silent videos from videos"))
@@ -909,7 +909,7 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
 
-        self.action_subtitleediter.setText('导入字幕并编辑' if config.defaulelang=='zh' else 'Subtitle Import Editing ')
+        self.action_subtitleediter.setText('导入字幕并编辑' if config.defaulelang=='zh' else 'Import Subtitle Editing')
         self.action_subtitleediter.setToolTip('导入字幕并修改后导出' if config.defaulelang=='zh' else 'Importing subtitles and exporting them after modifying them')
 
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
@@ -935,15 +935,15 @@ class Ui_MainWindow(object):
         self.actionsetini.setText('高级选项' if config.defaulelang == 'zh' else 'Options')
 
 
-        self.actionvideoandaudio.setText('视频音频合并' if config.defaulelang == 'zh' else 'video/audio merger')
+        self.actionvideoandaudio.setText('视频与音频合并' if config.defaulelang == 'zh' else 'Batch video/audio merger')
         self.actionvideoandaudio.setToolTip('批量将视频和音频一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and audio one-to-one')
 
-        self.actionvideoandsrt.setText('视频字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
+        self.actionvideoandsrt.setText('视频与字幕合并' if config.defaulelang == 'zh' else 'Batch Video Srt merger')
         self.actionvideoandsrt.setToolTip('批量将视频和srt字幕一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and srt subtitles one by one.')
 
-        self.actionformatcover.setText('音视频格式转换' if config.defaulelang == 'zh' else 'Audio /Video conver')
+        self.actionformatcover.setText('音视频格式转换' if config.defaulelang == 'zh' else 'Batch Audio/Video conver')
         self.actionformatcover.setToolTip('批量将音频和视频转换格式' if config.defaulelang == 'zh' else 'Batch convert audio and video formats')
 
 
-        self.actionsubtitlescover.setText('字幕格式转换' if config.defaulelang == 'zh' else 'Subtitle Conversion')
+        self.actionsubtitlescover.setText('字幕多格式转换' if config.defaulelang == 'zh' else 'Batch Subtitle Conversion')
         self.actionsubtitlescover.setToolTip('批量将字幕文件进行格式转换(srt/ass/vtt)' if config.defaulelang == 'zh' else 'Batch convert subtitle formats (srt/ass/vtt)')

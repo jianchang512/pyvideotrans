@@ -43,12 +43,11 @@ def inference(X_spec, device, model, aggressiveness, data, source="logs", uuid=N
 
             total_iterations = sum(iterations)
             for i in range(n_window):
-                if config.exit_soft:
+                if config.exit_soft or (uuid in config.queue_dict and config.queue_dict[uuid] == 'stop'):
                     return
                 jd = (percent[0] + (percent[1] * (i + 1) / n_window)) * 100
                 jd = 100 if jd >= 100 else jd
-                tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", type=source,
-                                  uuid=uuid)
+                tools.set_process(f"{config.transobj['Separating background music']} {round(jd, 1)}%", type=source, uuid=uuid)
                 start = i * roi_size
                 X_mag_window = X_mag_pad[
                                None, :, :, start: start + data["window_size"]

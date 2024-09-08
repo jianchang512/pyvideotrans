@@ -48,18 +48,18 @@ def is_allow_lang(langcode: str = None, model_type: int = None):
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(model_type: int = None):
     if model_type == ZH_RECOGN and not config.params['zh_recogn_api']:
-        zh_recogn_win.open()
+        zh_recogn_win.openwin()
         return False
 
     if model_type == CUSTOM_API and not config.params['recognapi_url']:
-        recognapi_win.open()
+        recognapi_win.openwin()
         return False
 
     if model_type == OPENAI_API and not config.params['openairecognapi_key']:
-        openairecognapi_win.open()
+        openairecognapi_win.openwin()
         return False
     if model_type == DOUBAO_API and not config.params['doubao_appid']:
-        doubao_win.open()
+        doubao_win.openwin()
         return False
     return True
 

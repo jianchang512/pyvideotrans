@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     def save():
         key = winobj.elevenlabstts_key.text()
         config.params['elevenlabstts_key'] = key

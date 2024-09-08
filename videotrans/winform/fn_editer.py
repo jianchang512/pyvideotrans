@@ -1,9 +1,7 @@
 from videotrans.configure import config
-from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER
-
 
 # 字幕编辑
-def open():
+def openwin():
     from videotrans.component import SubtitleEditer
     try:
         winobj = SubtitleEditer()

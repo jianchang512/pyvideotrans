@@ -18,13 +18,10 @@ from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS
     GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang
 from videotrans.util import tools
 
-# 使用内置的 open 函数
-
-builtin_open = builtins.open
 
 
 # 合成配音
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -285,7 +282,7 @@ def open():
             if it.endswith('.txt'):
                 shutil.copy2(it, f'{it}.srt')
                 # 使用 "r+" 模式打开文件：读取和写入
-                with builtin_open(f'{it}.srt', 'r+', encoding='utf-8') as file:
+                with open(f'{it}.srt', 'r+', encoding='utf-8') as file:
                     # 读取原始文件内容
                     original_content = file.readlines()
                     # 将文件指针移动到文件开始位置

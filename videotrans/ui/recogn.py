@@ -169,7 +169,7 @@ class Ui_recogn(object):
         QtCore.QMetaObject.connectSlotsByName(recogn)
 
     def retranslateUi(self, recogn):
-        recogn.setWindowTitle('音视频识别为字幕' if config.defaulelang == 'zh' else 'Audio and video recognized as subtitles')
+        recogn.setWindowTitle(config.uilanglist.get("Speech Recognition Text"))
         self.label_3.setText(box_lang.get("Source lang"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
         self.shibie_savebtn.setText(box_lang.get("Save to srt.."))

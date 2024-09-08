@@ -5,7 +5,7 @@ from videotrans import translator
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     class Test(QThread):
         uito = Signal(str)
 

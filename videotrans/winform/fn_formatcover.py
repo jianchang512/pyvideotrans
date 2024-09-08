@@ -13,7 +13,7 @@ from videotrans.util import tools
 
 
 # 音视频格式转换
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/formatcover"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

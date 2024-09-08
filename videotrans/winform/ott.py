@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     def save():
         key = winobj.ott_address.text()
         config.params["ott_address"] = key

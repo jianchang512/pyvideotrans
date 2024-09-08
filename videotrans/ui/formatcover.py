@@ -105,7 +105,7 @@ class Ui_formatcover(object):
         QtCore.QMetaObject.connectSlotsByName(formatcover)
 
     def retranslateUi(self, formatcover):
-        formatcover.setWindowTitle("音频视频批量格式转换" if config.defaulelang == 'zh' else 'Audio and video format conversion')
+        formatcover.setWindowTitle('音视频格式转换' if config.defaulelang == 'zh' else 'Audio /Video conver')
 
         self.selectbtn.setText(
             '选择要转换的文件/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')

@@ -7,12 +7,9 @@ from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
 from videotrans import tts
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
-
 
 # set chatgpt
-def open():
+def openwin():
     class TestOpenaitts(QThread):
         uito = Signal(str)
 
@@ -76,7 +73,7 @@ def open():
         if current_text:
             winobj.openaitts_model.setCurrentText(current_text)
         config.settings['openaitts_model'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

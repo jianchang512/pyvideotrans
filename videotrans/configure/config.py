@@ -94,7 +94,9 @@ def push_queue(uuid, jsondata):
     if uuid not in queue_dict:
         queue_dict[uuid] = Queue()
     try:
-        queue_dict[uuid].put_nowait(jsondata)
+        # 暂停时会重设为字符串 stop
+        if isinstance(queue_dict[uuid],Queue):
+            queue_dict[uuid].put_nowait(jsondata)
     except Exception:
         pass
 
@@ -105,7 +107,7 @@ queue_mp4 = []
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice = {}
 
-# 开始按钮状态
+# 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
 current_status = "stop"
 
 # 倒计时
@@ -118,27 +120,27 @@ box_tts = "stop"
 # 工具箱识别状态
 box_recogn = 'stop'
 
-# 单独人声背景分离窗口控制中断
-separate_status = 'stop'
-
 # 软件退出
 exit_soft = False
 
 # 所有设置窗口和子窗口
 child_forms = {}
 
+###
+# 预先处理队列
+prepare_queue = []
+# 识别队列
+regcon_queue = []
 # 翻译队列
 trans_queue = []
 # 配音队列
 dubb_queue = []
 # 音视频画面对齐
 align_queue = []
-# 识别队列
-regcon_queue = []
 # 合成队列
 compose_queue = []
 
-# 全局任务id列表
+# 全局已执行完毕的任务id列表，包括成功和失败的
 uuidlist = []
 
 VIDEO_EXTS=["mp4","mkv","mpeg","avi","mov"]

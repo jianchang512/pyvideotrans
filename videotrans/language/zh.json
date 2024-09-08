@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "haspaused": "已暂停",
     "shutdownerror": "关机失败",
     "onlycnanden": "仅支持中文和英文配音",
     "peiyindayu31": "配音出错数量大于1/3，请检查",
@@ -19,7 +20,7 @@
     "quanbuwanbi": "全部翻译完毕",
     "srtgeshierror": "格式化字幕时出错，请检查字幕文件是否符合srt格式",
     "endopendir": "点击打开保存目录",
-    "xinshoumoshitips": "选择要翻译的视频，并设置视频原始语言和想翻译到的语言, 更完整功能更准确翻译, 请使用 标准功能模式，若翻译出错请切换到标准功能模式，使用其他翻译渠道 ",
+    "xinshoumoshitips": "选择要翻译的视频，并设置视频原始语言和想翻译到的语言, 更完整功能更准确翻译, 请使用 自定义配置翻译",
     "enmodelerror": "只有当原始语言是英语时才可使用后缀为.en的模型",
     "openaimodelerror": "使用openai模型时, distil-whisper 开头的模型不可使用，请使用其他模型或切换到 faster模型",
     "qiegeshujuhaoshi": "若视频很大，此步会比较耗时，请耐心等待",
@@ -61,7 +62,7 @@
     "daoruzimutips": "可以从本地导入已存在的srt字幕文件，将跳过识别和翻译阶段，直接使用导入的字幕",
     "Click to pause and modify subtitles for more accurate processing": "点击将暂停，可以去修改字幕，以便处理更准确",
     "Click to start the next step immediately": "点击立即开始执行下一步操作",
-    "zimubianjitishi": "出现暂停按钮并点击暂停后,可在此修改字幕,以便处理更准确",
+    "zimubianjitishi": "单个视频处理时，可点击暂停按钮后,在此修改字幕,以便处理更准确",
     "test google": "正在测试连接..",
     "Select Out Dir": "选择保存目录",
     "downing...": "下载中...",
@@ -243,7 +244,7 @@
     "qianyiwenjian": "路径或名称含有空格或特殊符号，为避免后续处理出错，将移动到"
   },
   "ui_lang": {
-    "action_xinshoujandan": "简单新手模式",
+    "action_xinshoujandan": "默认配置翻译",
     "action_xinshoujandan_tools": "无需配置使用简单，适合短视频，准确度较低，更多控制请使用标准功能模式",
     "onlyvideo": "仅保存视频",
     "onlyvideo_tips": "如果选中该项，将不保留字幕、音频等素材，仅保存最终生成的视频文件",
@@ -307,7 +308,7 @@
     "Clone Voice": "音色克隆",
     "Documents": "使用文档",
     "Donating developers": "小额捐赠/联系开发者",
-    "Standard Function Mode": "标准功能模式",
+    "Standard Function Mode": "自定义视频翻译",
     "Display all options for video translation and dubbing": "显示全部选项，高度自定义进行视频翻译和配音",
     "Export  Srt  From Videos": "视频识别字幕",
     "Extracting SRT subtitles in the original language from local videos": "从本地视频的语音中识别出文字并生成srt字幕",
@@ -315,11 +316,11 @@
     "Embed locally existing SRT subtitles into the video": "将已有的srt字幕嵌入视频中",
     "Subtitle Create Dubbing": "单个字幕配音",
     "Local existing SRT subtitle generation dubbing WAV files": "根据srt字幕文件创建配音文件",
-    "Speech Recognition Text": "音视频转字幕",
+    "Speech Recognition Text": "音频视频转字幕",
     "Recognize the sound in audio or video and output SRT text": "将音频或视频中的声音识别后输出srt字幕文件",
-    "From  Text  Into  Speech": "批量字幕配音",
+    "From  Text  Into  Speech": "批量为字幕配音",
     "Generate audio WAV from text or SRT subtitle files": "根据srt字幕文件创建配音文件",
-    "Extract Srt And Translate": "视频转为字幕",
+    "Extract Srt And Translate": "识别字幕并翻译",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "识别视频中的语音为srt字幕",
     "Separate Video to audio": "批量从视频中分离音频",
     "Separate audio and silent videos from videos": "将视频分离为音频文件和无声mp4视频文件",
@@ -329,12 +330,12 @@
     "Convert various formats to each other": "各种格式互相转换",
     "Mixing 2 Audio Streams": "两个音频混流",
     "Mix two audio files into one audio file": "将两个音频文件混流为一个音频文件",
-    "Text  Or Srt  Translation": "批量翻译字幕",
+    "Text  Or Srt  Translation": "批量翻译srt字幕",
     "Translate text or subtitles": "将多个字幕批量进行翻译",
     "Download from Youtube": "下载油管视频",
     "Whisper model": "语音模型",
-    "faster model": "faster模式",
-    "openai model": "openai模式"
+    "faster model": "faster-whisper模式",
+    "openai model": "openai-whisper模式"
   },
   "toolbox_lang": {
     "import audio or video": "导入音视频文件",

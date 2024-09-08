@@ -7,6 +7,8 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QL
     QFileDialog, QTextEdit, QSpinBox, QFontDialog, QColorDialog, QTimeEdit, QMessageBox
 
 from videotrans.configure import config
+from videotrans.configure._except import LogExcept
+
 
 class DropWidget(QWidget):
     fileDropped = Signal(str)  # 自定义信号
@@ -24,14 +26,12 @@ class DropWidget(QWidget):
         urls = event.mimeData().urls()
         for url in urls:
             file_path = url.toLocalFile()
-            print(f"File dropped: {file_path}")
             if self.is_valid_file(file_path):
                 self.fileDropped.emit(file_path)  # 发射信号
                 break
 
     def handle_dropped_file(self, file_path):
         # 处理文件，例如解析SRT, VTT, ASS字幕
-        print(f"Processing file: {file_path}")
         return file_path
     def is_valid_file(self, file_path):
         # Check file extension
@@ -64,6 +64,7 @@ class Ui_subtitleEditor(QWidget):
         self.lastend_time=0
 
         self.setWindowTitle("Subtitle Editor" if config.defaulelang!='zh' else '导入字幕编辑修改后导出')
+        self.resize(1200, 640)
         self.setMinimumSize(1200, 640)
 
         # 主垂直布局
@@ -261,8 +262,8 @@ class Ui_subtitleEditor(QWidget):
         try:
             events_start = lines.index("[Events]\n") + 1
         except ValueError:
-            print("ASS 文件格式不正确，未找到 [Events] 部分。")
-            return
+            raise LogExcept("ASS 文件格式不正确，未找到 [Events] 部分。")
+
         num=0
         for line in lines[events_start:]:
             line = line.strip()
@@ -277,7 +278,7 @@ class Ui_subtitleEditor(QWidget):
                 num+=1
                 self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text,line=num)
             else:
-                print(f"ASS 行格式不正确: {line}")
+                LogExcept(f"ASS 行格式不正确: {line}")
 
     def load_vtt(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -461,12 +462,12 @@ class Ui_subtitleEditor(QWidget):
                             msg=''
                             if n < 1:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间'
+                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
                                 n+=1
                                 start_time=widget.time().toString('HH:mm:ss,zzz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间'
+                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time=widget.time().toString('HH:mm:ss,zzz')
                             if msg:
                                 return QMessageBox.critical(self, config.transobj['anerror'],msg)
@@ -532,12 +533,12 @@ class Ui_subtitleEditor(QWidget):
                             msg=''
                             if n < 1:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间'
+                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
                                 n+=1
                                 start_time=widget.time().toString('HH:mm:ss.zz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间'
+                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time=widget.time().toString('HH:mm:ss.zz')
                             if msg:
                                 return QMessageBox.critical(self, config.transobj['anerror'],msg)
@@ -572,11 +573,11 @@ class Ui_subtitleEditor(QWidget):
                             if n < 1:
                                 n+=1
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间'
+                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
                                 start_time=widget.time().toString('HH:mm:ss.zzz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间'
+                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time=widget.time().toString('HH:mm:ss.zzz')
                             if msg:
                                 return QMessageBox.critical(self, config.transobj['anerror'],msg)

@@ -91,7 +91,7 @@ class Ui_videoandaudio(object):
         QMetaObject.connectSlotsByName(videoandaudio)
 
     def retranslateUi(self, videoandaudio):
-        videoandaudio.setWindowTitle("批量视频和音频合并" if config.defaulelang == 'zh' else 'Batch video and audio merger')
+        videoandaudio.setWindowTitle('视频与音频合并' if config.defaulelang == 'zh' else 'video/audio merger')
         self.folder.setPlaceholderText(
             "选择要合并的视频音频所在文件夹" if config.defaulelang == 'zh' else 'Select the folder where you want to merge the video and audio')
         self.videobtn.setText("选择文件夹" if config.defaulelang == 'zh' else 'Select the folder')

@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "haspaused": "Paused",
     "shutdownerror": "computer shutdown error",
     "onlycnanden": "ChatTTS only support Chinese and English",
     "peiyindayu31": "The number of dubbing errors is greater than 1/3, please check the",
@@ -248,8 +249,8 @@
     "onlyvideo": "Save only video",
     "onlyvideo_tips": "If this item is checked, subtitles, audio and other material will not be kept, only the final video file will be saved",
     "model_type_tips": "The master model is faster and more resource-efficient, but requires the installation and configuration of cudnn and cublas in addition to cuda.\nThe openai model is slower and more resource-intensive, but only requires cuda to be installed.",
-    "faster model": "faster model",
-    "openai model": "openai model",
+    "faster model": "faster-whisper",
+    "openai model": "openai-whisper",
     "addbackbtn": "Add background music",
     "back_audio_place": "The full path of the background music, deleting it does not add it",
     "Download Models": "Download Models",
@@ -326,7 +327,7 @@
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language",
     "Separate Video to audio": "Separate Video to audio",
     "Separate audio and silent videos from videos": "Separate audio and silent videos from videos",
-    "Video Subtitles Merging": "Video Subtitles Merging",
+    "Video Subtitles Merging": "Video Audio Srt Merging",
     "Merge audio, video, and subtitles into one file": "Merge audio, video, and subtitles into one file",
     "Files Format Conversion": "Files Format Conversion",
     "Convert various formats to each other": "Convert various formats to each other",

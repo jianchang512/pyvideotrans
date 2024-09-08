@@ -82,7 +82,7 @@ class FasterAvg(BaseRecogn):
             else:
                 msg = '加载或下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Load model from local or download model from huggingface'
             if self.inst:
-                self.inst.parent.status_text = msg
+                self.status_text = msg
             self._signal(text=msg)
 
         self.model = WhisperModel(

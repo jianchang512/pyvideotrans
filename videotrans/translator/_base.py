@@ -81,6 +81,7 @@ class BaseTrans:
     # 实际操作 # 出错时发送停止信号
     def run(self)->Union[List,str,None]:
         # 开始对分割后的每一组进行处理
+        self._signal(text="")
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
             while 1:

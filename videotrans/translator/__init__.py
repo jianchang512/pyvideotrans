@@ -376,50 +376,50 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type in [GOOGLE_INDEX,FREEGOOGLE_INDEX]:
         return True
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
-        chatgpt.open()
+        chatgpt.openwin()
         return False
     if translate_type == AI302_INDEX and not config.params['ai302_key']:
-        ai302.open()
+        ai302.openwin()
         return False
     if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
-        transapi.open()
+        transapi.openwin()
         return False
 
     if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
         return '必须填写本地大模型API地址' if config.defaulelang == 'zh' else 'Please input Local LLM API url'
     if translate_type == ZIJIE_INDEX and (
             not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
-        zijiehuoshan.open()
+        zijiehuoshan.openwin()
         return False
 
     if translate_type == GEMINI_INDEX and not config.params['gemini_key']:
-        gemini.open()
+        gemini.openwin()
         return False
     if translate_type == AZUREGPT_INDEX and (
             not config.params['azure_key'] or not config.params['azure_api']):
-        azure.open()
+        azure.openwin()
         return False
 
     if translate_type == BAIDU_INDEX and (
             not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
-        baidu.open()
+        baidu.openwin()
         return False
     if translate_type == TENCENT_INDEX and (
             not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
-        tencent.open()
+        tencent.openwin()
         return False
     if translate_type == DEEPL_INDEX and not config.params["deepl_authkey"]:
-        deepL.open()
+        deepL.openwin()
         return False
     if translate_type == DEEPLX_INDEX and not config.params["deeplx_address"]:
-        deepLX.open()
+        deepLX.openwin()
         return False
 
     if translate_type == TRANSAPI_INDEX and not config.params["trans_api_url"]:
-        localllm.open()
+        localllm.openwin()
         return False
     if translate_type == OTT_INDEX and not config.params["ott_address"]:
-        ott.open()
+        ott.openwin()
         return False
     # 如果只需要判断是否填写了 api key 等信息，到此返回
     if only_key:

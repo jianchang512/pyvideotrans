@@ -84,6 +84,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     condition_on_previous_text=config.settings['condition_on_previous_text']
                 )
                 for segment in result['segments']:
+                    if self._exit():
+                        return
                     if len(segment['words']) < 1:
                         continue
                     # 当前文字行字数小于 maxlen，直接使用
@@ -103,6 +105,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     # 当前文字行字数太多，超过 maxlen，需重新按 flag 切分
                     cur = None
                     for word in segment["words"]:
+                        if self._exit():
+                            return
                         if not word['word']:
                             continue
                         if not cur:

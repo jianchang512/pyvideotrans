@@ -29,6 +29,8 @@ class CosyVoice(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self,data_item:dict=None):
+        if self._exit():
+            return
         if not data_item or tools.vail_file(data_item['filename']):
             return
         try:

@@ -11,7 +11,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/hunliu"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

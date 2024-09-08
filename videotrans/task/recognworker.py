@@ -50,14 +50,13 @@ class RecognWorker(QThread):
                 if not q:
                     continue
                 try:
-                    data = q.get(True, 0.5)
+                    data = q.get(block=False)
                     if data:
-                        print(f'q.get：{data=}')
                         self.post(data)
                     else:
                         self.post({"type":"logs","text":f'{int(time.time()-st)}s'})
                 except Exception:
-                    pass
+                    time.sleep(1)
 
         threading.Thread(target=getqueulog, args=(self.uuid,)).start()
 
@@ -88,7 +87,6 @@ class RecognWorker(QThread):
 
                 jindu = int((length - len(self.audio_paths)) * 100 / length)
                 jindu = jindu - 1 if jindu >= 1 else jindu
-
                 self.post({"type": "jindu", "text": f'{jindu}%'})
                 srts = run_recogn(
                     type=self.split_type,

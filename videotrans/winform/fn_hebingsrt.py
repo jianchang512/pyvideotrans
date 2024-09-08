@@ -11,7 +11,7 @@ from videotrans.util import tools
 
 
 # 合并2个srt
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/Mergersrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

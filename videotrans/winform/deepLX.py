@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     def save():
         key = winobj.deeplx_address.text()
         config.params["deeplx_address"] = key

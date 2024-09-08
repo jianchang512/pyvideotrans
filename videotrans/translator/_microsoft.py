@@ -24,11 +24,18 @@ class Microsoft(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         }
-        try:
-            if not self.auth:
-                self.auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers, proxies=self.proxies)
-        except:
-            raise Exception('连接微软翻译失败，请更换其他翻译渠道' if config.defaulelang == 'zh' else 'Failed to connect to Microsoft Translate, please change to another translation channel')
+        auth_num=3
+        while 1:
+            auth_num-=1
+            try:
+                if not self.auth:
+                    self.auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers, proxies=self.proxies)
+            except Exception as e:
+                if auth_num<=0:
+                    raise Exception(f'连接微软翻译失败，请更换其他翻译渠道 {e}' if config.defaulelang == 'zh' else f'Failed to connect to Microsoft Translate, please change to another translation channel:{e}')
+                time.sleep(5)
+            else:
+                break
 
 
         url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={self.target_language}&api-version=3.0&includeSentenceLength=true"

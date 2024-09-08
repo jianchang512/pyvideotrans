@@ -70,6 +70,8 @@ class DoubaoRecogn(BaseRecogn):
             job_id = res['id']
             delay = 0
             while 1:
+                if self._exit():
+                    return
                 delay += 1
                 # 获取进度
                 response = requests.get(
@@ -95,6 +97,8 @@ class DoubaoRecogn(BaseRecogn):
                     break
 
             for i, it in enumerate(result['utterances']):
+                if self._exit():
+                    return
                 srt = {
                     "line": i + 1,
                     "start_time": it['start_time'],

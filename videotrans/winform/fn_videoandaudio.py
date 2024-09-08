@@ -13,11 +13,10 @@ from videotrans.configure import config
 # 使用内置的 open 函数
 from videotrans.util import tools
 
-builtin_open = builtins.open
 
 
 # 水印
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/videoandaudio"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

@@ -68,6 +68,7 @@ class WorkerTTS(QThread):
                     pass
 
         threading.Thread(target=getqueulog, args=(self.uuid,)).start()
+        tools.set_process(text="",uuid=self.uuid)
         # 字幕格式
         self.all_text = []
         for it in self.files:

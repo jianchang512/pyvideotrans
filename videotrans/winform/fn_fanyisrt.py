@@ -14,7 +14,7 @@ from videotrans.util import tools
 
 
 # 字幕批量翻译
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/translate"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

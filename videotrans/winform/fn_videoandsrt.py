@@ -15,7 +15,7 @@ from videotrans.util import tools
 
 
 # 视频 字幕 音频 合并
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/videoandsrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

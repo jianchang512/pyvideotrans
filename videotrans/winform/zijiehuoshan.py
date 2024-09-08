@@ -8,11 +8,8 @@ from PySide6.QtCore import QThread, Signal
 from videotrans import translator
 from videotrans.configure import config
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
 
-
-def open():
+def openwin():
     class TestZijiehuoshan(QThread):
         uito = Signal(str)
 
@@ -73,7 +70,7 @@ def open():
         if current_text:
             winobj.zijiehuoshan_model.setCurrentText(current_text)
         config.settings['zijiehuoshan_model'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

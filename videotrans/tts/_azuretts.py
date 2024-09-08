@@ -16,6 +16,8 @@ class AzureTTS(BaseTTS):
 
 
     def _item_task(self,items:list=None):
+        if self._exit():
+            return
         filename = config.TEMP_DIR + f"/azure_tts_{time.time()}"
         try:
             speech_config = speechsdk.SpeechConfig(
@@ -105,4 +107,6 @@ class AzureTTS(BaseTTS):
             return self._item_task(self.queue_tts)
         split_queue = [self.queue_tts[i:i + self.con_num] for i in range(0, self.len, self.con_num)]
         for idx, items in enumerate(split_queue):
+            if self._exit():
+                return
             self._item_task(items)

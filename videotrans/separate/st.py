@@ -130,7 +130,7 @@ def start(audio, path, source="logs", uuid=None):
     grouplen = len(reslist)
     per = round(1 / grouplen, 2)
     for i, audio_seg in enumerate(reslist):
-        if config.exit_soft:
+        if config.exit_soft or (uuid in config.queue_dict and config.queue_dict[uuid] == 'stop'):
             return
         audio_path = Path(audio_seg)
         path_dir = audio_path.parent / audio_path.stem
@@ -144,7 +144,6 @@ def start(audio, path, source="logs", uuid=None):
             vocal_list.append((path_dir / 'vocal.wav').as_posix())
             instr_list.append((path_dir / 'instrument.wav').as_posix())
         except Exception as e:
-            print('异常' + str(e))
             raise LogExcept(e)
 
     if len(vocal_list) < 1 or len(instr_list) < 1:

@@ -8,7 +8,7 @@ from videotrans.configure import config
 
 
 # 下载
-def open():
+def openwin():
     def download():
         winobj.has_done=False
         proxy = winobj.proxy.text().strip()

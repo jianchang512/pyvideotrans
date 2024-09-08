@@ -9,10 +9,9 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 # 使用内置的 open 函数
-builtin_open = builtins.open
 
 
-def open():
+def openwin():
     class TestTTS(QThread):
         uito = Signal(str)
 
@@ -65,7 +64,7 @@ def open():
         config.params["chattts_api"] = key
         config.getset_params(config.params)
         config.settings['chattts_voice'] = voice
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
         winobj.close()

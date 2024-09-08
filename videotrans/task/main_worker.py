@@ -39,7 +39,7 @@ class Worker(QThread):
 
         # 保存任务实例
         for it in self.videolist:
-            if config.exit_soft or config.current_status != 'ing':
+            if self._exit():
                 return self.stop()
             self.task_logs.add(it['uuid'])
             if config.params['clear_cache'] and Path(it['target_dir']).is_dir():
@@ -50,25 +50,18 @@ class Worker(QThread):
 
         # 开始初始化任务并压入识别队列
         for video in self.tasklist.values():
-            if config.exit_soft or config.current_status != 'ing':
+            if self._exit():
                 return self.stop()
-            try:
-                set_process(config.transobj['kaishichuli'], type="logs", uuid=video.uuid)
-                video.prepare()
-            except Exception as e:
-                config.logger.exception(e,exc_info=True)
-                set_process(f'{config.transobj["yuchulichucuo"]}:' + str(e), type='error', uuid=video.uuid)
-                self.uuidlist.remove(video.uuid)
-                continue
+            set_process(config.transobj['kaishichuli'], type="logs", uuid=video.uuid)
             # 压入识别队列开始执行
-            config.regcon_queue.append(self.tasklist[video.uuid])
+            config.prepare_queue.append(self.tasklist[video.uuid])
         # 批量进入等待
         return self.wait_end()
 
     def wait_end(self):
         # 开始等待任务执行完毕
         while len(self.uuidlist) > 0:
-            if config.exit_soft or config.current_status != 'ing':
+            if self._exit():
                 return self.stop()
             uuid = self.uuidlist.pop(0)
             # uuid 不再当前任务列表中，已完成或出错结束，忽略
@@ -81,10 +74,15 @@ class Worker(QThread):
             time.sleep(0.5)
 
         # 全部完成
-        set_process("", type='end')
         config.queue_mp4 = []
         config.uuidlist = []
+        set_process("", type='end')
 
+    def _exit(self):
+        if config.exit_soft or config.current_status!='ing':
+            return True
+        return False
+    # 暂停
     def stop(self):
-        # config.queue_mp4 = []
+        set_process("", type='end' if config.current_status=='ing' else 'stop')
         config.uuidlist = []

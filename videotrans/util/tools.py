@@ -288,6 +288,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
                 arg[i] = '-qp'
 
     cmd += arg
+    if Path(cmd[-1]).is_file():
+        cmd[-1]=Path(cmd[-1]).as_posix()
     # 插入自定义 ffmpeg 参数
     if config.settings['ffmpeg_cmd']:
         for it in config.settings['ffmpeg_cmd'].split(' '):
@@ -340,7 +342,9 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
 # run ffprobe 获取视频元信息
 def runffprobe(cmd):
     try:
-        p = subprocess.run(cmd if isinstance(cmd, str) else [config.FFPROBE_BIN] + cmd,
+        if Path(cmd[-1]).is_file():
+            cmd[-1]=Path(cmd[-1]).as_posix()
+        p = subprocess.run([config.FFPROBE_BIN] + cmd,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
@@ -1045,8 +1049,9 @@ def set_process(text="", *, type="logs", uuid=None, nologs=False):
                 text = text.replace('\\n', ' ').strip()
         if not uuid:
             uuid = 'global'
+
+
         logdata = {"text": text, "type": type, "uuid": uuid}
-        print(f'set_process日志：{logdata=}')
         config.push_queue(uuid, logdata)
     except Exception as e:
         pass

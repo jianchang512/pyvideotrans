@@ -26,6 +26,8 @@ class ElevenLabs(BaseTTS):
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         while len(self.copydata)>0:
+            if self._exit():
+                return
             try:
                 data_item=self.copydata.pop(0)
                 if tools.vail_file(data_item['filename']):

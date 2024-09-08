@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     def save():
         appid = winobj.doubao_appid.text()
 
