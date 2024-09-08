@@ -13,6 +13,7 @@ from PySide6.QtGui import QDesktopServices
 
 from videotrans.configure import config
 
+from . import mp,alipay,wx
 
 class Ui_infoform(object):
     def setupUi(self, infoform):
@@ -38,10 +39,10 @@ class Ui_infoform(object):
         QtCore.QMetaObject.connectSlotsByName(infoform)
 
     def openExternalLink(self, url):
-        # Open the link in the system browser
         QDesktopServices.openUrl(url)
 
     def retranslateUi(self, infoform):
+        _mp,_alipay,_wx=mp,alipay,wx
         _translate = QtCore.QCoreApplication.translate
         infoform.setWindowTitle(_translate("infoform", "捐助该软件以帮助持续维护"))
         self.textBrowser.setHtml(_translate("infoform", """
@@ -75,7 +76,7 @@ p, li { white-space: pre-wrap; }a{text-decoration:none}
 <hr />
 
 <h2 style=" margin-top:16px; margin-bottom:30px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600;color:#ff0" href="https://pyvideotrans.com/about">
-感谢所有捐助者，本项目的每一点改善都离不开您的帮助,点击查看所有捐助者</a></h2>
+感谢所有捐助者，本项目的每一点改善都离不开您的帮助,点击查看捐赠名单</a></h2>
 <hr />
 <h2>免责声明：</h2>
 

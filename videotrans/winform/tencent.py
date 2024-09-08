@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 
-def open():
+def openwin():
     def save():
         SecretId = winobj.tencent_SecretId.text()
         SecretKey = winobj.tencent_SecretKey.text()

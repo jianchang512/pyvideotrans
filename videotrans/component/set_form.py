@@ -1,3 +1,4 @@
+from PySide6 import QtWidgets
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
@@ -270,7 +271,7 @@ class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class HebingsrtForm(QDialog, Ui_srthebing):  # <===
+class HebingsrtForm(QtWidgets.QWidget, Ui_srthebing):  # <===
     def __init__(self, parent=None):
         super(HebingsrtForm, self).__init__(parent)
         self.setupUi(self)
@@ -319,21 +320,21 @@ class VASForm(QDialog, Ui_vasrt):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Fanyisrt(QDialog, Ui_fanyisrt):  # <===
+class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):  # <===
     def __init__(self, parent=None):
         super(Fanyisrt, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Recognform(QDialog, Ui_recogn):  # <===
+class Recognform(QtWidgets.QWidget,Ui_recogn):  # <===
     def __init__(self, parent=None):
         super(Recognform, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Peiyinform(QDialog, Ui_peiyin):  # <===
+class Peiyinform(QtWidgets.QWidget, Ui_peiyin):  # <===
     def __init__(self, parent=None):
         super(Peiyinform, self).__init__(parent)
         self.setupUi(self)

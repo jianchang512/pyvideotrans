@@ -60,6 +60,7 @@ class BaseRecogn:
             raise LogExcept(f'[error]not exists {self.audio_file}')
     # 出错时发送停止信号
     def run(self) -> Union[List[Dict], None]:
+        self._signal(text="")
         try:
             return self._exec()
         except Exception as e:

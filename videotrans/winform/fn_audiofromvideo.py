@@ -12,7 +12,7 @@ from videotrans.util import tools
 
 
 # 从视频分离音频
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + "/audiofromvideo"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

@@ -4,7 +4,7 @@ from videotrans.configure import config
 # 翻译
 
 # set deepl key
-def open():
+def openwin():
     def save():
         key = winobj.deepl_authkey.text()
         api = winobj.deepl_api.text().strip()

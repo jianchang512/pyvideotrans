@@ -6,12 +6,10 @@ from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton
 
 from videotrans.configure import config
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
 
 
 # 高级设置
-def open():
+def openwin():
     def save():
         # 创建一个空字典来存储结果
         line_edit_dict = {}
@@ -26,7 +24,7 @@ def open():
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.text()
         try:
-            json.dump(line_edit_dict, builtin_open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
+            json.dump(line_edit_dict, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
                       ensure_ascii=False)
         except Exception as e:
             return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], str(e))

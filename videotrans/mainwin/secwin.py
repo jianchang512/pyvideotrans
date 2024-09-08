@@ -1,18 +1,12 @@
 import json
-import os
-import platform
 import re
-import shutil
-import sys
 import threading
-import warnings
-
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
-
 from videotrans.component.progressbar import ClickableProgressBar
+from videotrans.mainwin._sec_util_win import SecUtilWin
 from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER, is_allow_lang as recogn_is_allow_lang, \
     is_input_api as recogn_is_input_api
 from videotrans.task.logs_worker import LogsWorker
@@ -20,18 +14,17 @@ from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, CLONE_VOICE_TTS, TTS_
     FISHTTS, CHATTTS, GOOGLE_TTS, OPENAI_TTS, ELEVENLABS_TTS, is_allow_lang as tts_is_allow_lang, \
     is_input_api as tts_is_input_api
 
-warnings.filterwarnings('ignore')
 from videotrans.winform import fn_downmodel
-
 from videotrans.util import tools
-from videotrans import translator, tts
+from videotrans import translator
 from videotrans.configure import config
 from pathlib import Path
 from videotrans.task.main_worker import Worker
 
 
-class SecWindow():
+class SecWindow(SecUtilWin):
     def __init__(self, main=None):
+        super().__init__()
         self.main = main
         # 更新按钮
         self.update_btn = None
@@ -47,201 +40,12 @@ class SecWindow():
         self.shitingobj = None
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
-
-    def is_separate_fun(self, state):
-        config.params['is_separate'] = True if state else False
-
-    # 选中按钮时判断当前cuda是否可用
-    def check_cuda(self, state):
-        import torch
-        res = state
-        # 选中如果无效，则取消
-        if state and not torch.cuda.is_available():
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nocuda'])
-            self.main.enable_cuda.setChecked(False)
-            self.main.enable_cuda.setDisabled(True)
-            res = False
-        config.params['cuda'] = res
+        # 存放需要处理的视频dict信息，包括uuid
+        self.videolist=[]
 
     # 配音速度改变时
     def voice_rate_changed(self, text):
         config.params['voice_rate'] = f'+{text}%' if text >= 0 else f'{text}%'
-
-    # 简单新手模式
-    def set_xinshoujandann(self):
-        self.main.action_xinshoujandan.setChecked(True)
-        self.main.app_mode = 'biaozhun_jd'
-        self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
-        self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_xinshoujandan.setChecked(True)
-        self.main.action_biaozhun.setChecked(False)
-        self.main.action_tiquzimu.setChecked(False)
-        # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, False)
-        # 翻译渠道
-        self.main.translate_type.setCurrentIndex(1)
-        self.hide_show_element(self.main.layout_translate_type, False)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, False)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
-        # 配音角色
-        self.main.tts_type.setCurrentIndex(EDGE_TTS)
-        self.hide_show_element(self.main.layout_voice_role, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, False)
-        # 试听按钮
-        self.main.listen_btn.hide()
-        # 语音模型
-        self.main.whisper_type.setCurrentIndex(0)
-        self.main.whisper_model.setCurrentIndex(0)
-        self.main.subtitle_type.setCurrentIndex(1)
-        self.hide_show_element(self.main.layout_whisper_model, False)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, False)
-        self.hide_show_element(self.main.edge_volume_layout, False)
-        self.hide_show_element(self.main.layout_voice_rate, False)
-        self.main.voice_autorate.setChecked(True)
-        self.main.voice_autorate.hide()
-        self.main.video_autorate.setChecked(True)
-        self.main.video_autorate.hide()
-        self.main.append_video.setChecked(True)
-        self.main.append_video.hide()
-        self.main.splitter.setSizes([self.main.width, 0])
-        self.hide_show_element(self.main.subtitle_layout, False)
-        # 视频自动降速
-        self.main.is_separate.setDisabled(True)
-        self.main.addbackbtn.setDisabled(True)
-        self.main.only_video.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
-        self.main.is_separate.hide()
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
-        self.main.only_video.hide()
-        # cuda
-        self.main.enable_cuda.setChecked(False)
-        self.main.enable_cuda.hide()
-
-    # 启用标准模式
-    def set_biaozhun(self):
-        self.main.action_biaozhun.setChecked(True)
-        self.main.app_mode = 'biaozhun'
-        self.main.show_tips.setText("")
-        self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_biaozhun.setChecked(True)
-        self.main.action_xinshoujandan.setChecked(False)
-        self.main.action_tiquzimu.setChecked(False)
-        # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, True)
-        # 翻译渠道
-        self.hide_show_element(self.main.layout_translate_type, True)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, True)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, True)
-        # 配音角色
-        self.hide_show_element(self.main.layout_voice_role, True)
-        # 试听按钮
-        # 显示音量 音调变化
-        self.hide_show_element(self.main.edge_volume_layout, True)
-        self.main.listen_btn.show()
-        # 语音模型
-        self.hide_show_element(self.main.layout_whisper_model, True)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, True)
-        # 配音语速
-        self.hide_show_element(self.main.layout_voice_rate, True)
-        self.main.is_separate.setDisabled(False)
-        self.main.is_separate.show()
-        self.main.addbackbtn.setDisabled(False)
-        self.main.only_video.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)
-        self.main.video_autorate.setDisabled(False)
-        self.main.voice_autorate.setDisabled(False)
-        self.main.voice_autorate.show()
-        self.main.append_video.setDisabled(False)
-        self.main.append_video.setDisabled(False)
-        self.hide_show_element(self.main.subtitle_layout, True)
-        self.main.splitter.setSizes([self.main.width - 400, 400])
-        self.main.addbackbtn.show()
-        self.main.back_audio.show()
-        self.main.only_video.show()
-        self.main.video_autorate.show()
-        self.main.append_video.show()
-        # cuda
-        self.main.enable_cuda.show()
-
-    # 视频提取字幕并翻译，无需配音
-    def set_tiquzimu(self):
-        self.main.action_tiquzimu.setChecked(True)
-        self.main.app_mode = 'tiqu'
-        self.main.show_tips.setText(config.transobj['tiquzimu'])
-        self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
-        self.main.action_tiquzimu.setChecked(True)
-        self.main.action_xinshoujandan.setChecked(False)
-        self.main.action_biaozhun.setChecked(False)
-
-        self.hide_show_element(self.main.subtitle_layout, True)
-        self.main.splitter.setSizes([self.main.width - 400, 400])
-        # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, True)
-        # 隐藏音量 音调变化
-        self.hide_show_element(self.main.edge_volume_layout, False)
-        # 翻译渠道
-        self.hide_show_element(self.main.layout_translate_type, True)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, True)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, False)
-        # 配音角色
-        self.hide_show_element(self.main.layout_voice_role, False)
-        # 试听按钮
-        self.main.listen_btn.hide()
-        # 语音模型
-        self.hide_show_element(self.main.layout_whisper_model, True)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, False)
-        # 配音语速
-        self.hide_show_element(self.main.layout_voice_rate, False)
-        self.main.is_separate.setDisabled(True)
-        self.main.addbackbtn.setDisabled(True)
-        self.main.only_video.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
-        self.main.video_autorate.setDisabled(True)
-        self.main.voice_autorate.setDisabled(True)
-        self.main.append_video.setDisabled(True)
-
-        self.main.append_video.hide()
-        self.main.voice_autorate.hide()
-        self.main.is_separate.hide()
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
-        self.main.only_video.hide()
-        self.main.video_autorate.hide()
-        # cuda
-        self.main.enable_cuda.show()
-
-    # 关于页面
-    def about(self):
-        from videotrans.component import InfoForm
-        self.main.infofrom = InfoForm()
-        self.main.infofrom.show()
 
     # voice_autorate  变化
     def autorate_changed(self, state, name):
@@ -252,21 +56,6 @@ class SecWindow():
         elif name == 'append_video':
             config.params['append_video'] = state
 
-    # 隐藏布局及其元素
-    def hide_show_element(self, wrap_layout, show_status):
-        def hide_recursive(layout, show_status):
-            for i in range(layout.count()):
-                item = layout.itemAt(i)
-                if item.widget():
-                    if not show_status:
-                        item.widget().hide()
-                    else:
-                        item.widget().show()
-                elif item.layout():
-                    hide_recursive(item.layout(), show_status)
-
-        hide_recursive(wrap_layout, show_status)
-
     # 删除进度按钮
     def delete_process(self):
         for i in range(self.main.processlayout.count()):
@@ -274,34 +63,6 @@ class SecWindow():
             if item.widget():
                 item.widget().deleteLater()
         self.processbtns = {}
-
-    # 开启执行后，禁用按钮，停止或结束后，启用按钮
-    def disabled_widget(self, type):
-        self.main.clear_cache.setDisabled(type)
-        self.main.volume_rate.setDisabled(type)
-        self.main.pitch_rate.setDisabled(type)
-        self.main.import_sub.setDisabled(type)
-        self.main.btn_get_video.setDisabled(type)
-        self.main.btn_save_dir.setDisabled(type)
-        self.main.translate_type.setDisabled(type)
-        self.main.proxy.setDisabled(type)
-        self.main.source_language.setDisabled(type)
-        self.main.target_language.setDisabled(type)
-        self.main.tts_type.setDisabled(type)
-        self.main.whisper_model.setDisabled(type)
-        self.main.whisper_type.setDisabled(type)
-        self.main.subtitle_type.setDisabled(type)
-        self.main.enable_cuda.setDisabled(type)
-        self.main.model_type.setDisabled(type)
-        self.main.voice_autorate.setDisabled(type)
-        self.main.video_autorate.setDisabled(type)
-        self.main.append_video.setDisabled(type)
-        self.main.voice_role.setDisabled(type)
-        self.main.voice_rate.setDisabled(type)
-        self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
-        self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
-        self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
-        self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu'] else type)
 
     # 右侧字幕区导出
     def export_sub_fun(self):
@@ -324,12 +85,6 @@ class SecWindow():
             path_to_file += ext
         with open(path_to_file, "w", encoding='utf-8') as file:
             file.write(srttxt)
-
-    def open_url(self, title):
-        if title == 'online':
-            self.about()
-        else:
-            tools.open_url(title=title)
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
@@ -360,14 +115,6 @@ class SecWindow():
             config.params['translate_type'] = idx
         except Exception as e:
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
-
-    # 0=整体识别模型
-    # 1=均等分割模式
-    def check_whisper_type(self, index):
-        if index == 0:
-            config.params['whisper_type'] = 'all'
-        else:
-            config.params['whisper_type'] = 'avg'
 
     # 语音识别方式改变时
     def model_type_change(self):
@@ -406,7 +153,7 @@ class SecWindow():
             # 不存在，需下载
 
             if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
-                fn_downmodel.open(model_name=name, model_type=OPENAI_WHISPER)
+                fn_downmodel.openwin(model_name=name, model_type=OPENAI_WHISPER)
                 return False
             return True
 
@@ -415,25 +162,10 @@ class SecWindow():
             file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
 
         if not Path(file).exists():
-            fn_downmodel.open(model_name=name, model_type=FASTER_WHISPER)
+            fn_downmodel.openwin(model_name=name, model_type=FASTER_WHISPER)
             return False
 
         return True
-
-    def clearcache(self):
-        if config.defaulelang == 'zh':
-            question = tools.show_popup('确认进行清理？', '清理后需要重启软件并重新填写设置菜单中各项配置信息')
-
-        else:
-            question = tools.show_popup('Confirm cleanup?', 'The software needs to be restarted after cleaning')
-
-        if question == QMessageBox.Yes:
-            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-            shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-            tools.remove_qsettings_data()
-            QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
-                                    'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
-            self.main.close()
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -509,65 +241,6 @@ class SecWindow():
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['FishTTS']
             self.main.voice_role.addItems(self.main.current_rolelist)
 
-    # 试听配音
-    def listen_voice_fun(self):
-        lang = translator.get_code(show_text=self.main.target_language.currentText())
-        if not lang:
-            return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                        '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
-        text = config.params[f'listen_text_{lang}']
-        role = self.main.voice_role.currentText()
-        if not role or role == 'No':
-            return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])
-        voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
-        if not voice_dir or not Path(voice_dir).exists():
-            voice_dir = config.TEMP_DIR + "/voice_tmp"
-        else:
-            voice_dir = Path(voice_dir + "/pyvideotrans").as_posix()
-        if not Path(voice_dir).exists():
-            Path(voice_dir).mkdir(parents=True, exist_ok=True)
-        lujing_role = role.replace('/', '-')
-        rate=int(self.main.voice_rate.value())
-        if rate >= 0:
-            rate = f"+{rate}%"
-        else:
-            rate = f"{rate}%"
-
-        volume = int(self.main.volume_rate.value())
-        volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
-        pitch = int(self.main.pitch_rate.value())
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
-
-
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
-
-        obj = {
-            "text": text,
-            "rate": rate,
-            "role": role,
-            "filename": voice_file,
-            "tts_type": self.main.tts_type.currentIndex(),
-            "language": lang,
-            "volume":volume,
-            "pitch": pitch,
-        }
-        if role == 'clone':
-            QMessageBox.critical(self.main, config.transobj['anerror'],
-                                 '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
-            return
-        threading.Thread(target=tts.run,kwargs={"queue_tts":[obj],"play":True,"is_test":True}).start()
-
-
-    # 角色改变时 显示试听按钮
-    def show_listen_btn(self, role):
-        config.params["voice_role"] = role
-        if role == 'No' or (config.params['tts_type'] == CLONE_VOICE_TTS and config.params['voice_role'] == 'clone'):
-            self.main.listen_btn.hide()
-            return
-        if self.main.app_mode in ['biaozhun']:
-            self.main.listen_btn.show()
-            self.main.listen_btn.setDisabled(False)
-
     # 目标语言改变时设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
@@ -623,33 +296,6 @@ class SecWindow():
         except:
             self.main.voice_role.addItems(['No'])
 
-    # get video filter mp4
-    def get_mp4(self):
-        format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
-        if self.main.app_mode == 'tiqu':
-            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
-        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.params['last_opendir'],
-                                                 f'Files({format_str})')
-        if len(fnames) < 1:
-            return
-        for (i, it) in enumerate(fnames):
-            fnames[i] = Path(it).as_posix()
-
-        if len(fnames) > 0:
-            self.main.source_mp4.setText(f'{len((fnames))} videos')
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
-            config.queue_mp4 = fnames
-
-    # 导入背景声音
-    def get_background(self):
-        format_str=" ".join([ '*.'+f  for f in  config.AUDIO_EXITS])
-        fname, _ = QFileDialog.getOpenFileName(self.main, 'Background music', config.params['last_opendir'],
-                                               f"Audio files({format_str})")
-        if not fname:
-            return
-        fname = Path(fname).as_posix()
-        self.main.back_audio.setText(fname)
-
     # 从本地导入字幕文件
     def import_sub_fun(self):
         fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], config.params['last_opendir'],
@@ -668,78 +314,12 @@ class SecWindow():
                     return QMessageBox.critical(self.main, config.transobj['anerror'],
                                                 config.transobj['import src error'])
 
-    # 保存目录
-    def get_save_dir(self):
-        dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],
-                                                   config.params['last_opendir'])
-        dirname = Path(dirname).as_posix()
-        self.main.target_dir.setText(dirname)
-
-    # 检测各个模式下参数是否设置正确
-    def set_mode(self):
-        if self.main.app_mode == 'tiqu' or (
-                self.main.app_mode.startswith('biaozhun') and config.params['subtitle_type'] < 1 and config.params[
-            'voice_role'] == 'No'):
-            self.main.app_mode = 'tiqu'
-            # 提取字幕模式，必须有视频、有原始语言，语音模型
-            config.params['is_separate'] = False
-            config.params['subtitle_type'] = 0
-            config.params['voice_role'] = 'No'
-            config.params['voice_rate'] = '+0%'
-            config.params['voice_autorate'] = False
-            config.params['append_video'] = False
-            config.params['back_audio'] = ''
-        elif self.main.app_mode == 'biaozhun_jd':
-            config.params['voice_autorate'] = True
-            config.params['append_video'] = True
-            config.params['is_separate'] = False
-            config.params['back_audio'] = ''
-
     # 判断是否需要翻译
     def shound_translate(self):
         if self.main.target_language.currentText() == '-' or self.main.source_language.currentText() == '-':
             return False
         if self.main.target_language.currentText() == self.main.source_language.currentText():
             return False
-        return True
-
-    # 设置或删除代理
-    def change_proxy(self, p):
-        config.params['proxy'] = p.strip()
-        try:
-            if not config.params['proxy']:
-                # 删除代理
-                tools.set_proxy('del')
-        except Exception:
-            pass
-
-    # 核对代理填写
-    def check_proxy(self):
-        proxy = self.main.proxy.text().strip().replace('：', ':')
-        if proxy:
-            if not re.match(r'^(http|sock)', proxy, re.I):
-                proxy = f'http://{proxy}'
-            if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+', proxy, re.I):
-                question = tools.show_popup(
-                    '请确认代理地址是否正确？' if config.defaulelang == 'zh' else 'Please make sure the proxy address is correct', """你填写的网络代理地址似乎不正确
-        一般代理/vpn格式为 http://127.0.0.1:数字端口号 
-        如果不知道什么是代理请勿随意填写
-        ChatGPT等api地址请填写在菜单-设置-对应配置内。
-        如果确认代理地址无误，请点击 Yes 继续执行""" if config.defaulelang == 'zh' else 'The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.')
-                if question != QMessageBox.Yes:
-                    self.update_status('stop')
-                    return False
-        # 设置或删除代理
-        config.params['proxy'] = proxy
-        try:
-            if config.params['proxy']:
-                # 设置代理
-                tools.set_proxy(config.params['proxy'])
-            else:
-                # 删除代理
-                tools.set_proxy('del')
-        except Exception:
-            pass
         return True
 
     # 核对tts选择是否正确
@@ -749,14 +329,6 @@ class SecWindow():
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
-            return False
-        return True
-
-    # 核对字幕
-    def check_txt(self, txt=''):
-        if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            QMessageBox.critical(self.main, config.transobj['anerror'],
-                                 '字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.')
             return False
         return True
 
@@ -770,38 +342,6 @@ class SecWindow():
             return False
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
         return recogn_is_input_api(model_type=self.main.model_type.currentIndex())
-
-    # 格式化视频信息
-    def format_video(self, name):
-
-        raw_pathlib = Path(name)
-        raw_basename = raw_pathlib.name
-        raw_noextname = raw_pathlib.stem
-        ext_path = raw_noextname.split('/')
-        if len(ext_path) > 1:
-            raw_noextname = ext_path[-1]
-        ext = raw_pathlib.suffix
-        raw_dirname = raw_pathlib.parent.resolve().as_posix()
-
-        output_path = Path(f'{config.params["target_dir"]}/{raw_noextname}' if config.params[
-            "target_dir"] else f'{raw_dirname}/_video_out/{raw_noextname}')
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        obj = {
-            "name": name,
-            # 处理后 移动后符合规范的目录名
-            "dirname": raw_dirname,
-            # 符合规范的基本名带后缀
-            "basename": raw_basename,
-            # 符合规范的不带后缀
-            "noextname": raw_noextname,
-            # 扩展名
-            "ext": ext[1:],
-            # 最终存放目标位置，直接存到这里
-            "target_dir": output_path.as_posix(),
-            "uuid": tools.get_md5(name),
-        }
-        return obj
 
     # 检测开始状态并启动
     def check_start(self):
@@ -836,6 +376,7 @@ class SecWindow():
             return
         # 配音角色
         config.params['voice_role'] = self.main.voice_role.currentText()
+        config.params['is_separate']=self.main.is_separate.isChecked()
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
 
@@ -885,8 +426,7 @@ class SecWindow():
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and config.params['model_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_whisper_model(
-                config.params['whisper_model']):
+        if not txt and config.params['model_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_whisper_model(config.params['whisper_model']):
             return False
         # 判断CUDA
         if self.cuda_isok() is not True:
@@ -906,22 +446,26 @@ class SecWindow():
             config.params['app_mode'] = self.main.app_mode
         config.getset_params(config.params)
 
-        # 启动进度日志任务
+        # 启动本次进度日志任务
         self.task_logs = LogsWorker(parent=self.main)
         self.task_logs.post_logs.connect(self.update_data)
         self.task_logs.start()
 
-        videolist = []
+        # 存放需要处理的视频dict信息，包括uuid
+        self.videolist = []
         for video_path in config.queue_mp4:
             obj = self.format_video(video_path)
-            videolist.append(obj)
+            self.videolist.append(obj)
             self.add_process_btn(target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
+            # 重置任务进度队列
+            if obj['uuid'] in config.queue_dict:
+                del config.queue_dict[obj['uuid']]
 
         # 启动任务
         self.task = Worker(
             parent=self.main,
             app_mode=self.main.app_mode,
-            videolist=videolist,
+            videolist=self.videolist,
             txt=txt,
             task_logs=self.task_logs
         )
@@ -930,73 +474,6 @@ class SecWindow():
         for k, v in self.main.moshis.items():
             if k != self.main.app_mode:
                 v.setDisabled(True)
-
-    # 如果选中了cuda，判断是否可用
-    def cuda_isok(self):
-        if not config.params["cuda"] or platform.system() == 'Darwin':
-            return True
-
-        import torch
-        if not torch.cuda.is_available():
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
-            return False
-
-        if config.params['model_type'] == OPENAI_WHISPER:
-            return True
-        allow = True
-        try:
-            from torch.backends import cudnn
-            if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                allow = False
-        except:
-            allow = False
-        finally:
-            if not allow:
-                self.main.enable_cuda.setChecked(False)
-                config.params['cuda'] = False
-                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
-                return False
-        return True
-
-    # 判断文件路径是否正确
-    def url_right(self):
-        for vurl in config.queue_mp4:
-            if re.search(r'[:\?\*<>\|\"\']', vurl[4:]):
-                return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                            '视频所在路径和视频名字中不可含有  :  * ? < > | " \' 符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | " \' symbols, please revise. ')
-            if len(vurl) > 255 and sys.platform == 'win32':
-                return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                            f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}')
-        return True
-
-    # 如果存在音频则设为提取
-    # 如果有同名则停止
-    def check_name(self):
-        if self.main.app_mode != 'tiqu':
-            for it in config.queue_mp4:
-                if Path(it).suffix.lower() in config.AUDIO_EXITS:
-                    self.main.app_mode = 'tiqu'
-                    config.params['is_separate'] = False
-                    break
-
-        if len(config.queue_mp4) > 1:
-            same_name = {}
-            for it in config.queue_mp4:
-                p = Path(it)
-                stem = p.stem
-                if stem in same_name:
-                    same_name[stem].append(p.name)
-                else:
-                    same_name[stem] = [p.name]
-            msg = ''
-            for it in same_name.values():
-                if len(it) > 1:
-                    msg += ",".join(it)
-            if msg:
-                QMessageBox.critical(self.main, config.transobj['anerror'],
-                                     f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ')
-                return False
-        return True
 
     # 添加进度条
     def add_process_btn(self, *, target_dir: str = None, name: str = None, uuid=None):
@@ -1024,7 +501,6 @@ class SecWindow():
             precent = int(float(precent))
             self.processbtns[uuid].setPrecent(precent)
             self.processbtns[uuid].setText(f'{config.transobj["running"].replace("..", "")} {t}')
-            self.processbtns[uuid].progress_bar.setValue(precent)
         elif type == 'logs' and self.processbtns[uuid].precent < 100:
             self.processbtns[uuid].setText(text)
         elif type == 'succeed':
@@ -1041,47 +517,58 @@ class SecWindow():
         config.current_status = type
         self.main.continue_compos.hide()
         self.main.stop_djs.hide()
-        if type != 'ing':
-            # 结束或停止
-            self.main.subtitle_area.setReadOnly(False)
-            self.main.subtitle_area.clear()
-            self.main.startbtn.setText(config.transobj[type])
-            self.main.export_sub.setDisabled(False)
-            self.main.set_line_role.setDisabled(False)
-            # 启用
-            self.disabled_widget(False)
-            for k, v in self.main.moshis.items():
-                v.setDisabled(False)
-            if type == 'end':
-                for prb in self.processbtns.values():
-                    prb.setEnd()
-                # 成功完成
-                self.main.source_mp4.setText(config.transobj["No select videos"])
-                # 关机
-                if self.main.shutdown.isChecked():
-                    try:
-                        tools.shutdown_system()
-                    except Exception as e:
-                        QMessageBox.critical(self.main, config.transobj['anerror'],
-                                             config.transobj['shutdownerror'] + str(e))
-                self.main.source_mp4.setText(config.transobj["No select videos"])
-                self.main.target_dir.clear()
-            else:
-                # 停止
-                self.main.source_mp4.setText(config.transobj["No select videos"] if len(
-                    config.queue_mp4) < 1 else f'{len(config.queue_mp4)} videos')
-                # 清理输入
-            if self.main.app_mode == 'tiqu':
-                self.set_tiquzimu()
-            try:
-                self.task = None
-                self.tasklog = None
-            except Exception:
-                pass
-        else:
+        if type=='ing':
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
+            return
+        # stop 停止，end=结束
+        self.main.subtitle_area.setReadOnly(False)
+        self.main.subtitle_area.clear()
+        self.main.startbtn.setText(config.transobj[type])
+        self.main.export_sub.setDisabled(False)
+        self.main.set_line_role.setDisabled(False)
+        # 启用
+        self.disabled_widget(False)
+        for k, v in self.main.moshis.items():
+            v.setDisabled(False)
+        if type == 'end':
+            for prb in self.processbtns.values():
+                prb.setEnd()
+            # 成功完成
+            self.main.source_mp4.setText(config.transobj["No select videos"])
+            # 关机
+            if self.main.shutdown.isChecked():
+                try:
+                    tools.shutdown_system()
+                except Exception as e:
+                    QMessageBox.critical(self.main, config.transobj['anerror'],
+                                         config.transobj['shutdownerror'] + str(e))
+            self.main.source_mp4.setText(config.transobj["No select videos"])
+            self.main.target_dir.clear()
+        else:
+            # stop 停止
+            self.main.source_mp4.setText(config.transobj["No select videos"] if len(
+                config.queue_mp4) < 1 else f'{len(config.queue_mp4)} videos')
+
+            for it in self.videolist:
+                # 任务队列中设为停止，防止后续到来的日志继续显示
+                if it['uuid'] in config.queue_dict:
+                    try:
+                        config.queue_dict[it['uuid']]='stop'
+                    except:
+                        pass
+                # 按钮设为暂停
+                if it['uuid'] in self.processbtns:
+                    self.processbtns[it['uuid']].setPause()
+
+        if self.main.app_mode == 'tiqu':
+            self.set_tiquzimu()
+        try:
+            self.task = None
+            self.tasklog = None
+        except Exception:
+            pass
 
     # 更新 UI
     def update_data(self, json_data):
@@ -1092,7 +579,8 @@ class SecWindow():
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] in ["logs", 'set_precent', 'error', 'succeed', 'show_djs']:
             self.set_process_btn_text(d['text'], uuid=d['uuid'], type=d['type'])
-        elif d['type'] in ['stop', 'end']:
+        elif d['type'] in ['end']:
+            # 任务全部完成时出现 end
             self.update_status(d['type'])
             if "linerolew" in config.child_forms and hasattr(config.child_forms['linerolew'], 'close'):
                 config.child_forms['linerolew'].close()

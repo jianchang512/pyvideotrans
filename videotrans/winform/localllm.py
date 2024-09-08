@@ -7,11 +7,8 @@ from PySide6.QtCore import QThread, Signal
 from videotrans import translator
 from videotrans.configure import config
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
 
-
-def open():
+def openwin():
     class TestLocalLLM(QThread):
         uito = Signal(str)
 
@@ -64,7 +61,7 @@ def open():
         config.params["localllm_api"] = api
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
-        with builtin_open(config.ROOT_DIR + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt",
+        with open(config.ROOT_DIR + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt",
                           'w',
                           encoding='utf-8') as f:
             f.write(template)
@@ -79,7 +76,7 @@ def open():
         if current_text:
             winobj.localllm_model.setCurrentText(current_text)
         config.settings['localllm_model'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

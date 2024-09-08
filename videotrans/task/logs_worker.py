@@ -34,17 +34,15 @@ class LogsWorker(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if config.exit_soft or config.current_status!='ing':
+                for uuid in self.uuid_set:
+                    if uuid in config.queue_dict:
+                        config.queue_dict[uuid]='stop'
                 return
-
             # 获取进度队列数据发送
             for uuid in self.uuid_set:
-                if config.current_status != 'ing':
-                    if uuid in config.queue_dict:
-                        del config.queue_dict[uuid]
-                    continue
-                q: Queue = config.queue_dict.get(uuid, None)
-                if q:
+                q = config.queue_dict.get(uuid, None)
+                if q and isinstance(q,Queue):
                     try:
                         obj = q.get(block=False)
                         if obj and obj['type'] != 'stop' and config.current_status == 'ing':

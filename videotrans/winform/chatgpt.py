@@ -8,12 +8,11 @@ from PySide6.QtCore import QThread, Signal
 from videotrans import translator
 from videotrans.configure import config
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
+
 
 
 # set chatgpt
-def open():
+def openwin():
     class TestChatgpt(QThread):
         uito = Signal(str)
 
@@ -61,7 +60,7 @@ def open():
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
 
-        with builtin_open(config.ROOT_DIR + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt",
+        with open(config.ROOT_DIR + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt",
                           'w',
                           encoding='utf-8') as f:
             f.write(template)
@@ -81,7 +80,7 @@ def open():
         if current_text:
             winobj.chatgpt_model.setCurrentText(current_text)
         config.settings['chatgpt_model'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

@@ -73,34 +73,34 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(tts_type: int = None):
     if tts_type == OPENAI_TTS and not config.params["chatgpt_key"]:
-        openaitts_win.open()
+        openaitts_win.openwin()
         return False
     if tts_type == AI302_TTS and not config.params["ai302tts_key"]:
-        ai302tts_win.open()
+        ai302tts_win.openwin()
         return False
     if tts_type == CLONE_VOICE_TTS and not config.params["clone_api"]:
-        clone_win.open()
+        clone_win.openwin()
         return False
     if tts_type == ELEVENLABS_TTS and not config.params["elevenlabstts_key"]:
-        elevenlabs_win.open()
+        elevenlabs_win.openwin()
         return False
     if tts_type == TTS_API and not config.params['ttsapi_url']:
-        ttsapi_win.open()
+        ttsapi_win.openwin()
         return False
     if tts_type == GPTSOVITS_TTS and not config.params['gptsovits_url']:
-        gptsovits_win.open()
+        gptsovits_win.openwin()
         return False
     if tts_type == COSYVOICE_TTS and not config.params['cosyvoice_url']:
-        cosyvoice_win.open()
+        cosyvoice_win.openwin()
         return False
     if tts_type == FISHTTS and not config.params['fishtts_url']:
-        fishtts_win.open()
+        fishtts_win.openwin()
         return False
     if tts_type == CHATTTS and not config.params['chattts_api']:
-        chattts_win.open()
+        chattts_win.openwin()
         return False
     if tts_type == AZURE_TTS and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
-        azuretts_win.open()
+        azuretts_win.openwin()
         return False
     return True
 

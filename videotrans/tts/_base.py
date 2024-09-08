@@ -32,6 +32,7 @@ class BaseTTS:
         self.language=language
         self.inst=inst
         self.uuid=uuid
+        self.is_test=is_test
 
         self.volume='+0%'
         self.rate='+0%'
@@ -81,6 +82,7 @@ class BaseTTS:
     # 入口 调用子类 _exec() 然后创建线程池调用 _item_task 或直接在 _exec 中实现逻辑
     # 若捕获到异常，则直接抛出  出错时发送停止信号
     def run(self)->None:
+        self._signal(text="")
         try:
             self._exec()
         except Exception as e:
@@ -127,6 +129,8 @@ class BaseTTS:
 
     # 用于本地tts api接口，线程池并发，在此调用 _item_task
     def _local_mul_thread(self)->None:
+        if self._exit():
+            return
         if self.api_url and len(self.api_url) < 10:
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
@@ -136,6 +140,8 @@ class BaseTTS:
             return
         # 出错重试一次
         for i in range(2):
+            if self._exit():
+                return
             all_task = []
             with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
                 for k,item in enumerate(self.queue_tts):
@@ -196,3 +202,8 @@ class BaseTTS:
                     os.environ['http_proxy'] = proxy
                     os.environ['https_proxy'] = proxy
                     os.environ['all_proxy'] = proxy
+
+    def _exit(self):
+        if config.exit_soft or (config.current_status!='ing' and config.box_tts!='ing' and not self.is_test):
+            return True
+        return False

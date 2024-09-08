@@ -1,4 +1,5 @@
 import os
+import time
 
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
@@ -7,7 +8,10 @@ from videotrans.task.separate_worker import SeparateWorker
 
 
 # 分离背景音
-def open():
+from videotrans.util import tools
+
+
+def openwin():
     def get_file():
         format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
@@ -23,20 +27,32 @@ def open():
             winobj.fromfile.setText('')
         elif d == 'end':
             winobj.set.setText(config.transobj['Start Separate'])
-        else:
-            QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            winobj.logs.setText('')
+        elif d.startswith('logs:'):
+            if len(d)>5:
+                winobj.set.setText(d[5:])
+        elif d.startswith('error:'):
+            QMessageBox.critical(winobj, config.transobj['anerror'], d[6:])
+
 
     def start():
-        if config.separate_status == 'ing':
-            config.separate_status = 'stop'
-            winobj.set.setText(config.transobj['Start Separate'])
-            return
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
             QMessageBox.critical(winobj, config.transobj['anerror'],
                                  config.transobj['must select audio or video file'])
             return
+        uuid=tools.get_md5(file)
+        # 已在执行，在此点击停止
+        if winobj.has_done:
+            winobj.has_done=False
+            config.queue_dict[uuid]='stop'
+            winobj.set.setText(config.transobj['Start Separate'])
+            return
+        winobj.has_done=True
+        if uuid in config.queue_dict:
+            del config.queue_dict[uuid]
+
         winobj.set.setText(config.transobj['Start Separate...'])
         basename = os.path.basename(file)
         # 判断名称是否正常
@@ -45,13 +61,13 @@ def open():
         os.makedirs(out, exist_ok=True)
         winobj.url.setText(out)
         # 开始分离
-        config.separate_status = 'ing'
-        winobj.task = SeparateWorker(parent=winobj, out=out, file=file, basename=basename)
+        winobj.task = SeparateWorker(parent=winobj, out=out, file=file, basename=basename,uuid=uuid)
         winobj.task.finish_event.connect(update)
         winobj.task.start()
 
     from videotrans.component import SeparateForm
     try:
+
         winobj = config.child_forms.get('separatew')
         if winobj is not None:
             winobj.show()
@@ -60,7 +76,7 @@ def open():
             return
         winobj = SeparateForm()
         config.child_forms['separatew'] = winobj
-        winobj.set.setText(config.transobj['Start Separate'])
+        # winobj.set.setText(config.transobj['Start Separate'])
         outdir = os.path.join(config.HOME_DIR, 'separate').replace('\\', '/')
         if not os.path.exists(outdir):
             os.makedirs(outdir, exist_ok=True)

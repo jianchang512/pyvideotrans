@@ -8,11 +8,8 @@ from videotrans.configure import config
 from videotrans import tts
 from videotrans.util import tools
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
 
-
-def open():
+def openwin():
     class TestTTS(QThread):
         uito = Signal(str)
 
@@ -74,7 +71,7 @@ def open():
         if current_text:
             winobj.ai302tts_model.setCurrentText(current_text)
         config.settings['ai302tts_models'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

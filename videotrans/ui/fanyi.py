@@ -157,7 +157,7 @@ class Ui_fanyisrt(object):
     # setupUi
 
     def retranslateUi(self, fanyisrt):
-        fanyisrt.setWindowTitle("批量字幕翻译" if config.defaulelang == 'zh' else 'Translation Subtitles')
+        fanyisrt.setWindowTitle(config.uilanglist.get("Text  Or Srt  Translation"))
         self.label_13.setText(box_lang.get("Translation channels"))
         self.label_613.setText(box_lang.get("Target lang"))
         self.label_source.setText('原始语言' if config.defaulelang=='zh' else 'Source language')

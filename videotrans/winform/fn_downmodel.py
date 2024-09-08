@@ -3,7 +3,7 @@ from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER
 
 
 # 视频 字幕 音频 合并
-def open(model_name=None, model_type=None):
+def openwin(model_name=None, model_type=None):
     if model_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return
 

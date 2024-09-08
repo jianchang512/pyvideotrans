@@ -138,7 +138,7 @@ class Ui_videoandsrt(object):
         self.language.setDisabled(False if state else True)
 
     def retranslateUi(self, videoandsrt):
-        videoandsrt.setWindowTitle("批量视频和srt字幕合并" if config.defaulelang == 'zh' else 'Batch video subtitle merger')
+        videoandsrt.setWindowTitle('视频与字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
 
         self.labeltips.setText(
             "将把所选文件夹内同名的视频和srt字幕进行合并，例如 1.mp4 和 1.srt" if config.defaulelang == 'zh' else 'Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt')

@@ -1,5 +1,6 @@
 {
   "translate_language": {
+    "haspaused": "Paused",
     "shutdownerror": "computer shutdown error",
     "onlycnanden": "ChatTTS suporta apenas Chinês e Inglês",
     "peiyindayu31": "O número de erros de dublagem é maior que 1/3, por favor, verifique-os",
@@ -248,8 +249,8 @@
     "onlyvideo": "Salvar apenas vídeo",
     "onlyvideo_tips": "Se este item estiver marcado, legendas, áudio e outros materiais não serão mantidos, apenas o arquivo de vídeo final será salvo.",
     "model_type_tips": "O modelo master é mais rápido e eficiente em recursos, mas requer a instalação e configuração do cudnn e cublas além do cuda.\nO modelo openai é mais lento e consome mais recursos, mas requer apenas a instalação do cuda.",
-    "faster model": "modelo mais rápido",
-    "openai model": "modelo openai",
+    "faster model": "faster-whisper",
+    "openai model": "openai-whisper",
     "addbackbtn": "Adicionar música de fundo",
     "back_audio_place": "O caminho completo da música de fundo, apagando-o não o adiciona",
     "Download Models": "Baixar Modelos",
@@ -326,7 +327,7 @@
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "Extrair legendas SRT de vídeos locais no idioma original e traduzi-las para arquivos de legendas SRT no idioma de destino",
     "Separate Video to audio": "Separar Vídeo em áudio",
     "Separate audio and silent videos from videos": "Separar áudio e vídeos silenciosos de vídeos",
-    "Video Subtitles Merging": "Mesclagem de Legendas e Vídeo",
+    "Video Subtitles Merging": "Video Audio Srt Merging",
     "Merge audio, video, and subtitles into one file": "Mesclar áudio, vídeo e legendas em um arquivo",
     "Files Format Conversion": "Conversão de Formatos de Arquivos",
     "Convert various formats to each other": "Converter vários formatos entre si",

@@ -6,7 +6,7 @@ from videotrans.configure import config
 from videotrans import tts
 
 
-def open():
+def openwin():
     class TestTTS(QThread):
         uito = Signal(str)
 

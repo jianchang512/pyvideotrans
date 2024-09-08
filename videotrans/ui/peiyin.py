@@ -228,7 +228,7 @@ class Ui_peiyin(object):
         QMetaObject.connectSlotsByName(peiyin)
 
     def retranslateUi(self, peiyin):
-        peiyin.setWindowTitle('批量字幕配音' if config.defaulelang == 'zh' else 'Batch Subtitle Dubbing')
+        peiyin.setWindowTitle(config.uilanglist.get("From  Text  Into  Speech"))
 
         self.label_10.setText(box_lang.get("Subtitle lang"))
         self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')

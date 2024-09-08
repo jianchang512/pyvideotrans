@@ -1,13 +1,9 @@
-import builtins
 import json
 
 from videotrans.configure import config
 
-# 使用内置的 open 函数
-builtin_open = builtins.open
 
-
-def open():
+def openwin():
     def save():
         key = winobj.azure_key.text()
         api = winobj.azure_api.text()
@@ -20,7 +16,7 @@ def open():
         config.params["azure_version"] = version
         config.params["azure_model"] = model
         config.params["azure_template"] = template
-        with builtin_open(config.ROOT_DIR + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
+        with open(config.ROOT_DIR + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
                           encoding='utf-8') as f:
             f.write(template)
         config.getset_params(config.params)
@@ -36,7 +32,7 @@ def open():
         if current_text:
             winobj.azure_model.setCurrentText(current_text)
         config.settings['azure_model'] = t
-        json.dump(config.settings, builtin_open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
+        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
     def update_ui():

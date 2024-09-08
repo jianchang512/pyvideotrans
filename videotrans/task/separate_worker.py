@@ -1,4 +1,6 @@
 # 从日志队列获取日志
+import threading
+import time
 
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
@@ -10,11 +12,29 @@ from videotrans.util import tools
 class SeparateWorker(QThread):
     finish_event = pyqtSignal(str)
 
-    def __init__(self, *, basename=None, file=None, out=None, parent=None):
+    def __init__(self, *, basename=None, file=None, out=None, parent=None,uuid=None):
         super().__init__(parent=parent)
         self.basename = basename
         self.file = file
         self.out = out
+        self.uuid=uuid
+
+    def getqueulog(self):
+        while 1:
+            if config.exit_soft:
+                return
+            q = config.queue_dict.get(self.uuid)
+            if q and q=='stop':
+                return
+            if not q:
+                continue
+            try:
+                data = q.get(True, 0.5)
+                if data:
+                    self.finish_event.emit('logs:'+data['text'])
+            except Exception:
+                pass
+
 
     def run(self):
         try:
@@ -35,14 +55,12 @@ class SeparateWorker(QThread):
                     cmd.insert(3, '-vn')
                 tools.runffmpeg(cmd)
                 self.file = newfile
-            st.start(self.file, self.out, "win")
-            if config.separate_status == 'ing':
-                self.finish_event.emit("succeed")
-            else:
-                self.finish_event.emit("end")
+            tools.set_process(text="",uuid=self.uuid)
+            threading.Thread(target=self.getqueulog).start()
+            st.start(self.file, self.out, "win",uuid=self.uuid)
         except Exception as e:
-            if config.separate_status == 'ing':
-                msg = f"separate vocal and background music:{str(e)}"
-                self.finish_event.emit(msg)
-        finally:
-            config.separate_status = 'stop'
+            msg = f"separate vocal and background music:{str(e)}"
+            self.finish_event.emit(msg)
+        else:
+            self.finish_event.emit('succeed')
+

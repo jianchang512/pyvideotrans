@@ -16,7 +16,9 @@ class ClickableProgressBar(QLabel):
         self.basename = ""
         self.name = ""
         self.precent = 0
+        self.paused=False
         self.ended=False
+        self.error=''
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -44,23 +46,44 @@ class ClickableProgressBar(QLabel):
         self.name = name
         self.basename = Path(name).name
 
+    # 正常成功结束时，如果已有出错，则不处理
     def setEnd(self):
+        if self.error:
+            return
         self.ended=True
         self.precent = 100
         self.progress_bar.setValue(100)
         self.setCursor(Qt.PointingHandCursor)
         self.progress_bar.setFormat(f' {self.basename}  {config.transobj["endandopen"]}')
-    def setPrecent(self,p):
-        self.precent=p
-        if p>=100:
-            self.setEnd()
-    def setError(self,text=""):
-        self.ended=True
-        self.setText(text)
+        self.error=''
+    # 暂停，仅针对未完成的
+    def setPause(self):
+        if not self.ended:
+            self.paused=True
+            self.progress_bar.setFormat(f'  {config.transobj["haspaused"]} [{self.precent}%] {self.basename}')
 
+
+    # 进度，如果进度已大于100则结束，如果小于，则取消暂停
+    def setPrecent(self,p):
+        self.paused=False
+        if p>=100:
+            self.precent=100
+            self.error=''
+            self.setEnd()
+        else:
+            self.precent=p
+            self.progress_bar.setValue(p)
+
+    # 出错时，设置状态，停止 完成
+    def setError(self,text=""):
+        self.error=text
+        self.ended=True
+        self.progress_bar.setFormat(f'  [{self.precent}%]  {text[:90]}   {self.basename}')
+
+    # 设置按钮显示文字，如果已结束，则不设置，直接返回
     def setText(self, text=''):
         if self.progress_bar:
-            if self.ended:
+            if self.ended or self.paused:
                 return
             if not text:
                 text = config.transobj['running']
@@ -68,6 +91,6 @@ class ClickableProgressBar(QLabel):
 
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:
+            if self.error:
+                QMessageBox.critical(self, config.transobj['anerror'], self.error)
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))
-        elif not self.target_dir and self.msg:
-            QMessageBox.critical(self, config.transobj['anerror'], self.msg)

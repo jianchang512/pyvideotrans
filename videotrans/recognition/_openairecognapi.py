@@ -74,6 +74,8 @@ class OpenaiAPIRecogn(BaseRecogn):
                 msg='未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
                 raise LogExcept(msg)
             for it in transcript.segments:
+                if self._exit():
+                    return
                 srt_tmp = {
                     "line": len(self.raws) + 1,
                     "start_time": int(it["start"] * 1000),

@@ -33,7 +33,6 @@ class FasterAll(BaseRecogn):
         if self.inst and self.inst.precent < 55:
             self.inst.precent += round(segment.end * 0.5 / self.info.duration, 2)
         self._signal(text=f'{config.transobj["zimuhangshu"]} {srt["line"]}')
-        print(f'_all.py 输出日志')
 
     def _append_raws(self, cur, segment=None):
         if len(cur['text']) < int(self.maxlen / 5) and len(self.raws) > 0:
@@ -47,15 +46,16 @@ class FasterAll(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+
         down_root = config.ROOT_DIR + "/models"
         local_res = True if self.model_name.find('/') == -1 else False
         if local_res:
             if not os.path.isdir(down_root + '/models--' + self.model_name.replace('/', '--')):
                 msg = '下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Download model from huggingface'
-            elif self.inst:
+            else:
                 msg = '加载或下载模型中，用时可能较久' if config.defaulelang == 'zh' else 'Load model from local or download model from huggingface'
             if self.inst:
-                self.inst.parent.status_tex = msg
+                self.status_tex = msg
         if self.model_name.startswith('distil-'):
             com_type = "default"
         elif self.is_cuda:
@@ -96,8 +96,10 @@ class FasterAll(BaseRecogn):
                 language=self.detect_language,
                 initial_prompt=config.settings['initial_prompt_zh']
             )
-
+            test=0
             for segment in segments:
+                if self._exit():
+                    return
                 if len(segment.words) < 1:
                     continue
                 if len(segment.text.strip()) <= self.maxlen:
@@ -114,6 +116,8 @@ class FasterAll(BaseRecogn):
 
                 cur = None
                 for word in segment.words:
+                    if self._exit():
+                        return
                     if not word.word:
                         continue
 

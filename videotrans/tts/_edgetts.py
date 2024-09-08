@@ -21,11 +21,12 @@ class EdgeTTS(BaseTTS):
             for items in split_queue:
                 tasks = []
                 for it in items:
+                    if self._exit():
+                        return
                     if not tools.vail_file(it['filename']):
                         communicate_task = edge_tts.Communicate(
                             text=it["text"], voice=it['role'],rate=self.rate,volume=self.volume,pitch=self.pitch)
                         tasks.append(communicate_task.save(it['filename']))
-                        print(f'开始 {it["text"]}')
                 if len(tasks)<1:
                     continue
                 # 使用 asyncio.gather 并行执行保存任务
@@ -42,6 +43,8 @@ class EdgeTTS(BaseTTS):
     def _exec(self) ->None:
         # 防止出错，重试一次
         for i in range(2):
+            if self._exit():
+                return
             t=threading.Thread(target=self._run_as_async)
             t.start()
             t.join()

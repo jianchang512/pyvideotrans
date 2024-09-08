@@ -108,7 +108,7 @@ class Ui_subtitlescover(object):
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
 
     def retranslateUi(self, subtitlescover):
-        subtitlescover.setWindowTitle("字幕批量格式转换" if config.defaulelang == 'zh' else 'Subtitle format conversion')
+        subtitlescover.setWindowTitle('字幕多格式转换' if config.defaulelang == 'zh' else 'Subtitle Conversion')
 
         self.selectbtn.setText(
             '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')

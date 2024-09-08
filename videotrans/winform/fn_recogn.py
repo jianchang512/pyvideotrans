@@ -16,7 +16,7 @@ from videotrans.task.recognworker import RecognWorker
 from videotrans.winform import fn_downmodel
 
 
-def open():
+def openwin():
     RESULT_DIR = config.HOME_DIR + f"/recogn"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -69,11 +69,11 @@ def open():
             if model.startswith('distil'):
                 file = f'{config.ROOT_DIR}/models/models--Systran--faster-{model}/snapshots'
             if not os.path.exists(file):
-                fn_downmodel.open(model_name=model, model_type=FASTER_WHISPER)
+                fn_downmodel.openwin(model_name=model, model_type=FASTER_WHISPER)
                 return
 
         if model_type == OPENAI_WHISPER and not Path(config.ROOT_DIR + f'/models/{model}.pt').exists():
-            fn_downmodel.open(model_name=model, model_type=OPENAI_WHISPER)
+            fn_downmodel.openwin(model_name=model, model_type=OPENAI_WHISPER)
             return
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist

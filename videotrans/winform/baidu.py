@@ -2,7 +2,7 @@ from videotrans.configure import config
 
 
 # set baidu
-def open():
+def openwin():
     def save_baidu():
         appid = winobj.baidu_appid.text()
         miyue = winobj.baidu_miyue.text()
