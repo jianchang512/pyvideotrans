@@ -65,10 +65,10 @@ class SecUtilWin:
         # 试听按钮
         self.main.listen_btn.hide()
         # 语音模型
-        self.main.whisper_type.setCurrentIndex(0)
-        self.main.whisper_model.setCurrentIndex(0)
+        self.main.split_type.setCurrentIndex(0)
+        self.main.model_name.setCurrentIndex(0)
         self.main.subtitle_type.setCurrentIndex(1)
-        self.hide_show_element(self.main.layout_whisper_model, False)
+        self.hide_show_element(self.main.layout_model_name, False)
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, False)
         self.hide_show_element(self.main.edge_volume_layout, False)
@@ -124,7 +124,7 @@ class SecUtilWin:
         self.hide_show_element(self.main.edge_volume_layout, True)
         self.main.listen_btn.show()
         # 语音模型
-        self.hide_show_element(self.main.layout_whisper_model, True)
+        self.hide_show_element(self.main.layout_model_name, True)
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, True)
         # 配音语速
@@ -182,7 +182,7 @@ class SecUtilWin:
         # 试听按钮
         self.main.listen_btn.hide()
         # 语音模型
-        self.hide_show_element(self.main.layout_whisper_model, True)
+        self.hide_show_element(self.main.layout_model_name, True)
         # 字幕类型
         self.hide_show_element(self.main.layout_subtitle_type, False)
         # 配音语速
@@ -308,37 +308,7 @@ class SecUtilWin:
         except Exception:
             pass
         return True
-    # 格式化视频信息
-    def format_video(self, name):
 
-        raw_pathlib = Path(name)
-        raw_basename = raw_pathlib.name
-        raw_noextname = raw_pathlib.stem
-        ext_path = raw_noextname.split('/')
-        if len(ext_path) > 1:
-            raw_noextname = ext_path[-1]
-        ext = raw_pathlib.suffix
-        raw_dirname = raw_pathlib.parent.resolve().as_posix()
-
-        output_path = Path(f'{config.params["target_dir"]}/{raw_noextname}' if config.params[
-            "target_dir"] else f'{raw_dirname}/_video_out/{raw_noextname}')
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        obj = {
-            "name": name,
-            # 处理后 移动后符合规范的目录名
-            "dirname": raw_dirname,
-            # 符合规范的基本名带后缀
-            "basename": raw_basename,
-            # 符合规范的不带后缀
-            "noextname": raw_noextname,
-            # 扩展名
-            "ext": ext[1:],
-            # 最终存放目标位置，直接存到这里
-            "target_dir": output_path.as_posix(),
-            "uuid": tools.get_md5(name),
-        }
-        return obj
 
     # 核对字幕
     def check_txt(self, txt=''):
@@ -358,7 +328,7 @@ class SecUtilWin:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
             return False
 
-        if config.params['model_type'] == OPENAI_WHISPER:
+        if config.params['recogn_type'] == OPENAI_WHISPER:
             return True
         allow = True
         try:
@@ -419,11 +389,11 @@ class SecUtilWin:
         self.main.source_language.setDisabled(type)
         self.main.target_language.setDisabled(type)
         self.main.tts_type.setDisabled(type)
-        self.main.whisper_model.setDisabled(type)
-        self.main.whisper_type.setDisabled(type)
+        self.main.model_name.setDisabled(type)
+        self.main.split_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
-        self.main.model_type.setDisabled(type)
+        self.main.recogn_type.setDisabled(type)
         self.main.voice_autorate.setDisabled(type)
         self.main.video_autorate.setDisabled(type)
         self.main.append_video.setDisabled(type)
@@ -437,11 +407,11 @@ class SecUtilWin:
 
     # 0=整体识别模型
     # 1=均等分割模式
-    def check_whisper_type(self, index):
+    def check_split_type(self, index):
         if index == 0:
-            config.params['whisper_type'] = 'all'
+            config.params['split_type'] = 'all'
         else:
-            config.params['whisper_type'] = 'avg'
+            config.params['split_type'] = 'avg'
 
 
     # 试听配音

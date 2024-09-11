@@ -6,14 +6,25 @@ import openai
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._base import BaseCon
 from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
-class BaseTrans:
+class BaseTrans(BaseCon):
 
-    def __init__(self,text_list:Union[List,str]="",target_language="en", *, inst=None,  source_code="", uuid=None,is_test=False):
+    def __init__(self,
+                 text_list: Union[List, str] = "",
+                 target_language="en",
+                 inst=None,
+                 source_code="",
+                 uuid=None,
+                 is_test=False,
+                 task_type='masterwin'
+                 ):
         # 目标语言，语言代码或文字名称
+        super().__init__()
+        self.task_type=task_type
         self.target_language=target_language
         # trans_create实例
         self.inst=inst
@@ -65,7 +76,6 @@ class BaseTrans:
                     return proxy
         return None
 
-
     # 发出请求获取内容 data=[text1,text2,text] | text
     def _item_task(self,data:Union[List[str],str])->str:
         raise Exception('The method must be')
@@ -75,9 +85,6 @@ class BaseTrans:
             return True
         return False
 
-
-    def _signal(self,text="",type="logs",nologs=False):
-        tools.set_process(text=text,type=type,uuid=self.uuid,nologs=nologs)
     # 实际操作 # 出错时发送停止信号
     def run(self)->Union[List,str,None]:
         # 开始对分割后的每一组进行处理
@@ -126,6 +133,9 @@ class BaseTrans:
                         for it_n in it:
                             time.sleep(self.wait_sec)
                             t = self._item_task(it_n.strip())
+                            self._signal(
+                                text=t + "\n",
+                                type='subtitle')
                             sep_res.append(t)
 
                     for x, result_item in enumerate(sep_res):
@@ -197,4 +207,3 @@ class BaseTrans:
             else:
                 self.text_list[i]['text'] = ""
         return self.text_list
-

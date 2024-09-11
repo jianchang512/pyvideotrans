@@ -87,7 +87,7 @@ class AzureTTS(BaseTTS):
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 self.error=''
-                self._signal(f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:

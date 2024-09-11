@@ -18,7 +18,7 @@ class Google(BaseTrans):
     def _item_task(self,data:Union[List[str],str]) ->str:
         text="\n".join([quote(text) for text in data])
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_language}&q={text}"
-        config.logger.info(f'[Google]请求数据:{url=}')
+        config.logger.info(f'[Google] {self.target_language} 请求数据:{url=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }

@@ -17,14 +17,15 @@ def _get_executable_path():
         # 如果程序是被“冻结”打包的，使用这个路径
         return Path(sys.executable).parent.as_posix()
     else:
-        return Path.cwd().as_posix()
+        return Path(__file__).parent.parent.parent.as_posix()
 
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
+print(f'{ROOT_DIR=}')
 _root_path = Path(ROOT_DIR)
 
-_tmpname = f'tmp{random.randint(1000, 9999)}'
+_tmpname = f'tmp'
 # 程序根下临时目录tmp
 _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
@@ -35,133 +36,9 @@ _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = _logs_path.as_posix()
 
-logger = logging.getLogger('VideoTrans')
-logger.setLevel(logging.INFO)
-# 创建文件处理器，并设置级别G
-_file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
-                                    encoding='utf-8')
-_file_handler.setLevel(logging.INFO)
-# 创建控制台处理器，并设置级别
-_console_handler = logging.StreamHandler(sys.stdout)
-_console_handler.setLevel(logging.WARNING)
-# 设置日志格式
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-_file_handler.setFormatter(formatter)
-_console_handler.setFormatter(formatter)
-# 添加处理器到日志记录器
-logger.addHandler(_file_handler)
-logger.addHandler(_console_handler)
+model_process=None
 
-
-# 捕获所有未处理的异常
-def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        # 允许键盘中断（Ctrl+C）退出
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-
-# 安装自定义异常钩子
-sys.excepthook = _log_uncaught_exceptions
-
-FFMPEG_BIN = "ffmpeg"
-FFPROBE_BIN = "ffprobe"
-# ffmpeg
-if sys.platform == 'win32':
-    os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
-    if Path(ROOT_DIR + '/ffmpeg/ffmpeg.exe').is_file():
-        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg.exe'
-    if Path(ROOT_DIR + '/ffmpeg/ffprobe.exe').is_file():
-        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe.exe'
-else:
-    os.environ['PATH'] = ROOT_DIR + f':{ROOT_DIR}/ffmpeg:' + os.environ['PATH']
-    if Path(ROOT_DIR + '/ffmpeg/ffmpeg').is_file():
-        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg'
-    if Path(ROOT_DIR + '/ffmpeg/ffprobe').is_file():
-        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe'
-
-os.environ['QT_API'] = 'pyside6'
-os.environ['SOFT_NAME'] = 'pyvideotrans'
-
-# spwin主窗口
-queue_dict = {}
-
-
-# 存储所有uuid的日志队列
-# 根据uuid将日志进度等信息存入队列，如果不存在则创建
-def push_queue(uuid, jsondata):
-    if uuid not in queue_dict:
-        queue_dict[uuid] = Queue()
-    try:
-        # 暂停时会重设为字符串 stop
-        if isinstance(queue_dict[uuid],Queue):
-            queue_dict[uuid].put_nowait(jsondata)
-    except Exception:
-        pass
-
-
-# 存放一次性多选的视频
-queue_mp4 = []
-
-# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
-queue_novice = {}
-
-# 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
-current_status = "stop"
-
-# 倒计时
-task_countdown = 0
-
-# 工具箱翻译进行状态,ing进行中，其他停止
-box_trans = "stop"
-# 工具箱tts状态
-box_tts = "stop"
-# 工具箱识别状态
-box_recogn = 'stop'
-
-# 软件退出
-exit_soft = False
-
-# 所有设置窗口和子窗口
-child_forms = {}
-
-###
-# 预先处理队列
-prepare_queue = []
-# 识别队列
-regcon_queue = []
-# 翻译队列
-trans_queue = []
-# 配音队列
-dubb_queue = []
-# 音视频画面对齐
-align_queue = []
-# 合成队列
-compose_queue = []
-
-# 全局已执行完毕的任务id列表，包括成功和失败的
-uuidlist = []
-
-VIDEO_EXTS=["mp4","mkv","mpeg","avi","mov"]
-AUDIO_EXITS=["mp3","wav","aac","flac","m4a"]
-
-# 当前可用编码 libx264 h264_qsv h264_nvenc 等
-video_codec = None
-
-openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
-# 存放 edget-tts 角色列表
-edgeTTS_rolelist = None
-AzureTTS_rolelist = None
-
-# 语言
-try:
-    defaulelang = locale.getdefaultlocale()[0][:2].lower()
-except Exception:
-    defaulelang = "zh"
-#
-_defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
-
+# 模型下载地址
 MODELS_DOWNLOAD = {
     "openai": {
         "tiny.en": "https://openaipublic.azureedge.net/main/whisper/models/d3dd57d32accea0b295c96e26691aa14d8822fac7d9d27d5dc00b4ca2826dd03/tiny.en.pt",
@@ -204,9 +81,145 @@ MODELS_DOWNLOAD = {
     }
 }
 
+###################################
+
+logger = logging.getLogger('VideoTrans')
+logger.setLevel(logging.INFO)
+# 创建文件处理器，并设置级别G
+_file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
+                                    encoding='utf-8')
+_file_handler.setLevel(logging.INFO)
+# 创建控制台处理器，并设置级别
+_console_handler = logging.StreamHandler(sys.stdout)
+_console_handler.setLevel(logging.WARNING)
+# 设置日志格式
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_file_handler.setFormatter(formatter)
+_console_handler.setFormatter(formatter)
+# 添加处理器到日志记录器
+logger.addHandler(_file_handler)
+logger.addHandler(_console_handler)
+
+
+# 捕获所有未处理的异常
+def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        # 允许键盘中断（Ctrl+C）退出
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+# 安装自定义异常钩子
+sys.excepthook = _log_uncaught_exceptions
+
+FFMPEG_BIN = "ffmpeg"
+FFPROBE_BIN = "ffprobe"
+# ffmpeg
+if sys.platform == 'win32':
+    os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
+    if Path(ROOT_DIR + '/ffmpeg/ffmpeg.exe').is_file():
+        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg.exe'
+    if Path(ROOT_DIR + '/ffmpeg/ffprobe.exe').is_file():
+        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe.exe'
+else:
+    os.environ['PATH'] = ROOT_DIR + f':{ROOT_DIR}/ffmpeg:' + os.environ['PATH']
+    if Path(ROOT_DIR + '/ffmpeg/ffmpeg').is_file():
+        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg'
+    if Path(ROOT_DIR + '/ffmpeg/ffprobe').is_file():
+        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe'
+
+os.environ['QT_API'] = 'pyside6'
+os.environ['SOFT_NAME'] = 'pyvideotrans'
+
+####################################
+# 存储所有任务的进度队列，以uuid为键
+# 根据uuid将日志进度等信息存入队列，如果不存在则创建
+uuid_logs_queue = {}
+def push_queue(uuid, jsondata):
+    if uuid in stoped_uuid_set:
+        return
+    if uuid not in uuid_logs_queue:
+        uuid_logs_queue[uuid] = Queue()
+    try:
+        # 暂停时会重设为字符串 stop
+        if isinstance(uuid_logs_queue[uuid],Queue):
+            uuid_logs_queue[uuid].put_nowait(jsondata)
+    except Exception:
+        pass
+# 存储已停止/暂停的任务
+stoped_uuid_set=set()
+
+# 全局信号队列，不存在uuid，用于控制软件
+global_queue=Queue()
+
+# 软件退出
+exit_soft = False
+
+# 所有设置窗口和子窗口
+child_forms = {}
+
+# 存放一次性多选的视频完整路径
+queue_mp4 = []
+
+# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
+queue_novice = {}
+
+#################################################
+
+# 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
+current_status = "stop"
+# 工具箱翻译进行状态,ing进行中，其他停止
+box_trans = "stop"
+# 工具箱tts状态
+box_tts = "stop"
+# 工具箱识别状态
+box_recogn = 'stop'
+
+# 倒计时数秒
+task_countdown = 0
+
+
+#####################################
+# 预先处理队列
+prepare_queue = []
+# 识别队列
+regcon_queue = []
+# 翻译队列
+trans_queue = []
+# 配音队列
+dubb_queue = []
+# 音视频画面对齐
+align_queue = []
+# 合成队列
+assemb_queue = []
+
+# 全局已执行完毕的任务id列表，包括成功和失败的,用于判断当前任务是否已结束
+ended_uuid = []
+
+# 支持的视频格式
+VIDEO_EXTS=["mp4","mkv","mpeg","avi","mov"]
+#支持的音频格式
+AUDIO_EXITS=["mp3","wav","aac","flac","m4a"]
+
+# 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
+video_codec= None
+
+#######################################
+# openai角色
+openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
+# 存放 edget-tts 角色列表
+edgeTTS_rolelist = None
+AzureTTS_rolelist = None
+
+# 语言
+try:
+    defaulelang = locale.getdefaultlocale()[0][:2].lower()
+except Exception:
+    defaulelang = "zh"
 
 # 设置默认高级参数值
 def parse_init():
+    _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,"
                         "yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,"
@@ -250,8 +263,32 @@ def parse_init():
         "backaudio_volume": 0.8,
         "separate_sec": 600,
         "loop_backaudio": True,
-        "cuda_com_type": "float32",
-        "initial_prompt_zh": "add punctuation after end of each line. 就比如说，我要先去吃饭。segment at end of each  sentence.",
+        "cuda_com_type": "float32",#int8 int8_float16 int8_float32
+        "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
+        "initial_prompt_zh-tw": "在每行末尾添加標點符號，在每個句子末尾添加標點符號。",
+        "initial_prompt_en": "Add punctuation at the end of each line, and punctuation at the end of each sentence.",
+        "initial_prompt_fr": "",
+        "initial_prompt_de": "",
+        "initial_prompt_ja": "",
+        "initial_prompt_ko": "",
+        "initial_prompt_ru": "",
+        "initial_prompt_es": "",
+        "initial_prompt_th": "",
+        "initial_prompt_it": "",
+        "initial_prompt_pt": "",
+        "initial_prompt_vi": "",
+        "initial_prompt_ar": "",
+        "initial_prompt_tr": "",
+        "initial_prompt_hi": "",
+        "initial_prompt_hu": "",
+        "initial_prompt_uk": "",
+        "initial_prompt_id": "",
+        "initial_prompt_ms": "",
+        "initial_prompt_kk": "",
+        "initial_prompt_cs": "",
+        "initial_prompt_pl": "",
+        "initial_prompt_nl": "",
+        "initial_prompt_sv": "",
         "whisper_threads": 4,
         "whisper_worker": 1,
         "beam_size": 5,
@@ -304,8 +341,7 @@ def parse_init():
         json.dump(default, open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
 
-
-# 固定选项信息
+# 高级选项信息
 settings = parse_init()
 # 家目录
 HOME_DIR = settings['homedir']
@@ -316,7 +352,8 @@ Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 if settings['lang']:
     defaulelang = settings['lang'].lower()
-# 语言代码文件是否存在
+
+# 语言代码文件是否存在##############################
 _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
 if not _lang_path.exists():
     defaulelang = "en"
@@ -336,6 +373,7 @@ langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
 
+#############################################
 # openai  faster-whisper 识别模型
 WHISPER_MODEL_LIST = re.split('[,，]', settings['model_list'])
 
@@ -449,9 +487,9 @@ Translation:
         "listen_text_sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
 
         "tts_type": 0,  # 所选的tts顺序
-        "whisper_type": "all",
-        "whisper_model": "tiny",  # 模型名
-        "model_type": 0,  # 语音识别方式，数字代表显示顺序
+        "split_type": "all",
+        "model_name": "tiny",  # 模型名
+        "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
 
         "voice_autorate": False,
         "voice_role": "No",
@@ -565,7 +603,7 @@ Translation:
             default.update(json.load(open(ROOT_DIR + "/videotrans/params.json", 'r', encoding='utf-8')))
 
         prompt_langcode = '' if defaulelang == "zh" else "-en"
-
+        _root_path=Path(ROOT_DIR)
         chatgpt_path = _root_path / f'videotrans/chatgpt{prompt_langcode}.txt'
         if chatgpt_path.exists():
             default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
@@ -606,7 +644,5 @@ Translation:
     if not os.path.exists(ROOT_DIR + "/videotrans/params.json"):
         json.dump(default, open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8'), ensure_ascii=False)
     return default
-
-
 # api key 翻译配置等信息，每次执行任务均有变化
 params = getset_params()

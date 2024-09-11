@@ -13,7 +13,7 @@
 
 允许保留背景伴奏音乐等(基于uvr5)
 
-支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语
+支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语、荷兰语、瑞典语
 
 
 > **[赞助商]**
@@ -30,9 +30,9 @@
 
 【语音识别/将音频视频转为字幕】可批量将音频、视频文件中的人类说话声，识别为文字并导出为srt字幕文件
 
-【语音合成/字幕文字配音】根据本地已有的srt字幕文件创建配音，支持单个或批量字幕
+【语音合成/字幕配音】根据本地已有的srt字幕文件创建配音，支持单个或批量字幕
 
-【翻译字幕】将一个或多个srt字幕文件翻译为其他语言的字幕文件
+【翻译字幕文件】将一个或多个srt字幕文件翻译为其他语言的字幕文件
 
 【合并视频和音频】批量将视频文件和音频文件一一对应合并
 
@@ -43,6 +43,8 @@
 【从视频中提取音频】从视频中分离为音频文件和无声视频
 
 【音频视频格式转换】批量将音频视频进行格式转换
+
+【字幕编辑并导出多格式】支持导入srt、vtt、ass格式字幕，编辑后可设置字体样式、色彩等导出对应格式字幕
 
 【字幕格式转换】批量将字幕文件进行 srt/ass/vtt 格式互转
 
@@ -106,7 +108,7 @@
 3. 执行命令 `cd pyvideotrans`
 4. 继续执行 `python -m venv venv`
 5. 继续执行命令 `source ./venv/bin/activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
-6. 执行 `pip install -r mac-requirements.txt --no-deps`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
+6. 执行 `pip install -r requirements.txt `，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
 
     ```
     pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
@@ -114,7 +116,7 @@
     ```
 
     然后重新执行
-    如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
+    如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt`
 
 7. `python sp.py` 打开软件界面
 
@@ -168,12 +170,7 @@ apt install python3.10
 
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
-<<<<<<< HEAD
 sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10  1
-=======
-
-sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 
->>>>>>> 9485b1096d6a40a3fb6962a49df128397f10bdd5
 
 sudo update-alternatives --config python
 
@@ -190,7 +187,7 @@ apt-get install ffmpeg
 4. 继续执行命令 `cd pyvideotrans`
 5. 继续执行 `python -m venv venv`
 6. 继续执行命令 `source ./venv/bin/activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
-7. 执行 `pip install -r requirements.txt --no-deps`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
+7. 执行 `pip install -r requirements.txt`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
 
     ```
 
@@ -199,12 +196,12 @@ apt-get install ffmpeg
 
     ```
 
-    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt  --ignore-installed --no-deps `
+    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt `
 8. 如果要使用CUDA加速，分别执行
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
@@ -226,7 +223,7 @@ apt-get install ffmpeg
 4. 继续执行命令 `cd pyvideotrans`
 5. 继续执行 `python -m venv venv`
 6. 继续执行命令 `.\venv\scripts\activate`,执行后请查看确认命令行开头已变成了`(venv)`,否则说明出错
-7. 执行 `pip install -r requirements.txt --no-deps`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
+7. 执行 `pip install -r requirements.txt `，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
 
     ```
 
@@ -235,12 +232,12 @@ apt-get install ffmpeg
 
     ```
 
-    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt  --ignore-installed --no-deps `
+    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt`
 8.  如果要使用CUDA加速，分别执行
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
 
 9. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://pyvideotrans.com/gpu.html)

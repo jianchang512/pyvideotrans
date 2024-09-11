@@ -90,27 +90,6 @@ class Ui_setini(object):
                 "remove_white_ms": "移除2条字幕间的静音长度ms，比如100ms，即如果两条字幕间的间隔大于100ms时，将移除100ms, -1=完全移除",
                 "force_edit_srt": "true=强制修改字幕时间轴以便匹配声音，false=不修改，保持原始字幕时间轴，不修改可能导致字幕和声音不匹配"
             },
-            "recogn": {
-                "vad": "faster-whisper字幕整体识别模式时启用VAD",
-                "overall_threshold": "VAD阈值",
-                "overall_speech_pad_ms": "VAD pad值",
-                "overall_silence": "最小静音片段ms，默认250ms ",
-                "overall_maxsecs": "语句最大持续秒数",
-                "voice_silence": "均等分割模式下静音片段",
-                "interval_split": "均等分割模式下每个片段时长秒数"
-            },
-            "whisper": {
-                "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
-                "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
-                "initial_prompt_zh": "发送给whisper模型的提示词",
-                "whisper_threads": "faster模式下，字幕识别时，cpu进程数",
-                "whisper_worker": "faster模式下，字幕识别时，同时工作进程数",
-                "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-                "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-                "temperature": "0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好",
-                "condition_on_previous_text": "true=占用更多GPU效果更好，false=占用更少GPU效果略差",
-                "zh_hant_s": "强制将识别出的繁体字幕转为简体"
-            },
             "subtitle": {
                 "fontsize": "硬字幕字体像素尺寸",
                 "fontname": "硬字幕时字体名字",
@@ -131,6 +110,51 @@ class Ui_setini(object):
                 "dubbing_thread": "同时配音的字幕条数",
                 "azure_lines": "azureTTS一次配音行数",
                 "chattts_voice": "chatTTS 音色值"
+            },
+            "recogn": {
+                "vad": "faster-whisper字幕整体识别模式时启用VAD",
+                "overall_threshold": "VAD阈值",
+                "overall_speech_pad_ms": "VAD pad值",
+                "overall_silence": "最小静音片段ms，默认250ms ",
+                "overall_maxsecs": "语句最大持续秒数",
+                "voice_silence": "均等分割模式下静音片段",
+                "interval_split": "均等分割模式下每个片段时长秒数"
+            },
+            "whisper": {
+                "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
+                "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
+                "whisper_threads": "faster模式下，字幕识别时，cpu进程数",
+                "whisper_worker": "faster模式下，字幕识别时，同时工作进程数",
+                "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
+                "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
+                "temperature": "0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好",
+                "condition_on_previous_text": "true=占用更多GPU效果更好，false=占用更少GPU效果略差",
+                "zh_hant_s": "强制将识别出的繁体字幕转为简体",
+                "initial_prompt_zh-cn": "原始语言为简体中文时发送给whisper模型的提示词",
+                "initial_prompt_zh-tw":"原始语言为繁体中文时发送给whisper模型的提示词",
+                "initial_prompt_en":"原始语言为英语时发送给whisper模型的提示词",
+                "initial_prompt_fr":"原始语言为法语时发送给whisper模型的提示词",
+                "initial_prompt_de":"原始语言为德语时发送给whisper模型的提示词",
+                "initial_prompt_ja":"原始语言为日语时发送给whisper模型的提示词",
+                "initial_prompt_ko":"原始语言为韩语时发送给whisper模型的提示词",
+                "initial_prompt_ru":"原始语言为俄语时发送给whisper模型的提示词",
+                "initial_prompt_es":"原始语言为西班牙语时发送给whisper模型的提示词",
+                "initial_prompt_th":"原始语言为泰国语时发送给whisper模型的提示词",
+                "initial_prompt_it":"原始语言为意大利语时发送给whisper模型的提示词",
+                "initial_prompt_pt":"原始语言为葡萄牙语时发送给whisper模型的提示词",
+                "initial_prompt_vi":"原始语言为越南语时发送给whisper模型的提示词",
+                "initial_prompt_ar":"原始语言为阿拉伯语时发送给whisper模型的提示词",
+                "initial_prompt_tr":"原始语言为土耳其语时发送给whisper模型的提示词",
+                "initial_prompt_hi":"原始语言为印度语时发送给whisper模型的提示词",
+                "initial_prompt_hu":"原始语言为匈牙利语时发送给whisper模型的提示词",
+                "initial_prompt_uk":"原始语言为乌克兰语时发送给whisper模型的提示词",
+                "initial_prompt_id":"原始语言为印尼语时发送给whisper模型的提示词",
+                "initial_prompt_ms":"原始语言为马来西亚语时发送给whisper模型的提示词",
+                "initial_prompt_kk":"原始语言为哈萨克语时发送给whisper模型的提示词",
+                "initial_prompt_cs":"原始语言为捷克语时发送给whisper模型的提示词",
+                "initial_prompt_pl":"原始语言为波兰语时发送给whisper模型的提示词",
+                "initial_prompt_nl":"原始语言为荷兰语时发送给whisper模型的提示词",
+                "initial_prompt_sv":"原始语言为瑞典语时发送给whisper模型的提示词"
             }
         }
         # 中文左侧label
@@ -172,7 +196,6 @@ class Ui_setini(object):
             "backaudio_volume": "背景音量倍数",
             "loop_backaudio": "循环播放背景音",
             "cuda_com_type": "CUDA数据类型",
-            "initial_prompt_zh": "whisper模型提示词",
             "whisper_threads": "faster-whisper cpu进程",
             "whisper_worker": "faster-whisper工作进程",
             "beam_size": "字幕识别准确度控制1",
@@ -191,7 +214,33 @@ class Ui_setini(object):
             "chattts_voice": "ChatTTS音色值",
             "translation_wait": "翻译后暂停时间/s",
             "gemini_model": "Gemini模型列表",
-            "google_trans_newadd":"Google字幕翻译新增语言代码"
+            "google_trans_newadd":"Google字幕翻译新增语言代码",
+
+            "initial_prompt_zh-cn":"whisper模型简体中文提示词",
+            "initial_prompt_zh-tw":"whisper模型繁体中文提示词",
+            "initial_prompt_en":"whisper模型英语提示词",
+            "initial_prompt_fr":"whisper模型法语提示词",
+            "initial_prompt_de":"whisper模型德语提示词",
+            "initial_prompt_ja":"whisper模型日语提示词",
+            "initial_prompt_ko":"whisper模型韩语提示词",
+            "initial_prompt_ru":"whisper模型俄语提示词",
+            "initial_prompt_es":"whisper模型西班牙语提示词",
+            "initial_prompt_th":"whisper模型泰国语提示词",
+            "initial_prompt_it":"whisper模型意大利语提示词",
+            "initial_prompt_pt":"whisper模型葡萄牙语提示词",
+            "initial_prompt_vi":"whisper模型越南语提示词",
+            "initial_prompt_ar":"whisper模型阿拉伯语提示词",
+            "initial_prompt_tr":"whisper模型土耳其语提示词",
+            "initial_prompt_hi":"whisper模型印度语提示词",
+            "initial_prompt_hu":"whisper模型匈牙利语提示词",
+            "initial_prompt_uk":"whisper模型乌克兰语提示词",
+            "initial_prompt_id":"whisper模型印尼语提示词",
+            "initial_prompt_ms":"whisper模型马来语提示词",
+            "initial_prompt_kk":"whisper模型哈萨克语提示词",
+            "initial_prompt_cs":"whisper模型捷克语提示词",
+            "initial_prompt_pl":"whisper模型波兰语提示词",
+            "initial_prompt_nl":"whisper模型荷兰语提示词",
+            "initial_prompt_sv":"whisper模型瑞典语提示词"
         }
         # 中文分区
         self.heads = {
@@ -241,27 +290,6 @@ class Ui_setini(object):
                     "remove_white_ms": "Silence length in ms between two subtitles to be removed, e.g., 100ms, if the interval between two subtitles is greater than 100ms, 100ms will be removed, -1 = remove completely",
                     "force_edit_srt": "true = force subtitle timeline adjustment to match the audio, false = do not adjust, keep the original subtitle timeline, no adjustment may cause subtitles and audio to be out of sync"
                 },
-                "recogn": {
-                    "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
-                    "overall_threshold": "VAD threshold",
-                    "overall_speech_pad_ms": "VAD pad value",
-                    "overall_silence": "Minimum silence segment in ms, default is 250ms",
-                    "overall_maxsecs": "Maximum duration of a sentence in seconds",
-                    "voice_silence": "Silence segment in equal split mode",
-                    "interval_split": "Segment duration in seconds in equal split mode"
-                },
-                "whisper": {
-                    "model_list": "Model names list for faster mode and openai mode, separated by commas",
-                    "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
-                    "initial_prompt_zh": "Prompt sent to the whisper model",
-                    "whisper_threads": "Number of CPU processes for subtitle recognition in faster mode",
-                    "whisper_worker": "Number of concurrent workers for subtitle recognition in faster mode",
-                    "beam_size": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
-                    "best_of": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
-                    "temperature": "0 = less GPU resource usage but slightly worse performance, 1 = more GPU resource usage and better performance",
-                    "condition_on_previous_text": "true = more GPU usage and better performance, false = less GPU usage but slightly worse performance",
-                    "zh_hant_s": "Force conversion of recognized traditional Chinese subtitles to simplified Chinese"
-                },
                 "subtitle": {
                     "fontsize": "Pixel size of the hard subtitle font",
                     "fontname": "Font name for hard subtitles",
@@ -281,7 +309,52 @@ class Ui_setini(object):
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
                     "azure_lines": "Number of lines dubbed at once by azureTTS",
                     "chattts_voice": "chatTTS voice tone"
-                }
+                },
+                "recogn": {
+                    "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
+                    "overall_threshold": "VAD threshold",
+                    "overall_speech_pad_ms": "VAD pad value",
+                    "overall_silence": "Minimum silence segment in ms, default is 250ms",
+                    "overall_maxsecs": "Maximum duration of a sentence in seconds",
+                    "voice_silence": "Silence segment in equal split mode",
+                    "interval_split": "Segment duration in seconds in equal split mode"
+                },
+                "whisper": {
+                    "model_list": "Model names list for faster mode and openai mode, separated by commas",
+                    "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
+                    "whisper_threads": "Number of CPU processes for subtitle recognition in faster mode",
+                    "whisper_worker": "Number of concurrent workers for subtitle recognition in faster mode",
+                    "beam_size": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
+                    "best_of": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
+                    "temperature": "0 = less GPU resource usage but slightly worse performance, 1 = more GPU resource usage and better performance",
+                    "condition_on_previous_text": "true = more GPU usage and better performance, false = less GPU usage but slightly worse performance",
+                    "zh_hant_s": "Force conversion of recognized traditional Chinese subtitles to simplified Chinese",
+                    "initial_prompt_zh-cn": "Prompts sent to the whisper model when the original language is Simplified Chinese.",
+                    "initial_prompt_zh-tw": "Prompts sent to the whisper model when the original language is zh-tw.",
+                    "initial_prompt_en": "Prompts sent to the whisper model when the original language is en.",
+                    "initial_prompt_fr": "Prompts sent to the whisper model when the original language is fr.",
+                    "initial_prompt_de": "Prompts sent to the whisper model when the original language is de.",
+                    "initial_prompt_ja": "Prompts sent to the whisper model when the original language is ja.",
+                    "initial_prompt_ko": "Prompts sent to the whisper model when the original language is ko.",
+                    "initial_prompt_ru": "Prompts sent to the whisper model when the original language is ru.",
+                    "initial_prompt_es": "Prompts sent to the whisper model when the original language is es.",
+                    "initial_prompt_th": "Prompts sent to the whisper model when the original language is th.",
+                    "initial_prompt_it": "Prompts sent to the whisper model when the original language is it.",
+                    "initial_prompt_pt": "Prompts sent to the whisper model when the original language is pt.",
+                    "initial_prompt_vi": "Prompts sent to the whisper model when the original language is vi.",
+                    "initial_prompt_ar": "Prompts sent to the whisper model when the original language is ar.",
+                    "initial_prompt_tr": "Prompts sent to the whisper model when the original language is tr.",
+                    "initial_prompt_hi": "Prompts sent to the whisper model when the original language is hi.",
+                    "initial_prompt_hu": "Prompts sent to the whisper model when the original language is hu.",
+                    "initial_prompt_uk": "Prompts sent to the whisper model when the original language is uk.",
+                    "initial_prompt_id": "Prompts sent to the whisper model when the original language is id.",
+                    "initial_prompt_ms": "Prompts sent to the whisper model when the original language is ms.",
+                    "initial_prompt_kk": "Prompts sent to the whisper model when the original language is kk.",
+                    "initial_prompt_cs": "Prompts sent to the whisper model when the original language is cs.",
+                    "initial_prompt_pl": "Prompts sent to the whisper model when the original language is pl.",
+                    "initial_prompt_nl": "Prompts sent to the whisper model when the original language is nl.",
+                    "initial_prompt_sv": "Prompts sent to the whisper model when the original language is sv."
+                },
             }
 
             self.heads = {
@@ -334,7 +407,6 @@ class Ui_setini(object):
                 "backaudio_volume": "Background Volume Multiplier",
                 "loop_backaudio": "Loop Background Audio",
                 "cuda_com_type": "CUDA Data Type",
-                "initial_prompt_zh": "Whisper Model Prompt",
                 "whisper_threads": "Faster-Whisper CPU Threads",
                 "whisper_worker": "Faster-Whisper Working Threads",
                 "beam_size": "Subtitle Recognition Accuracy Control 1",
@@ -353,7 +425,33 @@ class Ui_setini(object):
                 "chattts_voice": "ChatTTS Voice Tone Value",
                 "translation_wait": "Pause Time After Translation",
                 "gemini_model": "Gemini Model List",
-                "google_trans_newadd":"Google translation subtitles new language code"
+                "google_trans_newadd":"Google translation subtitles new language code",
+
+                "initial_prompt_zh-cn": "whisper prompt when zh-cn",
+                "initial_prompt_zh-tw": "whisper prompt when zh-tw",
+                "initial_prompt_en": "whisper prompt when en",
+                "initial_prompt_fr": "whisper prompt when fr",
+                "initial_prompt_de": "whisper prompt when de",
+                "initial_prompt_ja": "whisper prompt when ja",
+                "initial_prompt_ko": "whisper prompt when ko",
+                "initial_prompt_ru": "whisper prompt when ru",
+                "initial_prompt_es": "whisper prompt when es",
+                "initial_prompt_th": "whisper prompt when th",
+                "initial_prompt_it": "whisper prompt when it",
+                "initial_prompt_pt": "whisper prompt when pt",
+                "initial_prompt_vi": "whisper prompt when vi",
+                "initial_prompt_ar": "whisper prompt when ar",
+                "initial_prompt_tr": "whisper prompt when tr",
+                "initial_prompt_hi": "whisper prompt when hi",
+                "initial_prompt_hu": "whisper prompt when hu",
+                "initial_prompt_uk": "whisper prompt when uk",
+                "initial_prompt_id": "whisper prompt when id",
+                "initial_prompt_ms": "whisper prompt when ms",
+                "initial_prompt_kk": "whisper prompt when kk",
+                "initial_prompt_cs": "whisper prompt when cs",
+                "initial_prompt_pl": "whisper prompt when pl",
+                "initial_prompt_nl": "whisper prompt when nl",
+                "initial_prompt_sv": "whisper prompt when sv"
             }
         self.alertnotice = {}
         # 界面语言

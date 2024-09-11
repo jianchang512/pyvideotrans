@@ -1,16 +1,63 @@
 import json
 import os
+import time
 from pathlib import Path
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QUrl, QThread, Signal
 from PySide6.QtGui import QDesktopServices, QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPlainTextEdit
 
 from videotrans import translator
 from videotrans.configure import config
-from videotrans.task.fanyiwork import FanyiWorker
+from videotrans.task._translate_srt import TranslateSrt
+
 from videotrans.util import tools
+
+class SignThread(QThread):
+    uito=Signal(str)
+
+    def __init__(self,uuid_list=None,parent=None):
+        super().__init__(parent=parent)
+        self.uuid_list=uuid_list
+
+    def post(self,jsondata):
+
+        self.uito.emit(json.dumps(jsondata))
+
+    def run(self):
+        length=len(self.uuid_list)
+        while 1:
+            if len(self.uuid_list)==0 or config.exit_soft:
+                self.post({"type":"end"})
+                time.sleep(1)
+                return
+
+            for uuid in self.uuid_list:
+                if uuid in config.stoped_uuid_set:
+                    try:
+                        self.uuid_list.remove(uuid)
+                    except:
+                        pass
+                    continue
+                q=config.uuid_logs_queue.get(uuid)
+                if not q:
+                    continue
+                try:
+                    if q.empty():
+                        time.sleep(0.5)
+                        continue
+                    data=q.get(block=False)
+                    if not data:
+                        continue
+                    self.post(data)
+                    if data['type'] in ['error','succeed']:
+                        self.uuid_list.remove(uuid)
+                        self.post({"type":"jindu","text":f'{int((length-len(self.uuid_list))*100/length)}%'})
+                        config.stoped_uuid_set.add(uuid)
+                        del config.uuid_logs_queue[uuid]
+                except:
+                    pass
 
 
 # 字幕批量翻译
@@ -22,6 +69,7 @@ def openwin():
         if winobj.has_done:
             return
         d = json.loads(d)
+
         if d['type'] == 'error':
             winobj.has_done=True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
@@ -31,7 +79,7 @@ def openwin():
         # 挨个从顶部添加已翻译后的文字
         elif d['type'] == 'subtitle':
             winobj.fanyi_targettext.moveCursor(QTextCursor.End)
-            winobj.fanyi_targettext.setPlainText(d['text'])
+            winobj.fanyi_targettext.insertPlainText(d['text'])
         elif d['type'] == 'replace':
             winobj.fanyi_targettext.clear()
             winobj.fanyi_targettext.setPlainText(d['text'])
@@ -41,15 +89,19 @@ def openwin():
         elif d['type'] == 'set_source':
             winobj.fanyi_sourcetext.clear()
             winobj.fanyi_sourcetext.setPlainText(d['text'])
-        elif d['type'] == 'logs':
-            winobj.loglabel.setText(d["text"])
-        else:
+        elif d['type'] in ['logs','succeed']:
+            print(f'dd{d=}')
+            if d['text']:
+                winobj.loglabel.setText(d["text"])
+        elif d['type'] in ['stop','end']:
+            print(f'end  {d=}')
             winobj.has_done=True
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.fanyi_start.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             winobj.fanyi_import.setDisabled(False)
             winobj.daochu.setDisabled(False)
             winobj.fanyi_start.setDisabled(False)
+            config.box_trans='stop'
 
     def fanyi_import_fun():
         fnames, _ = QFileDialog.getOpenFileNames(winobj,
@@ -93,9 +145,28 @@ def openwin():
         winobj.fanyi_sourcetext.clear()
         winobj.loglabel.setText('')
 
-        fanyi_task = FanyiWorker(type=translate_type, target_language=target_language, files=winobj.files, parent=winobj,bilingual=winobj.out_format.currentIndex(),source_code=source_language if source_language and source_language!='-' else None)
-        fanyi_task.uito.connect(feed)
-        fanyi_task.start()
+
+        config.box_trans='ing'
+
+
+        video_list = [tools.format_video(it, None) for it in winobj.files]
+        uuid_list = [obj['uuid'] for obj in video_list]
+        for it in video_list:
+            trk = TranslateSrt({
+                "translate_type":translate_type,
+                "text_list":tools.get_subtitle_from_srt(it['name']),
+                "target_language":target_language,
+                "target_dir":RESULT_DIR,
+                "inst":None,
+                "uuid":it['uuid'],
+                "task_type":"childwin",
+                "source_code":source_language if source_language and source_language!='-' else ''
+            }, it)
+            config.trans_queue.append(trk)
+
+        th = SignThread(uuid_list=uuid_list, parent=winobj)
+        th.uito.connect(feed)
+        th.start()
 
         winobj.fanyi_start.setDisabled(True)
         winobj.fanyi_start.setText(config.transobj["running"])

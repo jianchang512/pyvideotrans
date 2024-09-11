@@ -39,12 +39,11 @@ def openwin():
             srts = {}
             for it in Path(self.folder).iterdir():
                 if it.is_file():
-                    suffix = it.suffix.lower()
+                    suffix = it.suffix.lower()[1:]
                     if suffix in config.VIDEO_EXTS:
                         videos[it.stem] = it.resolve().as_posix()
-                    elif suffix in ['.srt']:
+                    elif suffix == 'srt':
                         srts[it.stem] = it.resolve().as_posix()
-
             vailfiles = {}
             for key, val in videos.items():
                 if key in srts:

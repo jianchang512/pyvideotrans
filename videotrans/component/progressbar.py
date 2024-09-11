@@ -71,8 +71,8 @@ class ClickableProgressBar(QLabel):
             self.error=''
             self.setEnd()
         else:
-            self.precent=p
-            self.progress_bar.setValue(p)
+            self.precent=p if p>self.precent else self.precent
+            self.progress_bar.setValue(self.precent)
 
     # 出错时，设置状态，停止 完成
     def setError(self,text=""):

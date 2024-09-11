@@ -2,14 +2,13 @@ import json
 import re
 import threading
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.mainwin._sec_util_win import SecUtilWin
 from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER, is_allow_lang as recogn_is_allow_lang, \
     is_input_api as recogn_is_input_api
-from videotrans.task.logs_worker import LogsWorker
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, CLONE_VOICE_TTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, \
     FISHTTS, CHATTTS, GOOGLE_TTS, OPENAI_TTS, ELEVENLABS_TTS, is_allow_lang as tts_is_allow_lang, \
     is_input_api as tts_is_input_api
@@ -41,7 +40,7 @@ class SecWindow(SecUtilWin):
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
-        self.videolist=[]
+        self.obj_list=[]
 
     # 配音速度改变时
     def voice_rate_changed(self, text):
@@ -61,7 +60,10 @@ class SecWindow(SecUtilWin):
         for i in range(self.main.processlayout.count()):
             item = self.main.processlayout.itemAt(i)
             if item.widget():
-                item.widget().deleteLater()
+                try:
+                    item.widget().deleteLater()
+                except Exception as e:
+                    pass
         self.processbtns = {}
 
     # 右侧字幕区导出
@@ -117,26 +119,23 @@ class SecWindow(SecUtilWin):
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
 
     # 语音识别方式改变时
-    def model_type_change(self):
-        config.params['model_type'] = self.main.model_type.currentIndex()
-        if config.params['model_type'] > 0:
-            self.main.whisper_type.setDisabled(True)
-        else:
-            self.main.whisper_type.setDisabled(False)
+    def recogn_type_change(self):
+        config.params['recogn_type'] = self.main.recogn_type.currentIndex()
+        self.main.split_type.setDisabled(True if config.params['recogn_type'] > 0 else False)
 
-        if config.params['model_type'] > 1:
-            self.main.whisper_model.setDisabled(True)
+        if config.params['recogn_type'] > 1:
+            self.main.model_name.setDisabled(True)
         else:
-            self.main.whisper_model.setDisabled(False)
-            self.check_whisper_model(self.main.whisper_model.currentText())
+            self.main.model_name.setDisabled(False)
+            self.check_model_name(self.main.model_name.currentText())
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        is_allow_lang = recogn_is_allow_lang(langcode=lang, model_type=config.params['model_type'])
+        is_allow_lang = recogn_is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
 
     # 判断 openai whisper和 faster whisper 模型是否存在
-    def check_whisper_model(self, name):
-        if self.main.model_type.currentIndex() in [2, 3, 4, 5, 6]:
+    def check_model_name(self, name):
+        if self.main.recogn_type.currentIndex() in [2, 3, 4, 5, 6]:
             return True
         if name.find('/') > 0:
             return True
@@ -146,14 +145,14 @@ class SecWindow(SecUtilWin):
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['enmodelerror'])
             return False
 
-        if config.params['model_type'] == OPENAI_WHISPER:
+        if config.params['recogn_type'] == OPENAI_WHISPER:
             if name.startswith('distil'):
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['openaimodelerror'])
                 return False
             # 不存在，需下载
 
             if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
-                fn_downmodel.openwin(model_name=name, model_type=OPENAI_WHISPER)
+                fn_downmodel.openwin(model_name=name, recogn_type=OPENAI_WHISPER)
                 return False
             return True
 
@@ -162,7 +161,7 @@ class SecWindow(SecUtilWin):
             file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
 
         if not Path(file).exists():
-            fn_downmodel.openwin(model_name=name, model_type=FASTER_WHISPER)
+            fn_downmodel.openwin(model_name=name, recogn_type=FASTER_WHISPER)
             return False
 
         return True
@@ -336,12 +335,12 @@ class SecWindow(SecUtilWin):
     def check_reccogn(self):
         langcode = translator.get_code(show_text=config.params['source_language'])
 
-        is_allow_lang = recogn_is_allow_lang(langcode=langcode, model_type=self.main.model_type.currentIndex())
+        is_allow_lang = recogn_is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return False
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
-        return recogn_is_input_api(model_type=self.main.model_type.currentIndex())
+        return recogn_is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
     # 检测开始状态并启动
     def check_start(self):
@@ -352,14 +351,16 @@ class SecWindow(SecUtilWin):
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
-
+        self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
         if len(config.queue_mp4) < 1:
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected')
-            return False
+            self.main.startbtn.setDisabled(False)
+            return
 
         if self.check_proxy() is not True:
+            self.main.startbtn.setDisabled(False)
             return
 
         config.task_countdown = int(config.settings['countdown_sec'])
@@ -373,6 +374,7 @@ class SecWindow(SecUtilWin):
 
         # 核对识别是否正确
         if self.check_reccogn() is not True:
+            self.main.startbtn.setDisabled(False)
             return
         # 配音角色
         config.params['voice_role'] = self.main.voice_role.currentText()
@@ -385,22 +387,22 @@ class SecWindow(SecUtilWin):
         config.params['append_video'] = self.main.append_video.isChecked()
 
         # 语音模型
-        config.params['whisper_model'] = self.main.whisper_model.currentText()
+        config.params['model_name'] = self.main.model_name.currentText()
         # 识别模式，从faster--openai--googlespeech ...
-        config.params['model_type'] = self.main.model_type.currentIndex()
+        config.params['recogn_type'] = self.main.recogn_type.currentIndex()
         # 字幕嵌入类型
         config.params['subtitle_type'] = int(self.main.subtitle_type.currentIndex())
         try:
             voice_rate = int(self.main.voice_rate.value())
             config.params['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
-        except Exception:
+        except:
             config.params['voice_rate'] = '+0%'
         try:
             volume = int(self.main.volume_rate.value())
             pitch = int(self.main.pitch_rate.value())
             config.params['volume'] = f'+{volume}%' if volume > 0 else f'{volume}%'
             config.params['pitch'] = f'+{pitch}Hz' if pitch > 0 else f'{pitch}Hz'
-        except Exception:
+        except:
             config.params['volume'] = '+0%'
             config.params['pitch'] = '+0Hz'
         config.params['back_audio'] = self.main.back_audio.text().strip()
@@ -412,68 +414,76 @@ class SecWindow(SecUtilWin):
         if self.shound_translate() and translator.is_allow_translate(
                 translate_type=config.params['translate_type'],
                 show_target=config.params['target_language']) is not True:
-            return False
+            self.main.startbtn.setDisabled(False)
+            return
 
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if self.check_txt(txt) is not True:
+            self.main.startbtn.setDisabled(False)
             return
 
         # tts类型
         if self.check_tts() is not True:
+            self.main.startbtn.setDisabled(False)
             return
         # 设置各项模式参数
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and config.params['model_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_whisper_model(config.params['whisper_model']):
-            return False
+        if not txt and config.params['recogn_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_model_name(config.params['model_name']):
+            self.main.startbtn.setDisabled(False)
+            return
         # 判断CUDA
         if self.cuda_isok() is not True:
+            self.main.startbtn.setDisabled(False)
             return
         # 核对文件路径是否符合规范，防止ffmpeg处理中出错
         if self.url_right() is not True:
+            self.main.startbtn.setDisabled(False)
             return
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
+            self.main.startbtn.setDisabled(False)
             return
-        self.main.save_setting()
+        config.getset_params(config.params)
         self.delete_process()
         # 设为开始
         self.update_status('ing')
         config.settings = config.parse_init()
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             config.params['app_mode'] = self.main.app_mode
-        config.getset_params(config.params)
 
-        # 启动本次进度日志任务
-        self.task_logs = LogsWorker(parent=self.main)
-        self.task_logs.post_logs.connect(self.update_data)
-        self.task_logs.start()
-
-        # 存放需要处理的视频dict信息，包括uuid
-        self.videolist = []
-        for video_path in config.queue_mp4:
-            obj = self.format_video(video_path)
-            self.videolist.append(obj)
-            self.add_process_btn(target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
-            # 重置任务进度队列
-            if obj['uuid'] in config.queue_dict:
-                del config.queue_dict[obj['uuid']]
-
+        target_dir=config.params["target_dir"] if config.params["target_dir"] else Path(config.queue_mp4[0]).parent.as_posix()+"/_video_out"
+        self.obj_list=[tools.format_video(video_path, target_dir) for video_path in config.queue_mp4]
+        QTimer.singleShot(100, self.create_btns)
         # 启动任务
         self.task = Worker(
             parent=self.main,
             app_mode=self.main.app_mode,
-            videolist=self.videolist,
-            txt=txt,
-            task_logs=self.task_logs
+            obj_list=self.obj_list,
+            txt=txt
         )
         self.task.start()
+        self._disabled_button()
+        self.main.startbtn.setDisabled(False)
 
+    # 启动时禁用相关模式按钮，停止时重新启用
+    def _disabled_button(self,status=True):
         for k, v in self.main.moshis.items():
             if k != self.main.app_mode:
-                v.setDisabled(True)
+                v.setDisabled(status)
+
+
+    # 任务end结束或暂停时，清空队列
+    # 先不清空 stoped_uuid_set 标志，用于背景分离任务稍后结束
+    def _clear_task(self):
+        for v in self.obj_list:
+            try:
+                if v['uuid'] in config.uuid_logs_queue:
+                    del config.uuid_logs_queue[v['uuid']]
+            except:
+                pass
 
     # 添加进度条
     def add_process_btn(self, *, target_dir: str = None, name: str = None, uuid=None):
@@ -491,23 +501,26 @@ class SecWindow(SecUtilWin):
             self.processbtns[uuid] = clickable_progress_bar
 
     # 设置按钮上的日志信息
-    def set_process_btn_text(self, text, uuid="", type="logs"):
+    def set_process_btn_text(self, d):
+        if isinstance(d,str):
+            d=json.loads(d)
+        text,uuid,_type=d['text'],d['uuid'],d['type']
         if not uuid or uuid not in self.processbtns:
             return
         if not self.task:
             return
-        if type == 'set_precent' and self.processbtns[uuid].precent < 100:
+        if _type == 'set_precent' and self.processbtns[uuid].precent < 100:
             t, precent = text.split('???')
             precent = int(float(precent))
             self.processbtns[uuid].setPrecent(precent)
             self.processbtns[uuid].setText(f'{config.transobj["running"].replace("..", "")} {t}')
-        elif type == 'logs' and self.processbtns[uuid].precent < 100:
+        elif _type == 'logs' and self.processbtns[uuid].precent < 100:
             self.processbtns[uuid].setText(text)
-        elif type == 'succeed':
+        elif _type == 'succeed':
             self.processbtns[uuid].setEnd()
             if self.processbtns[uuid].name in config.queue_mp4:
                 config.queue_mp4.remove(self.processbtns[uuid].name)
-        elif type == 'error':
+        elif _type == 'error':
             self.processbtns[uuid].setError(text)
             self.processbtns[uuid].progress_bar.setStyleSheet('color:#ff0000')
             self.processbtns[uuid].setCursor(Qt.PointingHandCursor)
@@ -528,10 +541,12 @@ class SecWindow(SecUtilWin):
         self.main.startbtn.setText(config.transobj[type])
         self.main.export_sub.setDisabled(False)
         self.main.set_line_role.setDisabled(False)
+        # 删除本次任务的所有进度队列
+        self._clear_task()
         # 启用
         self.disabled_widget(False)
-        for k, v in self.main.moshis.items():
-            v.setDisabled(False)
+        # 启用相关模式
+        self._disabled_button(False)
         if type == 'end':
             for prb in self.processbtns.values():
                 prb.setEnd()
@@ -550,18 +565,15 @@ class SecWindow(SecUtilWin):
             # stop 停止
             self.main.source_mp4.setText(config.transobj["No select videos"] if len(
                 config.queue_mp4) < 1 else f'{len(config.queue_mp4)} videos')
-
-            for it in self.videolist:
-                # 任务队列中设为停止，防止后续到来的日志继续显示
-                if it['uuid'] in config.queue_dict:
-                    try:
-                        config.queue_dict[it['uuid']]='stop'
-                    except:
-                        pass
+            # 任务队列中设为停止并删除队列，防止后续到来的日志继续显示
+            for it in self.obj_list:
                 # 按钮设为暂停
                 if it['uuid'] in self.processbtns:
                     self.processbtns[it['uuid']].setPause()
-
+        for it in self.obj_list:
+            if it['uuid'] in config.uuid_logs_queue:
+                del config.uuid_logs_queue[it['uuid']]
+        self.obj_list=[]
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
         try:
@@ -570,21 +582,36 @@ class SecWindow(SecUtilWin):
         except Exception:
             pass
 
+    def create_btns(self):
+        for obj in self.obj_list:
+            print(f'{obj=}')
+            self.add_process_btn(
+                target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else
+                obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
+
     # 更新 UI
     def update_data(self, json_data):
-        d = json.loads(json_data)
-        # 一行一行插入字幕到字幕编辑区
-        if d['type'] == "subtitle":
-            self.main.subtitle_area.moveCursor(QTextCursor.End)
-            self.main.subtitle_area.insertPlainText(d['text'])
-        elif d['type'] in ["logs", 'set_precent', 'error', 'succeed', 'show_djs']:
-            self.set_process_btn_text(d['text'], uuid=d['uuid'], type=d['type'])
+        d = json.loads(json_data) if isinstance(json_data,str) else json_data
+        if d['type'] in ['logs','error','succeed','set_precent']:
+            self.set_process_btn_text(d)
+            if d['type'] in ['error','succeed']:
+                config.stoped_uuid_set.add(d['uuid'])
+        # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end
-            self.update_status(d['type'])
-            if "linerolew" in config.child_forms and hasattr(config.child_forms['linerolew'], 'close'):
-                config.child_forms['linerolew'].close()
-                config.child_forms.pop('linerolew', None)
+            try:
+                self.update_status(d['type'])
+                if "linerolew" in config.child_forms and hasattr(config.child_forms['linerolew'], 'close'):
+                    config.child_forms['linerolew'].close()
+                    config.child_forms.pop('linerolew', None)
+            except Exception as e:
+                print(f'#########{e}')
+        # 一行一行插入字幕到字幕编辑区
+        elif d['type'] == "subtitle":
+            self.main.subtitle_area.moveCursor(QTextCursor.End)
+            self.main.subtitle_area.insertPlainText(d['text'])
+        # elif d['type'] in ["logs", 'set_precent', 'error', 'succeed']:
+        #     self.set_process_btn_text(d)
         elif d['type'] == 'set_source_sub':
             # 单个任务时，设置 self.wait_subtitle 为原始语言文件，以便界面中修改字幕后保存
             self.wait_subtitle = d['text']
@@ -618,10 +645,17 @@ class SecWindow(SecUtilWin):
         elif d['type'] == 'timeout_djs':
             # 倒计时结束或者手动点击继续，保存字幕区字幕到 self.wait_subtitle
             self.main.stop_djs.hide()
+            self.main.continue_compos.hide()
             self.main.continue_compos.setDisabled(True)
             self.main.subtitle_area.setReadOnly(True)
+            self.main.timeout_tips.setText('')
             self.update_subtitle()
-
+        elif d['type']=='show_djs':
+            self.main.timeout_tips.setText(d['text'])
+            self.main.stop_djs.show()
+            self.main.continue_compos.show()
+            self.main.continue_compos.setDisabled(False)
+            self.main.subtitle_area.setReadOnly(False)
         elif d['type'] == 'check_soft_update':
             if not self.update_btn:
                 self.update_btn = QPushButton()

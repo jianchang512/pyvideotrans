@@ -75,17 +75,17 @@ class Ui_recogn(object):
         self.is_cuda.setObjectName("is_cuda")
         self.is_cuda.setText("启用CUDA?" if config.defaulelang == 'zh' else 'Enable CUDA?')
 
-        self.shibie_model_type = QtWidgets.QComboBox()
+        self.shibie_recogn_type = QtWidgets.QComboBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.shibie_model_type.sizePolicy().hasHeightForWidth())
-        self.shibie_model_type.setSizePolicy(sizePolicy)
-        self.shibie_model_type.setMinimumSize(QtCore.QSize(0, 30))
-        self.shibie_model_type.setObjectName("shibie_model_type")
-        self.shibie_model_type.addItems(RECOGN_NAME_LIST)
+        sizePolicy.setHeightForWidth(self.shibie_recogn_type.sizePolicy().hasHeightForWidth())
+        self.shibie_recogn_type.setSizePolicy(sizePolicy)
+        self.shibie_recogn_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.shibie_recogn_type.setObjectName("shibie_recogn_type")
+        self.shibie_recogn_type.addItems(RECOGN_NAME_LIST)
 
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_model_type)
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.shibie_recogn_type)
 
         self.shibie_model = QtWidgets.QComboBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
@@ -97,16 +97,16 @@ class Ui_recogn(object):
         self.shibie_model.setObjectName("shibie_model")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.shibie_model)
 
-        self.shibie_whisper_type = QtWidgets.QComboBox()
-        self.shibie_whisper_type.addItems(
+        self.shibie_split_type = QtWidgets.QComboBox()
+        self.shibie_split_type.addItems(
             [config.transobj['whisper_type_all'],
              config.transobj['whisper_type_avg']]
         )
-        self.shibie_whisper_type.setToolTip(config.transobj['fenge_tips'])
+        self.shibie_split_type.setToolTip(config.transobj['fenge_tips'])
         self.horizontalLayout.addWidget(self.is_cuda)
 
         self.horizontalLayout.addLayout(self.formLayout_2)
-        self.horizontalLayout.addWidget(self.shibie_whisper_type)
+        self.horizontalLayout.addWidget(self.shibie_split_type)
         self.horizontalLayout_8.addLayout(self.horizontalLayout)
 
         self.shibie_startbtn = QtWidgets.QPushButton()
@@ -132,6 +132,7 @@ class Ui_recogn(object):
         sizePolicy.setHeightForWidth(self.shibie_text.sizePolicy().hasHeightForWidth())
         self.shibie_text.setSizePolicy(sizePolicy)
         self.shibie_text.setObjectName("shibie_text")
+        self.shibie_text.setReadOnly(True)
         self.verticalLayout_3.addWidget(self.shibie_text)
 
         self.shibie_savebtn = QtWidgets.QPushButton()

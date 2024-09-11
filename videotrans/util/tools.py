@@ -322,7 +322,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
             if not retry and config.video_codec != default_codec:
                 config.video_codec = default_codec
                 # 切换为cpu
-                set_process(config.transobj['huituicpu'], type='logs', uuid=uuid)
+                set_process(text=config.transobj['huituicpu'], uuid=uuid)
                 config.logger.error(f'cuda上执行出错，退回到CPU执行')
                 for i, it in enumerate(arg_copy):
                     if i > 0 and arg_copy[i - 1] == '-c:v' and it != default_codec:
@@ -498,19 +498,18 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
         path = Path(targe_audio).parent.as_posix()
         vocal_file = path + '/vocal.wav'
         if not vail_file(vocal_file):
-            set_process(config.transobj['Separating vocals and background music, which may take a longer time'],
-                        type="logs", uuid=uuid)
+            set_process(text=config.transobj['Separating vocals and background music, which may take a longer time'],  uuid=uuid)
             try:
                 st.start(audio=tmpfile, path=path, uuid=uuid)
             except Exception as e:
                 msg = f"separate vocal and background music:{str(e)}"
-                set_process(msg, type='logs', uuid=uuid)
+                set_process(text=msg,  uuid=uuid)
                 raise Exception(msg)
         if not vail_file(vocal_file):
             return False
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
-        set_process(msg, type='logs', uuid=uuid)
+        set_process(text=msg,   uuid=uuid)
         raise LogExcept(msg)
 
 
@@ -577,6 +576,17 @@ def wav2mp3(wavfile, mp3file, extra=None):
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
+    return runffmpeg(cmd)
+
+def whisper16mp3(wavfile, mp3file):
+    cmd = [
+        "-y",
+        "-i",
+        Path(wavfile).as_posix(),
+        "-ar",
+        "16000",
+        Path(mp3file).as_posix()
+    ]
     return runffmpeg(cmd)
 
 
@@ -791,7 +801,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
-            {"line": 1, "time": "00:00:00,000 --> 05:00:00,000", "text": "\n".join(content)}
+            {"line": 1, "time": "00:00:00,000 --> 00:05:00,000", "text": "\n".join(content)}
         ]
 
     new_result = []
@@ -956,8 +966,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            set_process(f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",
-                        type='logs', uuid=uuid)
+            set_process(text=f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",  uuid=uuid)
             time.sleep(3)
             t += 3
             continue
@@ -1023,7 +1032,7 @@ def get_clone_role(set_p=False):
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         if res.status_code == 200:
             config.params["clone_voicelist"] = ["clone"] + res.json()
-            set_process('', type='set_clone_role')
+            set_process( type='set_clone_role')
             return True
         raise Exception(
             f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
@@ -1034,7 +1043,10 @@ def get_clone_role(set_p=False):
 
 
 # 综合写入日志，默认sp界面
-def set_process(text="", *, type="logs", uuid=None, nologs=False):
+# type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
+# uuid 任务的唯一id，当非插入全局队列时，用于确定插入哪个子队列
+# nologs=False不写入日志文件，extra_obj=其他额外数据
+def set_process(*,text="", type="logs", uuid=None,nologs=False, extra_obj=None):
     try:
         if text:
             if not nologs:
@@ -1042,18 +1054,15 @@ def set_process(text="", *, type="logs", uuid=None, nologs=False):
                     config.logger.error(text)
                 else:
                     config.logger.info(text)
-
             # 移除html
             if type == 'error':
-                text = re.sub(r'</?!?[a-zA-Z]+[^>]*?>', '', text, re.I | re.M | re.S)
                 text = text.replace('\\n', ' ').strip()
-        if not uuid:
-            uuid = 'global'
-
-
-        logdata = {"text": text, "type": type, "uuid": uuid}
-        config.push_queue(uuid, logdata)
-    except Exception as e:
+        log = {"text": text, "type": type, "uuid": uuid,"extra_obj":extra_obj}
+        if uuid:
+            config.push_queue(uuid, log)
+        else:
+            print(f'#不存在uuid {log=}')
+    except Exception:
         pass
 
 
@@ -1065,7 +1074,7 @@ def send_notification(title, message):
             message=message[:120],
             ticker="pyVideoTrans",
             app_name="pyVideoTrans",  # config.uilanglist['SP-video Translate Dubbing'],
-            app_icon=os.path.join(config.ROOT_DIR, 'videotrans/styles/icon.ico'),
+            app_icon=config.ROOT_DIR+'/videotrans/styles/icon.ico',
             timeout=10  # Display duration in seconds
         )
     except:
@@ -1170,37 +1179,6 @@ def remove_qsettings_data():
         Path(config.ROOT_DIR + "/videotrans/cfg.json").unlink(missing_ok=True)
     except Exception:
         pass
-
-
-# 格式化视频信息
-def format_video(name, out=None):
-    raw_pathlib = Path(name)
-    raw_basename = raw_pathlib.name
-    raw_noextname = raw_pathlib.stem
-    ext_path = raw_noextname.split('/')
-    if len(ext_path) > 1:
-        raw_noextname = ext_path[-1]
-    ext = raw_pathlib.suffix
-    raw_dirname = raw_pathlib.parent.resolve().as_posix()
-
-    output_path = Path(f'{out}/{raw_noextname}' if out else f'{raw_dirname}/_video_out/{raw_noextname}')
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    obj = {
-        "name": name,
-        # 处理后 移动后符合规范的目录名
-        "dirname": raw_dirname,
-        # 符合规范的基本名带后缀
-        "basename": raw_basename,
-        # 符合规范的不带后缀
-        "noextname": raw_noextname,
-        # 扩展名
-        "ext": ext[1:],
-        # 最终存放目标位置，直接存到这里
-        "target_dir": output_path.as_posix(),
-        "unid": get_md5(name),
-    }
-    return obj
 
 
 def open_url(url=None, title: str = None):
@@ -1449,3 +1427,31 @@ def shutdown_system():
         subprocess.call("sudo shutdown -h now", shell=True)
     else:
         print(f"Unsupported system: {system}")
+
+
+def format_video(name,target_dir=None):
+    raw_pathlib = Path(name)
+    raw_basename = raw_pathlib.name
+    raw_noextname = raw_pathlib.stem
+    ext_path = raw_noextname.split('/')
+    if len(ext_path) > 1:
+        raw_noextname = ext_path[-1]
+    ext = raw_pathlib.suffix
+    raw_dirname = raw_pathlib.parent.resolve().as_posix()
+    obj = {
+        "name": name,
+        # 处理后 移动后符合规范的目录名
+        "dirname": raw_dirname,
+        # 符合规范的基本名带后缀
+        "basename": raw_basename,
+        # 符合规范的不带后缀
+        "noextname": raw_noextname,
+        # 扩展名
+        "ext": ext[1:]
+        # 最终存放目标位置，直接存到这里
+    }
+    if target_dir:
+        obj['target_dir']=Path(f'{target_dir}/{raw_noextname}').as_posix()
+
+    obj['uuid']=get_md5(f'{name}-{time.time()}')
+    return obj

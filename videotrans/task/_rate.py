@@ -26,7 +26,8 @@ class SpeedRate:
                  novoice_mp4=None,
                  noextname=None,
                  # 处理后的配音文件
-                 target_audio=None
+                 target_audio=None,
+                 cache_folder=None
                  ):
         self.novoice_mp4 = novoice_mp4
         self.queue_tts = queue_tts
@@ -36,11 +37,8 @@ class SpeedRate:
         self.noextname = noextname
         self.uuid = uuid
         self.target_audio = target_audio
-        self.cache_folder = None
-        if noextname:
-            self.cache_folder = config.TEMP_DIR + f'/{noextname}'
-        else:
-            self.cache_folder = config.TEMP_HOME
+        self.cache_folder = cache_folder if cache_folder else config.TEMP_DIR + f'/temp{uuid if uuid else time.time() }'
+        Path(self.cache_folder).mkdir(parents=True,exist_ok=True)
         config.logger.info(f'SpeedRate2:{self.cache_folder=},{self.noextname=}')
 
     def run(self):
@@ -64,7 +62,7 @@ class SpeedRate:
         for i, it in enumerate(self.queue_tts):
             if it is None:
                 continue
-            tools.set_process(text=f"audio:{i + 1}/{length}", type="logs", uuid=self.uuid)
+            tools.set_process(text=f"audio:{i + 1}/{length}",   uuid=self.uuid)
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < self.queue_tts[i - 1]['end_time']:
                 it['start_time'] = self.queue_tts[i - 1]['end_time']
@@ -162,7 +160,7 @@ class SpeedRate:
             if not it['speed'] or not tools.vail_file(it['filename']):
                 continue
 
-            tools.set_process(f"{config.transobj['dubbing speed up']}  {i + 1}/{length}", type="logs",
+            tools.set_process(text=f"{config.transobj['dubbing speed up']}  {i + 1}/{length}",
                               uuid=self.uuid)
 
             # 可用时长
@@ -260,7 +258,7 @@ class SpeedRate:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
                 pts_text = '' if not pts or pts <= 1 else f'{pts=}'
-                tools.set_process(f"{config.transobj['videodown..']} {pts_text} {jindu}", type="logs", uuid=self.uuid)
+                tools.set_process(text=f"{config.transobj['videodown..']} {pts_text} {jindu}",  uuid=self.uuid)
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
                 try:
                     tools.cut_from_video(
@@ -301,7 +299,7 @@ class SpeedRate:
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
-                tools.set_process(f"{config.transobj['videodown..']} {pts=} {jindu}", uuid=self.uuid)
+                tools.set_process(text=f"{config.transobj['videodown..']} {pts=} {jindu}", uuid=self.uuid)
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
 
                 try:
@@ -343,7 +341,7 @@ class SpeedRate:
             if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
-            tools.set_process(f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...', uuid=self.uuid)
+            tools.set_process(text=f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...', uuid=self.uuid)
             config.logger.info(f'视频片段:{concat_txt_arr=}')
             concat_txt = self.cache_folder + f'/{time.time()}.txt'
             tools.create_concat_txt(concat_txt_arr, concat_txt=concat_txt)
@@ -354,68 +352,72 @@ class SpeedRate:
         if self.novoice_mp4 and Path(self.novoice_mp4).exists():
             video_time = tools.get_video_duration(self.novoice_mp4)
         merged_audio = AudioSegment.empty()
-        # start is not 0
-        if self.queue_tts[0]['start_time_source'] > 0:
-            silence = AudioSegment.silent(duration=self.queue_tts[0]['start_time_source'])
-            merged_audio += silence
+        if len(self.queue_tts)==1:
+            the_ext = self.queue_tts[0]['filename'].split('.')[-1]
+            merged_audio+=AudioSegment.from_file(self.queue_tts[0]['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
+        else:
+            # start is not 0
+            if self.queue_tts[0]['start_time_source'] > 0:
+                silence = AudioSegment.silent(duration=self.queue_tts[0]['start_time_source'])
+                merged_audio += silence
 
-        # 开始时间
-        cur = self.queue_tts[0]['start_time_source']
-        length = len(self.queue_tts)
-        for i, it in enumerate(self.queue_tts):
-            # 存在有效配音文件则加入，否则配音时长大于0则加入静音
-            segment = None
-            the_ext = it['filename'].split('.')[-1]
+            # 开始时间
+            cur = self.queue_tts[0]['start_time_source']
+            length = len(self.queue_tts)
+            for i, it in enumerate(self.queue_tts):
+                # 存在有效配音文件则加入，否则配音时长大于0则加入静音
+                segment = None
+                the_ext = it['filename'].split('.')[-1]
 
-            # 原始字幕时长
-            raw_source = it['end_time_source'] - it['start_time_source']
-            if raw_source == 0:
-                continue
-            # 存在配音文件
-            if tools.vail_file(it['filename']):
-                segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
-                it['dubb_time'] = len(segment)
-            else:
-                # 不存在配音文件
-                segment = AudioSegment.silent(duration=raw_source)
-                it['dubb_time'] = raw_source
+                # 原始字幕时长
+                raw_source = it['end_time_source'] - it['start_time_source']
+                if raw_source == 0:
+                    continue
+                # 存在配音文件
+                if tools.vail_file(it['filename']):
+                    segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
+                    it['dubb_time'] = len(segment)
+                else:
+                    # 不存在配音文件
+                    segment = AudioSegment.silent(duration=raw_source)
+                    it['dubb_time'] = raw_source
 
-            if i == 0:
-                it['start_time'] = it['start_time_source']
-                it['end_time'] = it['start_time_source'] + it['dubb_time']
-                cur = it['end_time']
-                merged_audio += segment
-            else:
-                if it['start_time_source'] < cur:
-                    # 如果开始时间和上一个结束片段重合
-                    it['start_time'] = cur
-                    it['end_time'] = it['start_time'] + it['dubb_time']
-                    cur = it['end_time']
-                    merged_audio += segment
-                elif it['start_time_source'] >= cur:
-                    # 如果当前开始时间和上一个结束时间之间有间隔，则添加静音
-                    if it['start_time_source'] > cur:
-                        merged_audio += AudioSegment.silent(duration=it['start_time_source'] - cur)
+                if i == 0:
                     it['start_time'] = it['start_time_source']
-                    it['end_time'] = it['start_time'] + it['dubb_time']
-                    merged_audio += segment
+                    it['end_time'] = it['start_time_source'] + it['dubb_time']
                     cur = it['end_time']
+                    merged_audio += segment
+                else:
+                    if it['start_time_source'] < cur:
+                        # 如果开始时间和上一个结束片段重合
+                        it['start_time'] = cur
+                        it['end_time'] = it['start_time'] + it['dubb_time']
+                        cur = it['end_time']
+                        merged_audio += segment
+                    elif it['start_time_source'] >= cur:
+                        # 如果当前开始时间和上一个结束时间之间有间隔，则添加静音
+                        if it['start_time_source'] > cur:
+                            merged_audio += AudioSegment.silent(duration=it['start_time_source'] - cur)
+                        it['start_time'] = it['start_time_source']
+                        it['end_time'] = it['start_time'] + it['dubb_time']
+                        merged_audio += segment
+                        cur = it['end_time']
 
-            if cur < it['end_time_source']:
-                merged_audio += AudioSegment.silent(duration=it['end_time_source'] - cur)
-                cur = it['end_time_source']
-                it['end_time'] = cur
+                if cur < it['end_time_source']:
+                    merged_audio += AudioSegment.silent(duration=it['end_time_source'] - cur)
+                    cur = it['end_time_source']
+                    it['end_time'] = cur
 
-            it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-            it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-            self.queue_tts[i] = it
-            tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", type="logs", uuid=self.uuid)
+                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                self.queue_tts[i] = it
+                tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}",  uuid=self.uuid)
 
-        # 移除尾部静音
-        if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
-            # 末尾补静音
-            silence = AudioSegment.silent(duration=video_time - len(merged_audio))
-            merged_audio += silence
+            # 移除尾部静音
+            if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
+                # 末尾补静音
+                silence = AudioSegment.silent(duration=video_time - len(merged_audio))
+                merged_audio += silence
 
         # 创建配音后的文件
         try:
