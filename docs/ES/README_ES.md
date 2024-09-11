@@ -19,7 +19,7 @@
 >
 > Permite mantener la música de fondo (basado en uvr5)
 > 
-> Idiomas soportados: Chino simplificado y tradicional, inglés, coreano, japonés, ruso, francés, alemán, italiano, español, portugués, vietnamita, tailandés, árabe, turco, húngaro, hindi, ucraniano, kazajo, indonesio, malayo, checo,Polish
+> Idiomas soportados: Chino simplificado y tradicional, inglés, coreano, japonés, ruso, francés, alemán, italiano, español, portugués, vietnamita, tailandés, árabe, turco, húngaro, hindi, ucraniano, kazajo, indonesio, malayo, checo,Polish,nl,sw
 
 # Principales Usos y Métodos de Uso
 
@@ -92,9 +92,9 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 4. Continúa ejecutando `python -m venv venv`
 5. Sigue ejecutando el comando `source ./venv/bin/activate` para activar el entorno virtual. Asegúrate de que el prompt de la terminal ahora comienza con `(venv)`. Todos los comandos subsiguientes deben ser ejecutados asegurándote de que el prompt de la terminal comience con `(venv)`.
 
-6. Ejecuta `pip install -r mac-requirements.txt --no-deps`
+6. Ejecuta `pip install -r requirements.txt `
 
-    Luego intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
+    Luego intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt`
 
 7. `python sp.py` para abrir la interfaz del software.
 
@@ -170,7 +170,7 @@ apt-get install ffmpeg
 3. Continúa ejecutando el comando `cd pyvideotrans`
 4. Sigue con `python -m venv venv`
 5. Continúa con el comando `source ./venv/bin/activate` para activar el entorno virtual. Verifica que el prompt de la terminal ahora empiece con `(venv)`. Todos los siguientes comandos deben ser ejecutados asegurándote de que el prompt de la terminal empiece con `(venv)`.
-6. Ejecuta `pip install -r requirements.txt --no-deps`. Si encuentras algún error, ejecuta los siguientes dos comandos para cambiar el espejo de pip al espejo de Alibaba
+6. Ejecuta `pip install -r requirements.txt`. Si encuentras algún error, ejecuta los siguientes dos comandos para cambiar el espejo de pip al espejo de Alibaba
 
     ```
 
@@ -179,13 +179,13 @@ apt-get install ffmpeg
 
     ```
 
-    Intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Intenta ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt`
 7. Si deseas usar aceleración CUDA, ejecuta por separado
 
     `pip uninstall -y torch torchaudio`
 
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 

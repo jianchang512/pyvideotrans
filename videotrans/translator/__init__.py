@@ -452,7 +452,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*, show_source=None):
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
-    return re.split(r'_|-', source_list[0])[0]
+    return source_list[0]
 
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
@@ -471,56 +471,60 @@ def run(*, translate_type=None,
         inst=None,
         is_test=False,
         source_code=None,
+        task_type="masterwin",
         uuid=None)->Union[List,str,None]:
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
     kwargs={
+        "text_list":text_list,
+        "target_language":target_language,
         "inst":inst,
         "source_code":source_code,
         "uuid":uuid,
-        "is_test":is_test
+        "is_test":is_test,
+        "task_type":task_type
     }
     if translate_type==GOOGLE_INDEX:
-        return Google(text_list, target_language, **kwargs).run()
+        return Google(**kwargs).run()
     if translate_type==FREEGOOGLE_INDEX:
-        return FreeGoogle(text_list, target_language, **kwargs).run()
+        return FreeGoogle(**kwargs).run()
 
     if translate_type == MICROSOFT_INDEX:
-        return Microsoft(text_list, target_language, **kwargs).run()
+        return Microsoft(**kwargs).run()
 
     if translate_type == TENCENT_INDEX:
-        return Tencent(text_list, target_language, **kwargs).run()
+        return Tencent(**kwargs).run()
 
     if translate_type == BAIDU_INDEX:
-        return Baidu(text_list, target_language, **kwargs).run()
+        return Baidu(**kwargs).run()
 
     if translate_type == OTT_INDEX:
-        return OTT(text_list, target_language, **kwargs).run()
+        return OTT(**kwargs).run()
 
     if translate_type == TRANSAPI_INDEX:
-        return TransAPI(text_list, target_language, **kwargs).run()
+        return TransAPI(**kwargs).run()
 
     if translate_type == DEEPL_INDEX:
-        return DeepL(text_list, target_language, **kwargs).run()
+        return DeepL(**kwargs).run()
 
     if translate_type == DEEPLX_INDEX:
-        return DeepLX(text_list, target_language, **kwargs).run()
+        return DeepLX(**kwargs).run()
 
     if translate_type == AI302_INDEX:
-        return AI302(text_list, target_language, **kwargs).run()
+        return AI302(**kwargs).run()
 
     if translate_type == LOCALLLM_INDEX:
-        return LocalLLM(text_list, target_language, **kwargs).run()
+        return LocalLLM(**kwargs).run()
 
     if translate_type == ZIJIE_INDEX:
-        return HuoShan(text_list, target_language, **kwargs).run()
+        return HuoShan(**kwargs).run()
 
     if translate_type == CHATGPT_INDEX:
-        return ChatGPT(text_list, target_language, **kwargs).run()
+        return ChatGPT(**kwargs).run()
 
     if translate_type == AZUREGPT_INDEX:
-        return AzureGPT(text_list, target_language, **kwargs).run()
+        return AzureGPT(**kwargs).run()
 
     if translate_type == GEMINI_INDEX:
-        return Gemini(text_list, target_language, **kwargs).run()
+        return Gemini(**kwargs).run()
 
     raise Exception('No translation channel')

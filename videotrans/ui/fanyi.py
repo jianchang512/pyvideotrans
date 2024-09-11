@@ -140,6 +140,7 @@ class Ui_fanyisrt(object):
         self.fanyi_layout.addWidget(self.fanyi_start)
         self.fanyi_targettext = QtWidgets.QPlainTextEdit()
         self.fanyi_targettext.setObjectName("fanyi_targettext")
+        self.fanyi_targettext.setReadOnly(True)
         self.fanyi_layout.addWidget(self.fanyi_targettext)
         self.verticalLayout_13.addLayout(self.fanyi_layout)
         self.reslabel = QtWidgets.QLabel()

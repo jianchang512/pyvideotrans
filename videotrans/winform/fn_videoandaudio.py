@@ -34,7 +34,7 @@ def openwin():
             audios = {}
             for it in Path(self.folder).iterdir():
                 if it.is_file():
-                    suffix = it.suffix.lower()
+                    suffix = it.suffix.lower()[1:]
                     if suffix in config.VIDEO_EXTS:
                         videos[it.stem] = it.resolve().as_posix()
                     elif suffix in config.AUDIO_EXITS:

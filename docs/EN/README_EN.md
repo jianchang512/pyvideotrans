@@ -19,7 +19,7 @@
 >
 > Allows for the retention of background accompaniment music, etc. (based on uvr5)
 >
-> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay, Czech,Polish
+> Supported languages: Simplified and Traditional Chinese, English, Korean, Japanese, Russian, French, German, Italian, Spanish, Portuguese, Vietnamese, Thai, Arabic, Turkish, Hungarian, Hindi, Ukrainian, Kazakh, Indonesian, Malay, Czech,Polish,Nl,sw
 
 # Main Uses and Methods of Use
 
@@ -92,10 +92,10 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 3. Execute `cd pyvideotrans`
 4. Continue with `python -m venv venv`
 5. Execute `source ./venv/bin/activate` and ensure the terminal prompt begins with `(venv)`, following commands must ensure the terminal prompt starts with `(venv)`
-6. Execute `pip install -r mac-requirements.txt --no-deps`
+6. Execute `pip install -r requirements.txt`
 
 
-    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt `
 
 7. `python sp.py` to open the software interface
 
@@ -172,7 +172,7 @@ apt-get install ffmpeg
 4. Continue with `cd pyvideotrans`
 5. Execute `python -m venv venv`
 6. Continue with `source ./venv/bin/activate`, ensure the command line prompt has changed to start with `(venv)`, otherwise, it indicates an error.
-7. Execute `pip install -r requirements.txt --no-deps`, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba.
+7. Execute `pip install -r requirements.txt`, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba.
 
     ```
 
@@ -181,13 +181,13 @@ apt-get install ffmpeg
 
     ```
 
-    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt `
 8. To use CUDA acceleration, execute separately
 
     `pip uninstall -y torch torchaudio`
 
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
@@ -209,7 +209,7 @@ apt-get install ffmpeg
 4. Continue with `cd pyvideotrans`
 5. Execute `python -m venv venv`
 6. Continue with `.\venv\scripts\activate`, after execution check and confirm that the command line has changed to start with `(venv)`, otherwise, it indicates an error.
-7. Execute `pip install -r requirements.txt --no-deps`, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba
+7. Execute `pip install -r requirements.txt `, if failure occurs, execute the following 2 commands to switch the pip mirror to Alibaba
 
     ```
 
@@ -218,12 +218,12 @@ apt-get install ffmpeg
 
     ```
 
-    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Then re-execute. If failure still occurs after switching to the Aliyun source, try executing `pip install -r requirements.txt`
 8.  To use CUDA acceleration, execute separately
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
 
 9. For Windows, to enable CUDA acceleration, an Nvidia graphics card is required, and the CUDA11.8+ environment must be properly set up. See [CUDA Acceleration Support](https://pyvideotrans.com/gpu.html) for installation details.

@@ -1,23 +1,19 @@
 import shutil
 import threading
 import time
-import warnings
 
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 
-from videotrans.task.job import start_thread
-from videotrans.tts import CLONE_VOICE_TTS, CHATTTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, OPENAI_TTS
-from videotrans.winform import fn_editer
 
-warnings.filterwarnings('ignore')
+from videotrans.tts import CLONE_VOICE_TTS, CHATTTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, OPENAI_TTS
 
 from videotrans.util import tools
 from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans.configure import config
-from videotrans import VERSION, winform
+from videotrans import VERSION
 from videotrans.component.controlobj import TextGetdir
 from videotrans.ui.en import Ui_MainWindow
 import platform
@@ -45,9 +41,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bind_action()
         self.show()
         QTimer.singleShot(200, self.start_subform)
+        QTimer.singleShot(200, self._bindsignal)
 
     def start_subform(self):
         # 打开工具箱
+
         from videotrans.winform import baidu, ai302, ai302tts, fn_audiofromvideo, azure, azuretts, chatgpt, chattts, \
             clone, \
             cosyvoice, deepL, deepLX, doubao, elevenlabs, fn_fanyisrt, fishtts, gemini, gptsovits, fn_hebingsrt, \
@@ -55,7 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             localllm, ott, fn_peiyin, fn_recogn, fn_separate, setini, tencent, transapi, ttsapi, fn_vas, fn_watermark, \
             fn_youtube, \
             zh_recogn, zijiehuoshan,fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi, openairecognapi, \
-    fn_subtitlescover
+    fn_subtitlescover,fn_editer
 
         self.actionbaidu_key.triggered.connect(baidu.openwin)
         self.actionazure_key.triggered.connect(azure.openwin)
@@ -100,8 +98,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_fanyi.triggered.connect(fn_fanyisrt.openwin)
         self.action_yuyinshibie.triggered.connect(fn_recogn.openwin)
         self.action_yuyinhecheng.triggered.connect(fn_peiyin.openwin)
-
-        tools.del_unused_tmp()
 
 
     def initUI(self):
@@ -148,23 +144,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.translate_type.setCurrentIndex(config.params['translate_type'])
 
         #         model
-        self.whisper_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
-        self.whisper_type.setToolTip(config.transobj['fenge_tips'])
-        if config.params['whisper_type']:
+        self.split_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
+        self.split_type.setToolTip(config.transobj['fenge_tips'])
+        if config.params['split_type']:
             d = {"all": 0, "avg": 1}
-            self.whisper_type.setCurrentIndex(d[config.params['whisper_type']])
-        self.whisper_model.addItems(config.WHISPER_MODEL_LIST)
-        if config.params['whisper_model'] in config.WHISPER_MODEL_LIST:
-            self.whisper_model.setCurrentText(config.params['whisper_model'])
+            self.split_type.setCurrentIndex(d[config.params['split_type']])
+        self.model_name.addItems(config.WHISPER_MODEL_LIST)
+        if config.params['model_name'] in config.WHISPER_MODEL_LIST:
+            self.model_name.setCurrentText(config.params['model_name'])
 
         try:
-            config.params['model_type'] = int(config.params['model_type'])
-            if config.params['model_type'] > 0:
-                self.whisper_type.setDisabled(True)
+            config.params['recogn_type'] = int(config.params['recogn_type'])
+            if config.params['recogn_type'] > 0:
+                self.split_type.setDisabled(True)
         except Exception:
-            config.params['model_type'] = 0
+            config.params['recogn_type'] = 0
         finally:
-            self.model_type.setCurrentIndex(config.params['model_type'])
+            self.recogn_type.setCurrentIndex(config.params['recogn_type'])
 
         try:
             self.voice_rate.setValue(int(config.params['voice_rate'].replace('%', '')))
@@ -209,11 +205,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_layout.insertWidget(1, self.subtitle_area)
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
-        self.statusLabel.setCursor(QtCore.Qt.PointingHandCursor)
+        self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.statusBar.addWidget(self.statusLabel)
 
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        self.rightbottom.setCursor(QtCore.Qt.PointingHandCursor)
+        self.rightbottom.setCursor(Qt.PointingHandCursor)
 
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
@@ -240,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
         if config.params['only_video']:
             self.only_video.setChecked(True)
-        start_thread(self)
+
 
     def bind_action(self):
         from videotrans.mainwin.secwin import SecWindow
@@ -308,9 +304,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.target_language.currentTextChanged.connect(self.util.set_voice_role)
         self.listen_btn.clicked.connect(self.util.listen_voice_fun)
 
-        self.whisper_type.currentIndexChanged.connect(self.util.check_whisper_type)
-        self.whisper_model.currentTextChanged.connect(self.util.check_whisper_model)
-        self.model_type.currentIndexChanged.connect(self.util.model_type_change)
+        self.split_type.currentIndexChanged.connect(self.util.check_split_type)
+        self.model_name.currentTextChanged.connect(self.util.check_model_name)
+        self.recogn_type.currentIndexChanged.connect(self.util.recogn_type_change)
         self.voice_rate.valueChanged.connect(self.util.voice_rate_changed)
         self.voice_autorate.stateChanged.connect(
             lambda: self.util.autorate_changed(self.voice_autorate.isChecked(), "voice"))
@@ -363,15 +359,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.startbtn.setDisabled(True)
             self.startbtn.setStyleSheet("""color:#ff0000""")
 
+    def _bindsignal(self):
         try:
             from videotrans.task.check_update import CheckUpdateWorker
             from videotrans.task.get_role_list import GetRoleWorker
+            from videotrans.task.job import start_thread
+            from videotrans.mainwin._signal import UUIDSignalThread
             update_role = GetRoleWorker(parent=self)
             update_role.start()
             self.check_update = CheckUpdateWorker(parent=self)
             self.check_update.start()
+
+            uuid_signal = UUIDSignalThread(parent=self)
+            uuid_signal.uito.connect(self.util.update_data)
+            uuid_signal.start()
+            start_thread(self)
         except Exception as e:
             print(e)
+
 
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
@@ -392,7 +397,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         time.sleep(5)
         tools._unlink_tmp()
         event.accept()
-
-    # 存储本地数据
-    def save_setting(self):
-        config.getset_params(config.params)

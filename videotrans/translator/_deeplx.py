@@ -32,8 +32,9 @@ class DeepLX(BaseTrans):
         config.logger.info(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
         config.logger.info(f'[DeepLX]返回响应,{response.text=}')
-        result = response.json()
-        result = tools.cleartext(result['data'])
-        if not result:
-            raise Exception(f'无有效返回，{response.text=}')
+        try:
+            result = response.json()
+            result = tools.cleartext(result['data'])
+        except Exception as e:
+            raise Exception(f'无有效返回:{response.text=}')
         return result

@@ -34,11 +34,11 @@ RECOGN_NAME_LIST = [
 ]
 
 
-def is_allow_lang(langcode: str = None, model_type: int = None):
-    if model_type == ZH_RECOGN and langcode[:2] != 'zh':
+def is_allow_lang(langcode: str = None, recogn_type: int = None):
+    if recogn_type == ZH_RECOGN and langcode[:2] != 'zh':
         return 'zh_recogn 仅支持中文语音识别' if config.defaulelang == 'zh' else 'zh_recogn Supports Chinese speech recognition only'
 
-    if model_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
+    if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
 
     return True
@@ -46,19 +46,19 @@ def is_allow_lang(langcode: str = None, model_type: int = None):
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
-def is_input_api(model_type: int = None):
-    if model_type == ZH_RECOGN and not config.params['zh_recogn_api']:
+def is_input_api(recogn_type: int = None):
+    if recogn_type == ZH_RECOGN and not config.params['zh_recogn_api']:
         zh_recogn_win.openwin()
         return False
 
-    if model_type == CUSTOM_API and not config.params['recognapi_url']:
+    if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
         recognapi_win.openwin()
         return False
 
-    if model_type == OPENAI_API and not config.params['openairecognapi_key']:
+    if recogn_type == OPENAI_API and not config.params['openairecognapi_key']:
         openairecognapi_win.openwin()
         return False
-    if model_type == DOUBAO_API and not config.params['doubao_appid']:
+    if recogn_type == DOUBAO_API and not config.params['doubao_appid']:
         doubao_win.openwin()
         return False
     return True
@@ -66,15 +66,16 @@ def is_input_api(model_type: int = None):
 
 # 统一入口
 def run(*,
-        type="all",
+        split_type="all",
         detect_language=None,
         audio_file=None,
         cache_folder=None,
         model_name=None,
         inst=None,
         uuid=None,
-        model_type: int = 0,
-        is_cuda=None
+        recogn_type: int = 0,
+        is_cuda=None,
+        task_type="masterwin"
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
@@ -87,20 +88,21 @@ def run(*,
         "model_name": model_name,
         "uuid": uuid,
         "inst": inst,
-        "is_cuda": is_cuda
+        "is_cuda": is_cuda,
+        "task_type":task_type
     }
-    if model_type == OPENAI_WHISPER:
+    if recogn_type == OPENAI_WHISPER:
         return OpenaiWhisperRecogn(**kwargs).run()
-    if model_type == GOOGLE_SPEECH:
+    if recogn_type == GOOGLE_SPEECH:
         return GoogleRecogn(**kwargs).run()
-    if model_type == ZH_RECOGN:
+    if recogn_type == ZH_RECOGN:
         return ZhRecogn(**kwargs).run()
-    if model_type == DOUBAO_API:
+    if recogn_type == DOUBAO_API:
         return DoubaoRecogn(**kwargs).run()
-    if model_type == CUSTOM_API:
+    if recogn_type == CUSTOM_API:
         return APIRecogn(**kwargs).run()
-    if model_type == OPENAI_API:
+    if recogn_type == OPENAI_API:
         return OpenaiAPIRecogn(**kwargs).run()
-    if type == 'avg':
+    if split_type == 'avg':
         return FasterAvg(**kwargs).run()
     return FasterAll(**kwargs).run()

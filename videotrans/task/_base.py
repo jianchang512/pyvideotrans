@@ -2,44 +2,16 @@ from pathlib import Path
 from typing import Dict
 
 from videotrans.configure import config
+from videotrans.configure._base import BaseCon
 from videotrans.util import tools
 
 
-class BaseTask:
+class BaseTask(BaseCon):
 
-    def __init__(self,config_params:Dict=None,obj:Dict=None):
-        # 配置信息
-        self.config_params = config_params
+    def __init__(self, config_params: Dict = None, obj: Dict = None):
         # 任务id
-        self.uuid=None
-        # 进度
-        self.precent = 1
-        self.status_text = config.transobj['ing']
-        # 存储处理好待配音信息
-        self.queue_tts = []
-        # 本次任务结束标识
-        self.hasend = False
-        # 264/265
-        self.video_codec = int(config.settings['video_codec'])
-
-        # 是否需要语音识别
-        self.shoud_recogn = False
-        # 是否需要字幕翻译
-        self.shoud_trans = False
-        # 是否需要配音
-        self.shoud_dubbing = False
-        # 是否需要嵌入配音或字幕
-        self.shoud_hebing = False
-        # 是否需要人声分离
-        self.shoud_separate = False
-
-        # 初始化后的信息
-        self.init = {
-            'background_music': None,
-            'detect_language': None,
-            'subtitle_language': None
-        }
-
+        super().__init__()
+        # 配置信息
         # 视频信息
         """
         result={
@@ -51,51 +23,64 @@ class BaseTask:
             "time":0
         }
         """
-        self.init['video_info'] = {}
-        # 是否是标准264/265，如果是True，则无需重新编码，直接copy
-        self.init['h264'] = False
-        # 缓存目录
-        self.init['cache_folder'] = None
+        self.config_params = {
+            "video_info":None,
+            "h264":None,
 
-        # 原始语言代码
-        self.init['source_language_code'] = None
-        # 目标语言代码
-        self.init['target_language_code'] = None
-        # 字幕检测语言代码
-        self.init['detect_language'] = None
+            "cache_folder":None,
+            "target_dir":None,
 
-        # 拆分后的无声mp4
-        self.init['novoice_mp4'] = None
-        # 原语言字幕文件路径
-        self.init['source_sub'] = None
-        # 目标语言字幕文件路径
-        self.init['target_sub'] = None
-        # 原音频文件路径
-        self.init['source_wav'] = None
-        # 已配音完毕目标语言音频文件路径
-        self.init['target_wav'] = None
-        # 最终目标生成结果mp4文件路径
-        self.init['targetdir_mp4'] = None
-        # 分离出的背景音频文件路径
-        self.init['instrument'] = None
-        # 分离出的人声文件路径
-        self.init['vocal'] = None
-        # 用于语音识别的音频文件路径
-        self.init['shibie_audio'] = None
+            "detect_language":None,
+            'subtitle_language': None,
 
+            "source_language_code":None,
+            "target_language_code":None,
 
-        # 存在视频路径信息
+            "source_sub":None,
+            "target_sub":None,
+
+            "source_wav":None,
+            "target_wav":None,
+
+            "novoice_mp4":None,
+            "targetdir_mp4":None,
+
+            "instrument":None,
+            "vocal":None,
+
+            "shibie_audio":None,
+
+            'background_music': None
+        }
+        self.config_params.update(config_params)
         if obj:
-            self.init.update({
-                "name": obj['name'],
-                "dirname": obj['dirname'],
-                "basename": obj['basename'],
-                "noextname": obj['noextname'],
-                "ext": obj['ext'],
-                "target_dir": obj['target_dir'],
-                "uuid": obj['uuid']
-            })
-            self.uuid = obj['uuid']
+            self.config_params.update(obj)
+        if "uuid" in  self.config_params and self.config_params['uuid']:
+            self.uuid=self.config_params['uuid']
+
+        # 进度
+        self.precent = 1
+        self.status_text = config.transobj['ing']
+        # 存储处理好待配音信息
+        self.queue_tts = []
+        # 本次任务结束标识
+        self.hasend = False
+        # 264/265
+        self.video_codec = int(config.settings['video_codec'])
+
+        # 预处理，prepare 全部需要
+        # 是否需要语音识别
+        self.shoud_recogn = False
+        # 是否需要字幕翻译
+        self.shoud_trans = False
+        # 是否需要配音
+        self.shoud_dubbing = False
+        # 是否需要人声分离
+        self.shoud_separate = False
+        # 是否需要嵌入配音或字幕
+        self.shoud_hebing = False
+        # 最后一步hebing move_emd 全部需要
+
 
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
@@ -113,10 +98,10 @@ class BaseTask:
     def align(self):
         pass
     # 视频、音频、字幕合并生成结果文件
-    def hebing(self):
+    def assembling(self):
         pass
     # 删除临时文件，移动或复制，发送成功消息
-    def move_at_end(self):
+    def task_done(self):
         pass
 
     # 字幕是否存在并且有效
@@ -143,8 +128,6 @@ class BaseTask:
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True
 
-    def _signal(self,text="",type="logs",nologs=False,uuid=None):
-        tools.set_process(text=text,type=type,nologs=nologs,uuid=self.uuid)
 
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):

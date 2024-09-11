@@ -27,7 +27,7 @@ class CheckUpdateWorker(QThread):
                 d = res.json()
                 if d['version_num'] > videotrans.VERSION_NUM:
                     msg = f"{transobj['newversion']}:{d['version']}"
-                    set_process(msg, type="check_soft_update")
+                    set_process(text=msg, type="check_soft_update")
         except Exception as e:
             pass
         return False

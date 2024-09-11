@@ -23,9 +23,9 @@ class SeparateWorker(QThread):
         while 1:
             if config.exit_soft:
                 return
-            q = config.queue_dict.get(self.uuid)
-            if q and q=='stop':
+            if self.uuid in config.stoped_uuid_set:
                 return
+            q = config.uuid_logs_queue.get(self.uuid)
             if not q:
                 continue
             try:
@@ -55,7 +55,7 @@ class SeparateWorker(QThread):
                     cmd.insert(3, '-vn')
                 tools.runffmpeg(cmd)
                 self.file = newfile
-            tools.set_process(text="",uuid=self.uuid)
+            tools.set_process(uuid=self.uuid)
             threading.Thread(target=self.getqueulog).start()
             st.start(self.file, self.out, "win",uuid=self.uuid)
         except Exception as e:

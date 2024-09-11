@@ -9,8 +9,8 @@ from videotrans.translator._base import BaseTrans
 
 class AI302(BaseTrans):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
         self.proxies={"http":"","https":""}
         self.prompt=config.params['ai302_template'].replace('{lang}', self.target_language)
 

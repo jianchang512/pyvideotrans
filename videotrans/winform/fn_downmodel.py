@@ -3,15 +3,15 @@ from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER
 
 
 # 视频 字幕 音频 合并
-def openwin(model_name=None, model_type=None):
-    if model_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
+def openwin(model_name=None, recogn_type=None):
+    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return
 
     from videotrans.component import DownloadModelForm
     try:
         winobj = DownloadModelForm()
         config.child_forms['down_win']=winobj
-        if model_type == OPENAI_WHISPER:
+        if recogn_type == OPENAI_WHISPER:
             name = f'OpenAI Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['openai'][model_name]
             text_help = f'请下载{model_name}.pt 后将该文件复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {model_name}.pt and copy the file to {config.ROOT_DIR}/models folder.'

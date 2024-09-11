@@ -46,12 +46,12 @@ def openwin():
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done=False
-            config.queue_dict[uuid]='stop'
+            config.uuid_logs_queue[uuid]='stop'
             winobj.set.setText(config.transobj['Start Separate'])
             return
         winobj.has_done=True
-        if uuid in config.queue_dict:
-            del config.queue_dict[uuid]
+        if uuid in config.uuid_logs_queue:
+            del config.uuid_logs_queue[uuid]
 
         winobj.set.setText(config.transobj['Start Separate...'])
         basename = os.path.basename(file)

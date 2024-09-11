@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import List, Union, Dict
 
 from videotrans.configure import config
+from videotrans.configure._base import BaseCon
 from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 from concurrent.futures import ThreadPoolExecutor
 
-class BaseTTS:
+class BaseTTS(BaseCon):
     """
     queue_tts:List[Dict[role,text,filename]] 组装好的每条数据
     language:str 字幕语言代码
@@ -20,14 +21,8 @@ class BaseTTS:
     uuid: str 任务唯一标识符
     play:bool 是否播放
     """
-    def __init__(self,
-                 queue_tts:List[dict]=None,
-                 language=None,
-                 inst=None,
-                 uuid=None,
-                 play=False,
-                 is_test=False
-                 ):
+    def __init__(self, queue_tts: List[dict] = None, language=None, inst=None, uuid=None, play=False, is_test=False):
+        super().__init__()
         self.play=play
         self.language=language
         self.inst=inst
@@ -166,8 +161,7 @@ class BaseTTS:
             else:
                 break
 
-    def _signal(self,text="",type="logs",nologs=False):
-        tools.set_process(text=text,type=type,uuid=self.uuid,nologs=nologs)
+
 
     def _base64_to_audio(self,encoded_str:str, output_path:str)->None:
         if not encoded_str:

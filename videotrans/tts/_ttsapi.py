@@ -34,23 +34,32 @@ class TTSAPI(BaseTTS):
             role=data_item['role']
             if not text:
                 return
-            data = {"text": text.strip(), "language": self.language, "extra": config.params['ttsapi_extra'], "voice": role,
+            data = {"text": text.strip(),
+                    # "language": self.language,
+                    "extra": config.params['ttsapi_extra'],
+                    "voice": role,
                     "ostype": sys.platform,
-                    "rate": self.rate}
-
-            resraw = requests.post(f"{self.api_url}", data=data, verify=False)
+                    "rate": 0}
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+            }
+            config.logger.info(f'发送数据 {data=}')
+            resraw = requests.post(f"{self.api_url}", data=data, verify=False,headers=headers)
             res = resraw.json()
+            config.logger.info(f'返回数据 {res=}')
             if "code" not in res or "msg" not in res:
                 self.error=f'TTS-API:{res}'
                 return
             if res['code'] != 0:
                 self.error=f'TTS-API:{res["msg"]}'
                 return
-
+            if 'data' not in res or not res['data']:
+                raise Exception('未返回有效音频地址' if config.defaulelang=='zh' else 'No valid audio address returned')
             url = res['data']
             res = requests.get(url)
             if res.status_code != 200:
-                self.error=f'TTS-API:{url}'
+                self.error=f'{url=}'
                 return
             with open(data_item['filename'], 'wb') as f:
                 f.write(res.content)
