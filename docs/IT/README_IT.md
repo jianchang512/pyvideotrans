@@ -98,7 +98,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 3. Esegui il comando `cd pyvideotrans`
 4. Continua con `python -m venv venv`
 5. Continua ad eseguire il comando `source ./venv/bin/activate`, dopo aver terminato controlla se la richiesta del terminale inizia con `(venv)`, i comandi successivi devono essere eseguiti solo dopo aver confermato che la richiesta del terminale inizia con `(venv)`
-6. Esegui `pip install -r mac-requirements.txt --no-deps`, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
+6. Esegui `pip install -r requirements.txt `, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
 
     ```
     pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
@@ -106,7 +106,7 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
     ```
 
     Quindi prova a rieseguire.
-    Se è stato cambiato allo specchio Aliyun e continua a fallire, prova a eseguire `pip install -r mac-requirements.txt  --ignore-installed --no-deps `
+    Se è stato cambiato allo specchio Aliyun e continua a fallire, prova a eseguire `pip install -r requirements.txt  `
 
 7. `python sp.py` per avviare l'interfaccia del software
 
@@ -187,7 +187,7 @@ apt-get install ffmpeg
 4. Continua con il comando `cd pyvideotrans`
 5. Continua con `python -m venv venv`
 6. Continua con il comando `source ./venv/bin/activate`, dopo aver finito controlla di confermare che la richiesta del terminale sia iniziata con `(venv)`, i comandi successivi devono essere eseguiti solo dopo aver confermato che la richiesta del terminale inizia con `(venv)`
-7. Esegui `pip install -r requirements.txt --no-deps`, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
+7. Esegui `pip install -r requirements.txt `, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
 
     ```
 
@@ -196,13 +196,13 @@ apt-get install ffmpeg
 
     ```
 
-    Quindi prova a rieseguire, se è stato cambiato allo specchio Aliyun e continua a fallire, prova `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Quindi prova a rieseguire, se è stato cambiato allo specchio Aliyun e continua a fallire, prova `pip install -r requirements.txt `
 8. Se vuoi usare l'accelerazione CUDA, esegui separatamente
 
     `pip uninstall -y torch torchaudio`
 
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
     `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
 
@@ -224,7 +224,7 @@ apt-get install ffmpeg
 4. Continua con il comando `cd pyvideotrans`
 5. Continua con `python -m venv venv`
 6. Continua con il comando `.\venv\scripts\activate`, dopo verifica che la richiesta del terminale sia iniziata con `(venv)`, altrimenti c'è un errore
-7. Esegui `pip install -r requirements.txt --no-deps`, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
+7. Esegui `pip install -r requirements.txt `, se fallisce, esegui i seguenti due comandi per cambiare lo specchio pip in quello di Aliyun
 
     ```
 
@@ -233,12 +233,12 @@ apt-get install ffmpeg
 
     ```
 
-    Quindi prova a rieseguire, se è stato cambiato allo specchio Aliyun e continua a fallire, prova `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Quindi prova a rieseguire, se è stato cambiato allo specchio Aliyun e continua a fallire, prova `pip install -r requirements.txt  `
 8.  Se vuoi usare l'accelerazione CUDA, esegui separatamente
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
 
 9. Su windows se vuoi attivare l'accelerazione cuda, devi avere una scheda grafica Nvidia e un ambiente CUDA11.8+ configurato, vedi [Supporto accelerazione CUDA](https://pyvideotrans.com/gpu.html)
