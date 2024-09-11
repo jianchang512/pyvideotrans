@@ -206,7 +206,7 @@ apt-get install ffmpeg
 4. Continúa con el comando `cd pyvideotrans`
 5. Sigue con `python -m venv venv`
 6. Continúa con el comando `.\venv\scripts\activate`. Después de ejecutarlo, verifica que el comienzo de la línea de comandos haya cambiado a `(venv)`. De lo contrario, significa que hubo un error.
-7. Ejecuta `pip install -r requirements.txt --no-deps`. Si encuentras algún error, ejecuta los siguientes dos comandos para cambiar el espejo de pip al espejo de Alibaba
+7. Ejecuta `pip install -r requirements.txt  `. Si encuentras algún error, ejecuta los siguientes dos comandos para cambiar el espejo de pip al espejo de Alibaba
 
     ```
 
@@ -215,12 +215,12 @@ apt-get install ffmpeg
 
     ```
 
-    Prueba ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt  --ignore-installed --no-deps `
+    Prueba ejecutar nuevamente. Si todavía tienes problemas después de cambiar al espejo de Alibaba, intenta ejecutar `pip install -r requirements.txt `
 8. Si deseas usar aceleración CUDA, ejecuta por separado
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
 
 9. Si deseas habilitar la aceleración CUDA en Windows, es necesario tener una tarjeta gráfica Nvidia y haber configurado correctamente el entorno CUDA11.8+. Consulta [Soporte de Aceleración CUDA](https://pyvideotrans.com/gpu.html) para obtener detalles sobre la instalación.
 

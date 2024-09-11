@@ -16,7 +16,7 @@ Traduza e duble seus vídeos com facilidade! Esta ferramenta converte vídeos de
 * **Tradução de texto:** Ampla gama de opções, como `Microsoft Translator`, `Google Translate`, `Baidu Translate`, `Tencent Translate`, `ChatGPT`, `AzureAI`, `Gemini`, `DeepL`, `DeepLX`, `ByteDance Volcano`, além da tradução offline com `OTT`.
 * **Síntese de texto em fala (TTS):** Diversas vozes disponíveis, incluindo `Microsoft Edge tts`, `Google tts`, `Azure AI TTS`, `Openai TTS`, `Elevenlabs TTS`, APIs personalizadas, `GPT-SoVITS`, e ferramentas como [clone-voice](https://github.com/jianchang512/clone-voice), [ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui), [Fish TTS](https://github.com/fishaudio/fish-speech) e [CosyVoice](https://github.com/FunAudioLLM/CosyVoice).
 * **Preservação da música de fundo:** Mantém a trilha sonora original do vídeo (baseado em uvr5).
-* **Amplo suporte a idiomas:** Traduza para e a partir de Chinês (simplificado e tradicional), Inglês, Coreano, Japonês, Russo, Francês, Alemão, Italiano, Espanhol, Português, Vietnamita, Tailandês, Árabe, Turco, Húngaro, Hindi, Ucraniano, Cazaque, Indonésio, Malaio, Tcheco e Polonês.
+* **Amplo suporte a idiomas:** Traduza para e a partir de Chinês (simplificado e tradicional), Inglês, Coreano, Japonês, Russo, Francês, Alemão, Italiano, Espanhol, Português, Vietnamita, Tailandês, Árabe, Turco, Húngaro, Hindi, Ucraniano, Cazaque, Indonésio, Malaio, Tcheco e Polonês ,nl,sw
 
 
 > **[Patrocinadores]**
@@ -108,14 +108,14 @@ https://github.com/jianchang512/pyvideotrans/assets/3378335/3811217a-26c8-4084-b
 
 **Instale as dependências**
 
-1. Instale: `pip install -r mac-requirements.txt --no-deps`. Se falhar, configure o espelho do pip para o Alibaba:
+1. Instale: `pip install -r requirements.txt `. Se falhar, configure o espelho do pip para o Alibaba:
 
    ```bash
    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
    pip config set install.trusted-host mirrors.aliyun.com
    ```
 
-   Tente instalar novamente. Se persistir, use: `pip install -r mac-requirements.txt --ignore-installed --no-deps`.
+   Tente instalar novamente. Se persistir, use: `pip install -r requirements.txt `.
 
 **Inicie o software**
 
@@ -170,14 +170,14 @@ Verifique a instalação: `python3 -V` (deve retornar "3.10.4").
 
 **Instale as dependências**
 
-1. Instale: `pip install -r requirements.txt --no-deps`. Se falhar, configure o espelho do pip para o Alibaba:
+1. Instale: `pip install -r requirements.txt `. Se falhar, configure o espelho do pip para o Alibaba:
 
    ```bash
    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
    pip config set install.trusted-host mirrors.aliyun.com
    ```
 
-   Tente instalar novamente. Se persistir, use: `pip install -r requirements.txt --ignore-installed --no-deps`.
+   Tente instalar novamente. Se persistir, use: `pip install -r requirements.txt `.
 
 **Aceleração CUDA (Opcional)**
 
@@ -185,7 +185,7 @@ Verifique a instalação: `python3 -V` (deve retornar "3.10.4").
 
    ```bash
    pip uninstall -y torch torchaudio
-   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
+   pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
    pip install nvidia-cublas-cu11 nvidia-cudnn-cu11
    ```
 
@@ -220,14 +220,14 @@ Verifique a instalação: `python3 -V` (deve retornar "3.10.4").
 
 **Instale as dependências**
 
-1. Instale: `pip install -r requirements.txt --no-deps`. Se falhar, configure o espelho do pip para o Alibaba:
+1. Instale: `pip install -r requirements.txt `. Se falhar, configure o espelho do pip para o Alibaba:
 
    ```bash
    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
    pip config set install.trusted-host mirrors.aliyun.com
    ```
 
-   Tente instalar novamente. Se persistir, use: `pip install -r requirements.txt --ignore-installed --no-deps`.
+   Tente instalar novamente. Se persistir, use: `pip install -r requirements.txt `.
 
 **Aceleração CUDA (Opcional)**
 
@@ -235,7 +235,7 @@ Verifique a instalação: `python3 -V` (deve retornar "3.10.4").
 
    ```bash
    pip uninstall -y torch torchaudio
-   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
+   pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
    ```
 
    Para configurar o CUDA no Windows, consulte: [https://pyvideotrans.com/gpu.html](https://pyvideotrans.com/gpu.html)
