@@ -21,6 +21,7 @@ def _get_executable_path():
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
+print(f'{ROOT_DIR=}')
 _root_path = Path(ROOT_DIR)
 
 _tmpname = f'tmp'

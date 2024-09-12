@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # 代码是一坨屎，但又不是不能跑O(∩_∩)O~
+import multiprocessing
 import sys, os
 import time
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer, QPoint
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
+
 from videotrans import VERSION
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -70,6 +72,7 @@ class StartWindow(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
     app = QtWidgets.QApplication(sys.argv)
     try:
         startwin = StartWindow()
