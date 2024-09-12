@@ -1,9 +1,7 @@
-import builtins
 import json
 import os
 
 from videotrans.configure import config
-
 
 
 def openwin():
@@ -16,7 +14,7 @@ def openwin():
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
         with open(config.ROOT_DIR + f"/videotrans/gemini{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
-                          encoding='utf-8') as f:
+                  encoding='utf-8') as f:
             f.write(template)
         config.getset_params(config.params)
         winobj.close()

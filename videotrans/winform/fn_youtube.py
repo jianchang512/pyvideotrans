@@ -10,7 +10,7 @@ from videotrans.configure import config
 # 下载
 def openwin():
     def download():
-        winobj.has_done=False
+        winobj.has_done = False
         proxy = winobj.proxy.text().strip()
         outdir = winobj.outputdir.text()
         url = winobj.url.text().strip()
@@ -39,12 +39,12 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == 'error':
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
             winobj.set.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.set.setText(config.transobj['start download'])
             QtWidgets.QMessageBox.information(winobj, "OK", d['text'])
 

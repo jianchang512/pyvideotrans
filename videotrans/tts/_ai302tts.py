@@ -1,5 +1,4 @@
 import copy
-
 import time
 from pathlib import Path
 
@@ -8,6 +7,7 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+
 
 # 线程池并发
 
@@ -40,8 +40,6 @@ class AI302(BaseTTS):
                 self._signal(text=f'{self.error}')
             else:
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-
-
 
     def _openai(self, data):
         speed = 1.0
@@ -103,8 +101,6 @@ class AI302(BaseTTS):
         self.error = ''
         Path(data['filename'] + ".wav").unlink(missing_ok=True)
 
-
-
     def _doubao(self, data):
         speed = 1.0
         if self.rate:
@@ -138,4 +134,3 @@ class AI302(BaseTTS):
         self.has_done += 1
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
-

@@ -1,4 +1,3 @@
-import re
 import time
 from pathlib import Path
 from typing import Dict
@@ -12,6 +11,7 @@ from videotrans.util import tools
 """
 仅语音识别
 """
+
 
 class SpeechToText(BaseTask):
     """
@@ -33,20 +33,23 @@ class SpeechToText(BaseTask):
     cuda 是否启用cuda
     }
     """
-    def __init__(self,config_params:Dict=None,obj:Dict=None):
-        super().__init__(config_params,obj)
-        self.shoud_recogn=True
+
+    def __init__(self, config_params: Dict = None, obj: Dict = None):
+        super().__init__(config_params, obj)
+        self.shoud_recogn = True
         # 存放目标文件夹
-        self.config_params['target_dir']=config.HOME_DIR + f"/recogn"
+        self.config_params['target_dir'] = config.HOME_DIR + f"/recogn"
         if not Path(self.config_params['target_dir']).exists():
-            Path(self.config_params['target_dir']).mkdir(parents=True,exist_ok=True)
+            Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
         # 生成目标字幕文件
-        self.config_params['target_sub']=self.config_params['target_dir']+'/'+self.config_params['noextname']+'.srt'
+        self.config_params['target_sub'] = self.config_params['target_dir'] + '/' + self.config_params[
+            'noextname'] + '.srt'
         # 临时文件夹
-        self.config_params['cache_folder']=config.TEMP_HOME+f'/speech2text'
+        self.config_params['cache_folder'] = config.TEMP_HOME + f'/speech2text'
         if not Path(self.config_params['cache_folder']).exists():
-            Path(self.config_params['cache_folder']).mkdir(parents=True,exist_ok=True)
-        self.config_params['shibie_audio']=self.config_params['cache_folder']+f'/{self.config_params["noextname"]}-{time.time()}.wav'
+            Path(self.config_params['cache_folder']).mkdir(parents=True, exist_ok=True)
+        self.config_params['shibie_audio'] = self.config_params[
+                                                 'cache_folder'] + f'/{self.config_params["noextname"]}-{time.time()}.wav'
         self._signal(text='语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing')
 
     def prepare(self):
@@ -88,7 +91,10 @@ class SpeechToText(BaseTask):
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise LogExcept(self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.config_params['detect_language']))
+                raise LogExcept(
+                    self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
+                                                                                                       self.config_params[
+                                                                                                           'detect_language']))
             self._save_srt_target(raw_subtitles, self.config_params['target_sub'])
             self._signal(text=f"{self.config_params['name']}", type='succeed')
             tools.send_notification("Succeed", f"{self.config_params['basename']}")

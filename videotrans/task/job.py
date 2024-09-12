@@ -8,8 +8,8 @@ from videotrans.util.tools import set_process
 
 
 # 当前 uuid 是否已停止
-def task_is_stop(uuid)->bool:
-    if uuid in  config.stoped_uuid_set:
+def task_is_stop(uuid) -> bool:
+    if uuid in config.stoped_uuid_set:
         return True
     return False
 
@@ -23,6 +23,8 @@ dubb_queue
 align_queue
 assemb_queue
 """
+
+
 class WorkerPrepare(QThread):
     def __init__(self, *, parent=None):
         super().__init__(parent=parent)
@@ -34,10 +36,11 @@ class WorkerPrepare(QThread):
             if len(config.prepare_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk:BaseTask = config.prepare_queue.pop(0)
+            trk: BaseTask = config.prepare_queue.pop(0)
             if task_is_stop(trk.uuid):
                 continue
             try:
+
                 trk.prepare()
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
@@ -49,9 +52,7 @@ class WorkerPrepare(QThread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=f'{config.transobj["yuchulichucuo"]}:' + str(e), type='error', uuid=trk.uuid)
 
 
@@ -80,9 +81,7 @@ class WorkerRegcon(QThread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=f'{config.transobj["shibiechucuo"]}:' + str(e), type='error', uuid=trk.uuid)
 
 
@@ -108,10 +107,8 @@ class WorkerTrans(QThread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
                 msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
 
@@ -133,10 +130,8 @@ class WorkerDubb(QThread):
                 trk.dubbing()
                 config.align_queue.append(trk)
             except Exception as e:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
                 msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
 
@@ -156,13 +151,12 @@ class WorkerAlign(QThread):
                 continue
             try:
                 trk.align()
-                config.assemb_queue.append(trk)
             except Exception as e:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
                 msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
+            else:
+                config.assemb_queue.append(trk)
 
 
 class WorkerAssemb(QThread):
@@ -181,14 +175,12 @@ class WorkerAssemb(QThread):
                 continue
             try:
                 trk.assembling()
-                trk.task_done()
             except Exception as e:
                 msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
-                config.logger.exception(e)
+                config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
-            finally:
-                if trk.uuid not in config.ended_uuid:
-                    config.ended_uuid.append(trk.uuid)
+            else:
+                trk.task_done()
 
 
 def start_thread(parent):

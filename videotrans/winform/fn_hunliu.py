@@ -50,7 +50,7 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.hun_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.hun_startbtn.setDisabled(False)
@@ -58,14 +58,14 @@ def openwin():
         elif d['type'] == 'logs':
             winobj.hun_startbtn.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.hun_startbtn.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             winobj.hun_startbtn.setDisabled(False)
             winobj.hun_out.setText(d['text'])
             winobj.hun_opendir.setDisabled(False)
 
     def get_file(num=1):
-        format_str=" ".join([ '*.'+f  for f in  config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params['last_opendir'],
                                                f"Audio files({format_str})")
         if not fname:
@@ -77,7 +77,7 @@ def openwin():
         config.params['last_opendir'] = os.path.dirname(fname)
 
     def start():
-        winobj.has_done=False
+        winobj.has_done = False
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:

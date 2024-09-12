@@ -1,11 +1,9 @@
-import builtins
 import json
 
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton
 
 from videotrans.configure import config
-
 
 
 # 高级设置

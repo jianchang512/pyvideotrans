@@ -10,18 +10,18 @@ from tencentcloud.tmt.v20180321 import tmt_client, models
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 
+
 class Tencent(BaseTrans):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         proxy = os.environ.get('http_proxy')
         if proxy:
             del os.environ['http_proxy']
             del os.environ['https_proxy']
             del os.environ['all_proxy']
 
-
-    def _item_task(self,data:Union[List[str],str]) ->str:
+    def _item_task(self, data: Union[List[str], str]) -> str:
 
         cred = credential.Credential(config.params['tencent_SecretId'], config.params['tencent_SecretKey'])
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
@@ -49,4 +49,3 @@ class Tencent(BaseTrans):
         resp = client.TextTranslate(req)
         config.logger.info(f'[腾讯]返回:{resp.TargetText=}')
         return resp.TargetText.strip()
-

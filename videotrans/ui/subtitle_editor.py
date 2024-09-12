@@ -1,17 +1,29 @@
 import re
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTime, Signal, QTimer, QSize
+from PySide6.QtCore import Qt, QTime, Signal, QTimer, QSize, QEvent
 from PySide6.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QComboBox, QPushButton, QLineEdit, \
-    QFileDialog, QTextEdit, QSpinBox, QFontDialog, QColorDialog, QTimeEdit, QMessageBox
+    QFileDialog, QTextEdit, QFontDialog, QColorDialog, QTimeEdit, QMessageBox
 
 from videotrans.configure import config
 from videotrans.configure._except import LogExcept
 
+class NoWheelTimeEdit(QTimeEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # 安装事件过滤器
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        # 检测到滚轮事件时，直接过滤掉
+        if event.type() == QEvent.Wheel:
+            return True  # 返回 True 表示事件被过滤掉，不再传递
+        return super().eventFilter(obj, event)
 
 class DropWidget(QWidget):
     fileDropped = Signal(str)  # 自定义信号
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)  # 启用拖放
@@ -33,10 +45,12 @@ class DropWidget(QWidget):
     def handle_dropped_file(self, file_path):
         # 处理文件，例如解析SRT, VTT, ASS字幕
         return file_path
+
     def is_valid_file(self, file_path):
         # Check file extension
         valid_extensions = ('.srt', '.ass', '.vtt')
         return file_path.lower().endswith(valid_extensions)
+
 
 class DropScrollArea(QScrollArea):
     def __init__(self, parent=None):
@@ -60,11 +74,11 @@ class DropScrollArea(QScrollArea):
 class Ui_subtitleEditor(QWidget):
     def __init__(self):
         super().__init__()
-        self.has_done=False
-        self.lastend_time=0
+        self.has_done = False
+        self.lastend_time = 0
 
-        self.setWindowTitle("Subtitle Editor" if config.defaulelang!='zh' else '导入字幕编辑修改后导出')
-        self.resize(1200, 640)
+        self.setWindowTitle("Subtitle Editor" if config.defaulelang != 'zh' else '导入字幕编辑修改后导出')
+        # self.resize(1200, 640)
         self.setMinimumSize(1200, 640)
 
         # 主垂直布局
@@ -74,22 +88,23 @@ class Ui_subtitleEditor(QWidget):
         # 第一行：导入和导出按钮的水平布局
         button_layout = QHBoxLayout()
         button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.import_button = QPushButton("导入需要编辑的字幕(srt/ass/vtt)" if config.defaulelang=='zh' else 'Import Subtitles(srt/ass/vtt)')
+        self.import_button = QPushButton(
+            "导入需要编辑的字幕(srt/ass/vtt)" if config.defaulelang == 'zh' else 'Import Subtitles(srt/ass/vtt)')
         self.import_button.setFixedHeight(35)
         self.import_button.setFixedWidth(250)
         self.import_button.setCursor(Qt.PointingHandCursor)
 
-        self.clear_all=QPushButton()
-        self.clear_all.setText('清理已导入' if config.defaulelang=='zh' else 'Clear All')
+        self.clear_all = QPushButton()
+        self.clear_all.setText('清理已导入' if config.defaulelang == 'zh' else 'Clear All')
         self.clear_all.setStyleSheet('''background-color:transparent''')
         self.clear_all.clicked.connect(self.clear_content_layout)
         self.clear_all.setCursor(Qt.PointingHandCursor)
-        self.loglabel=QLabel()
+        self.loglabel = QLabel()
         self.loglabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.loglabel.setObjectName('renderlog')
         self.loglabel.setStyleSheet("""text-align:center;color:#aaaaaa;font-size:16px""")
-        self.loglabel.setMinimumSize(QSize(300,40))
-        self.loglabel.setText('字幕编辑区' if config.defaulelang=='zh' else 'Subtitles Edit area')
+        self.loglabel.setMinimumSize(QSize(300, 40))
+        self.loglabel.setText('字幕编辑区' if config.defaulelang == 'zh' else 'Subtitles Edit area')
 
         button_layout.addWidget(self.import_button)
 
@@ -115,7 +130,7 @@ class Ui_subtitleEditor(QWidget):
         main_layout.addWidget(self.scroll_area)
         self.scroll_area.setStyleSheet("""#scroll_area{border:1px solid #32414B}""")
 
-        loglayout=QHBoxLayout()
+        loglayout = QHBoxLayout()
         loglayout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         loglayout.setObjectName('renderlog_layout')
         loglayout.addStretch()
@@ -128,58 +143,61 @@ class Ui_subtitleEditor(QWidget):
         format_layout = QHBoxLayout()
         format_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.export_button = QPushButton("导出字幕" if config.defaulelang=='zh' else 'Export Subtitles')
+        self.export_button = QPushButton("导出字幕" if config.defaulelang == 'zh' else 'Export Subtitles')
         self.export_button.setFixedHeight(35)
         self.export_button.setFixedWidth(200)
         self.export_button.setCursor(Qt.PointingHandCursor)
 
-        format_label = QLabel("输出字幕格式:" if config.defaulelang=='zh' else 'Output Subtitle Format')
+        format_label = QLabel("输出字幕格式:" if config.defaulelang == 'zh' else 'Output Subtitle Format')
         format_label.setFixedWidth(100)
         self.format_combo = QComboBox()
         self.format_combo.setFixedWidth(80)
         self.format_combo.addItems(["srt", "ass", "vtt"])
         self.format_combo.currentTextChanged.connect(self.update_format_options)
 
-        self.font_button = QPushButton("选择字体" if config.defaulelang=='zh' else 'Select Fonts')
+        self.font_button = QPushButton("选择字体" if config.defaulelang == 'zh' else 'Select Fonts')
         self.font_button.setVisible(False)
-        self.font_button.setToolTip('点击选择字体' if config.defaulelang=='zh' else 'Click it for select fonts')
+        self.font_button.setToolTip('点击选择字体' if config.defaulelang == 'zh' else 'Click it for select fonts')
         self.font_button.clicked.connect(self.choose_font)
         self.font_button.setCursor(Qt.PointingHandCursor)
 
-        self.color_button = QPushButton("字体颜色" if config.defaulelang=='zh' else 'Text Colors')
+        self.color_button = QPushButton("字体颜色" if config.defaulelang == 'zh' else 'Text Colors')
         self.color_button.setVisible(False)
         self.color_button.setCursor(Qt.PointingHandCursor)
         self.color_button.clicked.connect(self.choose_color)
 
-        self.backgroundcolor_button = QPushButton("背景色" if config.defaulelang=='zh' else 'Backgroud Colors')
+        self.backgroundcolor_button = QPushButton("背景色" if config.defaulelang == 'zh' else 'Backgroud Colors')
         self.backgroundcolor_button.setVisible(False)
         self.backgroundcolor_button.setCursor(Qt.PointingHandCursor)
         self.backgroundcolor_button.clicked.connect(self.choose_backgroundcolor)
-        self.backgroundcolor_button.setToolTip('不同播放器下可能不起作用' if config.defaulelang=='zh' else 'May not work in different players')
+        self.backgroundcolor_button.setToolTip(
+            '不同播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
 
-        self.bordercolor_button = QPushButton("边框色" if config.defaulelang=='zh' else 'Backgroud Colors')
+        self.bordercolor_button = QPushButton("边框色" if config.defaulelang == 'zh' else 'Backgroud Colors')
         self.bordercolor_button.setVisible(False)
         self.bordercolor_button.setCursor(Qt.PointingHandCursor)
         self.bordercolor_button.clicked.connect(self.choose_bordercolor)
-        self.bordercolor_button.setToolTip('不同播放器下可能不起作用' if config.defaulelang=='zh' else 'May not work in different players')
+        self.bordercolor_button.setToolTip(
+            '不同播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
 
         self.font_size_edit = QLineEdit()
         self.font_size_edit.setFixedWidth(80)
         self.font_size_edit.setText('16')
-        self.font_size_edit.setPlaceholderText("字体大小" if config.defaulelang=='zh' else 'Font Size')
-        self.font_size_edit.setToolTip("字体大小" if config.defaulelang=='zh' else 'Font Size')
+        self.font_size_edit.setPlaceholderText("字体大小" if config.defaulelang == 'zh' else 'Font Size')
+        self.font_size_edit.setToolTip("字体大小" if config.defaulelang == 'zh' else 'Font Size')
         self.font_size_edit.setVisible(False)
 
-
-        self.marginLabel=QLabel(text='边距' if config.defaulelang=='zh' else 'Margin')
+        self.marginLabel = QLabel(text='边距' if config.defaulelang == 'zh' else 'Margin')
         self.marginLabel.setFixedWidth(50)
         self.marginLabel.setVisible(False)
 
         self.marginLRV = QLineEdit()
         self.marginLRV.setVisible(False)
         self.marginLRV.setFixedWidth(80)
-        self.marginLRV.setPlaceholderText("距离 左,右,底 距离(10,10,10)" if config.defaulelang=='zh' else 'Margin left/right/bottom offset')
-        self.marginLRV.setToolTip("距离 左,右,底 距离(10,10,10)" if config.defaulelang=='zh' else 'Margin left/right/bottom offset')
+        self.marginLRV.setPlaceholderText(
+            "距离 左,右,底 距离(10,10,10)" if config.defaulelang == 'zh' else 'Margin left/right/bottom offset')
+        self.marginLRV.setToolTip(
+            "距离 左,右,底 距离(10,10,10)" if config.defaulelang == 'zh' else 'Margin left/right/bottom offset')
         self.marginLRV.setText('10,10,10')
         self.marginLRV.setVisible(False)
 
@@ -199,7 +217,7 @@ class Ui_subtitleEditor(QWidget):
         self.setLayout(main_layout)
 
         # 初始化字体和颜色
-        self.selected_font = QFont('Arial',16)  # 默认字体
+        self.selected_font = QFont('Arial', 16)  # 默认字体
         self.selected_color = QColor('#FFFFFFFF')  # 默认颜色
         self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
         self.selected_bordercolor = QColor('#00000000')  # 默认颜色
@@ -219,9 +237,10 @@ class Ui_subtitleEditor(QWidget):
         self.clear_content_layout()  # 清空已有字幕
 
         self.loglabel.setVisible(True)
-        self.loglabel.setText('正在渲染字幕，请稍等...' if config.defaulelang=='zh' else 'Rendering subtitles. Please wait...')
+        self.loglabel.setText('正在渲染字幕，请稍等...' if config.defaulelang == 'zh' else 'Rendering subtitles. Please wait...')
+
         def render():
-            format=Path(file_path).suffix.lower()
+            format = Path(file_path).suffix.lower()
             if format == ".srt":
                 self.load_srt(file_path)
             elif format == ".ass":
@@ -229,7 +248,7 @@ class Ui_subtitleEditor(QWidget):
             elif format == ".vtt":
                 self.load_vtt(file_path)
             self.loglabel.setVisible(False)
-            self.loglabel.setText('字幕编辑区' if config.defaulelang=='zh' else 'Subtitles Edit area')
+            self.loglabel.setText('字幕编辑区' if config.defaulelang == 'zh' else 'Subtitles Edit area')
 
         QTimer.singleShot(50, render)
 
@@ -238,7 +257,7 @@ class Ui_subtitleEditor(QWidget):
             lines = file.readlines()
 
         i = 0
-        num=0
+        num = 0
         while i < len(lines):
             if lines[i].strip().isdigit():  # 字幕编号
                 times = lines[i + 1].strip().split(' --> ')
@@ -250,8 +269,8 @@ class Ui_subtitleEditor(QWidget):
                 while i < len(lines) and lines[i].strip():
                     text += lines[i].strip() + "\n"
                     i += 1
-                num+=1
-                self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text.strip(),line=num)
+                num += 1
+                self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text.strip(), line=num)
             i += 1
 
     def load_ass(self, file_path):
@@ -264,7 +283,7 @@ class Ui_subtitleEditor(QWidget):
         except ValueError:
             raise LogExcept("ASS 文件格式不正确，未找到 [Events] 部分。")
 
-        num=0
+        num = 0
         for line in lines[events_start:]:
             line = line.strip()
             if not line or not line.startswith('Dialogue:'):
@@ -275,8 +294,8 @@ class Ui_subtitleEditor(QWidget):
                 start_time = self.parse_ass_time(parts[1].strip())
                 end_time = self.parse_ass_time(parts[2].strip())
                 text = parts[9].strip().replace('\\N', '\n')
-                num+=1
-                self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text,line=num)
+                num += 1
+                self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text, line=num)
             else:
                 LogExcept(f"ASS 行格式不正确: {line}")
 
@@ -304,22 +323,20 @@ class Ui_subtitleEditor(QWidget):
                     if len(times) == 2:
                         start_time = self.parse_vtt_time(times[0])
                         end_time = self.parse_vtt_time(times[1])
-                        self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text.strip(),line=num)
+                        self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text.strip(), line=num)
             i += 1
 
-
-    def add_subtitle_row(self, start_time=(0, 0, 0, 0), end_time=(0, 0, 0, 0), text="", insert_at=None,line=0):
+    def add_subtitle_row(self, start_time=(0, 0, 0, 0), end_time=(0, 0, 0, 0), text="", insert_at=None, line=0):
         subtitle_layout = QHBoxLayout()
 
-
         subtitle_layout.addWidget(QLabel(text=f'[{line}]'))
-        start_spinboxes=QTimeEdit()
+        start_spinboxes = NoWheelTimeEdit()
         start_spinboxes.setDisplayFormat("HH:mm:ss.zzz")
         start_spinboxes.setTime(QTime(*start_time))
         subtitle_layout.addWidget(start_spinboxes)
         subtitle_layout.addWidget(QLabel(text='->'))
 
-        end_spinboxes=QTimeEdit()
+        end_spinboxes = NoWheelTimeEdit()
         end_spinboxes.setDisplayFormat("HH:mm:ss.zzz")
         end_spinboxes.setTime(QTime(*end_time))
         subtitle_layout.addWidget(end_spinboxes)
@@ -331,12 +348,12 @@ class Ui_subtitleEditor(QWidget):
         add_button = QPushButton("+")
         add_button.setCursor(Qt.PointingHandCursor)
         add_button.setStyleSheet("""color:#009688;font-size:18px;background-color:transparent""")
-        add_button.setToolTip('在下方增加一行字幕' if config.defaulelang=='zh' else 'Add a line of captioning below')
+        add_button.setToolTip('在下方增加一行字幕' if config.defaulelang == 'zh' else 'Add a line of captioning below')
         add_button.clicked.connect(lambda: self.add_subtitle_row_below(subtitle_layout))
         delete_button = QPushButton("x")
         delete_button.setCursor(Qt.PointingHandCursor)
         delete_button.setStyleSheet('''color:#dddddd;background-color:transparent''')
-        delete_button.setToolTip('删除该行' if config.defaulelang=='zh' else 'delete row')
+        delete_button.setToolTip('删除该行' if config.defaulelang == 'zh' else 'delete row')
         delete_button.clicked.connect(lambda: self.delete_subtitle_row(subtitle_layout))
 
         subtitle_layout.addWidget(add_button)
@@ -383,9 +400,8 @@ class Ui_subtitleEditor(QWidget):
     def parse_vtt_time(self, time_str):
         return self.parse_time(time_str)
 
-
     def choose_font(self):
-        dialog = QFontDialog(self.selected_font,self)
+        dialog = QFontDialog(self.selected_font, self)
         if dialog.exec():
             font = dialog.selectedFont()
             font_name = font.family()
@@ -395,7 +411,6 @@ class Ui_subtitleEditor(QWidget):
             self.font_button.setText(font_name)
             self._setfont()
 
-
     def _setfont(self):
         bgcolor = self.selected_backgroundcolor.name()
         bgcolor = '' if bgcolor == '#000000' else f'background-color:{bgcolor}'
@@ -403,7 +418,7 @@ class Ui_subtitleEditor(QWidget):
         bdcolor = '' if bdcolor == '#000000' else f'border:1px solid {bdcolor}'
         color = self.selected_color.name()
         color = '' if color == '#000000' else f'color:{color}'
-        font=self.selected_font
+        font = self.selected_font
         self.font_button.setStyleSheet(
             f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'normal' if font.italic() else 'italic'};{bgcolor};{color};{bdcolor}""")
 
@@ -446,7 +461,7 @@ class Ui_subtitleEditor(QWidget):
                 self.save_vtt(file_path)
 
     def save_srt(self, file_path):
-        self.lastend_time=0
+        self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             index = 1
             for i in range(self.content_layout.count()):
@@ -454,23 +469,23 @@ class Ui_subtitleEditor(QWidget):
                 if layout:
                     start_time, end_time = '', ''
                     text = ""
-                    n=0
+                    n = 0
                     for j in range(layout.layout().count()):
                         widget = layout.layout().itemAt(j).widget()
-                        if isinstance(widget, QTimeEdit):
+                        if isinstance(widget, NoWheelTimeEdit):
                             msec = widget.time().msecsSinceStartOfDay()
-                            msg=''
+                            msg = ''
                             if n < 1:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
-                                n+=1
-                                start_time=widget.time().toString('HH:mm:ss,zzz')
+                                    msg = f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
+                                n += 1
+                                start_time = widget.time().toString('HH:mm:ss,zzz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
-                                end_time=widget.time().toString('HH:mm:ss,zzz')
+                                    msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
+                                end_time = widget.time().toString('HH:mm:ss,zzz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'],msg)
+                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
                             self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
@@ -480,20 +495,21 @@ class Ui_subtitleEditor(QWidget):
                         file.write(f"{index}\n{start_str} --> {end_str}\n{text}\n\n")
                         index += 1
 
-    def qcolor_to_ass_color(self,color,type='fc'):
+    def qcolor_to_ass_color(self, color, type='fc'):
         # 获取颜色的 RGB 值
         r = color.red()
         g = color.green()
         b = color.blue()
-        if type in ['bg','bd']:
+        if type in ['bg', 'bd']:
             return f"&H80{b:02X}{g:02X}{r:02X}"
         # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
         return f"&H{b:02X}{g:02X}{r:02X}"
+
     def save_ass(self, file_path):
-        self.lastend_time=0
+        self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             # 写入 ASS 文件的头部信息
-            stem=Path(file_path).stem
+            stem = Path(file_path).stem
             file.write("[Script Info]\n")
             file.write(f"Title: {stem}\n")
             file.write(f"Original Script: {stem}\n")
@@ -502,47 +518,48 @@ class Ui_subtitleEditor(QWidget):
             file.write("ScaledBorderAndShadow: yes\n")
             file.write("YCbCr Matrix: None\n")
             file.write("\n[V4+ Styles]\n")
-            file.write(f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
-            left,right,vbottom=10,10,10
+            file.write(
+                f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
+            left, right, vbottom = 10, 10, 10
             try:
-                left,right,vbottom=self.marginLRV.text().strip().split(',')
+                left, right, vbottom = self.marginLRV.text().strip().split(',')
             except Exception:
                 pass
 
-            bgcolor=self.qcolor_to_ass_color(self.selected_backgroundcolor,type='bg')
-            bdcolor=self.qcolor_to_ass_color(self.selected_bordercolor,type='bd')
-            fontcolor=self.qcolor_to_ass_color(self.selected_color,type='fc')
+            bgcolor = self.qcolor_to_ass_color(self.selected_backgroundcolor, type='bg')
+            bdcolor = self.qcolor_to_ass_color(self.selected_bordercolor, type='bd')
+            fontcolor = self.qcolor_to_ass_color(self.selected_color, type='fc')
             self.qcolor_to_ass_color(self.selected_color)
-            file.write(f'Style: Default,{self.selected_font.family()},{self.font_size_edit.text() if self.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(self.selected_font.bold())},{int(self.selected_font.italic())},0,0,100,100,0,0,1,1,0,2,{left},{right},{vbottom},1\n')
+            file.write(
+                f'Style: Default,{self.selected_font.family()},{self.font_size_edit.text() if self.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(self.selected_font.bold())},{int(self.selected_font.italic())},0,0,100,100,0,0,1,1,0,2,{left},{right},{vbottom},1\n')
             file.write("\n[Events]\n")
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
             self.selected_font.bold()
             index = 1
-
 
             for i in range(self.content_layout.count()):
                 layout = self.content_layout.itemAt(i)
                 if layout:
                     start_time, end_time = '', ''
                     text = ""
-                    n=0
+                    n = 0
                     for j in range(layout.layout().count()):
                         widget = layout.layout().itemAt(j).widget()
-                        if isinstance(widget, QTimeEdit):
-                            msec=widget.time().msecsSinceStartOfDay()
-                            msg=''
+                        if isinstance(widget, NoWheelTimeEdit):
+                            msec = widget.time().msecsSinceStartOfDay()
+                            msg = ''
                             if n < 1:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
-                                n+=1
-                                start_time=widget.time().toString('HH:mm:ss.zz')
+                                    msg = f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
+                                n += 1
+                                start_time = widget.time().toString('HH:mm:ss.zz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
-                                end_time=widget.time().toString('HH:mm:ss.zz')
+                                    msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
+                                end_time = widget.time().toString('HH:mm:ss.zz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'],msg)
-                            self.lastend_time=msec
+                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
+                            self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
 
@@ -553,9 +570,8 @@ class Ui_subtitleEditor(QWidget):
                         file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
                         index += 1
 
-
     def save_vtt(self, file_path):
-        self.lastend_time=0
+        self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write("WEBVTT\n\n")
             index = 1
@@ -564,24 +580,24 @@ class Ui_subtitleEditor(QWidget):
                 if layout:
                     start_time, end_time = '', ''
                     text = ""
-                    n=0
+                    n = 0
                     for j in range(layout.layout().count()):
                         widget = layout.layout().itemAt(j).widget()
-                        if isinstance(widget, QTimeEdit):
-                            msec=widget.time().msecsSinceStartOfDay()
-                            msg=""
+                        if isinstance(widget, NoWheelTimeEdit):
+                            msec = widget.time().msecsSinceStartOfDay()
+                            msg = ""
                             if n < 1:
-                                n+=1
+                                n += 1
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
-                                start_time=widget.time().toString('HH:mm:ss.zzz')
+                                    msg = f'第{index}行不正确，开始时间不得小于上行字幕的结束时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the start time must not be less than the end time of the previous line of credits'
+                                start_time = widget.time().toString('HH:mm:ss.zzz')
                             else:
                                 if msec < self.lastend_time:
-                                    msg=f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang=='zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
-                                end_time=widget.time().toString('HH:mm:ss.zzz')
+                                    msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
+                                end_time = widget.time().toString('HH:mm:ss.zzz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'],msg)
-                            self.lastend_time=msec
+                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
+                            self.lastend_time = msec
 
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
@@ -618,7 +634,7 @@ class Ui_subtitleEditor(QWidget):
             item = self.content_layout.takeAt(0)
             if item is not None:
                 widget = item.widget()
-                if widget and widget.objectName()!='renderlog':
+                if widget and widget.objectName() != 'renderlog':
                     widget.deleteLater()  # 删除部件
                 layout = item.layout()
                 if layout:
@@ -627,13 +643,13 @@ class Ui_subtitleEditor(QWidget):
                         sub_item = layout.takeAt(0)
                         if sub_item is not None:
                             sub_widget = sub_item.widget()
-                            if sub_widget and sub_widget.objectName()!='renderlog':
+                            if sub_widget and sub_widget.objectName() != 'renderlog':
                                 sub_widget.deleteLater()  # 删除部件
                             sub_layout = sub_item.layout()
                             if sub_layout:
                                 # 递归删除更深层的布局
                                 self.delete_layout(sub_layout)
-                    if layout.objectName()!='renderlog':
+                    if layout.objectName() != 'renderlog':
                         layout.deleteLater()  # 删除布局
 
     def delete_layout(self, layout):
@@ -642,13 +658,11 @@ class Ui_subtitleEditor(QWidget):
             item = layout.takeAt(0)
             if item is not None:
                 widget = item.widget()
-                if widget and widget.objectName()!='renderlog':
+                if widget and widget.objectName() != 'renderlog':
                     widget.deleteLater()  # 删除部件
                 sub_layout = item.layout()
                 if sub_layout:
                     # 递归删除更深层的布局
                     self.delete_layout(sub_layout)
-        if layout.objectName()!='renderlog_layout':
+        if layout.objectName() != 'renderlog_layout':
             layout.deleteLater()  # 删除布局
-
-

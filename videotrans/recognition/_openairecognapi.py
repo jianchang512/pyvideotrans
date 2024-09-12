@@ -71,7 +71,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 timestamp_granularities=["segment"]
             )
             if len(transcript.segments) < 1:
-                msg='未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
+                msg = '未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
                 raise LogExcept(msg)
             for it in transcript.segments:
                 if self._exit():
@@ -82,7 +82,8 @@ class OpenaiAPIRecogn(BaseRecogn):
                     "end_time": int(it["end"] * 1000),
                     "text": it["text"]
                 }
-                srt_tmp['time'] = f'{tools.ms_to_time_string(ms=srt_tmp["start_time"])} --> {tools.ms_to_time_string(ms=srt_tmp["end_time"])}'
+                srt_tmp[
+                    'time'] = f'{tools.ms_to_time_string(ms=srt_tmp["start_time"])} --> {tools.ms_to_time_string(ms=srt_tmp["end_time"])}'
                 self.raws.append(srt_tmp)
             return self.raws
         except ConnectionError as e:

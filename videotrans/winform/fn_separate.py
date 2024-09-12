@@ -1,19 +1,16 @@
 import os
-import time
 
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans.configure import config
 from videotrans.task.separate_worker import SeparateWorker
-
-
 # 分离背景音
 from videotrans.util import tools
 
 
 def openwin():
     def get_file():
-        format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
                                                config.params['last_opendir'],
                                                f"files({format_str})")
@@ -29,11 +26,10 @@ def openwin():
             winobj.set.setText(config.transobj['Start Separate'])
             winobj.logs.setText('')
         elif d.startswith('logs:'):
-            if len(d)>5:
+            if len(d) > 5:
                 winobj.set.setText(d[5:])
         elif d.startswith('error:'):
             QMessageBox.critical(winobj, config.transobj['anerror'], d[6:])
-
 
     def start():
         # 开始处理分离，判断是否选择了源文件
@@ -42,14 +38,14 @@ def openwin():
             QMessageBox.critical(winobj, config.transobj['anerror'],
                                  config.transobj['must select audio or video file'])
             return
-        uuid=tools.get_md5(file)
+        uuid = tools.get_md5(file)
         # 已在执行，在此点击停止
         if winobj.has_done:
-            winobj.has_done=False
-            config.uuid_logs_queue[uuid]='stop'
+            winobj.has_done = False
+            config.uuid_logs_queue[uuid] = 'stop'
             winobj.set.setText(config.transobj['Start Separate'])
             return
-        winobj.has_done=True
+        winobj.has_done = True
         if uuid in config.uuid_logs_queue:
             del config.uuid_logs_queue[uuid]
 
@@ -61,7 +57,7 @@ def openwin():
         os.makedirs(out, exist_ok=True)
         winobj.url.setText(out)
         # 开始分离
-        winobj.task = SeparateWorker(parent=winobj, out=out, file=file, basename=basename,uuid=uuid)
+        winobj.task = SeparateWorker(parent=winobj, out=out, file=file, basename=basename, uuid=uuid)
         winobj.task.finish_event.connect(update)
         winobj.task.start()
 

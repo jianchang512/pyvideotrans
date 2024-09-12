@@ -6,18 +6,17 @@ from typing import Union, List
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
 
 class Baidu(BaseTrans):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def _item_task(self,data:Union[List[str],str]) ->str:
-        text ="\n".join(data)
+    def _item_task(self, data: Union[List[str], str]) -> str:
+        text = "\n".join(data)
         salt = int(time.time())
         strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"
         md5 = hashlib.md5()
@@ -27,7 +26,7 @@ class Baidu(BaseTrans):
         requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={self.target_language}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
-        resraw = requests.get(requrl,proxies={"http":"","https":""})
+        resraw = requests.get(requrl, proxies={"http": "", "https": ""})
         res = resraw.json()
         config.logger.info(f'[Baidu]返回响应:{res=}')
 

@@ -1,6 +1,5 @@
 import json
 import os
-import threading
 import time
 from pathlib import Path
 
@@ -15,26 +14,25 @@ from videotrans.component.component import DropButton
 from videotrans.configure import config
 from videotrans.recognition import FASTER_WHISPER, OPENAI_WHISPER, is_allow_lang, is_input_api
 from videotrans.task._speech2text import SpeechToText
-
 from videotrans.util import tools
 from videotrans.winform import fn_downmodel
 
 
 class SignThread(QThread):
-    uito=Signal(str)
+    uito = Signal(str)
 
-    def __init__(self,uuid_list=None,parent=None):
+    def __init__(self, uuid_list=None, parent=None):
         super().__init__(parent=parent)
-        self.uuid_list=uuid_list
+        self.uuid_list = uuid_list
 
-    def post(self,jsondata):
+    def post(self, jsondata):
         self.uito.emit(json.dumps(jsondata))
 
     def run(self):
-        length=len(self.uuid_list)
+        length = len(self.uuid_list)
         while 1:
-            if len(self.uuid_list)==0 or config.exit_soft:
-                self.post({"type":"end"})
+            if len(self.uuid_list) == 0 or config.exit_soft:
+                self.post({"type": "end"})
                 time.sleep(1)
                 return
 
@@ -45,24 +43,25 @@ class SignThread(QThread):
                     except:
                         pass
                     continue
-                q=config.uuid_logs_queue.get(uuid)
+                q = config.uuid_logs_queue.get(uuid)
                 if not q:
                     continue
                 try:
                     if q.empty():
                         time.sleep(0.5)
                         continue
-                    data=q.get(block=False)
+                    data = q.get(block=False)
                     if not data:
                         continue
                     self.post(data)
-                    if data['type'] in ['error','succeed']:
+                    if data['type'] in ['error', 'succeed']:
                         self.uuid_list.remove(uuid)
-                        self.post({"type":"jindu","text":f'{int((length-len(self.uuid_list))*100/length)}%'})
+                        self.post({"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
                         config.stoped_uuid_set.add(uuid)
                         del config.uuid_logs_queue[uuid]
                 except:
                     pass
+
 
 def openwin():
     RESULT_DIR = config.HOME_DIR + f"/recogn"
@@ -71,7 +70,7 @@ def openwin():
     def feed(d):
         if winobj.has_done:
             return
-        if isinstance(d,str):
+        if isinstance(d, str):
             d = json.loads(d)
         if d['type'] == 'replace':
             winobj.shibie_text.clear()
@@ -80,19 +79,19 @@ def openwin():
             winobj.shibie_text.moveCursor(QTextCursor.End)
             winobj.shibie_text.insertPlainText(d['text'])
         elif d['type'] == 'error':
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.loglabel.setText(d['text'][:120])
             winobj.loglabel.setStyleSheet("""color:#ff0000""")
             winobj.shibie_startbtn.setDisabled(False)
             winobj.shibie_startbtn.setText(config.box_lang["Start"])
         elif d['type'] == 'logs' and d['text']:
             winobj.loglabel.setText(d['text'])
-        elif d['type'] in ['jindu','succeed']:
+        elif d['type'] in ['jindu', 'succeed']:
             winobj.loglabel.setStyleSheet('''color:#148cd2''')
             winobj.shibie_startbtn.setText(d['text'])
         elif d['type'] in ['end']:
-            config.box_recogn='stop'
-            winobj.has_done=True
+            config.box_recogn = 'stop'
+            winobj.has_done = True
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.shibie_startbtn.setText(config.transobj["zhixingwc"])
             winobj.shibie_startbtn.setDisabled(False)
@@ -102,7 +101,7 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def shibie_start_fun():
-        winobj.has_done=False
+        winobj.has_done = False
         config.settings = config.parse_init()
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
@@ -146,27 +145,26 @@ def openwin():
         try:
             winobj.shibie_startbtn.setDisabled(True)
             winobj.loglabel.setText('')
-            config.box_recogn='ing'
+            config.box_recogn = 'ing'
 
-            video_list=[tools.format_video(it,None) for it in files]
-            uuid_list=[obj['uuid'] for obj in video_list]
+            video_list = [tools.format_video(it, None) for it in files]
+            uuid_list = [obj['uuid'] for obj in video_list]
             for it in video_list:
-                trk=SpeechToText({
-                    "recogn_type":recogn_type,
-                    "split_type":["all", "avg"][split_type_index],
-                    "model_name":model,
-                    "is_cuda":is_cuda,
-                    "target_dir":RESULT_DIR,
-                    "detect_language":langcode
-                },it)
+                trk = SpeechToText({
+                    "recogn_type": recogn_type,
+                    "split_type": ["all", "avg"][split_type_index],
+                    "model_name": model,
+                    "is_cuda": is_cuda,
+                    "target_dir": RESULT_DIR,
+                    "detect_language": langcode
+                }, it)
                 config.prepare_queue.append(trk)
-            th=SignThread(uuid_list=uuid_list,parent=winobj)
+            th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
             th.start()
 
         except Exception as e:
-            QMessageBox.critical(winobj,config.transobj['anerror'],str(e))
-
+            QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
 
     def check_cuda(state):
         # 选中如果无效，则取消

@@ -130,7 +130,7 @@ def start(audio, path, source="logs", uuid=None):
     grouplen = len(reslist)
     per = round(1 / grouplen, 2)
     for i, audio_seg in enumerate(reslist):
-        if config.exit_soft or (uuid in config.stoped_uuid_set ):
+        if config.exit_soft or (uuid in config.stoped_uuid_set):
             return
         audio_path = Path(audio_seg)
         path_dir = audio_path.parent / audio_path.stem

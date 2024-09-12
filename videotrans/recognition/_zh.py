@@ -6,7 +6,6 @@ import requests
 from videotrans.configure import config
 from videotrans.configure._except import LogExcept
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
 
 
 class ZhRecogn(BaseRecogn):

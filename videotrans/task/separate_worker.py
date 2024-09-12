@@ -1,6 +1,5 @@
 # 从日志队列获取日志
 import threading
-import time
 
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
@@ -12,12 +11,12 @@ from videotrans.util import tools
 class SeparateWorker(QThread):
     finish_event = pyqtSignal(str)
 
-    def __init__(self, *, basename=None, file=None, out=None, parent=None,uuid=None):
+    def __init__(self, *, basename=None, file=None, out=None, parent=None, uuid=None):
         super().__init__(parent=parent)
         self.basename = basename
         self.file = file
         self.out = out
-        self.uuid=uuid
+        self.uuid = uuid
 
     def getqueulog(self):
         while 1:
@@ -31,10 +30,9 @@ class SeparateWorker(QThread):
             try:
                 data = q.get(True, 0.5)
                 if data:
-                    self.finish_event.emit('logs:'+data['text'])
+                    self.finish_event.emit('logs:' + data['text'])
             except Exception:
                 pass
-
 
     def run(self):
         try:
@@ -57,10 +55,9 @@ class SeparateWorker(QThread):
                 self.file = newfile
             tools.set_process(uuid=self.uuid)
             threading.Thread(target=self.getqueulog).start()
-            st.start(self.file, self.out, "win",uuid=self.uuid)
+            st.start(self.file, self.out, "win", uuid=self.uuid)
         except Exception as e:
             msg = f"separate vocal and background music:{str(e)}"
             self.finish_event.emit(msg)
         else:
             self.finish_event.emit('succeed')
-

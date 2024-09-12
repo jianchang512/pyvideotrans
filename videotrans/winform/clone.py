@@ -22,7 +22,8 @@ def openwin():
                 if len(config.params["clone_voicelist"]) < 2:
                     raise Exception('没有可供测试的声音')
                 tts.run(
-                    queue_tts=[{"text":self.text,"role":config.params["clone_voicelist"][1],"filename":config.TEMP_HOME + "/testclone.mp3","tts_type":tts.CLONE_VOICE_TTS}],
+                    queue_tts=[{"text": self.text, "role": config.params["clone_voicelist"][1],
+                                "filename": config.TEMP_HOME + "/testclone.mp3", "tts_type": tts.CLONE_VOICE_TTS}],
                     language=self.language,
                     play=True,
                     is_test=True

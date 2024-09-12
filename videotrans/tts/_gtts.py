@@ -1,5 +1,4 @@
 import copy
-import os
 from typing import Union, Dict, List
 
 import requests
@@ -9,20 +8,20 @@ from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
+
 # 线程池并发
 
 class GTTS(BaseTTS):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        self.copydata=copy.deepcopy(self.queue_tts)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.copydata = copy.deepcopy(self.queue_tts)
 
     def _exec(self):
         self._set_proxy(type='set')
         self._local_mul_thread()
 
-
-    def _item_task(self,data_item:Union[Dict,List,None]):
+    def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit():
             return
         if not data_item or tools.vail_file(data_item['filename']):
@@ -39,14 +38,14 @@ class GTTS(BaseTTS):
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error=''
-            self.has_done+=1
+            self.error = ''
+            self.has_done += 1
         except requests.ConnectionError as e:
-            self.error=str(e)
-            config.logger.exception(e,exc_info=True)
+            self.error = str(e)
+            config.logger.exception(e, exc_info=True)
         except Exception as e:
             self.error = str(e)
-            config.logger.exception(e,exc_info=True)
+            config.logger.exception(e, exc_info=True)
         finally:
             if self.error:
                 self._signal(text=self.error)

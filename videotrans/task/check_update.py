@@ -25,10 +25,12 @@ class CheckUpdateWorker(QThread):
                                proxies=proxies)
             if res.status_code == 200:
                 d = res.json()
+                print(d)
                 if d['version_num'] > videotrans.VERSION_NUM:
                     msg = f"{transobj['newversion']}:{d['version']}"
                     set_process(text=msg, type="check_soft_update")
         except Exception as e:
+            print(e)
             pass
         return False
 

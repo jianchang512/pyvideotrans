@@ -54,7 +54,7 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
@@ -62,7 +62,7 @@ def openwin():
         elif d['type'] == 'jd' or d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.startbtn.setText(config.transobj['zhixingwc'])
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
@@ -86,7 +86,7 @@ def openwin():
             QMessageBox.critical(winobj, config.transobj['anerror'],
                                  '必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ')
             return
-        winobj.has_done=False
+        winobj.has_done = False
 
         winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')

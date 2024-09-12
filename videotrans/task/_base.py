@@ -24,39 +24,39 @@ class BaseTask(BaseCon):
         }
         """
         self.config_params = {
-            "video_info":None,
-            "h264":None,
+            "video_info": None,
+            "h264": None,
 
-            "cache_folder":None,
-            "target_dir":None,
+            "cache_folder": None,
+            "target_dir": None,
 
-            "detect_language":None,
+            "detect_language": None,
             'subtitle_language': None,
 
-            "source_language_code":None,
-            "target_language_code":None,
+            "source_language_code": None,
+            "target_language_code": None,
 
-            "source_sub":None,
-            "target_sub":None,
+            "source_sub": None,
+            "target_sub": None,
 
-            "source_wav":None,
-            "target_wav":None,
+            "source_wav": None,
+            "target_wav": None,
 
-            "novoice_mp4":None,
-            "targetdir_mp4":None,
+            "novoice_mp4": None,
+            "targetdir_mp4": None,
 
-            "instrument":None,
-            "vocal":None,
+            "instrument": None,
+            "vocal": None,
 
-            "shibie_audio":None,
+            "shibie_audio": None,
 
             'background_music': None
         }
         self.config_params.update(config_params)
         if obj:
             self.config_params.update(obj)
-        if "uuid" in  self.config_params and self.config_params['uuid']:
-            self.uuid=self.config_params['uuid']
+        if "uuid" in self.config_params and self.config_params['uuid']:
+            self.uuid = self.config_params['uuid']
 
         # 进度
         self.precent = 1
@@ -81,25 +81,30 @@ class BaseTask(BaseCon):
         self.shoud_hebing = False
         # 最后一步hebing move_emd 全部需要
 
-
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
         pass
+
     # 语音识别创建原始语言字幕
     def recogn(self):
         pass
+
     # 将原始语言字幕翻译到目标语言字幕
     def trans(self):
         pass
+
     # 根据 queue_tts 进行配音
     def dubbing(self):
         pass
+
     # 配音加速、视频慢速对齐
     def align(self):
         pass
+
     # 视频、音频、字幕合并生成结果文件
     def assembling(self):
         pass
+
     # 删除临时文件，移动或复制，发送成功消息
     def task_done(self):
         pass
@@ -128,9 +133,8 @@ class BaseTask(BaseCon):
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True
 
-
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):
-        if config.exit_soft or config.current_status!='ing':
+        if config.exit_soft or config.current_status != 'ing':
             return True
         return False

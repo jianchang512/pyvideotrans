@@ -6,7 +6,9 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6.QtWidgets import QMessageBox, QFileDialog
+from PySide6 import QtCore
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
 from videotrans import translator, tts
 from videotrans.configure import config
@@ -15,13 +17,22 @@ from videotrans.tts import EDGE_TTS, CLONE_VOICE_TTS
 from videotrans.util import tools
 
 
-class SecUtilWin:
+class WinActionSub:
+    def update_tips(self,text):
+        if not self.update_btn:
+            self.update_btn = QPushButton()
+            self.update_btn.setStyleSheet('color:#ffff00;border:0')
+            self.update_btn.setCursor(QtCore.Qt.PointingHandCursor)
+            self.update_btn.clicked.connect(lambda: self.open_url('download'))
+            self.main.container.addWidget(self.update_btn)
+        self.update_btn.setText(text)
     # 关于页面
     def about(self):
-        from videotrans.component import InfoForm
-        self.main.infofrom = InfoForm()
-        self.main.infofrom.show()
-
+        def open():
+            from videotrans.component import InfoForm
+            self.main.infofrom = InfoForm()
+            self.main.infofrom.show()
+        QTimer.singleShot(100,open)
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
@@ -205,7 +216,6 @@ class SecUtilWin:
         # cuda
         self.main.enable_cuda.show()
 
-
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
         def hide_recursive(layout, show_status):
@@ -221,13 +231,11 @@ class SecUtilWin:
 
         hide_recursive(wrap_layout, show_status)
 
-
     def open_url(self, title):
         if title == 'online':
             self.about()
         else:
             tools.open_url(title=title)
-
 
     def clearcache(self):
         if config.defaulelang == 'zh':
@@ -244,12 +252,11 @@ class SecUtilWin:
                                     'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
 
-
     # get video filter mp4
     def get_mp4(self):
-        format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
+        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
         if self.main.app_mode == 'tiqu':
-            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
+            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.params['last_opendir'],
                                                  f'Files({format_str})')
         if len(fnames) < 1:
@@ -268,7 +275,6 @@ class SecUtilWin:
                                                    config.params['last_opendir'])
         dirname = Path(dirname).as_posix()
         self.main.target_dir.setText(dirname)
-
 
     # 设置或删除代理
     def change_proxy(self, p):
@@ -309,7 +315,6 @@ class SecUtilWin:
             pass
         return True
 
-
     # 核对字幕
     def check_txt(self, txt=''):
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
@@ -345,7 +350,6 @@ class SecUtilWin:
                 return False
         return True
 
-
     # 检测各个模式下参数是否设置正确
     def set_mode(self):
         if self.main.app_mode == 'tiqu' or (
@@ -368,7 +372,7 @@ class SecUtilWin:
 
     # 导入背景声音
     def get_background(self):
-        format_str=" ".join([ '*.'+f  for f in  config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(self.main, 'Background music', config.params['last_opendir'],
                                                f"Audio files({format_str})")
         if not fname:
@@ -404,7 +408,6 @@ class SecUtilWin:
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu'] else type)
 
-
     # 0=整体识别模型
     # 1=均等分割模式
     def check_split_type(self, index):
@@ -412,7 +415,6 @@ class SecUtilWin:
             config.params['split_type'] = 'all'
         else:
             config.params['split_type'] = 'avg'
-
 
     # 试听配音
     def listen_voice_fun(self):
@@ -432,7 +434,7 @@ class SecUtilWin:
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
-        rate=int(self.main.voice_rate.value())
+        rate = int(self.main.voice_rate.value())
         if rate >= 0:
             rate = f"+{rate}%"
         else:
@@ -443,7 +445,6 @@ class SecUtilWin:
         pitch = int(self.main.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-
         voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
 
         obj = {
@@ -453,15 +454,14 @@ class SecUtilWin:
             "filename": voice_file,
             "tts_type": self.main.tts_type.currentIndex(),
             "language": lang,
-            "volume":volume,
+            "volume": volume,
             "pitch": pitch,
         }
         if role == 'clone':
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
             return
-        threading.Thread(target=tts.run,kwargs={"queue_tts":[obj],"play":True,"is_test":True}).start()
-
+        threading.Thread(target=tts.run, kwargs={"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
@@ -472,7 +472,6 @@ class SecUtilWin:
         if self.main.app_mode in ['biaozhun']:
             self.main.listen_btn.show()
             self.main.listen_btn.setDisabled(False)
-
 
     # 判断文件路径是否正确
     def url_right(self):
