@@ -180,7 +180,7 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.ysphb_startbtn.setDisabled(False)
@@ -190,7 +190,7 @@ def openwin():
         elif d['type'] == 'logs':
             winobj.ysphb_startbtn.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.ysphb_startbtn.setText(config.transobj['zhixingwc'])
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_out.setText(d['text'])
@@ -199,11 +199,11 @@ def openwin():
     def get_file(type='video'):
         fname = None
         if type == 'video':
-            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
+            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
             fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Video', config.params['last_opendir'],
                                                    f"Video files({format_str})")
         elif type == 'wav':
-            format_str=" ".join([ '*.'+f  for f in  config.AUDIO_EXITS])
+            format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
             fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params['last_opendir'],
                                                    f"Audio files({format_str})")
         elif type == 'srt':
@@ -222,7 +222,7 @@ def openwin():
         config.params['last_opendir'] = os.path.dirname(fname)
 
     def start():
-        winobj.has_done=False
+        winobj.has_done = False
         # 开始处理分离，判断是否选择了源文件
         video = winobj.ysphb_videoinput.text()
         audio = winobj.ysphb_wavinput.text()

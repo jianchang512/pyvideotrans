@@ -1,11 +1,11 @@
 import multiprocessing
 import threading
+import time
 from pathlib import Path
 from typing import List, Dict, Union
-import time
-from videotrans.configure import config
 
-from videotrans.process_recogn import avg
+from videotrans.configure import config
+from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
 
 
@@ -14,19 +14,19 @@ class FasterAvg(BaseRecogn):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.raws = []
-        self.pidfile=""
+        self.pidfile = ""
 
     # 获取新进程的结果
-    def _get_signal_from_process(self,q):
+    def _get_signal_from_process(self, q):
         while not self.has_done:
             if self._exit():
                 Path(self.pidfile).unlink(missing_ok=True)
                 return
             try:
                 if not q.empty():
-                    data=q.get_nowait()
+                    data = q.get_nowait()
                     if data:
-                        self._signal(text=data['text'],type=data['type'])
+                        self._signal(text=data['text'], type=data['type'])
             except Exception as e:
                 print(e)
             time.sleep(0.5)
@@ -53,17 +53,17 @@ class FasterAvg(BaseRecogn):
                 err = manager.dict({"msg": ""})
 
                 # 创建并启动新进程
-                process = multiprocessing.Process(target=avg.run,args=(raws,err), kwargs={
+                process = multiprocessing.Process(target=run, args=(raws, err), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
                     "audio_file": self.audio_file,
-                    "cache_folder":self.cache_folder,
+                    "cache_folder": self.cache_folder,
                     "q": result_queue,
-                    "settings":config.settings,
-                    "defaulelang":config.defaulelang,
-                    "ROOT_DIR":config.ROOT_DIR,
-                    "TEMP_DIR":config.TEMP_DIR
+                    "settings": config.settings,
+                    "defaulelang": config.defaulelang,
+                    "ROOT_DIR": config.ROOT_DIR,
+                    "TEMP_DIR": config.TEMP_DIR
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
@@ -82,10 +82,9 @@ class FasterAvg(BaseRecogn):
         except BaseException as e:
             raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
         finally:
-            config.model_process=None
-            self.has_done=True
+            config.model_process = None
+            self.has_done = True
 
         if self.error:
             raise Exception(self.error)
         return self.raws
-

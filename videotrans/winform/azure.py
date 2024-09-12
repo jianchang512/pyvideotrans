@@ -17,7 +17,7 @@ def openwin():
         config.params["azure_model"] = model
         config.params["azure_template"] = template
         with open(config.ROOT_DIR + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
-                          encoding='utf-8') as f:
+                  encoding='utf-8') as f:
             f.write(template)
         config.getset_params(config.params)
 

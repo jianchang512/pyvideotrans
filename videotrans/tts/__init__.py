@@ -1,19 +1,16 @@
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+from videotrans.tts._ai302tts import AI302
 from videotrans.tts._azuretts import AzureTTS
 from videotrans.tts._chattts import ChatTTS
 from videotrans.tts._clone import CloneVoice
 from videotrans.tts._cosyvoice import CosyVoice
 from videotrans.tts._edgetts import EdgeTTS
-
-from videotrans.tts._ai302tts import AI302
 from videotrans.tts._elevenlabs import ElevenLabs
 from videotrans.tts._fishtts import FishTTS
 from videotrans.tts._gptsovits import GPTSoVITS
 from videotrans.tts._gtts import GTTS
 from videotrans.tts._openaitts import OPENAITTS
 from videotrans.tts._ttsapi import TTSAPI
-from videotrans.util import tools
 from videotrans.winform import openaitts as openaitts_win, ai302tts as ai302tts_win, clone as clone_win, \
     elevenlabs as elevenlabs_win, ttsapi as ttsapi_win, gptsovits as gptsovits_win, cosyvoice as cosyvoice_win, \
     fishtts as fishtts_win, chattts as chattts_win, \
@@ -105,42 +102,42 @@ def is_input_api(tts_type: int = None):
     return True
 
 
-def run(*, queue_tts=None, language=None, inst=None, uuid=None,play=False,is_test=False)->None:
+def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_test=False) -> None:
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
-    if config.exit_soft  or ( not is_test and config.current_status != 'ing' and config.box_tts != 'ing'):
+    if config.exit_soft or (not is_test and config.current_status != 'ing' and config.box_tts != 'ing'):
         return
-    tts_type=queue_tts[0]['tts_type']
-    kwargs={
-        "queue_tts":queue_tts,
-        "language":language,
-        "inst":inst,
-        "uuid":uuid,
-        "play":play,
-        "is_test":is_test
+    tts_type = queue_tts[0]['tts_type']
+    kwargs = {
+        "queue_tts": queue_tts,
+        "language": language,
+        "inst": inst,
+        "uuid": uuid,
+        "play": play,
+        "is_test": is_test
     }
     if tts_type == AZURE_TTS:
         AzureTTS(**kwargs).run()
-    elif tts_type==EDGE_TTS:
+    elif tts_type == EDGE_TTS:
         EdgeTTS(**kwargs).run()
-    elif tts_type==AI302_TTS:
+    elif tts_type == AI302_TTS:
         AI302(**kwargs).run()
-    elif tts_type==COSYVOICE_TTS:
+    elif tts_type == COSYVOICE_TTS:
         CosyVoice(**kwargs).run()
-    elif tts_type==CHATTTS:
+    elif tts_type == CHATTTS:
         ChatTTS(**kwargs).run()
-    elif tts_type==FISHTTS:
+    elif tts_type == FISHTTS:
         FishTTS(**kwargs).run()
-    elif tts_type==GPTSOVITS_TTS:
+    elif tts_type == GPTSOVITS_TTS:
         GPTSoVITS(**kwargs).run()
-    elif tts_type==CLONE_VOICE_TTS:
+    elif tts_type == CLONE_VOICE_TTS:
         CloneVoice(**kwargs).run()
-    elif tts_type==OPENAI_TTS:
+    elif tts_type == OPENAI_TTS:
         OPENAITTS(**kwargs).run()
-    elif tts_type==ELEVENLABS_TTS:
+    elif tts_type == ELEVENLABS_TTS:
         ElevenLabs(**kwargs).run()
-    elif tts_type==GOOGLE_TTS:
+    elif tts_type == GOOGLE_TTS:
         GTTS(**kwargs).run()
-    elif tts_type==TTS_API:
+    elif tts_type == TTS_API:
         TTSAPI(**kwargs).run()

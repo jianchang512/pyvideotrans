@@ -327,7 +327,7 @@ class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Recognform(QtWidgets.QWidget,Ui_recogn):  # <===
+class Recognform(QtWidgets.QWidget, Ui_recogn):  # <===
     def __init__(self, parent=None):
         super(Recognform, self).__init__(parent)
         self.setupUi(self)
@@ -374,6 +374,7 @@ class SubtitlescoverForm(QDialog, Ui_subtitlescover):  # <===
         super(SubtitlescoverForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
 
 class SubtitleEditer(Ui_subtitleEditor):  # <===
     def __init__(self):

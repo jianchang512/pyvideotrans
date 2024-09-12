@@ -11,24 +11,28 @@ from faster_whisper import WhisperModel
 from videotrans.util.tools import ms_to_time_string
 
 
-def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  flag, join_word_flag,q:multiprocessing.Queue,ROOT_DIR,TEMP_DIR,settings,defaulelang):
+def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, flag, join_word_flag,
+        q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang):
     os.chdir(ROOT_DIR)
-    jianfan=True if detect_language[:2] == 'zh' and settings['zh_hant_s'] else False
+    jianfan = True if detect_language[:2] == 'zh' and settings['zh_hant_s'] else False
     down_root = ROOT_DIR + "/models"
+
     def write_log(jsondata):
         try:
             q.put_nowait(jsondata)
         except:
             pass
+
     def append_raws(tmp):
         try:
             if jianfan:
-                tmp['text']=zhconv.convert(tmp['text'], 'zh-hans')
-            q.put_nowait({"text":f'{tmp["line"]}\n{tmp["time"]}\n{tmp["text"]}\n\n',"type":"subtitle"})
-            q.put_nowait({"text":f' {"字幕" if defaulelang=="zh" else "Subtitles"} {len(raws)+1} ',"type":"logs"})
+                tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
+            q.put_nowait({"text": f'{tmp["line"]}\n{tmp["time"]}\n{tmp["text"]}\n\n', "type": "subtitle"})
+            q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
         except:
             pass
         raws.append(tmp)
+
     try:
         # 不存在 / ，是普通本地已有模型，直接本地加载，否则在线下载
         local_res = True if model_name.find('/') == -1 else False
@@ -37,7 +41,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                 msg = '下载模型中，用时可能较久' if defaulelang == 'zh' else 'Download model from huggingface'
             else:
                 msg = '加载或下载模型中，用时可能较久' if defaulelang == 'zh' else 'Load model from local or download model from huggingface'
-            write_log({"text":msg,"type":"logs"})
+            write_log({"text": msg, "type": "logs"})
         if model_name.startswith('distil-'):
             com_type = "default"
         elif is_cuda:
@@ -57,7 +61,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
 
             )
         except Exception as e:
-            if re.match(r'backend do not support',str(e),re.I):
+            if re.match(r'backend do not support', str(e), re.I):
                 # 如果所选数据类型不支持，则使用默认
                 model = WhisperModel(
                     model_name,
@@ -70,7 +74,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                     local_files_only=local_res
                 )
             else:
-                err['msg']=str(e)
+                err['msg'] = str(e)
                 return
 
         prompt = settings.get(f'initial_prompt_{detect_language}')
@@ -80,7 +84,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
             best_of=settings['best_of'],
             condition_on_previous_text=settings['condition_on_previous_text'],
             temperature=0.0 if int(settings['temperature']) == 0 else [0.0, 0.2, 0.4, 0.6,
-                                                                              0.8, 1.0],
+                                                                       0.8, 1.0],
             vad_filter=bool(settings['vad']),
             vad_parameters=dict(
                 min_silence_duration_ms=settings['overall_silence'],
@@ -93,7 +97,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
             initial_prompt=prompt if prompt else None
         )
         for segment in segments:
-            if not Path(TEMP_DIR+f'/{os.getpid()}.lock'):
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
                 return
             if len(segment.words) < 1:
                 continue
@@ -104,7 +108,7 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                     "line": len(raws) + 1,
                     "start_time": int(segment.words[0].start * 1000),
                     "end_time": int(segment.words[-1].end * 1000),
-                    "text":segment.text.strip(),
+                    "text": segment.text.strip(),
                 }
                 tmp[
                     'time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
@@ -141,7 +145,8 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                         "end_time": int(segment.words[-1].end * 1000),
                         "text": segment.text.strip()
                     }
-                    tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
+                    tmp[
+                        'time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
                     append_raws(tmp)
                     continue
                 else:
@@ -172,13 +177,13 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                     # words组里起点索引为当前切分点+1
                     st = idx + 1
                     # 下一个为结束点,未到末尾
-                    if i<len(split_idx_list)-1:
-                        ed = split_idx_list[i+1]
+                    if i < len(split_idx_list) - 1:
+                        ed = split_idx_list[i + 1]
                     else:
                         # 已到末尾
-                        ed=len(segment.words)-1
-                    texts=[]
-                    for k in range(st,ed+1):
+                        ed = len(segment.words) - 1
+                    texts = []
+                    for k in range(st, ed + 1):
                         texts.append(segment.words[k].word)
                     tmp = {
                         "line": len(raws) + 1,
@@ -212,9 +217,9 @@ def run(raws,err,*,model_name, is_cuda, detect_language, audio_file, maxlen,  fl
                 'time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
             append_raws(tmp)
     except Exception as e:
-        err['msg']=str(e)
+        err['msg'] = str(e)
     except BaseException as e:
-        err['msg']=str(e)
+        err['msg'] = str(e)
     finally:
         try:
             if torch.cuda.is_available():

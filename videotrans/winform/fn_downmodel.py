@@ -10,13 +10,13 @@ def openwin(model_name=None, recogn_type=None):
     from videotrans.component import DownloadModelForm
     try:
         winobj = DownloadModelForm()
-        config.child_forms['down_win']=winobj
+        config.child_forms['down_win'] = winobj
         if recogn_type == OPENAI_WHISPER:
             name = f'OpenAI Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['openai'][model_name]
             text_help = f'请下载{model_name}.pt 后将该文件复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {model_name}.pt and copy the file to {config.ROOT_DIR}/models folder.'
         else:
-            name = f'OpenAI Whisper:  {model_name}'
+            name = f'Faster Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['faster'][model_name]
             zipname = url.split('/')[-1].replace('?download=true', '')
             folder_name = f'models--Systran--faster-whisper-{model_name}'

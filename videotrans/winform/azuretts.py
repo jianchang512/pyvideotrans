@@ -3,7 +3,6 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.util import tools
 
 
 def openwin():
@@ -19,7 +18,8 @@ def openwin():
         def run(self):
             try:
                 tts.run(
-                    queue_tts=[{"text": self.text, "role": self.role, "filename": config.TEMP_HOME + "/testaiazure.mp3", "tts_type": tts.AI302_TTS}],
+                    queue_tts=[{"text": self.text, "role": self.role, "filename": config.TEMP_HOME + "/testaiazure.mp3",
+                                "tts_type": tts.AI302_TTS}],
                     language=self.language,
                     play=True,
                     is_test=True

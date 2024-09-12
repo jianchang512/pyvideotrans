@@ -1,10 +1,10 @@
 import multiprocessing
 import threading
-
-from pathlib import Path
 import time
+from pathlib import Path
+
 from videotrans.configure import config
-from videotrans.process_recogn import whole
+from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
 
 
@@ -13,32 +13,30 @@ class FasterAll(BaseRecogn):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.raws = []
-        self.pidfile=""
+        self.pidfile = ""
         if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:
             self.flag.append(" ")
             self.maxlen = int(config.settings['cjk_len'])
         else:
             self.maxlen = int(config.settings['other_len'])
-        self.error=''
-
+        self.error = ''
 
     # 获取新进程的结果
-    def _get_signal_from_process(self,q:multiprocessing.Queue):
+    def _get_signal_from_process(self, q: multiprocessing.Queue):
         while not self.has_done:
             if self._exit():
                 Path(self.pidfile).unlink(missing_ok=True)
                 return
             try:
                 if not q.empty():
-                    data=q.get_nowait()
-                    if self.inst and self.inst.precent<50:
-                        self.inst.precent+=0.1
+                    data = q.get_nowait()
+                    if self.inst and self.inst.precent < 50:
+                        self.inst.precent += 0.1
                     if data:
-                        self._signal(text=data['text'],type=data['type'])
+                        self._signal(text=data['text'], type=data['type'])
             except Exception as e:
                 print(e)
             time.sleep(0.2)
-
 
     def _exec(self):
         while 1:
@@ -54,13 +52,13 @@ class FasterAll(BaseRecogn):
         # 创建队列用于在进程间传递结果
         result_queue = multiprocessing.Queue()
         try:
-            self.has_done=False
-            threading.Thread(target=self._get_signal_from_process,args=(result_queue,)).start()
+            self.has_done = False
+            threading.Thread(target=self._get_signal_from_process, args=(result_queue,)).start()
             with multiprocessing.Manager() as manager:
-                raws=manager.list([])
-                err=manager.dict({"msg":""})
+                raws = manager.list([])
+                err = manager.dict({"msg": ""})
                 # 创建并启动新进程
-                process = multiprocessing.Process(target=whole.run, args=(raws,err),kwargs={
+                process = multiprocessing.Process(target=run, args=(raws, err), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
@@ -68,11 +66,11 @@ class FasterAll(BaseRecogn):
                     "maxlen": self.maxlen,
                     "flag": self.flag,
                     "join_word_flag": self.join_word_flag,
-                    "q":result_queue,
-                    "settings":config.settings,
-                    "defaulelang":config.defaulelang,
-                    "ROOT_DIR":config.ROOT_DIR,
-                    "TEMP_DIR":config.TEMP_DIR
+                    "q": result_queue,
+                    "settings": config.settings,
+                    "defaulelang": config.defaulelang,
+                    "ROOT_DIR": config.ROOT_DIR,
+                    "TEMP_DIR": config.TEMP_DIR
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
@@ -80,9 +78,9 @@ class FasterAll(BaseRecogn):
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error=str(err['msg'])
+                    self.error = str(err['msg'])
                 else:
-                    self.raws=list(raws)
+                    self.raws = list(raws)
                 try:
                     if process.is_alive():
                         process.terminate()
@@ -92,8 +90,8 @@ class FasterAll(BaseRecogn):
             raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
         finally:
             # 暂停2s，等待exit判断，循环线程退出
-            config.model_process=None
-            self.has_done=True
+            config.model_process = None
+            self.has_done = True
 
         if self.error:
             raise Exception(self.error)

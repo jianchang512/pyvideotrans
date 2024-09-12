@@ -1,5 +1,4 @@
 # openai
-import os
 from pathlib import Path
 from typing import Union, List, Dict
 
@@ -9,7 +8,6 @@ import zhconv
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -69,7 +67,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
             device="cuda" if self.is_cuda else "cpu",
             download_root=config.ROOT_DIR + "/models"
         )
-        prompt=config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
         try:
             for i in range(total_length):
                 if self._exit():
@@ -98,14 +96,16 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         continue
                     len_text = len(segment['text'].strip())
                     # 如果小于 maxlen*1.5 或 小于 5s，则为正常语句
-                    if len_text <= self.maxlen * 1.2 or (segment['words'][-1]['end'] - segment['words'][0]['start']) < 3:
+                    if len_text <= self.maxlen * 1.2 or (
+                            segment['words'][-1]['end'] - segment['words'][0]['start']) < 3:
                         tmp = {
                             "line": len(self.raws) + 1,
-                            "start_time": int(segment['words'][0]['start'] * 1000)+start_time,
-                            "end_time": int(segment['words'][-1]['end'] * 1000)+start_time,
+                            "start_time": int(segment['words'][0]['start'] * 1000) + start_time,
+                            "end_time": int(segment['words'][-1]['end'] * 1000) + start_time,
                             "text": segment['text'].strip(),
                         }
-                        tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                        tmp[
+                            'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                         self._append_raws(tmp)
                         continue
 
@@ -135,8 +135,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         if len_text <= self.maxlen * 1.3:
                             tmp = {
                                 "line": len(self.raws) + 1,
-                                "start_time": int(segment['words'][0]['start'] * 1000)+start_time,
-                                "end_time": int(segment['words'][-1]['end'] * 1000)+start_time,
+                                "start_time": int(segment['words'][0]['start'] * 1000) + start_time,
+                                "end_time": int(segment['words'][-1]['end'] * 1000) + start_time,
                                 "text": segment['text'].strip()
                             }
                             tmp[
@@ -175,34 +175,38 @@ class OpenaiWhisperRecogn(BaseRecogn):
                                 ed = split_idx_list[i + 1]
                                 tmp = {
                                     "line": len(self.raws) + 1,
-                                    "start_time": int(segment['words'][st]['start'] * 1000)+start_time,
-                                    "end_time": int(segment['words'][ed]['end'] * 1000)+start_time,
+                                    "start_time": int(segment['words'][st]['start'] * 1000) + start_time,
+                                    "end_time": int(segment['words'][ed]['end'] * 1000) + start_time,
                                     "text": self.join_word_flag.join(
-                                        [word['word'] for i, word in enumerate(segment['words']) if i <= ed and i >= st])
+                                        [word['word'] for i, word in enumerate(segment['words']) if
+                                         i <= ed and i >= st])
                                 }
-                                tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                                tmp[
+                                    'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                                 self._append_raws(tmp)
                         continue
 
                     # [0:split_idx] [split_idx:-1]
                     tmp = {
                         "line": len(self.raws) + 1,
-                        "start_time": int(segment['words'][0]['start'] * 1000)+start_time,
-                        "end_time": int(segment['words'][split_idx]['end'] * 1000)+start_time,
+                        "start_time": int(segment['words'][0]['start'] * 1000) + start_time,
+                        "end_time": int(segment['words'][split_idx]['end'] * 1000) + start_time,
                         "text": self.join_word_flag.join(
                             [word['word'] for i, word in enumerate(segment['words']) if i <= split_idx])
                     }
-                    tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                    tmp[
+                        'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                     self._append_raws(tmp)
 
                     tmp = {
                         "line": len(self.raws) + 1,
-                        "start_time": int(segment['words'][split_idx + 1]['start'] * 1000)+start_time,
-                        "end_time": int(segment['words'][-1]['end'] * 1000)+start_time,
+                        "start_time": int(segment['words'][split_idx + 1]['start'] * 1000) + start_time,
+                        "end_time": int(segment['words'][-1]['end'] * 1000) + start_time,
                         "text": self.join_word_flag.join(
                             [word['word'] for i, word in enumerate(segment['words']) if i > split_idx])
                     }
-                    tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                    tmp[
+                        'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                     self._append_raws(tmp)
         except Exception as e:
             raise
@@ -217,8 +221,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
             for i, it in enumerate(self.raws):
                 self.raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
         return self.raws
-
-
 
     def _exec0(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -238,7 +240,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
             device="cuda" if self.is_cuda else "cpu",
             download_root=config.ROOT_DIR + "/models"
         )
-        prompt=config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
         try:
             for i in range(total_length):
                 if self._exit():
@@ -302,7 +304,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                                 cur['end_time'] = int(word["end"] * 1000) + start_time
                                 continue
 
-                            cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                            cur[
+                                'time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
                             cur['text'] = cur['text'].strip()
                             self._append_raws(cur)
 
@@ -323,13 +326,15 @@ class OpenaiWhisperRecogn(BaseRecogn):
                             cur['end_time'] = int(word["end"] * 1000) + start_time
                             if cur['end_time'] - cur['start_time'] < 1500:
                                 continue
-                            cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                            cur[
+                                'time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
                             self._append_raws(cur)
                             cur = None
                     # cur中有残留文字
                     if cur is not None:
                         cur['end_time'] = int(segment["words"][-1]["end"] * 1000) + start_time
-                        cur['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
+                        cur[
+                            'time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
                         if len(cur['text']) <= 3:
                             self.raws[-1]['text'] += cur['text'].strip()
                             self.raws[-1]['end_time'] = cur['end_time']
@@ -350,4 +355,3 @@ class OpenaiWhisperRecogn(BaseRecogn):
             for i, it in enumerate(self.raws):
                 self.raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
         return self.raws
-

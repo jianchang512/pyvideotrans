@@ -15,7 +15,7 @@ class DropButton(QPushButton):
         self.filelist = []
 
     def get_file(self):
-        format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS+config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
                                                  config.params['last_opendir'],
                                                  filter=f"Video/Audio files({format_str})")
@@ -30,7 +30,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow = True
         for it in files.split("\n"):
-            if it.split('.')[-1] not in config.VIDEO_EXTS+config.AUDIO_EXITS:
+            if it.split('.')[-1] not in config.VIDEO_EXTS + config.AUDIO_EXITS:
                 allow = False
                 break
         if allow:
@@ -80,7 +80,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS+config.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS + config.AUDIO_EXITS:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -93,7 +93,7 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS+config.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS + config.AUDIO_EXITS:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)

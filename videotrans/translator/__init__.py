@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 from typing import Union, List
 
 from PySide6.QtWidgets import QMessageBox
@@ -16,11 +15,12 @@ from videotrans.translator._gemini import Gemini
 from videotrans.translator._google import Google
 from videotrans.translator._huoshan import HuoShan
 from videotrans.translator._localllm import LocalLLM
-from videotrans.translator._ott import OTT
 from videotrans.translator._microsoft import Microsoft
+from videotrans.translator._ott import OTT
 from videotrans.translator._tencent import Tencent
 from videotrans.translator._transapi import TransAPI
-from videotrans.winform import chatgpt, gemini, azure,baidu,tencent,deepLX,deepL,ott,localllm,transapi,zijiehuoshan,ai302
+from videotrans.winform import chatgpt, gemini, azure, baidu, tencent, deepLX, deepL, ott, localllm, transapi, \
+    zijiehuoshan, ai302
 
 # 数字代表显示顺序
 GOOGLE_INDEX = 0
@@ -337,15 +337,15 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     target_list = None
 
     # 新增的自定义语言翻译代码，该代码既不在 LANG_CODE 也不在 config.rev_langlist，原羌返回即可
-    customize_source_code=show_source if show_source and  show_source not in LANG_CODE and show_source not in config.rev_langlist else None
-    customize_target_code=show_target if show_target and  show_target not in LANG_CODE and show_target not in config.rev_langlist else None
+    customize_source_code = show_source if show_source and show_source not in LANG_CODE and show_source not in config.rev_langlist else None
+    customize_target_code = show_target if show_target and show_target not in LANG_CODE and show_target not in config.rev_langlist else None
     if customize_source_code or customize_target_code:
-        return customize_source_code,customize_target_code
+        return customize_source_code, customize_target_code
 
-    if show_source and show_source !='-':
+    if show_source and show_source != '-':
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_source]]
-    if show_target and show_target!='-':
+    if show_target and show_target != '-':
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
     if translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
@@ -373,7 +373,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None):
-    if translate_type in [GOOGLE_INDEX,FREEGOOGLE_INDEX]:
+    if translate_type in [GOOGLE_INDEX, FREEGOOGLE_INDEX]:
         return True
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
         chatgpt.openwin()
@@ -472,20 +472,20 @@ def run(*, translate_type=None,
         is_test=False,
         source_code=None,
         task_type="masterwin",
-        uuid=None)->Union[List,str,None]:
+        uuid=None) -> Union[List, str, None]:
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
-    kwargs={
-        "text_list":text_list,
-        "target_language":target_language,
-        "inst":inst,
-        "source_code":source_code,
-        "uuid":uuid,
-        "is_test":is_test,
-        "task_type":task_type
+    kwargs = {
+        "text_list": text_list,
+        "target_language": target_language,
+        "inst": inst,
+        "source_code": source_code,
+        "uuid": uuid,
+        "is_test": is_test,
+        "task_type": task_type
     }
-    if translate_type==GOOGLE_INDEX:
+    if translate_type == GOOGLE_INDEX:
         return Google(**kwargs).run()
-    if translate_type==FREEGOOGLE_INDEX:
+    if translate_type == FREEGOOGLE_INDEX:
         return FreeGoogle(**kwargs).run()
 
     if translate_type == MICROSOFT_INDEX:

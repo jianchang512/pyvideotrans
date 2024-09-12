@@ -4,7 +4,6 @@ import json
 import locale
 import logging
 import os
-import random
 import re
 import sys
 from pathlib import Path
@@ -22,7 +21,6 @@ def _get_executable_path():
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
-print(f'{ROOT_DIR=}')
 _root_path = Path(ROOT_DIR)
 
 _tmpname = f'tmp'
@@ -36,7 +34,8 @@ _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = _logs_path.as_posix()
 
-model_process=None
+# 确保同时只能一个 faster-whisper进程在执行
+model_process = None
 
 # 模型下载地址
 MODELS_DOWNLOAD = {
@@ -109,6 +108,7 @@ def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
         return
     logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
+
 # 安装自定义异常钩子
 sys.excepthook = _log_uncaught_exceptions
 
@@ -135,6 +135,8 @@ os.environ['SOFT_NAME'] = 'pyvideotrans'
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
+
+
 def push_queue(uuid, jsondata):
     if uuid in stoped_uuid_set:
         return
@@ -142,15 +144,17 @@ def push_queue(uuid, jsondata):
         uuid_logs_queue[uuid] = Queue()
     try:
         # 暂停时会重设为字符串 stop
-        if isinstance(uuid_logs_queue[uuid],Queue):
+        if isinstance(uuid_logs_queue[uuid], Queue):
             uuid_logs_queue[uuid].put_nowait(jsondata)
     except Exception:
         pass
-# 存储已停止/暂停的任务
-stoped_uuid_set=set()
 
-# 全局信号队列，不存在uuid，用于控制软件
-global_queue=Queue()
+
+# 存储已停止/暂停的任务
+stoped_uuid_set = set()
+
+# 全局消息，不存在uuid，用于控制软件
+global_msg = []
 
 # 软件退出
 exit_soft = False
@@ -178,7 +182,6 @@ box_recogn = 'stop'
 # 倒计时数秒
 task_countdown = 0
 
-
 #####################################
 # 预先处理队列
 prepare_queue = []
@@ -193,16 +196,14 @@ align_queue = []
 # 合成队列
 assemb_queue = []
 
-# 全局已执行完毕的任务id列表，包括成功和失败的,用于判断当前任务是否已结束
-ended_uuid = []
 
 # 支持的视频格式
-VIDEO_EXTS=["mp4","mkv","mpeg","avi","mov"]
-#支持的音频格式
-AUDIO_EXITS=["mp3","wav","aac","flac","m4a"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov"]
+# 支持的音频格式
+AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
-video_codec= None
+video_codec = None
 
 #######################################
 # openai角色
@@ -216,6 +217,7 @@ try:
     defaulelang = locale.getdefaultlocale()[0][:2].lower()
 except Exception:
     defaulelang = "zh"
+
 
 # 设置默认高级参数值
 def parse_init():
@@ -263,7 +265,7 @@ def parse_init():
         "backaudio_volume": 0.8,
         "separate_sec": 600,
         "loop_backaudio": True,
-        "cuda_com_type": "float32",#int8 int8_float16 int8_float32
+        "cuda_com_type": "float32",  # int8 int8_float16 int8_float32
         "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
         "initial_prompt_zh-tw": "在每行末尾添加標點符號，在每個句子末尾添加標點符號。",
         "initial_prompt_en": "Add punctuation at the end of each line, and punctuation at the end of each sentence.",
@@ -306,7 +308,7 @@ def parse_init():
         "zh_hant_s": True,
         "azure_lines": 150,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
-        "google_trans_newadd":""
+        "google_trans_newadd": ""
 
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):
@@ -340,6 +342,7 @@ def parse_init():
             default["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         json.dump(default, open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
         return default
+
 
 # 高级选项信息
 settings = parse_init()
@@ -507,7 +510,7 @@ Translation:
 
         "tencent_SecretId": "",
         "tencent_SecretKey": "",
-        "tencent_termlist":"",
+        "tencent_termlist": "",
 
         "baidu_appid": "",
         "baidu_miyue": "",
@@ -603,7 +606,7 @@ Translation:
             default.update(json.load(open(ROOT_DIR + "/videotrans/params.json", 'r', encoding='utf-8')))
 
         prompt_langcode = '' if defaulelang == "zh" else "-en"
-        _root_path=Path(ROOT_DIR)
+        _root_path = Path(ROOT_DIR)
         chatgpt_path = _root_path / f'videotrans/chatgpt{prompt_langcode}.txt'
         if chatgpt_path.exists():
             default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
@@ -644,5 +647,7 @@ Translation:
     if not os.path.exists(ROOT_DIR + "/videotrans/params.json"):
         json.dump(default, open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8'), ensure_ascii=False)
     return default
+
+
 # api key 翻译配置等信息，每次执行任务均有变化
 params = getset_params()

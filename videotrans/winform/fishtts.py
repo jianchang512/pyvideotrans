@@ -1,9 +1,8 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
-from videotrans.util import tools
 from videotrans import tts
+from videotrans.configure import config
 
 
 def openwin():

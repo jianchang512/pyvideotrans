@@ -1,4 +1,3 @@
-import builtins
 import json
 import webbrowser
 from pathlib import Path
@@ -6,8 +5,9 @@ from pathlib import Path
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
 from videotrans import translator
+from videotrans.configure import config
+
 
 class TestAI302(QThread):
     uito = Signal(str)
@@ -18,12 +18,14 @@ class TestAI302(QThread):
     def run(self):
         try:
             raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-            text = translator.run(translate_type=translator.AI302_INDEX,text_list=raw, target_language_name="en" if config.defaulelang != 'zh' else "zh",is_test=True)
+            text = translator.run(translate_type=translator.AI302_INDEX, text_list=raw,
+                                  target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
             self.uito.emit(f"ok:{raw}\n{text}")
         except Exception as e:
             self.uito.emit(str(e))
-def openwin():
 
+
+def openwin():
     def feed(d):
         if not d.startswith("ok:"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)

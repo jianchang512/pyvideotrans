@@ -12,9 +12,10 @@ from pydub.silence import detect_nonsilent
 from videotrans.util.tools import ms_to_time_string, match_target_amplitude, vail_file
 
 
-def run(raws,err,*,cache_folder,model_name,is_cuda,detect_language,audio_file,q,settings,
-TEMP_DIR,ROOT_DIR,defaulelang):
+def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_file, q, settings,
+        TEMP_DIR, ROOT_DIR, defaulelang):
     os.chdir(ROOT_DIR)
+
     def write_log(jsondata):
         try:
             q.put_nowait(jsondata)
@@ -30,7 +31,7 @@ TEMP_DIR,ROOT_DIR,defaulelang):
     if vail_file(nonslient_file):
         nonsilent_data = json.load(open(nonslient_file, 'r'))
     else:
-        nonsilent_data = _shorten_voice_old(normalized_sound,settings)
+        nonsilent_data = _shorten_voice_old(normalized_sound, settings)
         json.dump(nonsilent_data, open(nonslient_file, 'w'))
 
     total_length = len(nonsilent_data)
@@ -58,21 +59,21 @@ TEMP_DIR,ROOT_DIR,defaulelang):
             download_root=down_root,
             local_files_only=local_res)
     except Exception as e:
-        if re.match(r'backend do not support',str(e),re.I):
+        if re.match(r'backend do not support', str(e), re.I):
             model = WhisperModel(
-            model_name,
-            device="cuda" if is_cuda else "cpu",
-            compute_type='default',
-            download_root=down_root,
-            local_files_only=local_res)
+                model_name,
+                device="cuda" if is_cuda else "cpu",
+                compute_type='default',
+                download_root=down_root,
+                local_files_only=local_res)
         else:
-            err['msg']=str(e)
+            err['msg'] = str(e)
             return
 
     prompt = settings.get(f'initial_prompt_{detect_language}')
     try:
         for i, duration in enumerate(nonsilent_data):
-            if not Path(TEMP_DIR+f'/{os.getpid()}.lock'):
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
                 return
             start_time, end_time, buffered = duration
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
@@ -81,18 +82,18 @@ TEMP_DIR,ROOT_DIR,defaulelang):
 
             text = ""
             segments, _ = model.transcribe(chunk_filename,
-                                                beam_size=settings['beam_size'],
-                                                best_of=settings['best_of'],
-                                                condition_on_previous_text=settings[
-                                                    'condition_on_previous_text'],
-                                                temperature=0.0 if settings['temperature'] == 0 else [0.0, 0.2,
-                                                                                                             0.4,
-                                                                                                             0.6, 0.8,
-                                                                                                             1.0],
-                                                vad_filter=False,
-                                                language=detect_language[:2],
-                                                initial_prompt=prompt if prompt else None
-                                                )
+                                           beam_size=settings['beam_size'],
+                                           best_of=settings['best_of'],
+                                           condition_on_previous_text=settings[
+                                               'condition_on_previous_text'],
+                                           temperature=0.0 if settings['temperature'] == 0 else [0.0, 0.2,
+                                                                                                 0.4,
+                                                                                                 0.6, 0.8,
+                                                                                                 1.0],
+                                           vad_filter=False,
+                                           language=detect_language[:2],
+                                           initial_prompt=prompt if prompt else None
+                                           )
 
             for t in segments:
                 text += t.text + " "
@@ -114,12 +115,12 @@ TEMP_DIR,ROOT_DIR,defaulelang):
                 "text": text
             }
             raws.append(srt_line)
-            write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n" , "type": "subtitle"})
-            write_log({"text":f" {srt_line['line']}/{total_length}", "type": "logs"})
+            write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", "type": "subtitle"})
+            write_log({"text": f" {srt_line['line']}/{total_length}", "type": "logs"})
     except Exception as e:
-        err['msg']=str(e)
+        err['msg'] = str(e)
     except BaseException as e:
-        err['msg']=str(e)
+        err['msg'] = str(e)
     finally:
         try:
             if torch.cuda.is_available():
@@ -127,8 +128,9 @@ TEMP_DIR,ROOT_DIR,defaulelang):
         except:
             pass
 
+
 # split audio by silence
-def _shorten_voice_old( normalized_sound,settings):
+def _shorten_voice_old(normalized_sound, settings):
     normalized_sound = match_target_amplitude(normalized_sound, -20.0)
     max_interval = int(settings['interval_split']) * 1000
     nonsilent_data = []

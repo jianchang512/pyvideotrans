@@ -1,4 +1,3 @@
-import builtins
 import json
 
 from PySide6 import QtWidgets
@@ -6,7 +5,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.util import tools
+
 
 # 使用内置的 open 函数
 
@@ -22,7 +21,8 @@ def openwin():
         def run(self):
             try:
                 tts.run(
-                    queue_tts=[{"text": self.text, "role": "boy1", "filename": config.TEMP_HOME + "/testchattts.mp3", "tts_type": tts.CHATTTS}],
+                    queue_tts=[{"text": self.text, "role": "boy1", "filename": config.TEMP_HOME + "/testchattts.mp3",
+                                "tts_type": tts.CHATTTS}],
                     language="zh",
                     play=True,
                     is_test=True

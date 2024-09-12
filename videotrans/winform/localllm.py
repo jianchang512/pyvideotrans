@@ -1,4 +1,3 @@
-import builtins
 import json
 
 from PySide6 import QtWidgets
@@ -18,7 +17,8 @@ def openwin():
         def run(self):
             try:
                 raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                text = translator.run(translate_type=translator.LOCALLLM_INDEX,text_list=raw, target_language_name="en" if config.defaulelang != 'zh' else "zh",is_test=True)
+                text = translator.run(translate_type=translator.LOCALLLM_INDEX, text_list=raw,
+                                      target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))
@@ -62,8 +62,8 @@ def openwin():
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
         with open(config.ROOT_DIR + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt",
-                          'w',
-                          encoding='utf-8') as f:
+                  'w',
+                  encoding='utf-8') as f:
             f.write(template)
         config.getset_params(config.params)
         winobj.close()

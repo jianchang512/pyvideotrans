@@ -124,7 +124,7 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
@@ -134,7 +134,7 @@ def openwin():
         elif d['type'] == 'logs':
             winobj.loglabel.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.startbtn.setText(config.transobj['zhixingwc'])
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText(config.transobj['quanbuend'])
@@ -146,7 +146,7 @@ def openwin():
         winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
-        winobj.has_done=False
+        winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
             QMessageBox.critical(winobj, config.transobj['anerror'],

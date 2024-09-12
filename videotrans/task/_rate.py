@@ -37,8 +37,8 @@ class SpeedRate:
         self.noextname = noextname
         self.uuid = uuid
         self.target_audio = target_audio
-        self.cache_folder = cache_folder if cache_folder else config.TEMP_DIR + f'/temp{uuid if uuid else time.time() }'
-        Path(self.cache_folder).mkdir(parents=True,exist_ok=True)
+        self.cache_folder = cache_folder if cache_folder else config.TEMP_DIR + f'/temp{uuid if uuid else time.time()}'
+        Path(self.cache_folder).mkdir(parents=True, exist_ok=True)
         config.logger.info(f'SpeedRate2:{self.cache_folder=},{self.noextname=}')
 
     def run(self):
@@ -62,7 +62,7 @@ class SpeedRate:
         for i, it in enumerate(self.queue_tts):
             if it is None:
                 continue
-            tools.set_process(text=f"audio:{i + 1}/{length}",   uuid=self.uuid)
+            tools.set_process(text=f"audio:{i + 1}/{length}", uuid=self.uuid)
             # 防止开始时间比上个结束时间还小
             if i > 0 and it['start_time'] < self.queue_tts[i - 1]['end_time']:
                 it['start_time'] = self.queue_tts[i - 1]['end_time']
@@ -258,7 +258,7 @@ class SpeedRate:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
                 pts_text = '' if not pts or pts <= 1 else f'{pts=}'
-                tools.set_process(text=f"{config.transobj['videodown..']} {pts_text} {jindu}",  uuid=self.uuid)
+                tools.set_process(text=f"{config.transobj['videodown..']} {pts_text} {jindu}", uuid=self.uuid)
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
                 try:
                     tools.cut_from_video(
@@ -341,7 +341,8 @@ class SpeedRate:
             if tools.vail_file(it):
                 new_arr.append(it)
         if len(new_arr) > 0:
-            tools.set_process(text=f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...', uuid=self.uuid)
+            tools.set_process(text=f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...',
+                              uuid=self.uuid)
             config.logger.info(f'视频片段:{concat_txt_arr=}')
             concat_txt = self.cache_folder + f'/{time.time()}.txt'
             tools.create_concat_txt(concat_txt_arr, concat_txt=concat_txt)
@@ -352,9 +353,10 @@ class SpeedRate:
         if self.novoice_mp4 and Path(self.novoice_mp4).exists():
             video_time = tools.get_video_duration(self.novoice_mp4)
         merged_audio = AudioSegment.empty()
-        if len(self.queue_tts)==1:
+        if len(self.queue_tts) == 1:
             the_ext = self.queue_tts[0]['filename'].split('.')[-1]
-            merged_audio+=AudioSegment.from_file(self.queue_tts[0]['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
+            merged_audio += AudioSegment.from_file(self.queue_tts[0]['filename'],
+                                                   format="mp4" if the_ext == 'm4a' else the_ext)
         else:
             # start is not 0
             if self.queue_tts[0]['start_time_source'] > 0:
@@ -411,7 +413,7 @@ class SpeedRate:
                 it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 self.queue_tts[i] = it
-                tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}",  uuid=self.uuid)
+                tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", uuid=self.uuid)
 
             # 移除尾部静音
             if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
@@ -423,10 +425,10 @@ class SpeedRate:
         try:
             wavfile = self.cache_folder + "/target.wav"
             merged_audio.export(wavfile, format="wav")
-            ext=Path(self.target_audio).suffix.lower()
-            if ext =='.wav':
-                shutil.copy2(wavfile,self.target_audio)
-            elif ext=='.m4a':
+            ext = Path(self.target_audio).suffix.lower()
+            if ext == '.wav':
+                shutil.copy2(wavfile, self.target_audio)
+            elif ext == '.m4a':
                 tools.wav2m4a(wavfile, self.target_audio)
             else:
                 cmd = [

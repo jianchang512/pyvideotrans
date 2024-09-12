@@ -1,13 +1,11 @@
 import copy
-import os
 import re
 import time
 
 import httpx
-from openai import OpenAI, APIError
+from openai import OpenAI
 
 from videotrans.configure import config
-
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -16,9 +14,9 @@ from videotrans.util import tools
 
 class OPENAITTS(BaseTTS):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        self.copydata=copy.deepcopy(self.queue_tts)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.copydata = copy.deepcopy(self.queue_tts)
         self.api_url = self._get_url(config.params['openaitts_api'])
         if not re.search('localhost', self.api_url) and not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
             pro = self._set_proxy(type='set')
@@ -29,17 +27,17 @@ class OPENAITTS(BaseTTS):
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
-        while len(self.copydata)>0:
+        while len(self.copydata) > 0:
             if self._exit():
                 return
             try:
-                data_item=self.copydata.pop(0)
+                data_item = self.copydata.pop(0)
                 if tools.vail_file(data_item['filename']):
                     continue
             except:
                 return
             text = data_item['text'].strip()
-            role=data_item['role']
+            role = data_item['role']
             if not text:
                 continue
             speed = 1.0
@@ -47,7 +45,8 @@ class OPENAITTS(BaseTTS):
                 rate = float(self.rate.replace('%', '')) / 100
                 speed += rate
             try:
-                client = OpenAI(api_key=config.params['openaitts_key'], base_url=self.api_url, http_client=httpx.Client(proxies=self.proxies))
+                client = OpenAI(api_key=config.params['openaitts_key'], base_url=self.api_url,
+                                http_client=httpx.Client(proxies=self.proxies))
                 response = client.audio.speech.create(
                     model=config.params['openaitts_model'],
                     voice=role,
@@ -57,20 +56,20 @@ class OPENAITTS(BaseTTS):
                 response.stream_to_file(data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                self.error=''
-                self.has_done+=1
+                self.error = ''
+                self.has_done += 1
             except Exception as e:
-                error=str(e)
-                self.error=error
+                error = str(e)
+                self.error = error
                 if error and re.search(r'Rate limit', error, re.I) is not None:
-                    self._signal(text='超过频率限制，等待60s后重试' if config.defaulelang=='zh' else 'Frequency limit exceeded, wait 60s and retry')
+                    self._signal(
+                        text='超过频率限制，等待60s后重试' if config.defaulelang == 'zh' else 'Frequency limit exceeded, wait 60s and retry')
                     time.sleep(60)
                     self.copydata.append(data_item)
             finally:
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-
-    def _get_url(self,url=""):
+    def _get_url(self, url=""):
         if not url.startswith('http'):
             url = 'http://' + url
             # 删除末尾 /
@@ -84,4 +83,3 @@ class OPENAITTS(BaseTTS):
         if url.find('/v1') == -1:
             return url + "/v1"
         return url
-

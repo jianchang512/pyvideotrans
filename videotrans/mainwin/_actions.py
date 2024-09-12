@@ -1,27 +1,28 @@
 import json
 import re
 import threading
+from pathlib import Path
+
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
+
+from videotrans import translator
 from videotrans.component.progressbar import ClickableProgressBar
-from videotrans.mainwin._sec_util_win import SecUtilWin
+from videotrans.configure import config
+from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER, is_allow_lang as recogn_is_allow_lang, \
     is_input_api as recogn_is_input_api
+from videotrans.task.main_worker import Worker
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, CLONE_VOICE_TTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, \
     FISHTTS, CHATTTS, GOOGLE_TTS, OPENAI_TTS, ELEVENLABS_TTS, is_allow_lang as tts_is_allow_lang, \
     is_input_api as tts_is_input_api
-
-from videotrans.winform import fn_downmodel
 from videotrans.util import tools
-from videotrans import translator
-from videotrans.configure import config
-from pathlib import Path
-from videotrans.task.main_worker import Worker
+from videotrans.winform import fn_downmodel
 
 
-class SecWindow(SecUtilWin):
+class WinAction(WinActionSub):
     def __init__(self, main=None):
         super().__init__()
         self.main = main
@@ -40,7 +41,7 @@ class SecWindow(SecUtilWin):
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
-        self.obj_list=[]
+        self.obj_list = []
 
     # 配音速度改变时
     def voice_rate_changed(self, text):
@@ -378,7 +379,7 @@ class SecWindow(SecUtilWin):
             return
         # 配音角色
         config.params['voice_role'] = self.main.voice_role.currentText()
-        config.params['is_separate']=self.main.is_separate.isChecked()
+        config.params['is_separate'] = self.main.is_separate.isChecked()
         if config.params['voice_role'] == 'No':
             config.params['is_separate'] = False
 
@@ -431,7 +432,8 @@ class SecWindow(SecUtilWin):
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and config.params['recogn_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_model_name(config.params['model_name']):
+        if not txt and config.params['recogn_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_model_name(
+                config.params['model_name']):
             self.main.startbtn.setDisabled(False)
             return
         # 判断CUDA
@@ -454,8 +456,10 @@ class SecWindow(SecUtilWin):
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             config.params['app_mode'] = self.main.app_mode
 
-        target_dir=config.params["target_dir"] if config.params["target_dir"] else Path(config.queue_mp4[0]).parent.as_posix()+"/_video_out"
-        self.obj_list=[tools.format_video(video_path, target_dir) for video_path in config.queue_mp4]
+        target_dir = Path(config.params["target_dir"] if config.params["target_dir"] else Path(
+            config.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
+
+        self.obj_list = [tools.format_video(video_path, target_dir) for video_path in config.queue_mp4]
         QTimer.singleShot(100, self.create_btns)
         # 启动任务
         self.task = Worker(
@@ -469,11 +473,10 @@ class SecWindow(SecUtilWin):
         self.main.startbtn.setDisabled(False)
 
     # 启动时禁用相关模式按钮，停止时重新启用
-    def _disabled_button(self,status=True):
+    def _disabled_button(self, status=True):
         for k, v in self.main.moshis.items():
             if k != self.main.app_mode:
                 v.setDisabled(status)
-
 
     # 任务end结束或暂停时，清空队列
     # 先不清空 stoped_uuid_set 标志，用于背景分离任务稍后结束
@@ -502,9 +505,9 @@ class SecWindow(SecUtilWin):
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, d):
-        if isinstance(d,str):
-            d=json.loads(d)
-        text,uuid,_type=d['text'],d['uuid'],d['type']
+        if isinstance(d, str):
+            d = json.loads(d)
+        text, uuid, _type = d['text'], d['uuid'], d['type']
         if not uuid or uuid not in self.processbtns:
             return
         if not self.task:
@@ -530,7 +533,7 @@ class SecWindow(SecUtilWin):
         config.current_status = type
         self.main.continue_compos.hide()
         self.main.stop_djs.hide()
-        if type=='ing':
+        if type == 'ing':
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
@@ -573,7 +576,7 @@ class SecWindow(SecUtilWin):
         for it in self.obj_list:
             if it['uuid'] in config.uuid_logs_queue:
                 del config.uuid_logs_queue[it['uuid']]
-        self.obj_list=[]
+        self.obj_list = []
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
         try:
@@ -584,17 +587,16 @@ class SecWindow(SecUtilWin):
 
     def create_btns(self):
         for obj in self.obj_list:
-            print(f'{obj=}')
             self.add_process_btn(
                 target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else
                 obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
 
     # 更新 UI
     def update_data(self, json_data):
-        d = json.loads(json_data) if isinstance(json_data,str) else json_data
-        if d['type'] in ['logs','error','succeed','set_precent']:
+        d = json.loads(json_data) if isinstance(json_data, str) else json_data
+        if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
-            if d['type'] in ['error','succeed']:
+            if d['type'] in ['error', 'succeed']:
                 config.stoped_uuid_set.add(d['uuid'])
         # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
@@ -650,20 +652,14 @@ class SecWindow(SecUtilWin):
             self.main.subtitle_area.setReadOnly(True)
             self.main.timeout_tips.setText('')
             self.update_subtitle()
-        elif d['type']=='show_djs':
+        elif d['type'] == 'show_djs':
             self.main.timeout_tips.setText(d['text'])
             self.main.stop_djs.show()
             self.main.continue_compos.show()
             self.main.continue_compos.setDisabled(False)
             self.main.subtitle_area.setReadOnly(False)
         elif d['type'] == 'check_soft_update':
-            if not self.update_btn:
-                self.update_btn = QPushButton()
-                self.update_btn.setStyleSheet('color:#ffff00;border:0')
-                self.update_btn.setCursor(QtCore.Qt.PointingHandCursor)
-                self.update_btn.clicked.connect(lambda: self.open_url('download'))
-                self.main.container.addWidget(self.update_btn)
-            self.update_btn.setText(d['text'])
+            self.update_tips(d['text'])
         elif d['type'] == 'set_clone_role' and self.main.tts_type.currentText() == 'clone-voice':
             if config.current_status == 'ing':
                 return

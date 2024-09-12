@@ -29,14 +29,16 @@ class DoubaoRecogn(BaseRecogn):
 
         # 尺寸大于190MB，转为 mp3
         if os.path.getsize(self.audio_file) > 199229440:
-            tools.runffmpeg(['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/doubao-tmp.mp3'])
+            tools.runffmpeg(
+                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/doubao-tmp.mp3'])
             self.audio_file = self.cache_folder + '/doubao-tmp.mp3'
         with open(self.audio_file, 'rb') as f:
             files = f.read()
 
         self._signal(text=f"识别可能较久，请耐心等待")
 
-        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU", "fr": "fr-FR"}
+        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU",
+                        "fr": "fr-FR"}
         langcode = self.detect_language[:2].lower()
         if langcode not in languagelist:
             raise LogExcept(f'不支持的语言代码:{langcode=}')

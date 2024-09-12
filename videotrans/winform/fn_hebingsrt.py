@@ -48,12 +48,12 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
         elif d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(d['text'])
@@ -70,7 +70,7 @@ def openwin():
                 winobj.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        winobj.has_done=False
+        winobj.has_done = False
         srt1 = winobj.srtinput1.text()
         srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:

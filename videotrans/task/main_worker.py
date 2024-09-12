@@ -7,9 +7,7 @@ from pathlib import Path
 from PySide6.QtCore import QThread
 
 from videotrans.configure import config
-
 from videotrans.task.trans_create import TransCreate
-
 from videotrans.util.tools import set_process
 
 
@@ -25,7 +23,7 @@ class Worker(QThread):
         self.txt = txt
         self.is_batch = False
         # 存放处理好的 视频路径等信息
-        self.obj_list=obj_list
+        self.obj_list = obj_list
 
     def run(self) -> None:
         # 重新初始化全局uuid表
@@ -47,12 +45,12 @@ class Worker(QThread):
             Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
             self.wait_uuid_list.append(it['uuid'])
             self.tasklist[it['uuid']] = TransCreate(copy.deepcopy(config.params), it)
-        # set_process(type="init",uuid=self.obj_list[0]['uuid'])
+
         # 开始初始化任务并压入识别队列
         for video in self.tasklist.values():
             if self._exit():
                 return self.stop()
-            set_process(text=config.transobj['kaishichuli'],  uuid=video.uuid)
+            set_process(text=config.transobj['kaishichuli'], uuid=video.uuid)
             # 压入识别队列开始执行
             config.prepare_queue.append(self.tasklist[video.uuid])
         # 开始等待任务执行完毕
@@ -74,9 +72,10 @@ class Worker(QThread):
         config.ended_uuid = []
 
     def _exit(self):
-        if config.exit_soft or config.current_status!='ing':
+        if config.exit_soft or config.current_status != 'ing':
             return True
         return False
+
     # 暂停
     def stop(self):
         config.ended_uuid = []

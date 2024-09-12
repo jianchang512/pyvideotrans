@@ -1,4 +1,3 @@
-import builtins
 import json
 import os
 
@@ -7,8 +6,6 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
-
-
 
 
 # set chatgpt
@@ -22,7 +19,8 @@ def openwin():
         def run(self):
             try:
                 raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
-                text = translator.run(translate_type=translator.CHATGPT_INDEX,text_list=raw, target_language_name="en" if config.defaulelang != 'zh' else "zh",is_test=True)
+                text = translator.run(translate_type=translator.CHATGPT_INDEX, text_list=raw,
+                                      target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))
@@ -61,8 +59,8 @@ def openwin():
         template = winobj.chatgpt_template.toPlainText()
 
         with open(config.ROOT_DIR + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt",
-                          'w',
-                          encoding='utf-8') as f:
+                  'w',
+                  encoding='utf-8') as f:
             f.write(template)
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key

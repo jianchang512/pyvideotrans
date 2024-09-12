@@ -1,12 +1,10 @@
-import builtins
 import json
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
 from videotrans import tts
-from videotrans.util import tools
+from videotrans.configure import config
 
 
 def openwin():
@@ -26,7 +24,8 @@ def openwin():
                 elif config.params['ai302tts_model'] == 'azure':
                     role = "zh-CN-YunjianNeural"
                 run(
-                    queue_tts=[{"text":self.text,"role":role,"filename":config.TEMP_HOME + "/testai302tts.mp3","tts_type":tts.AI302_TTS}],
+                    queue_tts=[{"text": self.text, "role": role, "filename": config.TEMP_HOME + "/testai302tts.mp3",
+                                "tts_type": tts.AI302_TTS}],
                     language="zh-CN",
                     play=True,
                     is_test=True

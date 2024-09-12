@@ -11,25 +11,25 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog, QPlainTextEdit
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.task._translate_srt import TranslateSrt
-
 from videotrans.util import tools
 
+
 class SignThread(QThread):
-    uito=Signal(str)
+    uito = Signal(str)
 
-    def __init__(self,uuid_list=None,parent=None):
+    def __init__(self, uuid_list=None, parent=None):
         super().__init__(parent=parent)
-        self.uuid_list=uuid_list
+        self.uuid_list = uuid_list
 
-    def post(self,jsondata):
+    def post(self, jsondata):
 
         self.uito.emit(json.dumps(jsondata))
 
     def run(self):
-        length=len(self.uuid_list)
+        length = len(self.uuid_list)
         while 1:
-            if len(self.uuid_list)==0 or config.exit_soft:
-                self.post({"type":"end"})
+            if len(self.uuid_list) == 0 or config.exit_soft:
+                self.post({"type": "end"})
                 time.sleep(1)
                 return
 
@@ -40,20 +40,20 @@ class SignThread(QThread):
                     except:
                         pass
                     continue
-                q=config.uuid_logs_queue.get(uuid)
+                q = config.uuid_logs_queue.get(uuid)
                 if not q:
                     continue
                 try:
                     if q.empty():
                         time.sleep(0.5)
                         continue
-                    data=q.get(block=False)
+                    data = q.get(block=False)
                     if not data:
                         continue
                     self.post(data)
-                    if data['type'] in ['error','succeed']:
+                    if data['type'] in ['error', 'succeed']:
                         self.uuid_list.remove(uuid)
-                        self.post({"type":"jindu","text":f'{int((length-len(self.uuid_list))*100/length)}%'})
+                        self.post({"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
                         config.stoped_uuid_set.add(uuid)
                         del config.uuid_logs_queue[uuid]
                 except:
@@ -71,7 +71,7 @@ def openwin():
         d = json.loads(d)
 
         if d['type'] == 'error':
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.fanyi_start.setDisabled(False)
@@ -89,19 +89,17 @@ def openwin():
         elif d['type'] == 'set_source':
             winobj.fanyi_sourcetext.clear()
             winobj.fanyi_sourcetext.setPlainText(d['text'])
-        elif d['type'] in ['logs','succeed']:
-            print(f'dd{d=}')
+        elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d["text"])
-        elif d['type'] in ['stop','end']:
-            print(f'end  {d=}')
-            winobj.has_done=True
+        elif d['type'] in ['stop', 'end']:
+            winobj.has_done = True
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.fanyi_start.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
             winobj.fanyi_import.setDisabled(False)
             winobj.daochu.setDisabled(False)
             winobj.fanyi_start.setDisabled(False)
-            config.box_trans='stop'
+            config.box_trans = 'stop'
 
     def fanyi_import_fun():
         fnames, _ = QFileDialog.getOpenFileNames(winobj,
@@ -124,11 +122,12 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def fanyi_start_fun():
-        winobj.has_done=False
+        winobj.has_done = False
         config.settings = config.parse_init()
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
-        source_language,_=translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(), translate_type=translate_type)
+        source_language, _ = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),
+                                                               translate_type=translate_type)
         if target_language == '-':
             return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = winobj.fanyi_proxy.text()
@@ -140,27 +139,26 @@ def openwin():
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         if rs is not True:
             return False
-        if len(winobj.files)<1:
-            return QMessageBox.critical(winobj,config.transobj['anerror'],'必须导入srt字幕文件' if config.defaulelang=='zh' else 'Must import srt subtitle files')
+        if len(winobj.files) < 1:
+            return QMessageBox.critical(winobj, config.transobj['anerror'],
+                                        '必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files')
         winobj.fanyi_sourcetext.clear()
         winobj.loglabel.setText('')
 
-
-        config.box_trans='ing'
-
+        config.box_trans = 'ing'
 
         video_list = [tools.format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
             trk = TranslateSrt({
-                "translate_type":translate_type,
-                "text_list":tools.get_subtitle_from_srt(it['name']),
-                "target_language":target_language,
-                "target_dir":RESULT_DIR,
-                "inst":None,
-                "uuid":it['uuid'],
-                "task_type":"childwin",
-                "source_code":source_language if source_language and source_language!='-' else ''
+                "translate_type": translate_type,
+                "text_list": tools.get_subtitle_from_srt(it['name']),
+                "target_language": target_language,
+                "target_dir": RESULT_DIR,
+                "inst": None,
+                "uuid": it['uuid'],
+                "task_type": "childwin",
+                "source_code": source_language if source_language and source_language != '-' else ''
             }, it)
             config.trans_queue.append(trk)
 
@@ -181,28 +179,30 @@ def openwin():
         if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t,
                                          win=winobj) is not True:
             return
+
     # 获取新增的google翻译语言代码
     def get_google_trans_newcode():
-        new_langcode=[]
+        new_langcode = []
         if config.settings['google_trans_newadd']:
-            new_langcode=config.settings['google_trans_newadd'].strip().split(',')
+            new_langcode = config.settings['google_trans_newadd'].strip().split(',')
         return new_langcode
 
     # 更新目标语言列表
     def update_target_language(is_google=False):
-        current_target=winobj.fanyi_target.currentText()
+        current_target = winobj.fanyi_target.currentText()
         config.settings = config.parse_init()
-        language_namelist=["-"] + config.langnamelist
-        if is_google or winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX]:
-            language_namelist+=get_google_trans_newcode()
+        language_namelist = ["-"] + config.langnamelist
+        if is_google or winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,
+                                                                       translator.FREEGOOGLE_INDEX]:
+            language_namelist += get_google_trans_newcode()
         winobj.fanyi_target.clear()
         winobj.fanyi_target.addItems(language_namelist)
-        if current_target and current_target!='-' and current_target in language_namelist:
+        if current_target and current_target != '-' and current_target in language_namelist:
             winobj.fanyi_target.setCurrentText(current_target)
 
-   # 翻译渠道变化时重新设置目标语言
+    # 翻译渠道变化时重新设置目标语言
     def translate_type_change(idx):
-        update_target_language(is_google=idx in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX])
+        update_target_language(is_google=idx in [translator.GOOGLE_INDEX, translator.FREEGOOGLE_INDEX])
         target_lang_change(winobj.fanyi_target.currentText())
 
     from videotrans.component import Fanyisrt
@@ -219,7 +219,7 @@ def openwin():
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         update_target_language(is_google=True)
         winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
-        winobj.fanyi_source.addItems(['-']+config.langnamelist)
+        winobj.fanyi_source.addItems(['-'] + config.langnamelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)

@@ -16,9 +16,9 @@ class ClickableProgressBar(QLabel):
         self.basename = ""
         self.name = ""
         self.precent = 0
-        self.paused=False
-        self.ended=False
-        self.error=''
+        self.paused = False
+        self.ended = False
+        self.error = ''
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(35)
@@ -50,34 +50,34 @@ class ClickableProgressBar(QLabel):
     def setEnd(self):
         if self.error:
             return
-        self.ended=True
+        self.ended = True
         self.precent = 100
         self.progress_bar.setValue(100)
         self.setCursor(Qt.PointingHandCursor)
         self.progress_bar.setFormat(f' {self.basename}  {config.transobj["endandopen"]}')
-        self.error=''
+        self.error = ''
+
     # 暂停，仅针对未完成的
     def setPause(self):
         if not self.ended:
-            self.paused=True
+            self.paused = True
             self.progress_bar.setFormat(f'  {config.transobj["haspaused"]} [{self.precent}%] {self.basename}')
 
-
     # 进度，如果进度已大于100则结束，如果小于，则取消暂停
-    def setPrecent(self,p):
-        self.paused=False
-        if p>=100:
-            self.precent=100
-            self.error=''
+    def setPrecent(self, p):
+        self.paused = False
+        if p >= 100:
+            self.precent = 100
+            self.error = ''
             self.setEnd()
         else:
-            self.precent=p if p>self.precent else self.precent
+            self.precent = p if p > self.precent else self.precent
             self.progress_bar.setValue(self.precent)
 
     # 出错时，设置状态，停止 完成
-    def setError(self,text=""):
-        self.error=text
-        self.ended=True
+    def setError(self, text=""):
+        self.error = text
+        self.ended = True
         self.progress_bar.setFormat(f'  [{self.precent}%]  {text[:90]}   {self.basename}')
 
     # 设置按钮显示文字，如果已结束，则不设置，直接返回

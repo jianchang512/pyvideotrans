@@ -5,12 +5,12 @@ from videotrans.configure import config
 # 支持返回True，不支持返回错误文字字符串
 from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win, \
     openairecognapi as openairecognapi_win, doubao as doubao_win
-from ._all import FasterAll
-from ._avg import FasterAvg
+from ._average import FasterAvg
 from ._doubao import DoubaoRecogn
 from ._google import GoogleRecogn
 from ._openai import OpenaiWhisperRecogn
 from ._openairecognapi import OpenaiAPIRecogn
+from ._overall import FasterAll
 from ._recognapi import APIRecogn
 from ._zh import ZhRecogn
 
@@ -89,7 +89,7 @@ def run(*,
         "uuid": uuid,
         "inst": inst,
         "is_cuda": is_cuda,
-        "task_type":task_type
+        "task_type": task_type
     }
     if recogn_type == OPENAI_WHISPER:
         return OpenaiWhisperRecogn(**kwargs).run()

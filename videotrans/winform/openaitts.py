@@ -1,11 +1,10 @@
-import builtins
 import json
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
 from videotrans import tts
+from videotrans.configure import config
 
 
 # set chatgpt
@@ -20,7 +19,7 @@ def openwin():
         def run(self):
             try:
                 tts.run(
-                    queue_tts=[{"text": self.text, "role":"alloy",
+                    queue_tts=[{"text": self.text, "role": "alloy",
                                 "filename": config.TEMP_HOME + "/testopenaitts", "tts_type": tts.OPENAI_TTS}],
                     language="zh-CN",
                     play=True,

@@ -1,7 +1,6 @@
-import builtins
+import json
 import json
 import os
-import re
 import shutil
 import threading
 import time
@@ -14,29 +13,27 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, CHATTTS, \
     GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang
 from videotrans.util import tools
 
+
 class SignThread(QThread):
-    uito=Signal(str)
+    uito = Signal(str)
 
-    def __init__(self,uuid_list=None,parent=None):
+    def __init__(self, uuid_list=None, parent=None):
         super().__init__(parent=parent)
-        self.uuid_list=uuid_list
+        self.uuid_list = uuid_list
 
-    def post(self,jsondata):
+    def post(self, jsondata):
 
         self.uito.emit(json.dumps(jsondata))
 
     def run(self):
-        length=len(self.uuid_list)
-        print(f'{length=}')
+        length = len(self.uuid_list)
         while 1:
-            if len(self.uuid_list)==0 or config.exit_soft:
-                print(f'$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ {self.uuid_list=}')
-                self.post({"type":"end"})
+            if len(self.uuid_list) == 0 or config.exit_soft:
+                self.post({"type": "end"})
                 time.sleep(1)
                 return
 
@@ -47,22 +44,20 @@ class SignThread(QThread):
                     except:
                         pass
                     continue
-                q=config.uuid_logs_queue.get(uuid)
+                q = config.uuid_logs_queue.get(uuid)
                 if not q:
                     continue
                 try:
                     if q.empty():
                         time.sleep(0.5)
                         continue
-                    data=q.get(block=False)
+                    data = q.get(block=False)
                     if not data:
                         continue
                     self.post(data)
-                    if data['type'] in ['error','succeed']:
+                    if data['type'] in ['error', 'succeed']:
                         self.uuid_list.remove(uuid)
-                        print(f'{len(self.uuid_list)=}')
-                        print({"type":"jindu","text":f'{int((length-len(self.uuid_list))*100/length)}%'})
-                        self.post({"type":"jindu","text":f'{int((length-len(self.uuid_list))*100/length)}%'})
+                        self.post({"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
                         config.stoped_uuid_set.add(uuid)
                         del config.uuid_logs_queue[uuid]
                 except:
@@ -77,22 +72,22 @@ def openwin():
     def feed(d):
         if winobj.has_done:
             return
-        if isinstance(d,str):
+        if isinstance(d, str):
             d = json.loads(d)
         if d['type'] == 'replace':
             winobj.hecheng_plaintext.clear()
             winobj.hecheng_plaintext.insertPlainText(d['text'])
         elif d['type'] == 'error':
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.loglabel.setText(d['text'])
-        elif d['type'] in ['logs','succeed']:
+        elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
         elif d['type'] == 'jindu':
             winobj.hecheng_startbtn.setText(d['text'])
-        elif d['type']=='end':
-            winobj.has_done=True
-            winobj.hecheng_files=[]
+        elif d['type'] == 'end':
+            winobj.has_done = True
+            winobj.hecheng_files = []
             winobj.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
@@ -144,9 +139,7 @@ def openwin():
         if role == 'clone':
             return
 
-        threading.Thread(target=tts.run,kwargs={"queue_tts":[obj],"play":True,"is_test":True}).start()
-
-
+        threading.Thread(target=tts.run, kwargs={"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
         if type in [EDGE_TTS, AZURE_TTS]:
@@ -159,7 +152,7 @@ def openwin():
 
     # tab-4 语音合成
     def hecheng_start_fun():
-        winobj.has_done=False
+        winobj.has_done = False
         config.settings = config.parse_init()
         txt = winobj.hecheng_plaintext.toPlainText().strip()
         language = winobj.hecheng_language.currentText()
@@ -213,18 +206,18 @@ def openwin():
         for it in video_list:
             trk = DubbingSrt({
                 "voice_role": role,
-                "cache_folder":config.TEMP_HOME+f'/{it["uuid"]}',
-                "target_language_code":langcode,
-                "target_dir":RESULT_DIR,
+                "cache_folder": config.TEMP_HOME + f'/{it["uuid"]}',
+                "target_language_code": langcode,
+                "target_dir": RESULT_DIR,
                 "voice_rate": rate,
                 "volume": volume,
                 "inst": None,
                 "uuid": it['uuid'],
                 "task_type": "childwin",
                 "pitch": pitch,
-                "tts_type":tts_type,
-                "out_ext":winobj.out_format.currentText(),
-                "voice_autorate":winobj.voice_autorate.isChecked()
+                "tts_type": tts_type,
+                "out_ext": winobj.out_format.currentText(),
+                "voice_autorate": winobj.voice_autorate.isChecked()
             }, it)
             config.dubb_queue.append(trk)
 

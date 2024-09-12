@@ -51,10 +51,12 @@ class StartWindow(QtWidgets.QWidget):
         import videotrans.ui.dark.darkstyle_rc
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
-        from videotrans.mainwin.spwin import MainWindow
         try:
+            from videotrans.mainwin._main_win import MainWindow
             MainWindow(width=self.width, height=self.height)
         except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self,"Error",str(e))
             import traceback
             traceback.print_exc()
         print(time.time())

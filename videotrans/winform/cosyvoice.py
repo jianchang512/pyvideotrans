@@ -1,9 +1,8 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
-from videotrans.util import tools
 from videotrans import tts
+from videotrans.configure import config
 
 
 def openwin():
@@ -44,7 +43,6 @@ def openwin():
         winobj.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()
-
 
     def save():
         url = winobj.api_url.text()

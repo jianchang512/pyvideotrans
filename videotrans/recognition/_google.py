@@ -9,7 +9,6 @@ from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
-
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -91,7 +90,8 @@ class GoogleRecogn(BaseRecogn):
         max_interval = int(config.settings['interval_split']) * 1000
         buffer = int(config.settings['voice_silence'])
         nonsilent_data = []
-        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),  silence_thresh=-20 - 25)
+        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
+                                        silence_thresh=-20 - 25)
         for i, chunk in enumerate(audio_chunks):
             start_time, end_time = chunk
             n = 0

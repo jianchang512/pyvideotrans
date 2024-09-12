@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import os
 import re
-import time
 from typing import Union, List
 
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
 
 safetySettings = [
     {
@@ -36,18 +32,20 @@ safetySettings = [
 # 代理修改  site-packages\google\ai\generativelanguage_v1beta\services\generative_service\transports\grpc_asyncio.py __init__方法的 options 添加 ("grpc.http_proxy",os.environ.get('http_proxy') or os.environ.get('https_proxy'))
 class Gemini(BaseTrans):
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._set_proxy(type='set')
         self.prompt = config.params['gemini_template'].replace('{lang}', self.target_language)
 
-    def _item_task(self,data:Union[List[str],str]) ->str:
+    def _item_task(self, data: Union[List[str], str]) -> str:
         response = None
         try:
             if '{text}' in self.prompt:
-                message = self.prompt.replace('{text}', "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+                message = self.prompt.replace('{text}',
+                                              "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
             else:
-                message = self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+                message = self.prompt.replace('[TEXT]',
+                                              "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
 
             genai.configure(api_key=config.params['gemini_key'])
             model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
@@ -79,7 +77,7 @@ class Gemini(BaseTrans):
                 return re.sub(r'\n{2,}', "\n", result)
             raise
 
-    def _get_error(self,num=5, type='error'):
+    def _get_error(self, num=5, type='error'):
         REASON_CN = {
             2: "超出长度",
             3: "安全限制",

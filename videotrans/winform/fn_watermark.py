@@ -1,4 +1,3 @@
-import builtins
 import json
 import os
 import threading
@@ -13,7 +12,6 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans.configure import config
 # 使用内置的 open 函数
 from videotrans.util import tools
-
 
 
 # 水印
@@ -121,7 +119,7 @@ def openwin():
             return
         d = json.loads(d)
         if d['type'] == "error":
-            winobj.has_done=True
+            winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
@@ -131,7 +129,7 @@ def openwin():
         elif d['type'] == 'logs':
             winobj.resultlabel.setText(d['text'])
         else:
-            winobj.has_done=True
+            winobj.has_done = True
             winobj.startbtn.setText(config.transobj['zhixingwc'])
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(config.transobj['quanbuend'])
@@ -139,7 +137,7 @@ def openwin():
 
     def get_file(type):
         if type == 1:
-            format_str=" ".join([ '*.'+f  for f in  config.VIDEO_EXTS])
+            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
             fname, _ = QFileDialog.getOpenFileNames(winobj, "Select Video",
                                                     config.params['last_opendir'],
                                                     f"Video files({format_str})")
@@ -154,7 +152,7 @@ def openwin():
                 winobj.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
 
     def start():
-        winobj.has_done=False
+        winobj.has_done = False
         png = winobj.pngurl.text()
         if len(winobj.videourls) < 1 or not png:
             QMessageBox.critical(winobj, config.transobj['anerror'],
