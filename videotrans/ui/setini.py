@@ -11,17 +11,19 @@ from videotrans.configure import config
 
 
 class Ui_setini(object):
-    def get_target(self, btn):
+    def get_target(self):
         dirname = QFileDialog.getExistingDirectory(self, config.transobj['selectsavedir'], Path.home().as_posix())
+        print(f'{dirname=}')
         if dirname:
             dirpath = Path(dirname)
             config.HOME_DIR = dirpath.as_posix()
             config.TEMP_HOME = config.HOME_DIR + '/tmp'
             config.settings['homedir'] = config.HOME_DIR
-            btn.setText(config.HOME_DIR)
+            print(f'{config.HOME_DIR=}')
+            self.homedir_btn.setText(config.HOME_DIR)
             Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
-            json.dump(config.settings, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
-                      ensure_ascii=False)
+            Path(config.ROOT_DIR + "/videotrans/cfg.json").write_text(json.dumps(config.settings), encoding='utf-8')
+
 
     def setupUi(self, setini):
         self.has_done = False
@@ -457,6 +459,7 @@ class Ui_setini(object):
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center""")
         # tmp.addWidget(label_title)
+        self.homedir_btn=None
         box.layout().addWidget(label_title)
         helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
         for headkey, item in self.notices.items():
@@ -475,13 +478,15 @@ class Ui_setini(object):
                 tmp_0.setObjectName(f'btn_{key}')
                 tmp_0.setToolTip(helptext)
                 tmp_0.setCursor(Qt.PointingHandCursor)
+                tmp.addWidget(tmp_0)
                 if key == 'homedir':
-                    tmp_1 = QtWidgets.QPushButton()
-                    tmp_1.setCursor(Qt.PointingHandCursor)
-                    tmp_1.setText(str(config.settings[key]) if key in config.settings else "")
-                    tmp_1.setToolTip(
+                    self.homedir_btn= QtWidgets.QPushButton()
+                    self.homedir_btn.setCursor(Qt.PointingHandCursor)
+                    self.homedir_btn.setText(str(config.settings[key]) if key in config.settings else "")
+                    self.homedir_btn.setToolTip(
                         '点击设置家目录，用于保存视频分离、字幕翻译、字幕配音等结果文件' if config.defaulelang == 'zh' else 'Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc.')
-                    tmp_1.clicked.connect(lambda: self.get_target(tmp_1))
+                    self.homedir_btn.clicked.connect(self.get_target)
+                    tmp.addWidget(self.homedir_btn)
                 else:
                     tmp_1 = QtWidgets.QLineEdit()
                     tmp_1.setMinimumSize(QtCore.QSize(0, 30))
@@ -491,9 +496,8 @@ class Ui_setini(object):
                     tmp_1.setObjectName(key)
                     if key == 'ai302tts_models':
                         tmp_1.setReadOnly(True)
+                    tmp.addWidget(tmp_1)
 
-                tmp.addWidget(tmp_0)
-                tmp.addWidget(tmp_1)
                 box.layout().addLayout(tmp)
 
         box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
