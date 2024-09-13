@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Union, List, Dict
 
 import httpx
+import requests
 from openai import OpenAI
 
 from videotrans.configure import config
@@ -27,9 +28,9 @@ class OpenaiAPIRecogn(BaseRecogn):
         if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"http://": pro, "https://": pro}
+                self.proxies = {"http": pro, "https": pro}
         else:
-            self.proxies = {"http://": "", "https://": ""}
+            self.proxies = {"http": "", "https": ""}
 
         try:
             # 大于20M 从wav转为mp3
@@ -59,21 +60,47 @@ class OpenaiAPIRecogn(BaseRecogn):
                     ])
                 if Path(mp3_tmp).exists():
                     self.audio_file = mp3_tmp
+            if not Path(self.audio_file).is_file():
+                raise Exception(f'No file {self.audio_file}')
+            # 发送请求
+            print(f'{self.proxies=},{self.api_url=}')
+            print(f'{self.audio_file=}')
+            transcript = requests.post(self.api_url+f'/audio/translations',verify=False, headers= {
+                "Authorization": f"Bearer {config.params['openairecognapi_key']}",
+                "Content-Type": "multipart/form-data"
+            }, files={
+                "file": open(self.audio_file, 'rb')
+            }, data={
+                "model": "whisper-1",
+                "timestamp_granularities[]": "segment",
+                "response_format": "verbose_json"
+            },proxies=self.proxies)
+            resdata=transcript.json()
+            print(f'{resdata=}')
 
-            client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
-                            http_client=httpx.Client(proxies=self.proxies))
-            transcript = client.audio.transcriptions.create(
-                file=open(self.audio_file, 'rb'),
-                language=self.detect_language,
-                model=config.params['openairecognapi_model'],
-                prompt=config.params['openairecognapi_prompt'],
-                response_format="verbose_json",
-                timestamp_granularities=["segment"]
-            )
-            if len(transcript.segments) < 1:
+
+            if 'error' in resdata and resdata['error']:
+                raise Exception(resdata['error']['message'])
+            if  "segments" not in resdata:
+                raise Exception( f'{resdata}' if  self.api_url.startswith("https://api.openai.com") else f'该api不支持返回带时间戳字幕格式 {self.api_url} ')
+
+            segments=resdata['segments']
+
+            # client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
+            #                 http_client=httpx.Client(proxies=self.proxies))
+            # transcript = client.audio.transcriptions.create(
+            #     file=open(self.audio_file, 'rb'),
+            #     language=self.detect_language,
+            #     model=config.params['openairecognapi_model'],
+            #     prompt=config.params['openairecognapi_prompt'],
+            #     response_format="json",
+            #     timestamp_granularities=["word"]
+            # )
+            # print(f'{transcript=}')
+            if len(segments) < 1:
                 msg = '未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
                 raise LogExcept(msg)
-            for it in transcript.segments:
+            for it in segments:
                 if self._exit():
                     return
                 srt_tmp = {
@@ -88,7 +115,7 @@ class OpenaiAPIRecogn(BaseRecogn):
             return self.raws
         except ConnectionError as e:
             msg = f'网络连接错误，请检查代理、api地址等:{str(e)}' if config.defaulelang == 'zh' else str(e)
-            raise LogExcept(f'{msg}:{e}')
+            raise
         except Exception as e:
             raise
 

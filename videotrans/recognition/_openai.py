@@ -18,9 +18,11 @@ class OpenaiWhisperRecogn(BaseRecogn):
         super().__init__(*args, **kwargs)
         self.raws = []
         self.model = None
+        self.jianfan=False
         if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:
             self.flag.append(" ")
             self.maxlen = int(config.settings['cjk_len'])
+            self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings['zh_hant_s'] else False
         else:
             self.maxlen = int(config.settings['other_len'])
 
@@ -42,6 +44,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
         #     self._output(cur)
         if self.inst and self.inst.precent < 75:
             self.inst.precent += 0.1
+        if self.jianfan:
+            cur['text'] = zhconv.convert(cur['text'], 'zh-hans')
         self._signal(text=f"{config.transobj['yuyinshibiejindu']} {len(self.raws)}")
         self._signal(
             text=f'{cur["line"]}\n{cur["time"]}\n{cur["text"]}\n\n',
@@ -109,105 +113,82 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         self._append_raws(tmp)
                         continue
 
-                    # 寻找最靠近中间的拆分点
-                    split_idx = 0
+                    # st
                     # words组数量
                     max_index = len(segment['words']) - 1
-                    # 字符组个数中间值
-                    middel_idx = int((max_index + 1) / 2)
-                    # 拆分点距离中间值距离绝对值
-                    abs_middel_idx = 99999
-                    # 所有的标点切分点索引数组
                     split_idx_list = []
                     for idx, word in enumerate(segment['words']):
                         if word['word'][0] in self.flag:
-                            if abs(middel_idx - idx) < abs_middel_idx:
-                                split_idx = idx - 1 if idx > 0 else idx
-                                split_idx_list.append(split_idx)
-                                abs_middel_idx = abs(middel_idx - idx)
+                            split_idx = idx - 1 if idx > 0 else idx
+                            split_idx_list.append(split_idx)
                         elif word['word'][-1] in self.flag:
-                            if abs(middel_idx - idx) < abs_middel_idx:
-                                split_idx = idx
-                                split_idx_list.append(split_idx)
-                                abs_middel_idx = abs(middel_idx - idx)
-                    # 没有合适的切分点
-                    if split_idx == 0:
-                        if len_text <= self.maxlen * 1.3:
+                            split_idx = idx
+                            split_idx_list.append(split_idx)
+                    # 没有合适的切分点,不切分
+                    # 去掉重复的切分点并排序
+                    split_idx_list = sorted(list(set(split_idx_list)))
+                    if len(split_idx_list) == 0:
+                        tmp = {
+                            "line": len(self.raws) + 1,
+                            "start_time": int(segment['words'][0]['start'] * 1000),
+                            "end_time": int(segment['words'][-1]['end'] * 1000),
+                            "text": segment['text'].strip()
+                        }
+                        tmp[
+                            'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                        self._append_raws(tmp)
+                        # print(f'{split_idx=} 直接插入 {tmp["text"]}')
+                        continue
+
+                    last_idx = 0
+                    try:
+                        # print(f'{split_idx_list=}')
+                        for idx in split_idx_list:
+                            if last_idx > idx:
+                                break
+                            # words组里起点索引为当前切分点+1
+                            st = last_idx
+                            # 下一个为结束点,未到末尾
+                            ed = idx
+                            if segment['words'][ed]['end'] - segment['words'][st]['start'] < 1:
+                                continue
+                            last_idx = ed + 1
+                            texts = [w['word'] for iw, w in enumerate(segment['words']) if iw >= st and iw <= ed]
                             tmp = {
                                 "line": len(self.raws) + 1,
-                                "start_time": int(segment['words'][0]['start'] * 1000) + start_time,
-                                "end_time": int(segment['words'][-1]['end'] * 1000) + start_time,
-                                "text": segment['text'].strip()
+                                "start_time": int(segment['words'][st]['start'] * 1000),
+                                "end_time": int(segment['words'][ed]['end'] * 1000),
+                                "text": self.join_word_flag.join(texts)
+                            }
+                            # print(f'插入 st({st})->ed({ed}),{tmp["text"]}')
+                            tmp[
+                                'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                            self._append_raws(tmp)
+                        if last_idx < max_index:
+                            texts = [w['word'] for iw, w in enumerate(segment['words']) if iw >= last_idx]
+                            tmp = {
+                                "line": len(self.raws) + 1,
+                                "start_time": int(segment['words'][last_idx]['start'] * 1000),
+                                "end_time": int(segment['words'][-1]['end'] * 1000),
+                                "text": self.join_word_flag.join(texts)
                             }
                             tmp[
                                 'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                             self._append_raws(tmp)
-                            continue
-                        else:
-                            split_idx = middel_idx
-                    # 去掉重复的切分点并排序
-                    split_idx_list = sorted(list(set(split_idx_list)))
+                            # print(f'last_idx({last_idx})<max_index({max_index}),插入 {tmp["text"]}')
+                    except Exception as e:
+                        tmp = {
+                            "line": len(self.raws) + 1,
+                            "start_time": int(segment['words'][0]['start'] * 1000),
+                            "end_time": int(segment['words'][-1]['end'] * 1000),
+                            "text": segment['text'].strip()
+                        }
+                        tmp[
+                            'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                        self._append_raws(tmp)
+                        print(f'异常({last_idx=}) {e} ')
+                    #ed
 
-                    # 如果2个切分点挨着，则删除一个
-                    wait_del = []
-                    for i, n in enumerate(split_idx_list):
-                        if i < len(split_idx_list) - 1:
-                            if n + 1 == split_idx_list[i + 1]:
-                                wait_del.append(n)
-                    if len(wait_del) > 0:
-                        for n in wait_del:
-                            split_idx_list.remove(n)
-                    if len(split_idx_list) > 0:
-                        # 第一个设为-1,方便计算+1
-                        if split_idx_list[0] != 0:
-                            split_idx_list.insert(0, -1)
-                        else:
-                            split_idx_list[0] = -1
-
-                    # 切分点多于2个，并且时长大于4s，则两两切分组装
-                    if len(split_idx_list) > 2 and (segment['words'][-1]['end'] - segment['words'][0]['start']) > 4:
-                        # 取出所有切分点，两两组合
-                        for i, idx in enumerate(split_idx_list):
-                            if i < len(split_idx_list) - 1:
-                                # words组里起点索引为当前切分点+1
-                                st = idx + 1
-                                # 下一个为结束点
-                                ed = split_idx_list[i + 1]
-                                tmp = {
-                                    "line": len(self.raws) + 1,
-                                    "start_time": int(segment['words'][st]['start'] * 1000) + start_time,
-                                    "end_time": int(segment['words'][ed]['end'] * 1000) + start_time,
-                                    "text": self.join_word_flag.join(
-                                        [word['word'] for i, word in enumerate(segment['words']) if
-                                         i <= ed and i >= st])
-                                }
-                                tmp[
-                                    'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
-                                self._append_raws(tmp)
-                        continue
-
-                    # [0:split_idx] [split_idx:-1]
-                    tmp = {
-                        "line": len(self.raws) + 1,
-                        "start_time": int(segment['words'][0]['start'] * 1000) + start_time,
-                        "end_time": int(segment['words'][split_idx]['end'] * 1000) + start_time,
-                        "text": self.join_word_flag.join(
-                            [word['word'] for i, word in enumerate(segment['words']) if i <= split_idx])
-                    }
-                    tmp[
-                        'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
-                    self._append_raws(tmp)
-
-                    tmp = {
-                        "line": len(self.raws) + 1,
-                        "start_time": int(segment['words'][split_idx + 1]['start'] * 1000) + start_time,
-                        "end_time": int(segment['words'][-1]['end'] * 1000) + start_time,
-                        "text": self.join_word_flag.join(
-                            [word['word'] for i, word in enumerate(segment['words']) if i > split_idx])
-                    }
-                    tmp[
-                        'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
-                    self._append_raws(tmp)
         except Exception as e:
             raise
         finally:
@@ -217,9 +198,9 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 del self.model
             except Exception:
                 pass
-        if self.detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
-            for i, it in enumerate(self.raws):
-                self.raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
+        # if self.detect_language[:2] == 'zh' and config.settings['zh_hant_s']:
+        #     for i, it in enumerate(self.raws):
+        #         self.raws[i]['text'] = zhconv.convert(it['text'], 'zh-hans')
         return self.raws
 
     def _exec0(self) -> Union[List[Dict], None]:

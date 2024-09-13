@@ -54,29 +54,9 @@ class BaseTrans(BaseCon):
         source_text = text_list.strip().split("\n") if not self.is_srt else [t['text'] for t in text_list]
         self.split_source_text = [source_text[i:i + self.trans_thread] for i in
                                   range(0, len(source_text), self.trans_thread)]
-        # True=如果未设置环境代理变量，仅仅在网络代理文本框中填写了代理，则请求完毕需删除代理恢复原样
-        self.shound_del = False
+
         self.proxies = None
 
-    # 设置和删除代理
-    def _set_proxy(self, type=None) -> Union[str, None]:
-        if type == 'del' and self.shound_del:
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
-            self.shound_del = False
-            return None
-        if type == 'set':
-            raw_proxy = os.environ.get('http_proxy')
-            if not raw_proxy:
-                proxy = tools.set_proxy()
-                if proxy:
-                    self.shound_del = True
-                    os.environ['http_proxy'] = proxy
-                    os.environ['https_proxy'] = proxy
-                    os.environ['all_proxy'] = proxy
-                    return proxy
-        return None
 
     # 发出请求获取内容 data=[text1,text2,text] | text
     def _item_task(self, data: Union[List[str], str]) -> str:

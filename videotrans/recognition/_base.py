@@ -25,7 +25,7 @@ class BaseRecogn(BaseCon):
         self.has_done = False
         self.error = ''
 
-        self.shound_del = False
+
         self.api_url = ''
         self.proxies = None
 
@@ -83,21 +83,7 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[Dict], None]:
         pass
 
-    def _set_proxy(self, type='set'):
-        if type == 'del' and self.shound_del:
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
-            self.shound_del = False
-        elif type == 'set':
-            raw_proxy = os.environ.get('http_proxy')
-            if not raw_proxy:
-                proxy = tools.set_proxy()
-                if proxy:
-                    self.shound_del = True
-                    os.environ['http_proxy'] = proxy
-                    os.environ['https_proxy'] = proxy
-                    os.environ['all_proxy'] = proxy
+
 
     # True 退出
     def _exit(self) -> bool:
