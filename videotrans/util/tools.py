@@ -849,9 +849,11 @@ def srt2ass(srt_file, ass_file, maxlen=40):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
-                fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
+                fontcolor=config.settings['fontcolor'],
+                fontbordercolor=config.settings['fontbordercolor'],
+                fontbackcolor=config.settings['fontbordercolor'],
                 subtitle_bottom=config.settings['subtitle_bottom'])
             break
 

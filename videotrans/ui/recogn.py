@@ -2,6 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtGui import Qt
 
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
@@ -110,6 +111,7 @@ class Ui_recogn(object):
         self.shibie_startbtn.setSizePolicy(sizePolicy)
         self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 30))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
+        self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
 
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
@@ -128,14 +130,7 @@ class Ui_recogn(object):
         self.shibie_text.setReadOnly(True)
         self.verticalLayout_3.addWidget(self.shibie_text)
 
-        self.shibie_savebtn = QtWidgets.QPushButton()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.shibie_savebtn.sizePolicy().hasHeightForWidth())
-        self.shibie_savebtn.setSizePolicy(sizePolicy)
-        self.shibie_savebtn.setObjectName("shibie_savebtn")
-        self.shibie_savebtn.hide()
+
 
         self.shibie_opendir = QtWidgets.QPushButton()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -147,11 +142,11 @@ class Ui_recogn(object):
         self.shibie_opendir.setObjectName("shibie_opendir")
         self.shibie_opendir.setText('打开识别结果保存目录' if config.defaulelang == 'zh' else 'Open Output dir')
         self.shibie_opendir.setDisabled(True)
+        self.shibie_opendir.setCursor(Qt.PointingHandCursor)
 
         self.horizontalLayout_shibie8 = QtWidgets.QHBoxLayout()
 
         self.horizontalLayout_shibie8.addWidget(self.shibie_opendir)
-        self.horizontalLayout_shibie8.addWidget(self.shibie_savebtn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_shibie8)
 
         self.label_shibie10 = QtWidgets.QLabel()
@@ -166,4 +161,3 @@ class Ui_recogn(object):
         recogn.setWindowTitle(config.uilanglist.get("Speech Recognition Text"))
         self.label_3.setText(box_lang.get("Source lang"))
         self.shibie_startbtn.setText(box_lang.get("Start"))
-        self.shibie_savebtn.setText(box_lang.get("Save to srt.."))
