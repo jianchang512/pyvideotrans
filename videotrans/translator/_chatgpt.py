@@ -18,8 +18,6 @@ class ChatGPT(BaseTrans):
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        else:
-            self.proxies = {"http://": "", "https://": ""}
         self.prompt = config.params['chatgpt_template'].replace('{lang}', self.target_language)
 
     def _get_url(self, url=""):

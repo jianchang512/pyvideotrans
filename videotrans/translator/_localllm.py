@@ -18,9 +18,6 @@ class LocalLLM(BaseTrans):
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        else:
-            self.proxies = {"http://": "", "https://": ""}
-
         self.prompt = config.params['localllm_template'].replace('{lang}', self.target_language)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
