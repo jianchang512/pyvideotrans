@@ -46,7 +46,6 @@ class BaseTTS(BaseCon):
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
 
-        self.shound_del = False
         # 线程池大小
         self.dub_nums = int(config.settings['dubbing_thread']) if self.len > 1 else 1
         self.error = ''
@@ -181,23 +180,6 @@ class BaseTTS(BaseCon):
             wav_content = wav_file.read()
             base64_encoded = base64.b64encode(wav_content)
             return base64_encoded.decode("utf-8")
-
-    # 设置 删除 代理
-    def _set_proxy(self, type='set'):
-        if type == 'del' and self.shound_del:
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
-            self.shound_del = False
-        elif type == 'set':
-            raw_proxy = os.environ.get('http_proxy')
-            if not raw_proxy:
-                proxy = tools.set_proxy()
-                if proxy:
-                    self.shound_del = True
-                    os.environ['http_proxy'] = proxy
-                    os.environ['https_proxy'] = proxy
-                    os.environ['all_proxy'] = proxy
 
     def _exit(self):
         if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing' and not self.is_test):

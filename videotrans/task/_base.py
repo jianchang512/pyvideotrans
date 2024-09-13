@@ -69,6 +69,7 @@ class BaseTask(BaseCon):
         self.video_codec = int(config.settings['video_codec'])
 
         # 预处理，prepare 全部需要
+        self.shound_del = False
         # 是否需要语音识别
         self.shoud_recogn = False
         # 是否需要字幕翻译
