@@ -1,6 +1,8 @@
 import copy
 import sys
+from pathlib import Path
 from typing import Union, Dict, List
+from urllib.parse import urlparse
 
 import requests
 
@@ -54,13 +56,34 @@ class TTSAPI(BaseTTS):
                 return
             if 'data' not in res or not res['data']:
                 raise Exception('未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned')
-            url = res['data']
-            res = requests.get(url)
-            if res.status_code != 200:
-                self.error = f'{url=}'
-                return
-            with open(data_item['filename'], 'wb') as f:
-                f.write(res.content)
+            # 返回的是音频url地址
+            if res['data'].startswith('http'):
+                url = res['data']
+                res = requests.get(url)
+                if res.status_code != 200:
+                    self.error = f'{url=}'
+                    return
+
+                tmp_filename=data_item['filename']
+                try:
+                    # 如果url指向的音频不是mp3，则需要转为mp3
+                    url_ext=Path(urlparse(url).path.rpartition('/')[-1]).suffix.lower()
+                except Exception:
+                    url_ext='.mp3'
+                else:
+                    if url_ext!='.mp3':
+                        tmp_filename+=f'{url_ext}'
+                with open(tmp_filename, 'wb') as f:
+                    f.write(res.content)
+                if url_ext!='.mp3':
+                    tools.runffmpeg([
+                        "-y","-i",tmp_filename,data_item['filename']
+                    ])
+            elif res['data'].startswith('data:audio'):
+                # 返回 base64数据
+                self._base64_to_audio(res['data'],data_item['filename'])
+            else:
+                raise Exception('未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned')
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''

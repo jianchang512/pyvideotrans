@@ -167,6 +167,30 @@ class BaseTTS(BaseCon):
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
         if not encoded_str:
             raise ValueError("Base64 encoded string is empty.")
+        # 如果存在data前缀，则按照前缀中包含的音频格式保存为转换格式
+        if encoded_str.startswith('data:audio/'):
+            output_ext=Path(output_path).suffix.lower()[1:]
+            mime_type,encoded_str = encoded_str.split(',',1)  # 提取 Base64 数据部分
+            # 提取音频格式 (例如 'mp3', 'wav')
+            audio_format = mime_type.split('/')[1].split(';')[0].lower()
+            support_format={
+                "mpeg":"mp3",
+                "wav":"wav",
+                "ogg":"ogg",
+                "aac":"aac"
+            }
+            base64data_ext=support_format.get(audio_format,"")
+            if base64data_ext and base64data_ext != output_ext:
+                # 格式不同需要转换格式
+                # 将base64编码的字符串解码为字节
+                wav_bytes = base64.b64decode(encoded_str)
+                # 将解码后的字节写入文件
+                with open(output_path+f'.{base64data_ext}', "wb") as wav_file:
+                    wav_file.write(wav_bytes)
+                tools.runffmpeg([
+                    "-y","-i",output_path+f'.{base64data_ext}',output_path
+                ])
+                return
         # 将base64编码的字符串解码为字节
         wav_bytes = base64.b64decode(encoded_str)
         # 将解码后的字节写入文件

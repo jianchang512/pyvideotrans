@@ -401,6 +401,7 @@ class Ui_subtitleEditor(QWidget):
         return self.parse_time(time_str)
 
     def choose_font(self):
+
         dialog = QFontDialog(self.selected_font, self)
         if dialog.exec():
             font = dialog.selectedFont()
