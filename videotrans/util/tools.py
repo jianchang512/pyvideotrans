@@ -1464,12 +1464,12 @@ def format_video(name, target_dir=None):
     return obj
 
 # 获取 prompt提示词
-def get_prompt(ainame,is_srt=False):
+def get_prompt(ainame,is_srt=True):
     prompt_file=get_prompt_file(ainame=ainame,is_srt=is_srt)
     return Path(prompt_file).read_text(encoding='utf-8')
 
 # 获取当前需要操作的prompt txt文件
-def get_prompt_file(ainame,is_srt=False):
+def get_prompt_file(ainame,is_srt=True):
     prompt_path = f'{config.ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}{"" if config.defaulelang == "zh" else "-en"}.txt'
     if is_srt and config.settings.get('aisendsrt',False):
