@@ -8,6 +8,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 safetySettings = [
     {
@@ -35,7 +36,7 @@ class Gemini(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._set_proxy(type='set')
-        self.prompt = config.params['gemini_template'].replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         response = None

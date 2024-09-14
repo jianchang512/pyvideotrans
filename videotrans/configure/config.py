@@ -234,6 +234,7 @@ def parse_init():
         "cuda_qp": False,
         "preset": "slow",
         "ffmpeg_cmd": "",
+        "aisendsrt":"false",
         "video_codec": 264,
         "openaitts_model": "tts-1,tts-1-hd",
         "openairecognapi_model": "whisper-1",
@@ -445,10 +446,41 @@ def getset_params(obj=None):
 Translation:
 
 """
+    prompt_zh_srt="""请将<source>中的srt字幕格式内容翻译到{lang}，然后只输出译文，不要添加任何说明或引导词：
+
+注意以下要求：
+1. **只翻译**字幕文本内容，不翻译字幕的行号和时间戳。
+2. **必须保证**翻译后的译文格式为有效的 srt字幕。
+3. **确保**翻译后的字幕数量和原始字幕完全一致，每一条字幕对应原始字幕中的一条。
+4. **保持时间戳的原样**，只翻译幕文本内容。
+5. 如果遇到无法翻译的情况，直接将原文本内容返回，不要报错，不要道歉。
+
+以下是需要翻译的 srt 字幕内容：
+
+<source>[TEXT]</source>
+
+译文:
+"""
+    prompt_en_srt="""Please translate the content of srt subtitle format in <source> to {lang}, and then output only the translated text without adding any description or guide words:
+
+Note the following requirements:
+1. **Translate **subtitle text content only, do not translate subtitle line numbers and timestamps.
+2. **Must ensure that **the translated translation format is a valid srt subtitle.
+3. **Must ensure that the number of **translated subtitles is exactly the same as the original subtitles, and that each subtitle corresponds to one of the original subtitles.
+4. **Keep the timestamps as they are** and translate only the content of the subtitles.
+5. If you can't translate the subtitle, you can return the original text directly without reporting any error.
+
+The following is the content of the srt subtitle to be translated:
+
+<source>[TEXT]</source>
+
+Translation:"""
+    # 保存到json
     if obj is not None:
         with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(obj, ensure_ascii=False))
         return None
+    #获取
     default = {
         "last_opendir": HOME_DIR,
         "cuda": False,
@@ -519,30 +551,30 @@ Translation:
         "chatgpt_api": "",
         "chatgpt_key": "",
         "chatgpt_model": _chatgpt_model_list[0],
-        "chatgpt_template": prompt_zh if defaulelang == 'zh' else prompt_en,
+        "chatgpt_template": "",
 
         "azure_api": "",
         "azure_key": "",
         "azure_version": "2024-06-01",
         "azure_model": _azure_model_list[0],
-        "azure_template": prompt_zh if defaulelang == 'zh' else prompt_en,
+        "azure_template": "",
 
         "gemini_key": "",
         "gemini_model": "gemini-1.5-pro",
-        "gemini_template": prompt_zh if defaulelang == 'zh' else prompt_en,
+        "gemini_template": "",
 
         "localllm_api": "",
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
-        "localllm_template": prompt_zh if defaulelang == 'zh' else prompt_en,
+        "localllm_template": "",
 
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
-        "zijiehuoshan_template": prompt_zh,
+        "zijiehuoshan_template": "",
 
         "ai302_key": "",
         "ai302_model": "",
-        "ai302_template": prompt_zh,
+        "ai302_template": "",
 
         "trans_api_url": "",
         "trans_secret": "",
@@ -601,54 +633,28 @@ Translation:
 
         "proxy": ""
     }
-
-    try:
-        if os.path.exists(ROOT_DIR + "/videotrans/params.json"):
-            default.update(json.load(open(ROOT_DIR + "/videotrans/params.json", 'r', encoding='utf-8')))
-
+    # 创建默认提示词文件
+    if Path(ROOT_DIR+'/videotrans/prompts/srt').exists():
+        Path(ROOT_DIR+'/videotrans/prompts/srt').mkdir(parents=True,exist_ok=True)
+    def _create_default_promot():
         prompt_langcode = '' if defaulelang == "zh" else "-en"
         _root_path = Path(ROOT_DIR)
-        chatgpt_path = _root_path / f'videotrans/chatgpt{prompt_langcode}.txt'
-        if chatgpt_path.exists():
-            default['chatgpt_template'] = chatgpt_path.read_text(encoding='utf-8').strip() + "\n"
+        for ainame in ['chatgpt','azure','gemini','localllm','ai302','zijie']:
+            chatgpt_path = _root_path / f'videotrans/{ainame}{prompt_langcode}.txt'
+            if not chatgpt_path.exists():
+                chatgpt_path.write_text(prompt_zh if defaulelang=='zh' else prompt_en, encoding='utf-8')
+            chatgpt_path = _root_path / f'videotrans/prompts/srt/{ainame}{prompt_langcode}.txt'
+            if not chatgpt_path.exists():
+                chatgpt_path.write_text(prompt_zh_srt if defaulelang=='zh' else prompt_en_srt, encoding='utf-8')
+    try:
+        _create_default_promot()
+        if os.path.exists(ROOT_DIR + "/videotrans/params.json"):
+            default.update(json.load(open(ROOT_DIR + "/videotrans/params.json", 'r', encoding='utf-8')))
         else:
-            chatgpt_path.write_text(default['chatgpt_template'], encoding='utf-8')
-
-        azure_path = _root_path / f'videotrans/azure{prompt_langcode}.txt'
-        if azure_path.exists():
-            default['azure_template'] = azure_path.read_text(encoding='utf-8').strip() + "\n"
-        else:
-            azure_path.write_text(default['azure_template'], encoding='utf-8')
-
-        gemini_path = _root_path / f'videotrans/gemini{prompt_langcode}.txt'
-        if gemini_path.exists():
-            default['gemini_template'] = gemini_path.read_text(encoding='utf-8').strip() + "\n"
-        else:
-            gemini_path.write_text(default['gemini_template'], encoding='utf-8')
-
-        localllm_path = _root_path / f'videotrans/localllm{prompt_langcode}.txt'
-        if localllm_path.exists():
-            default['localllm_template'] = localllm_path.read_text(encoding='utf-8').strip() + "\n"
-        else:
-            localllm_path.write_text(default['localllm_template'], encoding='utf-8')
-
-        zijiehuoshan_path = _root_path / f'videotrans/zijie.txt'
-        if zijiehuoshan_path.exists():
-            default['zijiehuoshan_template'] = zijiehuoshan_path.read_text(encoding='utf-8').strip() + "\n"
-        else:
-            zijiehuoshan_path.write_text(default['zijiehuoshan_template'], encoding='utf-8')
-
-        ai302_path = _root_path / f'videotrans/302ai.txt'
-        if ai302_path.exists():
-            default['ai302_template'] = ai302_path.read_text(encoding='utf-8').strip() + "\n"
-        else:
-            ai302_path.write_text(default['ai302_template'], encoding='utf-8')
+            json.dump(default, open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8'), ensure_ascii=False)
     except Exception:
         pass
-    if not os.path.exists(ROOT_DIR + "/videotrans/params.json"):
-        json.dump(default, open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8'), ensure_ascii=False)
     return default
-
 
 # api key 翻译配置等信息，每次执行任务均有变化
 params = getset_params()

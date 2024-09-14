@@ -6,6 +6,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -56,7 +57,7 @@ def openwin():
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
         config.params["zijiehuoshan_template"] = template
-        Path(config.ROOT_DIR + f"/videotrans/zijie.txt").write_text(template, encoding='utf-8')
+        Path(tools.get_prompt_file('zijie')).write_text(template, encoding='utf-8')
         config.getset_params(config.params)
         winobj.close()
 
@@ -89,6 +90,7 @@ def openwin():
 
     from videotrans.component import ZijiehuoshanForm
     winobj = config.child_forms.get('zijiew')
+    config.params["zijiehuoshan_template"]=tools.get_prompt('zijie')
     if winobj is not None:
         winobj.show()
         update_ui()

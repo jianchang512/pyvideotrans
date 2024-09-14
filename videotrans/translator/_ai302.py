@@ -6,6 +6,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 
 class AI302(BaseTrans):
@@ -13,7 +14,7 @@ class AI302(BaseTrans):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.proxies = {"http": "", "https": ""}
-        self.prompt = config.params['ai302_template'].replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='ai302',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         payload = {

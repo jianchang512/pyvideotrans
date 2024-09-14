@@ -7,6 +7,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class TestAI302(QThread):
@@ -56,7 +57,8 @@ def openwin():
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
-        Path(config.ROOT_DIR + f"/videotrans/302ai.txt").write_text(template, encoding='utf-8')
+
+        Path(tools.get_prompt_file('ai302')).write_text(template, encoding='utf-8')
         config.getset_params(config.params)
         winobj.close()
 
@@ -89,6 +91,7 @@ def openwin():
 
     from videotrans.component import AI302Form
     winobj = config.child_forms.get('ai302fyw')
+    config.params["ai302_template"]=tools.get_prompt('ai302')
     if winobj is not None:
         winobj.show()
         update_ui()

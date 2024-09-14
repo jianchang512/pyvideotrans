@@ -1,10 +1,12 @@
 import json
+from pathlib import Path
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -61,10 +63,7 @@ def openwin():
         config.params["localllm_api"] = api
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
-        with open(config.ROOT_DIR + f"/videotrans/localllm{'-en' if config.defaulelang != 'zh' else ''}.txt",
-                  'w',
-                  encoding='utf-8') as f:
-            f.write(template)
+        Path(tools.get_prompt_file('localllm')).write_text(template, encoding='utf-8')
         config.getset_params(config.params)
         winobj.close()
 
@@ -97,6 +96,7 @@ def openwin():
 
     from videotrans.component import LocalLLMForm
     winobj = config.child_forms.get('llmw')
+    config.params["localllm_template"]=tools.get_prompt('localllm')
     if winobj is not None:
         winobj.show()
         update_ui()

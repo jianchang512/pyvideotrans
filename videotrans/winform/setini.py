@@ -26,7 +26,7 @@ def openwin():
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
                 # 将objectName作为key，text作为value添加到字典中
-                line_edit_dict[name] = 'true' if line_edit.isChecked() else 'false'
+                line_edit_dict[name] = line_edit.isChecked()
         line_edit_dict['homedir']=winobj.homedir_btn.text()
         try:
             json.dump(line_edit_dict, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),

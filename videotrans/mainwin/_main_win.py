@@ -194,6 +194,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.params['source_language'] and config.params['source_language'] in self.languagename:
             self.source_language.setCurrentText(config.params['source_language'])
+        try:
+            config.params['tts_type']=int(config.params['tts_type'])
+        except:
+            config.params['tts_type']=0
+        
         self.tts_type.setCurrentIndex(config.params['tts_type'])
         if config.params['tts_type'] == CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
