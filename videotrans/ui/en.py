@@ -846,7 +846,7 @@ class Ui_MainWindow(object):
         self.menu_H.setTitle(config.uilanglist.get("&Help"))
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译设置" if config.defaulelang == 'zh' else "Baidu Key")
-        self.actionchatgpt_key.setText("ChatGPT及兼容API" if config.defaulelang == 'zh' else "ChatGPT API")
+        self.actionchatgpt_key.setText("OpenAI ChatGPT及兼容API" if config.defaulelang == 'zh' else "OpenAI ChatGPT API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionopenairecognapi_key.setText(
             "OpenAI语音识别API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')

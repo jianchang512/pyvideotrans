@@ -1,6 +1,8 @@
 import json
+from pathlib import Path
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -16,9 +18,8 @@ def openwin():
         config.params["azure_version"] = version
         config.params["azure_model"] = model
         config.params["azure_template"] = template
-        with open(config.ROOT_DIR + f"/videotrans/azure{'-en' if config.defaulelang != 'zh' else ''}.txt", 'w',
-                  encoding='utf-8') as f:
-            f.write(template)
+
+        Path(tools.get_prompt_file('ai302')).write_text(template, encoding='utf-8')
         config.getset_params(config.params)
 
         winobj.close()
@@ -56,6 +57,7 @@ def openwin():
 
     from videotrans.component import AzureForm
     winobj = config.child_forms.get('azurew')
+    config.params["azure_template"]=tools.get_prompt('azure')
     if winobj is not None:
         winobj.show()
         update_ui()

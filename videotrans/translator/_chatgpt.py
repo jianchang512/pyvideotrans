@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from pathlib import Path
 from typing import Union, List
 
 import httpx
@@ -7,6 +8,7 @@ from openai import OpenAI
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 
 class ChatGPT(BaseTrans):
@@ -18,7 +20,8 @@ class ChatGPT(BaseTrans):
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        self.prompt = config.params['chatgpt_template'].replace('{lang}', self.target_language)
+        # 是srt则获取srt的提示词
+        self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _get_url(self, url=""):
         if not url.startswith('http'):
@@ -62,4 +65,4 @@ class ChatGPT(BaseTrans):
             raise Exception(f"no choices:{response=}")
 
         result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        return re.sub(r'\n{2,}', "\n", result)
+        return result

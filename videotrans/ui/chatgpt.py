@@ -83,7 +83,7 @@ class Ui_chatgptform(object):
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
     def retranslateUi(self, chatgptform):
-        chatgptform.setWindowTitle("ChatGPT API")
+        chatgptform.setWindowTitle("OpenAI ChatGPT API")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText(

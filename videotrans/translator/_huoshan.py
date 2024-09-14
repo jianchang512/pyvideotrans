@@ -7,6 +7,7 @@ from requests import JSONDecodeError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 
 class HuoShan(BaseTrans):
@@ -14,7 +15,7 @@ class HuoShan(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.proxies = {"http": "", "https": ""}
-        self.prompt = config.params['zijiehuoshan_template'].replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         message = [

@@ -140,7 +140,8 @@ class Ui_setini(object):
                 "trans_thread": "同时翻译的字幕条数",
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
-                "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages"
+                "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages",
+                "aisendsrt":"是否在使用AI翻译时发送完整字幕内容",
 
             },
             "dubbing": {
@@ -252,6 +253,7 @@ class Ui_setini(object):
             "translation_wait": "翻译后暂停时间/s",
             "gemini_model": "Gemini模型列表",
             "google_trans_newadd": "Google字幕翻译新增语言代码",
+            "aisendsrt":"使用AI翻译时发送完整字幕内容",
 
             "initial_prompt_zh-cn": "whisper模型简体中文提示词",
             "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
@@ -340,7 +342,8 @@ class Ui_setini(object):
                     "trans_thread": "Number of subtitles translated simultaneously",
                     "retries": "Number of retries when translation fails",
                     "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
-                    "google_trans_newadd": "Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages"
+                    "google_trans_newadd": "Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages",
+                    "aisendsrt":"Sending full subtitle content when use ai translation",
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
@@ -412,6 +415,7 @@ class Ui_setini(object):
                 "ai302tts_models": "302.ai TTS Models",
                 "openairecognapi_model": "OpenAI Speech",
                 "lang": "Software Interface Language",
+                "aisendsrt":"Sending full subtitle content when ai translation",
                 "crf": "Video Transcoding Loss Control",
                 "cuda_qp": "NVIDIA Use QP Instead of CRF",
                 "preset": "Output Video Quality",
@@ -604,6 +608,7 @@ class Ui_setini(object):
 
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)
+        print(config.settings)
 
     def retranslateUi(self, setini):
         setini.setWindowTitle('选项' if config.defaulelang == 'zh' else 'Options')

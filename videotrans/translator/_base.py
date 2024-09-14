@@ -50,10 +50,14 @@ class BaseTrans(BaseCon):
         self.target_list = []
         # 如果 text_list 不是字符串则是字幕格式
         self.is_srt = False if isinstance(text_list, str) else True
+        self.aisendsrt=config.settings.get('aisendsrt',False)
         # 整理待翻译的文字为 List[str]
-        source_text = text_list.strip().split("\n") if not self.is_srt else [t['text'] for t in text_list]
-        self.split_source_text = [source_text[i:i + self.trans_thread] for i in
-                                  range(0, len(source_text), self.trans_thread)]
+        if self.is_srt:
+            source_text = [t['text'] for t in text_list] if not self.aisendsrt else text_list
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(text_list), self.trans_thread)]
+        else:
+            source_text = text_list.strip().split("\n")
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
 
         self.proxies = None
 
@@ -71,6 +75,9 @@ class BaseTrans(BaseCon):
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
         self._signal(text="")
+        if self.is_srt and self.aisendsrt:
+            return self.runsrt()
+
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
             while 1:
@@ -189,3 +196,81 @@ class BaseTrans(BaseCon):
             else:
                 self.text_list[i]['text'] = ""
         return self.text_list
+
+    # 发送完整字幕格式内容进行翻译
+    def runsrt(self):
+        result_srt_str_list=[]
+        for i, it in enumerate(self.split_source_text):
+            # 失败后重试 self.retry 次
+            while 1:
+                if self._exit():
+                    return
+                if self.iter_num > self.retry:
+                    msg = f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
+                    self._signal(text=msg, type="error")
+                    raise LogExcept(msg)
+
+                self.iter_num += 1
+                if self.iter_num > 1:
+                    self._signal(
+                        text=f"第{self.iter_num}次出错重试" if config.defaulelang == 'zh' else f'{self.iter_num} retries after error')
+                    time.sleep(10)
+                    continue
+
+                try:
+                    srt_str="\n\n".join([ f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
+
+                    result = self._item_task(srt_str)
+
+                    if not srt_str.strip():
+                        raise Exception('无返回翻译结果' if config.defaulelang=='zh' else 'Translate result is empty')
+
+                    if self.inst and self.inst.precent < 75:
+                        self.inst.precent += 0.1
+
+                    self._signal( text=result, type='subtitle')
+                    result_srt_str_list.append(result)
+                except ValueError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except KeyError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except IndexError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except requests.ConnectionError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except openai.APIError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except AttributeError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except ConnectionError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except OSError as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                except Exception as e:
+                    self.error = f'{e}'
+                    config.logger.exception(e, exc_info=True)
+                    time.sleep(self.wait_sec)
+                else:
+                    # 成功 未出错
+                    self.error = ''
+                    self.iter_num = 0
+                finally:
+                    time.sleep(self.wait_sec)
+                if self.iter_num == 0:
+                    # 未出错跳过while
+                    break
+
+        # 恢复原代理设置
+        if self.shound_del:
+            self._set_proxy(type='del')
+
+
+        return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list),is_file=False)

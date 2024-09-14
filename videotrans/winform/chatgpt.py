@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
@@ -9,6 +10,9 @@ from videotrans.configure import config
 
 
 # set chatgpt
+from videotrans.util import tools
+
+
 def openwin():
     class TestChatgpt(QThread):
         uito = Signal(str)
@@ -57,11 +61,7 @@ def openwin():
         api = api if api else 'https://api.openai.com/v1'
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
-
-        with open(config.ROOT_DIR + f"/videotrans/chatgpt{'-en' if config.defaulelang != 'zh' else ''}.txt",
-                  'w',
-                  encoding='utf-8') as f:
-            f.write(template)
+        Path(tools.get_prompt_file('chatgpt')).write_text(template, encoding='utf-8')
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key
         config.params["chatgpt_api"] = api
@@ -78,6 +78,7 @@ def openwin():
         if current_text:
             winobj.chatgpt_model.setCurrentText(current_text)
         config.settings['chatgpt_model'] = t
+
         json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
                   ensure_ascii=False)
 
@@ -100,6 +101,7 @@ def openwin():
 
     from videotrans.component import ChatgptForm
     winobj = config.child_forms.get('chatgptw')
+    config.params["chatgpt_template"]=tools.get_prompt('chatgpt')
     if winobj is not None:
         winobj.show()
         update_ui()

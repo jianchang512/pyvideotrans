@@ -7,6 +7,7 @@ from openai import AzureOpenAI
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 
 class AzureGPT(BaseTrans):
@@ -16,7 +17,7 @@ class AzureGPT(BaseTrans):
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https://": pro, "http://": pro}
-        self.prompt = config.params['azure_template'].replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         model = AzureOpenAI(
