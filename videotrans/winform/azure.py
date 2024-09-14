@@ -19,7 +19,7 @@ def openwin():
         config.params["azure_model"] = model
         config.params["azure_template"] = template
 
-        Path(tools.get_prompt_file('ai302')).write_text(template, encoding='utf-8')
+        Path(tools.get_prompt_file('azure')).write_text(template, encoding='utf-8')
         config.getset_params(config.params)
 
         winobj.close()
