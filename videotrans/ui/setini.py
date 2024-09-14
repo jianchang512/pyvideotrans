@@ -608,7 +608,6 @@ class Ui_setini(object):
 
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)
-        print(config.settings)
 
     def retranslateUi(self, setini):
         setini.setWindowTitle('选项' if config.defaulelang == 'zh' else 'Options')
