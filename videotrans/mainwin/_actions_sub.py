@@ -475,11 +475,13 @@ class WinActionSub:
 
     # 判断文件路径是否正确
     def url_right(self):
+        if sys.platform != 'win32':
+            return True
         for vurl in config.queue_mp4:
-            if re.search(r'[:\?\*<>\|\"\']', vurl[4:]):
+            if re.search(r'[:\?\*<>\|\"]', vurl[4:]):
                 return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                            '视频所在路径和视频名字中不可含有  :  * ? < > | " \' 符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | " \' symbols, please revise. ')
-            if len(vurl) > 255 and sys.platform == 'win32':
+                                            '视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ')
+            if len(vurl) > 255:
                 return QMessageBox.critical(self.main, config.transobj['anerror'],
                                             f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}')
         return True
