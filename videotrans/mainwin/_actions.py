@@ -455,22 +455,30 @@ class WinAction(WinActionSub):
         config.settings = config.parse_init()
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             config.params['app_mode'] = self.main.app_mode
+        self._disabled_button()
+        self.main.startbtn.setDisabled(False)
+        QTimer.singleShot(100, self.create_btns)
 
+    def create_btns(self):
         target_dir = Path(config.params["target_dir"] if config.params["target_dir"] else Path(
             config.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
+        self.obj_list = []
+        for video_path in config.queue_mp4:
+            obj=tools.format_video(video_path, target_dir)
+            self.obj_list.append(obj)
+            self.add_process_btn(
+                target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else
+                obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
 
-        self.obj_list = [tools.format_video(video_path, target_dir) for video_path in config.queue_mp4]
-        QTimer.singleShot(100, self.create_btns)
         # 启动任务
         self.task = Worker(
             parent=self.main,
             app_mode=self.main.app_mode,
             obj_list=self.obj_list,
-            txt=txt
+            txt=self.main.subtitle_area.toPlainText().strip()
         )
         self.task.start()
-        self._disabled_button()
-        self.main.startbtn.setDisabled(False)
+
 
     # 启动时禁用相关模式按钮，停止时重新启用
     def _disabled_button(self, status=True):
@@ -585,11 +593,6 @@ class WinAction(WinActionSub):
         except Exception:
             pass
 
-    def create_btns(self):
-        for obj in self.obj_list:
-            self.add_process_btn(
-                target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else
-                obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
 
     # 更新 UI
     def update_data(self, json_data):

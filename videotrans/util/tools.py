@@ -1438,11 +1438,9 @@ def format_video(name, target_dir=None):
     raw_pathlib = Path(name)
     raw_basename = raw_pathlib.name
     raw_noextname = raw_pathlib.stem
-    ext_path = raw_noextname.split('/')
-    if len(ext_path) > 1:
-        raw_noextname = ext_path[-1]
     ext = raw_pathlib.suffix
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
+
     obj = {
         "name": name,
         # 处理后 移动后符合规范的目录名
@@ -1455,6 +1453,17 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
+
+    if re.search(r'[\[\]\{\}\'\$\`]+',raw_noextname):
+        # 规范化名字
+        raw_noextname=re.sub(r'[\[\]\{\}\'\$\`\*\?]+','-',raw_noextname)
+        new_name=f'{raw_dirname}/{raw_noextname}{ext}'
+        shutil.copy2(name,new_name)
+        obj['name']=new_name
+        obj['noextname']=raw_noextname
+        obj['basename']=f'{raw_noextname}{ext}'
+        obj['shound_del_name']=new_name
+
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()
 

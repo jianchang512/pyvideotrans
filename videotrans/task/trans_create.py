@@ -164,9 +164,11 @@ class TransCreate(BaseTask):
         threading.Thread(target=runing).start()
 
     # 预处理，分离音视频、分离人声等
+    # 修改不规则的名字
     def prepare(self) -> None:
         if self._exit():
             return
+        # super().amend()
         # 将原始视频分离为无声视频和音频
         self._split_wav_novicemp4()
 
@@ -410,6 +412,7 @@ class TransCreate(BaseTask):
         if self._exit():
             return
 
+
         # 提取时，删除
         if self.config_params['app_mode'] == 'tiqu':
             Path(f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.srt").unlink(
@@ -432,6 +435,8 @@ class TransCreate(BaseTask):
         self.precent = 100
         self._signal(text=f"{self.config_params['name']}", type='succeed')
         tools.send_notification("Succeed", f"{self.config_params['basename']}")
+        if 'shound_del_name' in self.config_params:
+            Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self) -> None:
