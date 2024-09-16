@@ -1453,10 +1453,10 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
-
-    if re.search(r'[\[\]\{\}\'\$\`]+',raw_noextname):
+    rule=r'[\[\]\{\}\'\$\`\*\?\"\|]+'
+    if re.search(rule,raw_noextname):
         # 规范化名字
-        raw_noextname=re.sub(r'[\[\]\{\}\'\$\`\*\?]+','-',raw_noextname)
+        raw_noextname=re.sub(rule,'-',raw_noextname)
         new_name=f'{raw_dirname}/{raw_noextname}{ext}'
         shutil.copy2(name,new_name)
         obj['name']=new_name
