@@ -1239,9 +1239,7 @@ def get_video_codec():
     plat = platform.system()
     # 264 / 265
     video_codec = int(config.settings['video_codec'])
-    hhead = 'h264'
-    if video_codec != 264:
-        hhead = 'hevc'
+    hhead = 'hevc' if video_codec != 264 else 'h264'
     mp4_test = config.ROOT_DIR + "/videotrans/styles/no-remove.mp4"
     if not Path(mp4_test).is_file():
         return f'libx{video_codec}'

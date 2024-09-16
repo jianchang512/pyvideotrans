@@ -90,6 +90,8 @@ class Ui_setini(object):
 
         box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
         box.setLayout(QtWidgets.QVBoxLayout())
+        # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
+        # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
         # 中文注释 界面ui控制
         self.notices = {
@@ -115,7 +117,7 @@ class Ui_setini(object):
             "video": {
                 "crf": "视频转码时损失控制，0=损失最低，51=损失最大，默认13",
                 "cuda_qp": "是否在 NVIDIA cuda上使用 qp代替crf",
-                "preset": "用于控制输出视频质量和大小，越快质量越差",
+                "preset": "主要调节编码速度和质量的平衡，有ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
                 "video_codec": "采用 libx264 编码或 libx265编码，264兼容性更好，265压缩比更大清晰度更高"
             },
@@ -204,7 +206,7 @@ class Ui_setini(object):
             "lang": "界面语言",
             "crf": "视频转码损失控制",
             "cuda_qp": "NVIDIA使用qp代替crf",
-            "preset": "输出视频质量控制",
+            "preset": "输出视频质量压缩率控制",
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264或265视频编码",
             "chatgpt_model": "ChatGPT模型列表",
@@ -236,8 +238,8 @@ class Ui_setini(object):
             "cuda_com_type": "CUDA数据类型",
             "whisper_threads": "faster-whisper cpu进程",
             "whisper_worker": "faster-whisper工作进程",
-            "beam_size": "字幕识别准确度控制1",
-            "best_of": "字幕识别准确度控制2",
+            "beam_size": "字幕识别准确度控制beam_size",
+            "best_of": "字幕识别准确度控制best_of",
             "temperature": "faster-whisper温度控制",
             "condition_on_previous_text": "上下文感知",
             "fontsize": "硬字幕字体像素",
@@ -317,7 +319,7 @@ class Ui_setini(object):
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
                     "cuda_qp": "Whether to use qp instead of crf on NVIDIA cuda",
-                    "preset": "Controls output video quality and size, the faster, the worse the quality",
+                    "preset": "Mainly adjust the balance of encoding speed and quality, there are ultrafast, superfast, veryfast, fast, fast, medium, slow, slow, veryslow options, encoding speed from fast to slow, compression rate from low to high, video size from large to small.",
                     "ffmpeg_cmd": "Custom ffmpeg command parameters, added at the penultimate position, e.g., -bf 7 -b_ref_mode middle",
                     "video_codec": "Use libx264 or libx265 encoding, 264 has better compatibility, 265 has higher compression ratio and clarity"
                 },
@@ -418,7 +420,7 @@ class Ui_setini(object):
                 "aisendsrt":"Sending full subtitle content when ai translation",
                 "crf": "Video Transcoding Loss Control",
                 "cuda_qp": "NVIDIA Use QP Instead of CRF",
-                "preset": "Output Video Quality",
+                "preset": "Output Video Quality compression rate",
                 "ffmpeg_cmd": "Custom FFmpeg Command Parameters",
                 "video_codec": "H.264 or H.265 Video Encoding",
                 "chatgpt_model": "ChatGPT Model List",
@@ -526,6 +528,29 @@ class Ui_setini(object):
                 tmp.addWidget(tmp_0)
 
                 val=str(config.settings.get(key,"")).lower()
+                # 是 cuda_com_type
+                if key=='cuda_com_type':
+                    cuda_types=['float32','float16','int8','int8_float16','int8_float32']
+                    tmp1=QtWidgets.QComboBox()
+                    tmp1.addItems(cuda_types)
+                    tmp1.setObjectName(key)
+                    if val in cuda_types:
+                        tmp1.setCurrentText(val)
+                    tmp.addWidget(tmp1)
+                    box.layout().addLayout(tmp)
+                    continue
+                if key=='preset':
+                    presets = ['ultrafast','superfast','veryfast','faster','fast','medium','slow','veryslow']
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(presets)
+                    if val in presets:
+                        tmp1.setCurrentText(val)
+                    tmp1.setObjectName(key)
+                    tmp.addWidget(tmp1)
+                    box.layout().addLayout(tmp)
+                    continue
+
+
                 # 设置家目录按钮
                 if key == 'homedir':
                     self.homedir_btn= QtWidgets.QPushButton()
@@ -534,6 +559,7 @@ class Ui_setini(object):
                     self.homedir_btn.setToolTip(
                         '点击设置家目录，用于保存视频分离、字幕翻译、字幕配音等结果文件' if config.defaulelang == 'zh' else 'Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc.')
                     self.homedir_btn.clicked.connect(self.get_target)
+                    self.homedir_btn.setObjectName(key)
                     tmp.addWidget(self.homedir_btn)
                     box.layout().addLayout(tmp)
                     continue

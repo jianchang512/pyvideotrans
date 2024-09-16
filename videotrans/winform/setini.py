@@ -2,7 +2,7 @@ import json
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton, QCheckBox
+from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton, QCheckBox, QComboBox
 
 from videotrans.configure import config
 
@@ -27,6 +27,13 @@ def openwin():
                 name = line_edit.objectName()
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.isChecked()
+        for line_edit in winobj.findChildren(QComboBox):
+            # 检查QLineEdit是否有objectName
+            if hasattr(line_edit, 'objectName') and line_edit.objectName():
+                name = line_edit.objectName()
+                # 将objectName作为key，text作为value添加到字典中
+                line_edit_dict[name] = line_edit.currentText()
+
         line_edit_dict['homedir']=winobj.homedir_btn.text()
         try:
             json.dump(line_edit_dict, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
