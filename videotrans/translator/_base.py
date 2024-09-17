@@ -50,15 +50,11 @@ class BaseTrans(BaseCon):
         self.target_list = []
         # 如果 text_list 不是字符串则是字幕格式
         self.is_srt = False if isinstance(text_list, str) else True
+        # 非AI翻译时强制设为False，是AI翻译时根据配置确定
         self.aisendsrt=config.settings.get('aisendsrt',False)
         # 整理待翻译的文字为 List[str]
-        if self.is_srt:
-            source_text = [t['text'] for t in text_list] if not self.aisendsrt else text_list
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(text_list), self.trans_thread)]
-        else:
-            source_text = text_list.strip().split("\n")
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
-
+        
+        self.split_source_text=[]
         self.proxies = None
 
 
@@ -75,6 +71,13 @@ class BaseTrans(BaseCon):
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
         self._signal(text="")
+        if self.is_srt:
+            source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
+        else:
+            source_text = self.text_list.strip().split("\n")
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
+
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
 
@@ -97,6 +100,7 @@ class BaseTrans(BaseCon):
 
                 try:
                     result = self._item_task(it)
+                    print(f'{result=}')
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
                     # 非srt直接break
@@ -175,7 +179,6 @@ class BaseTrans(BaseCon):
                 if self.iter_num == 0:
                     # 未出错跳过while
                     break
-
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')

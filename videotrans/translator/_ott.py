@@ -10,6 +10,7 @@ class OTT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
         url = config.params['ott_address'].strip().rstrip('/').lower().replace('/translate', '') + '/translate'
         url = url.replace('//translate', '/translate')
         if not url.startswith('http'):

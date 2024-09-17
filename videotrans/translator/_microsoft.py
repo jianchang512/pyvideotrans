@@ -12,6 +12,7 @@ class Microsoft(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
         self.auth = ""
         pro = self._set_proxy(type='set')
         if pro:

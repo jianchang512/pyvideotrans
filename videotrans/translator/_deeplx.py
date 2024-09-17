@@ -13,6 +13,7 @@ class DeepLX(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
         url = config.params['deeplx_address'].strip().rstrip('/').replace('/translate', '') + '/translate'
         self.api_url = f"http://{url}" if not url.startswith('http') else url
         if not re.search(r'localhost', url) and not re.match(r'https?://(\d+\.){3}\d+', url):

@@ -11,6 +11,7 @@ class TransAPI(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
         url = config.params['trans_api_url'].strip().rstrip('/').lower()
         if not url.startswith('http'):
             url = f"http://{url}"
