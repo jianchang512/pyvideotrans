@@ -181,17 +181,6 @@ def openwin():
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-        # 文件名称
-        # filename = winobj.hecheng_out.text()
-        # if os.path.exists(filename):
-        #     filename = ''
-        # if filename and re.search(r'[\\/]+', filename):
-        #     filename = ""
-        # if not filename:
-        #     newrole = role.replace('/', '-').replace('\\', '-')
-        #     filename = f"{newrole}-rate{rate}-volume{volume}-pitch{pitch}"
-        #     filename = filename.replace('%', '').replace('+', '')
-
         if len(winobj.hecheng_files) < 1 and not txt:
             return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
