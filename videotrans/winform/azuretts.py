@@ -19,7 +19,7 @@ def openwin():
             try:
                 tts.run(
                     queue_tts=[{"text": self.text, "role": self.role, "filename": config.TEMP_HOME + "/testaiazure.mp3",
-                                "tts_type": tts.AI302_TTS}],
+                                "tts_type": tts.AZURE_TTS}],
                     language=self.language,
                     play=True,
                     is_test=True

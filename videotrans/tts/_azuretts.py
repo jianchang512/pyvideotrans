@@ -58,7 +58,7 @@ class AzureTTS(BaseTTS):
 
         speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            if len(items) == 0:
+            if len(items) == 1:
                 self.has_done += 1
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
