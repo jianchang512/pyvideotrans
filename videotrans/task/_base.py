@@ -86,36 +86,6 @@ class BaseTask(BaseCon):
         self.shoud_hebing = False
         # 最后一步hebing move_emd 全部需要
 
-    # def amend(self):
-    #     # obj = {
-    #     #     "name": name,
-    #     #     "basename": raw_basename,
-    #     #     # 符合规范的不带后缀
-    #     #     "noextname": raw_noextname,
-    #     #     # 处理后 移动后符合规范的目录名
-    #     #     "dirname": raw_dirname,
-    #     #     # 符合规范的基本名带后缀
-    #     #     # 扩展名
-    #     #     "ext": ext[1:]
-    #     #     # 最终存放目标位置，直接存到这里
-    #     # }
-    #     if re.search(r'[\[\]\{\}\'\s\$]+',self.config_params['noextname']):
-    #         # 规范化名字
-    #         new_noextname=re.sub(r'[\[\]\{\}\'\s\$]+','',self.config_params['noextname'])
-    #
-    #         path_name=Path(self.config_params['name'])
-    #
-    #         new_basename=new_noextname+path_name.suffix.lower()
-    #         new_name=path_name.parent.resolve().as_posix()+f'/{new_basename}'
-    #
-    #         shutil.copy2(self.config_params['name'],new_name)
-    #         self.config_params['name']=new_name
-    #         self.noextname=new_noextname
-    #         self.basename=new_basename
-    #         self.shound_del_name=self.config_params['name']
-
-
-
 
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
