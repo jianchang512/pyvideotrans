@@ -14,6 +14,7 @@ class Baidu(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         text = "\n".join(data)

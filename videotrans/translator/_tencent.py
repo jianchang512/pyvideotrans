@@ -15,6 +15,7 @@ class Tencent(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.aisendsrt=False
         proxy = os.environ.get('http_proxy')
         if proxy:
             del os.environ['http_proxy']

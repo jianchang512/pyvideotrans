@@ -57,10 +57,10 @@ class StartWindow(QtWidgets.QWidget):
             from videotrans.mainwin._main_win import MainWindow
             MainWindow(width=self.width, height=self.height)
         except Exception as e:
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.critical(self,"Error",str(e))
             import traceback
-            traceback.print_exc()
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self,"Error",traceback.format_exc())
+            
         print(time.time())
         self.close()
 
@@ -78,5 +78,6 @@ if __name__ == "__main__":
         startwin = StartWindow()
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        from PySide6.QtWidgets import QMessageBox
+        QMessageBox.critical(self,"Error",traceback.format_exc())
     sys.exit(app.exec())

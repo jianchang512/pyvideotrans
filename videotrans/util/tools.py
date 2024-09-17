@@ -774,7 +774,22 @@ def format_srt(content):
             result[i]['time'] = f'{s} --> {e}'
     return result
 
+# 将时分秒毫秒转为毫秒整数值
+def get_ms_from_hmsm(time_str):
+    h,m,sec2ms=0,0,'00,000'
+    tmp0= time_str.split(":")
+    if len(tmp0)==3:
+        h,m,sec2ms=tmp0[0],tmp0[1],tmp0[2]
+    elif len(tmp0)==2:
+        m,sec2ms=tmp0[0],tmp0[1]
+        
+    tmp=sec2ms.split(',')
+    ms=tmp[1] if len(tmp)==2 else 0
+    sec=tmp[0]
+    
+    return int(int(h) * 3600000 + int(m) * 60000 +int(sec)*1000 + int(ms))
 
+# 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
         if os.path.getsize(srtfile) == 0:
@@ -811,18 +826,15 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             it['line'] = line
             startraw, endraw = it['time'].strip().split("-->")
 
-            startraw = format_time(startraw.strip().replace(',', '.').replace('，', '.').replace('：', ':'), '.')
-            start = startraw.split(":")
+            startraw = format_time(startraw.strip().replace('.', ',').replace('，', ',').replace('：', ':'), ',')
+            
 
-            endraw = format_time(endraw.strip().replace(',', '.').replace('，', '.').replace('：', ':'), '.')
-            end = endraw.split(":")
-
-            start_time = int(int(start[0]) * 3600000 + int(start[1]) * 60000 + float(start[2]) * 1000)
-            end_time = int(int(end[0]) * 3600000 + int(end[1]) * 60000 + float(end[2]) * 1000)
+            endraw = format_time(endraw.strip().replace('.', ',').replace('，', ',').replace('：', ':'), ',')
+            
             it['startraw'] = startraw
             it['endraw'] = endraw
-            it['start_time'] = start_time
-            it['end_time'] = end_time
+            it['start_time'] = get_ms_from_hmsm(startraw)
+            it['end_time'] = get_ms_from_hmsm(endraw)
             new_result.append(it)
             line += 1
     if len(new_result) < 1:
@@ -861,7 +873,7 @@ def srt2ass(srt_file, ass_file, maxlen=40):
         f.write("".join(ass_str))
 
 
-# 将字幕list写入srt文件
+# 将字幕字典列表写入srt文件
 def save_srt(srt_list, srt_file):
     if isinstance(srt_list, list):
         txt = ""
@@ -893,7 +905,7 @@ def save_srt(srt_list, srt_file):
     return True
 
 
-# 将 时:分:秒,|.毫秒格式为  aa:bb:cc,|.ddd形式
+# 将 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
 # 对不规范字幕格式，eg  001:01:2,4500  01:54,14 等做处理
 def format_time(s_time="", separate=','):
     if not s_time.strip():

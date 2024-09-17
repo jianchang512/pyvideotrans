@@ -18,7 +18,7 @@ class AzureTTS(BaseTTS):
     def _item_task(self, items: list = None):
         if self._exit():
             return
-        filename = config.TEMP_DIR + f"/azure_tts_{time.time()}"
+        filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
         try:
             speech_config = speechsdk.SpeechConfig(
                 subscription=config.params['azure_speech_key'],
@@ -28,7 +28,7 @@ class AzureTTS(BaseTTS):
                 speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
         except Exception as e:
             raise
-        audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True, filename=filename + ".wav")
+        audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True, filename=filename )
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
         text_xml = ''
         if len(items) == 1:
@@ -73,7 +73,7 @@ class AzureTTS(BaseTTS):
                 cmd = [
                     "-y",
                     "-i",
-                    filename + ".wav",
+                    filename,
                     "-ss",
                     str(it['time'] / 1000)
                 ]

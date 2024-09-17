@@ -12,6 +12,7 @@ class DeepL(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_url = None if not config.params['deepl_api'] else config.params['deepl_api'].rstrip('/')
+        self.aisendsrt=False
 
         pro = self._set_proxy(type='set')
         if pro:
