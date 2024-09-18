@@ -372,53 +372,80 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None):
-    if translate_type in [GOOGLE_INDEX, FREEGOOGLE_INDEX]:
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None,return_str=False):
+    if translate_type in [GOOGLE_INDEX, FREEGOOGLE_INDEX,MICROSOFT_INDEX]:
         return True
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
+        if return_str:
+            return "Please configure the api and key information of the OpenAI ChatGPT channel first."
         chatgpt.openwin()
         return False
     if translate_type == AI302_INDEX and not config.params['ai302_key']:
+        if return_str:
+            return "Please configure the api and key information of the 302.AI channel first."
         ai302.openwin()
         return False
     if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
+        if return_str:
+            return "Please configure the api and key information of the Trans_API channel first."
         transapi.openwin()
         return False
 
     if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
-        return '必须填写本地大模型API地址' if config.defaulelang == 'zh' else 'Please input Local LLM API url'
+        if return_str:
+            return "Please configure the api and key information of the LocalLLM channel first."
+        localllm.openwin()
+        return False
     if translate_type == ZIJIE_INDEX and (
             not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
+        if return_str:
+            return "Please configure the api and key information of the ZiJie channel first."
         zijiehuoshan.openwin()
         return False
 
     if translate_type == GEMINI_INDEX and not config.params['gemini_key']:
+        if return_str:
+            return "Please configure the api and key information of the Gemini channel first."
         gemini.openwin()
         return False
     if translate_type == AZUREGPT_INDEX and (
             not config.params['azure_key'] or not config.params['azure_api']):
+        if return_str:
+            return "Please configure the api and key information of the Azure GPT channel first."
         azure.openwin()
         return False
 
     if translate_type == BAIDU_INDEX and (
             not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
+        if return_str:
+            return "Please configure the api and key information of the Baidu channel first."
         baidu.openwin()
         return False
     if translate_type == TENCENT_INDEX and (
             not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
+        if return_str:
+            return "Please configure the api and key information of the Tencent channel first."
         tencent.openwin()
         return False
     if translate_type == DEEPL_INDEX and not config.params["deepl_authkey"]:
+        if return_str:
+            return "Please configure the api and key information of the DeepL channel first."
         deepL.openwin()
         return False
     if translate_type == DEEPLX_INDEX and not config.params["deeplx_address"]:
+        if return_str:
+            return "Please configure the api and key information of the DeepLx channel first."
         deepLX.openwin()
         return False
 
     if translate_type == TRANSAPI_INDEX and not config.params["trans_api_url"]:
-        localllm.openwin()
+        if return_str:
+            return "Please configure the api and key information of the TransAPI channel first."
+        transapi.openwin()
         return False
     if translate_type == OTT_INDEX and not config.params["ott_address"]:
+        if return_str:
+            return "Please configure the api and key information of the OTT channel first."
         ott.openwin()
         return False
     # 如果只需要判断是否填写了 api key 等信息，到此返回
@@ -442,6 +469,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
         if target_list[index].lower() == 'no':
+            if return_str:
+                return config.transobj['deepl_nosupport'] + f':{show_target}'
             QMessageBox.critical(win, config.transobj['anerror'],
                                  config.transobj['deepl_nosupport'] + f':{show_target}')
             return False

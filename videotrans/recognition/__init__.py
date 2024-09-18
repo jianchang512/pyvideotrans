@@ -46,19 +46,27 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None):
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
-def is_input_api(recogn_type: int = None):
+def is_input_api(recogn_type: int = None,return_str=False):
     if recogn_type == ZH_RECOGN and not config.params['zh_recogn_api']:
+        if return_str:
+            return "Please configure the api and key information of the ZH_RECOGN channel first."
         zh_recogn_win.openwin()
         return False
 
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
+        if return_str:
+            return "Please configure the api and key information of the CUSTOM_API channel first."
         recognapi_win.openwin()
         return False
 
     if recogn_type == OPENAI_API and not config.params['openairecognapi_key']:
+        if return_str:
+            return "Please configure the api and key information of the OPENAI_API channel first."
         openairecognapi_win.openwin()
         return False
     if recogn_type == DOUBAO_API and not config.params['doubao_appid']:
+        if return_str:
+            return "Please configure the api and key information of the DOUBAO_API channel first."
         doubao_win.openwin()
         return False
     return True
