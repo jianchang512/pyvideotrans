@@ -16,7 +16,6 @@ dist
 source
 build
 test.py
-api.py
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
 ffmpeg/ffplay.exe
