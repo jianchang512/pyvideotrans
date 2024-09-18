@@ -1,21 +1,23 @@
 # API接口文档
 
-默认接口地址 http://127.0.0.1:9011
+默认接口地址地址 http://127.0.0.1:9011
 
-> 可通过在api.py(api.exe)同级目录下创建 host.txt, 修改ip和端口，例如 host.txt 内容如下
+> 可通过在api.py(api.exe)同级目录下创建 `host.txt`, 修改ip和端口，例如 `host.txt` 内容如下
 >
-> 127.0.0.1:9801  则接口地址将变为 http://127.0.0.1:9801
+> `127.0.0.1:9801`
+>
+> 则接口地址将变为 http://127.0.0.1:9801
 
 ## 启动方法
 
 > 升级到v2.57+
 
-1. 预打包版双击 api.exe,等待终端窗口显示 `API URL http://`
+1. 预打包版双击 `api.exe`,等待终端窗口显示 `API URL http://127.0.0.1:9011`
 2. 源码版执行 `python api.py`
 
-## 渠道配置
+## 翻译/配音/识别渠道配置
 
-某些渠道，例如翻译渠道：OpenAI ChatGPT/AzureGPT/Baidu/Tencent/DeepL等需要配置api url 和key等，如果要使用，请使用GUI界面在设置中配置相关信息
+某些渠道，例如翻译渠道：OpenAI ChatGPT/AzureGPT/Baidu/Tencent/DeepL等需要配置api url 和 key 等，如果要使用，请使用GUI界面在设置中配置相关信息
 
 除了 翻译渠道Google/FreeGoole/Microsoft，配音渠道edge-tts，识别模式faster-whisper/openai-whisper外，其他渠道均需要单独配置。请打开GUI界面在菜单栏-设置中进行配置。
 
@@ -79,7 +81,7 @@ JSON格式
 #### 请求示例
 ```python
 import requests
-requests.post("http://127.0.0.1:9011/tts", json={
+res=requests.post("http://127.0.0.1:9011/tts", json={
     "name": "C:/users/c1/videos/zh0.srt",
     "voice_role": "zh-CN-YunjianNeural",
     "target_language_code": "zh-cn",
@@ -90,6 +92,7 @@ requests.post("http://127.0.0.1:9011/tts", json={
     "out_ext": "mp3",
     "voice_autorate": True,
 })
+print(res.json())
 ```
 
 ----
@@ -150,11 +153,12 @@ JSON格式
 #### 请求示例
 ```python
 import requests
-requests.post("http://127.0.0.1:9011/translate_srt", json={
+res=requests.post("http://127.0.0.1:9011/translate_srt", json={
     "name": "C:/users/c1/videos/zh0.srt",
     "target_language": "en",
     "translate_type": 0
 })
+print(res.json())
 ```
 
 ----
@@ -199,7 +203,7 @@ JSON格式
 #### 请求示例
 ```python
 import requests
-requests.post("http://127.0.0.1:9011/recogn", json={
+res=requests.post("http://127.0.0.1:9011/recogn", json={
     "name": "C:/Users/c1/Videos/10ass.mp4",
     "recogn_type": 0,
     "split_type": "overall",
@@ -207,6 +211,7 @@ requests.post("http://127.0.0.1:9011/recogn", json={
     "is_cuda": False,
     "detect_language": "zh",
 })
+print(res.json())
 ```
 
 ----
@@ -294,7 +299,7 @@ JSON格式
 #### 请求示例
 ```python
 import requests
-requests.post("http://127.0.0.1:9011/trans_video", json={
+res=requests.post("http://127.0.0.1:9011/trans_video", json={
     "name": "C:/Users/c1/Videos/10ass.mp4",
     "recogn_type": 0,
     "split_type": "overall",
@@ -316,6 +321,7 @@ requests.post("http://127.0.0.1:9011/trans_video", json={
     "append_video": False,
     "is_cuda": False,
 })
+print(res.json())
 ```
 
 ----
@@ -366,9 +372,8 @@ JSON格式
 #### 请求示例
 ```python
 import requests
-requests.post("http://127.0.0.1:9011/task_status", json={
-    "task_id": "06c238d250f0b51248563c405f1d7294"
-})
+res=requests.get("http://127.0.0.1:9011/task_status?task_id=06c238d250f0b51248563c405f1d7294")
+print(res.json())
 ```
 
 ---
