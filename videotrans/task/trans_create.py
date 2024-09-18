@@ -29,6 +29,8 @@ class TransCreate(BaseTask):
 
     def __init__(self, config_params: Dict = None, obj: Dict = None):
         super().__init__(config_params, obj)
+        if "app_mode" not in self.config_params:
+            self.config_params['app_mode']='biaozhun'
 
         # 存在添加的背景音乐
         if tools.vail_file(self.config_params['back_audio']):
@@ -50,8 +52,10 @@ class TransCreate(BaseTask):
                 'ext'].lower() == 'mp4': self.config_params['h264'] = True
 
         # 临时文件夹
-        self.config_params['cache_folder'] = f"{config.TEMP_DIR}/{self.config_params['noextname']}"
-        self.config_params['target_dir'] = Path(self.config_params['target_dir']).as_posix()
+        if 'cache_folder' not in self.config_params or not self.config_params['cache_folder']:
+            self.config_params['cache_folder'] = f"{config.TEMP_DIR}/{self.config_params['noextname']}"
+        if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
+            self.config_params['target_dir'] = Path(self.config_params['target_dir']).as_posix()
         # 创建文件夹
         Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
         Path(self.config_params['cache_folder']).mkdir(parents=True, exist_ok=True)
@@ -218,7 +222,6 @@ class TransCreate(BaseTask):
                 detect_language=self.config_params['detect_language'],
                 cache_folder=self.config_params['cache_folder'],
                 is_cuda=self.config_params['cuda'],
-                task_type="masterwin",
                 inst=self)
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
@@ -291,7 +294,6 @@ class TransCreate(BaseTask):
                 target_language_name=self.config_params['target_language'],
                 inst=self,
                 uuid=self.uuid,
-                task_type="masterwin",
                 source_code=self.config_params['source_language_code'])
         except Exception as e:
             self.hasend = True

@@ -52,7 +52,13 @@ class BaseTask(BaseCon):
 
             "shibie_audio": None,
 
-            'background_music': None
+            'background_music': None,
+
+            'app_mode':"biaozhun",
+
+            "subtitle_type":0,
+            "append_video":False,
+            'only_video':False
         }
         self.config_params.update(config_params)
         if obj:

@@ -38,7 +38,8 @@ class SpeechToText(BaseTask):
         super().__init__(config_params, obj)
         self.shoud_recogn = True
         # 存放目标文件夹
-        self.config_params['target_dir'] = config.HOME_DIR + f"/recogn"
+        if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
+            self.config_params['target_dir'] = config.HOME_DIR + f"/recogn"
         if not Path(self.config_params['target_dir']).exists():
             Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
         # 生成目标字幕文件
@@ -79,7 +80,6 @@ class SpeechToText(BaseTask):
                 detect_language=self.config_params['detect_language'],
                 cache_folder=self.config_params['cache_folder'],
                 is_cuda=self.config_params['is_cuda'],
-                task_type="childwin",
                 inst=self)
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:

@@ -10,6 +10,7 @@ models/models--Systran--faster-whisper-base
 models/models--Systran--faster-whisper-tiny
 dev
 venv
+apidata
 venv.bak
 dist
 source
