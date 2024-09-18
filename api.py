@@ -19,6 +19,8 @@ from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 
 ###### 配置信息
+#### api文档 https://pyvideotrans.com/api-cn
+
 ROOT_DIR = Path(__file__).parent.as_posix()
 HOST = "127.0.0.1"
 PORT = 9011
