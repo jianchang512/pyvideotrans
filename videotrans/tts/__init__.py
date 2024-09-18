@@ -68,35 +68,55 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
 # 判断是否填写了相关配音渠道所需要的信息
 # 正确返回True，失败返回False，并弹窗
-def is_input_api(tts_type: int = None):
+def is_input_api(tts_type: int = None,return_str=False):
     if tts_type == OPENAI_TTS and not config.params["chatgpt_key"]:
+        if return_str:
+            return "Please configure the api and key information of the OpenAI API channel first."
         openaitts_win.openwin()
         return False
     if tts_type == AI302_TTS and not config.params["ai302tts_key"]:
+        if return_str:
+            return "Please configure the api and key information of the 302.AI TTS channel first."
         ai302tts_win.openwin()
         return False
     if tts_type == CLONE_VOICE_TTS and not config.params["clone_api"]:
+        if return_str:
+            return "Please configure the api and key information of the Clone-Voice channel first."
         clone_win.openwin()
         return False
     if tts_type == ELEVENLABS_TTS and not config.params["elevenlabstts_key"]:
+        if return_str:
+            return "Please configure the api and key information of the Elevenlabs.io channel first."
         elevenlabs_win.openwin()
         return False
     if tts_type == TTS_API and not config.params['ttsapi_url']:
+        if return_str:
+            return "Please configure the api and key information of the TTS API channel first."
         ttsapi_win.openwin()
         return False
     if tts_type == GPTSOVITS_TTS and not config.params['gptsovits_url']:
+        if return_str:
+            return "Please configure the api and key information of the GPT-SoVITS channel first."
         gptsovits_win.openwin()
         return False
     if tts_type == COSYVOICE_TTS and not config.params['cosyvoice_url']:
+        if return_str:
+            return "Please configure the api and key information of the CosyVoice channel first."
         cosyvoice_win.openwin()
         return False
     if tts_type == FISHTTS and not config.params['fishtts_url']:
+        if return_str:
+            return "Please configure the api and key information of the FishTTS channel first."
         fishtts_win.openwin()
         return False
     if tts_type == CHATTTS and not config.params['chattts_api']:
+        if return_str:
+            return "Please configure the api and key information of the ChatTTS channel first."
         chattts_win.openwin()
         return False
     if tts_type == AZURE_TTS and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
+        if return_str:
+            return "Please configure the api and key information of the Azure TTS channel first."
         azuretts_win.openwin()
         return False
     return True
