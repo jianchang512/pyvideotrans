@@ -6,6 +6,19 @@
 >
 > 127.0.0.1:9801  则接口地址将变为 http://127.0.0.1:9801
 
+## 启动方法
+
+> 升级到v2.57+
+
+1. 预打包版双击 api.exe,等待终端窗口显示 `API URL http://`
+2. 源码版执行 `python api.py`
+
+## 渠道配置
+
+某些渠道，例如翻译渠道：OpenAI ChatGPT/AzureGPT/Baidu/Tencent/DeepL等需要配置api url 和key等，如果要使用，请使用GUI界面在设置中配置相关信息
+
+除了 翻译渠道Google/FreeGoole/Microsoft，配音渠道edge-tts，识别模式faster-whisper/openai-whisper外，其他渠道均需要单独配置。请打开GUI界面在菜单栏-设置中进行配置。
+
 ## 接口列表
 
 ### `/tts` - 根据字幕合成配音接口
