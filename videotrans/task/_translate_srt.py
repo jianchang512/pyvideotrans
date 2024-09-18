@@ -30,7 +30,6 @@ class TranslateSrt(BaseTask):
         target_language
         inst
         uuid
-        task_type
         source_code
     }
     """
@@ -39,7 +38,8 @@ class TranslateSrt(BaseTask):
         super().__init__(config_params, obj)
         self.shoud_trans = True
         # 存放目标文件夹
-        self.config_params['target_dir'] = config.HOME_DIR + f"/translate"
+        if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
+            self.config_params['target_dir'] = config.HOME_DIR + f"/translate"
         if not Path(self.config_params['target_dir']).exists():
             Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
         # 生成目标字幕文件
@@ -64,13 +64,9 @@ class TranslateSrt(BaseTask):
                 text_list=tools.get_subtitle_from_srt(self.config_params['source_sub']),
                 target_language_name=self.config_params['target_language'],
                 uuid=self.uuid,
-                task_type=self.config_params['task_type'],
                 source_code=self.config_params['source_code'])
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise LogExcept(
-                    self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                       self.config_params[
-                                                                                                           'detect_language']))
+                raise Exception('Is emtpy '+self.config_params['basename'])
             tools.save_srt(raw_subtitles, self.config_params['target_sub'])
             self._signal(text=Path(self.config_params['target_sub']).read_text(encoding='utf-8'), type='replace')
             # self._signal(text=f"{self.config_params['name']}", type='succeed')

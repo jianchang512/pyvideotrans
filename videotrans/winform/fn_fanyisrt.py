@@ -157,7 +157,6 @@ def openwin():
                 "target_dir": RESULT_DIR,
                 "inst": None,
                 "uuid": it['uuid'],
-                "task_type": "childwin",
                 "source_code": source_language if source_language and source_language != '-' else ''
             }, it)
             config.trans_queue.append(trk)

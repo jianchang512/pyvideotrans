@@ -902,6 +902,7 @@ def save_srt(srt_list, srt_file):
                 endraw = it['endraw']
             txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
         Path(srt_file).write_text(txt, encoding="utf-8")
+        print(f'{srt_file=}')
     return True
 
 

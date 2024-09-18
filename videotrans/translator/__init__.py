@@ -471,8 +471,8 @@ def run(*, translate_type=None,
         inst=None,
         is_test=False,
         source_code=None,
-        task_type="masterwin",
         uuid=None) -> Union[List, str, None]:
+    translate_type=int(translate_type)
     _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
@@ -481,7 +481,6 @@ def run(*, translate_type=None,
         "source_code": source_code,
         "uuid": uuid,
         "is_test": is_test,
-        "task_type": task_type
     }
     if translate_type == GOOGLE_INDEX:
         return Google(**kwargs).run()

@@ -33,7 +33,6 @@ class DubbingSrt(BaseTask):
         target_language
         inst
         uuid
-        task_type
         source_code
     }
     """
@@ -41,7 +40,8 @@ class DubbingSrt(BaseTask):
     def __init__(self, config_params: Dict = None, obj: Dict = None):
         super().__init__(config_params, obj)
         self.shoud_dubbing = True
-
+        if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
+            self.config_params['target_dir'] = config.HOME_DIR + f"/tts"
         # 存放目标文件夹
         if not Path(self.config_params['target_dir']).exists():
             Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
@@ -108,8 +108,10 @@ class DubbingSrt(BaseTask):
                 "endraw": it['endraw'],
                 "volume": self.config_params['volume'],
                 "pitch": self.config_params['pitch'],
-                "tts_type": self.config_params['tts_type'],
+                "tts_type": int(self.config_params['tts_type']),
                 "filename": filename})
+        print(queue_tts)
+        print(self.config_params['target_language_code'])
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')

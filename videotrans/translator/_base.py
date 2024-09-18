@@ -20,11 +20,9 @@ class BaseTrans(BaseCon):
                  source_code="",
                  uuid=None,
                  is_test=False,
-                 task_type='masterwin'
                  ):
         # 目标语言，语言代码或文字名称
         super().__init__()
-        self.task_type = task_type
         self.target_language = target_language
         # trans_create实例
         self.inst = inst

@@ -75,7 +75,6 @@ def run(*,
         uuid=None,
         recogn_type: int = 0,
         is_cuda=None,
-        task_type="masterwin"
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
@@ -89,7 +88,6 @@ def run(*,
         "uuid": uuid,
         "inst": inst,
         "is_cuda": is_cuda,
-        "task_type": task_type
     }
     if recogn_type == OPENAI_WHISPER:
         return OpenaiWhisperRecogn(**kwargs).run()

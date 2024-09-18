@@ -202,7 +202,6 @@ def openwin():
                 "volume": volume,
                 "inst": None,
                 "uuid": it['uuid'],
-                "task_type": "childwin",
                 "pitch": pitch,
                 "tts_type": tts_type,
                 "out_ext": winobj.out_format.currentText(),

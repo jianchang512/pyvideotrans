@@ -1,4 +1,5 @@
 import time
+from threading import Thread
 
 from PySide6.QtCore import QThread
 
@@ -25,9 +26,9 @@ assemb_queue
 """
 
 
-class WorkerPrepare(QThread):
+class WorkerPrepare(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -56,9 +57,9 @@ class WorkerPrepare(QThread):
                 set_process(text=f'{config.transobj["yuchulichucuo"]}:' + str(e), type='error', uuid=trk.uuid)
 
 
-class WorkerRegcon(QThread):
+class WorkerRegcon(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -85,9 +86,9 @@ class WorkerRegcon(QThread):
                 set_process(text=f'{config.transobj["shibiechucuo"]}:' + str(e), type='error', uuid=trk.uuid)
 
 
-class WorkerTrans(QThread):
+class WorkerTrans(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -112,9 +113,9 @@ class WorkerTrans(QThread):
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
 
-class WorkerDubb(QThread):
+class WorkerDubb(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -135,9 +136,9 @@ class WorkerDubb(QThread):
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
 
-class WorkerAlign(QThread):
+class WorkerAlign(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -159,9 +160,9 @@ class WorkerAlign(QThread):
                 config.assemb_queue.append(trk)
 
 
-class WorkerAssemb(QThread):
+class WorkerAssemb(Thread):
     def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
+        super().__init__()
 
     def run(self) -> None:
         while 1:
@@ -183,7 +184,7 @@ class WorkerAssemb(QThread):
                 trk.task_done()
 
 
-def start_thread(parent):
+def start_thread(parent=None):
     WorkerPrepare(parent=parent).start()
     WorkerRegcon(parent=parent).start()
     WorkerTrans(parent=parent).start()
