@@ -466,9 +466,7 @@ class WinAction(WinActionSub):
         for video_path in config.queue_mp4:
             obj=tools.format_video(video_path, target_dir)
             self.obj_list.append(obj)
-            self.add_process_btn(
-                target_dir=Path(obj['target_dir']).parent.resolve().as_posix() if config.params['only_video'] else
-                obj['target_dir'], name=obj['name'], uuid=obj['uuid'])
+            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
 
         # 启动任务
         self.task = Worker(

@@ -428,10 +428,10 @@ class TransCreate(BaseTask):
                 ext = it.suffix.lower()
                 if ext != '.mp4':
                     it.unlink(missing_ok=True)
-                else:
-                    shutil.copy2(Path(it).as_posix(), (it.parent / "../" / f'{it.name}').resolve().as_posix())
-            self.config_params['target_dir'] = outputpath.parent.resolve().as_posix()
-            shutil.rmtree(outputpath.as_posix(), ignore_errors=True)
+                #else:
+                    #shutil.copy2(Path(it).as_posix(), (it.parent / "../" / f'{it.name}').resolve().as_posix())
+            #self.config_params['target_dir'] = outputpath.parent.resolve().as_posix()
+            #shutil.rmtree(outputpath.as_posix(), ignore_errors=True)
 
         self.hasend = True
         self.precent = 100
