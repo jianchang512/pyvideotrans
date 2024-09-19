@@ -538,6 +538,7 @@ Translation:"""
         "deepl_gid": "",
 
         "deeplx_address": "",
+        "deeplx_key": "",
 
         "ott_address": "",
 

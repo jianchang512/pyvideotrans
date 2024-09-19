@@ -14,8 +14,17 @@ class DeepLX(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aisendsrt=False
-        url = config.params['deeplx_address'].strip().rstrip('/').replace('/translate', '') + '/translate'
+        url = config.params['deeplx_address'].strip().rstrip('/')
+        key = config.params['deeplx_key'].strip()
+        if "/translate" not in url:
+            url+='/translate'
         self.api_url = f"http://{url}" if not url.startswith('http') else url
+        if key and "key=" not in self.api_url:
+            if "?" in self.api_url:
+                self.api_url+=f"&key={key}"
+            else:
+                self.api_url+=f"?key={key}"
+            
         if not re.search(r'localhost', url) and not re.match(r'https?://(\d+\.){3}\d+', url):
             pro = self._set_proxy(type='set')
             if pro:

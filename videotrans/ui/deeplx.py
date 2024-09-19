@@ -10,13 +10,13 @@ class Ui_deeplxform(object):
         self.has_done = False
         deeplxform.setObjectName("deeplxform")
         deeplxform.setWindowModality(QtCore.Qt.NonModal)
-        deeplxform.resize(400, 223)
+        deeplxform.resize(500, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(deeplxform.sizePolicy().hasHeightForWidth())
         deeplxform.setSizePolicy(sizePolicy)
-        deeplxform.setMaximumSize(QtCore.QSize(400, 300))
+        deeplxform.setMaximumSize(QtCore.QSize(500, 300))
         self.gridLayout = QtWidgets.QGridLayout(deeplxform)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
@@ -28,31 +28,44 @@ class Ui_deeplxform(object):
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
+        
+        self.formLayout_3 = QtWidgets.QFormLayout()
+        self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
+        self.formLayout_3.setObjectName("formLayout_3")
+        
+        
         self.label = QtWidgets.QLabel(deeplxform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.deeplx_address = QtWidgets.QLineEdit(deeplxform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.deeplx_address.sizePolicy().hasHeightForWidth())
-        self.deeplx_address.setSizePolicy(sizePolicy)
-        self.deeplx_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.deeplx_address.setMinimumSize(QtCore.QSize(320, 35))
         self.deeplx_address.setObjectName("deeplx_address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_address)
+        
+        self.label2 = QtWidgets.QLabel(deeplxform)
+        self.label2.setMinimumSize(QtCore.QSize(100, 35))
+        self.label2.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
+        self.label2.setObjectName("label2")
+        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label2)
+        self.deeplx_key = QtWidgets.QLineEdit(deeplxform)
+        self.deeplx_key.setMinimumSize(QtCore.QSize(320, 35))
+        self.deeplx_key.setObjectName("deeplx_key")
+        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_key)
+        
+        
         self.verticalLayout.addLayout(self.formLayout_2)
+        self.verticalLayout.addLayout(self.formLayout_3)
+        
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.set_deeplx = QtWidgets.QPushButton(deeplxform)
         self.set_deeplx.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deeplx.setObjectName("set_deeplx")
         self.verticalLayout_2.addWidget(self.set_deeplx)
+        
+        
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
         self.retranslateUi(deeplxform)
@@ -60,7 +73,9 @@ class Ui_deeplxform(object):
 
     def retranslateUi(self, deeplxform):
         deeplxform.setWindowTitle("DeepLx")
-        self.label.setText("DeepLx_Api")
+        self.label.setText("DeepLX_API")
+        self.label2.setText("Token/Key")
+        self.deeplx_key.setPlaceholderText('填写key或密钥，不存在为空即可' if config.defaulelang == 'zh' else 'Input your deeplx key ')
         self.deeplx_address.setPlaceholderText(
             '在此填写你部署的DeepLx地址' if config.defaulelang == 'zh' else 'Input your deeplx api url')
         self.set_deeplx.setText('保存' if config.defaulelang == 'zh' else "Save")
