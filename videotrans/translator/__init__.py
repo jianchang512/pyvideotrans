@@ -1,26 +1,11 @@
 # -*- coding: utf-8 -*-
 from typing import Union, List
 
-from PySide6.QtWidgets import QMessageBox
+
 
 from videotrans.configure import config
-from videotrans.translator._ai302 import AI302
-from videotrans.translator._azure import AzureGPT
-from videotrans.translator._baidu import Baidu
-from videotrans.translator._chatgpt import ChatGPT
-from videotrans.translator._deepl import DeepL
-from videotrans.translator._deeplx import DeepLX
-from videotrans.translator._freegoogle import FreeGoogle
-from videotrans.translator._gemini import Gemini
-from videotrans.translator._google import Google
-from videotrans.translator._huoshan import HuoShan
-from videotrans.translator._localllm import LocalLLM
-from videotrans.translator._microsoft import Microsoft
-from videotrans.translator._ott import OTT
-from videotrans.translator._tencent import Tencent
-from videotrans.translator._transapi import TransAPI
-from videotrans.winform import chatgpt, gemini, azure, baidu, tencent, deepLX, deepL, ott, localllm, transapi, \
-    zijiehuoshan, ai302
+
+
 
 # 数字代表显示顺序
 GOOGLE_INDEX = 0
@@ -375,43 +360,51 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None,return_str=False):
     if translate_type in [GOOGLE_INDEX, FREEGOOGLE_INDEX,MICROSOFT_INDEX]:
         return True
+
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
         if return_str:
             return "Please configure the api and key information of the OpenAI ChatGPT channel first."
+        from videotrans.winform import chatgpt
         chatgpt.openwin()
         return False
     if translate_type == AI302_INDEX and not config.params['ai302_key']:
         if return_str:
             return "Please configure the api and key information of the 302.AI channel first."
+        from videotrans.winform import ai302
         ai302.openwin()
         return False
     if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
         if return_str:
             return "Please configure the api and key information of the Trans_API channel first."
+        from videotrans.winform import  transapi
         transapi.openwin()
         return False
 
     if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
         if return_str:
             return "Please configure the api and key information of the LocalLLM channel first."
+        from videotrans.winform import  localllm
         localllm.openwin()
         return False
     if translate_type == ZIJIE_INDEX and (
             not config.params['zijiehuoshan_model'].strip() or not config.params['zijiehuoshan_key'].strip()):
         if return_str:
             return "Please configure the api and key information of the ZiJie channel first."
+        from videotrans.winform import zijiehuoshan
         zijiehuoshan.openwin()
         return False
 
     if translate_type == GEMINI_INDEX and not config.params['gemini_key']:
         if return_str:
             return "Please configure the api and key information of the Gemini channel first."
+        from videotrans.winform import gemini
         gemini.openwin()
         return False
     if translate_type == AZUREGPT_INDEX and (
             not config.params['azure_key'] or not config.params['azure_api']):
         if return_str:
             return "Please configure the api and key information of the Azure GPT channel first."
+        from videotrans.winform import azure
         azure.openwin()
         return False
 
@@ -419,33 +412,39 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             not config.params["baidu_appid"] or not config.params["baidu_miyue"]):
         if return_str:
             return "Please configure the api and key information of the Baidu channel first."
+        from videotrans.winform import baidu
         baidu.openwin()
         return False
     if translate_type == TENCENT_INDEX and (
             not config.params["tencent_SecretId"] or not config.params["tencent_SecretKey"]):
         if return_str:
             return "Please configure the api and key information of the Tencent channel first."
+        from videotrans.winform import tencent
         tencent.openwin()
         return False
     if translate_type == DEEPL_INDEX and not config.params["deepl_authkey"]:
         if return_str:
             return "Please configure the api and key information of the DeepL channel first."
+        from videotrans.winform import deepL
         deepL.openwin()
         return False
     if translate_type == DEEPLX_INDEX and not config.params["deeplx_address"]:
         if return_str:
             return "Please configure the api and key information of the DeepLx channel first."
+        from videotrans.winform import deepLX
         deepLX.openwin()
         return False
 
     if translate_type == TRANSAPI_INDEX and not config.params["trans_api_url"]:
         if return_str:
             return "Please configure the api and key information of the TransAPI channel first."
+        from videotrans.winform import transapi
         transapi.openwin()
         return False
     if translate_type == OTT_INDEX and not config.params["ott_address"]:
         if return_str:
             return "Please configure the api and key information of the OTT channel first."
+        from videotrans.winform import  ott
         ott.openwin()
         return False
     # 如果只需要判断是否填写了 api key 等信息，到此返回
@@ -471,6 +470,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         if target_list[index].lower() == 'no':
             if return_str:
                 return config.transobj['deepl_nosupport'] + f':{show_target}'
+            from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(win, config.transobj['anerror'],
                                  config.transobj['deepl_nosupport'] + f':{show_target}')
             return False
@@ -511,48 +511,64 @@ def run(*, translate_type=None,
         "uuid": uuid,
         "is_test": is_test,
     }
+
     if translate_type == GOOGLE_INDEX:
+        from videotrans.translator._google import Google
         return Google(**kwargs).run()
     if translate_type == FREEGOOGLE_INDEX:
+        from videotrans.translator._freegoogle import FreeGoogle
         return FreeGoogle(**kwargs).run()
 
     if translate_type == MICROSOFT_INDEX:
+        from videotrans.translator._microsoft import Microsoft
         return Microsoft(**kwargs).run()
 
     if translate_type == TENCENT_INDEX:
+        from videotrans.translator._tencent import Tencent
         return Tencent(**kwargs).run()
 
     if translate_type == BAIDU_INDEX:
+        from videotrans.translator._baidu import Baidu
         return Baidu(**kwargs).run()
 
     if translate_type == OTT_INDEX:
+        from videotrans.translator._ott import OTT
         return OTT(**kwargs).run()
 
     if translate_type == TRANSAPI_INDEX:
+        from videotrans.translator._transapi import TransAPI
         return TransAPI(**kwargs).run()
 
     if translate_type == DEEPL_INDEX:
+        from videotrans.translator._deepl import DeepL
         return DeepL(**kwargs).run()
 
     if translate_type == DEEPLX_INDEX:
+        from videotrans.translator._deeplx import DeepLX
         return DeepLX(**kwargs).run()
 
     if translate_type == AI302_INDEX:
+        from videotrans.translator._ai302 import AI302
         return AI302(**kwargs).run()
 
     if translate_type == LOCALLLM_INDEX:
+        from videotrans.translator._localllm import LocalLLM
         return LocalLLM(**kwargs).run()
 
     if translate_type == ZIJIE_INDEX:
+        from videotrans.translator._huoshan import HuoShan
         return HuoShan(**kwargs).run()
 
     if translate_type == CHATGPT_INDEX:
+        from videotrans.translator._chatgpt import ChatGPT
         return ChatGPT(**kwargs).run()
 
     if translate_type == AZUREGPT_INDEX:
+        from videotrans.translator._azure import AzureGPT
         return AzureGPT(**kwargs).run()
 
     if translate_type == GEMINI_INDEX:
+        from videotrans.translator._gemini import Gemini
         return Gemini(**kwargs).run()
 
     raise Exception('No translation channel')

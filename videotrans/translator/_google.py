@@ -25,7 +25,7 @@ class Google(BaseTrans):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
 
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies)
+        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies,verify=False)
         config.logger.info(f'[Google]返回数据:{response.text=}')
         if response.status_code != 200:
             raise Exception(f'{response.status_code=},{response.reason=}')

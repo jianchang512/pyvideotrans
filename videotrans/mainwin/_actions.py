@@ -448,6 +448,7 @@ class WinAction(WinActionSub):
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
+        config.params['line_roles']={}
         config.getset_params(config.params)
         self.delete_process()
         # 设为开始
@@ -463,10 +464,14 @@ class WinAction(WinActionSub):
         target_dir = Path(config.params["target_dir"] if config.params["target_dir"] else Path(
             config.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
         self.obj_list = []
+        # queue_mp4中的名字可能已修改为规范
+        new_name=[]
         for video_path in config.queue_mp4:
             obj=tools.format_video(video_path, target_dir)
+            new_name.append(obj['name'])
             self.obj_list.append(obj)
             self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
+        config.queue_mp4=new_name
 
         # 启动任务
         self.task = Worker(
@@ -613,8 +618,6 @@ class WinAction(WinActionSub):
         elif d['type'] == "subtitle":
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
-        # elif d['type'] in ["logs", 'set_precent', 'error', 'succeed']:
-        #     self.set_process_btn_text(d)
         elif d['type'] == 'set_source_sub':
             # 单个任务时，设置 self.wait_subtitle 为原始语言文件，以便界面中修改字幕后保存
             self.wait_subtitle = d['text']

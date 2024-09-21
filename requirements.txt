@@ -35,6 +35,6 @@ pydantic==2.4.2
 pydantic_core==2.10.1
 elevenlabs==0.2.27
 plyer
-samplerate
 flask
 waitress
+samplerate

@@ -48,7 +48,8 @@ class GPTSoVITS(BaseTTS):
                 "ostype": sys.platform}
             if role:
                 roledict = tools.get_gptsovits_role()
-                if role in roledict:
+
+                if roledict and  role in roledict:
                     data.update(roledict[role])
             # 克隆声音
             response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)

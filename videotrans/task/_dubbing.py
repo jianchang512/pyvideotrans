@@ -110,8 +110,6 @@ class DubbingSrt(BaseTask):
                 "pitch": self.config_params['pitch'],
                 "tts_type": int(self.config_params['tts_type']),
                 "filename": filename})
-        print(queue_tts)
-        print(self.config_params['target_language_code'])
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')

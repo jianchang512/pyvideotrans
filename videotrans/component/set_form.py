@@ -1,3 +1,4 @@
+import PySide6
 from PySide6 import QtWidgets
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
@@ -56,6 +57,9 @@ class SetLineRole(QDialog, Ui_setlinerole):  # <===
         super(SetLineRole, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+    def closeEvent(self, arg__1: PySide6.QtGui.QCloseEvent) -> None:
+        del config.child_forms['linerolew']
+
 
 
 class BaiduForm(QDialog, Ui_baiduform):  # <===

@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     ###### 配置信息
     #### api文档 https://pyvideotrans.com/api-cn
-
+    config.exec_mode='api'
     ROOT_DIR = Path(__file__).parent.as_posix()
     HOST = "127.0.0.1"
     PORT = 9011
@@ -37,7 +37,8 @@ if __name__ == '__main__':
             PORT=int(host_str[1])
 
     # 存储生成的文件和进度日志
-    TARGET_DIR = ROOT_DIR + '/apidata'
+    API_RESOURCE='apidata'
+    TARGET_DIR = ROOT_DIR + f'/{API_RESOURCE}'
     Path(TARGET_DIR).mkdir(parents=True, exist_ok=True)
     # 进度日志
     PROCESS_INFO = TARGET_DIR + '/processinfo'
@@ -45,7 +46,7 @@ if __name__ == '__main__':
         shutil.rmtree(PROCESS_INFO)
     Path(PROCESS_INFO).mkdir(parents=True, exist_ok=True)
     # url前缀
-    URL_PREFIX = f"http://{HOST}:{PORT}/apidata"
+    URL_PREFIX = f"http://{HOST}:{PORT}/{API_RESOURCE}"
     config.exit_soft = False
     # 停止 结束 失败状态
     end_status_list = ['error', 'succeed', 'end', 'stop']
@@ -108,12 +109,14 @@ if __name__ == '__main__':
         name = data.get('name', '').strip()
         if not name:
             return jsonify({"code": 1, "msg": "The parameter name is not allowed to be empty"})
-        if name.find("\n") == -1:
+        is_srt=True
+        if name.find("\n") == -1 and name.endswith('.srt'):
             if not Path(name).exists():
                 return jsonify({"code": 1, "msg": f"The file {name} is not exist"})
         else:
             tmp_file = config.TEMP_DIR + f'/tts-srt-{time.time()}-{random.randint(1, 9999)}.srt'
-            Path(tmp_file).write_text(name, encoding='utf-8')
+            is_srt=tools.is_srt_string(name)
+            Path(tmp_file).write_text(tools.process_text_to_srt_str(name) if not is_srt else name, encoding='utf-8')
             name = tmp_file
 
         cfg={
@@ -125,7 +128,7 @@ if __name__ == '__main__':
             "volume":data.get('volume',"+0%"),
             "pitch":data.get('pitch',"+0Hz"),
             "out_ext":data.get('out_ext',"mp3"),
-            "voice_autorate":bool(data.get('voice_autorate',False)),
+            "voice_autorate":bool(data.get('voice_autorate',False)) if is_srt else False,
         }
         is_allow_lang=tts_model.is_allow_lang(langcode=cfg['target_language_code'],tts_type=cfg['tts_type'])
         if is_allow_lang is not True:
@@ -144,6 +147,7 @@ if __name__ == '__main__':
         config.box_tts = 'ing'
         trk = DubbingSrt(cfg)
         config.dubb_queue.append(trk)
+        tools.set_process(text=f"Currently in queue No.{len(config.dubb_queue)}",uuid=obj['uuid'])
         return jsonify({'code': 0, 'task_id': obj['uuid']})
 
 
@@ -187,12 +191,14 @@ if __name__ == '__main__':
         name = data.get('name', '').strip()
         if not name:
             return jsonify({"code": 1, "msg": "The parameter name is not allowed to be empty"})
-        if name.find("\n") == -1:
+        is_srt=True
+        if name.find("\n") == -1  and name.endswith('.srt'):
             if not Path(name).exists():
                 return jsonify({"code": 1, "msg": f"The file {name} is not exist"})
         else:
             tmp_file = config.TEMP_DIR + f'/trans-srt-{time.time()}-{random.randint(1, 9999)}.srt'
-            Path(tmp_file).write_text(name, encoding='utf-8')
+            is_srt=tools.is_srt_string(name)
+            Path(tmp_file).write_text(tools.process_text_to_srt_str(name) if not is_srt else name, encoding='utf-8')
             name = tmp_file
 
         cfg = {
@@ -213,6 +219,7 @@ if __name__ == '__main__':
         config.box_trans = 'ing'
         trk = TranslateSrt(cfg)
         config.trans_queue.append(trk)
+        tools.set_process(text=f"Currently in queue No.{len(config.trans_queue)}",uuid=obj['uuid'])
         return jsonify({'code': 0, 'task_id': obj['uuid']})
 
 
@@ -287,6 +294,7 @@ if __name__ == '__main__':
         config.box_recogn = 'ing'
         trk = SpeechToText(cfg)
         config.prepare_queue.append(trk)
+        tools.set_process(text=f"Currently in queue No.{len(config.prepare_queue)}",uuid=obj['uuid'])
         return jsonify({'code': 0, 'task_id': obj['uuid']})
 
 
@@ -442,6 +450,7 @@ if __name__ == '__main__':
         config.current_status = 'ing'
         trk = TransCreate(cfg)
         config.prepare_queue.append(trk)
+        tools.set_process(text=f"Currently in queue No.{len(config.prepare_queue)}",uuid=obj['uuid'])
         #
         return jsonify({'code': 0, 'task_id': obj['uuid']})
 
@@ -519,7 +528,7 @@ if __name__ == '__main__':
         file = PROCESS_INFO + f'/{task_id}.json'
         if not Path(file).is_file():
             if task_id in config.uuid_logs_queue:
-                return jsonify({"code": 1, "msg": f"The task {task_id} is queuing for execution"})
+                return jsonify({"code": -1, "msg": _get_order(task_id)})
 
             return jsonify({"code": 1, "msg": f"The task {task_id} is not exist"})
         try:
@@ -540,11 +549,45 @@ if __name__ == '__main__':
             "msg": "ok",
             "data": {
                 "absolute_path": [f'{TARGET_DIR}/{task_id}/{name}' for name in file_list],
-                "url": [f'{URL_PREFIX}/{task_id}/{name}' for name in file_list],
+                "url": [f'{request.scheme}://{request.host}/{API_RESOURCE}/{task_id}/{name}' for name in file_list],
             }
         })
 
-
+    # 排队
+    def _get_order(task_id):
+        order_num=0
+        for it in config.prepare_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于预处理队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        
+        order_num=0
+        for it in config.regcon_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于语音识别队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        order_num=0
+        for it in config.trans_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于字幕翻译队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        order_num=0
+        for it in config.dubb_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于配音队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        order_num=0
+        for it in config.align_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于声画对齐队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        order_num=0
+        for it in config.assemb_queue:
+            order_num+=1
+            if it.uuid == task_id:
+                return f'当前处于输出整理队列第{order_num}位' if config.defaulelang=='zh' else f"No.{order_num} on perpare queue"
+        return '正在排队等待执行中，请稍后' if config.defaulelang=='zh' else f"Waiting in queue"
+    
     def _get_files_in_directory(dirname):
         """
         使用 pathlib 库获取指定目录下的所有文件名，并返回一个文件名列表。

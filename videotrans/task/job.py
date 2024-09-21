@@ -1,8 +1,6 @@
 import time
 from threading import Thread
 
-from PySide6.QtCore import QThread
-
 from videotrans.configure import config
 from videotrans.task._base import BaseTask
 from videotrans.util.tools import set_process

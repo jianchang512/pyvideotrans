@@ -424,9 +424,11 @@ class Ui_MainWindow(object):
         self.continue_compos.setMinimumSize(QtCore.QSize(260, 40))
 
         self.continue_compos.setObjectName("continue_compos")
+        self.continue_compos.setVisible(False)
         self.horizontalLayout_3.addWidget(self.continue_compos)
         self.stop_djs = QtWidgets.QPushButton(self.layoutWidget)
         self.stop_djs.setEnabled(True)
+        self.stop_djs.setVisible(False)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -465,16 +467,20 @@ class Ui_MainWindow(object):
         self.import_sub.setMinimumSize(QtCore.QSize(0, 30))
         self.import_sub.setObjectName("import_sub")
         self.layout_sub_bottom.addWidget(self.import_sub)
+        self.import_sub.setVisible(False)
 
         self.export_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.export_sub.setMinimumSize(QtCore.QSize(0, 30))
         self.export_sub.setObjectName("export_sub")
+        self.export_sub.setVisible(False)
 
         self.layout_sub_bottom.addWidget(self.export_sub)
 
         self.set_line_role = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.set_line_role.setMinimumSize(QtCore.QSize(0, 30))
         self.set_line_role.setObjectName("set_line_role")
+        self.set_line_role.setVisible(False)
+
         self.layout_sub_bottom.addWidget(self.set_line_role)
         self.subtitle_layout.addLayout(self.layout_sub_bottom)
         self.horizontalLayout_7.addWidget(self.splitter)
@@ -874,7 +880,7 @@ class Ui_MainWindow(object):
         self.actiontts_fishtts.setText("Fish TTS")
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
-        self.action_blog.setText("在线问答" if config.defaulelang == 'zh' else 'BBS')
+        self.action_blog.setText("在线体验" if config.defaulelang == 'zh' else 'Online Experience')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_dll.setText(config.uilanglist["Download cuBLASxx.dll"])
         self.action_gtrans.setText(config.transobj["miandailigoogle"])
