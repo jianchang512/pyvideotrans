@@ -166,7 +166,7 @@ class SpeedRate:
             # 可用时长
             able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
                 'start_time']
-            if it['dubb_time'] <= able_time:
+            if able_time<=0 or it['dubb_time'] <= able_time:
                 continue
 
             # 配音大于可用时长毫秒数
@@ -180,18 +180,15 @@ class SpeedRate:
                 # 开启了视频慢速，音频加速一半
                 # 音频加速一半后实际时长应该变为
                 audio_extend = it['dubb_time'] - int(diff / 2)
-                # print(f'[音频加速 视频慢速]音频处理，{audio_extend=}')
                 # 如果音频加速一半后仍然大于设定，则重新设定加速后音频时长
-                if round(it['dubb_time'] / audio_extend, 2) > max_speed:
+                if max_speed>0 and round(it['dubb_time'] / audio_extend, 2) > max_speed:
                     audio_extend = int(it['dubb_time'] / max_speed)
-                    # print(f'[音频加速 视频慢速]音频2次处理，{audio_extend=}')
             else:
                 # 仅处理音频加速
                 if shound_speed <= max_speed:
                     audio_extend = able_time
-                else:
+                elif max_speed>0:
                     audio_extend = int(it['dubb_time'] / max_speed)
-                # print(f'仅音频加速，{shound_speed=},{audio_extend=},{it["dubb_time"]=}')
 
             # # 调整音频
             tmp_mp3 = f'{it["filename"]}-speed.mp3'
@@ -252,7 +249,7 @@ class SpeedRate:
                 duration = it['end_time_source'] - st_time
                 # 是否需要延长视频
                 pts = ""
-                if it['video_extend'] > 0:
+                if it['video_extend'] > 0 and duration>0:
                     pts = round((it['video_extend'] + duration) / duration, 2)
                     if pts > max_pts:
                         pts = max_pts
@@ -294,7 +291,7 @@ class SpeedRate:
                 # 是否需要延长视频
                 pts = ""
                 duration = it['end_time_source'] - st_time
-                if it['video_extend'] > 0:
+                if it['video_extend'] > 0 and duration>0:
                     pts = round((it['video_extend'] + duration) / duration, 2)
                     if pts > max_pts:
                         pts = max_pts
@@ -415,7 +412,6 @@ class SpeedRate:
                 self.queue_tts[i] = it
                 tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", uuid=self.uuid)
 
-            # 移除尾部静音
             if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
                 # 末尾补静音
                 silence = AudioSegment.silent(duration=video_time - len(merged_audio))

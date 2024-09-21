@@ -137,12 +137,10 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         tmp[
                             'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                         self._append_raws(tmp)
-                        # print(f'{split_idx=} 直接插入 {tmp["text"]}')
                         continue
 
                     last_idx = 0
                     try:
-                        # print(f'{split_idx_list=}')
                         for idx in split_idx_list:
                             if last_idx > idx:
                                 break
@@ -160,7 +158,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
                                 "end_time": int(segment['words'][ed]['end'] * 1000),
                                 "text": self.join_word_flag.join(texts)
                             }
-                            # print(f'插入 st({st})->ed({ed}),{tmp["text"]}')
                             tmp[
                                 'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                             self._append_raws(tmp)
@@ -175,7 +172,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
                             tmp[
                                 'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                             self._append_raws(tmp)
-                            # print(f'last_idx({last_idx})<max_index({max_index}),插入 {tmp["text"]}')
                     except Exception as e:
                         tmp = {
                             "line": len(self.raws) + 1,

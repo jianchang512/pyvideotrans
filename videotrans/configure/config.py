@@ -198,6 +198,10 @@ align_queue = []
 assemb_queue = []
 
 
+# 执行模式 gui 或 api
+exec_mode="gui"
+
+
 # 支持的视频格式
 VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov"]
 # 支持的音频格式
@@ -484,6 +488,8 @@ Translation:"""
     default = {
         "last_opendir": HOME_DIR,
         "cuda": False,
+
+        "line_roles":{},
 
         "only_video": False,
         "is_separate": False,

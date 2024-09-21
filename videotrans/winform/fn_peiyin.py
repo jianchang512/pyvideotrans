@@ -186,7 +186,7 @@ def openwin():
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
         elif len(winobj.hecheng_files) < 1:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
-            tools.save_srt(tools.get_subtitle_from_srt(txt, is_file=False), newsrtfile)
+            tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(text), is_file=False), newsrtfile)
             winobj.hecheng_files.append(newsrtfile)
 
         config.box_tts = 'ing'

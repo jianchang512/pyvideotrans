@@ -98,7 +98,6 @@ class BaseTrans(BaseCon):
 
                 try:
                     result = self._item_task(it)
-                    print(f'{result=}')
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
                     # 非srt直接break

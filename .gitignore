@@ -31,6 +31,7 @@ __pycache__
 pretrained_models
 elevenlabs.json
 pack.bat
+pack-api.bat
 gitcmd.bat
 google.txt
 videotrans/translator/freechatgpt.py

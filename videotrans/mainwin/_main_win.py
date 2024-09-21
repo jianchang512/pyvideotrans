@@ -4,18 +4,15 @@ import threading
 import time
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QLabel, QPushButton, QToolBar, QWidget, QVBoxLayout
 
 from videotrans import VERSION
-from videotrans.component.controlobj import TextGetdir
 from videotrans.configure import config
 from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans.tts import CLONE_VOICE_TTS, CHATTTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, OPENAI_TTS
 from videotrans.ui.en import Ui_MainWindow
-from videotrans.util import tools
-
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=700):
@@ -28,7 +25,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         # 当前所有可用角色列表
         self.current_rolelist = []
-        config.params['line_roles'] = {}
+        # config.params['line_roles'] = {}
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
@@ -44,7 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def initUI(self):
-        self.splitter.setSizes([self.width - 400, 400])
+
         # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
@@ -63,6 +60,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 设置各种默认值和设置文字 提示等
     def _set_cache_set(self):
+        from videotrans.component.controlobj import TextGetdir
+        self.splitter.setSizes([self.width - 400, 400])
         self.scroll_area.setWidgetResizable(True)
         viewport = QWidget(self.scroll_area)
         self.scroll_area.setWidget(viewport)
@@ -79,6 +78,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f"{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
         self.subtitle_tips = QLabel(config.transobj['zimubianjitishi'])
         self.subtitle_tips.setFixedHeight(30)
+        self.import_sub.setVisible(True)
+        self.export_sub.setVisible(True)
+        self.set_line_role.setVisible(True)
         self.subtitle_layout.insertWidget(0, self.subtitle_tips)
         self.subtitle_layout.insertWidget(1, self.subtitle_area)
 
@@ -90,11 +92,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_mp4.setAcceptDrops(True)
         self.target_dir.setAcceptDrops(True)
         # 隐藏倒计时
-        self.stop_djs.hide()
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
         self.stop_djs.setToolTip(config.transobj['Click to pause and modify subtitles for more accurate processing'])
 
-        self.continue_compos.hide()
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
         self.stop_djs.setCursor(Qt.PointingHandCursor)
         self.continue_compos.setCursor(Qt.PointingHandCursor)
@@ -182,6 +182,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def bind_action(self):
+        from videotrans.util import tools
         from videotrans.mainwin._actions import WinAction
 
         self.win_action = WinAction(self)
@@ -382,6 +383,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 在关闭窗口前执行的操作
         config.exit_soft = True
         self.hide()
+        from videotrans.util import tools
         tools._unlink_tmp()
         try:
             for w in config.child_forms.values():

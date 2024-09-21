@@ -42,7 +42,7 @@ class EdgeTTS(BaseTTS):
                     except Exception:
                         time.sleep(10)
                     else:
-                        self.has_done += self.dub_nums
+                        self.has_done += len(items)
                         if self.inst and self.inst.precent < 80:
                             self.inst.precent += 0.1
                         self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
@@ -77,17 +77,10 @@ class EdgeTTS(BaseTTS):
                 else:
                     break
             except Exception as e:
-                print(f'eget$$$$$$$$$$$$$$$$${e}')
+                print(f'{e}')
 
     def _run_as_async(self):
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
         try:
             asyncio.run(self._item_task())
-            # loop.run_until_complete(self._item_task())
         except Exception as e:
             print(f'############edgetts {e}')
-        # finally:
-        # 确保事件循环关闭
-        # loop.run_until_complete(loop.shutdown_asyncgens())  # 清理异步生成器
-        # loop.close()

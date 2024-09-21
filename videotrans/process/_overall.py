@@ -102,7 +102,6 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
             if len(segment.words) < 1:
                 continue
             len_text = len(segment.text.strip())
-            # print(f'\n\n{segment.text}')
             # 如果小于 maxlen*1.5 或 小于 5s，则为正常语句
             if len_text <= maxlen * 1.2 or (segment.words[-1].end - segment.words[0].start) < 3:
                 tmp = {
@@ -113,7 +112,6 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                 }
                 tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
                 append_raws(tmp)
-                # print(f'len_text({len_text})<maxlen*1.2{maxlen*1.2} or <3s直接插入 {tmp["text"]}')
                 continue
 
             # words组数量
@@ -138,13 +136,11 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                 }
                 tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
                 append_raws(tmp)
-                # print(f'{split_idx=} 直接插入 {tmp["text"]}')
                 continue
 
 
             last_idx=0
             try:
-                # print(f'{split_idx_list=}')
                 for idx in split_idx_list:
                     if last_idx>idx:
                         break
@@ -162,7 +158,6 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                         "end_time": int(segment.words[ed].end * 1000),
                         "text": join_word_flag.join(texts)
                     }
-                    # print(f'插入 st({st})->ed({ed}),{tmp["text"]}')
                     tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
                     append_raws(tmp)
                 if last_idx<max_index:
@@ -175,7 +170,6 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                     }
                     tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
                     append_raws(tmp)
-                    # print(f'last_idx({last_idx})<max_index({max_index}),插入 {tmp["text"]}')
             except Exception as e:
                 tmp = {
                     "line": len(raws) + 1,

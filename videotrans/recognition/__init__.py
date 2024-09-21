@@ -3,16 +3,8 @@ from typing import Union, List, Dict
 from videotrans.configure import config
 # 判断各个语音识别模式是否支持所选语言
 # 支持返回True，不支持返回错误文字字符串
-from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win, \
-    openairecognapi as openairecognapi_win, doubao as doubao_win
-from ._average import FasterAvg
-from ._doubao import DoubaoRecogn
-from ._google import GoogleRecogn
-from ._openai import OpenaiWhisperRecogn
-from ._openairecognapi import OpenaiAPIRecogn
-from ._overall import FasterAll
-from ._recognapi import APIRecogn
-from ._zh import ZhRecogn
+
+
 
 # 数字代表界面中的现实顺序
 FASTER_WHISPER = 0
@@ -47,6 +39,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None):
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
+    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win
     if recogn_type == ZH_RECOGN and not config.params['zh_recogn_api']:
         if return_str:
             return "Please configure the api and key information of the ZH_RECOGN channel first."
@@ -98,17 +91,25 @@ def run(*,
         "is_cuda": is_cuda,
     }
     if recogn_type == OPENAI_WHISPER:
+        from ._openai import OpenaiWhisperRecogn
         return OpenaiWhisperRecogn(**kwargs).run()
     if recogn_type == GOOGLE_SPEECH:
+        from ._google import GoogleRecogn
         return GoogleRecogn(**kwargs).run()
     if recogn_type == ZH_RECOGN:
+        from ._zh import ZhRecogn
         return ZhRecogn(**kwargs).run()
     if recogn_type == DOUBAO_API:
+        from ._doubao import DoubaoRecogn
         return DoubaoRecogn(**kwargs).run()
     if recogn_type == CUSTOM_API:
+        from ._recognapi import APIRecogn
         return APIRecogn(**kwargs).run()
     if recogn_type == OPENAI_API:
+        from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
     if split_type == 'avg':
+        from ._average import FasterAvg
         return FasterAvg(**kwargs).run()
+    from ._overall import FasterAll
     return FasterAll(**kwargs).run()

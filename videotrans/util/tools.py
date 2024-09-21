@@ -902,7 +902,6 @@ def save_srt(srt_list, srt_file):
                 endraw = it['endraw']
             txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
         Path(srt_file).write_text(txt, encoding="utf-8")
-        print(f'{srt_file=}')
     return True
 
 
@@ -1084,6 +1083,8 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False, extra_obj=None
 
 
 def send_notification(title, message):
+    if config.exec_mode=='api':
+        return
     from plyer import notification
     try:
         notification.notify(
@@ -1203,7 +1204,7 @@ def open_url(url=None, title: str = None):
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://bbs.pyvideotrans.com/questions",
+        'blog': "https://tts.pyvideotrans.com/",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
@@ -1495,3 +1496,70 @@ def get_prompt_file(ainame,is_srt=True):
     if is_srt and config.settings.get('aisendsrt',False):
         prompt_path += 'prompts/srt/'
     return f'{prompt_path}{prompt_name}'
+    
+    
+def process_text_to_srt_str(input_text:str):
+    if is_srt_string(input_text):
+       return input_text
+       
+    # 将文本按换行符切割成列表
+    text_lines = [line.strip() for line in input_text.replace("\r","").splitlines() if line.strip()]
+   
+    # 如果不符合条件，处理文本
+    # 删除空行并过滤掉只有空白符的行
+    
+    
+    # 分割大于50个字符的行
+    text_str_list = []
+    for line in text_lines:
+        if len(line) > 40:
+            # 按标点符号分割为多个字符串
+            split_lines = re.split(r'[,.，。]', line)
+            text_str_list.extend([l.strip() for l in split_lines if l.strip()])
+        else:
+            text_str_list.append(line)
+    # 创建字幕字典对象列表
+    dict_list = []
+    start_time_in_seconds = 0  # 初始时间，单位秒
+
+    for i, text in enumerate(text_str_list, start=1):
+        # 计算开始时间和结束时间（每次增加10s）
+        start_time = s2srt_time(start_time_in_seconds)
+        end_time = s2srt_time(start_time_in_seconds + 2)
+        start_time_in_seconds += 2
+
+        # 创建字幕字典对象
+        srt = f"{i}\n{start_time} --> {end_time}\n{text}"
+        dict_list.append(srt)
+    
+    return "\n\n".join(dict_list)
+
+def s2srt_time(seconds):
+    """将秒数转换为SRT格式的时间（小时:分钟:秒,毫秒）"""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{hours:02}:{minutes:02}:{seconds:02},000"
+    
+def is_srt_string(input_text):
+    input_text = input_text.strip()
+    if not input_text:
+        return False
+    
+    # 将文本按换行符切割成列表
+    text_lines = input_text.replace("\r","").splitlines()
+    if len(text_lines)<3:
+        return False
+        
+    
+        
+    # 正则表达式：第一行应为1到2个纯数字
+    first_line_pattern = r'^\d{1,2}$'
+    
+    # 正则表达式：第二行符合时间格式
+    second_line_pattern = r'^\s*?\d{1,2}:\d{1,2}:\d{1,2}(\W\d+)?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(\W\d+)?\s*$'
+    
+    # 如果前两行符合条件，返回原字符串
+    if not re.match(first_line_pattern, text_lines[0].strip()) or not re.match(second_line_pattern, text_lines[1].strip()):
+        return False
+    return True
