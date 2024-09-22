@@ -701,8 +701,6 @@ def show_popup(title, text, parent=None):
 print(ms_to_time_string(ms=12030))
 -> 00:00:12,030
 '''
-
-
 def ms_to_time_string(*, ms=0, seconds=None):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
@@ -716,65 +714,38 @@ def ms_to_time_string(*, ms=0, seconds=None):
     time_string = f"{hours}:{minutes}:{seconds},{milliseconds}"
     return format_time(time_string, ',')
 
+# 将不规范的 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
+# eg  001:01:2,4500  01:54,14 等做处理
+def format_time(s_time="", separate=','):
+    if not s_time.strip():
+        return f'00:00:00{separate}000'
+    hou, min, sec,ms = 0, 0, 0,0
 
-# 从字幕文件获取格式化后的字幕信息
-'''
-[
-{'line': 13, 'time': '00:01:56,423 --> 00:02:06,423', 'text': '因此，如果您准备好停止沉迷于不太理想的解决方案并开始构建下一个
-出色的语音产品，我们已准备好帮助您实现这一目标。深度图。没有妥协。唯一的机会..', 'startraw': '00:01:56,423', 'endraw': '00:02:06,423', 'start_time'
-: 116423, 'end_time': 126423}, 
-{'line': 14, 'time': '00:02:06,423 --> 00:02:07,429', 'text': '机会..', 'startraw': '00:02:06,423', 'endraw': '00:02
-:07,429', 'start_time': 126423, 'end_time': 127429}
-]
-'''
+    tmp = s_time.strip().split(':')
+    if len(tmp) >= 3:
+        hou,min,sec = tmp[-3].strip(),tmp[-2].strip(),tmp[-1].strip()
+    elif len(tmp) == 2:
+        min,sec = tmp[0].strip(),tmp[1].strip()
+    elif len(tmp) == 1:
+        sec = tmp[0].strip()
+    
+    if re.search(r',|\.', str(sec)):
+        t = re.split(r',|\.', str(sec))
+        sec = t[0].strip()
+        ms=t[1].strip()
+    else:
+        ms = 0
+    hou = f'{int(hou):02}'[-2:]
+    min = f'{int(min):02}'[-2:]
+    sec = f'{int(sec):02}'
+    ms = f'{int(ms):03}'[-3:]
+    return f"{hou}:{min}:{sec}{separate}{ms}"
 
+# 将 datetime.timedelta 对象的秒和微妙转为毫秒整数值
+def toms(td):
+    return (td.seconds * 1000) + int(td.microseconds / 1000)
 
-# 将字符串或者字幕文件内容，格式化为有效字幕数组对象
-# 格式化为有效的srt格式
-# content是每行内容，按\n分割的，
-def format_srt(content):
-    # 去掉空行
-    content = [it for it in content if it.strip()]
-    if len(content) < 1:
-        return []
-    result = []
-    maxindex = len(content) - 1
-    # 时间格式
-    timepat = r'^\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?-->\s*?\d+:\d+:\d+([\,\.]\d*?)?\s*?$'
-    textpat = r'^[,./?`!@#$%^&*()_+=\\|\[\]{}~\s \n-]*$'
-    for i, it in enumerate(content):
-        # 当前空行跳过
-        if not it.strip():
-            continue
-        it = it.strip()
-        is_time = re.match(timepat, it)
-        if is_time:
-            # 当前行是时间格式，则添加
-            result.append({"time": it, "text": []})
-        elif i == 0:
-            # 当前是第一行，并且不是时间格式，跳过
-            continue
-        elif re.match(r'^\s*?\d+\s*?$', it) and i < maxindex and re.match(timepat, content[i + 1]):
-            # 当前不是时间格式，不是第一行，并且都是数字，并且下一行是时间格式，则当前是行号，跳过
-            continue
-        elif len(result) > 0 and not re.match(textpat, it):
-            # 当前不是时间格式，不是第一行，（不是行号），并且result中存在数据，则是内容，可加入最后一个数据
-            result[-1]['text'].append(it)  # .capitalize()
-
-    # 再次遍历，去掉text为空的
-    result = [it for it in result if len(it['text']) > 0]
-
-    if len(result) > 0:
-        for i, it in enumerate(result):
-            result[i]['line'] = i + 1
-            result[i]['text'] = "\n".join(it['text'])  # capitalize()
-            s, e = (it['time'].replace('.', ',')).split('-->')
-            s = format_time(s, ',')
-            e = format_time(e, ',')
-            result[i]['time'] = f'{s} --> {e}'
-    return result
-
-# 将时分秒毫秒转为毫秒整数值
+# 将 时:分:秒,毫秒 转为毫秒整数值
 def get_ms_from_hmsm(time_str):
     h,m,sec2ms=0,0,'00,000'
     tmp0= time_str.split(":")
@@ -789,6 +760,38 @@ def get_ms_from_hmsm(time_str):
     
     return int(int(h) * 3600000 + int(m) * 60000 +int(sec)*1000 + int(ms))
 
+# 合法的srt字符串转为 dict list
+def srt_str_to_listdict(content):
+    import srt
+    line=0
+    result=[]
+    for sub in srt.parse(content):
+        line+=1
+        it={
+            "start_time":toms(sub.start),
+            "end_time":toms(sub.end),
+            "line":line,
+            "text":sub.content
+        }
+        it['startraw']=ms_to_time_string(ms=it['start_time'])
+        it['endraw']=ms_to_time_string(ms=it['end_time'])
+        it["time"]=f"{it['startraw']} --> {it['endraw']}"
+        result.append(it)
+    return result
+
+# 将字符串或者字幕文件内容，格式化为有效字幕数组对象
+# 格式化为有效的srt格式
+def format_srt(content):
+    result=[]
+    try:
+        result=srt_str_to_listdict(content)
+    except Exception:
+        result=srt_str_to_listdict(process_text_to_srt_str(content))        
+    return result
+    
+
+
+
 # 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
@@ -796,20 +799,19 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
             raise Exception(config.transobj['zimuwenjianbuzhengque'])
         try:
             with open(srtfile, 'r', encoding='utf-8') as f:
-                content = f.read().strip().splitlines()
+                content = f.read().strip()
         except:
             try:
                 with open(srtfile, 'r', encoding='gbk', errors='ignore') as f:
-                    content = f.read().strip().splitlines()
+                    content = f.read().strip()
             except Exception as e:
-                raise LogExcept(f'get srtfile error:{str(e)}')
+                raise Exception(f'get srtfile error:{str(e)}')
     else:
-        content = srtfile.strip().splitlines()
-    # remove whitespace
-    content = [c for c in content if c.strip()]
+        content = srtfile.strip()
+
 
     if len(content) < 1:
-        raise LogExcept("srt content is empty")
+        raise Exception("srt content is empty")
 
     result = format_srt(content)
 
@@ -818,29 +820,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         result = [
             {"line": 1, "time": "00:00:00,000 --> 00:05:00,000", "text": "\n".join(content)}
         ]
-
-    new_result = []
-    line = 1
-    for it in result:
-        if "text" in it and len(it['text'].strip()) > 0:
-            it['line'] = line
-            startraw, endraw = it['time'].strip().split("-->")
-
-            startraw = format_time(startraw.strip().replace('.', ',').replace('，', ',').replace('：', ':'), ',')
-            
-
-            endraw = format_time(endraw.strip().replace('.', ',').replace('，', ',').replace('：', ':'), ',')
-            
-            it['startraw'] = startraw
-            it['endraw'] = endraw
-            it['start_time'] = get_ms_from_hmsm(startraw)
-            it['end_time'] = get_ms_from_hmsm(endraw)
-            new_result.append(it)
-            line += 1
-    if len(new_result) < 1:
-        raise LogExcept(config.transobj['zimuwenjianbuzhengque'])
-
-    return new_result
+    return result
 
 
 # 将srt字幕转为 ass字幕
@@ -894,7 +874,7 @@ def save_srt(srt_list, srt_file):
                     startraw = ms_to_time_string(ms=it['start_time'])
                     endraw = ms_to_time_string(ms=it['end_time'])
                 else:
-                    raise LogExcept(
+                    raise Exception(
                         f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
             else:
                 # 存在单独开始和结束  时:分:秒,毫秒 字符串
@@ -905,51 +885,6 @@ def save_srt(srt_list, srt_file):
     return True
 
 
-# 将 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
-# 对不规范字幕格式，eg  001:01:2,4500  01:54,14 等做处理
-def format_time(s_time="", separate=','):
-    if not s_time.strip():
-        return f'00:00:00{separate}000'
-    s_time = s_time.strip()
-    hou, min, sec = "00", "00", f"00{separate}000"
-    tmp = s_time.split(':')
-    if len(tmp) >= 3:
-        hou = tmp[-3].strip()
-        min = tmp[-2].strip()
-        sec = tmp[-1].strip()
-    elif len(tmp) == 2:
-        min = tmp[0].strip()
-        sec = tmp[1].strip()
-    elif len(tmp) == 1:
-        sec = tmp[0].strip()
-
-    if re.search(r',|\.', str(sec)):
-        sec, ms = re.split(r',|\.', str(sec))
-        sec = sec.strip()
-        ms = ms.strip()
-    else:
-        ms = '000'
-    hou = hou if hou != "" else "00"
-    if len(hou) < 2:
-        hou = f'0{hou}'
-    hou = hou[-2:]
-
-    min = min if min != "" else "00"
-    if len(min) < 2:
-        min = f'0{min}'
-    min = min[-2:]
-
-    sec = sec if sec != "" else "00"
-    if len(sec) < 2:
-        sec = f'0{sec}'
-    sec = sec[-2:]
-
-    ms_len = len(ms)
-    if ms_len < 3:
-        for i in range(3 - ms_len):
-            ms = f'0{ms}'
-    ms = ms[-3:]
-    return f"{hou}:{min}:{sec}{separate}{ms}"
 
 
 # 判断 novoice.mp4是否创建好
@@ -1497,18 +1432,14 @@ def get_prompt_file(ainame,is_srt=True):
         prompt_path += 'prompts/srt/'
     return f'{prompt_path}{prompt_name}'
     
-    
+# 将普通文本转为合法的srt字符串
 def process_text_to_srt_str(input_text:str):
     if is_srt_string(input_text):
        return input_text
        
     # 将文本按换行符切割成列表
     text_lines = [line.strip() for line in input_text.replace("\r","").splitlines() if line.strip()]
-   
-    # 如果不符合条件，处理文本
-    # 删除空行并过滤掉只有空白符的行
-    
-    
+      
     # 分割大于50个字符的行
     text_str_list = []
     for line in text_lines:
@@ -1524,8 +1455,8 @@ def process_text_to_srt_str(input_text:str):
 
     for i, text in enumerate(text_str_list, start=1):
         # 计算开始时间和结束时间（每次增加10s）
-        start_time = s2srt_time(start_time_in_seconds)
-        end_time = s2srt_time(start_time_in_seconds + 2)
+        start_time = ms_to_time_string(seconds=start_time_in_seconds)
+        end_time = ms_to_time_string(seconds=start_time_in_seconds + 2)
         start_time_in_seconds += 2
 
         # 创建字幕字典对象
@@ -1534,13 +1465,8 @@ def process_text_to_srt_str(input_text:str):
     
     return "\n\n".join(dict_list)
 
-def s2srt_time(seconds):
-    """将秒数转换为SRT格式的时间（小时:分钟:秒,毫秒）"""
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours:02}:{minutes:02}:{seconds:02},000"
-    
+
+# 判断是否是srt字符串
 def is_srt_string(input_text):
     input_text = input_text.strip()
     if not input_text:
@@ -1550,9 +1476,7 @@ def is_srt_string(input_text):
     text_lines = input_text.replace("\r","").splitlines()
     if len(text_lines)<3:
         return False
-        
-    
-        
+               
     # 正则表达式：第一行应为1到2个纯数字
     first_line_pattern = r'^\d{1,2}$'
     

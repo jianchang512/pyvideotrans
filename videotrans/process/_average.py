@@ -12,7 +12,7 @@ from pydub.silence import detect_nonsilent
 from videotrans.util.tools import ms_to_time_string, match_target_amplitude, vail_file
 
 
-def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_file, q, settings,
+def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language, audio_file, q, settings,
         TEMP_DIR, ROOT_DIR, defaulelang):
     os.chdir(ROOT_DIR)
 
@@ -70,8 +70,9 @@ def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_
             err['msg'] = str(e)
             return
 
-    prompt = settings.get(f'initial_prompt_{detect_language}')
+    prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
     try:
+        last_detect=detect_language
         for i, duration in enumerate(nonsilent_data):
             if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
                 return
@@ -81,7 +82,7 @@ def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_
             audio_chunk.export(chunk_filename, format="wav")
 
             text = ""
-            segments, _ = model.transcribe(chunk_filename,
+            segments, info = model.transcribe(chunk_filename,
                                            beam_size=settings['beam_size'],
                                            best_of=settings['best_of'],
                                            condition_on_previous_text=settings[
@@ -91,10 +92,12 @@ def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_
                                                                                                  0.6, 0.8,
                                                                                                  1.0],
                                            vad_filter=False,
-                                           language=detect_language[:2],
+                                           language=detect_language[:2] if detect_language!='auto' else None,
                                            initial_prompt=prompt if prompt else None
                                            )
-
+            if last_detect=='auto':
+                detect['langcode']='zh-cn' if info.language[:2]=='zh' else info.language
+                last_detect=detect['langcode']
             for t in segments:
                 text += t.text + " "
 
@@ -103,7 +106,7 @@ def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
 
-            if detect_language[:2] == 'zh' and settings['zh_hant_s']:
+            if detect['langcode'][:2] == 'zh' and settings['zh_hant_s']:
                 text = zhconv.convert(text, 'zh-hans')
 
             start = ms_to_time_string(ms=start_time)
@@ -118,9 +121,14 @@ def run(raws, err, *, cache_folder, model_name, is_cuda, detect_language, audio_
             write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", "type": "subtitle"})
             write_log({"text": f" {srt_line['line']}/{total_length}", "type": "logs"})
     except Exception as e:
-        err['msg'] = str(e)
+        if detect_language=='auto':
+            err['msg']='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
+        else:
+            import traceback
+            err['msg'] = traceback.format_exception(e)
     except BaseException as e:
-        err['msg'] = str(e)
+        import traceback
+        err['msg'] = traceback.format_exception(e)
     finally:
         try:
             if torch.cuda.is_available():

@@ -106,6 +106,10 @@ def openwin():
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
+        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.currentIndex().count() - 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
+            return False
+
 
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
 
@@ -189,6 +193,9 @@ def openwin():
     # 设定模型类型
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
+        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.currentIndex().count() - 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
+            return False
         if recogn_type > 0:
             winobj.shibie_split_type.setDisabled(True)
         else:

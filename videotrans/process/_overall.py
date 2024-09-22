@@ -11,12 +11,10 @@ from faster_whisper import WhisperModel
 from videotrans.util.tools import ms_to_time_string
 
 
-def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, flag, join_word_flag,
+def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, maxlen, flag, join_word_flag,
         q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang):
     os.chdir(ROOT_DIR)
-    jianfan = True if detect_language[:2] == 'zh' and settings['zh_hant_s'] else False
     down_root = ROOT_DIR + "/models"
-
     def write_log(jsondata):
         try:
             q.put_nowait(jsondata)
@@ -25,7 +23,7 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
 
     def append_raws(tmp):
         try:
-            if jianfan:
+            if detect['langcode'][:2]=='zh' and settings['z_hant_s']:
                 tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
             q.put_nowait({"text": f'{tmp["line"]}\n{tmp["time"]}\n{tmp["text"]}\n\n', "type": "subtitle"})
             q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
@@ -77,8 +75,8 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                 err['msg'] = str(e)
                 return
 
-        prompt = settings.get(f'initial_prompt_{detect_language}')
-        segments, nfo = model.transcribe(
+        prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
+        segments, info = model.transcribe(
             audio_file,
             beam_size=settings['beam_size'],
             best_of=settings['best_of'],
@@ -93,9 +91,11 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                 speech_pad_ms=settings['overall_speech_pad_ms']
             ),
             word_timestamps=True,
-            language=detect_language[:2],
+            language=detect_language[:2] if detect_language!='auto' else None,
             initial_prompt=prompt if prompt else None
         )
+        if detect_language=='auto' and info.language!=detect['langcode']:
+            detect['langcode']='zh-cn' if info.language[:2]=='zh' else info.language
         for segment in segments:
             if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
                 return
@@ -182,7 +182,11 @@ def run(raws, err, *, model_name, is_cuda, detect_language, audio_file, maxlen, 
                 print(f'异常({last_idx=}) {e} ')
 
     except Exception as e:
-        err['msg'] = str(e)
+        if detect_language=='auto':
+            err['msg']='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
+        else:
+            import traceback
+            err['msg'] = traceback.format_exception(e)
     except BaseException as e:
         err['msg'] = str(e)
     finally:

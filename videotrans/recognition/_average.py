@@ -51,9 +51,10 @@ class FasterAvg(BaseRecogn):
             with multiprocessing.Manager() as manager:
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
+                detect = manager.dict({"langcode": self.detect_language})
 
                 # 创建并启动新进程
-                process = multiprocessing.Process(target=run, args=(raws, err), kwargs={
+                process = multiprocessing.Process(target=run, args=(raws, err,detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
@@ -74,6 +75,8 @@ class FasterAvg(BaseRecogn):
                     self.error = str(err['msg'])
                 else:
                     self.raws = list(raws)
+                    if self.detect_language=='auto' and self.inst and hasattr(self.inst,'set_source_language'):
+                        self.inst.set_source_language(detect['langcode'])
                 try:
                     if process.is_alive():
                         process.terminate()
