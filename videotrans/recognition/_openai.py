@@ -110,10 +110,10 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     max_index = len(segment['words']) - 1
                     split_idx_list = []
                     for idx, word in enumerate(segment['words']):
-                        if word['word'][0] in self.flag:
+                        if word['word'][0] in self.flag or (last_detect[:2] in ['zh','ja','ko'] and word['word'][0]==' '):
                             split_idx = idx - 1 if idx > 0 else idx
                             split_idx_list.append(split_idx)
-                        elif word['word'][-1] in self.flag:
+                        elif word['word'][-1] in self.flag or (last_detect[:2] in ['zh','ja','ko'] and word['word'][-1]==' '):
                             split_idx = idx
                             split_idx_list.append(split_idx)
                     # 没有合适的切分点,不切分
@@ -133,6 +133,35 @@ class OpenaiWhisperRecogn(BaseRecogn):
 
                     last_idx = 0
                     try:
+                        current_idx=split_idx_list.pop(0)
+                        res_all=[];
+                        res=[]
+                        for iw,w in enumerate(segment['words']):
+                            if iw <=current_idx:
+                                res.append(w)
+                            else:
+                                if len(res)>0:
+                                    res_all.append(res)
+                                    res=[]
+                                if len(split_idx_list)>0:
+                                    current_idx=split_idx_list.pop(0)
+                                else:
+                                    current_idx=999999
+                                res.append(w)
+                        if len(res)>0:
+                            res_all.append(res)
+                        
+                        for it in res_all:
+                            texts = [w['word'] for  w in it]
+                            tmp = {
+                                "line": len(self.raws) + 1,
+                                "start_time": int(it[0]['start'] * 1000),
+                                "end_time": int(it[-1]['end'] * 1000),
+                                "text": self.join_word_flag.join(texts)
+                            }
+                            tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                            self._append_raws(tmp)
+                        '''
                         for idx in split_idx_list:
                             if last_idx > idx:
                                 break
@@ -164,6 +193,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                             tmp[
                                 'time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
                             self._append_raws(tmp)
+                        '''
                     except Exception as e:
                         tmp = {
                             "line": len(self.raws) + 1,

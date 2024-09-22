@@ -1242,6 +1242,8 @@ def get_video_codec():
                     creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
             except Exception:
                 codec = f"libx{video_codec}"
+        else:            
+            codec = f"libx{video_codec}"
     return codec
 
 
