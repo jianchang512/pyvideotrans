@@ -520,34 +520,54 @@ if __name__ == '__main__':
             task_id = request.json.get('task_id')
         if not task_id:
             return jsonify({"code": 1, "msg": "The parem  task_id is not set"})
+        return _get_task_data(task_id)
+        
 
+    
+    # 获取多个任务 前台 content-type:application/json, 数据 {task_id_list:[id1,id2,....]}
+    @app.route('/task_status_list', methods=['POST', 'GET'])
+    def task_status_list():
+        # 1. 优先从 GET 请求参数中获取 task_id
+        task_ids= request.json.get('task_id_list',[])
+        if not task_ids or len(task_ids)<1:
+            return jsonify({"code": 1, "msg": "缺少任务id"})
+        
+        return_data={}
+        for task_id in task_ids:
+            return_data[task_id]=_get_task_data(task_id)
+        return jsonify({"code": 0, "msg": "ok","data":return_data})
+    
+    def _get_task_data(task_id):
         file = PROCESS_INFO + f'/{task_id}.json'
         if not Path(file).is_file():
             if task_id in config.uuid_logs_queue:
-                return jsonify({"code": -1, "msg": _get_order(task_id)})
+                return {"code": -1, "msg": _get_order(task_id)}
 
-            return jsonify({"code": 1, "msg": f"The task {task_id} is not exist"})
+            return {"code": 1, "msg": f"该任务 {task_id} 不存在"}
+
         try:
             data = json.loads(Path(file).read_text(encoding='utf-8'))
         except Exception as e:
-            return jsonify({"code": 2, "msg": f"An error:{e}"})
+            return {"code": -1, "msg": Path(file).read_text(encoding='utf-8')}
+
         if data['type'] == 'error':
-            return jsonify({"code": 3, "msg": data["text"]})
+            return {"code": 3, "msg": data["text"]}
         if data['type'] in logs_status_list:
             text=data.get('text','').strip()
-            return jsonify({"code": -1, "msg": text if text else 'process ing'})
+            return {"code": -1, "msg": text if text else '等待处理中'}
         # 完成，输出所有文件
         file_list = _get_files_in_directory(f'{TARGET_DIR}/{task_id}')
         if len(file_list) < 1:
-            return jsonify({"code": 4, "msg": 'No documents were generated'})
-        return jsonify({
+            return {"code": 4, "msg": '未生成任何结果文件，可能出错了'}
+
+        return {
             "code": 0,
             "msg": "ok",
             "data": {
                 "absolute_path": [f'{TARGET_DIR}/{task_id}/{name}' for name in file_list],
                 "url": [f'{request.scheme}://{request.host}/{API_RESOURCE}/{task_id}/{name}' for name in file_list],
             }
-        })
+        }
 
     # 排队
     def _get_order(task_id):

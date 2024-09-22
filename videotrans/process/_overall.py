@@ -23,7 +23,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
 
     def append_raws(tmp):
         try:
-            if detect['langcode'][:2]=='zh' and settings['z_hant_s']:
+            if detect['langcode'][:2]=='zh' and settings['zh_hant_s']:
                 tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
             q.put_nowait({"text": f'{tmp["line"]}\n{tmp["time"]}\n{tmp["text"]}\n\n', "type": "subtitle"})
             q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
@@ -118,10 +118,10 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
             max_index = len(segment.words) - 1
             split_idx_list = []
             for idx, word in enumerate(segment.words):
-                if word.word[0] in flag:
+                if word.word[0] in flag or (detect['langcode'][:2] in ['zh','ja','ko'] and word.word[0]==' '):
                     split_idx = idx - 1 if idx > 0 else idx
                     split_idx_list.append(split_idx)
-                elif word.word[-1] in flag:
+                elif word.word[-1] in flag or (detect['langcode'][:2] in ['zh','ja','ko'] and word.word[-1]==' '):
                     split_idx = idx
                     split_idx_list.append(split_idx)
             # 没有合适的切分点,不切分
@@ -141,31 +141,31 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
 
             last_idx=0
             try:
-                for idx in split_idx_list:
-                    if last_idx>idx:
-                        break
-                    # words组里起点索引为当前切分点+1
-                    st = last_idx
-                    # 下一个为结束点,未到末尾
-                    ed = idx
-                    if segment.words[ed].end-segment.words[st].start<1:
-                        continue
-                    last_idx=ed+1
-                    texts = [w.word for iw,w in enumerate(segment.words) if iw>=st and iw<=ed]
+                
+                current_idx=split_idx_list.pop(0)
+                res_all=[];
+                res=[]
+                for iw,w in enumerate(segment.words):
+                    if iw <=current_idx:
+                        res.append(w)
+                    else:
+                        if len(res)>0:
+                            res_all.append(res)
+                            res=[]
+                        if len(split_idx_list)>0:
+                            current_idx=split_idx_list.pop(0)
+                        else:
+                            current_idx=999999
+                        res.append(w)
+                if len(res)>0:
+                    res_all.append(res)
+                
+                for it in res_all:
+                    texts = [w.word for  w in it]
                     tmp = {
                         "line": len(raws) + 1,
-                        "start_time": int(segment.words[st].start * 1000),
-                        "end_time": int(segment.words[ed].end * 1000),
-                        "text": join_word_flag.join(texts)
-                    }
-                    tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
-                    append_raws(tmp)
-                if last_idx<max_index:
-                    texts = [w.word for iw, w in enumerate(segment.words) if iw >= last_idx]
-                    tmp = {
-                        "line": len(raws) + 1,
-                        "start_time": int(segment.words[last_idx].start * 1000),
-                        "end_time": int(segment.words[-1].end * 1000),
+                        "start_time": int(it[0].start * 1000),
+                        "end_time": int(it[-1].end * 1000),
                         "text": join_word_flag.join(texts)
                     }
                     tmp['time'] = f'{ms_to_time_string(ms=tmp["start_time"])} --> {ms_to_time_string(ms=tmp["end_time"])}'
