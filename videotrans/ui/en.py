@@ -620,6 +620,7 @@ class Ui_MainWindow(object):
         self.action_tiquzimu = QtGui.QAction(MainWindow)
         self.action_tiquzimu.setCheckable(True)
 
+
         self.action_tiquzimu.setObjectName("action_tiquzimu")
 
         self.action_yingyinhebing = QtGui.QAction(MainWindow)

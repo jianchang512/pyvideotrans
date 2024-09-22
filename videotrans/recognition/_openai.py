@@ -26,22 +26,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
         else:
             self.maxlen = int(config.settings['other_len'])
 
-    # def _output(self, srt):
-    #     if self.inst and self.inst.precent < 75:
-    #         self.inst.precent += 0.1
-    #     self._signal(text=f"{config.transobj['yuyinshibiejindu']} {len(self.raws)}")
-    #     self._signal(
-    #         text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
-    #         type='subtitle'
-    #     )
 
     def _append_raws(self, cur):
-        # if len(cur['text']) < int(self.maxlen / 5) and len(self.raws) > 0:
-        #     self.raws[-1]['text'] += cur['text'] if self.detect_language[:2] in ['ja', 'zh','ko'] else f' {cur["text"]}'
-        #     self.raws[-1]['end_time'] = cur['end_time']
-        #     self.raws[-1]['time'] = f'{tools.ms_to_time_string(ms=cur["start_time"])} --> {tools.ms_to_time_string(ms=cur["end_time"])}'
-        # else:
-        #     self._output(cur)
         if self.inst and self.inst.precent < 75:
             self.inst.precent += 0.1
         if self.jianfan:
@@ -71,8 +57,9 @@ class OpenaiWhisperRecogn(BaseRecogn):
             device="cuda" if self.is_cuda else "cpu",
             download_root=config.ROOT_DIR + "/models"
         )
-        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language!='auto' else None
         try:
+            last_detect=self.detect_language
             for i in range(total_length):
                 if self._exit():
                     return
@@ -88,11 +75,16 @@ class OpenaiWhisperRecogn(BaseRecogn):
 
                 result = self.model.transcribe(
                     chunk_filename,
-                    language=self.detect_language[:2],
+                    language=self.detect_language[:2] if self.detect_language!='auto' else None,
                     word_timestamps=True,
                     initial_prompt=prompt if prompt else None,
                     condition_on_previous_text=config.settings['condition_on_previous_text']
                 )
+                if self.detect_language=='auto' and last_detect=='auto':
+                    last_detect='zh-cn' if result['language'][:2]=='zh' else result['language']
+                    if self.inst and hasattr(self.inst,'set_source_language'):
+                        self.inst.set_source_language(last_detect)
+
                 for segment in result['segments']:
                     if self._exit():
                         return

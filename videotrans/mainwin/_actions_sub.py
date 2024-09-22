@@ -352,9 +352,7 @@ class WinActionSub:
 
     # 检测各个模式下参数是否设置正确
     def set_mode(self):
-        if self.main.app_mode == 'tiqu' or (
-                self.main.app_mode.startswith('biaozhun') and config.params['subtitle_type'] < 1 and config.params[
-            'voice_role'] == 'No'):
+        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No'):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
             config.params['is_separate'] = False

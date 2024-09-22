@@ -13,7 +13,6 @@ from pydub import AudioSegment
 
 from videotrans import translator
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans, get_audio_code
 from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS
@@ -43,10 +42,10 @@ class TransCreate(BaseTask):
                 self._signal(text="分析视频数据，用时可能较久请稍等.." if config.defaulelang == 'zh' else "Hold on a monment")
                 self.config_params['video_info'] = tools.get_video_info(self.config_params['name'])
             except Exception as e:
-                raise LogExcept(f"{config.transobj['get video_info error']}:{str(e)}")
+                raise Exception(f"{config.transobj['get video_info error']}:{str(e)}")
 
             if not self.config_params['video_info']:
-                raise LogExcept(config.transobj['get video_info error'])
+                raise Exception(config.transobj['get video_info error'])
             video_codec = 'h264' if self.video_codec == 264 else 'hevc'
             if self.config_params['video_info']['video_codec_name'] == video_codec and self.config_params[
                 'ext'].lower() == 'mp4': self.config_params['h264'] = True
@@ -60,64 +59,8 @@ class TransCreate(BaseTask):
         Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
         Path(self.config_params['cache_folder']).mkdir(parents=True, exist_ok=True)
 
-        # 原始语言代码
-        source_code = self.config_params['source_language'] if self.config_params[
-                                                                   'source_language'] in config.langlist else config.rev_langlist.get(
-            self.config_params['source_language'], None)
-        if source_code:
-            self.config_params['source_language_code'] = source_code
-        # 目标语言代码
-        target_code = self.config_params['target_language'] if self.config_params[
-                                                                   'target_language'] in config.langlist else config.rev_langlist.get(
-            self.config_params['target_language'], None)
-        if target_code:
-            self.config_params['target_language_code'] = target_code
+        self.set_source_language(self.config_params['source_language'])
 
-        # 检测字幕原始语言
-        self.config_params['detect_language'] = get_audio_code(show_source=self.config_params['source_language_code'])
-
-        # 存放分离后的无声音mp4
-        self.config_params['novoice_mp4'] = f"{self.config_params['target_dir']}/novoice.mp4"
-        # 原始语言一定存在
-        self.config_params[
-            'source_sub'] = f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.srt"
-        self._unlink_size0(self.config_params['source_sub'])
-
-        # 原始语言wav
-        self.config_params[
-            'source_wav'] = f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.m4a"
-        self._unlink_size0(self.config_params['source_wav'])
-
-        # 目标语言字幕文件
-        if self.config_params['target_language_code']:
-            self.config_params[
-                'target_sub'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}.srt"
-            self._unlink_size0(self.config_params['target_sub'])
-            # 配音后的目标语言音频文件
-            self.config_params[
-                'target_wav'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}.m4a"
-            self._unlink_size0(self.config_params['target_wav'])
-
-        # 是否需要语音识别:只要不存在原始语言字幕文件就需要识别
-        if not Path(self.config_params['source_sub']).exists():
-            self.shoud_recogn = True
-            # 作为识别音频
-            self.config_params['shibie_audio'] = f"{self.config_params['target_dir']}/shibie.wav"
-            self._unlink_size0(self.config_params['shibie_audio'])
-
-        # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
-        if self.config_params['target_language_code'] and self.config_params['target_language_code'] != \
-                self.config_params[
-                    'source_language_code'] and not Path(self.config_params['target_sub']).exists():
-            self.shoud_trans = True
-
-        # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
-        if self.config_params['voice_role'] != 'No' and self.config_params['source_language_code'] == \
-                self.config_params[
-                    'target_language_code']:
-            self.config_params[
-                'target_wav'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}-dubbing.m4a"
-            self._unlink_size0(self.config_params['target_wav'])
         # 如果配音角色不是No 并且不存在目标音频，则需要配音
         if self.config_params['voice_role'] != 'No':
             self.shoud_dubbing = True
@@ -127,9 +70,10 @@ class TransCreate(BaseTask):
             self.shoud_hebing = True
 
         # 最终需要输出的mp4视频
-        self.config_params[
-            'targetdir_mp4'] = f"{self.config_params['target_dir']}/{self.config_params['noextname']}.mp4"
+        self.config_params['targetdir_mp4'] = f"{self.config_params['target_dir']}/{self.config_params['noextname']}.mp4"
         self._unlink_size0(self.config_params['targetdir_mp4'])
+
+
         # 是否需要背景音分离：分离出的原始音频文件
         if self.config_params['is_separate']:
             # 背景音乐
@@ -166,6 +110,60 @@ class TransCreate(BaseTask):
                 self._signal(text=f"{self.status_text} {t}s???{self.precent}", type="set_precent", nologs=True)
 
         threading.Thread(target=runing).start()
+
+    ### 同原始语言相关，当原始语言变化或检测出结果时，需要修改==========
+    # 原始语言代码
+    def set_source_language(self,source_language_code=None):
+        self.config_params['source_language']=source_language_code
+        source_code = self.config_params['source_language'] if self.config_params['source_language'] in config.langlist else config.rev_langlist.get(self.config_params['source_language'], None)
+        if source_code:
+            self.config_params['source_language_code'] = source_code
+        # 检测字幕原始语言
+        self.config_params['detect_language'] = get_audio_code(show_source=self.config_params['source_language_code'])
+        # 原始语言一定存在
+        self.config_params['source_sub'] = f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.srt"
+        self._unlink_size0(self.config_params['source_sub'])
+        # 原始语言wav
+        self.config_params['source_wav'] = f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.m4a"
+
+        self._unlink_size0(self.config_params['source_wav'])
+
+        if self.config_params['source_language_code']!='auto' and Path(f"{self.config_params['target_dir']}/auto.m4a").exists():
+            Path(f"{self.config_params['target_dir']}/auto.m4a").rename(self.config_params['source_wav'])
+        # 是否需要语音识别:只要不存在原始语言字幕文件就需要识别
+        if not Path(self.config_params['source_sub']).exists():
+            self.shoud_recogn = True
+            # 作为识别音频
+            self.config_params['shibie_audio'] = f"{self.config_params['target_dir']}/shibie.wav"
+            self._unlink_size0(self.config_params['shibie_audio'])
+
+
+        # 目标语言代码
+        target_code = self.config_params['target_language'] if self.config_params['target_language'] in config.langlist else config.rev_langlist.get(self.config_params['target_language'], None)
+        if target_code:
+            self.config_params['target_language_code'] = target_code
+        # 存放分离后的无声音mp4
+        self.config_params['novoice_mp4'] = f"{self.config_params['target_dir']}/novoice.mp4"
+        # 目标语言字幕文件
+        if self.config_params['target_language_code']:
+            self.config_params['target_sub'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}.srt"
+            self._unlink_size0(self.config_params['target_sub'])
+            # 配音后的目标语言音频文件
+            self.config_params['target_wav'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}.m4a"
+            self._unlink_size0(self.config_params['target_wav'])
+
+
+        # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
+        if self.config_params['target_language_code'] and self.config_params['target_language_code'] !=  self.config_params['source_language_code'] and not Path(self.config_params['target_sub']).exists():
+            self.shoud_trans = True
+
+        # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
+        if self.config_params['voice_role'] != 'No' and self.config_params['source_language_code'] ==  self.config_params['target_language_code']:
+            self.config_params['target_wav'] = f"{self.config_params['target_dir']}/{self.config_params['target_language_code']}-dubbing.m4a"
+            self._unlink_size0(self.config_params['target_wav'])
+
+        ### 同原始语言相关，当原始语言变化或检测出结果时，需要修改==========
+
 
     # 预处理，分离音视频、分离人声等
     # 修改不规则的名字
@@ -524,7 +522,7 @@ class TransCreate(BaseTask):
             # 是克隆
             if self.config_params['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS] and voice_role == 'clone':
                 if self.config_params['is_separate'] and not tools.vail_file(self.config_params['vocal']):
-                    raise LogExcept(
+                    raise Exception(
                         f"背景分离出错,请使用其他角色名" if config.defaulelang == 'zh' else 'Background separation error, please use another character name.')
 
                 if tools.vail_file(self.config_params['source_wav']):
@@ -566,7 +564,7 @@ class TransCreate(BaseTask):
 
         self._signal(text=f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms')
         if not tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'], uuid=self.uuid):
-            raise LogExcept("not novoice mp4")
+            raise Exception("not novoice mp4")
 
         video_time = tools.get_video_duration(self.config_params['novoice_mp4'])
         shutil.copy2(self.config_params['novoice_mp4'], self.config_params['novoice_mp4'] + ".raw.mp4")
@@ -812,11 +810,11 @@ class TransCreate(BaseTask):
 
         # 判断novoice_mp4是否完成
         if not tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname']):
-            raise LogExcept(config.transobj['fenlinoviceerror'])
+            raise Exception(config.transobj['fenlinoviceerror'])
 
         # 需要配音但没有配音文件
         if self.shoud_dubbing and not tools.vail_file(self.config_params['target_wav']):
-            raise LogExcept(
+            raise Exception(
                 f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.config_params['target_wav']}")
 
         subtitles_file, subtitle_langcode = None, None
@@ -974,7 +972,7 @@ class TransCreate(BaseTask):
         except Exception as e:
             msg = f'最后一步字幕配音嵌入时出错:{e}' if config.defaulelang == 'zh' else f'Error in embedding the final step of the subtitle dubbing:{e}'
             self._signal(text=msg, type='error')
-            raise LogExcept(msg)
+            raise Exception(msg)
         self.precent = 99
         os.chdir(config.ROOT_DIR)
         self._create_txt()

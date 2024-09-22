@@ -310,16 +310,14 @@ if __name__ == '__main__':
     name:必须参数，字符串类型，需要翻译的音频或视频的绝对路径(需同本软件在同一设备)
     recogn_type:必须参数，数字类型，语音识别模式，0=faster-whisper本地模型识别，1=openai-whisper本地模型识别，2=Google识别api，3=zh_recogn中文识别，4=豆包模型识别，5=自定义识别API，6=OpenAI识别API
     model_name:必须参数faster-whisper和openai-whisper模式时的模型名字
-    detect_language:必须参数，字符串类型，音视频中人类说话语言。中文zh，英语en，法语fr，德语de，日语ja，韩语ko，俄语ru，西班牙语es，泰国语th，意大利语it，葡萄牙语pt，越南语vi，阿拉伯语ar，土耳其语tr，印地语hi，匈牙利语hu，乌克兰语uk，印尼语id，马来语ms，哈萨克语kk，捷克语cs，波兰语pl，荷兰语nl，瑞典语sv
     split_type：可选参数，字符串类型，默认all：整体识别，可选avg：均等分割
     is_cuda:可选参数，布尔类型，是否启用CUDA加速，默认False
     translate_type：必须参数，整数类型，翻译渠道
     target_language:必须参数，字符串类型，要翻译到的目标语言代码。可选值 简体中文zh-cn，繁体zh-tw，英语en，法语fr，德语de，日语ja，韩语ko，俄语ru，西班牙语es，泰国语th，意大利语it，葡萄牙语pt，越南语vi，阿拉伯语ar，土耳其语tr，印地语hi，匈牙利语hu，乌克兰语uk，印尼语id，马来语ms，哈萨克语kk，捷克语cs，波兰语pl，荷兰语nl，瑞典语sv
-    source_code:可选参数，字符串类型，原始字幕语言代码，可选同上
+    source_language:可选参数，字符串类型，原始字幕语言代码，可选同上
     tts_type:必须参数，数字类型，配音渠道，0="Edge-TTS",1='CosyVoice',2="ChatTTS",3=302.AI,4="FishTTS",5="Azure-TTS",
         6="GPT-SoVITS",7="clone-voice",8="OpenAI TTS",9="Elevenlabs.io",10="Google TTS",11="自定义TTS API"
     voice_role:必须参数，字符串类型，对应配音渠道的角色名，edge-tts/azure-tts/302.ai(azure模型)时目标语言不同，角色名也不同，具体见底部
-    target_language:必须参数，字符串类型，需要配音的语言类型代码，即所传递的字幕文字语言代码，可选值 简体中文zh-cn，繁体zh-tw，英语en，法语fr，德语de，日语ja，韩语ko，俄语ru，西班牙语es，泰国语th，意大利语it，葡萄牙语pt，越南语vi，阿拉伯语ar，土耳其语tr，印地语hi，匈牙利语hu，乌克兰语uk，印尼语id，马来语ms，哈萨克语kk，捷克语cs，波兰语pl，荷兰语nl，瑞典语sv
     voice_rate:可选参数，字符串类型，语速加减值，格式为：加速`+数字%`，减速`-数字%`
     volume:可选参数，字符串类型，音量变化值(仅配音渠道为edge-tts生效)，格式为 增大音量`+数字%`，降低音量`-数字%`
     pitch:可选参数，字符串类型，音调变化值(仅配音渠道为edge-tts生效)，格式为 调大音调`+数字Hz`,降低音量`-数字Hz`
@@ -345,7 +343,6 @@ if __name__ == '__main__':
         "recogn_type":0,
         "split_type":"all",
         "model_name":"tiny",
-        "detect_language":"zh",
     
         "translate_type":0,
         "source_language":"zh-cn",
@@ -353,7 +350,6 @@ if __name__ == '__main__':
     
         "tts_type":0,
         "voice_role":"zh-CN-YunjianNeural",
-        "target_language_code":"zh-cn",
         "voice_rate":"+0%",
         "volume":"+0%",
         "pitch":"+0Hz",

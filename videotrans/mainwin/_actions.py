@@ -129,6 +129,12 @@ class WinAction(WinActionSub):
         else:
             self.main.model_name.setDisabled(False)
             self.check_model_name(self.main.model_name.currentText())
+        if config.params['recogn_type']>1:
+            # >1 禁用 auto 自动检测
+            # 禁用最后一项
+            if self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+                self.main.source_language.setCurrentIndex(0)
+
         lang = translator.get_code(show_text=self.main.source_language.currentText())
         is_allow_lang = recogn_is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang is not True:
@@ -334,6 +340,12 @@ class WinAction(WinActionSub):
 
     # 核对所选语音识别模式是否正确
     def check_reccogn(self):
+        if self.main.recogn_type.currentIndex()>1 and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+            QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
+            return False
+        if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+            QMessageBox.critical(self.main, config.transobj['anerror'], '已导入字幕情况下，不可再使用检测功能' if config.defaulelang=='zh' else 'The detection function cannot be used when subtitles have already been imported.')
+            return False
         langcode = translator.get_code(show_text=config.params['source_language'])
 
         is_allow_lang = recogn_is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
@@ -449,6 +461,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
         config.params['line_roles']={}
+        config.params['split_type']='avg' if self.main.split_type.currentIndex()>0 else 'all'
         config.getset_params(config.params)
         self.delete_process()
         # 设为开始
@@ -456,7 +469,7 @@ class WinAction(WinActionSub):
         config.settings = config.parse_init()
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             config.params['app_mode'] = self.main.app_mode
-        self._disabled_button()
+        self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         QTimer.singleShot(100, self.create_btns)
 
@@ -484,10 +497,16 @@ class WinAction(WinActionSub):
 
 
     # 启动时禁用相关模式按钮，停止时重新启用
-    def _disabled_button(self, status=True):
+    def _disabled_button(self, disabled=True):
         for k, v in self.main.moshis.items():
             if k != self.main.app_mode:
-                v.setDisabled(status)
+                # 非当前模式
+                v.setDisabled(disabled)
+                v.setChecked(False)
+            else:
+                v.setDisabled(False)
+                v.setChecked(True)
+
 
     # 任务end结束或暂停时，清空队列
     # 先不清空 stoped_uuid_set 标志，用于背景分离任务稍后结束

@@ -420,6 +420,7 @@
     "cs": "Czech",
     "pl": "Polish",
     "nl": "Dutch",
-    "sv": "Swedish"
+    "sv": "Swedish",
+    "auto": "Detection"
   }
 }

@@ -297,18 +297,30 @@ LANG_CODE = {
         "No",  # OTT通道
         "sv",  # 微软翻译
         "Swedish" if config.defaulelang != 'zh' else '瑞典语'  # AI翻译
+    ],
+    "auto":[
+        "auto",
+        "auto",
+        "auto",
+        "auto",
+        "auto",
+        "auto",
+        "auto",
+        "auto",
     ]
 }
 
 
 # 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
 def get_code(*, show_text=None):
-    if not show_text or show_text == '-':
+    if not show_text or show_text in ['-']:
         return None
+
     if show_text in LANG_CODE:
         return show_text
     if show_text in config.rev_langlist:
         return config.rev_langlist[show_text]
+
     return None
 
 
