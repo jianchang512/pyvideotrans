@@ -2,10 +2,10 @@
 
 # 视频翻译配音工具
 
-这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。
+这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。并支持API调用
 
 
-语音识别支持 `faster-whisper`模型 `openai-whisper`模型 和 `GoogleSpeech` `zh_recogn阿里中文语音识别模型`.
+语音识别支持 `faster-whisper`和`openai-whisper`本地离线模型 及 `OpenAI SpeechToText API`  `GoogleSpeech` `阿里中文语音识别模型`和豆包模型，并支持自定义语音识别api.
 
 文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|字节火山|离线翻译OTT`
 
@@ -51,6 +51,8 @@
 【下载油管视频】可从youtube上下载视频
 
 【人声背景乐分离】
+
+【API调用】支持 语音合成、语言识别、字幕翻译、视频翻译接口调用
 
 ----
 
