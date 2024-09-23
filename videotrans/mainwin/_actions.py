@@ -380,8 +380,6 @@ class WinAction(WinActionSub):
         config.settings = config.parse_init()
 
         # 目标文件夹
-        target_dir = self.main.target_dir.text().strip()
-        config.params['target_dir'] = Path(target_dir).as_posix() if target_dir else ''
         config.params['source_language'] = self.main.source_language.currentText()
         config.params['target_language'] = self.main.target_language.currentText()
 
@@ -474,8 +472,10 @@ class WinAction(WinActionSub):
         QTimer.singleShot(100, self.create_btns)
 
     def create_btns(self):
-        target_dir = Path(config.params["target_dir"] if config.params["target_dir"] else Path(
+        target_dir = Path(self.main.target_dir if self.main.target_dir else Path(
             config.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
+        config.params["target_dir"]=target_dir
+        self.main.btn_save_dir.setToolTip(target_dir)
         self.obj_list = []
         # queue_mp4中的名字可能已修改为规范
         new_name=[]
@@ -593,7 +593,8 @@ class WinAction(WinActionSub):
                     QMessageBox.critical(self.main, config.transobj['anerror'],
                                          config.transobj['shutdownerror'] + str(e))
             self.main.source_mp4.setText(config.transobj["No select videos"])
-            self.main.target_dir.clear()
+            self.main.target_dir=None
+            self.main.btn_save_dir.setToolTip('')
         else:
             # stop 停止
             self.main.source_mp4.setText(config.transobj["No select videos"] if len(

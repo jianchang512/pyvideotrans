@@ -33,34 +33,31 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.layout_source_mp4 = QtWidgets.QFormLayout()
-        self.layout_source_mp4.setObjectName("layout_source_mp4")
-        self.btn_get_video = QtWidgets.QPushButton(self.layoutWidget)
 
+        self.btn_get_video = QtWidgets.QPushButton(self.layoutWidget)
         self.btn_get_video.setMinimumSize(QtCore.QSize(120, 30))
         self.btn_get_video.setObjectName("btn_get_video")
-        self.layout_source_mp4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.btn_get_video)
+
         self.source_mp4 = QtWidgets.QLineEdit(self.layoutWidget)
         self.source_mp4.setMinimumSize(QtCore.QSize(0, 30))
         self.source_mp4.setText("Select the video to be processed" if config.defaulelang != 'zh' else '选择要处理的视频')
         self.source_mp4.setReadOnly(False)
         self.source_mp4.setDisabled(True)
         self.source_mp4.setObjectName("source_mp4")
-        self.layout_source_mp4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.source_mp4)
-        self.horizontalLayout_6.addLayout(self.layout_source_mp4)
-        self.layout_target_dir = QtWidgets.QFormLayout()
-        self.layout_target_dir.setObjectName("layout_target_dir")
+
+        self.select_file_type = QtWidgets.QCheckBox()
+        self.select_file_type.setText('文件夹' if config.defaulelang == 'zh' else 'Folder')
+        self.select_file_type.setToolTip('默认可选择多个文件，选中该框则可选择文件夹' if config.defaulelang == 'zh' else 'Multiple files can be selected by default, check the box to select folders')
+
+        self.horizontalLayout_6.addWidget(self.btn_get_video)
+        self.horizontalLayout_6.addWidget(self.select_file_type)
+        self.horizontalLayout_6.addWidget(self.source_mp4)
+        self.horizontalLayout_6.addStretch()
+
         self.btn_save_dir = QtWidgets.QPushButton(self.layoutWidget)
         self.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
         self.btn_save_dir.setObjectName("btn_save_dir")
-        self.layout_target_dir.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.btn_save_dir)
-        self.target_dir = QtWidgets.QLineEdit(self.layoutWidget)
-        self.target_dir.setMinimumSize(QtCore.QSize(0, 30))
-        self.target_dir.setReadOnly(False)
-        self.target_dir.setDisabled(True)
-        self.target_dir.setObjectName("target_dir")
-        self.layout_target_dir.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.target_dir)
-        self.horizontalLayout_6.addLayout(self.layout_target_dir)
+        self.horizontalLayout_6.addWidget(self.btn_save_dir)
 
         self.only_video = QtWidgets.QCheckBox(self.layoutWidget)
         self.only_video.setMinimumSize(QtCore.QSize(0, 30))
@@ -151,7 +148,6 @@ class Ui_MainWindow(object):
         self.layout_proxy.setObjectName("layout_proxy")
 
         self.label = QtWidgets.QLabel(self.layoutWidget)
-
         self.label.setMinimumSize(QtCore.QSize(0, 30))
         self.label.setObjectName("label")
         self.layout_proxy.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -219,10 +215,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.listen_btn)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
-
         self.volume_label = QtWidgets.QLabel(self.layoutWidget)
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
-
         self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setMaximum(100)
@@ -800,8 +794,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self):
         self.btn_get_video.setToolTip(
             config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
-        self.btn_get_video.setText(config.uilanglist.get("Select video.."))
-        self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
+        self.btn_get_video.setText('选择要处理的视频' if config.defaulelang=='zh' else 'Select the video')
+        self.btn_save_dir.setToolTip( config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
         self.label_9.setText(config.uilanglist.get("Translate channel"))

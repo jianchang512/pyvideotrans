@@ -22,6 +22,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.resize(self.width, self.height)
         self.win_action = None
         self.moshis = None
+        self.target_dir=None
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         # 当前所有可用角色列表
         self.current_rolelist = []
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
         self.source_mp4.setAcceptDrops(True)
-        self.target_dir.setAcceptDrops(True)
+
         # 隐藏倒计时
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
         self.stop_djs.setToolTip(config.transobj['Click to pause and modify subtitles for more accurate processing'])
