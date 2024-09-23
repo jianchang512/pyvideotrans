@@ -7,8 +7,9 @@ import threading
 from pathlib import Path
 
 from PySide6 import QtCore
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
+from PySide6.QtCore import QTimer, QDir
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton, QListView, QAbstractItemView, QHBoxLayout, QLabel, \
+    QVBoxLayout
 
 from videotrans import translator, tts
 from videotrans.configure import config
@@ -56,9 +57,9 @@ class WinActionSub:
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
         # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
+        # self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, False)
+        # self.hide_show_element(self.main.layout_target_dir, False)
         # 翻译渠道
         self.main.translate_type.setCurrentIndex(1)
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -114,10 +115,7 @@ class WinActionSub:
         self.main.action_biaozhun.setChecked(True)
         self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
-        # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, True)
+
         # 翻译渠道
         self.hide_show_element(self.main.layout_translate_type, True)
         # 代理
@@ -173,9 +171,9 @@ class WinActionSub:
         self.hide_show_element(self.main.subtitle_layout, True)
         self.main.splitter.setSizes([self.main.width - 400, 400])
         # 选择视频
-        self.hide_show_element(self.main.layout_source_mp4, True)
+        # self.hide_show_element(self.main.layout_source_mp4, True)
         # 保存目标
-        self.hide_show_element(self.main.layout_target_dir, True)
+        # self.hide_show_element(self.main.layout_target_dir, True)
         # 隐藏音量 音调变化
         self.hide_show_element(self.main.edge_volume_layout, False)
         # 翻译渠道
@@ -252,13 +250,63 @@ class WinActionSub:
                                     'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
 
-    # get video filter mp4
+
+
     def get_mp4(self):
-        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
         if self.main.app_mode == 'tiqu':
-            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
-        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.params['last_opendir'],
-                                                 f'Files({format_str})')
+            allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
+        else:
+            allowed_exts = config.VIDEO_EXTS
+        format_str = " ".join(['*.' + f for f in allowed_exts])
+        mp4_list=[]
+        if self.main.select_file_type.isChecked():
+            """选择文件夹并添加到 selected_files 列表中"""
+            folder_path = QFileDialog.getExistingDirectory(
+                self.main,
+                "选择文件夹" if config.defaulelang else 'Select folder',
+                config.params['last_opendir']
+                # QDir.currentPath()
+            )
+
+            if not folder_path:
+                return
+            for root, _, files in os.walk(folder_path):
+                for file in files:
+                    if Path(file).suffix[1:].lower() in allowed_exts:
+                        mp4_list.append(os.path.join(root, file).replace(os.sep, '/'))
+            config.params['last_opendir'] = os.path.dirname(folder_path).replace('\\','/')
+            # if not self.main.target_dir:
+            self.main.target_dir=config.params['last_opendir']+'/_video_out'
+            self.main.btn_save_dir.setToolTip(self.main.target_dir)
+        else:
+            fnames, _ = QFileDialog.getOpenFileNames(self.main,
+                                                     '选择一或多个文件' if config.defaulelang=='zh' else "Select one or more files",
+                                                     config.params['last_opendir'],
+                                                     f'Files({format_str})')
+            if len(fnames) < 1:
+                return
+            for (i, it) in enumerate(fnames):
+                mp4_list.append(Path(it).as_posix())
+            config.params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
+            # if not self.main.target_dir:
+            self.main.target_dir=config.params['last_opendir']+f'/_video_out'
+            self.main.btn_save_dir.setToolTip(self.main.target_dir)
+
+        if len(mp4_list) > 0:
+            self.main.source_mp4.setText(f'{len((mp4_list))} videos')
+
+            config.queue_mp4 = mp4_list
+        print(config.queue_mp4)
+
+    # get video filter mp4
+    def get_mp41(self):
+        if self.main.app_mode == 'tiqu':
+            allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
+        else:
+            allowed_exts = config.VIDEO_EXTS
+        format_str = " ".join(['*.' + f for f in allowed_exts])
+
+        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.params['last_opendir'],   f'Files({format_str})')
         if len(fnames) < 1:
             return
         for (i, it) in enumerate(fnames):
@@ -274,7 +322,8 @@ class WinActionSub:
         dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],
                                                    config.params['last_opendir'])
         dirname = Path(dirname).as_posix()
-        self.main.target_dir.setText(dirname)
+        self.main.target_dir=dirname
+        self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
     # 设置或删除代理
     def change_proxy(self, p):
