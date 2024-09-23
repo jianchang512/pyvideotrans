@@ -314,7 +314,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fn_hunliu, \
             localllm, ott, fn_peiyin, fn_recogn, fn_separate, setini, tencent, transapi, ttsapi, fn_vas, fn_watermark, \
             fn_youtube, \
-            zh_recogn, zijiehuoshan, fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi, \
+            zh_recogn, zijiehuoshan, fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi,sttapi, \
             openairecognapi, \
             fn_subtitlescover, fn_editer
 
@@ -338,6 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_api.triggered.connect(ttsapi.openwin)
         self.actionzhrecogn_api.triggered.connect(zh_recogn.openwin)
         self.actionrecognapi.triggered.connect(recognapi.openwin)
+        self.actionsttapi.triggered.connect(sttapi.openwin)
         self.actiondoubao_api.triggered.connect(doubao.openwin)
         self.actiontrans_api.triggered.connect(transapi.openwin)
         self.actiontts_gptsovits.triggered.connect(gptsovits.openwin)

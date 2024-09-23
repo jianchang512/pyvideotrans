@@ -4,6 +4,7 @@ from typing import Union, List, Dict
 import requests
 
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.configure._except import LogExcept
 from videotrans.recognition._base import BaseRecogn
 
@@ -34,6 +35,11 @@ class ZhRecogn(BaseRecogn):
                 raise LogExcept(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
                 raise LogExcept(f'识别出错{res=}')
+            self._signal(
+                text=tools.get_srt_from_list(res['data']),
+                type='replace_subtitle'
+            )
+            
             return res['data']
         except Exception as e:
             raise

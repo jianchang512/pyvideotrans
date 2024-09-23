@@ -1,4 +1,4 @@
-# zh_recogn 识别
+# stt项目识别接口
 from typing import Union, List, Dict
 
 import requests
@@ -9,7 +9,7 @@ from videotrans.recognition._base import BaseRecogn
 
 """
             请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
-            requests.post(api_url, files={"audio": open(audio_file, 'rb')},data={"language":2位语言代码})
+            requests.post(api_url, files={"file": open(audio_file, 'rb')},data={language:2位语言代码,model:模型名})
 
             失败时返回
             res={
@@ -20,55 +20,45 @@ from videotrans.recognition._base import BaseRecogn
             成功时返回
             res={
                 "code":0,
-                "data":[
-                    {
-                        "text":"字幕文字",
-                        "time":'00:00:01,000 --> 00:00:06,500'
-                    },
-                    {
-                        "text":"字幕文字",
-                        "time":'00:00:06,900 --> 00:00:12,200'
-                    },
-                ]
+                "data":srt格式字符串
             }
 """
 
 
-class APIRecogn(BaseRecogn):
+class SttAPIRecogn(BaseRecogn):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.raws = []
-        api_url = config.params['recognapi_url'].strip().rstrip('/').lower()
+        api_url = config.params['stt_url'].strip().rstrip('/').lower()
         if not api_url:
             raise Exception('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
-        if config.params['recognapi_key']:
-            if api_url.find('?') > 0:
-                api_url += f'&sk={config.params["recognapi_key"]}'
-            else:
-                api_url += f'?sk={config.params["recognapi_key"]}'
+        api_url=api_url if api_url.endswith('/api') else f'{api_url}/api'
         self.api_url = api_url
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        files = {"audio": open(self.audio_file, 'rb')}
+        files = {"file": open(self.audio_file, 'rb')}
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:
-            res = requests.post(f"{self.api_url}",data={"language":self.detect_language}, files=files, proxies={"http": "", "https": ""}, timeout=3600)
-            config.logger.info(f'RECOGN_API:{res=}')
+            data={"language":self.detect_language[:2],"model":config.params.get('stt_model','tiny'),"response_format":"srt"}
+            print(data)
+            res = requests.post(f"{self.api_url}", files=files,data=data, proxies={"http": "", "https": ""}, timeout=7200)
+            config.logger.info(f'STT_API:{res=}')
             res = res.json()
             if "code" not in res or res['code'] != 0:
                 raise Exception(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
                 raise Exception(f'识别出错{res=}')
+            print(res)
             self._signal(
-                text=tools.get_srt_from_list(res['data']),
+                text=res['data'],
                 type='replace_subtitle'
             )
-            return res['data']
+            return tools.get_subtitle_from_srt(res['data'], is_file=False)
         except Exception as e:
             raise

@@ -142,11 +142,14 @@ class WinAction(WinActionSub):
 
     # 判断 openai whisper和 faster whisper 模型是否存在
     def check_model_name(self, name):
-        if self.main.recogn_type.currentIndex() in [2, 3, 4, 5, 6]:
+        if self.main.recogn_type.currentIndex() >1:
             return True
         if name.find('/') > 0:
             return True
-
+        
+        if name.endswith('.end') and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+            QMessageBox.critical(self.main, config.transobj['anerror'], '.en结尾的模型不可用于自动检测' if config.defaulelang=='zh' else 'Models ending in .en may not be used for automated detection')
+            return False
         slang = self.main.source_language.currentText()
         if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['enmodelerror'])

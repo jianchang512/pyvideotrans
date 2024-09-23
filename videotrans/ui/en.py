@@ -561,6 +561,8 @@ class Ui_MainWindow(object):
         self.actionzhrecogn_api.setObjectName("actionzhrecogn_api")
         self.actionrecognapi = QtGui.QAction(MainWindow)
         self.actionrecognapi.setObjectName("actionrecognapi")
+        self.actionsttapi = QtGui.QAction(MainWindow)
+        self.actionsttapi.setObjectName("actionsttapi")
 
         self.actiondoubao_api = QtGui.QAction(MainWindow)
         self.actiondoubao_api.setObjectName("actiondoubao_api")
@@ -716,6 +718,8 @@ class Ui_MainWindow(object):
         self.menu_RECOGN.addAction(self.actionopenairecognapi_key)
         self.menu_RECOGN.addSeparator()
         self.menu_RECOGN.addAction(self.actionrecognapi)
+        self.menu_RECOGN.addSeparator()
+        self.menu_RECOGN.addAction(self.actionsttapi)
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
@@ -869,6 +873,7 @@ class Ui_MainWindow(object):
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese")
         self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
+        self.actionsttapi.setText("stt语音识别API" if config.defaulelang == 'zh' else "stt Speech Recognition API")
         self.actiondoubao_api.setText("豆包模型语音识别" if config.defaulelang == 'zh' else "Doubao")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")

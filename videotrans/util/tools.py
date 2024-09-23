@@ -885,6 +885,36 @@ def save_srt(srt_list, srt_file):
     return True
 
 
+def get_srt_from_list(srt_list):
+    txt = ""
+    if isinstance(srt_list, list):
+        line = 0
+        # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
+        # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
+        # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
+        for it in srt_list:
+            line += 1
+            if "startraw" not in it:
+                # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
+                if 'time' in it:
+                    startraw, endraw = it['time'].strip().split(" --> ")
+                    startraw = format_time(startraw.strip().replace('.', ','), ',')
+                    endraw = format_time(endraw.strip().replace('.', ','), ',')
+                elif 'start_time' in it and 'end_time' in it:
+                    # 存在开始结束毫秒数值
+                    startraw = ms_to_time_string(ms=it['start_time'])
+                    endraw = ms_to_time_string(ms=it['end_time'])
+                else:
+                    raise Exception(
+                        f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
+            else:
+                # 存在单独开始和结束  时:分:秒,毫秒 字符串
+                startraw = it['startraw']
+                endraw = it['endraw']
+            txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
+    return txt
+
+
 
 
 # 判断 novoice.mp4是否创建好

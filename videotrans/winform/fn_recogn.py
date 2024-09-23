@@ -68,13 +68,16 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
+        print(f'{d=},{winobj.has_done=}')
         if winobj.has_done:
             return
         if isinstance(d, str):
             d = json.loads(d)
-        if d['type'] == 'replace':
+            
+            
+        if d['type'] in ['replace','replace_subtitle']:
             winobj.shibie_text.clear()
-            winobj.shibie_text.setPlainText(d["text"])
+            winobj.shibie_text.insertPlainText(d["text"])
         elif d['type'] == 'subtitle':
             winobj.shibie_text.moveCursor(QTextCursor.End)
             winobj.shibie_text.insertPlainText(d['text'])
@@ -106,8 +109,12 @@ def openwin():
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
-        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.currentIndex().count() - 1:
+        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
             QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
+            return False
+        
+        if recogn_type <2 and model.endswith('.end') and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
+            QMessageBox.critical(winobj, config.transobj['anerror'], '.en结尾的模型不可用于自动检测' if config.defaulelang=='zh' else 'Models ending in .en may not be used for automated detection')
             return False
 
 
@@ -193,17 +200,20 @@ def openwin():
     # 设定模型类型
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
-        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.currentIndex().count() - 1:
+        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
             QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return False
         if recogn_type > 0:
             winobj.shibie_split_type.setDisabled(True)
         else:
             winobj.shibie_split_type.setDisabled(False)
+        
+        
         if recogn_type > 1:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)
+            
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang_res is not True:
