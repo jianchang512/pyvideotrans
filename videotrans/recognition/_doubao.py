@@ -110,6 +110,10 @@ class DoubaoRecogn(BaseRecogn):
                     "text": it['text']
                 }
                 srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
+                self._signal(
+                    text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
+                    type='subtitle'
+                )
                 self.raws.append(srt)
             return self.raws
         except Exception as e:

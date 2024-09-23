@@ -609,6 +609,8 @@ Translation:"""
 
         "recognapi_url": "",
         "recognapi_key": "",
+        "stt_url": "",
+        "stt_model": "tiny",
 
         "ttsapi_url": "",
         "ttsapi_voice_role": "",

@@ -94,8 +94,11 @@ class OpenaiAPIRecogn(BaseRecogn):
                     "end_time": int(it["end"] * 1000),
                     "text": it["text"]
                 }
-                srt_tmp[
-                    'time'] = f'{tools.ms_to_time_string(ms=srt_tmp["start_time"])} --> {tools.ms_to_time_string(ms=srt_tmp["end_time"])}'
+                srt_tmp['time'] = f'{tools.ms_to_time_string(ms=srt_tmp["start_time"])} --> {tools.ms_to_time_string(ms=srt_tmp["end_time"])}'
+                self._signal(
+                    text=f'{srt_tmp["line"]}\n{srt_tmp["time"]}\n{srt_tmp["text"]}\n\n',
+                    type='subtitle'
+                )
                 self.raws.append(srt_tmp)
             return self.raws
         except ConnectionError as e:
