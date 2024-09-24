@@ -26,7 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app_mode = "biaozhun" if not config.params['app_mode'] else config.params['app_mode']
         # 当前所有可用角色列表
         self.current_rolelist = []
-        # config.params['line_roles'] = {}
+
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)

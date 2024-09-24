@@ -7,9 +7,9 @@ import threading
 from pathlib import Path
 
 from PySide6 import QtCore
-from PySide6.QtCore import QTimer, QDir
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton, QListView, QAbstractItemView, QHBoxLayout, QLabel, \
-    QVBoxLayout
+from PySide6.QtCore import QTimer
+
+from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
 from videotrans import translator, tts
 from videotrans.configure import config
@@ -56,10 +56,7 @@ class WinActionSub:
         self.main.action_xinshoujandan.setChecked(True)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
-        # 选择视频
-        # self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        # self.hide_show_element(self.main.layout_target_dir, False)
+
         # 翻译渠道
         self.main.translate_type.setCurrentIndex(1)
         self.hide_show_element(self.main.layout_translate_type, False)
@@ -170,10 +167,7 @@ class WinActionSub:
 
         self.hide_show_element(self.main.subtitle_layout, True)
         self.main.splitter.setSizes([self.main.width - 400, 400])
-        # 选择视频
-        # self.hide_show_element(self.main.layout_source_mp4, True)
-        # 保存目标
-        # self.hide_show_element(self.main.layout_target_dir, True)
+
         # 隐藏音量 音调变化
         self.hide_show_element(self.main.edge_volume_layout, False)
         # 翻译渠道
@@ -274,9 +268,9 @@ class WinActionSub:
                 for file in files:
                     if Path(file).suffix[1:].lower() in allowed_exts:
                         mp4_list.append(os.path.join(root, file).replace(os.sep, '/'))
-            config.params['last_opendir'] = os.path.dirname(folder_path).replace('\\','/')
-            # if not self.main.target_dir:
-            self.main.target_dir=config.params['last_opendir']+'/_video_out'
+            p=Path(folder_path)
+            config.params['last_opendir'] = p.parent.as_posix()
+            self.main.target_dir=config.params['last_opendir']+f'/{p.name}_video_out'
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QFileDialog.getOpenFileNames(self.main,
@@ -288,15 +282,12 @@ class WinActionSub:
             for (i, it) in enumerate(fnames):
                 mp4_list.append(Path(it).as_posix())
             config.params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
-            # if not self.main.target_dir:
             self.main.target_dir=config.params['last_opendir']+f'/_video_out'
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
         if len(mp4_list) > 0:
             self.main.source_mp4.setText(f'{len((mp4_list))} videos')
-
             config.queue_mp4 = mp4_list
-        print(config.queue_mp4)
 
     # get video filter mp4
     def get_mp41(self):

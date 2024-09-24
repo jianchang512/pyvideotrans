@@ -22,8 +22,6 @@ class OPENAITTS(BaseTTS):
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        else:
-            self.proxies = {"http://": "", "https://": ""}
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):

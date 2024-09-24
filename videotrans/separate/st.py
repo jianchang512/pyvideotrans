@@ -9,7 +9,7 @@ import torch
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
 from videotrans.separate.vr import AudioPre
 
 
@@ -144,7 +144,7 @@ def start(audio, path, source="logs", uuid=None):
             vocal_list.append((path_dir / 'vocal.wav').as_posix())
             instr_list.append((path_dir / 'instrument.wav').as_posix())
         except Exception as e:
-            raise LogExcept(e)
+            raise
 
     if len(vocal_list) < 1 or len(instr_list) < 1:
         raise Exception('separate bgm error')

@@ -1,6 +1,5 @@
 import base64
 import copy
-import os
 import re
 import threading
 import time
@@ -10,7 +9,6 @@ from typing import List, Union, Dict
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -84,7 +82,7 @@ class BaseTTS(BaseCon):
         except Exception as e:
             self.error = str(e) if not self.error else self.error
             self._signal(text=self.error, type="error")
-            raise LogExcept(f'{self.error}:{e}')
+            raise Exception(f'{self.error}:{e}')
         finally:
             if self.shound_del:
                 self._set_proxy(type='del')
@@ -108,7 +106,7 @@ class BaseTTS(BaseCon):
         if err > int(len(self.queue_tts) / 3):
             msg = f'{config.transobj["peiyindayu31"]}:{self.error if self.error is not True else ""}'
             self._signal(text=msg, type="error")
-            raise LogExcept(msg)
+            raise Exception(msg)
         # 去除末尾静音
         if config.settings['remove_silence']:
             for it in self.queue_tts:

@@ -4,7 +4,7 @@ from typing import List, Dict, Union
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import LogExcept
+
 from videotrans.util import tools
 
 
@@ -44,7 +44,7 @@ class BaseRecogn(BaseCon):
         ]
         self.join_word_flag = " "
         if not tools.vail_file(self.audio_file):
-            raise LogExcept(f'[error]not exists {self.audio_file}')
+            raise Exception(f'[error]not exists {self.audio_file}')
 
     # 出错时发送停止信号
     def run(self) -> Union[List[Dict], None]:

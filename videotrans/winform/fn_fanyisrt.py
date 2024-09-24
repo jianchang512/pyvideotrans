@@ -69,10 +69,12 @@ def openwin():
         if winobj.has_done:
             return
         d = json.loads(d)
+        if d['type']!='error':
+            winobj.loglabel.setStyleSheet("""color:#148cd2""")
 
         if d['type'] == 'error':
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.loglabel.setStyleSheet("""color:#ff0000""")
             winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.fanyi_start.setDisabled(False)
             winobj.fanyi_import.setDisabled(False)

@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Dict
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
+
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.util import tools
@@ -91,7 +92,7 @@ class SpeechToText(BaseTask):
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise LogExcept(
+                raise Exception(
                     self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
                                                                                                        self.config_params[
                                                                                                            'detect_language']))
