@@ -17,8 +17,6 @@ import requests
 
 from videotrans.configure import config
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
-from videotrans.configure._except import LogExcept
-
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
 
@@ -262,7 +260,7 @@ def get_azure_rolelist():
 
 
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None, uuid=None):
+def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     arg_copy = copy.deepcopy(arg)
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
@@ -274,16 +272,18 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
         if arg[i] == '-i' and i < len(arg) - 1:
             arg[i + 1] = Path(os.path.normpath(arg[i + 1])).as_posix()
             if not vail_file(arg[i + 1]):
-                raise LogExcept(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
+                raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
-    if default_codec in arg and config.video_codec != default_codec:
+    if not force_cpu and default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
             config.video_codec = get_video_codec()
+
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = config.video_codec
-            elif it == '-crf' and '_nvenc' in config.video_codec and config.settings['cuda_qp']:
+            elif it == '-crf' and config.settings['cuda_qp']:
                 arg[i] = '-qp'
+
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -295,7 +295,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
     if noextname:
         config.queue_novice[noextname] = 'ing'
     try:
-        config.logger.info(f'{cmd=}')
+        config.logger.info(f'{force_cpu=},{cmd=}')
         subprocess.run(cmd,
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,
@@ -307,30 +307,19 @@ def runffmpeg(arg, *, noextname=None, uuid=None):
             config.queue_novice[noextname] = "end"
         return True
     except subprocess.CalledProcessError as e:
-        retry = False
         # 处理视频时如果出错，尝试回退
-        if cmd[-1].endswith('.mp4'):
+        if not force_cpu and cmd[-1].endswith('.mp4') and re.search(r'\sh(264|evc)(_nvenc|_qsv|_vaapi|_videotoolbox)\s'," ".join(cmd),re.I):
             # 存在视频的copy操作时，尝试回退使用重新编码
-            if "copy" in cmd:
-                for i, it in enumerate(arg_copy):
-                    if i > 0 and arg_copy[i - 1] == '-c:v' and it == 'copy':
-                        arg_copy[i] = config.video_codec if config.video_codec is not None else default_codec
-                        retry = True
-            # 如果不是copy并且也不是 libx264，则替换为libx264编码
-            if not retry and config.video_codec != default_codec:
-                config.video_codec = default_codec
-                # 切换为cpu
-                set_process(text=config.transobj['huituicpu'], uuid=uuid)
-                config.logger.error(f'cuda上执行出错，退回到CPU执行')
-                for i, it in enumerate(arg_copy):
-                    if i > 0 and arg_copy[i - 1] == '-c:v' and it != default_codec:
-                        arg_copy[i] = default_codec
-                        retry = True
-            if retry:
-                return runffmpeg(arg_copy, noextname=noextname)
+            # 切换为cpu
+            set_process(text=config.transobj['huituicpu'], uuid=uuid)
+            config.logger.error(f'cuda上执行出错，退回到CPU执行')
+            for i, it in enumerate(arg_copy):
+                if i > 0 and arg_copy[i - 1] == '-c:v':
+                    arg_copy[i] = default_codec
+            return runffmpeg(arg_copy, noextname=noextname,force_cpu=True)
         if noextname:
             config.queue_novice[noextname] = "error"
-        config.logger.error(f'cmd执行出错抛出异常:{cmd=},{str(e.stderr)}')
+        config.logger.error(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}')
         raise
     except Exception as e:
         config.logger.exception(e)
@@ -357,9 +346,9 @@ def runffprobe(cmd):
         config.logger.exception(e)
         msg = f'ffprobe error,:{str(e)}{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
-        raise LogExcept(e)
+        raise Exception(msg)
     except Exception as e:
-        raise LogExcept(e)
+        raise
 
 
 # 获取视频信息
@@ -368,7 +357,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     out = runffprobe(
         ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
     if out is False:
-        raise LogExcept(f'ffprobe error:dont get video information')
+        raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
     result = {
         "video_fps": 30,
@@ -381,7 +370,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "streams_audio": 0
     }
     if "streams" not in out or len(out["streams"]) < 1:
-        raise LogExcept(f'ffprobe error:streams is 0')
+        raise Exception(f'ffprobe error:streams is 0')
 
     if "format" in out and out['format']['duration']:
         result['time'] = int(float(out['format']['duration']) * 1000)
@@ -509,7 +498,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
     except Exception as e:
         msg = f"separate vocal and background music:{str(e)}"
         set_process(text=msg, uuid=uuid)
-        raise LogExcept(msg)
+        raise
 
 
 # 将字符串做 md5 hash处理
@@ -617,7 +606,7 @@ def create_concat_txt(filelist, concat_txt=None):
             continue
         txt.append(f"file '{os.path.basename(it)}'")
     if len(txt) < 1:
-        raise LogExcept(f'file list no vail')
+        raise Exception(f'file list no vail')
     Path(concat_txt).write_text("\n".join(txt), encoding='utf-8')
     return concat_txt
 
@@ -938,10 +927,10 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
         if noextname not in config.queue_novice:
             msg = f"{noextname} split no voice videoerror:{config.queue_novice=}"
-            raise LogExcept(msg)
+            raise Exception(msg)
         if config.queue_novice[noextname] == 'error':
             msg = f"{noextname} split no voice videoerror"
-            raise LogExcept(msg)
+            raise Exception(msg)
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
@@ -1006,7 +995,7 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
 def get_clone_role(set_p=False):
     if not config.params['clone_api']:
         if set_p:
-            raise LogExcept(config.transobj['bixutianxiecloneapi'])
+            raise Exception(config.transobj['bixutianxiecloneapi'])
         return False
     try:
         url = config.params['clone_api'].strip().rstrip('/') + "/init"
@@ -1019,7 +1008,7 @@ def get_clone_role(set_p=False):
             f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
     except Exception as e:
         if set_p:
-            raise LogExcept(f'clone-voice:{str(e)}')
+            raise
     return False
 
 
@@ -1069,7 +1058,7 @@ def get_audio_time(audio_file):
     # 如果存在缓存并且没有禁用缓存
     out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', audio_file])
     if out is False:
-        raise LogExcept(f'ffprobe error:dont get video information')
+        raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
     return float(out['format']['duration'])
 
@@ -1176,6 +1165,7 @@ def open_url(url=None, title: str = None):
         'discord': "https://discord.gg/7ZWbwKGMcx",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'dll': "https://github.com/jianchang512/stt/releases/tag/v0.0.1",
+        'stt': "https://github.com/jianchang512/stt/",
         'gtrans': "https://pyvideotrans.com/15.html",
         'cuda': "https://pyvideotrans.com/gpu.html",
         'website': "https://pyvideotrans.com",

@@ -79,5 +79,5 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
         from PySide6.QtWidgets import QMessageBox
-        QMessageBox.critical(app,"Error",traceback.format_exc())
+        QMessageBox.critical(startwin,"Error",traceback.format_exc())
     sys.exit(app.exec())

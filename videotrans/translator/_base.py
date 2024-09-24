@@ -7,7 +7,6 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import LogExcept
 from videotrans.util import tools
 
 
@@ -87,7 +86,7 @@ class BaseTrans(BaseCon):
                 if self.iter_num > self.retry:
                     msg = f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
                     self._signal(text=msg, type="error")
-                    raise LogExcept(msg)
+                    raise Exception(msg)
 
                 self.iter_num += 1
                 if self.iter_num > 1:
@@ -188,7 +187,7 @@ class BaseTrans(BaseCon):
         if max_i < len(self.text_list) / 2:
             msg = f'{config.transobj["fanyicuowu2"]}:{self.error}'
             self._signal(text=msg, type="error")
-            raise LogExcept(f'[{self.__class__.__name__}]:{msg}')
+            raise Exception(f'[{self.__class__.__name__}]:{msg}')
 
         for i, it in enumerate(self.text_list):
             if i < max_i:
@@ -208,7 +207,7 @@ class BaseTrans(BaseCon):
                 if self.iter_num > self.retry:
                     msg = f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
                     self._signal(text=msg, type="error")
-                    raise LogExcept(msg)
+                    raise Exception(msg)
 
                 self.iter_num += 1
                 if self.iter_num > 1:

@@ -54,6 +54,7 @@ class SignThread(QThread):
                     data = q.get(block=False)
                     if not data:
                         continue
+                    print(f'==={data=}')
                     self.post(data)
                     if data['type'] in ['error', 'succeed']:
                         self.uuid_list.remove(uuid)
@@ -70,16 +71,22 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
+        print(f'{d=}')
         if winobj.has_done:
             return
         if isinstance(d, str):
             d = json.loads(d)
+        if d['type']!='error':
+            winobj.loglabel.setStyleSheet("""color:#148cd2""")
         if d['type'] == 'replace':
             winobj.hecheng_plaintext.clear()
             winobj.hecheng_plaintext.insertPlainText(d['text'])
         elif d['type'] == 'error':
             winobj.has_done = True
+            winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
+            winobj.hecheng_startbtn.setDisabled(False)
             winobj.loglabel.setText(d['text'])
+            winobj.loglabel.setStyleSheet("""color:#ff0000""")
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
@@ -186,7 +193,7 @@ def openwin():
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
         elif len(winobj.hecheng_files) < 1:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
-            tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(text), is_file=False), newsrtfile)
+            tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(txt), is_file=False), newsrtfile)
             winobj.hecheng_files.append(newsrtfile)
 
         config.box_tts = 'ing'

@@ -4,12 +4,13 @@ import time
 from pathlib import Path
 from typing import Union, List, Dict
 
-import httpx
+
 import requests
-from openai import OpenAI
+
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
+
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -84,7 +85,7 @@ class OpenaiAPIRecogn(BaseRecogn):
 
             if len(segments) < 1:
                 msg = '未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
-                raise LogExcept(msg)
+                raise Exception(msg)
             for it in segments:
                 if self._exit():
                     return

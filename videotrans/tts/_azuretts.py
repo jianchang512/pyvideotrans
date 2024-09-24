@@ -16,6 +16,7 @@ class AzureTTS(BaseTTS):
         self.con_num = int(config.settings['azure_lines'])
 
     def _item_task(self, items: list = None):
+        print(f'{self.rate=},{self.pitch=},{self.volume=}')
         if self._exit():
             return
         filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"

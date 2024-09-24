@@ -3,10 +3,10 @@ import re
 import threading
 from pathlib import Path
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import  QtWidgets
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
+from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans import translator
 from videotrans.component.progressbar import ClickableProgressBar
@@ -91,18 +91,21 @@ class WinAction(WinActionSub):
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
-        config.task_countdown = 0
-        self.main.continue_compos.setText(config.transobj['jixuzhong'])
-        self.main.continue_compos.setDisabled(True)
+        config.task_countdown = -1
         self.main.stop_djs.hide()
+        self.main.continue_compos.hide()
+        self.main.timeout_tips.setText('')
+        self.main.continue_compos.setText('')
+        self.main.continue_compos.setDisabled(True)
         if self.shitingobj:
             self.shitingobj.stop = True
         self.update_subtitle()
 
     # 手动点击暂停按钮
     def reset_timeid(self):
-        self.main.stop_djs.hide()
         config.task_countdown = 86400
+        self.main.stop_djs.hide()
+        self.main.timeout_tips.setText('')
         self.main.continue_compos.setDisabled(False)
         self.main.continue_compos.setText(config.transobj['nextstep'])
         self.update_data('{"type":"allow_edit"}')
@@ -672,13 +675,14 @@ class WinAction(WinActionSub):
             self.main.subtitle_area.clear()
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'timeout_djs':
+            self.set_djs_timeout()
             # 倒计时结束或者手动点击继续，保存字幕区字幕到 self.wait_subtitle
-            self.main.stop_djs.hide()
-            self.main.continue_compos.hide()
-            self.main.continue_compos.setDisabled(True)
-            self.main.subtitle_area.setReadOnly(True)
-            self.main.timeout_tips.setText('')
-            self.update_subtitle()
+            # self.main.stop_djs.hide()
+            # self.main.continue_compos.hide()
+            # self.main.continue_compos.setDisabled(True)
+            # self.main.subtitle_area.setReadOnly(True)
+            # self.main.timeout_tips.setText('')
+            # self.update_subtitle()
         elif d['type'] == 'show_djs':
             self.main.timeout_tips.setText(d['text'])
             self.main.stop_djs.show()

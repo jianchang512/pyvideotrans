@@ -73,7 +73,9 @@ def openwin():
             return
         if isinstance(d, str):
             d = json.loads(d)
-            
+
+        if d['type']!='error':
+            winobj.loglabel.setStyleSheet("""color:#148cd2""")
             
         if d['type'] in ['replace','replace_subtitle']:
             winobj.shibie_text.clear()
@@ -90,7 +92,6 @@ def openwin():
         elif d['type'] == 'logs' and d['text']:
             winobj.loglabel.setText(d['text'])
         elif d['type'] in ['jindu', 'succeed']:
-            winobj.loglabel.setStyleSheet('''color:#148cd2''')
             winobj.shibie_startbtn.setText(d['text'])
         elif d['type'] in ['end']:
             config.box_recogn = 'stop'

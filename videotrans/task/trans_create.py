@@ -260,8 +260,9 @@ class TransCreate(BaseTask):
                 type='replace_subtitle'
             )
             return
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(
+        countdown_sec=int(
             config.settings['countdown_sec'])
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else countdown_sec
         # 单个允许修改字幕
         if not self.config_params['is_batch']:
             # 设置secwin中wait_subtitle为原始语言字幕文件
@@ -269,10 +270,10 @@ class TransCreate(BaseTask):
             # 等待编辑原字幕后翻译,允许修改字幕
             self._signal(text=config.transobj["xiugaiyuanyuyan"], type='edit_subtitle_source')
             while config.task_countdown > 0:
-                config.task_countdown -= 1
-                if config.task_countdown <= config.settings['countdown_sec']:
-                    self._signal(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs')
                 time.sleep(1)
+                config.task_countdown -= 1
+                if config.task_countdown>0 and config.task_countdown<=countdown_sec:
+                    self._signal(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs')
             # 禁止修改字幕
             self._signal(text='translate_start', type='timeout_djs')
             time.sleep(2)
@@ -318,8 +319,8 @@ class TransCreate(BaseTask):
 
         self.status_text = config.transobj['kaishipeiyin']
         self.precent += 3
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else int(
-            config.settings['countdown_sec'])
+        countdown_sec= int(config.settings['countdown_sec'])
+        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else countdown_sec
 
         # 允许修改字幕
         if not self.config_params['is_batch']:
@@ -332,9 +333,10 @@ class TransCreate(BaseTask):
                 time.sleep(1)
                 # 倒计时中
                 config.task_countdown -= 1
-                if config.task_countdown <= int(config.settings['countdown_sec']):
-                    self._signal(text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
-                                 type='show_djs')
+                if config.task_countdown>0 and config.task_countdown<=countdown_sec:
+                    self._signal(
+                        text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
+                        type='show_djs')
             # 禁止修改字幕
             self._signal(text='dubbing_start', type='timeout_djs')
         self._signal(text=config.transobj['kaishipeiyin'])
@@ -412,7 +414,6 @@ class TransCreate(BaseTask):
         if self._exit():
             return
 
-
         # 提取时，删除
         if self.config_params['app_mode'] == 'tiqu':
             Path(f"{self.config_params['target_dir']}/{self.config_params['source_language_code']}.srt").unlink(
@@ -426,11 +427,6 @@ class TransCreate(BaseTask):
                 ext = it.suffix.lower()
                 if ext != '.mp4':
                     it.unlink(missing_ok=True)
-                #else:
-                    #shutil.copy2(Path(it).as_posix(), (it.parent / "../" / f'{it.name}').resolve().as_posix())
-            #self.config_params['target_dir'] = outputpath.parent.resolve().as_posix()
-            #shutil.rmtree(outputpath.as_posix(), ignore_errors=True)
-
         self.hasend = True
         self.precent = 100
         self._signal(text=f"{self.config_params['name']}", type='succeed')

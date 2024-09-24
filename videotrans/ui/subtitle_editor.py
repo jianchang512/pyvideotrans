@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QL
     QFileDialog, QTextEdit, QFontDialog, QColorDialog, QTimeEdit, QMessageBox
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
 
 class NoWheelTimeEdit(QTimeEdit):
     def __init__(self, parent=None):
@@ -281,7 +280,7 @@ class Ui_subtitleEditor(QWidget):
         try:
             events_start = lines.index("[Events]\n") + 1
         except ValueError:
-            raise LogExcept("ASS 文件格式不正确，未找到 [Events] 部分。")
+            raise Exception("ASS 文件格式不正确，未找到 [Events] 部分。")
 
         num = 0
         for line in lines[events_start:]:
@@ -297,7 +296,7 @@ class Ui_subtitleEditor(QWidget):
                 num += 1
                 self.add_subtitle_row(start_time=start_time, end_time=end_time, text=text, line=num)
             else:
-                LogExcept(f"ASS 行格式不正确: {line}")
+                Exception(f"ASS 行格式不正确: {line}")
 
     def load_vtt(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:

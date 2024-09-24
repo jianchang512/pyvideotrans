@@ -5,7 +5,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.util import tools
-from videotrans.configure._except import LogExcept
+
 from videotrans.recognition._base import BaseRecogn
 
 
@@ -15,7 +15,7 @@ class ZhRecogn(BaseRecogn):
         super().__init__(*args, **kwargs)
         api_url = config.params['zh_recogn_api'].strip().rstrip('/').lower()
         if not api_url:
-            raise LogExcept('必须填写地址')
+            raise Exception('必须填写地址')
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
         if not api_url.endswith('/api'):
@@ -32,9 +32,9 @@ class ZhRecogn(BaseRecogn):
             config.logger.info(f'zh_recogn:{res=}')
             res = res.json()
             if "code" not in res or res['code'] != 0:
-                raise LogExcept(f'{res["msg"]}')
+                raise Exception(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
-                raise LogExcept(f'识别出错{res=}')
+                raise Exception(f'识别出错{res=}')
             self._signal(
                 text=tools.get_srt_from_list(res['data']),
                 type='replace_subtitle'

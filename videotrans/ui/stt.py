@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtWidgets import QPlainTextEdit
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_sttform(object):
@@ -12,7 +13,7 @@ class Ui_sttform(object):
         self.has_done = False
         sttform.setObjectName("sttform")
         sttform.setWindowModality(QtCore.Qt.NonModal)
-        sttform.resize(500, 400)
+        sttform.resize(500, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -25,6 +26,7 @@ class Ui_sttform(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -42,12 +44,7 @@ class Ui_sttform(object):
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.stt_url = QtWidgets.QLineEdit(sttform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stt_url.sizePolicy().hasHeightForWidth())
-        self.stt_url.setSizePolicy(sizePolicy)
-        self.stt_url.setMinimumSize(QtCore.QSize(210, 35))
+        self.stt_url.setMinimumSize(QtCore.QSize(0, 35))
         self.stt_url.setObjectName("stt_url")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.stt_url)
@@ -102,9 +99,11 @@ class Ui_sttform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        self.ask = QPlainTextEdit(sttform)
-        self.ask.setMinimumSize(QtCore.QSize(0, 200))
-        self.ask.setReadOnly(True)
+        self.ask = QtWidgets.QPushButton(sttform)
+        self.ask.setCursor(QtCore.Qt.PointingHandCursor)
+        self.ask.setMinimumSize(QtCore.QSize(0, 40))
+        self.ask.setStyleSheet("""background-color:transparent""")
+        self.ask.clicked.connect(lambda: tools.open_url(title='stt'))
         self.verticalLayout_2.addWidget(self.ask)
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -122,42 +121,13 @@ class Ui_sttform(object):
     def retranslateUi(self, sttform):
         sttform.setWindowTitle("stt语音识别API" if config.defaulelang == 'zh' else 'stt Speech Recognition API')
 
-        self.label.setText('API' if config.defaulelang == 'zh' else 'API')
+        self.label.setText('stt API')
         self.labelkey.setText('选择使用的模型' if config.defaulelang == 'zh' else 'Select model')
-        tips = """该项目地址 https://github.com/jianchang512/stt
-请求发送：以二进制形式发送键名为 file 的wav格式音频数据，采样率为16k、通道为1
-
-requests.post(api_url, files={"file": open(audio_file, 'rb')},data={language:2位语言代码,model:模型名})
-
-失败时返回
-res={
-    "code":1,
-    "msg":"错误原因"
-}
-
-成功时返回
-res={
-    "code":0,
-    "data":srt格式字符串
-}
-        """
+        tips = """该项目地址 https://github.com/jianchang512/stt"""
         if config.defaulelang != 'zh':
-            tips = '''The project url is https://github.com/jianchang512/stt
-Request send: send audio data in wav format with key name file in binary form, sample rate 16k, channel 1
-requests.post(api_url, files={“file”: open(audio_file, 'rb')},data={language:2-bit language code,model:model name})
-
-Return on failure
-res={
-    “code":1,
-    “msg": ”Reason for error”
-}
-
-Returns on success
-res={
-    “code":0,
-    “data":srt format string
-}'''
-        self.ask.setPlainText(tips)
-        self.stt_url.setPlaceholderText('http api')
+            tips = '''The project at https://github.com/jianchang512/stt'''
+        self.ask.setText(tips)
+        self.ask.setToolTip("点击打开stt项目主页" if config.defaulelang=='zh' else 'Click to open stt webpage')
+        self.stt_url.setPlaceholderText('Api url')
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
         self.test.setText('测试连通性' if config.defaulelang == 'zh' else 'Test')

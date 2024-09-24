@@ -26,9 +26,6 @@ class Worker(QThread):
         self.obj_list = obj_list
 
     def run(self) -> None:
-        # 重新初始化全局uuid表
-        config.ended_uuid = []
-
         # 如果是批量，则不允许中途暂停修改字幕
         if len(self.obj_list) > 1 or self.app_mode == 'tiqu':
             self.is_batch = True
@@ -39,43 +36,49 @@ class Worker(QThread):
         # 保存任务实例
         for it in self.obj_list:
             if self._exit():
-                return self.stop()
+                return
             if config.params['clear_cache'] and Path(it['target_dir']).is_dir():
                 shutil.rmtree(it['target_dir'], ignore_errors=True)
             Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
             self.wait_uuid_list.append(it['uuid'])
-            self.tasklist[it['uuid']] = TransCreate(copy.deepcopy(config.params), it)
+            trk = TransCreate(copy.deepcopy(config.params), it)
+            if not self.is_batch:
+                trk.prepare()
+                trk.recogn()
+                trk.trans()
+                trk.dubbing()
+                trk.align()
+                trk.assembling()
+                trk.task_done()
 
+                return
+            self.tasklist[it['uuid']]=trk
         # 开始初始化任务并压入识别队列
         for video in self.tasklist.values():
             if self._exit():
-                return self.stop()
+                return
             set_process(text=config.transobj['kaishichuli'], uuid=video.uuid)
             # 压入识别队列开始执行
             config.prepare_queue.append(self.tasklist[video.uuid])
         # 开始等待任务执行完毕
         while len(self.wait_uuid_list) > 0:
             if self._exit():
-                return self.stop()
+                return
             uuid = self.wait_uuid_list.pop(0)
             # uuid 不再当前任务列表中，已完成或出错结束，忽略
             if uuid not in self.tasklist:
                 continue
 
             # 当前uuid 不在已执行完毕list中，重新插入继续执行
-            if uuid not in config.ended_uuid:
+            if uuid not in config.stoped_uuid_set:
                 self.wait_uuid_list.append(uuid)
             time.sleep(0.5)
 
         # 全部完成
         config.queue_mp4 = []
-        config.ended_uuid = []
 
     def _exit(self):
         if config.exit_soft or config.current_status != 'ing':
             return True
         return False
 
-    # 暂停
-    def stop(self):
-        config.ended_uuid = []

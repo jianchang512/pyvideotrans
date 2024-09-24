@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Dict
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
+
 from videotrans.task._base import BaseTask
 from videotrans.task._rate import SpeedRate
 from videotrans.tts import run
@@ -82,7 +83,7 @@ class DubbingSrt(BaseTask):
             if len(subs) < 1:
                 raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
         except Exception as e:
-            raise LogExcept(e)
+            raise
 
         rate = int(str(self.config_params['voice_rate']).replace('%', ''))
         if rate >= 0:

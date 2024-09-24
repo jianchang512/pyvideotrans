@@ -6,7 +6,7 @@ from typing import Union, List, Dict
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -25,7 +25,7 @@ class DoubaoRecogn(BaseRecogn):
         appid = config.params['doubao_appid']
         access_token = config.params['doubao_access']
         if not appid or not access_token:
-            raise LogExcept('必须填写豆包应用APP ID和 Access Token')
+            raise Exception('必须填写豆包应用APP ID和 Access Token')
 
         # 尺寸大于190MB，转为 mp3
         if os.path.getsize(self.audio_file) > 199229440:
@@ -41,7 +41,7 @@ class DoubaoRecogn(BaseRecogn):
                         "fr": "fr-FR"}
         langcode = self.detect_language[:2].lower()
         if langcode not in languagelist:
-            raise LogExcept(f'不支持的语言代码:{langcode=}')
+            raise Exception(f'不支持的语言代码:{langcode=}')
         language = languagelist[langcode]
         try:
             res = requests.post(
@@ -64,10 +64,10 @@ class DoubaoRecogn(BaseRecogn):
             )
             config.logger.info(f'{res.text}')
             if res.status_code != 200:
-                raise LogExcept(f'请求失败:{res.text=},{res.status_code=},{base_url=}')
+                raise Exception(f'请求失败:{res.text=},{res.status_code=},{base_url=}')
             res = res.json()
             if res['code'] != 0:
-                raise LogExcept(f'请求失败:{res["message"]}')
+                raise Exception(f'请求失败:{res["message"]}')
 
             job_id = res['id']
             delay = 0
@@ -94,7 +94,7 @@ class DoubaoRecogn(BaseRecogn):
                     self._signal(text=f"任务处理中，请等待 {delay}s..")
                     time.sleep(1)
                 elif result['code'] > 0:
-                    raise LogExcept(result['message'])
+                    raise Exception(result['message'])
                 else:
                     break
 

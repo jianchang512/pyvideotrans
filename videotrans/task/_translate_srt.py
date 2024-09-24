@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Dict
 
 from videotrans.configure import config
-from videotrans.configure._except import LogExcept
+
 from videotrans.task._base import BaseTask
 from videotrans.translator import run
 from videotrans.util import tools

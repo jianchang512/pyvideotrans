@@ -26,7 +26,6 @@ class Ui_azurettsform(object):
 
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        # self.verticalLayout.setAlignment(Qt.AlignTop)
 
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -142,7 +141,7 @@ class Ui_azurettsform(object):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.azuretts_area.sizePolicy().hasHeightForWidth())
+
         self.azuretts_area.setSizePolicy(sizePolicy)
 
         self.formLayout_222.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.azuretts_area)
