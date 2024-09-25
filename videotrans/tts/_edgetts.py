@@ -35,12 +35,14 @@ class EdgeTTS(BaseTTS):
                                 tasks.append(communicate_task.save(it['filename']))
 
                         if len(tasks) < 1:
-                            continue
+                            break
 
                         # 使用 asyncio.gather 并行执行保存任务
                         await asyncio.gather(*tasks)
-                    except Exception:
-                        time.sleep(10)
+                    except Exception as e:
+                        config.logger.error('配音时出错，3s后重试')
+                        config.logger.exception(e, exc_info=True)
+                        time.sleep(3)
                     else:
                         self.has_done += len(items)
                         if self.inst and self.inst.precent < 80:
@@ -73,7 +75,7 @@ class EdgeTTS(BaseTTS):
                     config.logger.error(f'存在失败的配音，重试')
                     self.dub_nums = 1
                     self.has_done = 0
-                    time.sleep(10)
+                    time.sleep(3)
                 else:
                     break
             except Exception as e:
