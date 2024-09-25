@@ -11,6 +11,7 @@ huggingface-hub==0.17.3
 librosa
 multidict
 numpy==1.26.4
+nltk
 onnxruntime
 openai
 openai-whisper
