@@ -25,7 +25,7 @@ if __name__ == '__main__':
     ###### 配置信息
     #### api文档 https://pyvideotrans.com/api-cn
     config.exec_mode='api'
-    ROOT_DIR = Path(__file__).parent.as_posix()
+    ROOT_DIR = config.ROOT_DIR
     HOST = "127.0.0.1"
     PORT = 9011
     if Path(ROOT_DIR+'/host.txt').is_file():
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     ######################
 
-    app = Flask(__name__, static_folder='apidata')
+    app = Flask(__name__, static_folder=TARGET_DIR)
 
     # 第1个接口 /tts
     """
