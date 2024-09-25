@@ -97,6 +97,7 @@ class WinAction(WinActionSub):
         self.main.timeout_tips.setText('')
         self.main.continue_compos.setText('')
         self.main.continue_compos.setDisabled(True)
+        self.main.subtitle_area.setReadOnly(True)
         if self.shitingobj:
             self.shitingobj.stop = True
         self.update_subtitle()
@@ -466,13 +467,14 @@ class WinAction(WinActionSub):
             return
         config.params['line_roles']={}
         config.params['split_type']='avg' if self.main.split_type.currentIndex()>0 else 'all'
+        if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
+            config.params['app_mode'] = self.main.app_mode
         config.getset_params(config.params)
         self.delete_process()
         # 设为开始
         self.update_status('ing')
         config.settings = config.parse_init()
-        if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
-            config.params['app_mode'] = self.main.app_mode
+        
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         QTimer.singleShot(100, self.create_btns)

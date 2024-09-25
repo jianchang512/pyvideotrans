@@ -281,7 +281,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
         for i, it in enumerate(arg):
             if i > 0 and arg[i - 1] == '-c:v':
                 arg[i] = config.video_codec
-            elif it == '-crf' and config.settings['cuda_qp']:
+            elif it == '-crf' and config.settings['cuda_qp'] and re.search(r'\sh(264|evc)_nvenc\s'," ".join(cmd),re.I):
                 arg[i] = '-qp'
 
 
@@ -1465,7 +1465,7 @@ def process_text_to_srt_str(input_text:str):
     # 分割大于50个字符的行
     text_str_list = []
     for line in text_lines:
-        if len(line) > 40:
+        if len(line) > 50:
             # 按标点符号分割为多个字符串
             split_lines = re.split(r'[,.，。]', line)
             text_str_list.extend([l.strip() for l in split_lines if l.strip()])
@@ -1476,10 +1476,10 @@ def process_text_to_srt_str(input_text:str):
     start_time_in_seconds = 0  # 初始时间，单位秒
 
     for i, text in enumerate(text_str_list, start=1):
-        # 计算开始时间和结束时间（每次增加10s）
+        # 计算开始时间和结束时间（每次增加1s）
         start_time = ms_to_time_string(seconds=start_time_in_seconds)
-        end_time = ms_to_time_string(seconds=start_time_in_seconds + 2)
-        start_time_in_seconds += 2
+        end_time = ms_to_time_string(seconds=start_time_in_seconds + 1)
+        start_time_in_seconds += 1
 
         # 创建字幕字典对象
         srt = f"{i}\n{start_time} --> {end_time}\n{text}"
