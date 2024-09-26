@@ -34,15 +34,21 @@ class WinAction(WinActionSub):
         self.processbtns = {}
         # 任务对象
         self.task: Worker = None
-        # 进度记录
-        self.task_log = None
-        # 试听对象
-        self.shitingobj = None
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
 
+    def _reset(self):
+        # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
+        self.edit_subtitle_type = ''
+        # 任务对象
+        self.task= None
+        # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
+        self.wait_subtitle = None
+        # 存放需要处理的视频dict信息，包括uuid
+        self.obj_list = []
+        self.main.source_mp4.setText(config.transobj["No select videos"])
     # 配音速度改变时
     def voice_rate_changed(self, text):
         config.params['voice_rate'] = f'+{text}%' if text >= 0 else f'{text}%'
@@ -98,8 +104,6 @@ class WinAction(WinActionSub):
         self.main.continue_compos.setText('')
         self.main.continue_compos.setDisabled(True)
         self.main.subtitle_area.setReadOnly(True)
-        if self.shitingobj:
-            self.shitingobj.stop = True
         self.update_subtitle()
 
     # 手动点击暂停按钮
@@ -592,7 +596,7 @@ class WinAction(WinActionSub):
             for prb in self.processbtns.values():
                 prb.setEnd()
             # 成功完成
-            self.main.source_mp4.setText(config.transobj["No select videos"])
+
             # 关机
             if self.main.shutdown.isChecked():
                 try:
@@ -600,13 +604,9 @@ class WinAction(WinActionSub):
                 except Exception as e:
                     QMessageBox.critical(self.main, config.transobj['anerror'],
                                          config.transobj['shutdownerror'] + str(e))
-            self.main.source_mp4.setText(config.transobj["No select videos"])
             self.main.target_dir=None
             self.main.btn_save_dir.setToolTip('')
         else:
-            # stop 停止
-            self.main.source_mp4.setText(config.transobj["No select videos"] if len(
-                config.queue_mp4) < 1 else f'{len(config.queue_mp4)} videos')
             # 任务队列中设为停止并删除队列，防止后续到来的日志继续显示
             for it in self.obj_list:
                 # 按钮设为暂停
@@ -615,14 +615,9 @@ class WinAction(WinActionSub):
         for it in self.obj_list:
             if it['uuid'] in config.uuid_logs_queue:
                 del config.uuid_logs_queue[it['uuid']]
-        self.obj_list = []
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
-        try:
-            self.task = None
-            self.tasklog = None
-        except Exception:
-            pass
+        self._reset()
 
 
     # 更新 UI

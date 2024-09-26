@@ -712,9 +712,7 @@ class TransCreate(BaseTask):
                 tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.config_params['subtitle_type'] == 3 else it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
-                    srt_string += "\n" + (
-                        textwrap.fill(source_sub_list[i]['text'], maxlen_source, replace_whitespace=False).strip() if
-                        self.config_params['subtitle_type'] == 3 else source_sub_list[i]['text'])
+                    srt_string += "\n" + (textwrap.fill(source_sub_list[i]['text'], maxlen_source, replace_whitespace=False).strip() if self.config_params['subtitle_type'] == 3 else source_sub_list[i]['text'])
                 srt_string += "\n\n"
             Path(f"{self.config_params['target_dir']}/shuang.srt").write_text(srt_string.strip(), encoding='utf-8')
             process_end_subtitle = f"{self.config_params['target_dir']}/shuang.srt"
@@ -738,7 +736,7 @@ class TransCreate(BaseTask):
 
         # 硬字幕转为ass格式 并设置样式
         process_end_subtitle_ass = tools.set_ass_font(process_end_subtitle)
-        Path(process_end_subtitle).unlink(missing_ok=True)
+        # Path(process_end_subtitle).unlink(missing_ok=True)
         return os.path.basename(process_end_subtitle_ass), subtitle_langcode
 
     # 延长视频末尾对齐声音
