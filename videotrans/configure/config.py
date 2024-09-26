@@ -625,6 +625,7 @@ Translation:"""
 
         "gptsovits_url": "",
         "gptsovits_role": "",
+        "gptsovits_isv2": False,
         "gptsovits_extra": "pyvideotrans",
 
         "cosyvoice_url": "",

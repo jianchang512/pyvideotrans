@@ -594,107 +594,6 @@ class TransCreate(BaseTask):
             Path(f"{self.config_params['novoice_mp4']}.raw.mp4").unlink(missing_ok=True)
 
 
-    # 延长 novoice.mp4  duration_ms 毫秒
-    def _novoicemp4_add_time0(self, duration_ms: int = 0) -> None:
-        print(f'#####################延长 {duration_ms=}')
-        if duration_ms < 1000 or self._exit():
-            return
-
-        self._signal(text=f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms')
-        if not tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'], uuid=self.uuid):
-            raise Exception("not novoice mp4")
-
-        video_time = tools.get_video_duration(self.config_params['novoice_mp4'])
-        shutil.copy2(self.config_params['novoice_mp4'], self.config_params['novoice_mp4'] + ".raw.mp4")
-        try:
-
-            outname=self.config_params['cache_folder'] + f"/last-seg-0.mp4"
-            tools.runffmpeg([
-                "-y",
-                "-i",
-                self.config_params['novoice_mp4'],
-                "-ss",
-                tools.ms_to_time_string(ms=video_time - 1000).replace(',', '.'),
-                '-an',
-                '-crf', f'{config.settings["crf"]}',
-                '-preset', config.settings['preset'],
-                outname
-            ])
-            
-        
-            
-            for i in range(3):
-                tools.runffmpeg([
-                    "-y",
-                    "-i",
-                    outname,
-                    "-vf",
-                    f'setpts=10*PTS'
-                    '-an',
-                    '-crf', f'{config.settings["crf"]}',
-                    '-preset', config.settings['preset'],
-                    outname+'-10pts.mp4'                
-                ])
-                tools.runffmpeg([
-                        "-y",
-                        "-i",
-                        outname+'-10pts.mp4',
-                        "-ss",
-                        "00:00:09",
-                        '-an',
-                        '-crf', f'{config.settings["crf"]}',
-                        '-preset', config.settings['preset'],
-                        outname
-                ])
-                
-
-                
-            '''
-            
-            tools.cut_from_video(
-                source=self.config_params['novoice_mp4'],
-                ss=tools.ms_to_time_string(ms=video_time - 100).replace(',', '.'),
-                pts='20',
-                out=self.config_params['cache_folder'] + "/last-clip-novoicepts20.mp4"
-            )
-            video_time2 = tools.get_video_duration(self.config_params['cache_folder'] + "/last-clip-novoicepts20.mp4")
-            tools.cut_from_video(
-                source=self.config_params['cache_folder'] + "/last-clip-novoicepts20.mp4",
-                ss=tools.ms_to_time_string(ms=video_time2 - 100).replace(',', '.'),
-                out=self.config_params['cache_folder'] + "/last-clip-novoice.mp4"
-            )
-            '''
-            tools.runffmpeg([
-                '-y',
-                '-stream_loop',
-                f'{math.ceil(duration_ms / 1000)}',
-                '-i',
-                outname,
-                #self.config_params['cache_folder'] + "/last-clip-novoice.mp4",
-                '-c:v',
-                'copy',
-                '-an',
-                self.config_params['cache_folder'] + "/last-all.mp4"
-            ])
-            tools.runffmpeg([
-                '-y',
-                '-i',
-                f"{self.config_params['novoice_mp4']}.raw.mp4",
-                '-i',
-                self.config_params['cache_folder'] + "/last-all.mp4",
-                '-filter_complex',
-                "[0:v][1:v]concat=n=2:v=1[outv]",
-                '-map',
-                "[outv]",
-                '-an',
-                self.config_params['novoice_mp4']])
-        except Exception as  e:
-            # 延长失败
-            config.logger.exception(e, exc_info=True)
-            shutil.copy2(self.config_params['novoice_mp4'] + ".raw.mp4", self.config_params['novoice_mp4'])
-        finally:
-            Path(f"{self.config_params['novoice_mp4']}.raw.mp4").unlink(missing_ok=True)
-
     # 添加背景音乐
     def _back_music(self) -> None:
         if self._exit() or not self.shoud_dubbing:
@@ -810,9 +709,7 @@ class TransCreate(BaseTask):
             srt_string = ""
             for i, it in enumerate(target_sub_list):
                 # 硬字幕换行，软字幕无需处理
-                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.config_params[
-                                                                                                 'subtitle_type'] == 3 else \
-                    it['text'].strip()
+                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.config_params['subtitle_type'] == 3 else it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
                     srt_string += "\n" + (

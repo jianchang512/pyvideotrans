@@ -45,12 +45,31 @@ class GPTSoVITS(BaseTTS):
                 "text": text,
                 "text_language": "zh" if self.language.startswith('zh') else self.language,
                 "extra": config.params['gptsovits_extra'],
-                "ostype": sys.platform}
+                "ostype": sys.platform
+            }
+            #refer_wav_path
+            #prompt_text
+            #prompt_language
             if role:
                 roledict = tools.get_gptsovits_role()
 
                 if roledict and  role in roledict:
                     data.update(roledict[role])
+            if config.params['gptsovits_isv2']:
+                data={
+                    "text":data['text'],
+                    "text_lang":data.get('text_language','zh'),
+                    "ref_audio_path":data.get('refer_wav_path',''),
+                    "prompt_text":data.get('prompt_text',''),
+                    "prompt_lang":data.get('prompt_language','')
+                }
+                speed=float(float(self.rate.replace('+','').replace('-','').replace('%'))/100)
+                if speed>0:
+                    data['speed_factor']+=speed
+
+                if not self.api_url.endswith('/tts'):
+                    self.api_url+='/tts'
+            config.logger.info(f'{data=}\n{self.api_url=}')
             # 克隆声音
             response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
             # 获取响应头中的Content-Type
