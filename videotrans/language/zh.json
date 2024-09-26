@@ -118,7 +118,7 @@
     "waitforend": "正在合成视频",
     "createdirerror": "创建目录失败",
     "processingstatusbar": "正在处理视频:[{var1}],还有[{var2}]个在等待处理",
-    "confirmstop": "确认停止执行?如果字幕生成一半，再次启动可能不完整，可以手动删掉tmp目录",
+    "confirmstop": "确认停止执行?再次启动需要重新选择视频重新开始",
     "deepl_authkey": "你必须在菜单-设置中填写DeepL的授权key",
     "deepl_nosupport": "当前翻译渠道不支持翻译为该目标语言 ",
     "wait_edit_subtitle": "等待修改字幕",
