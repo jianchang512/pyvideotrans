@@ -18,7 +18,8 @@ def openwin():
         def run(self):
             try:
                 tts.run(
-                    queue_tts=[{"text": self.text, "role": self.role,
+                    queue_tts=[{
+                        "text": self.text, "role": self.role,
                                 "filename": config.TEMP_HOME + "/testai302tts.mp3", "tts_type": tts.GPTSOVITS_TTS}],
                     language=self.language,
                     play=True,
@@ -38,6 +39,7 @@ def openwin():
     def test():
         url = winobj.api_url.text()
         config.params["gptsovits_url"] = url
+        config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
                        role=getrole(),
@@ -78,6 +80,7 @@ def openwin():
         config.params["gptsovits_url"] = url
         config.params["gptsovits_extra"] = extra
         config.params["gptsovits_role"] = role
+        config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         config.getset_params(config.params)
 
         winobj.close()
@@ -97,6 +100,8 @@ def openwin():
         winobj.extra.setText(config.params["gptsovits_extra"])
     if config.params["gptsovits_role"]:
         winobj.role.setPlainText(config.params["gptsovits_role"])
+    if config.params["gptsovits_isv2"]:
+        winobj.is_v2.setChecked(config.params["gptsovits_isv2"])
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

@@ -153,6 +153,7 @@ def openwin():
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
             trk = TranslateSrt({
+                "out_format":winobj.out_format.currentIndex(),
                 "translate_type": translate_type,
                 "text_list": tools.get_subtitle_from_srt(it['name']),
                 "target_language": target_language,
