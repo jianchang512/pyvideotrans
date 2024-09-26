@@ -16,9 +16,12 @@ class BaseCon:
 
     def _set_proxy(self, type='set'):
         if type == 'del' and self.shound_del:
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
+            try:
+                del os.environ['http_proxy']
+                del os.environ['https_proxy']
+                del os.environ['all_proxy']
+            except:
+                pass
             self.shound_del = False
             return
 

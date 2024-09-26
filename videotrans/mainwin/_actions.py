@@ -49,6 +49,7 @@ class WinAction(WinActionSub):
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
         self.main.source_mp4.setText(config.transobj["No select videos"])
+        config.queue_mp4=[]
     # 配音速度改变时
     def voice_rate_changed(self, text):
         config.params['voice_rate'] = f'+{text}%' if text >= 0 else f'{text}%'
