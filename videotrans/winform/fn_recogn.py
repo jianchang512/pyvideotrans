@@ -68,7 +68,6 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
-        print(f'{d=},{winobj.has_done=}')
         if winobj.has_done:
             return
         if isinstance(d, str):

@@ -85,7 +85,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         text=f'{nums}\n{time_str}\n{segment["text"]}\n\n',
                         type='subtitle'
                     )
-            self.raws=self.re_segment_sentences(alllist,language=self.detect_language)
+            self.raws=self.re_segment_sentences(alllist)
         except Exception as e:
             raise
         finally:

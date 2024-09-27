@@ -46,7 +46,6 @@ class SttAPIRecogn(BaseRecogn):
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:
             data={"language":self.detect_language[:2],"model":config.params.get('stt_model','tiny'),"response_format":"srt"}
-            print(data)
             res = requests.post(f"{self.api_url}", files=files,data=data, proxies={"http": "", "https": ""}, timeout=7200)
             config.logger.info(f'STT_API:{res=}')
             res = res.json()
@@ -54,7 +53,6 @@ class SttAPIRecogn(BaseRecogn):
                 raise Exception(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
                 raise Exception(f'识别出错{res=}')
-            print(res)
             self._signal(
                 text=res['data'],
                 type='replace_subtitle'

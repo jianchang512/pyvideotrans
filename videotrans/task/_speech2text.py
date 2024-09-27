@@ -81,6 +81,7 @@ class SpeechToText(BaseTask):
                 detect_language=self.config_params['detect_language'],
                 cache_folder=self.config_params['cache_folder'],
                 is_cuda=self.config_params['is_cuda'],
+                subtitle_type=0,
                 inst=self)
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
