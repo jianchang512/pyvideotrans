@@ -161,6 +161,7 @@ class Ui_setini(object):
                 "interval_split": "均等分割模式下每个片段时长秒数"
             },
             "whisper": {
+                "rephrase":"faster/openai-whisper识别后重新断句",
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
                 "whisper_threads": "faster模式下，字幕识别时，cpu进程数",
@@ -224,7 +225,8 @@ class Ui_setini(object):
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
             "overall_silence": "最小静音片段/ms",
-            "overall_maxsecs": "语句最大持续秒数/s",
+            "overall_maxsecs": "创建字幕最大时长秒数/s",
+            "rephrase":"faster/openai-whisper识别后重新断句",
             "overall_threshold": "VAD阈值",
             "overall_speech_pad_ms": "VAD pad 值",
             "voice_silence": "均等分割时静音片段/ms",
@@ -362,6 +364,7 @@ class Ui_setini(object):
                     "interval_split": "Segment duration in seconds in equal split mode"
                 },
                 "whisper": {
+                    "rephrase":"faster/openai-whisper rephrase",
                     "model_list": "Model names list for faster mode and openai mode, separated by commas",
                     "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
                     "whisper_threads": "Number of CPU processes for subtitle recognition in faster mode",
@@ -430,6 +433,7 @@ class Ui_setini(object):
                 "zijiehuoshan_model": "Byte Volcano Inference Access Point",
                 "model_list": "Models for Faster and OpenAI",
                 "audio_rate": "Maximum Audio Speed Multiplier",
+                "rephrase":"faster/openai-whisper rephrase",
                 "video_rate": "Video Slow Motion Multiplier",
                 "remove_silence": "Remove End Silence in Dubbing",
                 "remove_srt_silence": "Remove Silence Exceeding Dubbing Duration",
@@ -498,7 +502,7 @@ class Ui_setini(object):
             }
         self.alertnotice = {}
         # 界面语言
-        # tmp = QtWidgets.QHBoxLayout()
+
         label_title = QtWidgets.QLabel()
         label_title.setText(
             "点击左侧标题将弹出帮助说明,保存设置后，已打开的子功能窗口需关闭后重新打开方生效" if config.defaulelang == 'zh' else 'Clicking  title on the left will show help ')

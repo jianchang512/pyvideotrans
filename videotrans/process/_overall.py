@@ -5,7 +5,9 @@ import time
 from pathlib import Path
 
 import torch
-import zhconv
+
+
+
 from faster_whisper import WhisperModel
 
 from videotrans.util.tools import ms_to_time_string

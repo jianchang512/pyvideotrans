@@ -784,15 +784,13 @@ def format_srt(content):
 # 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
-        if os.path.getsize(srtfile) == 0:
-            raise Exception(config.transobj['zimuwenjianbuzhengque'])
+        if Path(srtfile).stat().st_size == 0:
+            raise Exception(config.transobj['zimuwenjianbuzhengque']+srtfile)
         try:
-            with open(srtfile, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
+            content = Path(srtfile).read_text(encoding='utf-8').strip()
         except:
             try:
-                with open(srtfile, 'r', encoding='gbk', errors='ignore') as f:
-                    content = f.read().strip()
+                content = Path(srtfile).read_text(encoding='gbk').strip()
             except Exception as e:
                 raise Exception(f'get srtfile error:{str(e)}')
     else:
@@ -800,7 +798,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
 
     if len(content) < 1:
-        raise Exception("srt content is empty")
+        raise Exception(f"srt is empty:{srtfile=}")
 
     result = format_srt(content)
 

@@ -84,6 +84,7 @@ def run(*,
         uuid=None,
         recogn_type: int = 0,
         is_cuda=None,
+        subtitle_type=0
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
@@ -97,6 +98,7 @@ def run(*,
         "uuid": uuid,
         "inst": inst,
         "is_cuda": is_cuda,
+        "subtitle_type":subtitle_type
     }
     if recogn_type == OPENAI_WHISPER:
         from ._openai import OpenaiWhisperRecogn

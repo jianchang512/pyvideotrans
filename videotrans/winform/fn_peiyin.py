@@ -54,7 +54,6 @@ class SignThread(QThread):
                     data = q.get(block=False)
                     if not data:
                         continue
-                    print(f'==={data=}')
                     self.post(data)
                     if data['type'] in ['error', 'succeed']:
                         self.uuid_list.remove(uuid)
@@ -71,7 +70,6 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
-        print(f'{d=}')
         if winobj.has_done:
             return
         if isinstance(d, str):

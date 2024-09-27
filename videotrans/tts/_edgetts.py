@@ -22,7 +22,10 @@ class EdgeTTS(BaseTTS):
                 text=it["text"], voice=it['role'], rate=self.rate, volume=self.volume,
                 pitch=self.pitch)
             await communicate_task.save(it['filename'])
-        asyncio.run(_async_dubb(it))
+        try:
+            asyncio.run(_async_dubb(it))
+        except Exception as e:
+            print(f'edge-tts {e}')
 
     def _item_task(self, data_item=None):
         split_queue = [self.queue_tts[i:i + self.dub_nums] for i in range(0, self.len, self.dub_nums)]

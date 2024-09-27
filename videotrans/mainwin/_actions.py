@@ -506,6 +506,8 @@ class WinAction(WinActionSub):
             obj_list=self.obj_list,
             txt=self.main.subtitle_area.toPlainText().strip()
         )
+        if len(self.obj_list)==1:
+            self.task.uito.connect(self.update_data)
         self.task.start()
 
 
@@ -639,7 +641,7 @@ class WinAction(WinActionSub):
             except Exception as e:
                 print(f'#########{e}')
         # 一行一行插入字幕到字幕编辑区
-        elif d['type'] == "subtitle":
+        elif d['type'] == "subtitle" and config.task_countdown<=0:
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'set_source_sub':
@@ -674,13 +676,6 @@ class WinAction(WinActionSub):
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'timeout_djs':
             self.set_djs_timeout()
-            # 倒计时结束或者手动点击继续，保存字幕区字幕到 self.wait_subtitle
-            # self.main.stop_djs.hide()
-            # self.main.continue_compos.hide()
-            # self.main.continue_compos.setDisabled(True)
-            # self.main.subtitle_area.setReadOnly(True)
-            # self.main.timeout_tips.setText('')
-            # self.update_subtitle()
         elif d['type'] == 'show_djs':
             self.main.timeout_tips.setText(d['text'])
             self.main.stop_djs.show()

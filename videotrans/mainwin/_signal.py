@@ -27,7 +27,7 @@ class UUIDSignalThread(QThread):
             # 全部结束
             if len(uuid_list) < 1:
                 self.uito.emit(json.dumps({"type": "end"}))
-                time.sleep(1)
+                time.sleep(0.1)
                 continue
             while len(uuid_list) > 0:
                 uuid = uuid_list.pop(0)

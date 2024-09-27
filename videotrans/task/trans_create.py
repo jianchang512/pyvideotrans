@@ -97,7 +97,7 @@ class TransCreate(BaseTask):
         # 获取set.ini配置
         config.settings = config.parse_init()
         # 禁止修改字幕
-        self._signal(text="forbid" if self.config_params['is_batch'] else "no", type="disabled_edit")
+        self._signal(text="forbid", type="disabled_edit")
 
         # 开启一个线程读秒
         def runing():
@@ -220,6 +220,7 @@ class TransCreate(BaseTask):
                 detect_language=self.config_params['detect_language'],
                 cache_folder=self.config_params['cache_folder'],
                 is_cuda=self.config_params['cuda'],
+                subtitle_type=self.config_params.get('subtitle_type',0),
                 inst=self)
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
@@ -231,6 +232,7 @@ class TransCreate(BaseTask):
             elif re.search(r'cudnn', msg, re.I):
                 msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
             self.hasend = True
+            self._signal(text=msg,type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
         else:
@@ -260,30 +262,10 @@ class TransCreate(BaseTask):
                 type='replace_subtitle'
             )
             return
-        countdown_sec=int(
-            config.settings['countdown_sec'])
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else countdown_sec
-        # 单个允许修改字幕
-        if not self.config_params['is_batch']:
-            # 设置secwin中wait_subtitle为原始语言字幕文件
-            self._signal(text=self.config_params['source_sub'], type='set_source_sub')
-            # 等待编辑原字幕后翻译,允许修改字幕
-            self._signal(text=config.transobj["xiugaiyuanyuyan"], type='edit_subtitle_source')
-            while config.task_countdown > 0:
-                time.sleep(1)
-                config.task_countdown -= 1
-                if config.task_countdown>0 and config.task_countdown<=countdown_sec:
-                    self._signal(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs')
-            # 禁止修改字幕
-            self._signal(text='translate_start', type='timeout_djs')
-            time.sleep(2)
-
-        self._signal(text=config.transobj['starttrans'])
         # 开始翻译,从目标文件夹读取原始字幕
         rawsrt = tools.get_subtitle_from_srt(self.config_params['source_sub'], is_file=True)
         if not rawsrt or len(rawsrt) < 1:
             raise Exception(f'{self.config_params["basename"]}' + config.transobj['No subtitles file'])
-
         try:
             # todo
             self.status_text = config.transobj['kaishitiquhefanyi']
@@ -296,6 +278,7 @@ class TransCreate(BaseTask):
                 source_code=self.config_params['source_language_code'])
         except Exception as e:
             self.hasend = True
+            self._signal(text=str(e),type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
         else:
@@ -319,33 +302,11 @@ class TransCreate(BaseTask):
 
         self.status_text = config.transobj['kaishipeiyin']
         self.precent += 3
-        countdown_sec= int(config.settings['countdown_sec'])
-        config.task_countdown = 0 if self.config_params['app_mode'] == 'biaozhun_jd' else countdown_sec
-
-        # 允许修改字幕
-        if not self.config_params['is_batch']:
-            self._signal(text=self.config_params['target_sub'], type='set_target_sub')
-            self._signal(text=Path(self.config_params['target_sub']).read_text(encoding='utf-8'),
-                         type='replace_subtitle')
-            self._signal(text=config.transobj["xiugaipeiyinzimu"], type="edit_subtitle_target")
-            while config.task_countdown > 0:
-                # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
-                time.sleep(1)
-                # 倒计时中
-                config.task_countdown -= 1
-                if config.task_countdown>0 and config.task_countdown<=countdown_sec:
-                    self._signal(
-                        text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
-                        type='show_djs')
-            # 禁止修改字幕
-            self._signal(text='dubbing_start', type='timeout_djs')
-        self._signal(text=config.transobj['kaishipeiyin'])
-        time.sleep(3)
-
         try:
             self._tts()
         except Exception as e:
             self.hasend = True
+            self._signal(text=str(e),type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
         if self.config_params['app_mode'] in ['tiqu']:
@@ -387,6 +348,7 @@ class TransCreate(BaseTask):
             Path(self.config_params['target_sub']).write_text(srt.strip(), encoding="utf-8", errors="ignore")
         except Exception as e:
             self.hasend = True
+            self._signal(text=str(e),type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
 
@@ -404,6 +366,7 @@ class TransCreate(BaseTask):
             self._join_video_audio_srt()
         except Exception as e:
             self.hasend = True
+            self._signal(text=str(e),type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
         self.precent = 100
@@ -482,20 +445,28 @@ class TransCreate(BaseTask):
                 if self.shoud_recogn:
                     tools.conver_to_16k(self.config_params['source_wav'], self.config_params['shibie_audio'])
             except Exception as e:
+                self._signal(text=str(e),type='error')
                 raise
         self.status_text = config.transobj['endfenliyinpin']
 
     # 配音预处理，去掉无效字符，整理开始时间
     def _tts(self) -> None:
         queue_tts = []
-        # 获取字幕
-        try:
-            subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
-            if len(subs) < 1:
-                raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
-        except Exception as e:
-            raise
-
+        # 获取字幕 可能之前写入尚未释放，暂停1s等待并重试一次
+        retry=2
+        while 1:
+            retry-=1
+            try:
+                time.sleep(1)
+                subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
+                if len(subs) < 1:
+                    raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
+            except Exception as e:
+                if retry<=0:
+                    raise
+                time.sleep(3)
+            else:
+                break
         rate = int(str(self.config_params['voice_rate']).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
@@ -506,6 +477,7 @@ class TransCreate(BaseTask):
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
+                print(f'{it["start_time"]}  {it["end_time"]}')
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = self.config_params['voice_role']
@@ -736,7 +708,6 @@ class TransCreate(BaseTask):
 
         # 硬字幕转为ass格式 并设置样式
         process_end_subtitle_ass = tools.set_ass_font(process_end_subtitle)
-        # Path(process_end_subtitle).unlink(missing_ok=True)
         return os.path.basename(process_end_subtitle_ass), subtitle_langcode
 
     # 延长视频末尾对齐声音
@@ -1041,7 +1012,8 @@ class TransCreate(BaseTask):
         Docs: https://pyvideotrans.com
 
                         """)
-                if self.config_params['subtitle_type'] in [1, 3]:
-                    Path(self.config_params['target_dir'] + f'/{subtitles_file}').unlink(missing_ok=True)
+            Path(self.config_params['target_dir'] + f'/end.srt').unlink(missing_ok=True)
+            Path(self.config_params['target_dir'] + f'/end.srt.ass').unlink(missing_ok=True)
+            Path(self.config_params['target_dir'] + f'/shuang.srt.ass').unlink(missing_ok=True)
         except:
             pass
