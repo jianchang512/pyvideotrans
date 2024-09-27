@@ -63,7 +63,7 @@ class GPTSoVITS(BaseTTS):
                     "prompt_text":data.get('prompt_text',''),
                     "prompt_lang":data.get('prompt_language','')
                 }
-                speed=float(float(self.rate.replace('+','').replace('-','').replace('%'))/100)
+                speed=float(float(self.rate.replace('+','').replace('-','').replace('%',''))/100)
                 if speed>0:
                     data['speed_factor']+=speed
 
