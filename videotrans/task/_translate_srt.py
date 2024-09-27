@@ -84,7 +84,8 @@ class TranslateSrt(BaseTask):
                         tmp_text= f"{raw_subtitles[i]['text'].strip()}" if i<target_length else ''
                         tmp_text=f"{it['text'].strip()}\n{tmp_text}"
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
-                Path(self.config_params['target_sub']).write_text(srt_string,encoding='utf-8')
+                with Path(self.config_params['target_sub']).open('w', encoding='utf-8') as f:
+                    f.write(srt_string)
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'

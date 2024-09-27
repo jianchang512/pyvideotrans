@@ -72,8 +72,8 @@ def openwin():
         if current_text:
             winobj.openaitts_model.setCurrentText(current_text)
         config.settings['openaitts_model'] = t
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def update_ui():
         config.settings = config.parse_init()

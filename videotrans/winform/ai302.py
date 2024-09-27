@@ -58,7 +58,8 @@ def openwin():
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
 
-        Path(tools.get_prompt_file('ai302')).write_text(template, encoding='utf-8')
+        with Path(tools.get_prompt_file('ai302')).open('w', encoding='utf-8') as f:
+            f.write(template)
         config.getset_params(config.params)
         winobj.close()
 
@@ -86,8 +87,8 @@ def openwin():
         if current_text:
             winobj.ai302_model.setCurrentText(current_text)
         config.settings['ai302_models'] = t
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings,ensure_ascii=False))
 
     from videotrans.component import AI302Form
     winobj = config.child_forms.get('ai302fyw')

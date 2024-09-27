@@ -38,7 +38,8 @@ def openwin():
                     if i < srt2_len:
                         text += f"\n{srt2_list[i]['text'].strip()}"
                     text += "\n\n"
-                Path(self.result_file).write_text(text.strip(), encoding="utf-8", errors="ignore")
+                with Path(self.result_file).open('w', encoding='utf-8') as f:
+                    f.write(text.strip())
                 self.post(type='ok', text=self.result_file)
             except Exception as e:
                 self.post(type='error', text=str(e))

@@ -1,5 +1,7 @@
+import copy
 import json
 import re
+import shutil
 import threading
 from pathlib import Path
 
@@ -14,7 +16,8 @@ from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER, is_allow_lang as recogn_is_allow_lang, \
     is_input_api as recogn_is_input_api
-from videotrans.task.main_worker import Worker
+from videotrans.task._only_one import Worker
+from videotrans.task.trans_create import TransCreate
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, CLONE_VOICE_TTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, \
     FISHTTS, CHATTTS, GOOGLE_TTS, OPENAI_TTS, ELEVENLABS_TTS, is_allow_lang as tts_is_allow_lang, \
     is_input_api as tts_is_input_api
@@ -32,18 +35,15 @@ class WinAction(WinActionSub):
         self.edit_subtitle_type = ''
         # 进度按钮
         self.processbtns = {}
-        # 任务对象
-        self.task: Worker = None
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
+        self.is_batch=True
 
     def _reset(self):
         # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
         self.edit_subtitle_type = ''
-        # 任务对象
-        self.task= None
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
@@ -482,7 +482,7 @@ class WinAction(WinActionSub):
         
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
-        QTimer.singleShot(100, self.create_btns)
+        QTimer.singleShot(50, self.create_btns)
 
     def create_btns(self):
         target_dir = Path(self.main.target_dir if self.main.target_dir else Path(
@@ -498,17 +498,34 @@ class WinAction(WinActionSub):
             self.obj_list.append(obj)
             self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
         config.queue_mp4=new_name
+        txt=self.main.subtitle_area.toPlainText().strip()
 
-        # 启动任务
-        self.task = Worker(
-            parent=self.main,
-            app_mode=self.main.app_mode,
-            obj_list=self.obj_list,
-            txt=self.main.subtitle_area.toPlainText().strip()
+        if len(self.obj_list)==1 and self.main.app_mode not in ['biaozhun_jd','tiqu']:
+            self.is_batch=False
+            # 启动任务
+            tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
+            task = Worker(
+                parent=self.main,
+                app_mode=self.main.app_mode,
+                obj=self.obj_list[0],
+                txt=txt
+            )
+            task.uito.connect(self.update_data)
+            task.start()
+            return
+        self.is_batch=True
+        config.params.update(
+            {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
-        if len(self.obj_list)==1:
-            self.task.uito.connect(self.update_data)
-        self.task.start()
+        # 保存任务实例
+        for it in self.obj_list:
+            if config.params['clear_cache'] and Path(it['target_dir']).is_dir():
+                shutil.rmtree(it['target_dir'], ignore_errors=True)
+            Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
+            trk = TransCreate(copy.deepcopy(config.params), it)
+            self.update_data({"text":config.transobj['kaishichuli'],"uuid":it['uuid'],"type":"logs"})
+            # 压入识别队列开始执行
+            config.prepare_queue.append(trk)
 
 
     # 启动时禁用相关模式按钮，停止时重新启用
@@ -554,8 +571,6 @@ class WinAction(WinActionSub):
             d = json.loads(d)
         text, uuid, _type = d['text'], d['uuid'], d['type']
         if not uuid or uuid not in self.processbtns:
-            return
-        if not self.task:
             return
         if _type == 'set_precent' and self.processbtns[uuid].precent < 100:
             t, precent = text.split('???')
@@ -641,7 +656,7 @@ class WinAction(WinActionSub):
             except Exception as e:
                 print(f'#########{e}')
         # 一行一行插入字幕到字幕编辑区
-        elif d['type'] == "subtitle" and config.task_countdown<=0:
+        elif d['type'] == "subtitle" and config.current_status=='ing' and (self.is_batch or config.task_countdown<=0):
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'set_source_sub':
@@ -703,9 +718,10 @@ class WinAction(WinActionSub):
             return
 
         # 是单个视频执行时
-        if not self.task.is_batch and self.wait_subtitle:
+        if not self.is_batch and self.wait_subtitle:
             # 不是批量才允许更新字幕
-            Path(self.wait_subtitle).write_text(txt, encoding='utf-8')
+            with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
+                f.write(txt)
         if self.edit_subtitle_type == 'edit_subtitle_source':
             self.main.subtitle_area.clear()
         return True

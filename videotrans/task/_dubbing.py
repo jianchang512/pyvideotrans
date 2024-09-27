@@ -80,8 +80,6 @@ class DubbingSrt(BaseTask):
         # 获取字幕
         try:
             subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
-            if len(subs) < 1:
-                raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
         except Exception as e:
             raise
 
@@ -144,8 +142,8 @@ class DubbingSrt(BaseTask):
                     it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                     srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
                 # 字幕保存到目标文件夹
-                Path(self.config_params['target_sub'] + "-AlignToAudio.srt").write_text(srt.strip(), encoding="utf-8",
-                                                                                        errors="ignore")
+                with Path(self.config_params['target_sub'] + "-AlignToAudio.srt").open('w',encoding="utf-8") as f:
+                    f.write(srt.strip())
         except Exception as e:
             self.hasend = True
             tools.send_notification(str(e), f'{self.config_params["basename"]}')

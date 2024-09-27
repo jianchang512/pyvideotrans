@@ -75,7 +75,8 @@ class FasterAll(BaseRecogn):
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                Path(self.pidfile).write_text(f'{process.pid}')
+                with Path(self.pidfile).open('w', encoding='utf-8') as f:
+                    f.write(f'{process.pid}')
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:

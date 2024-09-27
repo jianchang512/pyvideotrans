@@ -70,8 +70,8 @@ def openwin():
         if current_text:
             winobj.ai302tts_model.setCurrentText(current_text)
         config.settings['ai302tts_models'] = t
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def update_ui():
         config.settings = config.parse_init()

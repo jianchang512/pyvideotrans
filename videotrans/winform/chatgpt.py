@@ -61,7 +61,8 @@ def openwin():
         api = api if api else 'https://api.openai.com/v1'
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
-        Path(tools.get_prompt_file('chatgpt')).write_text(template, encoding='utf-8')
+        with Path(tools.get_prompt_file('chatgpt')).open('w', encoding='utf-8') as f:
+            f.write(template)
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key
         config.params["chatgpt_api"] = api
@@ -78,9 +79,8 @@ def openwin():
         if current_text:
             winobj.chatgpt_model.setCurrentText(current_text)
         config.settings['chatgpt_model'] = t
-
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def update_ui():
         config.settings = config.parse_init()

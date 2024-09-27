@@ -170,7 +170,9 @@ class BaseRecogn(BaseCon):
                     "end_time": segment['words'][-1]['end'],
                     "text": self._process_sentence(segment['text']),
                 }
-                tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
+                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
+                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
             return new_data
         try:
@@ -228,7 +230,9 @@ class BaseRecogn(BaseCon):
                     "end_time": sentence_end,
                     "text": self._process_sentence(sentence),
                 }
-                tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
+                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
+                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
 
                 sentence = ""
@@ -243,7 +247,9 @@ class BaseRecogn(BaseCon):
                     "end_time": sentence_end,
                     "text": self._process_sentence(sentence),
                 }
-                tmp['time'] = f'{tools.ms_to_time_string(ms=tmp["start_time"])} --> {tools.ms_to_time_string(ms=tmp["end_time"])}'
+                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
+                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
+                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
 
         return new_data

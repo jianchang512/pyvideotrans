@@ -64,8 +64,8 @@ def openwin():
         config.params["chattts_api"] = key
         config.getset_params(config.params)
         config.settings['chattts_voice'] = voice
-        json.dump(config.settings, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
         winobj.close()
 

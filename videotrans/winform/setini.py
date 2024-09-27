@@ -36,8 +36,8 @@ def openwin():
 
         line_edit_dict['homedir']=winobj.homedir_btn.text()
         try:
-            json.dump(line_edit_dict, open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8'),
-                      ensure_ascii=False)
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(line_edit_dict, ensure_ascii=False))
         except Exception as e:
             return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
         else:

@@ -142,7 +142,10 @@ class BaseTask(BaseCon):
     # 保存字幕文件 到目标文件夹
     def _save_srt_target(self, srtstr, file):
         # 是字幕列表形式，重新组装
-        tools.save_srt(srtstr, file)
+        try:
+            tools.save_srt(srtstr, file)
+        except Exception as e:
+            raise
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True
 

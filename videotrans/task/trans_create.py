@@ -222,6 +222,12 @@ class TransCreate(BaseTask):
                 is_cuda=self.config_params['cuda'],
                 subtitle_type=self.config_params.get('subtitle_type',0),
                 inst=self)
+            if self._exit():
+                return
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                raise Exception(self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.config_params['source_language']))
+            self._save_srt_target(raw_subtitles, self.config_params['source_sub'])
+            self._recogn_succeed()
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
@@ -235,16 +241,7 @@ class TransCreate(BaseTask):
             self._signal(text=msg,type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
-        else:
-            if self._exit():
-                return
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception(
-                    self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                       self.config_params[
-                                                                                                           'source_language']))
-            self._save_srt_target(raw_subtitles, self.config_params['source_sub'])
-            self._recogn_succeed()
+
 
     def trans(self) -> None:
         if self._exit():
@@ -262,12 +259,10 @@ class TransCreate(BaseTask):
                 type='replace_subtitle'
             )
             return
-        # 开始翻译,从目标文件夹读取原始字幕
-        rawsrt = tools.get_subtitle_from_srt(self.config_params['source_sub'], is_file=True)
-        if not rawsrt or len(rawsrt) < 1:
-            raise Exception(f'{self.config_params["basename"]}' + config.transobj['No subtitles file'])
         try:
             # todo
+            # 开始翻译,从目标文件夹读取原始字幕
+            rawsrt = tools.get_subtitle_from_srt(self.config_params['source_sub'], is_file=True)
             self.status_text = config.transobj['kaishitiquhefanyi']
             target_srt = run_trans(
                 translate_type=self.config_params['translate_type'],
@@ -276,19 +271,17 @@ class TransCreate(BaseTask):
                 inst=self,
                 uuid=self.uuid,
                 source_code=self.config_params['source_language_code'])
+            self._save_srt_target(target_srt, self.config_params['target_sub'])
+            # 仅提取，该名字删原
+            if self.config_params['app_mode'] == 'tiqu':
+                shutil.copy2(self.config_params['target_sub'],f"{self.config_params['target_dir']}/{self.config_params['noextname']}-{self.config_params['target_language_code']}.srt")
+                self.hasend = True
+                self.precent = 100
         except Exception as e:
             self.hasend = True
             self._signal(text=str(e),type='error')
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
-        else:
-            self._save_srt_target(target_srt, self.config_params['target_sub'])
-            # 仅提取，该名字删原
-            if self.config_params['app_mode'] == 'tiqu':
-                shutil.copy2(self.config_params['target_sub'],
-                             f"{self.config_params['target_dir']}/{self.config_params['noextname']}-{self.config_params['target_language_code']}.srt")
-                self.hasend = True
-                self.precent = 100
         self.status_text = config.transobj['endtrans']
 
     def dubbing(self) -> None:
@@ -345,7 +338,8 @@ class TransCreate(BaseTask):
                     it['endraw'] = tools.ms_to_time_string(ms=it['end_time_source'])
                 srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
             # 字幕保存到目标文件夹
-            Path(self.config_params['target_sub']).write_text(srt.strip(), encoding="utf-8", errors="ignore")
+            with  Path(self.config_params['target_sub']).open('w', encoding="utf-8") as f:
+                f.write(srt.strip())
         except Exception as e:
             self.hasend = True
             self._signal(text=str(e),type='error')
@@ -477,7 +471,6 @@ class TransCreate(BaseTask):
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
-                print(f'{it["start_time"]}  {it["end_time"]}')
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = self.config_params['voice_role']
@@ -686,7 +679,8 @@ class TransCreate(BaseTask):
                 if source_length > 0 and i < source_length:
                     srt_string += "\n" + (textwrap.fill(source_sub_list[i]['text'], maxlen_source, replace_whitespace=False).strip() if self.config_params['subtitle_type'] == 3 else source_sub_list[i]['text'])
                 srt_string += "\n\n"
-            Path(f"{self.config_params['target_dir']}/shuang.srt").write_text(srt_string.strip(), encoding='utf-8')
+            with Path(f"{self.config_params['target_dir']}/shuang.srt").open('w', encoding='utf-8') as f:
+                f.write(srt_string.strip())
             process_end_subtitle = f"{self.config_params['target_dir']}/shuang.srt"
         elif self.config_params['subtitle_type'] == 1:
             # 单硬字幕，需处理字符数换行
@@ -694,7 +688,8 @@ class TransCreate(BaseTask):
             for i, it in enumerate(target_sub_list):
                 tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-            Path(process_end_subtitle).write_text(srt_string, encoding='utf-8')
+            with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
+                f.write(srt_string)
         else:
             # 单软字幕
             process_end_subtitle = self.config_params['target_sub']

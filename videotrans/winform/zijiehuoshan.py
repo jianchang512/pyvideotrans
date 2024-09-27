@@ -57,7 +57,8 @@ def openwin():
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
         config.params["zijiehuoshan_template"] = template
-        Path(tools.get_prompt_file('zijie')).write_text(template, encoding='utf-8')
+        with Path(tools.get_prompt_file('zijie')).open('w', encoding='utf-8') as f:
+            f.write(template)
         config.getset_params(config.params)
         winobj.close()
 
@@ -70,8 +71,8 @@ def openwin():
         if current_text:
             winobj.zijiehuoshan_model.setCurrentText(current_text)
         config.settings['zijiehuoshan_model'] = t
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def update_ui():
         config.settings = config.parse_init()

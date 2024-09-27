@@ -320,10 +320,11 @@ def parse_init():
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)
-        json.dump(default, open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
+        with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(default , ensure_ascii=False))
         return default
     try:
-        temp_json = json.load(open(ROOT_DIR + "/videotrans/cfg.json", 'r', encoding='utf-8'))
+        temp_json = json.loads(Path(ROOT_DIR + "/videotrans/cfg.json").read_text(encoding='utf-8'))
     except Exception as e:
         raise
     else:
@@ -347,7 +348,8 @@ def parse_init():
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)
         if default['gemini_model'].find('gemini') == -1:
             default["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
-        json.dump(default, open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'), ensure_ascii=False)
+        with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(default,ensure_ascii=False))
         return default
 
 
@@ -369,7 +371,7 @@ if not _lang_path.exists():
     defaulelang = "en"
     _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
 
-_obj = json.load(_lang_path.open('r', encoding='utf-8'))
+_obj = json.loads(_lang_path.read_text(encoding='utf-8'))
 # 交互语言代码
 transobj = _obj["translate_language"]
 # 软件界面
@@ -653,16 +655,19 @@ Translation:"""
         for ainame in ['chatgpt','azure','gemini','localllm','ai302','zijie']:
             chatgpt_path = _root_path / f'videotrans/{ainame}{prompt_langcode}.txt'
             if not chatgpt_path.exists():
-                chatgpt_path.write_text(prompt_zh if defaulelang=='zh' else prompt_en, encoding='utf-8')
+                with chatgpt_path.open('w',encoding='utf-8') as f:
+                    f.write(prompt_zh if defaulelang=='zh' else prompt_en)
             chatgpt_path = _root_path / f'videotrans/prompts/srt/{ainame}{prompt_langcode}.txt'
             if not chatgpt_path.exists():
-                chatgpt_path.write_text(prompt_zh_srt if defaulelang=='zh' else prompt_en_srt, encoding='utf-8')
+                with chatgpt_path.open('w', encoding='utf-8') as f:
+                    f.write(prompt_zh_srt if defaulelang=='zh' else prompt_en_srt)
     try:
         _create_default_promot()
         if os.path.exists(ROOT_DIR + "/videotrans/params.json"):
-            default.update(json.load(open(ROOT_DIR + "/videotrans/params.json", 'r', encoding='utf-8')))
+            default.update(json.loads(Path(ROOT_DIR + "/videotrans/params.json").read_text(encoding='utf-8')))
         else:
-            json.dump(default, open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8'), ensure_ascii=False)
+            with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(default, ensure_ascii=False))
     except Exception:
         pass
     return default

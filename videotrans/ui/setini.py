@@ -63,7 +63,8 @@ class Ui_setini(object):
             config.settings['homedir'] = config.HOME_DIR
             self.homedir_btn.setText(config.HOME_DIR)
             Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
-            Path(config.ROOT_DIR + "/videotrans/cfg.json").write_text(json.dumps(config.settings), encoding='utf-8')
+            with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings,ensure_ascii=False))
 
 
     def setupUi(self, setini):
