@@ -95,7 +95,9 @@ class OpenaiAPIRecogn(BaseRecogn):
                     "end_time": int(it["end"] * 1000),
                     "text": it["text"]
                 }
-                srt_tmp['time'] = f'{tools.ms_to_time_string(ms=srt_tmp["start_time"])} --> {tools.ms_to_time_string(ms=srt_tmp["end_time"])}'
+                srt_tmp["startraw"]=tools.ms_to_time_string(ms=srt_tmp["start_time"])
+                srt_tmp["endraw"]=tools.ms_to_time_string(ms=srt_tmp["end_time"])
+                srt_tmp['time'] = f'{srt_tmp["startraw"]} --> {srt_tmp["endraw"]}'
                 self._signal(
                     text=f'{srt_tmp["line"]}\n{srt_tmp["time"]}\n{srt_tmp["text"]}\n\n',
                     type='subtitle'
@@ -104,8 +106,8 @@ class OpenaiAPIRecogn(BaseRecogn):
             return self.raws
         except ConnectionError as e:
             msg = f'网络连接错误，请检查代理、api地址等:{str(e)}' if config.defaulelang == 'zh' else str(e)
-            raise
-        except Exception as e:
+            raise Exception(msg)
+        except Exception:
             raise
 
     def _get_url(self, url=""):

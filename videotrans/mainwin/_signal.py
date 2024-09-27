@@ -1,4 +1,5 @@
 import json
+import queue
 import time
 
 from PySide6.QtCore import QThread, Signal
@@ -36,12 +37,12 @@ class UUIDSignalThread(QThread):
                 if uuid in config.stoped_uuid_set:
                     continue
                 try:
-                    q = config.uuid_logs_queue.get(uuid)
+                    q:queue.Queue = config.uuid_logs_queue.get(uuid)
                     if not q:
                         continue
-                    data = q.get(block=False)
+                    data = q.get(block=True,timeout=0.1)
                     if data:
                         self.uito.emit(json.dumps(data))
                 except Exception:
                     pass
-            time.sleep(0.1)
+

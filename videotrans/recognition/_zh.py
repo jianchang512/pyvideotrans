@@ -39,7 +39,6 @@ class ZhRecogn(BaseRecogn):
                 text=tools.get_srt_from_list(res['data']),
                 type='replace_subtitle'
             )
-            
             return res['data']
         except Exception as e:
             raise

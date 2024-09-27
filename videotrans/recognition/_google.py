@@ -34,7 +34,8 @@ class GoogleRecogn(BaseRecogn):
             nonsilent_data = json.load(open(nonslient_file, 'r'))
         else:
             nonsilent_data = self._shorten_voice_old(normalized_sound)
-            json.dump(nonsilent_data, open(nonslient_file, 'w'))
+            with open(nonslient_file, 'w') as f:
+                f.write(json.dumps(nonsilent_data))
 
         total_length = len(nonsilent_data)
         try:
@@ -68,15 +69,18 @@ class GoogleRecogn(BaseRecogn):
             text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'")).strip()
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
-            start = timedelta(milliseconds=start_time)
-            stmp = str(start).split('.')
-            if len(stmp) == 2:
-                start = f'{stmp[0]},{int(int(stmp[-1]) / 1000)}'
-            end = timedelta(milliseconds=end_time)
-            etmp = str(end).split('.')
-            if len(etmp) == 2:
-                end = f'{etmp[0]},{int(int(etmp[-1]) / 1000)}'
-            srt_line = {"line": len(self.raws) + 1, "time": f"{start} --> {end}", "text": text}
+            start = tools.ms_to_time_string(ms=start_time)
+
+            end = tools.ms_to_time_string(ms=end_time)
+            srt_line = {
+                "line": len(self.raws) + 1,
+                "time": f"{start} --> {end}",
+                "text": text,
+                "start_time":start_time,
+                "end_time":end_time,
+                "startraw":start,
+                "endraw":end
+            }
             self.raws.append(srt_line)
             if self.inst and self.inst.precent < 55:
                 self.inst.precent += 0.1

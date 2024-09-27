@@ -32,7 +32,8 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
         nonsilent_data = json.load(open(nonslient_file, 'r'))
     else:
         nonsilent_data = _shorten_voice_old(normalized_sound, settings)
-        json.dump(nonsilent_data, open(nonslient_file, 'w'))
+        with open(nonslient_file, 'w') as f:
+            f.write(json.dumps(nonsilent_data))
 
     total_length = len(nonsilent_data)
 
@@ -115,7 +116,11 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
             srt_line = {
                 "line": len(raws) + 1,
                 "time": f"{start} --> {end}",
-                "text": text
+                "text": text,
+                "start_time":start_time,
+                "end_time":end_time,
+                "startraw":start,
+                "endraw":end
             }
             raws.append(srt_line)
             write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", "type": "subtitle"})

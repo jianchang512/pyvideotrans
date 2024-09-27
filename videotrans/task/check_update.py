@@ -1,5 +1,3 @@
-# 从日志队列获取日志
-
 import requests
 from PySide6.QtCore import QThread
 

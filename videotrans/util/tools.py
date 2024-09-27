@@ -239,7 +239,8 @@ def get_edge_rolelist():
                 voice_list[prefix] = ["No", name]
             else:
                 voice_list[prefix].append(name)
-        json.dump(voice_list, open(config.ROOT_DIR + "/voice_list.json", "w"))
+        with open(config.ROOT_DIR + "/voice_list.json", "w",encoding='utf-8') as f:
+            f.write(json.dumps(voice_list))
         config.edgeTTS_rolelist = voice_list
         return voice_list
     except Exception as e:
@@ -607,7 +608,8 @@ def create_concat_txt(filelist, concat_txt=None):
         txt.append(f"file '{os.path.basename(it)}'")
     if len(txt) < 1:
         raise Exception(f'file list no vail')
-    Path(concat_txt).write_text("\n".join(txt), encoding='utf-8')
+    with Path(concat_txt).open('w',encoding='utf-8') as f:
+        f.write("\n".join(txt))
     return concat_txt
 
 
@@ -784,18 +786,18 @@ def format_srt(content):
 # 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
-        if Path(srtfile).stat().st_size == 0:
-            raise Exception(config.transobj['zimuwenjianbuzhengque']+srtfile)
+
         try:
+            print(f'content={srtfile=}')
             content = Path(srtfile).read_text(encoding='utf-8').strip()
-        except:
+        except Exception as e:
+            print(f'####################{e}')
             try:
                 content = Path(srtfile).read_text(encoding='gbk').strip()
             except Exception as e:
                 raise Exception(f'get srtfile error:{str(e)}')
     else:
         content = srtfile.strip()
-
 
     if len(content) < 1:
         raise Exception(f"srt is empty:{srtfile=}")
@@ -805,7 +807,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
-            {"line": 1, "time": "00:00:00,000 --> 00:05:00,000", "text": "\n".join(content)}
+            {"line": 1, "time": "00:00:00,000 --> 00:00:02,000", "text": "\n".join(content)}
         ]
     return result
 
@@ -842,63 +844,38 @@ def srt2ass(srt_file, ass_file, maxlen=40):
 
 # 将字幕字典列表写入srt文件
 def save_srt(srt_list, srt_file):
-    if isinstance(srt_list, list):
-        txt = ""
-        line = 0
-        # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
-        # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
-        # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
-        for it in srt_list:
-            line += 1
-            if "startraw" not in it:
-                # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
-                if 'time' in it:
-                    startraw, endraw = it['time'].strip().split(" --> ")
-                    startraw = format_time(startraw.strip().replace('.', ','), ',')
-                    endraw = format_time(endraw.strip().replace('.', ','), ',')
-                elif 'start_time' in it and 'end_time' in it:
-                    # 存在开始结束毫秒数值
-                    startraw = ms_to_time_string(ms=it['start_time'])
-                    endraw = ms_to_time_string(ms=it['end_time'])
-                else:
-                    raise Exception(
-                        f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
-            else:
-                # 存在单独开始和结束  时:分:秒,毫秒 字符串
-                startraw = it['startraw']
-                endraw = it['endraw']
-            txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
-        Path(srt_file).write_text(txt, encoding="utf-8")
+    txt = get_srt_from_list(srt_list)
+    with Path(srt_file).open("w", encoding="utf-8") as f:
+        f.write(txt)
     return True
 
 
 def get_srt_from_list(srt_list):
     txt = ""
-    if isinstance(srt_list, list):
-        line = 0
-        # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
-        # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
-        # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
-        for it in srt_list:
-            line += 1
-            if "startraw" not in it:
-                # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
-                if 'time' in it:
-                    startraw, endraw = it['time'].strip().split(" --> ")
-                    startraw = format_time(startraw.strip().replace('.', ','), ',')
-                    endraw = format_time(endraw.strip().replace('.', ','), ',')
-                elif 'start_time' in it and 'end_time' in it:
-                    # 存在开始结束毫秒数值
-                    startraw = ms_to_time_string(ms=it['start_time'])
-                    endraw = ms_to_time_string(ms=it['end_time'])
-                else:
-                    raise Exception(
-                        f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
+    line = 0
+    # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
+    # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
+    # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
+    for it in srt_list:
+        line += 1
+        if "startraw" not in it:
+            # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
+            if 'time' in it:
+                startraw, endraw = it['time'].strip().split(" --> ")
+                startraw = format_time(startraw.strip().replace('.', ','), ',')
+                endraw = format_time(endraw.strip().replace('.', ','), ',')
+            elif 'start_time' in it and 'end_time' in it:
+                # 存在开始结束毫秒数值
+                startraw = ms_to_time_string(ms=it['start_time'])
+                endraw = ms_to_time_string(ms=it['end_time'])
             else:
-                # 存在单独开始和结束  时:分:秒,毫秒 字符串
-                startraw = it['startraw']
-                endraw = it['endraw']
-            txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
+                raise Exception(
+                    f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
+        else:
+            # 存在单独开始和结束  时:分:秒,毫秒 字符串
+            startraw = it['startraw']
+            endraw = it['endraw']
+        txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
     return txt
 
 
@@ -1013,8 +990,8 @@ def get_clone_role(set_p=False):
 # 综合写入日志，默认sp界面
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
 # uuid 任务的唯一id，用于确定插入哪个子队列
-# nologs=False不写入日志文件，extra_obj=其他额外数据
-def set_process(*, text="", type="logs", uuid=None, nologs=False, extra_obj=None):
+# nologs=False不写入日志
+def set_process(*, text="", type="logs", uuid=None, nologs=False):
     try:
         if text:
             if not nologs:
@@ -1025,7 +1002,7 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False, extra_obj=None
             # 移除html
             if type == 'error':
                 text = text.replace('\\n', ' ').strip()
-        log = {"text": text, "type": type, "uuid": uuid, "extra_obj": extra_obj}
+        log = {"text": text, "type": type, "uuid": uuid}
         if uuid:
             config.push_queue(uuid, log)
         else:

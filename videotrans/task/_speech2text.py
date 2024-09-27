@@ -83,23 +83,19 @@ class SpeechToText(BaseTask):
                 is_cuda=self.config_params['is_cuda'],
                 subtitle_type=0,
                 inst=self)
+            if self._exit():
+                return
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                raise Exception(self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.config_params['detect_language']))
+            self._save_srt_target(raw_subtitles, self.config_params['target_sub'])
+            self._signal(text=f"{self.config_params['name']}", type='succeed')
+            tools.send_notification("Succeed", f"{self.config_params['basename']}")
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
             tools.send_notification(msg, f'{self.config_params["basename"]}')
             self._signal(text=f"{msg}", type='error')
             raise
-        else:
-            if self._exit():
-                return
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception(
-                    self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                       self.config_params[
-                                                                                                           'detect_language']))
-            self._save_srt_target(raw_subtitles, self.config_params['target_sub'])
-            self._signal(text=f"{self.config_params['name']}", type='succeed')
-            tools.send_notification("Succeed", f"{self.config_params['basename']}")
 
     def task_done(self):
         if 'shound_del_name' in self.config_params:

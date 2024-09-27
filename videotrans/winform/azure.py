@@ -19,7 +19,8 @@ def openwin():
         config.params["azure_model"] = model
         config.params["azure_template"] = template
 
-        Path(tools.get_prompt_file('azure')).write_text(template, encoding='utf-8')
+        with Path(tools.get_prompt_file('azure')).open('w', encoding='utf-8') as f:
+            f.write(template)
         config.getset_params(config.params)
 
         winobj.close()
@@ -33,8 +34,8 @@ def openwin():
         if current_text:
             winobj.azure_model.setCurrentText(current_text)
         config.settings['azure_model'] = t
-        json.dump(config.settings, open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def update_ui():
         config.settings = config.parse_init()
