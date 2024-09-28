@@ -100,13 +100,10 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
             time_str=f'{ms_to_time_string(ms=segment.start*1000)} --> {ms_to_time_string(ms=segment.end*1000)}'
             q.put_nowait({"text": f'{nums}\n{time_str}\n{segment.text}\n\n', "type": "subtitle"})
             q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
-           
-    except Exception as e:
+    except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
+        err['msg']=f'{e}'
         if detect_language=='auto':
-            err['msg']='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
-        else:
-            import traceback
-            err['msg'] = traceback.format_exception(e)
+            err['msg']+='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
     except BaseException as e:
         err['msg'] = str(e)
     finally:

@@ -155,7 +155,7 @@ class DubbingSrt(BaseTask):
         if Path(self.config_params['target_wav']).is_file():
             tools.remove_silence_from_end(self.config_params['target_wav'])
             self._signal(text=f"{self.config_params['name']}", type='succeed')
-            tools.send_notification("Succeed", f"{self.config_params['basename']}")
+            tools.send_notification(config.transobj['Succeed'], f"{self.config_params['basename']}")
         if 'shound_del_name' in self.config_params:
             Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
 

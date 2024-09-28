@@ -271,7 +271,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
 
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
-            arg[i + 1] = Path(os.path.normpath(arg[i + 1])).as_posix()
+            arg[i + 1] = Path(arg[i + 1]).as_posix()
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
@@ -280,10 +280,12 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
             config.video_codec = get_video_codec()
 
         for i, it in enumerate(arg):
-            if i > 0 and arg[i - 1] == '-c:v':
+            if i > 0 and arg[i - 1] == '-c:v' and arg[i] !='copy':
                 arg[i] = config.video_codec
             elif it == '-crf' and config.settings['cuda_qp'] and re.search(r'\sh(264|evc)_nvenc\s'," ".join(cmd),re.I):
                 arg[i] = '-qp'
+                if arg[i]=='copy':
+                    arg[i+1]='0'
 
 
     cmd += arg
@@ -309,13 +311,13 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
         return True
     except subprocess.CalledProcessError as e:
         # 处理视频时如果出错，尝试回退
-        if not force_cpu and cmd[-1].endswith('.mp4') and re.search(r'\sh(264|evc)(_nvenc|_qsv|_vaapi|_videotoolbox)\s'," ".join(cmd),re.I):
+        if not force_cpu and cmd[-1].endswith('.mp4'):
             # 存在视频的copy操作时，尝试回退使用重新编码
             # 切换为cpu
             set_process(text=config.transobj['huituicpu'], uuid=uuid)
             config.logger.error(f'cuda上执行出错，退回到CPU执行')
             for i, it in enumerate(arg_copy):
-                if i > 0 and arg_copy[i - 1] == '-c:v':
+                if i > 0 and arg_copy[i - 1] == '-c:v' and arg_copy[i] not in ['copy','libx264','libx265']:
                     arg_copy[i] = default_codec
             return runffmpeg(arg_copy, noextname=noextname,force_cpu=True)
         if noextname:
@@ -788,10 +790,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     if is_file:
 
         try:
-            print(f'content={srtfile=}')
             content = Path(srtfile).read_text(encoding='utf-8').strip()
         except Exception as e:
-            print(f'####################{e}')
             try:
                 content = Path(srtfile).read_text(encoding='gbk').strip()
             except Exception as e:
@@ -1400,9 +1400,11 @@ def format_video(name, target_dir=None):
         # 最终存放目标位置，直接存到这里
     }
     rule=r'[\[\]\{\}\'\$\`\*\?\"\|]+'
-    if re.search(rule,raw_noextname):
+    if re.search(rule,raw_noextname) or re.search(r'[\s\.]$',raw_noextname):
         # 规范化名字
         raw_noextname=re.sub(rule,'-',raw_noextname)
+        raw_noextname=re.sub(r'[\.\s]$','-',raw_noextname)
+        
         new_name=f'{raw_dirname}/{raw_noextname}{ext}'
         shutil.copy2(name,new_name)
         obj['name']=new_name
