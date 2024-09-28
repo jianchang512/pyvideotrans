@@ -8,6 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.task.trans_create import TransCreate
 
 class Worker(QThread):

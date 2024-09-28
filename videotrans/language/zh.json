@@ -1,5 +1,6 @@
 {
   "translate_language": {
+	"Succeed":"执行成功",   
     "haspaused": "已暂停",
     "shutdownerror": "关机失败",
     "onlycnanden": "仅支持中文和英文配音",

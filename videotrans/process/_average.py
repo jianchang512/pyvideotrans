@@ -125,15 +125,12 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
             raws.append(srt_line)
             write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", "type": "subtitle"})
             write_log({"text": f" {srt_line['line']}/{total_length}", "type": "logs"})
-    except Exception as e:
+    except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
+        err['msg']=f'{e}'
         if detect_language=='auto':
-            err['msg']='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
-        else:
-            import traceback
-            err['msg'] = traceback.format_exception(e)
+            err['msg']+='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
     except BaseException as e:
-        import traceback
-        err['msg'] = traceback.format_exception(e)
+        err['msg'] = str(e)
     finally:
         try:
             if torch.cuda.is_available():

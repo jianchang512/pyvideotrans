@@ -1,5 +1,6 @@
 {
   "translate_language": {
+	"Succeed":"Succeed",   
     "haspaused": "Paused",
     "shutdownerror": "computer shutdown error",
     "onlycnanden": "ChatTTS only support Chinese and English",

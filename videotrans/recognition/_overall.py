@@ -92,7 +92,9 @@ class FasterAll(BaseRecogn):
                         process.terminate()
                 except:
                     pass
-        except Exception as e:
+        except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
+            raise
+        except Exception as e:        
             raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
         finally:
             # 暂停2s，等待exit判断，循环线程退出

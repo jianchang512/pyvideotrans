@@ -83,7 +83,9 @@ class FasterAvg(BaseRecogn):
                         process.terminate()
                 except:
                     pass
-        except BaseException as e:
+        except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
+            raise
+        except Exception as e:
             raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
         finally:
             config.model_process = None
