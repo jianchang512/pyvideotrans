@@ -78,7 +78,7 @@ class GPTSoVITS(BaseTTS):
             if 'application/json' in content_type:
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
-                self.error = f"GPT-SoVITS返回错误信息-1:{data['message']}"
+                self.error = f"GPT-SoVITS返回错误信息-1:{data}"
                 return
 
             if 'audio/wav' in content_type or 'audio/x-wav' in content_type:

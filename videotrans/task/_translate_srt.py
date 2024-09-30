@@ -86,6 +86,7 @@ class TranslateSrt(BaseTask):
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
                 with Path(self.config_params['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
+                    f.flush()
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'

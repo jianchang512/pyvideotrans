@@ -70,6 +70,7 @@ class FasterAvg(BaseRecogn):
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
                 with Path(self.pidfile).open('w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
+                    f.flush()
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:

@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 from typing import List, Dict, Union
 
+import zhconv
+
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 
@@ -102,19 +104,33 @@ class BaseRecogn(BaseCon):
         Returns:
             添加标点符号后的字幕数据，格式与输入相同。
         """
+        for i,segment in enumerate(data):
+            for j,word_info in enumerate(segment["words"]):
+                if self.jianfan:
+                    segment['words'][j]['word']=zhconv.convert(word_info['word'], 'zh-hans')
+                if self.detect_language[:2] in ['zh','ja','ko']:
+                    segment['words'][j]['word']=word_info['word'].replace(' ',',')
+            data[i]=segment
 
-        for segment in data:
+        for i,segment in enumerate(data):
             if "words" not in segment:
                 continue
 
             text = "".join([word_info["word"] for word_info in segment["words"]])
+
+
             sentences = nltk.sent_tokenize(text)  # 使用 nltk 分句
             punctuated_text = ""
             for sentence in sentences:
+                if self.detect_language[:2] in ['zh','ja','ko']:
+                    sentence=sentence.strip().replace(' ',',')
+                # print(f'\n----\n{sentence[-1]=}')
                 if sentence[-1] in [',', '?', '!', '，', '。', '？', '！']:
                     punctuated_text += sentence + " "
+                    # print(f'加空格  {sentence=}')
                 else:
-                    punctuated_text += sentence + ". "
+                    # print(f'加点号  {sentence=}')
+                    punctuated_text += sentence + (". " if self.detect_language[:2] not in ['zh','ja','ko'] else ',')
             punctuated_text = punctuated_text.strip()
 
             # 将标点符号插入到对应的 word 中
@@ -122,29 +138,31 @@ class BaseRecogn(BaseCon):
             punc_index = 0
             new_words = []
             for word_info in segment["words"]:
+                tmp=word_info
                 word = word_info["word"]
                 while punc_index < len(punctuated_text) and punctuated_text[punc_index] in word:
                     punc_index += 1
                 if punc_index < len(punctuated_text) and punctuated_text[punc_index] in [',', '.', '?', '!', '，', '。',
                                                                                          '？', '！']:
                     if punctuated_text[punc_index] not in word:
-                        new_words.append({"word": word + punctuated_text[punc_index], "start": word_info["start"],
-                                          "end": word_info["end"]})
+                        tmp={
+                            "word": word + punctuated_text[punc_index],
+                            "start": word_info["start"],
+                            "end": word_info["end"]}
+
                         punc_index += 1
-                    else:
-                        new_words.append(word_info)
-                else:
-                    new_words.append(word_info)
+                tmp['word'] = re.sub(r"(?<!\d)\.(?!\d)", ",", tmp['word'])
+                new_words.append(tmp)
 
             segment["words"] = new_words
             segment["text"] = punctuated_text
+            data[i]=segment
 
+        # print(f'\n\n###################################{data=}')
         return data
 
     def _process_sentence(self,sentence):
-        if self.jianfan:
-            import zhconv
-            sentence = zhconv.convert(sentence, 'zh-hans')
+
         if sentence[-1] in ['.', '。', ',', '，']:
             sentence = sentence[:-1]
         if sentence[0] in ['.', '。', ',', '，']:
@@ -170,6 +188,8 @@ class BaseRecogn(BaseCon):
                     "end_time": segment['words'][-1]['end'],
                     "text": self._process_sentence(segment['text']),
                 }
+                if self.jianfan:
+                    tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
                 tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
                 tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
                 tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
@@ -179,7 +199,7 @@ class BaseRecogn(BaseCon):
             data = self.add_punctuation_to_words(data)
         except Exception as e:
             config.logger.exception(e)
-            print('使用nltk分句失败')
+            print('\n\n使用nltk分句失败')
 
         sentence = ""
         sentence_start = data[0]["words"][0]['start']
@@ -187,43 +207,68 @@ class BaseRecogn(BaseCon):
         flags=r'[,?!，。？！]|(\. )'
         if self.detect_language[:2] in ['zh', 'ja', 'ko']:
             maxlen =config.settings['cjk_len']
-            flags=r'[,?!，。？！]|(\. )|\s| '
+            flags=r'[,?!，。？！]|(\. )'
         else:
             maxlen = config.settings['other_len']
 
         data_len=len(data)
         for seg_i,segment in enumerate(data):
             current_len=len(segment["words"])
+            # print(f'\n\n{segment["words"]=}')
             for i, word_info in enumerate(segment["words"]):
                 word = word_info["word"]
                 start = word_info["start"]
                 end = word_info["end"]
 
-                word = re.sub(r"(?<!\d)\.(?!\d)", ",", word)
+
                 sentence += word
                 sentence_end = end
 
                 is_insert=False
-                next_start= segment["words"][i + 1]["start"] if  i+1 < current_len else end
+                if  i+1 < current_len:
+                    next_start= segment["words"][i + 1]["start"]
+                    next_word=segment["words"][i + 1]['word']
+                else:
+                    next_start=end
+                    next_word=""
+                if i+2<current_len:
+                    next2_word=segment["words"][i + 2]['word']
+                else:
+                    next2_word=''
+
                 if i+1 >= current_len and seg_i+1<data_len:
                     next_start=data[seg_i+1]['words'][0]['start']
+                    next_word=data[seg_i+1]['words'][0]['word']
 
-                if next_start >= end+2000:
-                    is_insert=True
-                elif re.search(flags, word) and next_start > end+50 and len(sentence.strip())>maxlen/3:
-                    is_insert=True
-                elif re.search(flags, word) and len(sentence.strip())>=maxlen*0.8:
-                    is_insert=True
-                elif self.subtitle_type>0 and sentence_end-sentence_start>int(config.settings.get('overall_maxsecs',6))*1000*1.3:
-                    is_insert=True
-                elif self.subtitle_type==0 and sentence_end-sentence_start>10000:
+                if i+2 >= current_len and seg_i+2<data_len:
+                    next2_word=data[seg_i+2]['words'][0]['word']
+
+
+                if ( next_word and re.search(r'[,?!，。！？]|(\. )',next_word) ) or ( next2_word and re.search(r'[,?!，。！？]|(\. )',next2_word) ):
+                    continue
+
+                if next_start> end:
+                    if next_start >= end+1000:
+                        is_insert=True
+                    elif next_start>=end+250 and len(sentence.strip())>=0.2*maxlen:
+                        is_insert=True
+                    elif next_start >= end+50 and re.search(flags, word) and len(sentence.strip())>=0.3*maxlen:
+                        is_insert=True
+                    elif re.search(flags, word) and len(sentence.strip())>=maxlen*0.5:
+                        is_insert=True
+
+                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.6*maxlen:
                     is_insert=True
 
+                if not is_insert:
+                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*2:
+                        is_insert=True
+                    elif  self.subtitle_type==0 and len(sentence.strip())>=maxlen*2.8:
+                        is_insert=True
 
                 if not is_insert:
                     continue
-
-
+                # print(f'{sentence=}')
                 tmp = {
                     "line": len(new_data) + 1,
                     "start_time": sentence_start,
@@ -251,7 +296,7 @@ class BaseRecogn(BaseCon):
                 tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
                 tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
-
+        # print(f'\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{new_data=}')
         return new_data
 
     # True 退出

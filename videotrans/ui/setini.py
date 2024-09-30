@@ -65,6 +65,7 @@ class Ui_setini(object):
             Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
             with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings,ensure_ascii=False))
+                f.flush()
 
 
     def setupUi(self, setini):
@@ -136,8 +137,7 @@ class Ui_setini(object):
                 "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
                 "fontbordercolor": "设置字体边框颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
                 "subtitle_bottom": "字幕默认位于视频底部，此处可设置大于0的数值，代表字幕上移多少距离，注意最大不可大于(视频高度-20),也就是要保留至少20的高度用于显示字幕，否则字幕将不可见",
-                "cjk_len": "中日韩硬字幕时一行长度字符个数，多于这个将换行",
-                "other_len": "其他语言硬字幕时换行长度，多于这个字符数量将换行",
+
             },
             "trans": {
                 "trans_thread": "同时翻译的字幕条数",
@@ -163,6 +163,8 @@ class Ui_setini(object):
             },
             "whisper": {
                 "rephrase":"faster/openai-whisper识别后重新断句",
+                "cjk_len": "中日韩一行长度字符个数，多于这个将换行,硬字幕换行和重新断句的主要依据",
+                "other_len": "其他语言一行长度，多于这个字符数量将换行,硬字幕换行和重新断句的主要依据",
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
                 "whisper_threads": "faster模式下，字幕识别时，cpu进程数",
@@ -250,8 +252,8 @@ class Ui_setini(object):
             "fontcolor": "硬字幕文字颜色",
             "fontbordercolor": "硬字幕文字边框颜色",
             "subtitle_bottom": "硬字幕上移距离",
-            "cjk_len": "中日韩硬字幕一行字符数",
-            "other_len": "其他语言硬字幕行字符数",
+            "cjk_len": "中日韩一行字幕字符数",
+            "other_len": "其他语言一行字幕字符数",
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
@@ -340,8 +342,6 @@ class Ui_setini(object):
                     "fontcolor": "Set the font color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
                     "fontbordercolor": "Set the font border color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
                     "subtitle_bottom": "Subtitles are by default located at the bottom of the video, here you can set a value greater than 0, representing how much the subtitles should move up, note that the maximum value should not exceed (video height - 20), at least 20 height must be reserved for subtitles, otherwise the subtitles will not be visible",
-                    "cjk_len": "Number of characters per line for CJK hard subtitles, will wrap if exceeding this length",
-                    "other_len": "Wrap length for other languages' hard subtitles, will wrap if exceeding this number of characters"
                 },
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
@@ -366,6 +366,8 @@ class Ui_setini(object):
                 },
                 "whisper": {
                     "rephrase":"faster/openai-whisper rephrase",
+                    "cjk_len": "CJK line length characters, more than this will be line breaks, the main basis for line breaks and re-breaks in hard subtitles.",
+                    "other_len": "Other languages have a line length above which line breaks occur, the main basis for line breaks and re-breaks in hard subtitles.",
                     "model_list": "Model names list for faster mode and openai mode, separated by commas",
                     "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
                     "whisper_threads": "Number of CPU processes for subtitle recognition in faster mode",
@@ -466,8 +468,8 @@ class Ui_setini(object):
                 "fontcolor": "Font Color",
                 "fontbordercolor": "Font Border Color",
                 "subtitle_bottom": "Subtitle Vertical Offset",
-                "cjk_len": "CJK Hard Subtitle Line Length",
-                "other_len": "Other Language Hard Subtitle Line Length",
+                "cjk_len": "CJK Subtitle Line Length",
+                "other_len": "Other Language Subtitle Line Length",
                 "zh_hant_s": "Traditional to Simplified Chinese Conversion",
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",

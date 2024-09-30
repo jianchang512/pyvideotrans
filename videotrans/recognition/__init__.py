@@ -17,8 +17,8 @@ OPENAI_API = 6
 STT_API = 7
 
 RECOGN_NAME_LIST = [
-    config.uilanglist['faster model'],
-    config.uilanglist['openai model'],
+    'faster-whisper本地' if config.defaulelang == 'zh' else 'faster-whisper',
+    'openai-whisper本地' if config.defaulelang == 'zh' else 'openai-whisper',
     "Google识别api" if config.defaulelang == 'zh' else "Google Speech API",
     "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese",
     "豆包模型识别" if config.defaulelang == 'zh' else "Doubao",

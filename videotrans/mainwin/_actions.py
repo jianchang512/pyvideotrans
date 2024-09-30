@@ -135,7 +135,9 @@ class WinAction(WinActionSub):
 
         if config.params['recogn_type'] > 1:
             self.main.model_name.setDisabled(True)
+            self.main.model_name_help.setDisabled(True)
         else:
+            self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.check_model_name(self.main.model_name.currentText())
         if config.params['recogn_type']>1:
@@ -630,6 +632,9 @@ class WinAction(WinActionSub):
                 # 按钮设为暂停
                 if it['uuid'] in self.processbtns:
                     self.processbtns[it['uuid']].setPause()
+            self.set_djs_timeout()
+            self.main.stop_djs.hide()
+            self.main.continue_compos.hide()
         for it in self.obj_list:
             if it['uuid'] in config.uuid_logs_queue:
                 del config.uuid_logs_queue[it['uuid']]
@@ -712,7 +717,7 @@ class WinAction(WinActionSub):
         self.main.stop_djs.hide()
         self.main.continue_compos.setDisabled(True)
         txt = self.main.subtitle_area.toPlainText().strip()
-        txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','), txt, re.S | re.M)
+        # txt = re.sub(r':\d+[\.\,]\d+', lambda m: m.group().replace('.', ','), txt, re.S | re.M)
         config.task_countdown = 0
         if not txt:
             return
@@ -722,6 +727,7 @@ class WinAction(WinActionSub):
             # 不是批量才允许更新字幕
             with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
                 f.write(txt)
+                f.flush()
         if self.edit_subtitle_type == 'edit_subtitle_source':
             self.main.subtitle_area.clear()
         return True

@@ -21,6 +21,7 @@ def openwin():
 
         with Path(tools.get_prompt_file('azure')).open('w', encoding='utf-8') as f:
             f.write(template)
+            f.flush()
         config.getset_params(config.params)
 
         winobj.close()

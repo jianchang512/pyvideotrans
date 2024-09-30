@@ -177,6 +177,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
+        
+        if config.params['recogn_type'] > 1:
+            self.model_name_help.setVisible(False)
+        else:
+            self.model_name_help.setCursor(Qt.PointingHandCursor)
+            self.model_name_help.clicked.connect(self.win_action.show_model_help)
+            
 
 
 
@@ -294,7 +301,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def start_subform(self):
-        # 打开工具箱
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
             QMessageBox.critical(self, config.transobj['anerror'], config.transobj['installffmpeg'])
             self.startbtn.setText(config.transobj['installffmpeg'])
@@ -384,7 +390,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         # 在关闭窗口前执行的操作
         config.exit_soft = True
+        config.current_status='stop'
         self.hide()
+        print('等待所有进程退出...')
+        time.sleep(2)
         from videotrans.util import tools
         tools._unlink_tmp()
         try:
@@ -397,7 +406,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tools.kill_ffmpeg_processes()
         except Exception:
             pass
-        print('等待所有进程退出...')
-        time.sleep(5)
+
+        time.sleep(3)
         tools._unlink_tmp()
         event.accept()

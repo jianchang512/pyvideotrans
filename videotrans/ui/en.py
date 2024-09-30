@@ -240,6 +240,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.layout_model_name = QtWidgets.QGridLayout()
         self.layout_model_name.setObjectName("layout_model_name")
+        
+        reglabel=QtWidgets.QLabel(self.layoutWidget)
+        reglabel.setText('语音识别' if config.defaulelang=='zh' else 'SpeechRecognition')
+        self.layout_model_name.addWidget(reglabel, 0, 0, 1, 1)
 
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
@@ -249,9 +253,16 @@ class Ui_MainWindow(object):
         self.recogn_type.setSizePolicy(sizePolicy)
         self.recogn_type.setMinimumSize(QtCore.QSize(0, 30))
         self.recogn_type.setObjectName("label_5")
-        self.layout_model_name.addWidget(self.recogn_type, 0, 0, 1, 1)
+        self.layout_model_name.addWidget(self.recogn_type, 0, 1, 1, 1)
         self.recogn_type.addItems(RECOGN_NAME_LIST)
         self.recogn_type.setToolTip(config.uilanglist['model_type_tips'])
+        
+        self.model_name_help=QtWidgets.QPushButton(self.layoutWidget)
+        self.model_name_help.setStyleSheet("""background-color:transparent""")
+        self.model_name_help.setText('模型!' if config.defaulelang=='zh' else 'Model!')
+        self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang=='zh' else 'Click for model description')
+        self.model_name_help.setMaximumSize(QtCore.QSize(50, 20))
+        self.layout_model_name.addWidget(self.model_name_help, 0, 2, 1, 1)
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
@@ -261,16 +272,21 @@ class Ui_MainWindow(object):
         self.model_name.setSizePolicy(sizePolicy)
         self.model_name.setMinimumSize(QtCore.QSize(180, 30))
         self.model_name.setObjectName("model_name")
-        self.layout_model_name.addWidget(self.model_name, 0, 1, 1, 1)
+        self.layout_model_name.addWidget(self.model_name, 0, 3, 1, 1)
+        
+
+        
         self.split_type = QtWidgets.QComboBox(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.split_type.sizePolicy().hasHeightForWidth())
         self.split_type.setSizePolicy(sizePolicy)
-        self.split_type.setMinimumSize(QtCore.QSize(100, 30))
+        self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
-        self.layout_model_name.addWidget(self.split_type, 0, 2, 1, 1)
+        self.layout_model_name.addWidget(self.split_type, 0, 4, 1, 1)
+        
+        
         self.horizontalLayout_4.addLayout(self.layout_model_name)
         self.layout_subtitle_type = QtWidgets.QFormLayout()
         self.layout_subtitle_type.setFormAlignment(
@@ -803,6 +819,7 @@ class Ui_MainWindow(object):
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
         self.label_9.setText(config.uilanglist.get("Translate channel"))
+        self.translate_type.setToolTip('翻译字幕文字时使用的翻译渠道' if config.defaulelang=='zh' else 'Translation channels used in translating subtitle text')
         self.label.setText(config.uilanglist.get("Proxy"))
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
