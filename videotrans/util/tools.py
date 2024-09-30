@@ -612,6 +612,7 @@ def create_concat_txt(filelist, concat_txt=None):
         raise Exception(f'file list no vail')
     with Path(concat_txt).open('w',encoding='utf-8') as f:
         f.write("\n".join(txt))
+        f.flush()
     return concat_txt
 
 
@@ -787,20 +788,34 @@ def format_srt(content):
 
 # 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
-    if is_file:
-
+    def _readfile(file):
+        content=""
         try:
-            content = Path(srtfile).read_text(encoding='utf-8').strip()
+            with open(file,'r',encoding='utf-8') as f:
+                content=f.read().strip()
         except Exception as e:
             try:
-                content = Path(srtfile).read_text(encoding='gbk').strip()
+                with open(file,'r', encoding='gbk') as f:
+                    content = f.read().strip()
             except Exception as e:
-                raise Exception(f'get srtfile error:{str(e)}')
+                config.logger.exception(e,exc_info=True)
+        return content
+
+    content=''
+    if is_file:
+        # 未知bug，srtfile存在却偶发读为空，似乎某处资源未释放，临时措施
+        retry=3
+        while retry>0:
+            content=_readfile(srtfile)
+            if len(content)>0:
+                break
+            time.sleep(2)
+            retry-=1
     else:
         content = srtfile.strip()
 
     if len(content) < 1:
-        raise Exception(f"srt is empty:{srtfile=}")
+        raise Exception(f"srt is empty:{srtfile=},{content=}")
 
     result = format_srt(content)
 
@@ -845,7 +860,7 @@ def srt2ass(srt_file, ass_file, maxlen=40):
 # 将字幕字典列表写入srt文件
 def save_srt(srt_list, srt_file):
     txt = get_srt_from_list(srt_list)
-    with Path(srt_file).open("w", encoding="utf-8") as f:
+    with open(srt_file,"w", encoding="utf-8") as f:
         f.write(txt)
     return True
 
@@ -1399,11 +1414,11 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
-    rule=r'[\[\]\{\}\'\$\`\*\?\"\|]+'
+    rule=r'[\[\]\{\}\$\`\*\?\"\|]'
     if re.search(rule,raw_noextname) or re.search(r'[\s\.]$',raw_noextname):
         # 规范化名字
         raw_noextname=re.sub(rule,'-',raw_noextname)
-        raw_noextname=re.sub(r'[\.\s]$','-',raw_noextname)
+        raw_noextname=re.sub(r'[\.\s ]$','-',raw_noextname)
         
         new_name=f'{raw_dirname}/{raw_noextname}{ext}'
         shutil.copy2(name,new_name)

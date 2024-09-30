@@ -17,6 +17,7 @@ def openwin():
         config.params["gemini_template"] = template
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
+            f.flush()
         config.getset_params(config.params)
         winobj.close()
 

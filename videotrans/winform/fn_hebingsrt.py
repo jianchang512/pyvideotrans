@@ -40,6 +40,7 @@ def openwin():
                     text += "\n\n"
                 with Path(self.result_file).open('w', encoding='utf-8') as f:
                     f.write(text.strip())
+                    f.flush()
                 self.post(type='ok', text=self.result_file)
             except Exception as e:
                 self.post(type='error', text=str(e))

@@ -144,6 +144,7 @@ class DubbingSrt(BaseTask):
                 # 字幕保存到目标文件夹
                 with Path(self.config_params['target_sub'] + "-AlignToAudio.srt").open('w',encoding="utf-8") as f:
                     f.write(srt.strip())
+                    f.flush()
         except Exception as e:
             self.hasend = True
             tools.send_notification(str(e), f'{self.config_params["basename"]}')

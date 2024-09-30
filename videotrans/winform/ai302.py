@@ -60,6 +60,7 @@ def openwin():
 
         with Path(tools.get_prompt_file('ai302')).open('w', encoding='utf-8') as f:
             f.write(template)
+            f.flush()
         config.getset_params(config.params)
         winobj.close()
 

@@ -63,6 +63,7 @@ def openwin():
         template = winobj.chatgpt_template.toPlainText()
         with Path(tools.get_prompt_file('chatgpt')).open('w', encoding='utf-8') as f:
             f.write(template)
+            f.flush()
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key
         config.params["chatgpt_api"] = api

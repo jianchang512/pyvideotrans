@@ -141,6 +141,7 @@ def openwin():
                         srtfile = config.TEMP_HOME + f"/vasrt{time.time()}.srt"
                         with Path(srtfile).open('w', encoding='utf-8') as f:
                             f.write(text)
+                            f.flush()
                         assfile = tools.set_ass_font(srtfile)
                         os.chdir(config.TEMP_HOME)
                         cmd += [

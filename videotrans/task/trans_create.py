@@ -30,7 +30,8 @@ class TransCreate(BaseTask):
         super().__init__(config_params, obj)
         if "app_mode" not in self.config_params:
             self.config_params['app_mode']='biaozhun'
-
+        self.source_srt_list=[]
+        self.target_srt_list=[]
         # 存在添加的背景音乐
         if tools.vail_file(self.config_params['back_audio']):
             self.config_params['background_music'] = Path(self.config_params['back_audio']).as_posix()
@@ -229,6 +230,7 @@ class TransCreate(BaseTask):
             self._save_srt_target(raw_subtitles, self.config_params['source_sub'])
             self._recogn_succeed()
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
+            self.source_srt_list=raw_subtitles
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
@@ -447,20 +449,10 @@ class TransCreate(BaseTask):
     def _tts(self) -> None:
         queue_tts = []
         # 获取字幕 可能之前写入尚未释放，暂停1s等待并重试一次
-        retry=2
-        while 1:
-            retry-=1
-            try:
-                time.sleep(1)
-                subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
-                if len(subs) < 1:
-                    raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
-            except Exception as e:
-                if retry<=0:
-                    raise
-                time.sleep(3)
-            else:
-                break
+        subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
+        if len(subs) < 1:
+            raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
+
         rate = int(str(self.config_params['voice_rate']).replace('%', ''))
         if rate >= 0:
             rate = f"+{rate}%"
@@ -681,6 +673,7 @@ class TransCreate(BaseTask):
                 srt_string += "\n\n"
             with Path(f"{self.config_params['target_dir']}/shuang.srt").open('w', encoding='utf-8') as f:
                 f.write(srt_string.strip())
+                f.flush()
             process_end_subtitle = f"{self.config_params['target_dir']}/shuang.srt"
         elif self.config_params['subtitle_type'] == 1:
             # 单硬字幕，需处理字符数换行
@@ -690,6 +683,7 @@ class TransCreate(BaseTask):
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string)
+                f.flush()
         else:
             # 单软字幕
             process_end_subtitle = self.config_params['target_sub']

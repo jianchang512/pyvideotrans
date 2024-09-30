@@ -19,6 +19,14 @@ from videotrans.util import tools
 
 
 class WinActionSub:
+
+    def show_model_help(self):
+        
+        msg="从 tiny模型 到 base 到 small 到 medium 到 large-v3 模型，识别效果越来越好，但模型体积越来越大，识别速度越来越慢，需要更多CPU/内存/GPU资源。\n默认使用tiny模型，如果想要更好的效果，请使用更大模型\n\n .en 后缀模型和 distil 开头的模型只用于识别英文发音视频\n\n模型下载地址\n https://pyvideotrans.com/model"
+        if config.defaulelang!='zh':
+            msg='From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n\nModel Download Address\n https://pyvideotrans.com/model'
+        QMessageBox.information(self.main, "Help",msg)
+    
     def update_tips(self,text):
         if not self.update_btn:
             self.update_btn = QPushButton()
