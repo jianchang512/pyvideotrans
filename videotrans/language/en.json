@@ -126,7 +126,7 @@
     "whisper_type_all": "Overall",
     "whisper_type_split": "Pre-split",
     "whisper_type_avg": "Equal-division",
-    "fenge_tips": "Overall: The model automatically breaks sentences for the whole audio.\nPre-split: suitable for very large videos, cut into 1-minute clips to recognize and break sentences one by one.\nEqual-division: cut equally according to a fixed number of seconds, each subtitle is of equal length, the length is controlled by interval_split in set.ini.",
+    "fenge_tips": "Overall: The model automatically breaks sentences for the whole audio.\nPre-split: suitable for very large videos, cut into 1-minute clips to recognize and break sentences one by one.\nEqual-division: cut equally according to a fixed number of seconds, each subtitle is of equal length.",
     "processingstatusbar": "Process video:[{var1}] total, [{var2}] waitting",
     "yinsekelong": "Timbre cloning will use github.com/jianchang512/clone-voice. These features will then be used as the voice for dubbing characters, achieving custom dubbing with any desired timbre.",
     "yinsekaifazhong": "Timbre cloning is under development.",

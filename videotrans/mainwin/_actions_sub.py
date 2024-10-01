@@ -57,6 +57,8 @@ class WinActionSub:
 
     # 简单新手模式
     def set_xinshoujandann(self):
+
+        self.main.splitter.setSizes([self.main.width, 0])
         self.main.action_xinshoujandan.setChecked(True)
         self.main.app_mode = 'biaozhun_jd'
         self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
@@ -65,103 +67,133 @@ class WinActionSub:
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
 
-        # 翻译渠道
+        # 仅保存视频行
+        self.main.only_video.setChecked(False)
+        self.main.only_video.hide()
+
+        # 翻译
         self.main.translate_type.setCurrentIndex(1)
-        self.hide_show_element(self.main.layout_translate_type, False)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, False)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
+        self.main.label_9.hide()
+        self.main.translate_type.hide()
+        self.main.label_2.show()
+        self.main.source_language.show()
+        self.main.label_3.show()
+        self.main.target_language.show()
+        self.main.label.hide()
+        self.main.proxy.hide()
+
         # 配音角色
         self.main.tts_type.setCurrentIndex(EDGE_TTS)
-        self.hide_show_element(self.main.layout_voice_role, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, False)
-        # 试听按钮
+        self.main.tts_text.hide()
+        self.main.tts_type.hide()
+        self.main.label_4.show()
+        self.main.voice_role.show()
         self.main.listen_btn.hide()
-        # 语音模型
+        self.main.volume_label.hide()
+        self.main.volume_rate.hide()
+        self.main.pitch_label.hide()
+        self.main.pitch_rate.hide()
+
+
+        # 语音识别行
         self.main.split_type.setCurrentIndex(0)
         self.main.model_name.setCurrentIndex(0)
+        self.main.reglabel.hide()
+        self.main.recogn_type.hide()
+        self.main.model_name_help.hide()
+        self.main.model_name.hide()
+        self.main.split_type.hide()
         self.main.subtitle_type.setCurrentIndex(1)
-        self.hide_show_element(self.main.layout_model_name, False)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, False)
-        self.hide_show_element(self.main.edge_volume_layout, False)
-        self.hide_show_element(self.main.layout_voice_rate, False)
+        self.main.label_8.hide()
+        self.main.subtitle_type.hide()
+
+
+
+
+        # 字幕对齐行
+        self.main.label_6.hide()
+        self.main.voice_rate.hide()
+        self.main.append_video.setChecked(True)
+        self.main.append_video.hide()
         self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.hide()
         self.main.video_autorate.setChecked(True)
         self.main.video_autorate.hide()
-        self.main.append_video.setChecked(True)
-        self.main.append_video.hide()
-        self.main.splitter.setSizes([self.main.width, 0])
-        self.hide_show_element(self.main.subtitle_layout, False)
-        # 视频自动降速
-        self.main.is_separate.setDisabled(True)
-        self.main.addbackbtn.setDisabled(True)
-        self.main.only_video.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
+        self.main.is_separate.setChecked(False)
         self.main.is_separate.hide()
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
-        self.main.only_video.hide()
-        # cuda
         self.main.enable_cuda.setChecked(False)
         self.main.enable_cuda.hide()
+        # 添加背景行
+        self.main.addbackbtn.hide()
+        self.main.back_audio.hide()
+
 
     # 启用标准模式
     def set_biaozhun(self):
         self.main.action_biaozhun.setChecked(True)
         self.main.app_mode = 'biaozhun'
-        self.main.show_tips.setText("自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕")
+        self.main.show_tips.setText("自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕" if config.defaulelang=='zh' else 'Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.')
         self.main.startbtn.setText(config.transobj['kaishichuli'])
         self.main.action_biaozhun.setChecked(True)
         self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
 
-        # 翻译渠道
-        self.hide_show_element(self.main.layout_translate_type, True)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, True)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, True)
-        # 配音角色
-        self.hide_show_element(self.main.layout_voice_role, True)
-        # 试听按钮
-        # 显示音量 音调变化
-        self.hide_show_element(self.main.edge_volume_layout, True)
-        self.main.listen_btn.show()
-        # 语音模型
-        self.hide_show_element(self.main.layout_model_name, True)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, True)
-        # 配音语速
-        self.hide_show_element(self.main.layout_voice_rate, True)
-        self.main.is_separate.setDisabled(False)
-        self.main.is_separate.show()
-        self.main.addbackbtn.setDisabled(False)
+        # 仅保存视频行
         self.main.only_video.setDisabled(False)
-        self.main.back_audio.setReadOnly(False)
-        self.main.video_autorate.setDisabled(False)
-        self.main.voice_autorate.setDisabled(False)
+        self.main.only_video.show()
+
+        # 翻译
+        self.main.translate_type.setCurrentIndex(1)
+        self.main.label_9.show()
+        self.main.translate_type.show()
+        self.main.label_2.show()
+        self.main.source_language.show()
+        self.main.label_3.show()
+        self.main.target_language.show()
+        self.main.label.show()
+        self.main.proxy.show()
+
+        # 配音角色
+        self.main.tts_type.setCurrentIndex(EDGE_TTS)
+        self.main.tts_text.show()
+        self.main.tts_type.show()
+        self.main.label_4.show()
+        self.main.voice_role.show()
+        self.main.listen_btn.show()
+        self.main.volume_label.show()
+        self.main.volume_rate.show()
+        self.main.pitch_label.show()
+        self.main.pitch_rate.show()
+
+        # 语音识别行
+        self.main.split_type.setCurrentIndex(0)
+        self.main.model_name.setCurrentIndex(0)
+        self.main.reglabel.show()
+        self.main.recogn_type.show()
+        self.main.model_name_help.show()
+        self.main.model_name.show()
+        self.main.split_type.show()
+        self.main.subtitle_type.setCurrentIndex(1)
+        self.main.label_8.show()
+        self.main.subtitle_type.show()
+
+        # 字幕对齐行
+        self.main.voice_rate.show()
+        self.main.label_6.show()
+        self.main.append_video.setChecked(True)
+        self.main.append_video.show()
+        self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.show()
-        self.main.append_video.setDisabled(False)
-        self.main.append_video.setDisabled(False)
-        self.hide_show_element(self.main.subtitle_layout, True)
-        self.main.splitter.setSizes([self.main.width - 400, 400])
+        self.main.video_autorate.setChecked(True)
+        self.main.video_autorate.show()
+        self.main.is_separate.setDisabled(False)
+        self.main.is_separate.setChecked(False)
+        self.main.is_separate.show()
+        self.main.enable_cuda.setChecked(False)
+        self.main.enable_cuda.show()
+        # 添加背景行
         self.main.addbackbtn.show()
         self.main.back_audio.show()
-        self.main.only_video.show()
-        self.main.video_autorate.show()
-        self.main.append_video.show()
-        # cuda
-        self.main.enable_cuda.show()
 
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
@@ -173,48 +205,63 @@ class WinActionSub:
         self.main.action_xinshoujandan.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
 
-        self.hide_show_element(self.main.subtitle_layout, True)
-        self.main.splitter.setSizes([self.main.width - 400, 400])
-
-        # 隐藏音量 音调变化
-        self.hide_show_element(self.main.edge_volume_layout, False)
-        # 翻译渠道
-        self.hide_show_element(self.main.layout_translate_type, True)
-        # 代理
-        self.hide_show_element(self.main.layout_proxy, True)
-        # 原始语言
-        self.hide_show_element(self.main.layout_source_language, True)
-        # 目标语言
-        self.hide_show_element(self.main.layout_target_language, True)
-        # tts类型
-        self.hide_show_element(self.main.layout_tts_type, False)
-        # 配音角色
-        self.hide_show_element(self.main.layout_voice_role, False)
-        # 试听按钮
-        self.main.listen_btn.hide()
-        # 语音模型
-        self.hide_show_element(self.main.layout_model_name, True)
-        # 字幕类型
-        self.hide_show_element(self.main.layout_subtitle_type, False)
-        # 配音语速
-        self.hide_show_element(self.main.layout_voice_rate, False)
-        self.main.is_separate.setDisabled(True)
-        self.main.addbackbtn.setDisabled(True)
-        self.main.only_video.setDisabled(True)
-        self.main.back_audio.setReadOnly(True)
-        self.main.video_autorate.setDisabled(True)
-        self.main.voice_autorate.setDisabled(True)
-        self.main.append_video.setDisabled(True)
-
-        self.main.append_video.hide()
-        self.main.voice_autorate.hide()
-        self.main.is_separate.hide()
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
+        # 仅保存视频行
+        self.main.only_video.setChecked(False)
         self.main.only_video.hide()
+
+        # 翻译
+        self.main.translate_type.setCurrentIndex(1)
+        self.main.label_9.show()
+        self.main.translate_type.show()
+        self.main.label_2.show()
+        self.main.source_language.show()
+        self.main.label_3.show()
+        self.main.target_language.show()
+        self.main.label.show()
+        self.main.proxy.show()
+
+        # 配音角色
+        self.main.tts_type.setCurrentIndex(EDGE_TTS)
+        self.main.tts_text.hide()
+        self.main.tts_type.hide()
+        self.main.label_4.hide()
+        self.main.voice_role.hide()
+        self.main.listen_btn.hide()
+        self.main.volume_label.hide()
+        self.main.volume_rate.hide()
+        self.main.pitch_label.hide()
+        self.main.pitch_rate.hide()
+
+        # 语音识别行
+        self.main.split_type.setCurrentIndex(0)
+        self.main.model_name.setCurrentIndex(0)
+        self.main.reglabel.show()
+        self.main.recogn_type.show()
+        self.main.model_name_help.show()
+        self.main.model_name.show()
+        self.main.split_type.show()
+        self.main.subtitle_type.setCurrentIndex(1)
+        self.main.label_8.hide()
+        self.main.subtitle_type.hide()
+
+        # 字幕对齐行
+        self.main.label_6.hide()
+        self.main.voice_rate.hide()
+        self.main.append_video.setChecked(True)
+        self.main.append_video.hide()
+        self.main.voice_autorate.setChecked(True)
+        self.main.voice_autorate.hide()
+        self.main.video_autorate.setChecked(True)
         self.main.video_autorate.hide()
-        # cuda
+
+        self.main.is_separate.setChecked(False)
+        self.main.is_separate.hide()
+        self.main.enable_cuda.setChecked(False)
         self.main.enable_cuda.show()
+        # 添加背景行
+        self.main.addbackbtn.hide()
+        self.main.back_audio.setReadOnly(True)
+        self.main.back_audio.hide()
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
