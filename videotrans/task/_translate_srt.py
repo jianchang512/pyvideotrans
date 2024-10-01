@@ -67,6 +67,8 @@ class TranslateSrt(BaseTask):
                 target_language_name=self.config_params['target_language'],
                 uuid=self.uuid,
                 source_code=self.config_params['source_code'])
+            if self._exit():
+                return
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise Exception('Is emtpy '+self.config_params['basename'])
             if self.out_format==0:
@@ -95,6 +97,8 @@ class TranslateSrt(BaseTask):
             raise
 
     def task_done(self):
+        if self._exit():
+            return
         self.hasend = True
         self.precent = 100
         if Path(self.config_params['target_sub']).is_file():
@@ -104,6 +108,6 @@ class TranslateSrt(BaseTask):
             Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
 
     def _exit(self):
-        if config.exit_soft or not config.box_trans:
+        if config.exit_soft or config.box_trans!='ing':
             return True
         return False

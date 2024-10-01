@@ -9,7 +9,7 @@ from PySide6.QtCore import QUrl, QThread, Signal
 from PySide6.QtGui import QDesktopServices, QTextCursor
 from PySide6.QtWidgets import QMessageBox
 
-from videotrans import translator
+from videotrans import translator, recognition
 from videotrans.component.component import DropButton
 from videotrans.configure import config
 from videotrans.recognition import FASTER_WHISPER, OPENAI_WHISPER, is_allow_lang, is_input_api
@@ -68,7 +68,7 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
-        if winobj.has_done:
+        if winobj.has_done or config.box_recogn!='ing':
             return
         if isinstance(d, str):
             d = json.loads(d)
@@ -98,10 +98,24 @@ def openwin():
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.shibie_startbtn.setText(config.transobj["zhixingwc"])
             winobj.shibie_startbtn.setDisabled(False)
+            winobj.shibie_stop.setDisabled(True)
             winobj.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
+
+    def check_model_name(recogn_type,model):
+        res = recognition.check_model_name(
+            recogn_type=recogn_type,
+            name=model,
+            source_language_isLast=winobj.shibie_language.currentIndex() == winobj.shibie_language.count() - 1,
+            source_language_currentText=winobj.shibie_language.currentText()
+        )
+        if res == 'download':
+            return fn_downmodel.openwin(model_name=model, recogn_type=recogn_type)
+        if res is not True:
+            return QMessageBox.critical(winobj, config.transobj['anerror'], res)
+        return True
 
     def shibie_start_fun():
         winobj.has_done = False
@@ -109,33 +123,18 @@ def openwin():
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
+
         if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
             QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return False
-        
-        if recogn_type <2 and model.endswith('.end') and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
-            QMessageBox.critical(winobj, config.transobj['anerror'], '.en结尾的模型不可用于自动检测' if config.defaulelang=='zh' else 'Models ending in .en may not be used for automated detection')
-            return False
 
-
+        if check_model_name(recogn_type,model) is not True:
+            return
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
-
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
             return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         config.transobj["nocudnn"])
-
-        if recogn_type == FASTER_WHISPER and model.find('/') == -1:
-            file = f'{config.ROOT_DIR}/models/models--Systran--faster-whisper-{model}/snapshots'
-            if model.startswith('distil'):
-                file = f'{config.ROOT_DIR}/models/models--Systran--faster-{model}/snapshots'
-            if not os.path.exists(file):
-                fn_downmodel.openwin(model_name=model, recogn_type=FASTER_WHISPER)
-                return
-
-        if recogn_type == OPENAI_WHISPER and not Path(config.ROOT_DIR + f'/models/{model}.pt').exists():
-            fn_downmodel.openwin(model_name=model, recogn_type=OPENAI_WHISPER)
-            return
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
@@ -155,6 +154,7 @@ def openwin():
         winobj.shibie_opendir.setDisabled(False)
         try:
             winobj.shibie_startbtn.setDisabled(True)
+            winobj.shibie_stop.setDisabled(False)
             winobj.loglabel.setText('')
             config.box_recogn = 'ing'
 
@@ -218,6 +218,18 @@ def openwin():
         is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang_res is not True:
             QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+        if check_model_name(recogn_type,winobj.shibie_model.currentText()) is not True:
+            return
+
+
+    def stop_recogn():
+        config.box_recogn = 'stop'
+        winobj.has_done = True
+        winobj.loglabel.setText('Stoped')
+        winobj.shibie_startbtn.setText(config.transobj["zhixingwc"])
+        winobj.shibie_startbtn.setDisabled(False)
+        winobj.shibie_stop.setDisabled(True)
+        winobj.shibie_dropbtn.setText(config.transobj['xuanzeyinshipin'])
 
     from videotrans.component import Recognform
     try:
@@ -242,9 +254,11 @@ def openwin():
         winobj.shibie_language.addItems(config.langnamelist)
         winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
+        winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.shibie_recogn_type.currentIndexChanged.connect(recogn_type_change)
+        winobj.shibie_model.currentIndexChanged.connect(recogn_type_change)
 
         winobj.show()
     except Exception as e:

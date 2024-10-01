@@ -88,8 +88,7 @@ class SpeechToText(BaseTask):
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise Exception(self.config_params['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.config_params['detect_language']))
             self._save_srt_target(raw_subtitles, self.config_params['target_sub'])
-            self._signal(text=f"{self.config_params['name']}", type='succeed')
-            tools.send_notification(config.transobj['Succeed'], f"{self.config_params['basename']}")
+
             Path(self.config_params['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
@@ -98,10 +97,15 @@ class SpeechToText(BaseTask):
             raise
 
     def task_done(self):
+        if self._exit():
+            return
+        self._signal(text=f"{self.config_params['name']}", type='succeed')
+        tools.send_notification(config.transobj['Succeed'], f"{self.config_params['basename']}")
+
         if 'shound_del_name' in self.config_params:
             Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
 
     def _exit(self):
-        if config.exit_soft or not config.box_recogn:
+        if config.exit_soft or config.box_recogn !='ing':
             return True
         return False

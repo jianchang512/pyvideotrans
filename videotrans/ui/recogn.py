@@ -113,7 +113,15 @@ class Ui_recogn(object):
         self.shibie_startbtn.setObjectName("shibie_startbtn")
         self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
 
+        self.shibie_stop = QtWidgets.QPushButton()
+        self.shibie_stop.setFixedWidth(80)
+        self.shibie_stop.setDisabled(True)
+        self.shibie_stop.setText("停止" if config.defaulelang=='zh' else 'Stop')
+        self.shibie_stop.setCursor(Qt.PointingHandCursor)
+
+
         self.horizontalLayout_8.addWidget(self.shibie_startbtn)
+        self.horizontalLayout_8.addWidget(self.shibie_stop)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
 
         self.loglabel = QtWidgets.QLabel()

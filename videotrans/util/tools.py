@@ -605,7 +605,7 @@ def m4a2wav(m4afile, wavfile):
 def create_concat_txt(filelist, concat_txt=None):
     txt = []
     for it in filelist:
-        if Path(it).exists() and Path(it).stat().st_size == 0:
+        if not Path(it).exists() or Path(it).stat().st_size == 0:
             continue
         txt.append(f"file '{os.path.basename(it)}'")
     if len(txt) < 1:

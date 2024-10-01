@@ -52,6 +52,7 @@ MODELS_DOWNLOAD = {
         "large-v1": "https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large-v1.pt",
         "large-v2": "https://openaipublic.azureedge.net/main/whisper/models/81f7c96c852ee8fc832187b0132e569d6c3065a3252ed18e56effd0b6a73e524/large-v2.pt",
         "large-v3": "https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt",
+        "large-v3-turbo": "https://openaipublic.azureedge.net/main/whisper/models/aff26ae408abcba5fbf8813c21e62b0941638c5f6eebfb145be0c9839262a19a/large-v3-turbo.pt",
     },
     "faster": {
         "tiny": "https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7z",
@@ -246,9 +247,7 @@ def parse_init():
         "azure_model": "gpt-4o,gpt-4,gpt-35-turbo",
         "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat",
         "zijiehuoshan_model": "",
-        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,"
-                      "distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,"
-                      "distil-whisper-large-v3",
+        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "audio_rate": 3,
         "video_rate": 20,
         "remove_silence": False,
@@ -341,13 +340,15 @@ def parse_init():
                 _settings[key] = False
             else:
                 _settings[key] = value.lower() if value else ""
+        if _settings['model_list'].find('large-v3-turbo') == -1:
+            _settings['model_list']=_settings['model_list'].replace(',large-v3,',',large-v3,large-v3-turbo,')
+        if _settings['gemini_model'].find('gemini') == -1:
+            _settings["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         default.update(_settings)
         default["ai302tts_models"] = "tts-1,tts-1-hd,azure,doubao"
         if not default['homedir']:
             default['homedir'] = _defaulthomedir
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)
-        if default['gemini_model'].find('gemini') == -1:
-            default["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default,ensure_ascii=False))
         return default

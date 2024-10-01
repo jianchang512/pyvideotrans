@@ -1,5 +1,7 @@
+import json
 import os
 import time
+from pathlib import Path
 from typing import Union, List
 
 import openai
@@ -96,7 +98,10 @@ class BaseTrans(BaseCon):
                     continue
 
                 try:
-                    result = self._item_task(it)
+                    result=self._get_cache(it)
+                    if not result:
+                        result = self._item_task(it)
+                        self._set_cache(it,result)
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
                     # 非srt直接break
@@ -121,7 +126,10 @@ class BaseTrans(BaseCon):
                         sep_res = []
                         for it_n in it:
                             time.sleep(self.wait_sec)
-                            t = self._item_task(it_n.strip())
+                            t=self._get_cache(it_n)
+                            if not t:
+                                t = self._item_task(it_n)
+                                self._set_cache(it_n,t)
                             self._signal(
                                 text=t + "\n",
                                 type='subtitle')
@@ -138,6 +146,8 @@ class BaseTrans(BaseCon):
                     if len(sep_res) < len(it):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
+
+
                 except ValueError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -218,17 +228,19 @@ class BaseTrans(BaseCon):
 
                 try:
                     srt_str="\n\n".join([ f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
-
-                    result = self._item_task(srt_str)
-
-                    if not srt_str.strip():
-                        raise Exception('无返回翻译结果' if config.defaulelang=='zh' else 'Translate result is empty')
+                    result=self._get_cache(srt_str)
+                    if not result:
+                        result = self._item_task(srt_str)
+                        if not result.strip():
+                            raise Exception('无返回翻译结果' if config.defaulelang=='zh' else 'Translate result is empty')
+                        self._set_cache(it,result)
 
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.1
 
                     self._signal( text=result, type='subtitle')
                     result_srt_str_list.append(result)
+
                 except ValueError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -270,6 +282,23 @@ class BaseTrans(BaseCon):
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')
-
-
         return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list),is_file=False)
+
+    def _set_cache(self,it,res_str):
+        if not res_str.strip():
+            return
+        key_cache = self._get_key(it)
+        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
+        if not Path(config.TEMP_DIR + f'/translate_cache').is_dir():
+            Path(config.TEMP_DIR + f'/translate_cache').mkdir(parents=True,exist_ok=True)
+        Path(file_cache).write_text(res_str,encoding='utf-8')
+
+    def _get_cache(self,it):
+        key_cache=self._get_key(it)
+        file_cache=config.TEMP_DIR+f'/translate_cache/{key_cache}.txt'
+        if Path(file_cache).is_file():
+            return Path(file_cache).read_text(encoding='utf-8')
+        return None
+
+    def _get_key(self,it):
+        return tools.get_md5(f'{self.__class__.__name__}-{self.source_code}-{self.target_language}-{it if isinstance(it,str) else json.dumps(it)}')

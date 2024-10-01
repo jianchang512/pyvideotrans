@@ -66,7 +66,7 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
-        if winobj.has_done:
+        if winobj.has_done or config.box_trans!='ing':
             return
         d = json.loads(d)
         if d['type']!='error':
@@ -102,6 +102,7 @@ def openwin():
             winobj.daochu.setDisabled(False)
             winobj.fanyi_start.setDisabled(False)
             config.box_trans = 'stop'
+            winobj.fanyi_stop.setDisabled(True)
 
     def fanyi_import_fun():
         fnames, _ = QFileDialog.getOpenFileNames(winobj,
@@ -149,6 +150,7 @@ def openwin():
 
         config.box_trans = 'ing'
 
+
         video_list = [tools.format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
@@ -169,6 +171,7 @@ def openwin():
         th.start()
 
         winobj.fanyi_start.setDisabled(True)
+        winobj.fanyi_stop.setDisabled(False)
         winobj.fanyi_start.setText(config.transobj["running"])
         winobj.fanyi_targettext.clear()
         winobj.daochu.setDisabled(True)
@@ -207,6 +210,16 @@ def openwin():
         update_target_language(is_google=idx in [translator.GOOGLE_INDEX, translator.FREEGOOGLE_INDEX])
         target_lang_change(winobj.fanyi_target.currentText())
 
+    def pause_trans():
+        config.box_trans='stop'
+        winobj.has_done = True
+        winobj.loglabel.setText('Stoped')
+        winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'Start operate')
+        winobj.fanyi_import.setDisabled(False)
+        winobj.daochu.setDisabled(False)
+        winobj.fanyi_start.setDisabled(False)
+        winobj.fanyi_stop.setDisabled(True)
+
     from videotrans.component import Fanyisrt
     try:
         winobj = config.child_forms.get('fanyiform')
@@ -224,6 +237,7 @@ def openwin():
         winobj.fanyi_source.addItems(['-'] + config.langnamelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
+        winobj.fanyi_stop.clicked.connect(pause_trans)
         winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
 
         winobj.fanyi_sourcetext = QPlainTextEdit()

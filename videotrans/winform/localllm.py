@@ -1,4 +1,6 @@
 import json
+import os
+import re
 from pathlib import Path
 
 from PySide6 import QtWidgets
@@ -18,9 +20,9 @@ def openwin():
 
         def run(self):
             try:
-                raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
+                raw = "你好啊我的朋友" if config.defaulelang == 'zh' else "hello,my friend"
                 text = translator.run(translate_type=translator.LOCALLLM_INDEX, text_list=raw,
-                                      target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
+                                      target_language_name="en" if config.defaulelang == 'zh' else "zh", is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))
@@ -61,6 +63,13 @@ def openwin():
 
         config.params["localllm_key"] = key
         config.params["localllm_api"] = api
+        # try:
+        #     m=re.search(r'/((?:\d+\.){3}\d+):',api)
+        #     if m:
+        #         os.environ['OLLAMA_HOST']=m.group(1)
+        #         os.environ['OLLAMA_ORIGINS']='*'
+        # except:
+        #     pass
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
         with Path(tools.get_prompt_file('localllm')).open('w', encoding='utf-8') as f:

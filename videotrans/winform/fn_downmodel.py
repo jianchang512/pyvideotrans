@@ -3,6 +3,9 @@ from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER
 
 
 # 视频 字幕 音频 合并
+from videotrans.util import tools
+
+
 def openwin(model_name=None, recogn_type=None):
     if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return
@@ -14,7 +17,7 @@ def openwin(model_name=None, recogn_type=None):
         if recogn_type == OPENAI_WHISPER:
             name = f'OpenAI Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['openai'][model_name]
-            text_help = f'请下载{model_name}.pt 后将该文件复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {model_name}.pt and copy the file to {config.ROOT_DIR}/models folder.'
+            text_help = f'请下载  {model_name}.pt 后将该文件复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {model_name}.pt and copy the file to {config.ROOT_DIR}/models folder.'
         else:
             name = f'Faster Whisper:  {model_name}'
             url = config.MODELS_DOWNLOAD['faster'][model_name]
@@ -26,6 +29,7 @@ def openwin(model_name=None, recogn_type=None):
         winobj.label_name.setText(name)
         winobj.url.setText(url)
         winobj.text_help.setPlainText(text_help)
+        winobj.down_btn.clicked.connect(lambda:tools.open_url(url=url))
         winobj.show()
     except Exception as e:
         print(e)

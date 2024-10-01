@@ -1,4 +1,5 @@
 import copy
+import json
 import time
 from pathlib import Path
 from typing import Dict
@@ -95,9 +96,7 @@ class DubbingSrt(BaseTask):
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = self.config_params['voice_role']
             # 要保存到的文件
-            filename = self.config_params['cache_folder'] + "/" + tools.get_md5(
-                f'{i}-{voice_role}-{time.time()}') + ".mp3"
-            queue_tts.append({
+            tmp_dict={
                 "text": it['text'],
                 "role": voice_role,
                 "start_time": it['start_time'],
@@ -107,8 +106,11 @@ class DubbingSrt(BaseTask):
                 "endraw": it['endraw'],
                 "volume": self.config_params['volume'],
                 "pitch": self.config_params['pitch'],
-                "tts_type": int(self.config_params['tts_type']),
-                "filename": filename})
+                "tts_type": int(self.config_params['tts_type'])
+            }
+            tmp_dict["filename"]=config.TEMP_DIR + "/dubbing_cache/"+tools.get_md5(json.dumps(tmp_dict))+'.mp3'
+            queue_tts.append(tmp_dict)
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
@@ -151,6 +153,8 @@ class DubbingSrt(BaseTask):
             raise
 
     def task_done(self):
+        if self._exit():
+            return
         self.hasend = True
         self.precent = 100
         if Path(self.config_params['target_wav']).is_file():
@@ -161,6 +165,6 @@ class DubbingSrt(BaseTask):
             Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
 
     def _exit(self):
-        if config.exit_soft or not config.box_trans:
+        if config.exit_soft or config.box_tts!='ing':
             return True
         return False

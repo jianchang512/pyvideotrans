@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-from videotrans import translator
+from videotrans import translator, recognition
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
@@ -139,7 +139,7 @@ class WinAction(WinActionSub):
         else:
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
-            self.check_model_name(self.main.model_name.currentText())
+            self.check_model_name()
         if config.params['recogn_type']>1:
             # >1 禁用 auto 自动检测
             # 禁用最后一项
@@ -150,42 +150,6 @@ class WinAction(WinActionSub):
         is_allow_lang = recogn_is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
-
-    # 判断 openai whisper和 faster whisper 模型是否存在
-    def check_model_name(self, name):
-        if self.main.recogn_type.currentIndex() >1:
-            return True
-        if name.find('/') > 0:
-            return True
-        
-        if name.endswith('.end') and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'], '.en结尾的模型不可用于自动检测' if config.defaulelang=='zh' else 'Models ending in .en may not be used for automated detection')
-            return False
-        slang = self.main.source_language.currentText()
-        if name.endswith('.en') and translator.get_code(show_text=slang) != 'en':
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['enmodelerror'])
-            return False
-
-        if config.params['recogn_type'] == OPENAI_WHISPER:
-            if name.startswith('distil'):
-                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['openaimodelerror'])
-                return False
-            # 不存在，需下载
-
-            if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
-                fn_downmodel.openwin(model_name=name, recogn_type=OPENAI_WHISPER)
-                return False
-            return True
-
-        file = f'{config.ROOT_DIR}/models/models--Systran--faster-whisper-{name}/snapshots'
-        if name.startswith('distil'):
-            file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
-
-        if not Path(file).exists():
-            fn_downmodel.openwin(model_name=name, recogn_type=FASTER_WHISPER)
-            return False
-
-        return True
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -369,6 +333,18 @@ class WinAction(WinActionSub):
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
         return recogn_is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
+    def check_model_name(self):
+        res = recognition.check_model_name(
+            recogn_type=self.main.recogn_type.currentIndex(),
+            name=self.main.model_name.currentText(),
+            source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
+            source_language_currentText=self.main.source_language.currentText()
+        )
+        if res == 'download':
+            return fn_downmodel.openwin(model_name=self.main.model_name.currentText(), recogn_type=self.main.recogn_type.currentIndex())
+        if res is not True:
+            return QMessageBox.critical(self.main, config.transobj['anerror'], res)
+        return True
     # 检测开始状态并启动
     def check_start(self):
         self.edit_subtitle_type = ''
@@ -456,8 +432,7 @@ class WinAction(WinActionSub):
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and config.params['recogn_type'] in [OPENAI_WHISPER, FASTER_WHISPER] and not self.check_model_name(
-                config.params['model_name']):
+        if not txt and self.main.recogn_type.currentIndex() in [OPENAI_WHISPER, FASTER_WHISPER] and  self.check_model_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
         # 判断CUDA
@@ -467,6 +442,9 @@ class WinAction(WinActionSub):
         # 核对文件路径是否符合规范，防止ffmpeg处理中出错
         if self.url_right() is not True:
             self.main.startbtn.setDisabled(False)
+            return
+        if self.main.recogn_type.currentIndex()>1 and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+            QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
