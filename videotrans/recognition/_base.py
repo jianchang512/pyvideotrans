@@ -236,12 +236,15 @@ class BaseRecogn(BaseCon):
                 else:
                     next2_word=''
 
-                if i+1 >= current_len and seg_i+1<data_len:
-                    next_start=data[seg_i+1]['words'][0]['start']
-                    next_word=data[seg_i+1]['words'][0]['word']
+                try:
+                    if i+1 >= current_len and seg_i+1<data_len:
+                        next_start=data[seg_i+1]['words'][0]['start']
+                        next_word=data[seg_i+1]['words'][0]['word']
 
-                if i+2 >= current_len and seg_i+2<data_len:
-                    next2_word=data[seg_i+2]['words'][0]['word']
+                    if i+2 >= current_len and seg_i+2<data_len:
+                        next2_word=data[seg_i+2]['words'][0]['word']
+                except:
+                    next2_word=''
 
 
                 if ( next_word and re.search(r'[,?!，。！？]|(\. )',next_word) ) or ( next2_word and re.search(r'[,?!，。！？]|(\. )',next2_word) ):
