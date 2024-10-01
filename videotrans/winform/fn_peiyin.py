@@ -70,7 +70,7 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     def feed(d):
-        if winobj.has_done:
+        if winobj.has_done or config.box_tts!='ing':
             return
         if isinstance(d, str):
             d = json.loads(d)
@@ -97,6 +97,7 @@ def openwin():
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             winobj.hecheng_startbtn.setDisabled(False)
+            winobj.hecheng_stop.setDisabled(True)
 
     # 试听配音
     def listen_voice_fun():
@@ -219,6 +220,17 @@ def openwin():
         th.start()
         winobj.hecheng_startbtn.setText(config.transobj["running"])
         winobj.hecheng_startbtn.setDisabled(True)
+        winobj.hecheng_stop.setDisabled(False)
+
+    def stop_tts():
+        config.box_tts = 'stop'
+        winobj.has_done = True
+        winobj.hecheng_files = []
+        winobj.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+        winobj.loglabel.setText('Stoped')
+        winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
+        winobj.hecheng_startbtn.setDisabled(False)
+        winobj.hecheng_stop.setDisabled(True)
 
     # tts类型改变
     def tts_type_change(type):
@@ -360,6 +372,7 @@ def openwin():
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
+        winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)
         winobj.hecheng_opendir.clicked.connect(opendir_fn)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)

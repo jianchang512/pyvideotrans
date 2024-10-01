@@ -37,7 +37,7 @@ class SpeedRate:
         self.noextname = noextname
         self.uuid = uuid
         self.target_audio = target_audio
-        self.cache_folder = cache_folder if cache_folder else config.TEMP_DIR + f'/temp{uuid if uuid else time.time()}'
+        self.cache_folder = cache_folder if cache_folder else config.TEMP_DIR + f'/{uuid if uuid else time.time()}'
         Path(self.cache_folder).mkdir(parents=True, exist_ok=True)
         config.logger.info(f'SpeedRate2:{self.cache_folder=},{self.noextname=}')
 

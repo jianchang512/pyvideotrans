@@ -6,6 +6,7 @@ import shutil
 import textwrap
 import threading
 import time
+import json
 from pathlib import Path
 from typing import Dict
 
@@ -53,7 +54,7 @@ class TransCreate(BaseTask):
 
         # 临时文件夹
         if 'cache_folder' not in self.config_params or not self.config_params['cache_folder']:
-            self.config_params['cache_folder'] = f"{config.TEMP_DIR}/{self.config_params['noextname']}"
+            self.config_params['cache_folder'] = f"{config.TEMP_DIR}/{self.uuid}"
         if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
             self.config_params['target_dir'] = Path(self.config_params['target_dir']).as_posix()
         # 创建文件夹
@@ -329,7 +330,8 @@ class TransCreate(BaseTask):
                 shoud_videorate=self.config_params['video_autorate'] and int(config.settings['video_rate']) > 1,
                 novoice_mp4=self.config_params['novoice_mp4'],
                 noextname=self.config_params['noextname'],
-                target_audio=self.config_params['target_wav']
+                target_audio=self.config_params['target_wav'],
+                cache_folder=self.config_params['cache_folder']
             )
             self.queue_tts = rate_inst.run()
             # 更新字幕
@@ -468,9 +470,21 @@ class TransCreate(BaseTask):
             voice_role = self.config_params['voice_role']
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
-            # 要保存到的文件
-            filename = self.config_params['cache_folder'] + "/" + tools.get_md5(
-                f'{i}-{voice_role}-{time.time()}') + ".mp3"
+
+            tmp_dict = {
+                "text": it['text'],
+                "role": voice_role,
+                "start_time": it['start_time'],
+                "end_time": it['end_time'],
+                "rate": rate,
+                "startraw": it['startraw'],
+                "endraw": it['endraw'],
+                "volume": self.config_params['volume'],
+                "pitch": self.config_params['pitch'],
+                "tts_type": self.config_params['tts_type']
+            }
+            tmp_dict["filename"] = config.TEMP_DIR + "/dubbing_cache/" + tools.get_md5(
+                json.dumps(tmp_dict)) + '.mp3'
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
             if self.config_params['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS] and voice_role == 'clone':
@@ -484,22 +498,11 @@ class TransCreate(BaseTask):
                             'is_separate'] else self.config_params['source_wav'],
                         ss=it['startraw'],
                         to=it['endraw'],
-                        out_file=filename
+                        out_file=tmp_dict['filename']
                     )
-
-            queue_tts.append({
-                "text": it['text'],
-                "role": voice_role,
-                "start_time": it['start_time'],
-                "end_time": it['end_time'],
-                "rate": rate,
-                "startraw": it['startraw'],
-                "endraw": it['endraw'],
-                "volume": self.config_params['volume'],
-                "pitch": self.config_params['pitch'],
-                "tts_type": self.config_params['tts_type'],
-                "filename": filename})
+            queue_tts.append(tmp_dict)
         self.queue_tts = queue_tts
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
@@ -510,7 +513,6 @@ class TransCreate(BaseTask):
             inst=self
         )
 
-    
     def _novoicemp4_add_time(self, duration_ms):
         if duration_ms < 1000 or self._exit():
             return

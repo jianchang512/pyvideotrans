@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
+from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure import config
@@ -13,6 +14,7 @@ class DropButton(QPushButton):
         self.setAcceptDrops(True)
         self.clicked.connect(self.get_file)
         self.filelist = []
+        self.setCursor(Qt.PointingHandCursor)
 
     def get_file(self):
         format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])

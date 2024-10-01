@@ -177,20 +177,29 @@ class Ui_peiyin(object):
         self.edge_volume_layout.addWidget(self.out_format)
 
         self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
+
         self.hecheng_startbtn = QtWidgets.QPushButton()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.hecheng_startbtn.sizePolicy().hasHeightForWidth())
-        self.hecheng_startbtn.setSizePolicy(sizePolicy)
         self.hecheng_startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.hecheng_startbtn.setObjectName("hecheng_startbtn")
         self.hecheng_startbtn.setCursor(Qt.PointingHandCursor)
 
+        self.hecheng_stop = QtWidgets.QPushButton()
+        self.hecheng_stop.setFixedWidth(100)
+        self.hecheng_stop.setText('停止' if config.defaulelang=='zh' else 'Stop')
+        self.hecheng_stop.setDisabled(True)
+        self.hecheng_stop.setObjectName("hecheng_stop")
+        self.hecheng_stop.setCursor(Qt.PointingHandCursor)
+
+        h1=QtWidgets.QHBoxLayout()
+        h1.addWidget(self.hecheng_startbtn)
+        h1.addWidget(self.hecheng_stop)
+
+
+
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
         self.verticalLayout_4.addLayout(self.horizontalLayout_10_1)
 
-        self.verticalLayout_4.addWidget(self.hecheng_startbtn)
+        self.verticalLayout_4.addLayout(h1)
 
         self.loglabel = QtWidgets.QLabel()
         self.loglabel.setStyleSheet("""color:#148cd2""")

@@ -141,6 +141,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except Exception:
             config.params['recogn_type'] = 0
+        print(f"{config.params['recogn_type']=}")
+        self.recogn_type.setCurrentIndex(config.params['recogn_type'])
+        if config.params['recogn_type'] > 1:
+            self.model_name_help.setVisible(False)
+        else:
+            self.model_name_help.setCursor(Qt.PointingHandCursor)
+            self.model_name_help.clicked.connect(self.win_action.show_model_help)
 
 
         try:
@@ -152,6 +159,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             d = {"all": 0, "avg": 1}
             self.split_type.setCurrentIndex(d[config.params['split_type']])
 
+        if config.params['subtitle_type'] and int(config.params['subtitle_type']) > 0:
+            self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
+
         if config.params['model_name'] in config.WHISPER_MODEL_LIST:
             self.model_name.setCurrentText(config.params['model_name'])
 
@@ -161,33 +171,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_rate.setValue(0)
 
         self.split_type.setDisabled(True if config.params['recogn_type'] > 0 else False)
-
-
-
-        self.recogn_type.setCurrentIndex(config.params['recogn_type'])
-
         self.voice_autorate.setChecked(bool(config.params['voice_autorate']))
         self.video_autorate.setChecked(bool(config.params['video_autorate']))
         self.append_video.setChecked(bool(config.params['append_video']))
         self.clear_cache.setChecked(bool(config.params.get('clear_cache')))
         self.enable_cuda.setChecked(True if config.params['cuda'] else False)
-
-        if config.params['subtitle_type'] and int(config.params['subtitle_type']) > 0:
-            self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
-
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
-        
-        if config.params['recogn_type'] > 1:
-            self.model_name_help.setVisible(False)
-        else:
-            self.model_name_help.setCursor(Qt.PointingHandCursor)
-            self.model_name_help.clicked.connect(self.win_action.show_model_help)
-            
-
-
-
-
 
     def bind_action(self):
         from videotrans.util import tools
