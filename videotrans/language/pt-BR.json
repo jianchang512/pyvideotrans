@@ -126,7 +126,7 @@
     "whisper_type_all": "Completo",
     "whisper_type_split": "Pré-dividido",
     "whisper_type_avg": "Divisão igual",
-    "fenge_tips": "Completo: O modelo quebra as frases automaticamente em todo o áudio.\nPré-dividido: adequado para vídeos muito grandes, divididos em clipes de 1 minuto para reconhecer e quebrar as frases uma por uma.\nDivisão igual: corte igualmente de acordo com um número fixo de segundos, cada legenda tem o mesmo comprimento, o comprimento é controlado por interval_split em set.ini.",
+    "fenge_tips": "Completo: O modelo quebra as frases automaticamente em todo o áudio.\nPré-dividido: adequado para vídeos muito grandes, divididos em clipes de 1 minuto para reconhecer e quebrar as frases uma por uma.\nDivisão igual: corte igualmente de acordo com um número fixo de segundos, cada legenda tem o mesmo comprimento.",
     "processingstatusbar": "Processando vídeo: [{var1}] total, [{var2}] aguardando",
     "yinsekelong": "A clonagem de timbre usará github.com/jianchang512/clone-voice. Esses recursos serão usados como a voz para dublar personagens, permitindo dublagens personalizadas com qualquer timbre desejado.",
     "yinsekaifazhong": "A clonagem de timbre está em desenvolvimento.",

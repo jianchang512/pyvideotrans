@@ -163,7 +163,7 @@ class WinAction(WinActionSub):
 
     # tts类型改变
     def tts_type_change(self, type):
-        self.hide_show_element(self.main.edge_volume_layout, self.change_by_lang(type))
+        self.hide_show_element(self.main.horizontalLayout, self.change_by_lang(type))
         if tts_is_input_api(tts_type=type) is not True:
             return
 
