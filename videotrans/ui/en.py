@@ -107,6 +107,8 @@ class Ui_MainWindow(object):
 
         self.target_language.setMinimumSize(QtCore.QSize(145, 30))
         self.target_language.setObjectName("target_language")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
+        self.target_language.setSizePolicy(sizePolicy)
 
         self.horizontalLayout_5.addWidget(self.label_2)
         self.horizontalLayout_5.addWidget(self.source_language)
@@ -118,12 +120,15 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
 
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
+        
 
-        self.proxy.setMinimumSize(QtCore.QSize(120, 30))
+        self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
 
         self.horizontalLayout_5.addWidget(self.label)
         self.horizontalLayout_5.addWidget(self.proxy)
+        #self.horizontalLayout_5.addStretch()
+        
 
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
         self.listen_btn.setEnabled(False)
@@ -211,23 +216,26 @@ class Ui_MainWindow(object):
         self.split_type = QtWidgets.QComboBox(self.layoutWidget)
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
-
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.split_type.setSizePolicy(sizePolicy)
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         self.horizontalLayout_4.addWidget(self.split_type)
+        #self.horizontalLayout_4.addStretch()
 
         self.label_8 = QtWidgets.QLabel(self.layoutWidget)
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_4.addWidget(self.label_8)
+        
         self.subtitle_type = QtWidgets.QComboBox(self.layoutWidget)
         self.subtitle_type.setMinimumSize(QtCore.QSize(0, 30))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.subtitle_type.sizePolicy().hasHeightForWidth())
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #sizePolicy.setHorizontalStretch(0)
+        #sizePolicy.setVerticalStretch(0)
+        #sizePolicy.setHeightForWidth(self.subtitle_type.sizePolicy().hasHeightForWidth())
         self.subtitle_type.setSizePolicy(sizePolicy)
         self.subtitle_type.setObjectName("subtitle_type")
         self.horizontalLayout_4.addWidget(self.subtitle_type)
