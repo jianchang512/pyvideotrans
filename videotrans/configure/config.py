@@ -487,7 +487,7 @@ Translation:"""
     if obj is not None:
         with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(obj, ensure_ascii=False))
-        return None
+        return obj
     #获取
     default = {
         "last_opendir": HOME_DIR,
@@ -645,7 +645,23 @@ Translation:"""
 
         "app_mode": "biaozhun",
 
-        "proxy": ""
+        "proxy": "",
+
+        "stt_source_language":0,
+        "stt_recogn_type":0,
+        "stt_model_name":0,
+
+        "trans_translate_type":0,
+        "trans_source_language":0,
+        "trans_target_language":1,
+        "trans_out_format":0,
+
+        "dubb_source_language":0,
+        "dubb_tts_type":0,
+        "dubb_role":0,
+        "dubb_out_format":0
+
+
     }
     # 创建默认提示词文件
     if Path(ROOT_DIR+'/videotrans/prompts/srt').exists():

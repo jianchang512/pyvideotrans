@@ -1,11 +1,9 @@
 import json
 import queue
+import shutil
 import time
-
 from PySide6.QtCore import QThread, Signal
-
 from videotrans.configure import config
-
 
 class UUIDSignalThread(QThread):
     uito = Signal(str)
@@ -15,6 +13,9 @@ class UUIDSignalThread(QThread):
         self.parent = parent
 
     def run(self):
+        if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+            self.uito.emit(json.dumps({"type":"ffmpeg","text":config.transobj['installffmpeg']}))
+
         while 1:
             if config.exit_soft:
                 return

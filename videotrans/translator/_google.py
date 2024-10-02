@@ -1,3 +1,5 @@
+import random
+import time
 from typing import Union, List
 from urllib.parse import quote
 
@@ -27,6 +29,10 @@ class Google(BaseTrans):
 
         response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies,verify=False)
         config.logger.info(f'[Google]返回数据:{response.text=}')
+        if response.status_code==429:
+            self._signal(text='Google 429 hold on retry')
+            time.sleep(random.randint(1,5))
+            return self._item_task(data)
         if response.status_code != 200:
             raise Exception(f'{response.status_code=},{response.reason=}')
 

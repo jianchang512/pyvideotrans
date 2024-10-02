@@ -173,6 +173,10 @@ def openwin():
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
             th.start()
+            config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
+            config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
+            config.params["stt_model_name"]=winobj.shibie_model.currentIndex()
+            config.getset_params(config.params)
 
         except Exception as e:
             QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
@@ -253,10 +257,18 @@ def openwin():
 
         winobj.shibie_language.addItems(config.langnamelist)
         winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
+
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
+        # "stt_source_language": 0,
+        # "stt_recogn_type": 0,
+        # "stt_model_name": "tiny",
+        winobj.shibie_language.setCurrentIndex(config.params.get('stt_source_language',0))
+        winobj.shibie_recogn_type.setCurrentIndex(config.params.get('stt_recogn_type',0))
+        winobj.shibie_model.setCurrentIndex(config.params.get('stt_model_name',0))
+
         winobj.shibie_recogn_type.currentIndexChanged.connect(recogn_type_change)
         winobj.shibie_model.currentIndexChanged.connect(recogn_type_change)
 
