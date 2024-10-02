@@ -19,7 +19,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.width = width
         self.height = height
-        self.resize(min(1200,int(width*0.8)), 600)
+        self.resize(min(1240,int(width*0.85)), 600)
         self.win_action = None
         self.moshis = None
         self.target_dir=None
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
         self.proxy.setText(config.params['proxy'])
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
-        #         model
+
         self.split_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
         self.model_name.addItems(config.WHISPER_MODEL_LIST)
         self.export_sub.setText(config.transobj['Export srt'])
@@ -231,6 +231,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
 
+
+        w=self.size().width()
+        self.move(QPoint(int((self.width - w) / 2), int((self.height - 600) / 2)))
+
+    def start_subform(self):
+        
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.export_sub.setCursor(Qt.PointingHandCursor)
         self.set_line_role.setCursor(Qt.PointingHandCursor)
@@ -244,11 +250,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.setCursor(Qt.PointingHandCursor)
         self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
-        w=self.size().width()
-        self.move(QPoint(int((self.width - w) / 2), int((self.height - 600) / 2)))
-        QTimer.singleShot(100, self.start_subform)
-
-    def start_subform(self):
+    
         from videotrans import winform
 
         self.action_xinshoujandan.triggered.connect(self.win_action.set_xinshoujandann)

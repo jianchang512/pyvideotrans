@@ -85,7 +85,7 @@ class WinActionSub:
         self.main.tts_type.hide()
         self.main.label_4.show()
         self.main.voice_role.show()
-        self.main.listen_btn.hide()
+        self.main.listen_btn.show()
         self.main.volume_label.hide()
         self.main.volume_rate.hide()
         self.main.pitch_label.hide()

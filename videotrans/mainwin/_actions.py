@@ -158,8 +158,8 @@ class WinAction(WinActionSub):
 
     # tts类型改变
     def tts_type_change(self, type):
-        self.hide_show_element(self.main.horizontalLayout, self.change_by_lang(type))
         if tts.is_input_api(tts_type=type) is not True:
+            self.main.tts_type.setCurrentIndex(0)
             return
 
         lang = translator.get_code(show_text=self.main.target_language.currentText())
@@ -167,6 +167,7 @@ class WinAction(WinActionSub):
             is_allow_lang = tts.is_allow_lang(langcode=lang, tts_type=type)
             if is_allow_lang is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
+                self.main.tts_type.setCurrentIndex(0)
                 return False
 
         config.params['tts_type'] = type
@@ -421,6 +422,7 @@ class WinAction(WinActionSub):
 
         # tts类型
         if self.check_tts() is not True:
+            self.main.tts_type.setCurrentIndex(0)
             self.main.startbtn.setDisabled(False)
             return
         # 设置各项模式参数
@@ -688,6 +690,8 @@ class WinAction(WinActionSub):
             self.main.startbtn.setText(d['text'])
             self.main.startbtn.setDisabled(True)
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
+        elif d['type']=='subform':
+            self.main.start_subform()
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
