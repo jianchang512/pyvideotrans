@@ -221,6 +221,11 @@ def openwin():
         winobj.hecheng_startbtn.setText(config.transobj["running"])
         winobj.hecheng_startbtn.setDisabled(True)
         winobj.hecheng_stop.setDisabled(False)
+        config.params["dubb_source_language"]=winobj.hecheng_language.currentIndex()
+        config.params["dubb_tts_type"]=winobj.tts_type.currentIndex()
+        config.params["dubb_role"]=winobj.hecheng_role.currentIndex()
+        config.params["dubb_out_format"]=winobj.out_format.currentIndex()
+        config.getset_params(config.params)
 
     def stop_tts():
         config.box_tts = 'stop'
@@ -370,12 +375,21 @@ def openwin():
         winobj = Peiyinform()
         config.child_forms['peiyinform'] = winobj
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
-        winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)
         winobj.hecheng_opendir.clicked.connect(opendir_fn)
+
+
+        winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
+        winobj.hecheng_language.setCurrentIndex(config.params.get("dubb_source_language",0))
+
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
+        winobj.tts_type.setCurrentIndex(config.params.get("dubb_tts_type",0))
+
+        winobj.hecheng_role.setCurrentIndex(config.params.get("dubb_role",0))
+        winobj.out_format.setCurrentIndex(config.params.get("dubb_out_format",0))
+
 
         winobj.show()
     except Exception as e:

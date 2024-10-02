@@ -11,10 +11,8 @@ from PySide6.QtCore import QTimer
 
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
-from videotrans import translator, tts
+from videotrans import translator, tts,recognition
 from videotrans.configure import config
-from videotrans.recognition import OPENAI_WHISPER
-from videotrans.tts import EDGE_TTS, CLONE_VOICE_TTS
 from videotrans.util import tools
 
 
@@ -63,7 +61,6 @@ class WinActionSub:
         self.main.app_mode = 'biaozhun_jd'
         self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
         self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_xinshoujandan.setChecked(True)
         self.main.action_biaozhun.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
 
@@ -83,7 +80,7 @@ class WinActionSub:
         self.main.proxy.hide()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(EDGE_TTS)
+        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.show()
@@ -131,10 +128,10 @@ class WinActionSub:
     # 启用标准模式
     def set_biaozhun(self):
         self.main.action_biaozhun.setChecked(True)
+        self.main.splitter.setSizes([self.main.width-300, 300])
         self.main.app_mode = 'biaozhun'
         self.main.show_tips.setText("自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕" if config.defaulelang=='zh' else 'Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.')
         self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_biaozhun.setChecked(True)
         self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
 
@@ -154,7 +151,7 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(EDGE_TTS)
+        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.show()
         self.main.tts_type.show()
         self.main.label_4.show()
@@ -198,10 +195,10 @@ class WinActionSub:
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
         self.main.action_tiquzimu.setChecked(True)
+        self.main.splitter.setSizes([self.main.width-300, 300])
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
-        self.main.action_tiquzimu.setChecked(True)
         self.main.action_xinshoujandan.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
 
@@ -221,7 +218,7 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(EDGE_TTS)
+        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.hide()
@@ -428,7 +425,7 @@ class WinActionSub:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
             return False
 
-        if config.params['recogn_type'] == OPENAI_WHISPER:
+        if config.params['recogn_type'] == recognition.OPENAI_WHISPER:
             return True
         allow = True
         try:
@@ -559,7 +556,7 @@ class WinActionSub:
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
         config.params["voice_role"] = role
-        if role == 'No' or (config.params['tts_type'] == CLONE_VOICE_TTS and config.params['voice_role'] == 'clone'):
+        if role == 'No' or (config.params['tts_type'] == tts.CLONE_VOICE_TTS and config.params['voice_role'] == 'clone'):
             self.main.listen_btn.hide()
             return
         if self.main.app_mode in ['biaozhun']:

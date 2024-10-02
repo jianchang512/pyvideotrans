@@ -170,6 +170,12 @@ def openwin():
         th.uito.connect(feed)
         th.start()
 
+        config.params["trans_translate_type"]=winobj.fanyi_translate_type.currentIndex()
+        config.params["trans_source_language"]=winobj.fanyi_source.currentIndex()
+        config.params["trans_target_language"]=winobj.fanyi_target.currentIndex()
+        config.params["trans_out_format"]=winobj.out_format.currentIndex()
+        config.getset_params(config.params)
+
         winobj.fanyi_start.setDisabled(True)
         winobj.fanyi_stop.setDisabled(False)
         winobj.fanyi_start.setText(config.transobj["running"])
@@ -233,11 +239,17 @@ def openwin():
         config.child_forms['fanyiform'] = winobj
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         update_target_language(is_google=True)
-        winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
         winobj.fanyi_source.addItems(['-'] + config.langnamelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)
+
+        winobj.fanyi_translate_type.setCurrentIndex(config.params.get("trans_translate_type",0))
+        winobj.fanyi_source.setCurrentIndex(config.params.get("trans_source_language",0))
+        winobj.fanyi_target.setCurrentIndex(config.params.get("trans_target_language",0))
+        winobj.out_format.setCurrentIndex(config.params.get("trans_out_format",0))
+
+        winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
         winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
 
         winobj.fanyi_sourcetext = QPlainTextEdit()

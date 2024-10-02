@@ -15,7 +15,7 @@ class Ui_peiyin(object):
         self.has_done = False
         if not peiyin.objectName():
             peiyin.setObjectName(u"peiyin")
-        peiyin.resize(643, 500)
+        peiyin.resize(800, 500)
         peiyin.setWindowModality(QtCore.Qt.NonModal)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)

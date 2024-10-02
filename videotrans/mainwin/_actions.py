@@ -1,6 +1,6 @@
 import copy
 import json
-import re
+
 import shutil
 import threading
 from pathlib import Path
@@ -10,17 +10,12 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-from videotrans import translator, recognition
+from videotrans import translator, recognition,tts
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
-from videotrans.recognition import OPENAI_WHISPER, FASTER_WHISPER, is_allow_lang as recogn_is_allow_lang, \
-    is_input_api as recogn_is_input_api
 from videotrans.task._only_one import Worker
 from videotrans.task.trans_create import TransCreate
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, CLONE_VOICE_TTS, TTS_API, GPTSOVITS_TTS, COSYVOICE_TTS, \
-    FISHTTS, CHATTTS, GOOGLE_TTS, OPENAI_TTS, ELEVENLABS_TTS, is_allow_lang as tts_is_allow_lang, \
-    is_input_api as tts_is_input_api
 from videotrans.util import tools
 from videotrans.winform import fn_downmodel
 
@@ -147,44 +142,44 @@ class WinAction(WinActionSub):
                 self.main.source_language.setCurrentIndex(0)
 
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        is_allow_lang = recogn_is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [EDGE_TTS, AZURE_TTS]:
+        if type in [tts.EDGE_TTS, tts.AZURE_TTS]:
             return True
-        if type == AI302_TTS and config.params['ai302tts_model'] == 'azure':
+        if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'azure':
             return True
-        if type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
+        if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             return True
         return False
 
     # tts类型改变
     def tts_type_change(self, type):
         self.hide_show_element(self.main.horizontalLayout, self.change_by_lang(type))
-        if tts_is_input_api(tts_type=type) is not True:
+        if tts.is_input_api(tts_type=type) is not True:
             return
 
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-':
-            is_allow_lang = tts_is_allow_lang(langcode=lang, tts_type=type)
+            is_allow_lang = tts.is_allow_lang(langcode=lang, tts_type=type)
             if is_allow_lang is not True:
                 QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
                 return False
 
         config.params['tts_type'] = type
         config.params['line_roles'] = {}
-        if type == GOOGLE_TTS:
+        if type == tts.GOOGLE_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == OPENAI_TTS:
+        elif type == tts.OPENAI_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == ELEVENLABS_TTS:
+        elif type == tts.ELEVENLABS_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['elevenlabstts_role']
             if len(self.main.current_rolelist) < 1:
@@ -192,34 +187,34 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif self.change_by_lang(type):
             self.set_voice_role(self.main.target_language.currentText())
-        elif type == AI302_TTS:
+        elif type == tts.AI302_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ai302tts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == CLONE_VOICE_TTS:
+        elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params["clone_voicelist"]
             self.main.voice_role.addItems(self.main.current_rolelist)
             threading.Thread(target=tools.get_clone_role).start()
-        elif type == CHATTTS:
+        elif type == tts.CHATTTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(config.ChatTTS_voicelist)
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == TTS_API:
+        elif type == tts.TTS_API:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['ttsapi_voice_role'].strip().split(',')
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == GPTSOVITS_TTS:
+        elif type == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == COSYVOICE_TTS:
+        elif type == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['clone']
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == FISHTTS:
+        elif type == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['FishTTS']
@@ -231,7 +226,7 @@ class WinAction(WinActionSub):
         role = self.main.voice_role.currentText()
         code = translator.get_code(show_text=t)
         if code and code != '-':
-            is_allow_lang = tts_is_allow_lang(langcode=code, tts_type=config.params['tts_type'])
+            is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=config.params['tts_type'])
             if is_allow_lang is not True:
                 return QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             # 判断翻译渠道是否支持翻译到该目标语言
@@ -254,9 +249,9 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'])
             return
         show_rolelist = None
-        if config.params['tts_type'] == EDGE_TTS:
+        if config.params['tts_type'] == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
-        elif config.params['tts_type'] == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
+        elif config.params['tts_type'] == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             show_rolelist = tools.get_302ai_doubao()
         else:
             # AzureTTS或 302.ai选择doubao模型
@@ -308,7 +303,7 @@ class WinAction(WinActionSub):
 
     # 核对tts选择是否正确
     def check_tts(self):
-        if tts_is_input_api(tts_type=config.params['tts_type']) is not True:
+        if tts.is_input_api(tts_type=config.params['tts_type']) is not True:
             return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if config.params['target_language'] == '-' and config.params['voice_role'] != 'No':
@@ -326,12 +321,12 @@ class WinAction(WinActionSub):
             return False
         langcode = translator.get_code(show_text=config.params['source_language'])
 
-        is_allow_lang = recogn_is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
+        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return False
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
-        return recogn_is_input_api(recogn_type=self.main.recogn_type.currentIndex())
+        return recognition.is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
     def check_model_name(self):
         res = recognition.check_model_name(
@@ -432,7 +427,7 @@ class WinAction(WinActionSub):
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and self.main.recogn_type.currentIndex() in [OPENAI_WHISPER, FASTER_WHISPER] and  self.check_model_name() is not True:
+        if not txt and self.main.recogn_type.currentIndex() in [recognition.OPENAI_WHISPER, recognition.FASTER_WHISPER] and  self.check_model_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
         # 判断CUDA
@@ -689,6 +684,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.voice_role.addItems(config.params["clone_voicelist"])
             self.main.voice_role.setCurrentText(current)
+        elif d['type']=='ffmpeg':
+            self.main.startbtn.setText(d['text'])
+            self.main.startbtn.setDisabled(True)
+            self.main.startbtn.setStyleSheet("""color:#ff0000""")
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
