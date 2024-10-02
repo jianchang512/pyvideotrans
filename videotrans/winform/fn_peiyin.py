@@ -250,8 +250,10 @@ def openwin():
 
         is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
         if is_allow_lang_res is not True:
+            winobj.tts_type.setCurrentIndex(0)
             return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
         if is_input_api(tts_type=type) is not True:
+            winobj.tts_type.setCurrentIndex(0)
             return False
 
         if type == GOOGLE_TTS:

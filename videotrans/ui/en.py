@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.splitter.setMaximumWidth(700)
-        self.splitter.setMinimumWidth(400)
+        self.splitter.setMinimumWidth(380)
 
         self.layoutWidget = QtWidgets.QWidget(self.splitter)
         self.layoutWidget.setObjectName("layoutWidget")
@@ -70,6 +70,8 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_6.addWidget(self.only_video)
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+        
+        
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
@@ -77,89 +79,51 @@ class Ui_MainWindow(object):
         self.layout_translate_type.setObjectName("layoutconfig.uilanglist.get_type")
         self.label_9 = QtWidgets.QLabel(self.layoutWidget)
 
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
-        self.label_9.setSizePolicy(sizePolicy)
-
         self.label_9.setMinimumSize(QtCore.QSize(0, 30))
         self.label_9.setObjectName("label_9")
-        self.layout_translate_type.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_9)
+        
         self.translate_type = QtWidgets.QComboBox(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.translate_type.sizePolicy().hasHeightForWidth())
-        self.translate_type.setSizePolicy(sizePolicy)
-        self.translate_type.setMinimumSize(QtCore.QSize(180, 30))
+        self.translate_type.setMinimumSize(QtCore.QSize(160, 30))
         self.translate_type.setObjectName("translate_type")
-        self.layout_translate_type.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.translate_type)
-        self.horizontalLayout_5.addLayout(self.layout_translate_type)
 
-        # 原始语言 目标语言 start
-        self.layout_source_language = QtWidgets.QFormLayout()
-        self.layout_source_language.setFormAlignment(
-            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        self.layout_source_language.setObjectName("layout_source_language")
+        self.horizontalLayout_5.addWidget(self.label_9)
+        self.horizontalLayout_5.addWidget(self.translate_type)
+
+        # 原始语言 目标语言 start       
         self.label_2 = QtWidgets.QLabel(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
         self.label_2.setMinimumSize(QtCore.QSize(0, 30))
         self.label_2.setObjectName("label_2")
-        self.layout_source_language.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
+        
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.source_language.sizePolicy().hasHeightForWidth())
-        self.source_language.setSizePolicy(sizePolicy)
-        self.source_language.setMinimumSize(QtCore.QSize(150, 30))
-        self.source_language.setObjectName("source_language")
-        self.layout_source_language.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.source_language)
 
-        self.layout_target_language = QtWidgets.QFormLayout()
-        self.layout_target_language.setFormAlignment(
-            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        self.layout_target_language.setObjectName("layout_target_language")
+        self.source_language.setMinimumSize(QtCore.QSize(145, 30))
+        self.source_language.setObjectName("source_language")
+
         self.label_3 = QtWidgets.QLabel(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
-        self.label_3.setSizePolicy(sizePolicy)
+
         self.label_3.setMinimumSize(QtCore.QSize(0, 30))
         self.label_3.setObjectName("label_3")
-        self.layout_target_language.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_3)
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.target_language.sizePolicy().hasHeightForWidth())
-        self.target_language.setSizePolicy(sizePolicy)
-        self.target_language.setMinimumSize(QtCore.QSize(150, 30))
+
+        self.target_language.setMinimumSize(QtCore.QSize(145, 30))
         self.target_language.setObjectName("target_language")
 
-        self.layout_target_language.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.target_language)
-
-        self.horizontalLayout_5.addLayout(self.layout_source_language)
-        self.horizontalLayout_5.addLayout(self.layout_target_language)
-        self.layout_proxy = QtWidgets.QFormLayout()
-        self.layout_proxy.setObjectName("layout_proxy")
+        self.horizontalLayout_5.addWidget(self.label_2)
+        self.horizontalLayout_5.addWidget(self.source_language)
+        self.horizontalLayout_5.addWidget(self.label_3)
+        self.horizontalLayout_5.addWidget(self.target_language)
 
         self.label = QtWidgets.QLabel(self.layoutWidget)
         self.label.setMinimumSize(QtCore.QSize(0, 30))
         self.label.setObjectName("label")
-        self.layout_proxy.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
+
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
 
-        self.proxy.setMinimumSize(QtCore.QSize(150, 30))
+        self.proxy.setMinimumSize(QtCore.QSize(120, 30))
         self.proxy.setObjectName("proxy")
-        self.layout_proxy.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.proxy)
-        self.horizontalLayout_5.addLayout(self.layout_proxy)
+
+        self.horizontalLayout_5.addWidget(self.label)
+        self.horizontalLayout_5.addWidget(self.proxy)
 
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
         self.listen_btn.setEnabled(False)
@@ -174,7 +138,7 @@ class Ui_MainWindow(object):
         self.tts_text = QtWidgets.QLabel(self.layoutWidget)
         self.tts_text.setObjectName("tts_text")
         self.tts_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.tts_type.setMinimumSize(QtCore.QSize(180, 30))
+        self.tts_type.setMinimumSize(QtCore.QSize(160, 30))
         self.tts_type.setObjectName("tts_type")
         self.tts_type.addItems(TTS_NAME_LIST)
         self.horizontalLayout.addWidget(self.tts_text)
@@ -184,12 +148,13 @@ class Ui_MainWindow(object):
         self.label_4.setMinimumSize(QtCore.QSize(0, 30))
         self.label_4.setObjectName("label_4")
         self.voice_role = QtWidgets.QComboBox(self.layoutWidget)
-        self.voice_role.setMinimumSize(QtCore.QSize(180, 30))
+        self.voice_role.setMinimumSize(QtCore.QSize(160, 30))
         self.voice_role.setObjectName("voice_role")
 
         self.horizontalLayout.addWidget(self.label_4)
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
+        self.horizontalLayout.addStretch()
 
         self.volume_label = QtWidgets.QLabel(self.layoutWidget)
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
@@ -227,7 +192,7 @@ class Ui_MainWindow(object):
         self.reglabel=QtWidgets.QLabel(self.layoutWidget)
         self.reglabel.setText('语音识别' if config.defaulelang=='zh' else 'Speech Recognition')
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.recogn_type.setMinimumSize(QtCore.QSize(180, 30))
+        self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
         self.recogn_type.setObjectName("label_5")
         self.recogn_type.addItems(RECOGN_NAME_LIST)
         self.recogn_type.setToolTip(config.uilanglist['model_type_tips'])
@@ -236,10 +201,10 @@ class Ui_MainWindow(object):
         self.model_name_help.setStyleSheet("""background-color:transparent""")
         self.model_name_help.setText('!选择模型' if config.defaulelang=='zh' else '!Model')
         self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang=='zh' else 'Click for model description')
-        self.model_name_help.setMaximumSize(QtCore.QSize(55, 20))
+        self.model_name_help.setMaximumSize(QtCore.QSize(60, 20))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
-        self.model_name.setMinimumSize(QtCore.QSize(180, 30))
+        self.model_name.setMinimumSize(QtCore.QSize(160, 30))
         self.model_name.setObjectName("model_name")
 
         
@@ -371,7 +336,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.startbtn.sizePolicy().hasHeightForWidth())
         self.startbtn.setSizePolicy(sizePolicy)
-        self.startbtn.setMinimumSize(QtCore.QSize(180, 40))
+        self.startbtn.setMinimumSize(QtCore.QSize(160, 40))
         self.startbtn.setObjectName("startbtn")
 
         vhlayout = QtWidgets.QVBoxLayout()
@@ -384,7 +349,7 @@ class Ui_MainWindow(object):
 
         self.continue_compos = QtWidgets.QPushButton(self.layoutWidget)
         self.continue_compos.setEnabled(True)
-        self.continue_compos.setMinimumSize(QtCore.QSize(260, 40))
+        self.continue_compos.setMinimumSize(QtCore.QSize(240, 40))
 
         self.continue_compos.setObjectName("continue_compos")
         self.continue_compos.setVisible(False)
@@ -786,7 +751,7 @@ class Ui_MainWindow(object):
 
         self.label_9.setText(config.uilanglist.get("Translate channel"))
         self.translate_type.setToolTip('翻译字幕文字时使用的翻译渠道' if config.defaulelang=='zh' else 'Translation channels used in translating subtitle text')
-        self.label.setText(config.uilanglist.get("Proxy"))
+        self.label.setText('网络代理'  if config.defaulelang=='zh' else  'Proxy')
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
         self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
