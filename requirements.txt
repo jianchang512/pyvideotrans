@@ -38,4 +38,5 @@ elevenlabs==0.2.27
 plyer
 flask
 waitress
+srt
 samplerate
