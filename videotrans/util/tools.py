@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import datetime
 import hashlib
 import json
 import os
@@ -864,6 +865,10 @@ def save_srt(srt_list, srt_file):
         f.write(txt)
     return True
 
+def get_current_time_as_yymmddhhmmss(format='hms'):
+  """将当前时间转换为 YYMMDDHHmmss 格式的字符串。"""
+  now = datetime.datetime.now()
+  return now.strftime("%y%m%d%H%M%S" if format!='hms' else "%H%M%S")
 
 def get_srt_from_list(srt_list):
     txt = ""

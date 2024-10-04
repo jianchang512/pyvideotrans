@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 from queue import Queue
 
@@ -18,6 +19,7 @@ def _get_executable_path():
     else:
         return Path(__file__).parent.parent.parent.as_posix()
 
+SYS_TMP=Path(tempfile.gettempdir()).as_posix()
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
@@ -659,7 +661,11 @@ Translation:"""
         "dubb_source_language":0,
         "dubb_tts_type":0,
         "dubb_role":0,
-        "dubb_out_format":0
+        "dubb_out_format":0,
+        "dubb_voice_autorate":False,
+        "dubb_hecheng_rate":0,
+        "dubb_pitch_rate":0,
+        "dubb_volume_rate":0,
 
 
     }

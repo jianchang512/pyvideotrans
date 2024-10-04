@@ -62,7 +62,7 @@ class StartWindow(QtWidgets.QWidget):
             QMessageBox.critical(self,"Error",traceback.format_exc())
             
         print(time.time())
-        self.close()
+        QTimer.singleShot(1000, lambda :self.close())
 
     def center(self):
         screen = QGuiApplication.primaryScreen()

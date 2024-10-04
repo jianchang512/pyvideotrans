@@ -55,6 +55,7 @@ class DubbingSrt(BaseTask):
 
         Path(self.config_params["cache_folder"]).mkdir(parents=True, exist_ok=True)
         self._signal(text='字幕配音处理中' if config.defaulelang == 'zh' else ' Dubbing from subtitles ')
+        self.rename=self.config_params.get('rename',False)
 
     def prepare(self):
         if self._exit():
@@ -108,9 +109,9 @@ class DubbingSrt(BaseTask):
                 "pitch": self.config_params['pitch'],
                 "tts_type": int(self.config_params['tts_type'])
             }
-            tmp_dict["filename"]=config.TEMP_DIR + "/dubbing_cache/"+tools.get_md5(json.dumps(tmp_dict))+'.mp3'
+            tmp_dict["filename"]=config.SYS_TMP + "/dubbing_cache/"+tools.get_md5(json.dumps(tmp_dict))+'.mp3'
             queue_tts.append(tmp_dict)
-        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
+        Path(config.SYS_TMP + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
@@ -125,6 +126,9 @@ class DubbingSrt(BaseTask):
         if self.config_params['voice_autorate']:
             self._signal(text='声画变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage')
         try:
+            target_path=Path(self.config_params['target_wav'])
+            if target_path.is_file() and target_path.stat().st_size > 0:
+                self.config_params['target_wav']=self.config_params['target_wav'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}{target_path.suffix}'
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,

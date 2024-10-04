@@ -48,6 +48,7 @@ class TranslateSrt(BaseTask):
             'noextname'] + '.srt'
         self.config_params['source_sub'] = self.config_params['name']
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
+        self.rename=config_params.get('rename',False)
 
 
     def prepare(self):
@@ -86,6 +87,8 @@ class TranslateSrt(BaseTask):
                         tmp_text= f"{raw_subtitles[i]['text'].strip()}" if i<target_length else ''
                         tmp_text=f"{it['text'].strip()}\n{tmp_text}"
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
+                if self.rename and Path(self.config_params['target_sub']).is_file() and Path(self.config_params['target_sub']).stat().st_size>0:
+                    self.config_params['target_sub']=self.config_params['target_sub'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}.srt'
                 with Path(self.config_params['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
                     f.flush()
