@@ -92,8 +92,7 @@ class WinAction(WinActionSub):
             file.write(srttxt)
 
     # 将倒计时设为立即超时
-    def set_djs_timeout(self):
-        config.task_countdown = -1
+    def set_djs_timeout(self):        
         self.main.stop_djs.hide()
         self.main.continue_compos.hide()
         self.main.timeout_tips.setText('')
@@ -101,6 +100,7 @@ class WinAction(WinActionSub):
         self.main.continue_compos.setDisabled(True)
         self.main.subtitle_area.setReadOnly(True)
         self.update_subtitle()
+        config.task_countdown = -1
 
     # 手动点击暂停按钮
     def reset_timeid(self):
@@ -698,8 +698,6 @@ class WinAction(WinActionSub):
         self.main.stop_djs.hide()
         self.main.continue_compos.setDisabled(True)
         txt = self.main.subtitle_area.toPlainText().strip()
-        # txt = re.sub(r':\d+[\.\,]\d+', lambda m: m.group().replace('.', ','), txt, re.S | re.M)
-        config.task_countdown = 0
         if not txt:
             return
 

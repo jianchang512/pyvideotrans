@@ -195,6 +195,7 @@ class BaseRecogn(BaseCon):
                 tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
             return new_data
+
         try:
             data = self.add_punctuation_to_words(data)
         except Exception as e:

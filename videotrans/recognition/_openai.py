@@ -18,10 +18,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
         super().__init__(*args, **kwargs)
         self.raws = []
         self.model = None
-        
-
-
-
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -85,7 +81,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         text=f'{nums}\n{time_str}\n{segment["text"]}\n\n',
                         type='subtitle'
                     )
-            self.raws=self.re_segment_sentences(alllist)
+            if len(alllist)>0:
+                self.raws=self.re_segment_sentences(alllist)
         except Exception as e:
             raise
         finally:
@@ -95,5 +92,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 del self.model
             except Exception:
                 pass
+        if len(self.raws)<1:
+            raise RuntimeError('识别结果为空' if config.defaulelang=='zh' else 'Recognition result is empty')
         return self.raws
 

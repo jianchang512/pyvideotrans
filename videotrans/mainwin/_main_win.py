@@ -19,7 +19,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.width = width
         self.height = height
-        self.resize(min(1240,int(width*0.85)), 600)
+        self.resize(min(1240,int(width*0.85)), min(650,int(height*0.8)))
         self.win_action = None
         self.moshis = None
         self.target_dir=None
@@ -34,10 +34,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.show()
-
         QTimer.singleShot(100, self._set_cache_set)
-
-        QTimer.singleShot(500, self._bindsignal)
+        QTimer.singleShot(150, self._bindsignal)
 
     def initUI(self):
 
@@ -199,9 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['recogn_type'] > 1:
             self.model_name_help.setVisible(False)
         else:
-
             self.model_name_help.clicked.connect(self.win_action.show_model_help)
-
         try:
             config.params['tts_type'] = int(config.params['tts_type'])
         except Exception:
@@ -231,12 +227,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
 
-
         w=self.size().width()
-        self.move(QPoint(int((self.width - w) / 2), int((self.height - 600) / 2)))
+        h=self.size().height()
+        self.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
 
     def start_subform(self):
-        
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.export_sub.setCursor(Qt.PointingHandCursor)
         self.set_line_role.setCursor(Qt.PointingHandCursor)
@@ -335,21 +330,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config.exit_soft = True
         config.current_status='stop'
         self.hide()
-        print('等待所有进程退出...')
-        time.sleep(2)
-        from videotrans.util import tools
-        tools._unlink_tmp()
         try:
             for w in config.child_forms.values():
                 if w and hasattr(w, 'close'):
+                    w.hide()
                     w.close()
         except Exception:
             pass
+        time.sleep(2)
+        print('等待所有进程退出...')
+        from videotrans.util import tools
         try:
             tools.kill_ffmpeg_processes()
         except Exception:
             pass
-
         time.sleep(3)
         tools._unlink_tmp()
         event.accept()

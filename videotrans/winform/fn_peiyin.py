@@ -207,6 +207,7 @@ def openwin():
                 "voice_rate": rate,
                 "volume": volume,
                 "inst": None,
+                "rename":True,
                 "uuid": it['uuid'],
                 "pitch": pitch,
                 "tts_type": tts_type,
@@ -225,6 +226,10 @@ def openwin():
         config.params["dubb_tts_type"]=winobj.tts_type.currentIndex()
         config.params["dubb_role"]=winobj.hecheng_role.currentIndex()
         config.params["dubb_out_format"]=winobj.out_format.currentIndex()
+        config.params["dubb_voice_autorate"]=winobj.voice_autorate.isChecked()
+        config.params["dubb_hecheng_rate"]=int(winobj.hecheng_rate.value())
+        config.params["dubb_pitch_rate"]=int(winobj.pitch_rate.value())
+        config.params["dubb_volume_rate"]=int(winobj.volume_rate.value())
         config.getset_params(config.params)
 
     def stop_tts():
@@ -376,6 +381,12 @@ def openwin():
             return
         winobj = Peiyinform()
         config.child_forms['peiyinform'] = winobj
+
+        winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate',False))
+        winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))
+        winobj.pitch_rate.setValue(config.params.get('dubb_pitch_rate', 0))
+        winobj.volume_rate.setValue(config.params.get('dubb_volume_rate', 0))
+
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)

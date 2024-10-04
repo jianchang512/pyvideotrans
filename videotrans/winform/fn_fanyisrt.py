@@ -75,6 +75,7 @@ def openwin():
         if d['type'] == 'error':
             winobj.has_done = True
             winobj.loglabel.setStyleSheet("""color:#ff0000""")
+            winobj.loglabel.setText(d['text'][:150])
             winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.fanyi_start.setDisabled(False)
             winobj.fanyi_import.setDisabled(False)
@@ -161,6 +162,7 @@ def openwin():
                 "target_language": target_language,
                 "target_dir": RESULT_DIR,
                 "inst": None,
+                "rename":True,
                 "uuid": it['uuid'],
                 "source_code": source_language if source_language and source_language != '-' else ''
             }, it)
@@ -187,8 +189,7 @@ def openwin():
         if t in ['-', 'No']:
             return
         # 判断翻译渠道是否支持翻译到该目标语言
-        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t,
-                                         win=winobj) is not True:
+        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t,win=winobj) is not True:
             return
 
     # 获取新增的google翻译语言代码
@@ -199,22 +200,70 @@ def openwin():
         return new_langcode
 
     # 更新目标语言列表
-    def update_target_language(is_google=False):
+    def update_target_language():
         current_target = winobj.fanyi_target.currentText()
         config.settings = config.parse_init()
         language_namelist = ["-"] + config.langnamelist
-        if is_google or winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,
-                                                                       translator.FREEGOOGLE_INDEX]:
+        if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX]:
             language_namelist += get_google_trans_newcode()
         winobj.fanyi_target.clear()
         winobj.fanyi_target.addItems(language_namelist)
         if current_target and current_target != '-' and current_target in language_namelist:
             winobj.fanyi_target.setCurrentText(current_target)
 
+
+
     # 翻译渠道变化时重新设置目标语言
     def translate_type_change(idx):
-        update_target_language(is_google=idx in [translator.GOOGLE_INDEX, translator.FREEGOOGLE_INDEX])
+        update_target_language()
         target_lang_change(winobj.fanyi_target.currentText())
+        show_model_list()
+
+    # 显示模型列表
+    def show_model_list():
+        idx=winobj.fanyi_translate_type.currentIndex()
+        if idx==translator.LOCALLLM_INDEX:
+            model_list = config.settings['localllm_model'].strip().split(',')
+            current_model=config.params["localllm_model"]
+        elif idx==translator.GEMINI_INDEX:
+            model_list = config.settings['gemini_model'].strip().split(',')
+            current_model=config.params["gemini_model"]
+        elif idx==translator.CHATGPT_INDEX:
+            model_list = config.settings['chatgpt_model'].strip().split(',')
+            current_model=config.params["chatgpt_model"]
+        elif idx==translator.AZUREGPT_INDEX:
+            model_list = config.settings['azure_model'].strip().split(',')
+            current_model=config.params["azure_model"]
+        elif idx==translator.ZIJIE_INDEX:
+            model_list = config.settings['zijiehuoshan_model'].strip().split(',')
+            current_model=config.params["zijiehuoshan_model"]
+
+        else:
+            winobj.fanyi_model_list.setVisible(False)
+            return
+
+        winobj.fanyi_model_list.clear()
+        winobj.fanyi_model_list.addItems(model_list)
+        if current_model in model_list:
+            winobj.fanyi_model_list.setCurrentText(current_model)
+        winobj.fanyi_model_list.setVisible(True)
+
+    # 模型变化
+    def model_change():
+        idx=winobj.fanyi_translate_type.currentIndex()
+        model_name=winobj.fanyi_model_list.currentText()
+        if idx == translator.LOCALLLM_INDEX:
+            config.params["localllm_model"]=model_name
+        elif idx == translator.GEMINI_INDEX:
+            config.params["gemini_model"]=model_name
+        elif idx == translator.CHATGPT_INDEX:
+            config.params["chatgpt_model"]=model_name
+        elif idx == translator.AZUREGPT_INDEX:
+            config.params["azure_model"]=model_name
+        elif idx == translator.ZIJIE_INDEX:
+            config.params["zijiehuoshan_model"]=model_name
+
+        config.getset_params(config.params)
 
     def pause_trans():
         config.box_trans='stop'
@@ -229,27 +278,32 @@ def openwin():
     from videotrans.component import Fanyisrt
     try:
         winobj = config.child_forms.get('fanyiform')
+
         if winobj is not None:
             winobj.show()
             update_target_language()
             winobj.raise_()
             winobj.activateWindow()
             return
+
         winobj = Fanyisrt()
         config.child_forms['fanyiform'] = winobj
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
-        update_target_language(is_google=True)
+        winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type',0)))
+
+        update_target_language()
         winobj.fanyi_source.addItems(['-'] + config.langnamelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)
 
-        winobj.fanyi_translate_type.setCurrentIndex(config.params.get("trans_translate_type",0))
         winobj.fanyi_source.setCurrentIndex(config.params.get("trans_source_language",0))
         winobj.fanyi_target.setCurrentIndex(config.params.get("trans_target_language",0))
         winobj.out_format.setCurrentIndex(config.params.get("trans_out_format",0))
 
         winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
+
+        show_model_list()
         winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
 
         winobj.fanyi_sourcetext = QPlainTextEdit()
@@ -267,6 +321,7 @@ def openwin():
 
         winobj.fanyi_layout.insertWidget(0, winobj.fanyi_sourcetext)
         winobj.daochu.clicked.connect(fanyi_save_fun)
+        winobj.fanyi_model_list.currentTextChanged.connect(model_change)
 
         winobj.show()
     except Exception as e:

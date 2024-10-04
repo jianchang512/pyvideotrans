@@ -93,7 +93,7 @@ class BaseTrans(BaseCon):
                 self.iter_num += 1
                 if self.iter_num > 1:
                     self._signal(
-                        text=f"第{self.iter_num}次出错重试" if config.defaulelang == 'zh' else f'{self.iter_num} retries after error')
+                        text=f"第{self.iter_num}次出错，10s后重试," if config.defaulelang == 'zh' else f'{self.iter_num} retries occurs,10s later retry')
                     time.sleep(10)
                     continue
 
@@ -115,14 +115,12 @@ class BaseTrans(BaseCon):
                     sep_len = len(sep_res)
                     # 如果返回结果相差原字幕仅少一行，对最后一行进行拆分
                     if sep_len + 1 == raw_len:
-                        config.logger.error('返回结果相差原字幕仅少一行，对最后一行进行拆分')
                         sep_res = tools.split_line(sep_res)
                         if sep_res:
                             sep_len = len(sep_res)
 
                     # 如果返回数量和原始语言数量不一致，则重新切割
                     if sep_len < raw_len:
-                        config.logger.error(f'翻译前后数量不一致，需要重新按行翻译')
                         sep_res = []
                         for it_n in it:
                             time.sleep(self.wait_sec)
@@ -157,16 +155,10 @@ class BaseTrans(BaseCon):
                 except IndexError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
-                except requests.ConnectionError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
                 except openai.APIError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except AttributeError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except ConnectionError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except OSError as e:
@@ -288,14 +280,15 @@ class BaseTrans(BaseCon):
         if not res_str.strip():
             return
         key_cache = self._get_key(it)
-        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
-        if not Path(config.TEMP_DIR + f'/translate_cache').is_dir():
-            Path(config.TEMP_DIR + f'/translate_cache').mkdir(parents=True,exist_ok=True)
+
+        file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
+        if not Path(config.SYS_TMP + f'/translate_cache').is_dir():
+            Path(config.SYS_TMP + f'/translate_cache').mkdir(parents=True,exist_ok=True)
         Path(file_cache).write_text(res_str,encoding='utf-8')
 
     def _get_cache(self,it):
         key_cache=self._get_key(it)
-        file_cache=config.TEMP_DIR+f'/translate_cache/{key_cache}.txt'
+        file_cache=config.SYS_TMP+f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).is_file():
             return Path(file_cache).read_text(encoding='utf-8')
         return None

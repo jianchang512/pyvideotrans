@@ -483,7 +483,7 @@ class TransCreate(BaseTask):
                 "pitch": self.config_params['pitch'],
                 "tts_type": self.config_params['tts_type']
             }
-            tmp_dict["filename"] = config.TEMP_DIR + "/dubbing_cache/" + tools.get_md5(
+            tmp_dict["filename"] = config.SYS_TMP + "/dubbing_cache/" + tools.get_md5(
                 json.dumps(tmp_dict)) + '.mp3'
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
@@ -502,7 +502,7 @@ class TransCreate(BaseTask):
                     )
             queue_tts.append(tmp_dict)
         self.queue_tts = queue_tts
-        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
+        Path(config.SYS_TMP + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作

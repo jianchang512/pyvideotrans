@@ -12,7 +12,7 @@ class Ui_fanyisrt(object):
         self.has_done = False
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
-        fanyisrt.resize(1000, 535)
+        fanyisrt.resize(1100, 535)
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
         self.files = []
@@ -40,7 +40,15 @@ class Ui_fanyisrt(object):
         self.fanyi_translate_type = QtWidgets.QComboBox()
         self.fanyi_translate_type.setMinimumSize(QtCore.QSize(100, 30))
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
+        self.fanyi_model_list = QtWidgets.QComboBox()
+        self.fanyi_model_list.setMinimumSize(QtCore.QSize(100, 30))
+        self.fanyi_model_list.setObjectName("fanyi_model_list")
+        self.fanyi_model_list.setVisible(False)
+
+
+
         self.horizontalLayout_18.addWidget(self.fanyi_translate_type)
+        self.horizontalLayout_18.addWidget(self.fanyi_model_list)
 
         self.label_source = QtWidgets.QLabel()
         self.label_source.setMinimumSize(QtCore.QSize(0, 30))
