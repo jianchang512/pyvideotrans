@@ -737,7 +737,6 @@ class WinAction(WinActionSub):
                 ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
                 config.params['line_roles'][line] = config.params['voice_role'] if role in ['No', 'no', '-'] else role
-            linerolew.close()
 
         from videotrans.component import SetLineRole
         linerolew = config.child_forms.get('linerolew')

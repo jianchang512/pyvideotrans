@@ -461,7 +461,7 @@ class TransCreate(BaseTask):
         else:
             rate = f"{rate}%"
         # 取出设置的每行角色
-        line_roles = self.config_params["line_roles"] if "line_roles" in self.config_params else None
+        line_roles = config.params["line_roles"] if "line_roles" in config.params else None
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
