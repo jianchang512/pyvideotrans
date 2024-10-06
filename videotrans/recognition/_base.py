@@ -179,8 +179,24 @@ class BaseRecogn(BaseCon):
         Returns:
             重新划分后的字幕数据，格式与输入相同。
         """
+        flags=r'[,?!，。？！]|(\. )'
+        if self.detect_language[:2] in ['zh', 'ja', 'ko']:
+            maxlen =config.settings['cjk_len']
+            flags=r'[,?!，。？！]|(\. )'
+        else:
+            maxlen = config.settings['other_len']
+        shound_rephase=False
+        for segment in data:
+            if segment['words'][0]['end']-segment['words'][0]['start']>15000:
+                shound_rephase=True
+                break
+            if len(segment['text'])>3*maxlen:
+                shound_rephase=True
+                break
+        print([f"{t['text']}\n" for t in data])
+
         new_data = []
-        if not config.settings['rephrase']:
+        if not config.settings['rephrase'] or not shound_rephase:
             for segment in data:
                 tmp = {
                     "line": len(new_data) + 1,
@@ -205,17 +221,12 @@ class BaseRecogn(BaseCon):
         sentence = ""
         sentence_start = data[0]["words"][0]['start']
         sentence_end = 0
-        flags=r'[,?!，。？！]|(\. )'
-        if self.detect_language[:2] in ['zh', 'ja', 'ko']:
-            maxlen =config.settings['cjk_len']
-            flags=r'[,?!，。？！]|(\. )'
-        else:
-            maxlen = config.settings['other_len']
+        print("需要分词")
+
 
         data_len=len(data)
         for seg_i,segment in enumerate(data):
             current_len=len(segment["words"])
-            # print(f'\n\n{segment["words"]=}')
             for i, word_info in enumerate(segment["words"]):
                 word = word_info["word"]
                 start = word_info["start"]
@@ -248,15 +259,16 @@ class BaseRecogn(BaseCon):
                     next2_word=''
 
 
-                if ( next_word and re.search(r'[,?!，。！？]|(\. )',next_word) ) or ( next2_word and re.search(r'[,?!，。！？]|(\. )',next2_word) ):
+                if len(sentence.strip()) < 1.2*maxlen  and (  \
+                    ( next_word and re.search(flags,next_word) and len(next_word)<0.2*maxlen ) \
+                    or ( next2_word and re.search(flags,next2_word) and len(next2_word)<0.2*maxlen ) \
+                ):
                     continue
 
                 if next_start> end:
                     if next_start >= end+1000:
                         is_insert=True
-                    elif next_start>=end+250 and len(sentence.strip())>=0.2*maxlen:
-                        is_insert=True
-                    elif next_start >= end+50 and re.search(flags, word) and len(sentence.strip())>=0.3*maxlen:
+                    elif next_start>=end+200 and len(sentence.strip())>=0.2*maxlen:
                         is_insert=True
                     elif re.search(flags, word) and len(sentence.strip())>=maxlen*0.5:
                         is_insert=True
@@ -265,14 +277,14 @@ class BaseRecogn(BaseCon):
                     is_insert=True
 
                 if not is_insert:
-                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*2:
+                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*1.5:
                         is_insert=True
-                    elif  self.subtitle_type==0 and len(sentence.strip())>=maxlen*2.8:
+                    elif  self.subtitle_type==0 and len(sentence.strip())>=maxlen*2:
                         is_insert=True
 
                 if not is_insert:
                     continue
-                # print(f'{sentence=}')
+
                 tmp = {
                     "line": len(new_data) + 1,
                     "start_time": sentence_start,
@@ -300,7 +312,6 @@ class BaseRecogn(BaseCon):
                 tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
                 tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
                 new_data.append(tmp)
-        # print(f'\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{new_data=}')
         return new_data
 
     # True 退出
