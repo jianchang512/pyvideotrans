@@ -109,40 +109,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
 
-        # tts_type 改变时，重设角色
-        self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
-        self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
-        self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
-        self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
+        self.model_name.addItems(config.WHISPER_MODEL_LIST)
+        if config.params['model_name'] in config.WHISPER_MODEL_LIST:
+            self.model_name.setCurrentText(config.params['model_name'])
 
-        self.set_line_role.clicked.connect(self.win_action.set_line_role_fun)
-        self.proxy.textChanged.connect(self.win_action.change_proxy)
-        self.import_sub.clicked.connect(self.win_action.import_sub_fun)
-        self.export_sub.clicked.connect(self.win_action.export_sub_fun)
-        self.startbtn.clicked.connect(self.win_action.check_start)
-        self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
-        self.btn_get_video.clicked.connect(self.win_action.get_mp4)
-        self.stop_djs.clicked.connect(self.win_action.reset_timeid)
-        self.continue_compos.clicked.connect(self.win_action.set_djs_timeout)
-        self.listen_btn.clicked.connect(self.win_action.listen_voice_fun)
-        self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
-        self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
-        self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
-        self.voice_rate.valueChanged.connect(self.win_action.voice_rate_changed)
-        self.voice_autorate.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.video_autorate.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "video"))
-        self.append_video.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "append_video"))
-        self.addbackbtn.clicked.connect(self.win_action.get_background)
-        self.enable_cuda.toggled.connect(self.win_action.check_cuda)
+        try:
+            config.params['recogn_type'] = int(config.params['recogn_type'])
+        except Exception:
+            config.params['recogn_type'] = 0
+
+        self.recogn_type.setCurrentIndex(config.params['recogn_type'])
+
 
         self.moshis = {
             "biaozhun_jd": self.action_xinshoujandan,
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
+
+        w = self.size().width()
+        h = self.size().height()
+        self.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
 
     def _bindsignal(self):
         try:
@@ -174,9 +161,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
         self.proxy.setText(config.params['proxy'])
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
-
         self.split_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
-        self.model_name.addItems(config.WHISPER_MODEL_LIST)
         self.export_sub.setText(config.transobj['Export srt'])
         self.subtitle_type.addItems(
             [
@@ -188,16 +173,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ])
         self.subtitle_type.setCurrentIndex(config.params['subtitle_type'])
 
-        try:
-            config.params['recogn_type'] = int(config.params['recogn_type'])
-        except Exception:
-            config.params['recogn_type'] = 0
-
-        self.recogn_type.setCurrentIndex(config.params['recogn_type'])
         if config.params['recogn_type'] > 1:
             self.model_name_help.setVisible(False)
         else:
             self.model_name_help.clicked.connect(self.win_action.show_model_help)
+
         try:
             config.params['tts_type'] = int(config.params['tts_type'])
         except Exception:
@@ -210,13 +190,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['subtitle_type'] and int(config.params['subtitle_type']) > 0:
             self.subtitle_type.setCurrentIndex(int(config.params['subtitle_type']))
 
-        if config.params['model_name'] in config.WHISPER_MODEL_LIST:
-            self.model_name.setCurrentText(config.params['model_name'])
-
         try:
             self.voice_rate.setValue(int(config.params['voice_rate'].replace('%', '')))
         except Exception:
             self.voice_rate.setValue(0)
+
+        self.voice_autorate.stateChanged.connect(
+            lambda: self.win_action.autorate_changed(self.voice_autorate.isChecked(), "voice"))
+        self.video_autorate.stateChanged.connect(
+            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "video"))
+        self.append_video.stateChanged.connect(
+            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "append_video"))
+        self.addbackbtn.clicked.connect(self.win_action.get_background)
 
         self.split_type.setDisabled(True if config.params['recogn_type'] > 0 else False)
         self.voice_autorate.setChecked(bool(config.params['voice_autorate']))
@@ -227,9 +212,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
 
-        w=self.size().width()
-        h=self.size().height()
-        self.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
+        self.enable_cuda.toggled.connect(self.win_action.check_cuda)
+        # tts_type 改变时，重设角色
+        self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
+        self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
+        self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
+        self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
+
+        self.set_line_role.clicked.connect(self.win_action.set_line_role_fun)
+        self.proxy.textChanged.connect(self.win_action.change_proxy)
+        self.import_sub.clicked.connect(self.win_action.import_sub_fun)
+        self.export_sub.clicked.connect(self.win_action.export_sub_fun)
+        self.startbtn.clicked.connect(self.win_action.check_start)
+        self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
+        self.btn_get_video.clicked.connect(self.win_action.get_mp4)
+        self.stop_djs.clicked.connect(self.win_action.reset_timeid)
+        self.continue_compos.clicked.connect(self.win_action.set_djs_timeout)
+        self.listen_btn.clicked.connect(self.win_action.listen_voice_fun)
+        self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
+        self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
+        self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
+        self.voice_rate.valueChanged.connect(self.win_action.voice_rate_changed)
+
 
     def start_subform(self):
         self.import_sub.setCursor(Qt.PointingHandCursor)

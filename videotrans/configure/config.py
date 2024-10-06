@@ -536,7 +536,7 @@ Translation:"""
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
-        "model_name": "tiny",  # 模型名
+        "model_name": "medium" if Path(ROOT_DIR+"/models/models--Systran--faster-whisper-medium/snapshots").is_dir() else "tiny",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
 
         "voice_autorate": False,

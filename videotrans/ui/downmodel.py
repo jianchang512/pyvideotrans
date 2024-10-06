@@ -31,7 +31,13 @@ class Ui_downmodel(object):
         self.hlayout_name = QHBoxLayout()
         self.hlayout_name.setObjectName(u"hlayout_name")
         self.label_name = QLabel()
+        self.proxy=QtWidgets.QLineEdit()
+        self.proxy.setMinimumWidth(150)
+        self.proxy.setPlaceholderText('如果无法连接到GitHub，请填写代理地址' if config.defaulelang == 'zh' else "proxy address")
+        self.proxy.setToolTip('如果无法连接到GitHub，请填写代理地址' if config.defaulelang == 'zh' else "proxy address")
         self.hlayout_name.addWidget(self.label_name)
+        self.hlayout_name.addStretch()
+        self.hlayout_name.addWidget(self.proxy)
 
         self.hlayout_url = QHBoxLayout()
         self.hlayout_url.setObjectName(u"hlayout_url")
@@ -46,11 +52,22 @@ class Ui_downmodel(object):
         self.hlayout_btn = QHBoxLayout()
         self.hlayout_btn.setObjectName(u"hlayout_btn")
 
+        self.online_btn = QPushButton()
+        self.online_btn.setObjectName(u"online_btn")
+        self.online_btn.setMinimumSize(QSize(200, 35))
+        self.online_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.online_btn.setMouseTracking(False)
+
         self.down_btn = QPushButton()
         self.down_btn.setObjectName(u"down_btn")
         self.down_btn.setMinimumSize(QSize(200, 35))
         self.down_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.down_btn.setMouseTracking(False)
+
+
+
+
+        self.hlayout_btn.addWidget(self.online_btn)
         self.hlayout_btn.addWidget(self.down_btn)
         self.verticalLayout.addLayout(self.hlayout_btn)
 
@@ -69,7 +86,7 @@ class Ui_downmodel(object):
 
         self.text_help = QtWidgets.QPlainTextEdit()
         self.text_help.setReadOnly(True)
-        self.text_help.setMinimumSize(QSize(0, 150))
+        self.text_help.setMinimumSize(QSize(0, 50))
         self.verticalLayout.addWidget(self.text_help)
 
         self.retranslateUi(downmodel)
@@ -79,3 +96,4 @@ class Ui_downmodel(object):
     def retranslateUi(self, downmodel):
         downmodel.setWindowTitle("下载模型" if config.defaulelang == 'zh' else 'Download Models')
         self.down_btn.setText("点击打开浏览器下载" if config.defaulelang == 'zh' else 'Click to open browser to download')
+        self.online_btn.setText("在线下载模型" if config.defaulelang=='zh' else 'Download Model Online')
