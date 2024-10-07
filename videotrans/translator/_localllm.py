@@ -15,12 +15,21 @@ class LocalLLM(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_url = config.params['localllm_api']
-        if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
+        self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self._check_proxy()
+        
+    def _check_proxy(self):
+        if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
+            return
+        try:
+            c=httpx.Client(proxies=None)
+            res=c.get(self.api_url)
+            #print(res.status_code)
+        except Exception as e:
+            print(f'set proxy {e}')
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language)
-
     def _item_task(self, data: Union[List[str], str]) -> str:
         model = OpenAI(api_key=config.params['localllm_key'], base_url=self.api_url,
                        http_client=httpx.Client(proxies=self.proxies))

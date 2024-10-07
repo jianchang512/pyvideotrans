@@ -39,4 +39,5 @@ plyer
 flask
 waitress
 srt
+py7zr
 samplerate

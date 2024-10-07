@@ -71,6 +71,7 @@ class Down(QThread):
         try:
             # 获取文件名
             local_filename = os.path.join(self.save_dir, self.url.split('/')[-1])
+            local_filename=local_filename.split('?')[0]
             # 获取文件大小
             # 通过 Range 请求来获取文件大小
             response = requests.get(self.url, headers={'Range': 'bytes=0-1'}, stream=True, proxies=self.proxy)

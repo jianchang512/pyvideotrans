@@ -14,10 +14,19 @@ class AzureGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https://": pro, "http://": pro}
         self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self._check_proxy()
+        
+    def _check_proxy(self):
+        try:
+            c=httpx.Client(proxies=None)
+            res=c.get(config.params["azure_api"])
+            #print(res.status_code)
+        except Exception as e:
+            print('set proxy')
+            pro = self._set_proxy(type='set')
+            if pro:
+                self.proxies = {"https://": pro, "http://": pro}        
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         model = AzureOpenAI(
