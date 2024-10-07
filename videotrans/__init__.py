@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-VERSION = "v2.72"
-VERSION_NUM = 120072
+VERSION = "v2.73"
+VERSION_NUM = 120073

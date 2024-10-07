@@ -6,6 +6,7 @@ from typing import Union, List, Dict
 
 
 import requests
+import json
 
 
 from videotrans.configure import config
@@ -74,6 +75,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 "timestamp_granularities[]": "segment",
                 "response_format": "verbose_json"
             },proxies=self.proxies)
+            config.logger.info(f'{transcript.text=}')
             resdata=transcript.json()
 
             if 'error' in resdata and resdata['error']:
@@ -82,6 +84,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 raise Exception( f'{resdata}' if  self.api_url.startswith("https://api.openai.com") else f'该api不支持返回带时间戳字幕格式 {self.api_url} ')
 
             segments=resdata['segments']
+            
 
             if len(segments) < 1:
                 msg = '未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
@@ -104,6 +107,9 @@ class OpenaiAPIRecogn(BaseRecogn):
                 )
                 self.raws.append(srt_tmp)
             return self.raws
+        except json.decoder.JSONDecodeError as e:
+            msg=re.sub(r'</?\w+[^>]*?>','',transcript.text,re.I|re.S)            
+            raise Exception(msg)
         except ConnectionError as e:
             msg = f'网络连接错误，请检查代理、api地址等:{str(e)}' if config.defaulelang == 'zh' else str(e)
             raise Exception(msg)

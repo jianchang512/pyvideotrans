@@ -16,12 +16,23 @@ class ChatGPT(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_url = self._get_url(config.params['chatgpt_api'])
-        if not re.search('localhost', self.api_url) and not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
+        
+        # 是srt则获取srt的提示词
+        self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self._check_proxy()
+        
+    def _check_proxy(self):
+        if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
+            return
+        try:
+            c=httpx.Client(proxies=None)
+            res=c.get(self.api_url)
+            #print(res.status_code)
+        except Exception as e:
+            print(f'set proxy {e}')
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
-        # 是srt则获取srt的提示词
-        self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language)
 
     def _get_url(self, url=""):
         if not url.startswith('http'):
@@ -48,6 +59,7 @@ class ChatGPT(BaseTrans):
                 'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,
                                                                                                             list) else data)},
         ]
+        print(self.proxies)
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
                        http_client=httpx.Client(proxies=self.proxies))
