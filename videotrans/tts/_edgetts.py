@@ -66,7 +66,7 @@ class EdgeTTS(BaseTTS):
             self._item_task()
             err_num = 0
             for it in self.queue_tts:
-                if not tools.vail_file(it['filename']):
+                if it['text'].strip() and not tools.vail_file(it['filename']):
                     err_num += 1
             # 全部失败，不再重试
             if err_num >= self.len:

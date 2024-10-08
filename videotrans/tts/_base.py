@@ -100,7 +100,7 @@ class BaseTTS(BaseCon):
         # 记录出错的字幕行数，超过总数 1/3 报错
         err = 0
         for it in self.queue_tts:
-            if not tools.vail_file(it['filename']):
+            if it['text'].strip() and not tools.vail_file(it['filename']):
                 err += 1
         # 错误量大于 1/3
         if err > int(len(self.queue_tts) / 3):
