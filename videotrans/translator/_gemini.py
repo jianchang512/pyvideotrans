@@ -51,7 +51,8 @@ class Gemini(BaseTrans):
             genai.configure(api_key=config.params['gemini_key'])
             model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
             response = model.generate_content(
-                message
+                message,
+                safety_settings=safetySettings
             )
             config.logger.info(f'[Gemini]请求发送:{message=}')
 

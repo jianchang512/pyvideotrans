@@ -181,10 +181,10 @@ class BaseRecogn(BaseCon):
         """
         flags=r'[,?!，。？！]|(\. )'
         if self.detect_language[:2] in ['zh', 'ja', 'ko']:
-            maxlen =config.settings['cjk_len']
+            maxlen =int(config.settings['cjk_len'])
             flags=r'[,?!，。？！]|(\. )'
         else:
-            maxlen = config.settings['other_len']
+            maxlen = int(config.settings['other_len'])
         shound_rephase=False
         for segment in data:
             if segment['words'][0]['end']-segment['words'][0]['start']>15000:
@@ -193,7 +193,6 @@ class BaseRecogn(BaseCon):
             if len(segment['text'])>3*maxlen:
                 shound_rephase=True
                 break
-        print([f"{t['text']}\n" for t in data])
 
         new_data = []
         if not config.settings['rephrase'] or not shound_rephase:

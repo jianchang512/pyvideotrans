@@ -311,7 +311,7 @@ def parse_init():
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
         "subtitle_bottom": 10,
-        "cjk_len": 20,
+        "cjk_len": 24,
         "other_len": 60,
         "gemini_model": "gemini-1.5-pro,gemini-pro,gemini-1.5-flash",
         "zh_hant_s": True,
@@ -333,7 +333,7 @@ def parse_init():
         _settings = {}
         for key, val in temp_json.items():
             value = str(val).strip()
-            if value.isdigit():
+            if re.match(r'^\d+$', value):
                 _settings[key] = int(value)
             elif re.match(r'^\d*\.\d+$', value):
                 _settings[key] = float(value)

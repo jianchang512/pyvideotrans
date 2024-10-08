@@ -50,9 +50,8 @@ class BaseTrans(BaseCon):
         # 如果 text_list 不是字符串则是字幕格式
         self.is_srt = False if isinstance(text_list, str) else True
         # 非AI翻译时强制设为False，是AI翻译时根据配置确定
-        self.aisendsrt=config.settings.get('aisendsrt',False)
+        self.aisendsrt=True if config.settings.get('aisendsrt',False) and self.trans_thread>1 else False
         # 整理待翻译的文字为 List[str]
-        
         self.split_source_text=[]
         self.proxies = None
 
@@ -100,7 +99,7 @@ class BaseTrans(BaseCon):
                 try:
                     result=self._get_cache(it)
                     if not result:
-                        result = self._item_task(it)
+                        result = tools.cleartext(self._item_task(it))
                         self._set_cache(it,result)
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
@@ -110,23 +109,18 @@ class BaseTrans(BaseCon):
                         self.iter_num = 0
                         self.error = ''
                         break
-                    sep_res = tools.cleartext(result).split("\n")
+                    sep_res = result.split("\n")
                     raw_len = len(it)
                     sep_len = len(sep_res)
-                    # 如果返回结果相差原字幕仅少一行，对最后一行进行拆分
-                    if sep_len + 1 == raw_len:
-                        sep_res = tools.split_line(sep_res)
-                        if sep_res:
-                            sep_len = len(sep_res)
 
                     # 如果返回数量和原始语言数量不一致，则重新切割
-                    if sep_len < raw_len:
+                    if sep_len+1 < raw_len:
                         sep_res = []
                         for it_n in it:
                             time.sleep(self.wait_sec)
                             t=self._get_cache(it_n)
                             if not t:
-                                t = self._item_task(it_n)
+                                t = tools.cleartext(self._item_task(it_n))
                                 self._set_cache(it_n,t)
                             self._signal(
                                 text=t + "\n",
@@ -144,8 +138,6 @@ class BaseTrans(BaseCon):
                     if len(sep_res) < len(it):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
-
-
                 except ValueError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -153,9 +145,6 @@ class BaseTrans(BaseCon):
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except IndexError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except openai.APIError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except AttributeError as e:
@@ -222,7 +211,7 @@ class BaseTrans(BaseCon):
                     srt_str="\n\n".join([ f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
                     result=self._get_cache(srt_str)
                     if not result:
-                        result = self._item_task(srt_str)
+                        result = tools.cleartext(self._item_task(srt_str))
                         if not result.strip():
                             raise Exception('无返回翻译结果' if config.defaulelang=='zh' else 'Translate result is empty')
                         self._set_cache(it,result)
@@ -240,12 +229,6 @@ class BaseTrans(BaseCon):
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except IndexError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except requests.ConnectionError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except openai.APIError as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
                 except AttributeError as e:
