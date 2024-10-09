@@ -85,7 +85,7 @@ class BaseTrans(BaseCon):
                 if self._exit():
                     return
                 if self.iter_num > self.retry:
-                    msg = f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
+                    msg = f'{self.iter_num}{"次重试后失败" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
                     self._signal(text=msg, type="error")
                     raise Exception(msg)
 

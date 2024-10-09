@@ -34,20 +34,17 @@ class BaseTTS(BaseCon):
         self.pitch = '+0Hz'
 
         self.len = len(queue_tts)
-        self.has_done = 0  # 已成功完成的数量
+        self.has_done = 0
         self.proxies = None  # 代理
 
         if self.len < 1:
             raise Exception("No data")
-        # 防止浅复制修改问题
         self.queue_tts = copy.deepcopy(queue_tts)
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
 
-        # 线程池大小
         self.dub_nums = int(config.settings['dubbing_thread']) if self.len > 1 else 1
         self.error = ''
-        # 某些tts接口api url
         self.api_url = ''
         self._fomat_vrp()
 
@@ -145,7 +142,7 @@ class BaseTTS(BaseCon):
 
             err_num = 0
             for it in self.queue_tts:
-                if not tools.vail_file(it['filename']):
+                if it['text'].strip() and not tools.vail_file(it['filename']):
                     err_num += 1
             # 有错误则降低并发，重试
             # 如果全部出错，则直接停止，不再重试

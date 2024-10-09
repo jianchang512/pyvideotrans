@@ -123,14 +123,7 @@ class Ui_setini(object):
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
                 "video_codec": "采用 libx264 编码或 libx265编码，264兼容性更好，265压缩比更大清晰度更高"
             },
-            "justify": {
-                "audio_rate": "音频最大加速倍数，默认3，即最大加速到 3倍速度，需设置1-100的数字，比如3，代表最大加速3倍",
-                "video_rate": "视频慢速倍数：大于1的数，代表最大允许慢速多少倍，0或1代表不进行视频慢放",
-                "remove_silence": "是否移除配音末尾空白",
-                "remove_srt_silence": "是否移除原始字幕时长大于配音时长 的静音，比如原时长5s，配音后3s，是否移除这2s静音",
-                "remove_white_ms": "移除2条字幕间的静音长度ms，比如100ms，即如果两条字幕间的间隔大于100ms时，将移除100ms, -1=完全移除",
-                "force_edit_srt": "是否强制修改字幕时间轴以便匹配声音，若不选中则保持原始字幕时间轴，可能导致字幕和声音不匹配"
-            },
+
             "subtitle": {
                 "fontsize": "硬字幕字体像素尺寸",
                 "fontname": "硬字幕时字体名字",
@@ -140,11 +133,11 @@ class Ui_setini(object):
 
             },
             "trans": {
-                "trans_thread": "同时翻译的字幕条数",
+                "trans_thread": "同时翻译的字幕行数",
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
                 "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages",
-                "aisendsrt":"是否在使用AI翻译时发送完整字幕内容",
+                "aisendsrt":"是否在使用AI/Google翻译时发送完整字幕格式内容",
 
             },
             "dubbing": {
@@ -152,16 +145,22 @@ class Ui_setini(object):
                 "azure_lines": "azureTTS一次配音行数",
                 "chattts_voice": "chatTTS 音色值"
             },
-            "recogn": {
+            "justify": {
+                "audio_rate": "音频最大加速倍数，默认3，即最大加速到 3倍速度，需设置1-100的数字，比如3，代表最大加速3倍",
+                "video_rate": "视频慢速倍数：大于1的数，代表最大允许慢速多少倍，0或1代表不进行视频慢放",
+                "remove_silence": "是否移除配音末尾空白",
+                "remove_srt_silence": "是否移除原始字幕时长大于配音时长 的静音，比如原时长5s，配音后3s，是否移除这2s静音",
+                "remove_white_ms": "移除2条字幕间的静音长度ms，比如100ms，即如果两条字幕间的间隔大于100ms时，将移除100ms, -1=完全移除",
+                "force_edit_srt": "是否强制修改字幕时间轴以便匹配声音，若不选中则保持原始字幕时间轴，可能导致字幕和声音不匹配"
+            },
+            "whisper": {
                 "vad": "是否在faster-whisper字幕整体识别模式时启用VAD",
                 "overall_threshold": "VAD阈值",
                 "overall_speech_pad_ms": "VAD pad值",
-                "overall_silence": "最小静音片段ms，默认250ms ",
-                "overall_maxsecs": "语句最大持续秒数",
-                "voice_silence": "均等分割模式下静音片段",
-                "interval_split": "均等分割模式下每个片段时长秒数"
-            },
-            "whisper": {
+                "overall_silence": "字幕断句最小静音片段ms，默认200ms ",
+                "overall_maxsecs": "字幕最大时长秒数，超过则强制断句",
+                "voice_silence": "Google识别api静音片段/ms",
+                "interval_split": "均等分割模式下每个片段时长秒数",
                 "rephrase":"faster/openai-whisper识别后重新断句",
                 "cjk_len": "中日韩一行长度字符个数，多于这个将换行,硬字幕换行和重新断句的主要依据",
                 "other_len": "其他语言一行长度，多于这个字符数量将换行,硬字幕换行和重新断句的主要依据",
@@ -228,11 +227,11 @@ class Ui_setini(object):
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
             "overall_silence": "最小静音片段/ms",
-            "overall_maxsecs": "创建字幕最大时长秒数/s",
+            "overall_maxsecs": "字幕最大时长持续秒数/s",
             "rephrase":"faster/openai-whisper识别后重新断句",
             "overall_threshold": "VAD阈值",
             "overall_speech_pad_ms": "VAD pad 值",
-            "voice_silence": "均等分割时静音片段/ms",
+            "voice_silence": "Google识别api静音片段/ms",
             "interval_split": "均等分割时片段时长/s",
             "trans_thread": "同时翻译的字幕数",
             "retries": "翻译出错重试数",
@@ -293,8 +292,7 @@ class Ui_setini(object):
             "common": "通用设置",
             "model": "AI模型列表",
             "video": "视频输出",
-            "recogn": "VAD参数",
-            "whisper": "faster/openai模式调整",
+            "whisper": "faster/openai语音识别调整",
             "justify": "字幕声音对齐",
             "subtitle": "硬字幕样式",
             "trans": "字幕翻译调整",
@@ -328,14 +326,7 @@ class Ui_setini(object):
                     "ffmpeg_cmd": "Custom ffmpeg command parameters, added at the penultimate position, e.g., -bf 7 -b_ref_mode middle",
                     "video_codec": "Use libx264 or libx265 encoding, 264 has better compatibility, 265 has higher compression ratio and clarity"
                 },
-                "justify": {
-                    "audio_rate": "Maximum audio speed multiplier, default is 3, which means a maximum speed of 3 times, should be a number between 1 and 100, e.g., 3 represents a maximum speed of 3 times",
-                    "video_rate": "Video slow motion multiplier: a number greater than 1 represents the maximum allowable slow motion, 0 or 1 means no slow motion",
-                    "remove_silence": "Whether to remove silence at the end of the dubbing",
-                    "remove_srt_silence": "Whether to remove silence when the original subtitle duration is longer than the dubbing duration, e.g., the original duration is 5s, and the dubbing is 3s, should the 2s silence be removed",
-                    "remove_white_ms": "Silence length in ms between two subtitles to be removed, e.g., 100ms, if the interval between two subtitles is greater than 100ms, 100ms will be removed, -1 = remove completely",
-                    "force_edit_srt": "force subtitle timeline adjustment to match the audio, do not adjust, keep the original subtitle timeline, no adjustment may cause subtitles and audio to be out of sync"
-                },
+
                 "subtitle": {
                     "fontsize": "Pixel size of the hard subtitle font",
                     "fontname": "Font name for hard subtitles",
@@ -355,16 +346,23 @@ class Ui_setini(object):
                     "azure_lines": "Number of lines dubbed at once by azureTTS",
                     "chattts_voice": "chatTTS voice tone"
                 },
-                "recogn": {
+                "justify": {
+                    "audio_rate": "Maximum audio speed multiplier, default is 3, which means a maximum speed of 3 times, should be a number between 1 and 100, e.g., 3 represents a maximum speed of 3 times",
+                    "video_rate": "Video slow motion multiplier: a number greater than 1 represents the maximum allowable slow motion, 0 or 1 means no slow motion",
+                    "remove_silence": "Whether to remove silence at the end of the dubbing",
+                    "remove_srt_silence": "Whether to remove silence when the original subtitle duration is longer than the dubbing duration, e.g., the original duration is 5s, and the dubbing is 3s, should the 2s silence be removed",
+                    "remove_white_ms": "Silence length in ms between two subtitles to be removed, e.g., 100ms, if the interval between two subtitles is greater than 100ms, 100ms will be removed, -1 = remove completely",
+                    "force_edit_srt": "force subtitle timeline adjustment to match the audio, do not adjust, keep the original subtitle timeline, no adjustment may cause subtitles and audio to be out of sync"
+                },
+                "whisper": {
                     "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
                     "overall_threshold": "VAD threshold",
                     "overall_speech_pad_ms": "VAD pad value",
-                    "overall_silence": "Minimum silence segment in ms, default is 250ms",
+                    "overall_silence": "Minimum silence segment in ms, default is 200ms",
                     "overall_maxsecs": "Maximum duration of a sentence in seconds",
-                    "voice_silence": "Silence segment in equal split mode",
-                    "interval_split": "Segment duration in seconds in equal split mode"
-                },
-                "whisper": {
+                    "voice_silence": "Silence segment for Google api/ms",
+                    "interval_split": "Segment duration in seconds in equal split mode",
+
                     "rephrase":"faster/openai-whisper rephrase",
                     "cjk_len": "CJK line length characters, more than this will be line breaks, the main basis for line breaks and re-breaks in hard subtitles.",
                     "other_len": "Other languages have a line length above which line breaks occur, the main basis for line breaks and re-breaks in hard subtitles.",
@@ -409,8 +407,7 @@ class Ui_setini(object):
                 "common": "General Settings",
                 "model": "AI Model List",
                 "video": "Video Output",
-                "recogn": "VAD Parameters",
-                "whisper": "faster/openai Adjustments",
+                "whisper": "faster-whisper/openai-whisper speech to text",
                 "justify": "Subtitle  Alignment",
                 "subtitle": "Hard Subtitle Styles",
                 "trans": "Subtitle Translation",
@@ -448,7 +445,7 @@ class Ui_setini(object):
                 "overall_maxsecs": "Maximum Speech Duration",
                 "overall_threshold": "VAD Threshold",
                 "overall_speech_pad_ms": "VAD Speech Padding",
-                "voice_silence": "Silence Segment in Equal Division",
+                "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",
                 "trans_thread": "Number of Subtitles Translated Simultaneously",
                 "retries": "Number of Retries on Translation Failure",
@@ -621,13 +618,7 @@ class Ui_setini(object):
                     self.fontbordercolor_btn.clicked.connect(self.set_fontbordercolor)
                     tmp.addWidget(self.fontbordercolor_btn)
 
-
-
-
-
                 box.layout().addLayout(tmp)
-
-
 
 
         box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)

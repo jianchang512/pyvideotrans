@@ -148,7 +148,6 @@ def openwin(model_name=None, recogn_type=None):
 
     def start_down():
         url = winobj.url.text()
-        print(f'{url=}')
         winobj.online_btn.setDisabled(True)
         winobj.online_btn.setText('开始下载模型...' if config.defaulelang=='zh' else 'Start downloading model...')
         proxy = winobj.proxy.text().strip()

@@ -1,10 +1,37 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QImage, QTextDocument
+from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from videotrans.configure import config
 
+class CustomTextBrowser(QtWidgets.QTextBrowser):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.network_manager = QNetworkAccessManager(self)
+        self.network_manager.finished.connect(self.handleNetworkData)
 
+    def loadResource(self, resource_type, url):
+        if resource_type == QTextDocument.ImageResource and url.scheme().startswith('http'):
+            request = QNetworkRequest(url)
+            self.network_manager.get(request)
+        else:
+            # For non-image resources, fall back to default behavior
+            super().loadResource(resource_type, url)
+
+    def handleNetworkData(self, reply):
+        url = reply.url()
+        data = reply.readAll()
+
+        # 将图片数据转换为 QImage
+        image = QImage()
+        image.loadFromData(data)
+
+        if not image.isNull():
+            # 将图片资源插入 QTextBrowser 中
+            self.document().addResource(QTextDocument.ImageResource, url, image)
+
+        reply.deleteLater()
 
 class Ui_infoform(object):
     def setupUi(self, infoform):
@@ -24,9 +51,9 @@ class Ui_infoform(object):
         self.label.setStyleSheet("""font-size:20px""")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
 
-        self.textBrowser = QtWidgets.QTextBrowser(infoform)
-        self.textBrowser.setObjectName("textBrowser")
+        self.textBrowser = CustomTextBrowser(infoform)
         self.textBrowser.setOpenExternalLinks(True)
+        self.textBrowser.setObjectName("textBrowser")
         self.textBrowser.anchorClicked.connect(self.openExternalLink)
         self.gridLayout.addWidget(self.textBrowser, 1, 0, 1, 1)
         if config.defaulelang == 'zh':
@@ -42,8 +69,6 @@ class Ui_infoform(object):
         infoform.setWindowTitle("捐助该软件以帮助持续维护")
         QTimer.singleShot(100, self._bindsignal)
     def _bindsignal(self):
-        from . import mp, alipay, wx
-        _mp, _alipay, _wx = mp, alipay, wx
         self.textBrowser.setHtml("""
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 <html><head><meta name="qrichtext" content="1" /><style type="text/css">
@@ -66,15 +91,14 @@ p, li { white-space: pre-wrap; }a{text-decoration:none}
 <hr />
 
 <h2 style="margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:x-large; font-weight:600;">如何捐助</span></h2>
-<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">你可以向微信或支付宝二维码付款，备注你的github名称</p>
+<p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">你可以扫描下方二维码捐助或者 <a style="color:#ff0" href="https://pyvideotrans.com/about">点击此处打开网页扫码捐助 https://pyvideotrans.com/about </a></p>
 <p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
-    <img src=":/png/wx.png" width="240" />
-    <img src=":/png/alipay.png" width="240" style="margin-left:8px" />
-    <img src=":/png/mp.jpg" width="200" /></p>
-<hr />
+    <img src="https://pyvideotrans.com/images/wxpay.jpg" height="200" />
+    <img src="https://pyvideotrans.com/images/alipay.png" height="200" style="margin-left:8px" />
+    <img src="https://pyvideotrans.com/images/mp.jpg?a=1" height="200" /></p>
 
-<h2 style=" margin-top:16px; margin-bottom:30px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600;color:#ff0" href="https://pyvideotrans.com/about">
-感谢所有捐助者，本项目的每一点改善都离不开您的帮助,点击查看捐赠名单</a></h2>
+<h2 style=" margin-top:16px; margin-bottom:30px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a style=" font-size:x-large; font-weight:600" href="https://pyvideotrans.com/about">
+感谢所有捐助者，本项目的每一点改善都离不开您的帮助，点击查看捐赠名单</a></h2>
 <hr />
 <h2>免责声明：</h2>
 

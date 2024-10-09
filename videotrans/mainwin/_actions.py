@@ -551,7 +551,7 @@ class WinAction(WinActionSub):
             return
         if _type == 'set_precent' and self.processbtns[uuid].precent < 100:
             t, precent = text.split('???')
-            precent = int(float(precent))
+            precent = int(float(precent)*100)/100
             self.processbtns[uuid].setPrecent(precent)
             self.processbtns[uuid].setText(f'{config.transobj["running"].replace("..", "")} {t}')
         elif _type == 'logs' and self.processbtns[uuid].precent < 100:

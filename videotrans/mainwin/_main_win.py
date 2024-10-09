@@ -38,8 +38,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QTimer.singleShot(150, self._bindsignal)
 
     def initUI(self):
-
-        # 底部状态栏
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
@@ -47,11 +45,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.container.addWidget(self.rightbottom)
         self.statusBar.addPermanentWidget(self.container)
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-
         self.source_language.addItems(self.languagename)
-        # 目标语言改变时，如果当前tts是 edgeTTS，则根据目标语言去修改显示的角色
         self.target_language.addItems(["-"] + self.languagename)
-        #  translation type
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.bind_action()
 
@@ -96,15 +91,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = config.openaiTTS_rolelist
             self.voice_role.addItems(rolelist)
         elif self.win_action.change_by_lang(config.params['tts_type']):
-            # 属于随语言变化的配音渠道
             self.voice_role.clear()
 
-        # 设置 tts_type
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
-            # 根据目标语言更新角色列表
             self.win_action.set_voice_role(config.params['target_language'])
-            # 设置默认角色列表
             if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and  config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
@@ -157,7 +148,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['cuda']=False
         self.source_mp4.setAcceptDrops(True)
 
-        # 隐藏倒计时
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
         self.proxy.setText(config.params['proxy'])
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
@@ -213,7 +203,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
 
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
-        # tts_type 改变时，重设角色
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
@@ -245,7 +234,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        # 目标语言改变
         self.listen_btn.setCursor(Qt.PointingHandCursor)
         self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
@@ -330,7 +318,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
 
     def closeEvent(self, event):
-        # 在关闭窗口前执行的操作
         config.exit_soft = True
         config.current_status='stop'
         self.hide()

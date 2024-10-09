@@ -9,7 +9,7 @@ from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
-from videotrans.util.tools import ms_to_time_string, match_target_amplitude, vail_file
+from videotrans.util.tools import ms_to_time_string, match_target_amplitude, vail_file, cleartext
 
 
 def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language, audio_file, q, settings,
@@ -112,7 +112,7 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
 
             start = ms_to_time_string(ms=start_time)
             end = ms_to_time_string(ms=end_time)
-
+            text=cleartext(text)
             srt_line = {
                 "line": len(raws) + 1,
                 "time": f"{start} --> {end}",
@@ -141,21 +141,31 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
 
 # split audio by silence
 def _shorten_voice_old(normalized_sound, settings):
-    normalized_sound = match_target_amplitude(normalized_sound, -20.0)
+    # normalized_sound = match_target_amplitude(normalized_sound, -20.0)
     max_interval = int(settings['interval_split']) * 1000
     nonsilent_data = []
-    audio_chunks = detect_nonsilent(
-        normalized_sound,
-        min_silence_len=int(settings['voice_silence']),
-        silence_thresh=-20 - 25)
-    for i, chunk in enumerate(audio_chunks):
-        start_time, end_time = chunk
-        n = 0
-        while end_time - start_time >= max_interval:
-            n += 1
-            new_end = start_time + max_interval
-            new_start = start_time
-            nonsilent_data.append((new_start, new_end, True))
-            start_time += max_interval
+    # audio_chunks = detect_nonsilent(
+    #     normalized_sound,
+    #     min_silence_len=int(settings['voice_silence']),
+    #     silence_thresh=-20 - 25)
+    import math
+    maxlen=math.ceil(len(normalized_sound)/max_interval)
+    for i in range(maxlen):
+        if i<maxlen-1:
+            end_time=i*max_interval+max_interval
+            start_time=i*max_interval
+        else:
+            end_time=len(normalized_sound)
+            start_time=i*max_interval
         nonsilent_data.append((start_time, end_time, False))
+    # for i, chunk in enumerate(audio_chunks):
+    #     start_time, end_time = chunk
+    #     n = 0
+    #     while end_time - start_time >= max_interval:
+    #         n += 1
+    #         new_end = start_time + max_interval
+    #         new_start = start_time
+    #         nonsilent_data.append((new_start, new_end, True))
+    #         start_time += max_interval
+    #     nonsilent_data.append((start_time, end_time, False))
     return nonsilent_data

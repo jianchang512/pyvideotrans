@@ -26,8 +26,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_path = tmp_path.as_posix()
 
-        # 以1200s切分
-        inter = 1200000
+        # 以600s切分
+        inter = 600000
         normalized_sound = AudioSegment.from_wav(self.audio_file)  # -20.0
         total_length = 1 + (len(normalized_sound) // inter)
 
@@ -71,14 +71,15 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         return
                     nums+=1
                     new_seg=copy.deepcopy(segment['words'])
+                    text=tools.cleartext(segment['text'],remove_start_end=False)
                     for idx, word in enumerate(new_seg):
                         new_seg[idx]['start']=int(word['start']*1000+start_time)
                         new_seg[idx]['end']=int(word['end']*1000+start_time)
-                    alllist.append({"words":new_seg,"text":segment['text']})
+                    alllist.append({"words":new_seg,"text":text})
                     time_str=f'{tools.ms_to_time_string(ms=int(segment["start"]*1000))} --> {tools.ms_to_time_string(ms=int(segment["end"]*1000))}'
                     self._signal(text=f"{config.transobj['yuyinshibiejindu']} {nums}" )
                     self._signal(
-                        text=f'{nums}\n{time_str}\n{segment["text"]}\n\n',
+                        text=f'{nums}\n{time_str}\n{text}\n\n',
                         type='subtitle'
                     )
             if len(alllist)>0:
