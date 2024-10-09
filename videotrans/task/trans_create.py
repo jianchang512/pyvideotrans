@@ -274,7 +274,9 @@ class TransCreate(BaseTask):
                 inst=self,
                 uuid=self.uuid,
                 source_code=self.config_params['source_language_code'])
-            self._save_srt_target(target_srt, self.config_params['target_sub'])
+            #
+            self._check_target_sub(rawsrt,target_srt)
+
             # 仅提取，该名字删原
             if self.config_params['app_mode'] == 'tiqu':
                 shutil.copy2(self.config_params['target_sub'],f"{self.config_params['target_dir']}/{self.config_params['noextname']}-{self.config_params['target_language_code']}.srt")
@@ -286,6 +288,17 @@ class TransCreate(BaseTask):
             tools.send_notification(str(e), f'{self.config_params["basename"]}')
             raise
         self.status_text = config.transobj['endtrans']
+
+    def _check_target_sub(self,source_srt_list,target_srt_list):
+        for i,it in enumerate(source_srt_list):
+            if target_srt_list[i]['time']!=it['time']:
+                # 在 target_srt_list 的 索引 i 位置插入一个dict
+                tmp=copy.deepcopy(it)
+                tmp['text']='  '
+                target_srt_list.insert(i,tmp)
+            else:
+                target_srt_list[i]['line']=it['line']
+        self._save_srt_target(target_srt_list, self.config_params['target_sub'])
 
     def dubbing(self) -> None:
         if self._exit():
@@ -770,7 +783,7 @@ class TransCreate(BaseTask):
         # 重新嵌入分离出的背景音
         self._separate()
 
-        self.precent = 95 if self.precent < 95 else self.precent
+        self.precent = min(max(90,self.precent),90)
 
         protxt = config.TEMP_DIR + f"/compose{time.time()}.txt"
         threading.Thread(target=self._hebing_pro, args=(protxt,)).start()
@@ -950,10 +963,11 @@ class TransCreate(BaseTask):
                     continue
                 else:
                     h, m, s = end_time.split(':')
-                    precent = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * basenum / video_time,
-                                    2)
-                    if self.precent + precent < 99.9:
-                        self.precent += precent
+                    precent = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * basenum / video_time, 2)
+                    if self.precent + 0.1 < 99:
+                        self.precent += 0.1
+                    else:
+                        self._signal(text=config.transobj['hebing']+f' -> {precent*100}%')
                     time.sleep(1)
 
     # 创建说明txt

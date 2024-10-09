@@ -124,12 +124,9 @@ class BaseRecogn(BaseCon):
             for sentence in sentences:
                 if self.detect_language[:2] in ['zh','ja','ko']:
                     sentence=sentence.strip().replace(' ',',')
-                # print(f'\n----\n{sentence[-1]=}')
                 if sentence[-1] in [',', '?', '!', '，', '。', '？', '！']:
                     punctuated_text += sentence + " "
-                    # print(f'加空格  {sentence=}')
                 else:
-                    # print(f'加点号  {sentence=}')
                     punctuated_text += sentence + (". " if self.detect_language[:2] not in ['zh','ja','ko'] else ',')
             punctuated_text = punctuated_text.strip()
 
@@ -161,15 +158,9 @@ class BaseRecogn(BaseCon):
         # print(f'\n\n###################################{data=}')
         return data
 
-    def _process_sentence(self,sentence):
-
-        if sentence[-1] in ['.', '。', ',', '，']:
-            sentence = sentence[:-1]
-        if sentence[0] in ['.', '。', ',', '，']:
-            sentence = sentence[1:]
-        return sentence.strip()
-
     def re_segment_sentences(self, data):
+        with open(config.ROOT_DIR+"/test.srt", "w", encoding="utf-8") as f:
+            f.write(json.dumps(data, ensure_ascii=False))
         """
         根据字级别信息重新划分句子，考虑 word 中可能包含多个字符的情况，并优化断句逻辑。
 
@@ -180,6 +171,7 @@ class BaseRecogn(BaseCon):
             重新划分后的字幕数据，格式与输入相同。
         """
         flags=r'[,?!，。？！]|(\. )'
+        flags_list=[',','.','!','?','，','。','！','？']
         if self.detect_language[:2] in ['zh', 'ja', 'ko']:
             maxlen =int(config.settings['cjk_len'])
             flags=r'[,?!，。？！]|(\. )'
@@ -187,10 +179,10 @@ class BaseRecogn(BaseCon):
             maxlen = int(config.settings['other_len'])
         shound_rephase=False
         for segment in data:
-            if segment['words'][0]['end']-segment['words'][0]['start']>15000:
+            if segment['words'][0]['end']-segment['words'][0]['start']>float(config.settings.get('overall_maxsecs',12))*1000:
                 shound_rephase=True
                 break
-            if len(segment['text'])>3*maxlen:
+            if len(segment['text'])>=2.8*maxlen:
                 shound_rephase=True
                 break
 
@@ -201,7 +193,7 @@ class BaseRecogn(BaseCon):
                     "line": len(new_data) + 1,
                     "start_time": segment['words'][0]['start'],
                     "end_time": segment['words'][-1]['end'],
-                    "text": self._process_sentence(segment['text']),
+                    "text": tools.cleartext(segment['text']),
                 }
                 if self.jianfan:
                     tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
@@ -220,65 +212,72 @@ class BaseRecogn(BaseCon):
         sentence = ""
         sentence_start = data[0]["words"][0]['start']
         sentence_end = 0
-        print("需要分词")
-
-
         data_len=len(data)
+        start_flag_word_info=None
+
         for seg_i,segment in enumerate(data):
             current_len=len(segment["words"])
             for i, word_info in enumerate(segment["words"]):
                 word = word_info["word"]
-                start = word_info["start"]
-                end = word_info["end"]
-
-
-                sentence += word
-                sentence_end = end
-
-                is_insert=False
-                if  i+1 < current_len:
+                if len(word.strip())<1 or word.strip() in flags_list:
+                    continue
+                next_start=word_info['end']
+                next_word=""
+                if i+1 < current_len:
                     next_start= segment["words"][i + 1]["start"]
-                    next_word=segment["words"][i + 1]['word']
-                else:
-                    next_start=end
-                    next_word=""
-                if i+2<current_len:
-                    next2_word=segment["words"][i + 2]['word']
-                else:
-                    next2_word=''
+                    next_word=segment["words"][i + 1]["word"]
+                elif i+1 == current_len and seg_i+1<data_len:
+                    next_start=data[seg_i+1]['words'][0]['start']
+                    next_word=data[seg_i+1]['words'][0]['word']
+                elif i+1 == current_len and seg_i+1>=data_len:
+                    next_start=data[-1]['words'][-1]['end']
+                    next_word=data[-1]['words'][-1]['word']
 
-                try:
-                    if i+1 >= current_len and seg_i+1<data_len:
-                        next_start=data[seg_i+1]['words'][0]['start']
-                        next_word=data[seg_i+1]['words'][0]['word']
-
-                    if i+2 >= current_len and seg_i+2<data_len:
-                        next2_word=data[seg_i+2]['words'][0]['word']
-                except:
-                    next2_word=''
-
-
-                if len(sentence.strip()) < 1.2*maxlen  and (  \
-                    ( next_word and re.search(flags,next_word) and len(next_word)<0.2*maxlen ) \
-                    or ( next2_word and re.search(flags,next2_word) and len(next2_word)<0.2*maxlen ) \
-                ):
+                sentence += ('' if not start_flag_word_info else start_flag_word_info['word'])
+                # 开头是标点符号
+                if word.strip()[0] in flags_list:
+                    if len(sentence)>=0.5*maxlen:
+                        # 肯定不是第一个
+                        tmp = {
+                            "line": len(new_data) + 1,
+                            "start_time": sentence_start,
+                            "end_time": start_flag_word_info['end'] if start_flag_word_info else sentence_end,
+                            "text": tools.cleartext(sentence),
+                        }
+                        tmp["startraw"] = tools.ms_to_time_string(ms=tmp["start_time"])
+                        tmp["endraw"] = tools.ms_to_time_string(ms=tmp["end_time"])
+                        tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
+                        new_data.append(tmp)
+                        sentence_start=word_info['start']
+                        sentence_end=word_info['end']
+                        sentence=''
+                    start_flag_word_info=word_info
                     continue
 
-                if next_start> end:
-                    if next_start >= end+1000:
-                        is_insert=True
-                    elif next_start>=end+200 and len(sentence.strip())>=0.2*maxlen:
-                        is_insert=True
-                    elif re.search(flags, word) and len(sentence.strip())>=maxlen*0.5:
-                        is_insert=True
+                start_flag_word_info=None
+                end = word_info["end"]
+                sentence_end = end
+                sentence+=word
 
-                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.6*maxlen:
+                is_insert=False
+                # 判断如果下个字符存在符号，且下个字符长度小于0.2*maxlen，则不插入
+                if next_word and len(sentence.strip()) < 1.2*maxlen and re.search(flags,next_word) and len(next_word)<0.2*maxlen:
+                    continue
+
+                if next_start >= end+1000:
+                    is_insert=True
+                elif next_start>=end+200 and len(sentence.strip())>0.1*maxlen:
+                    is_insert=True
+                elif next_start> end and re.search(flags, word) and len(sentence.strip())>maxlen*0.2:
+                    is_insert=True
+
+                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.5*maxlen:
                     is_insert=True
 
                 if not is_insert:
-                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*1.5:
+                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*1.8:
                         is_insert=True
-                    elif  self.subtitle_type==0 and len(sentence.strip())>=maxlen*2:
+                    elif  self.subtitle_type==0 and len(sentence.strip())>maxlen*2:
                         is_insert=True
 
                 if not is_insert:
@@ -288,7 +287,7 @@ class BaseRecogn(BaseCon):
                     "line": len(new_data) + 1,
                     "start_time": sentence_start,
                     "end_time": sentence_end,
-                    "text": self._process_sentence(sentence),
+                    "text": tools.cleartext(sentence),
                 }
                 tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
                 tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
@@ -297,7 +296,9 @@ class BaseRecogn(BaseCon):
 
                 sentence = ""
                 sentence_start = next_start
-
+        if start_flag_word_info:
+            sentence_end=start_flag_word_info['end'] if start_flag_word_info['end'] >sentence_end else sentence_end
+            sentence+=start_flag_word_info['word']
         # 处理最后一句
         if sentence:
             if sentence_end - sentence_start > 0:
@@ -305,7 +306,7 @@ class BaseRecogn(BaseCon):
                     "line": len(new_data) + 1,
                     "start_time": sentence_start,
                     "end_time": sentence_end,
-                    "text": self._process_sentence(sentence),
+                    "text": tools.cleartext(sentence),
                 }
                 tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
                 tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])

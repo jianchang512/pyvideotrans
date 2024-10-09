@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 from typing import Dict
 
@@ -62,9 +63,11 @@ class TranslateSrt(BaseTask):
         if self._exit():
             return
         try:
+            source_sub_list=tools.get_subtitle_from_srt(self.config_params['source_sub'])
+
             raw_subtitles = run(
                 translate_type=self.config_params['translate_type'],
-                text_list=tools.get_subtitle_from_srt(self.config_params['source_sub']),
+                text_list=source_sub_list,
                 target_language_name=self.config_params['target_language'],
                 uuid=self.uuid,
                 source_code=self.config_params['source_code'])
@@ -72,11 +75,11 @@ class TranslateSrt(BaseTask):
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise Exception('Is emtpy '+self.config_params['basename'])
+            raw_subtitles=self._check_target_sub(source_sub_list,raw_subtitles)
             if self.out_format==0:
                 tools.save_srt(raw_subtitles, self.config_params['target_sub'])
                 self._signal(text=Path(self.config_params['target_sub']).read_text(encoding='utf-8'), type='replace')
             else:
-                source_sub_list = tools.get_subtitle_from_srt(self.config_params['source_sub'])
                 target_length = len(raw_subtitles)
                 srt_string = ""
                 for i, it in enumerate(source_sub_list):
@@ -98,6 +101,18 @@ class TranslateSrt(BaseTask):
             tools.send_notification(msg, f'{self.config_params["basename"]}')
             self._signal(text=f"{msg}", type='error')
             raise
+
+    def _check_target_sub(self,source_srt_list,target_srt_list):
+        for i,it in enumerate(source_srt_list):
+            if target_srt_list[i]['time']!=it['time']:
+                # 在 target_srt_list 的 索引 i 位置插入一个dict
+                tmp=copy.deepcopy(it)
+                tmp['text']='  '
+                target_srt_list.insert(i,tmp)
+            else:
+                target_srt_list[i]['line']=it['line']
+        return target_srt_list
+
 
     def task_done(self):
         if self._exit():

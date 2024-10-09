@@ -804,14 +804,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
     content=''
     if is_file:
-        # 未知bug，srtfile存在却偶发读为空，似乎某处资源未释放，临时措施
-        retry=3
-        while retry>0:
-            content=_readfile(srtfile)
-            if len(content)>0:
-                break
-            time.sleep(2)
-            retry-=1
+        content=_readfile(srtfile)
     else:
         content = srtfile.strip()
 
@@ -1286,8 +1279,19 @@ def set_ass_font(srtfile=None):
 
 
 # 删除翻译结果的特殊字符
-def cleartext(text: str):
-    return text.replace('"', '').replace("'", '').replace('&#39;', '').replace('&quot;', "").strip()
+def cleartext(text: str,remove_start_end=True):
+    res_text=text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
+    # 删掉连续的多个标点符号，只保留一个
+    res_text=re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text)
+    if not remove_start_end:
+        return res_text
+    if res_text[-1] in ['，',',']:
+        res_text=res_text[:-1]
+    if res_text[0] in ['，',',']:
+        res_text=res_text[1:]
+    return res_text
+
+
 
 
 # 如果仅相差一行，直接拆分最后一行内容为两行

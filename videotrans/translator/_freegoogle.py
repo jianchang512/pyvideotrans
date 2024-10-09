@@ -56,7 +56,10 @@ class FreeGoogle(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies)
+        try:
+            response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies)
+        except (requests.ConnectionError,requests.HTTPError,requests.Timeout):
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[Google]返回数据:{response.text=}')
         if response.status_code == 429:
             self._signal(text='Google 429 hold on retry')

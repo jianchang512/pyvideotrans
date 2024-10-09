@@ -28,8 +28,10 @@ class Google(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
-
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
+        try:
+            response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
+        except (requests.ConnectionError,requests.HTTPError,requests.Timeout):
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[Google]返回数据:{response.text=}')
         if response.status_code == 429:
             self._signal(text='Google 429 hold on retry')
@@ -42,6 +44,7 @@ class Google(BaseTrans):
         if not re_result or len(re_result.groups())<1:
             raise Exception(f'no result:{re_result=}')
         return tools.clean_srt(re_result.group(1))
+
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.is_srt and self.aisendsrt:

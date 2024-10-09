@@ -10,7 +10,7 @@ import torch
 
 from faster_whisper import WhisperModel
 
-from videotrans.util.tools import ms_to_time_string
+from videotrans.util.tools import ms_to_time_string,cleartext
 
 
 def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, maxlen, flag, join_word_flag,
@@ -96,9 +96,10 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
             new_seg=[]
             for idx, word in enumerate(segment.words):
                 new_seg.append({"start":int(word.start*1000),"end":int(word.end*1000),"word":word.word })
-            raws.append({"words":new_seg,"text":segment.text})
+            text=cleartext(segment.text,remove_start_end=False)
+            raws.append({"words":new_seg,"text":text})
             time_str=f'{ms_to_time_string(ms=segment.start*1000)} --> {ms_to_time_string(ms=segment.end*1000)}'
-            q.put_nowait({"text": f'{nums}\n{time_str}\n{segment.text}\n\n', "type": "subtitle"})
+            q.put_nowait({"text": f'{nums}\n{time_str}\n{text}\n\n', "type": "subtitle"})
             q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
     except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
         err['msg']=f'{e}'

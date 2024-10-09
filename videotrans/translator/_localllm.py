@@ -3,7 +3,7 @@ import re
 from typing import Union, List
 
 import httpx
-from openai import OpenAI
+from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
@@ -23,10 +23,8 @@ class LocalLLM(BaseTrans):
             return
         try:
             c=httpx.Client(proxies=None)
-            res=c.get(self.api_url)
-            #print(res.status_code)
+            c.get(self.api_url)
         except Exception as e:
-            print(f'set proxy {e}')
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
@@ -41,10 +39,13 @@ class LocalLLM(BaseTrans):
                                             "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)},
         ]
         config.logger.info(f"\n[localllm]发送请求数据:{message=}")
-        response = model.chat.completions.create(
-            model=config.params['localllm_model'],
-            messages=message
-        )
+        try:
+            response = model.chat.completions.create(
+                model=config.params['localllm_model'],
+                messages=message
+            )
+        except APIConnectionError:
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[localllm]响应:{response=}')
 
         if isinstance(response, str):

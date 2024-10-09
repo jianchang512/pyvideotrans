@@ -36,9 +36,12 @@ class EdgeTTS(BaseTTS):
                     for it in items:
                         if self._exit():
                             return
-                        if not tools.vail_file(it['filename']):
+                        if it['text'].strip() and not tools.vail_file(it['filename']):
                             tasks.append(threading.Thread(target=self._dubb,args=(it,)))
                     if len(tasks) < 1:
+                        self._signal(text='continue')
+                        if self.inst and self.inst.precent < 80:
+                            self.inst.precent += 0.05
                         continue
                     for t in tasks:
                         t.start()
@@ -51,7 +54,7 @@ class EdgeTTS(BaseTTS):
                 else:
                     self.has_done += len(items)
                     if self.inst and self.inst.precent < 80:
-                        self.inst.precent += 0.1
+                        self.inst.precent += 0.05
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
         except Exception as e:
             self.error = str(e)

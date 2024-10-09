@@ -52,10 +52,13 @@ class Worker(QThread):
                 if config.task_countdown > 0 and config.task_countdown <= countdown_sec:
                     self._post(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}",
                                type='show_djs')
-            # 禁止修改字幕
             self._post(text='', type='timeout_djs')
+            # 等待字幕更新完毕
+            config.task_countdown=10
+            while config.task_countdown>0:
+                time.sleep(1)
+                break
             trk.trans()
-            time.sleep(1)
 
         if trk.shoud_dubbing:
             countdown_sec = int(config.settings['countdown_sec'])
@@ -80,8 +83,13 @@ class Worker(QThread):
                         type='show_djs')
             # 禁止修改字幕
             self._post(text='', type='timeout_djs')
+            # 等待字幕更新完毕
+            config.task_countdown=10
+            while config.task_countdown>0:
+                time.sleep(1)
+                break
             trk.dubbing()
-            time.sleep(1)
+
         trk.align()
         trk.assembling()
         trk.task_done()

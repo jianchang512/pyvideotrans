@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union, List
 
 import httpx
-from openai import OpenAI
+from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
@@ -26,8 +26,7 @@ class ChatGPT(BaseTrans):
             return
         try:
             c=httpx.Client(proxies=None)
-            res=c.get(self.api_url)
-            #print(res.status_code)
+            c.get(self.api_url)
         except Exception as e:
             print(f'set proxy {e}')
             pro = self._set_proxy(type='set')
@@ -59,15 +58,18 @@ class ChatGPT(BaseTrans):
                 'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,
                                                                                                             list) else data)},
         ]
-        print(self.proxies)
+
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
                        http_client=httpx.Client(proxies=self.proxies))
-        response = model.chat.completions.create(
-            model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
-                'chatgpt_model'],
-            messages=message
-        )
+        try:
+            response = model.chat.completions.create(
+                model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
+                    'chatgpt_model'],
+                messages=message
+            )
+        except APIConnectionError:
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[chatGPT]响应:{response=}')
 
         if response.choices:

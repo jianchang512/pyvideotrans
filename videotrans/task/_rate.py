@@ -25,7 +25,6 @@ class SpeedRate:
                  uuid=None,
                  novoice_mp4=None,
                  noextname=None,
-                 # 处理后的配音文件
                  target_audio=None,
                  cache_folder=None
                  ):

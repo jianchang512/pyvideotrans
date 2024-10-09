@@ -3,7 +3,7 @@ import re
 from typing import Union, List
 
 import httpx
-from openai import AzureOpenAI
+from openai import AzureOpenAI, APIConnectionError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
@@ -20,10 +20,8 @@ class AzureGPT(BaseTrans):
     def _check_proxy(self):
         try:
             c=httpx.Client(proxies=None)
-            res=c.get(config.params["azure_api"])
-            #print(res.status_code)
+            c.get(config.params["azure_api"])
         except Exception as e:
-            print('set proxy')
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}        
@@ -44,10 +42,13 @@ class AzureGPT(BaseTrans):
         ]
 
         config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
-        response = model.chat.completions.create(
-            model=config.params["azure_model"],
-            messages=message
-        )
+        try:
+            response = model.chat.completions.create(
+                model=config.params["azure_model"],
+                messages=message
+            )
+        except APIConnectionError:
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[AzureGPT]返回响应:{response=}')
 
         if response.choices:
