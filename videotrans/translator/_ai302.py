@@ -26,13 +26,15 @@ class AI302(BaseTrans):
                  'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,list) else data)},
             ]
         }
-
-        response = requests.post('https://api.302.ai/v1/chat/completions', headers={
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {config.params["ai302_key"]}',
-            'User-Agent': 'pyvideotrans',
-            'Content-Type': 'application/json'
-        }, json=payload, verify=False, proxies=self.proxies)
+        try:
+            response = requests.post('https://api.302.ai/v1/chat/completions', headers={
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {config.params["ai302_key"]}',
+                'User-Agent': 'pyvideotrans',
+                'Content-Type': 'application/json'
+            }, json=payload, verify=False, proxies=self.proxies)
+        except (requests.ConnectionError,requests.HTTPError,requests.Timeout):
+            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
         config.logger.info(f'[302.ai]响应:{response.text=}')
         if response.status_code != 200:
             raise Exception(f'{response.status_code=}')
