@@ -264,6 +264,7 @@ def get_azure_rolelist():
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     arg_copy = copy.deepcopy(arg)
+    file_name=""
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
     # 启用了CUDA 并且没有禁用GPU
@@ -273,6 +274,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     for i, it in enumerate(arg):
         if arg[i] == '-i' and i < len(arg) - 1:
             arg[i + 1] = Path(arg[i + 1]).as_posix()
+            file_name=arg[i+1]
             if not vail_file(arg[i + 1]):
                 raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
 
@@ -324,6 +326,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
         if noextname:
             config.queue_novice[noextname] = "error"
         config.logger.error(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}')
+        if file_name and re.search(r'["\'\`\s\[\]\{\}:\*\^\%\$\#\+\=\<\>\|]', file_name[2:]):
+            raise Exception('请检查视频名字或路径中是否存在特殊符号，请重命名为英文或数字名称并移动到仅由英文和数字组成的路径中重试' if config.defaulelang=='zh' else 'Please check if there are any special characters in the video name or path. Rename the video to English or numeric names and move it to a path consisting only of English and numeric characters and try again')
         raise
     except Exception as e:
         config.logger.exception(e)

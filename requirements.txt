@@ -30,7 +30,6 @@ tencentcloud-sdk-python-tmt
 torch==2.2.0
 torchaudio==2.2.0
 zhconv
-qtpy
 azure-cognitiveservices-speech
 pydantic==2.4.2
 pydantic_core==2.10.1
