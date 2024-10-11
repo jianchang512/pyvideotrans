@@ -44,14 +44,14 @@ class StartWindow(QtWidgets.QWidget):
         # 窗口大小
         self.resize(560, 350)
         self.show()
-        import videotrans.ui.dark.darkstyle_rc
+        
         self.center()
         QTimer.singleShot(100, self.run)
 
     def run(self):
         # 创建并显示窗口B
         print(time.time())
-
+        import videotrans.ui.dark.darkstyle_rc
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
         try:
@@ -61,9 +61,8 @@ class StartWindow(QtWidgets.QWidget):
             import traceback
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self,"Error",traceback.format_exc())
-            
+           
         print(time.time())
-        # import videotrans.ui.dark.darkstyle_rc
         QTimer.singleShot(1000, lambda :self.close())
 
 

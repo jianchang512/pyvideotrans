@@ -341,25 +341,6 @@ class WinActionSub:
             self.main.source_mp4.setText(f'{len((mp4_list))} videos')
             config.queue_mp4 = mp4_list
 
-    # get video filter mp4
-    def get_mp41(self):
-        if self.main.app_mode == 'tiqu':
-            allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
-        else:
-            allowed_exts = config.VIDEO_EXTS
-        format_str = " ".join(['*.' + f for f in allowed_exts])
-
-        fnames, _ = QFileDialog.getOpenFileNames(self.main, config.transobj['selectmp4'], config.params['last_opendir'],   f'Files({format_str})')
-        if len(fnames) < 1:
-            return
-        for (i, it) in enumerate(fnames):
-            fnames[i] = Path(it).as_posix()
-
-        if len(fnames) > 0:
-            self.main.source_mp4.setText(f'{len((fnames))} videos')
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
-            config.queue_mp4 = fnames
-
     # 保存目录
     def get_save_dir(self):
         dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],

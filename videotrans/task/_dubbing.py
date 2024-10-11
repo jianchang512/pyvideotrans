@@ -84,8 +84,10 @@ class DubbingSrt(BaseTask):
             subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
         except Exception as e:
             raise
-
-        rate = int(str(self.config_params['voice_rate']).replace('%', ''))
+        try:
+            rate = int(str(self.config_params['voice_rate']).replace('%', ''))
+        except:
+            rate=0
         if rate >= 0:
             rate = f"+{rate}%"
         else:
@@ -132,7 +134,7 @@ class DubbingSrt(BaseTask):
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
-                shoud_audiorate=self.config_params['voice_autorate'] and int(config.settings['audio_rate']) > 1,
+                shoud_audiorate=self.config_params['voice_autorate'] and int(float(config.settings.get('audio_rate',1))) > 1,
                 shoud_videorate=False,
                 novoice_mp4=None,
                 noextname=self.config_params['noextname'],

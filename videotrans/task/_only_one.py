@@ -35,7 +35,7 @@ class Worker(QThread):
         trk.recogn()
         if trk.shoud_trans:
             time.sleep(1)
-            countdown_sec = int(config.settings['countdown_sec'])
+            countdown_sec = int(float(config.settings.get('countdown_sec',1)))
             config.task_countdown = countdown_sec
             # 设置secwin中wait_subtitle为原始语言字幕文件
             self._post(text=trk.config_params['source_sub'], type='set_source_sub')
@@ -61,7 +61,7 @@ class Worker(QThread):
             trk.trans()
 
         if trk.shoud_dubbing:
-            countdown_sec = int(config.settings['countdown_sec'])
+            countdown_sec = int(float(config.settings.get('countdown_sec',1)))
             config.task_countdown = countdown_sec
             self._post(text=trk.config_params['target_sub'], type='set_target_sub')
             self._post(text=config.transobj["xiugaipeiyinzimu"], type="edit_subtitle_target")

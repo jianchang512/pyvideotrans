@@ -13,7 +13,7 @@ class AzureTTS(BaseTTS):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.con_num = int(config.settings['azure_lines'])
+        self.con_num = int(float(config.settings.get('azure_lines',1)))
 
     def _item_task(self, items: list = None):
         if self._exit():

@@ -52,10 +52,10 @@ class BaseRecogn(BaseCon):
         
         self.jianfan=False
         if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:
-            self.maxlen = int(config.settings['cjk_len'])
+            self.maxlen = int(float(config.settings.get('cjk_len',20)))
             self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings['zh_hant_s'] else False
         else:
-            self.maxlen = int(config.settings['other_len'])
+            self.maxlen = int(float(config.settings.get('other_len',60)))
         
         if not tools.vail_file(self.audio_file):
             raise Exception(f'[error]not exists {self.audio_file}')
@@ -155,7 +155,6 @@ class BaseRecogn(BaseCon):
             segment["text"] = punctuated_text
             data[i]=segment
 
-        # print(f'\n\n###################################{data=}')
         return data
 
     def re_segment_sentences(self, data):
@@ -173,16 +172,13 @@ class BaseRecogn(BaseCon):
         flags=r'[,?!，。？！]|(\. )'
         flags_list=[',','.','!','?','，','。','！','？']
         if self.detect_language[:2] in ['zh', 'ja', 'ko']:
-            maxlen =int(config.settings['cjk_len'])
             flags=r'[,?!，。？！]|(\. )'
-        else:
-            maxlen = int(config.settings['other_len'])
         shound_rephase=False
         for segment in data:
             if segment['words'][0]['end']-segment['words'][0]['start']>float(config.settings.get('overall_maxsecs',12))*1000:
                 shound_rephase=True
                 break
-            if len(segment['text'])>=2.8*maxlen:
+            if len(segment['text'])>=2.8*self.maxlen:
                 shound_rephase=True
                 break
 
@@ -236,7 +232,7 @@ class BaseRecogn(BaseCon):
                 sentence += ('' if not start_flag_word_info else start_flag_word_info['word'])
                 # 开头是标点符号
                 if word.strip()[0] in flags_list:
-                    if len(sentence)>=0.5*maxlen:
+                    if len(sentence)>=0.5*self.maxlen:
                         # 肯定不是第一个
                         tmp = {
                             "line": len(new_data) + 1,
@@ -261,23 +257,23 @@ class BaseRecogn(BaseCon):
 
                 is_insert=False
                 # 判断如果下个字符存在符号，且下个字符长度小于0.2*maxlen，则不插入
-                if next_word and len(sentence.strip()) < 1.2*maxlen and re.search(flags,next_word) and len(next_word)<0.2*maxlen:
+                if next_word and len(sentence.strip()) < 1.2*self.maxlen and re.search(flags,next_word) and len(next_word)<0.2*self.maxlen:
                     continue
 
                 if next_start >= end+1000:
                     is_insert=True
-                elif next_start>=end+200 and len(sentence.strip())>0.1*maxlen:
+                elif next_start>=end+200 and len(sentence.strip())>0.1*self.maxlen:
                     is_insert=True
-                elif next_start> end and re.search(flags, word) and len(sentence.strip())>maxlen*0.2:
+                elif next_start> end and re.search(flags, word) and len(sentence.strip())>self.maxlen*0.2:
                     is_insert=True
 
-                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.5*maxlen:
+                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.5*self.maxlen:
                     is_insert=True
 
                 if not is_insert:
-                    if self.subtitle_type>0 and len(sentence.strip())>=maxlen*1.8:
+                    if self.subtitle_type>0 and len(sentence.strip())>=self.maxlen*1.8:
                         is_insert=True
-                    elif  self.subtitle_type==0 and len(sentence.strip())>maxlen*2:
+                    elif  self.subtitle_type==0 and len(sentence.strip())>self.maxlen*2:
                         is_insert=True
 
                 if not is_insert:
