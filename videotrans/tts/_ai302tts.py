@@ -16,8 +16,15 @@ class AI302(BaseTTS):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.copydata = copy.deepcopy(self.queue_tts)
-
-    def _exec(self):
+        if config.params['ai302tts_model'] == 'azure':
+            self.api_url='https://api.302.ai/cognitiveservices/v1'
+        elif config.params['ai302tts_model'] == 'doubao':
+            self.api_url='https://api.302.ai/doubao/tts_hd'
+        else:
+            self.api_url='https://api.302.ai/v1/audio/speech'
+        self.proxies=None
+        
+    def _exec(self):        
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
@@ -55,7 +62,7 @@ class AI302(BaseTTS):
             "input": data['text'],
             "voice": data['role'],
             "speed": speed
-        }, verify=False)
+        }, verify=False,proxies=self.proxies)
         if response.status_code != 200:
             self.error = f"{response.status_code=}"
             return
@@ -87,7 +94,7 @@ class AI302(BaseTTS):
         response = requests.post('https://api.302.ai/cognitiveservices/v1',
                                  headers=headers,
                                  data=ssml.encode('utf-8'),
-                                 verify=False)
+                                 verify=False,proxies=self.proxies)
         if response.status_code != 200:
             self.error = f'{response.status_code=}'
             return
@@ -122,7 +129,7 @@ class AI302(BaseTTS):
             'Authorization': f'Bearer {config.params["ai302tts_key"]}',
             'User-Agent': 'pyvideotrans',
             'Content-Type': 'application/json'
-        }, json=payload, verify=False)
+        }, json=payload, verify=False,proxies=self.proxies)
         if response.status_code != 200:
             self.error = f'{response.status_code=}'
             return

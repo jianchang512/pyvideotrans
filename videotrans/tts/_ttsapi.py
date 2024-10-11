@@ -20,6 +20,7 @@ class TTSAPI(BaseTTS):
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['ttsapi_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+        self.proxies=None
 
     def _exec(self) -> None:
         self._local_mul_thread()
@@ -45,7 +46,7 @@ class TTSAPI(BaseTTS):
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
             }
             config.logger.info(f'发送数据 {data=}')
-            resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers)
+            resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers,proxies=None)
             res = resraw.json()
             config.logger.info(f'返回数据 {res=}')
             if "code" not in res or "msg" not in res:

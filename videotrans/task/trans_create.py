@@ -521,6 +521,7 @@ class TransCreate(BaseTask):
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
+        print(f'@@@@@@@@@@@@@@@@@@@@@配音')
         run_tts(
             queue_tts=copy.deepcopy(self.queue_tts),
             language=self.config_params['target_language_code'],

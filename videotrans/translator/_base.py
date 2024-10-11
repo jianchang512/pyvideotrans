@@ -1,10 +1,8 @@
 import json
-import os
 import time
 from pathlib import Path
 from typing import Union, List
 
-import openai
 import requests
 
 from videotrans.configure import config
@@ -24,6 +22,7 @@ class BaseTrans(BaseCon):
                  ):
         # 目标语言，语言代码或文字名称
         super().__init__()
+        self.api_url = ''
         self.target_language = target_language
         # trans_create实例
         self.inst = inst
@@ -50,11 +49,10 @@ class BaseTrans(BaseCon):
         # 如果 text_list 不是字符串则是字幕格式
         self.is_srt = False if isinstance(text_list, str) else True
         # 非AI翻译时强制设为False，是AI翻译时根据配置确定
-        self.aisendsrt=True if config.settings.get('aisendsrt',False) and self.trans_thread>1 else False
+        self.aisendsrt = True if config.settings.get('aisendsrt', False) and self.trans_thread > 1 else False
         # 整理待翻译的文字为 List[str]
-        self.split_source_text=[]
+        self.split_source_text = []
         self.proxies = None
-
 
     # 发出请求获取内容 data=[text1,text2,text] | text
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -71,10 +69,12 @@ class BaseTrans(BaseCon):
         self._signal(text="")
         if self.is_srt:
             source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in
+                                      range(0, len(self.text_list), self.trans_thread)]
         else:
             source_text = self.text_list.strip().split("\n")
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in
+                                      range(0, len(source_text), self.trans_thread)]
 
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
@@ -97,10 +97,10 @@ class BaseTrans(BaseCon):
                     continue
 
                 try:
-                    result=self._get_cache(it)
+                    result = self._get_cache(it)
                     if not result:
                         result = tools.cleartext(self._item_task(it))
-                        self._set_cache(it,result)
+                        self._set_cache(it, result)
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.01
                     # 非srt直接break
@@ -114,14 +114,14 @@ class BaseTrans(BaseCon):
                     sep_len = len(sep_res)
 
                     # 如果返回数量和原始语言数量不一致，则重新切割
-                    if sep_len+1 < raw_len:
+                    if sep_len + 1 < raw_len:
                         sep_res = []
                         for it_n in it:
                             time.sleep(self.wait_sec)
-                            t=self._get_cache(it_n)
+                            t = self._get_cache(it_n)
                             if not t:
                                 t = tools.cleartext(self._item_task(it_n))
-                                self._set_cache(it_n,t)
+                                self._set_cache(it_n, t)
                             self._signal(
                                 text=t + "\n",
                                 type='subtitle')
@@ -138,21 +138,11 @@ class BaseTrans(BaseCon):
                     if len(sep_res) < len(it):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
-                except ValueError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except KeyError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except IndexError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except AttributeError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except OSError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
+                except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
+                    api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
+                    proxy_msg = '无' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    raise Exception(
+                        f'网络连接失败，请检查代理地址{api_url_msg}, 当前代理: {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -189,7 +179,7 @@ class BaseTrans(BaseCon):
 
     # 发送完整字幕格式内容进行翻译
     def runsrt(self):
-        result_srt_str_list=[]
+        result_srt_str_list = []
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
             while 1:
@@ -208,38 +198,25 @@ class BaseTrans(BaseCon):
                     continue
 
                 try:
-                    srt_str="\n\n".join([ f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
-                    result=self._get_cache(srt_str)
+                    srt_str = "\n\n".join(
+                        [f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
+                    result = self._get_cache(srt_str)
                     if not result:
                         result = tools.cleartext(self._item_task(srt_str))
                         if not result.strip():
-                            raise Exception('无返回翻译结果' if config.defaulelang=='zh' else 'Translate result is empty')
-                        self._set_cache(it,result)
+                            raise Exception('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
+                        self._set_cache(it, result)
 
                     if self.inst and self.inst.precent < 75:
                         self.inst.precent += 0.1
 
-                    self._signal( text=result, type='subtitle')
+                    self._signal(text=result, type='subtitle')
                     result_srt_str_list.append(result)
-
-                except ValueError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except KeyError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except IndexError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except AttributeError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except ConnectionError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                except OSError as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
+                except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
+                    api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
+                    proxy_msg = '无' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    raise Exception(
+                        f'网络连接失败，请检查代理地址{api_url_msg}, 当前代理: {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -256,24 +233,25 @@ class BaseTrans(BaseCon):
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')
-        return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list),is_file=False)
+        return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
-    def _set_cache(self,it,res_str):
+    def _set_cache(self, it, res_str):
         if not res_str.strip():
             return
         key_cache = self._get_key(it)
 
         file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
         if not Path(config.SYS_TMP + f'/translate_cache').is_dir():
-            Path(config.SYS_TMP + f'/translate_cache').mkdir(parents=True,exist_ok=True)
-        Path(file_cache).write_text(res_str,encoding='utf-8')
+            Path(config.SYS_TMP + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        Path(file_cache).write_text(res_str, encoding='utf-8')
 
-    def _get_cache(self,it):
-        key_cache=self._get_key(it)
-        file_cache=config.SYS_TMP+f'/translate_cache/{key_cache}.txt'
+    def _get_cache(self, it):
+        key_cache = self._get_key(it)
+        file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).is_file():
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
-    def _get_key(self,it):
-        return tools.get_md5(f'{self.__class__.__name__}-{self.source_code}-{self.target_language}-{it if isinstance(it,str) else json.dumps(it)}')
+    def _get_key(self, it):
+        return tools.get_md5(
+            f'{self.__class__.__name__}-{self.source_code}-{self.target_language}-{it if isinstance(it, str) else json.dumps(it)}')

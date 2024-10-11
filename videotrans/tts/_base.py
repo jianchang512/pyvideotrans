@@ -7,6 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Union, Dict
 
+import requests
+
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.util import tools
@@ -43,7 +45,7 @@ class BaseTTS(BaseCon):
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
 
-        self.dub_nums = int(float(config.settings.get('dubbing_thread',1))) if self.len > 1 else 1
+        self.dub_nums = int(float(config.settings.get('dubbing_thread', 1))) if self.len > 1 else 1
         self.error = ''
         self.api_url = ''
         self._fomat_vrp()
@@ -76,6 +78,11 @@ class BaseTTS(BaseCon):
         self._signal(text="")
         try:
             self._exec()
+        except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
+            api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
+            proxy_msg = '无' if not self.proxies else f'{list(self.proxies.values())[0]}'
+            raise Exception(
+                f'网络连接失败，请检查代理地址{api_url_msg}, 当前代理: {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
         except Exception as e:
             self.error = str(e) if not self.error else self.error
             self._signal(text=self.error, type="error")
@@ -119,13 +126,18 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
 
-    # 用于本地tts api接口，线程池并发，在此调用 _item_task
+    # 用于除  azure openai elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
     def _local_mul_thread(self) -> None:
         if self._exit():
             return
         if self.api_url and len(self.api_url) < 10:
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
+
+        print(f'{self.api_url=}')
+        if self.api_url:
+            requests.get(self.api_url, proxies=self.proxies)
+
         # 单个无需线程池
         if self.len == 1:
             self._item_task(self.queue_tts[0])
@@ -164,26 +176,26 @@ class BaseTTS(BaseCon):
             raise ValueError("Base64 encoded string is empty.")
         # 如果存在data前缀，则按照前缀中包含的音频格式保存为转换格式
         if encoded_str.startswith('data:audio/'):
-            output_ext=Path(output_path).suffix.lower()[1:]
-            mime_type,encoded_str = encoded_str.split(',',1)  # 提取 Base64 数据部分
+            output_ext = Path(output_path).suffix.lower()[1:]
+            mime_type, encoded_str = encoded_str.split(',', 1)  # 提取 Base64 数据部分
             # 提取音频格式 (例如 'mp3', 'wav')
             audio_format = mime_type.split('/')[1].split(';')[0].lower()
-            support_format={
-                "mpeg":"mp3",
-                "wav":"wav",
-                "ogg":"ogg",
-                "aac":"aac"
+            support_format = {
+                "mpeg": "mp3",
+                "wav": "wav",
+                "ogg": "ogg",
+                "aac": "aac"
             }
-            base64data_ext=support_format.get(audio_format,"")
+            base64data_ext = support_format.get(audio_format, "")
             if base64data_ext and base64data_ext != output_ext:
                 # 格式不同需要转换格式
                 # 将base64编码的字符串解码为字节
                 wav_bytes = base64.b64decode(encoded_str)
                 # 将解码后的字节写入文件
-                with open(output_path+f'.{base64data_ext}', "wb") as wav_file:
+                with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
                     wav_file.write(wav_bytes)
                 tools.runffmpeg([
-                    "-y","-i",output_path+f'.{base64data_ext}',output_path
+                    "-y", "-i", output_path + f'.{base64data_ext}', output_path
                 ])
                 return
         # 将base64编码的字符串解码为字节

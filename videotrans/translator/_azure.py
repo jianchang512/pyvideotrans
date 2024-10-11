@@ -2,7 +2,7 @@
 import re
 from typing import Union, List
 
-import httpx
+import httpx,requests
 from openai import AzureOpenAI, APIConnectionError
 
 from videotrans.configure import config
@@ -48,7 +48,7 @@ class AzureGPT(BaseTrans):
                 messages=message
             )
         except APIConnectionError:
-            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
+            raise requests.ConnectionError('Network connection failed')
         config.logger.info(f'[AzureGPT]返回响应:{response=}')
 
         if response.choices:

@@ -19,6 +19,7 @@ class FishTTS(BaseTTS):
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['fishtts_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+        self.proxies={"http": "", "https": ""}
 
     def _exec(self):
         self._local_mul_thread()
@@ -46,7 +47,7 @@ class FishTTS(BaseTTS):
             elif os.path.exists(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}'):
                 data['reference_audio'] = self._audio_to_base64(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}')
 
-            response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
+            response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:
                 self.error = response.json()
                 return

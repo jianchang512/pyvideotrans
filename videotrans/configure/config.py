@@ -231,6 +231,12 @@ except Exception:
 # 设置默认高级参数值
 def parse_init():
     _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
+    try:
+        Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
+    except:
+        _defaulthomedir=ROOT_DIR+'/hometemp'
+        Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
+        
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,"
                         "yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,"
@@ -320,8 +326,7 @@ def parse_init():
         "google_trans_newadd": ""
 
     }
-    if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):
-        Path(default['homedir']).mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default , ensure_ascii=False))
         return default

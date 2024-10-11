@@ -19,7 +19,8 @@ class ChatTTS(BaseTTS):
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
-
+        self.proxies={"http": "", "https": ""}
+        
     def _exec(self):
         self._local_mul_thread()
 
@@ -30,7 +31,7 @@ class ChatTTS(BaseTTS):
             return
         try:
             data = {"text": data_item['text'].strip(), "voice": data_item['role'], 'prompt': '', 'is_split': 1}
-            res = requests.post(f"{self.api_url}/tts", data=data, proxies={"http": "", "https": ""}, timeout=3600)
+            res = requests.post(f"{self.api_url}/tts", data=data, proxies=self.proxies, timeout=3600)
             config.logger.info(f'chatTTS:{data=}')
             res = res.json()
             if res is None:

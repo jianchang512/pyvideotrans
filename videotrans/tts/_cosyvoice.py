@@ -19,6 +19,7 @@ class CosyVoice(BaseTTS):
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+        self.proxies={"http": "", "https": ""}
 
     def _exec(self):
         self._local_mul_thread()
@@ -26,7 +27,7 @@ class CosyVoice(BaseTTS):
     def _item_task(self, data_item: dict = None):
         if self._exit():
             return
-        if not data_item or tools.vail_file(data_item['filename']):
+        if not data_item or (data_item['role'] !='clone' and tools.vail_file(data_item['filename'])):
             return
         try:
             text = data_item['text'].strip()
@@ -57,7 +58,7 @@ class CosyVoice(BaseTTS):
                 if data['speaker'] not in ["中文男", "中文女", "英文男", "英文女", "日语男", "韩语女", "粤语女"]:
                     data['new'] = 1
 
-                response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
+                response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
                 config.logger.info(f'请求数据：{self.api_url=},{data=}')
             else:
                 api_url = self.api_url
