@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Union, List
 
-import httpx
+import httpx,requests
 from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
@@ -16,6 +16,8 @@ class ChatGPT(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_url = self._get_url(config.params['chatgpt_api'])
+        if not config.params['chatgpt_key']:
+            raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
         
         # 是srt则获取srt的提示词
         self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language)
@@ -34,11 +36,13 @@ class ChatGPT(BaseTrans):
                 self.proxies = {"https://": pro, "http://": pro}
 
     def _get_url(self, url=""):
+        if not url:
+            return "https://api.openai.com/v1"
         if not url.startswith('http'):
             url = 'http://' + url
             # 删除末尾 /
         url = url.rstrip('/').lower()
-        if not url or url.find(".openai.com") > -1:
+        if url.find(".openai.com") > -1:
             return "https://api.openai.com/v1"
         # 存在 /v1/xx的，改为 /v1
         if re.match(r'.*/v1/(chat)?(/?completions)?$', url):
@@ -69,7 +73,7 @@ class ChatGPT(BaseTrans):
                 messages=message
             )
         except APIConnectionError:
-            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
+            raise requests.ConnectionError('Network connection failed')
         config.logger.info(f'[chatGPT]响应:{response=}')
 
         if response.choices:

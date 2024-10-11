@@ -16,9 +16,12 @@ class GTTS(BaseTTS):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.copydata = copy.deepcopy(self.queue_tts)
+        self.api_url='https://translate.google.com'
+        pro = self._set_proxy(type='set')
+        if pro:
+            self.proxies = {"https": pro, "http": pro}
 
     def _exec(self):
-        self._set_proxy(type='set')
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):

@@ -2,7 +2,7 @@ import copy
 import re
 import time
 
-import httpx
+import httpx,requests
 from openai import OpenAI
 
 from videotrans.configure import config
@@ -18,13 +18,20 @@ class OPENAITTS(BaseTTS):
         super().__init__(*args, **kwargs)
         self.copydata = copy.deepcopy(self.queue_tts)
         self.api_url = self._get_url(config.params['openaitts_api'])
+        self.pro=None
         if not re.search('localhost', self.api_url) and not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}
+                self.pro = {"https": pro, "http": pro}
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
+        if not config.params['openaitts_key']:
+            raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
+        print(f'{self.api_url=}')
+        if self.api_url:
+            te=requests.get(self.api_url,proxies=self.pro)
         while len(self.copydata) > 0:
             if self._exit():
                 return
@@ -57,6 +64,7 @@ class OPENAITTS(BaseTTS):
                 self.error = ''
                 self.has_done += 1
             except Exception as e:
+                config.logger.exception(e, exc_info=True)
                 error = str(e)
                 self.error = error
                 if error and re.search(r'Rate limit', error, re.I) is not None:
@@ -68,11 +76,13 @@ class OPENAITTS(BaseTTS):
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _get_url(self, url=""):
+        if not url:
+            return "https://api.openai.com/v1"
         if not url.startswith('http'):
             url = 'http://' + url
             # 删除末尾 /
         url = url.rstrip('/').lower()
-        if not url or url.find(".openai.com") > -1:
+        if url.find(".openai.com") > -1:
             return "https://api.openai.com/v1"
         # 存在 /v1/xx的，改为 /v1
         if re.match(r'.*/v1/.*$', url):

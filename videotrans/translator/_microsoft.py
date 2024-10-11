@@ -29,8 +29,8 @@ class Microsoft(BaseTrans):
                 if not self.auth:
                     self.auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers,
                                              proxies=self.proxies)
-            except (requests.ConnectionError,requests.HTTPError,requests.Timeout):
-                raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
+            except (requests.ConnectionError,requests.HTTPError,requests.Timeout,requests.exceptions.ProxyError):
+                raise
             except Exception as e:
                 if auth_num <= 0:
                     raise Exception(

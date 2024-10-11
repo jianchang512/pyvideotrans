@@ -2,7 +2,7 @@
 import re
 from typing import Union, List
 
-import httpx
+import httpx,requests
 from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
@@ -17,6 +17,8 @@ class LocalLLM(BaseTrans):
         self.api_url = config.params['localllm_api']
         self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language)
         self._check_proxy()
+        if not self.api_url:
+            raise Exception('必须填写api url')
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
@@ -45,7 +47,7 @@ class LocalLLM(BaseTrans):
                 messages=message
             )
         except APIConnectionError:
-            raise Exception('网络连接失败，请检查代理或设置代理地址' if config.defaulelang=='zh' else 'Network connection failed, please check the proxy or set the proxy address')
+            raise requests.ConnectionError('connection error')
         config.logger.info(f'[localllm]响应:{response=}')
 
         if isinstance(response, str):

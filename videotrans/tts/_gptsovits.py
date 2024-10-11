@@ -22,6 +22,7 @@ class GPTSoVITS(BaseTTS):
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
+        self.proxies={"http": "", "https": ""}
 
     def _exec(self):
         self._local_mul_thread()
@@ -71,7 +72,7 @@ class GPTSoVITS(BaseTTS):
                     self.api_url+='/tts'
             config.logger.info(f'{data=}\n{self.api_url=}')
             # 克隆声音
-            response = requests.post(f"{self.api_url}", json=data, proxies={"http": "", "https": ""}, timeout=3600)
+            response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
             # 获取响应头中的Content-Type
             content_type = response.headers.get('Content-Type')
 

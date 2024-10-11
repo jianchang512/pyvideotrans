@@ -20,6 +20,7 @@ class CloneVoice(BaseTTS):
         api_url = config.params['clone_api'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
+        self.proxies={"http": "", "https": ""}
 
     def _exec(self):
         self._local_mul_thread()
@@ -27,7 +28,7 @@ class CloneVoice(BaseTTS):
     def _item_task(self, data_item: dict = None):
         if self._exit():
             return
-        if not data_item or tools.vail_file(data_item['filename']):
+        if not data_item:
             return
         try:
             text = data_item['text'].strip()
@@ -42,7 +43,7 @@ class CloneVoice(BaseTTS):
             else:
                 # 克隆声音
                 files = {"audio": open(data_item['filename'], 'rb')}
-            res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies={"http": "", "https": ""},
+            res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,
                                 timeout=3600)
 
             config.logger.info(f'clone-voice:{data=},{res.text=}')
@@ -58,7 +59,7 @@ class CloneVoice(BaseTTS):
                 tools.wav2mp3(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
                 return
 
-            resb = requests.get(res['url'])
+            resb = requests.get(res['url'],proxies=self.proxies)
             if resb.status_code != 200:
                 self.error = f'clonevoice:{res["url"]=}'
                 return
@@ -73,9 +74,6 @@ class CloneVoice(BaseTTS):
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
-        except requests.ConnectionError as e:
-            self.error = str(e)
-            config.logger.exception(e, exc_info=True)
         except Exception as e:
             self.error = str(e)
             config.logger.exception(e, exc_info=True)
