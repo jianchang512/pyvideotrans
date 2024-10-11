@@ -17,6 +17,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
         q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang):
     os.chdir(ROOT_DIR)
     down_root = ROOT_DIR + "/models"
+    settings['whisper_threads']=int(float(settings.get('whisper_threads',1)))
     def write_log(jsondata):
         try:
             q.put_nowait(jsondata)
@@ -45,8 +46,8 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
                 compute_type=com_type,
                 download_root=down_root,
                 num_workers=settings['whisper_worker'],
-                cpu_threads=os.cpu_count() if int(settings['whisper_threads']) < 1 else int(
-                    settings['whisper_threads']),
+                cpu_threads=os.cpu_count() if settings['whisper_threads'] < 1 else 
+                    settings['whisper_threads'],
                 local_files_only=local_res
 
             )
@@ -59,8 +60,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
                     compute_type="default",
                     download_root=down_root,
                     num_workers=settings['whisper_worker'],
-                    cpu_threads=os.cpu_count() if int(settings['whisper_threads']) < 1 else int(
-                        settings['whisper_threads']),
+                    cpu_threads=os.cpu_count() if settings['whisper_threads'] < 1 else settings['whisper_threads'],
                     local_files_only=local_res
                 )
             else:
@@ -73,7 +73,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, m
             beam_size=settings['beam_size'],
             best_of=settings['best_of'],
             condition_on_previous_text=settings['condition_on_previous_text'],
-            temperature=0.0 if int(settings['temperature']) == 0 else [0.0, 0.2, 0.4, 0.6,
+            temperature=0.0 if int(float(settings.get('temperature',0))) == 0 else [0.0, 0.2, 0.4, 0.6,
                                                                        0.8, 1.0],
             vad_filter=bool(settings['vad']),
             vad_parameters=dict(

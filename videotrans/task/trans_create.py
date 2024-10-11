@@ -339,8 +339,8 @@ class TransCreate(BaseTask):
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
-                shoud_audiorate=self.config_params['voice_autorate'] and int(config.settings['audio_rate']) > 1,
-                shoud_videorate=self.config_params['video_autorate'] and int(config.settings['video_rate']) > 1,
+                shoud_audiorate=self.config_params['voice_autorate'] and int(float(config.settings['audio_rate'])) > 1,
+                shoud_videorate=self.config_params['video_autorate'] and int(float(config.settings['video_rate'])) > 1,
                 novoice_mp4=self.config_params['novoice_mp4'],
                 noextname=self.config_params['noextname'],
                 target_audio=self.config_params['target_wav'],
@@ -467,8 +467,10 @@ class TransCreate(BaseTask):
         subs = tools.get_subtitle_from_srt(self.config_params['target_sub'])
         if len(subs) < 1:
             raise Exception(f"字幕格式不正确，请打开查看:{self.config_params['target_sub']}")
-
-        rate = int(str(self.config_params['voice_rate']).replace('%', ''))
+        try:
+            rate = int(str(self.config_params['voice_rate']).replace('%', ''))
+        except:
+            rate=0
         if rate >= 0:
             rate = f"+{rate}%"
         else:

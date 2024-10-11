@@ -44,11 +44,11 @@ class SpeedRate:
         self._add_dubb_time()
         if config.settings['remove_srt_silence']:
             self._remove_srt_silence()
-        config.settings['remove_white_ms'] = int(config.settings['remove_white_ms'])
+        config.settings['remove_white_ms'] = int(float(config.settings.get('remove_white_ms',0)))
         if config.settings['remove_white_ms'] > 0:
             self._remove_white_ms()
         # 4. 如果需要配音加速
-        if self.shoud_audiorate and int(config.settings['audio_rate']) > 1:
+        if self.shoud_audiorate and int(config.settings.get('audio_rate',1)) > 1:
             self._ajust_audio()
         if self.shoud_videorate:
             self._ajust_video()
@@ -109,7 +109,7 @@ class SpeedRate:
     #   移除2个字幕间的空白间隔 config.settings[remove_white_ms] ms
     # 配音时长不变。raw_duration不变
     def _remove_white_ms(self):
-        config.settings['remove_white_ms'] = int(config.settings['remove_white_ms'])
+        config.settings['remove_white_ms'] = int(float(config.settings.get('remove_white_ms',0)))
         offset = 0
         for i, it in enumerate(self.queue_tts):
             if i > 0:
@@ -175,7 +175,7 @@ class SpeedRate:
             shound_speed = round(it['dubb_time'] / able_time, 2)
 
             # 仅当开启视频慢速，shound_speed大于1.5，diff大于1s，才考虑视频慢速
-            if self.shoud_videorate and int(config.settings['video_rate']) > 1 and diff > 500 and shound_speed > 1.2:
+            if self.shoud_videorate and int(float(config.settings.get('video_rate',0))) > 1 and diff > 500 and shound_speed > 1.2:
                 # 开启了视频慢速，音频加速一半
                 # 音频加速一半后实际时长应该变为
                 audio_extend = it['dubb_time'] - int(diff / 2)
@@ -206,7 +206,7 @@ class SpeedRate:
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self):
-        if not self.shoud_videorate or int(config.settings['video_rate']) <= 1:
+        if not self.shoud_videorate or int(float(config.settings.get('video_rate',0))) <= 1:
             return
         concat_txt_arr = []
         if not tools.is_novoice_mp4(self.novoice_mp4, self.noextname):
@@ -214,7 +214,7 @@ class SpeedRate:
         # 获取视频时长
         last_time = tools.get_video_duration(self.novoice_mp4)
         length = len(self.queue_tts)
-        max_pts = int(config.settings['video_rate'])
+        max_pts = int(float(config.settings.get('video_rate',1)))
         # 按照原始字幕截取
         for i, it in enumerate(self.queue_tts):
             jindu = f'{i + 1}/{length}'

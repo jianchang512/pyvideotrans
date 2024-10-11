@@ -362,7 +362,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
 
-        config.task_countdown = int(config.settings['countdown_sec'])
+        config.task_countdown = int(float(config.settings.get('countdown_sec',1)))
         config.settings = config.parse_init()
 
         # 目标文件夹

@@ -23,7 +23,7 @@ class Google(BaseTrans):
     # 实际发出请求获取结果
     def _item_task_srt(self, data: Union[List[str], str]) -> str:
         text = quote(data)
-        url = f"https://translate.google.com/m?sl=auto&tl={self.target_language}&q={text}"
+        url = f"https://translate.google.com/m?sl={'auto' if not self.source_code else self.source_code}&tl={self.target_language}&hl={self.target_language}&q={text}"
         config.logger.info(f'[Google] {self.target_language} 请求数据:{url=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'

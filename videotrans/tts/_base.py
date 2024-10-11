@@ -43,7 +43,7 @@ class BaseTTS(BaseCon):
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
 
-        self.dub_nums = int(config.settings['dubbing_thread']) if self.len > 1 else 1
+        self.dub_nums = int(float(config.settings.get('dubbing_thread',1))) if self.len > 1 else 1
         self.error = ''
         self.api_url = ''
         self._fomat_vrp()
