@@ -33,6 +33,7 @@ class TransCreate(BaseTask):
             self.config_params['app_mode']='biaozhun'
         self.source_srt_list=[]
         self.target_srt_list=[]
+        self.video_time=0
         # 存在添加的背景音乐
         if tools.vail_file(self.config_params['back_audio']):
             self.config_params['background_music'] = Path(self.config_params['back_audio']).as_posix()
@@ -43,6 +44,7 @@ class TransCreate(BaseTask):
             try:
                 self._signal(text="分析视频数据，用时可能较久请稍等.." if config.defaulelang == 'zh' else "Hold on a monment")
                 self.config_params['video_info'] = tools.get_video_info(self.config_params['name'])
+                self.video_time=self.config_params['video_info']['time']
             except Exception as e:
                 raise Exception(f"{config.transobj['get video_info error']}:{str(e)}")
 
@@ -336,17 +338,27 @@ class TransCreate(BaseTask):
         if self.config_params['voice_autorate'] or self.config_params['video_autorate']:
             self.status_text = '声画变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage'
         try:
+            shoud_video_rate = self.config_params['video_autorate'] and int(float(config.settings['video_rate'])) > 1
+            # 如果时需要慢速或者需要末尾延长视频，需等待 novoice_mp4 分离完毕
+            if shoud_video_rate or config.params['append_video']:
+                 tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'])
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
                 shoud_audiorate=self.config_params['voice_autorate'] and int(float(config.settings['audio_rate'])) > 1,
-                shoud_videorate=self.config_params['video_autorate'] and int(float(config.settings['video_rate'])) > 1,
+                # 视频是否需慢速，需要时对 novoice_mp4进行处理
+                shoud_videorate=shoud_video_rate,
                 novoice_mp4=self.config_params['novoice_mp4'],
+                # 原始总时长
+                raw_total_time=self.video_time,
                 noextname=self.config_params['noextname'],
                 target_audio=self.config_params['target_wav'],
                 cache_folder=self.config_params['cache_folder']
             )
             self.queue_tts = rate_inst.run()
+            # 慢速处理后，更新新视频总时长，用于音视频对齐
+            if shoud_video_rate:
+                self.video_time=tools.get_video_duration(self.config_params['novoice_mp4'])
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(self.queue_tts):
@@ -496,10 +508,9 @@ class TransCreate(BaseTask):
                 "endraw": it['endraw'],
                 "volume": self.config_params['volume'],
                 "pitch": self.config_params['pitch'],
-                "tts_type": self.config_params['tts_type']
+                "tts_type": self.config_params['tts_type'],
+                "filename":config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}.mp3"
             }
-            tmp_dict["filename"] = config.SYS_TMP + "/dubbing_cache/" + tools.get_md5(
-                json.dumps(tmp_dict)) + '.mp3'
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
             if self.config_params['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS] and voice_role == 'clone':
@@ -517,11 +528,10 @@ class TransCreate(BaseTask):
                     )
             queue_tts.append(tmp_dict)
         self.queue_tts = queue_tts
-        Path(config.SYS_TMP + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
-        print(f'@@@@@@@@@@@@@@@@@@@@@配音')
         run_tts(
             queue_tts=copy.deepcopy(self.queue_tts),
             language=self.config_params['target_language_code'],
@@ -533,10 +543,9 @@ class TransCreate(BaseTask):
         if duration_ms < 1000 or self._exit():
             return
         self._signal(text=f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms')
-        if not tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'], uuid=self.uuid):
-            raise Exception("not novoice mp4")
+        # 等待无声视频分离结束
+        tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'], uuid=self.uuid)
 
-        video_time = tools.get_video_duration(self.config_params['novoice_mp4'])
         shutil.copy2(self.config_params['novoice_mp4'], self.config_params['novoice_mp4'] + ".raw.mp4")
 
         # 计算需要定格的时长
@@ -579,9 +588,9 @@ class TransCreate(BaseTask):
             try:
                 self.status_text = '添加背景音频' if config.defaulelang == 'zh' else 'Adding background audio'
                 # 获取视频长度
-                vtime = tools.get_video_info(self.config_params['novoice_mp4'], video_time=True)
+                vtime = tools.get_audio_time(self.config_params['target_wav'])
                 vtime /= 1000
-                # 获取音频长度
+                # 获取背景音频长度
                 atime = tools.get_audio_time(self.config_params['background_music'])
 
                 # 转为m4a
@@ -628,7 +637,7 @@ class TransCreate(BaseTask):
                 self.status_text = '重新嵌入背景音' if config.defaulelang == 'zh' else 'Re-embedded background sounds'
                 # 原始背景音乐 wav,和配音后的文件m4a合并
                 # 获取视频长度
-                vtime = tools.get_video_info(self.config_params['novoice_mp4'], video_time=True)
+                vtime = tools.get_audio_time(self.config_params['target_wav'])
                 vtime /= 1000
                 # 获取音频长度
                 atime = tools.get_audio_time(self.config_params['instrument'])
@@ -722,7 +731,7 @@ class TransCreate(BaseTask):
         # 有配音 延长视频或音频对齐
         if self._exit() or not self.shoud_dubbing or not self.config_params['append_video']:
             return
-        video_time = tools.get_video_duration(self.config_params['novoice_mp4'])
+        video_time=self.video_time
         try:
             audio_length = int(tools.get_audio_time(self.config_params['target_wav']) * 1000)
         except Exception:
@@ -766,8 +775,7 @@ class TransCreate(BaseTask):
             return True
 
         # 判断novoice_mp4是否完成
-        if not tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname']):
-            raise Exception(config.transobj['fenlinoviceerror'])
+        tools.is_novoice_mp4(self.config_params['novoice_mp4'], self.config_params['noextname'])
 
         # 需要配音但没有配音文件
         if self.shoud_dubbing and not tools.vail_file(self.config_params['target_wav']):
@@ -779,12 +787,12 @@ class TransCreate(BaseTask):
             subtitles_file, subtitle_langcode = self._process_subtitles()
 
         self.precent = 90 if self.precent < 90 else self.precent
-        # 有配音 延长视频或音频对齐
-        self._append_video()
         # 添加背景音乐
         self._back_music()
         # 重新嵌入分离出的背景音
         self._separate()
+        # 有配音 延长视频或音频对齐
+        self._append_video()
 
         self.precent = min(max(90,self.precent),90)
 
@@ -941,7 +949,7 @@ class TransCreate(BaseTask):
     # ffmpeg进度日志
     def _hebing_pro(self, protxt) -> None:
         basenum = 100 - self.precent
-        video_time = tools.get_video_duration(self.config_params['novoice_mp4'])
+        video_time = self.video_time
         while 1:
             if self.precent >= 100:
                 return

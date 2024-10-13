@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import platform
+import random
 import re
 import shutil
 import subprocess
@@ -271,12 +272,12 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     # 默认视频编码 libx264 / libx265
     default_codec = f"libx{config.settings['video_codec']}"
 
-    for i, it in enumerate(arg):
-        if arg[i] == '-i' and i < len(arg) - 1:
-            arg[i + 1] = Path(arg[i + 1]).as_posix()
-            file_name=arg[i+1]
-            if not vail_file(arg[i + 1]):
-                raise Exception(f'..{arg[i + 1]} {config.transobj["vlctips2"]}')
+    # for i, it in enumerate(arg):
+    #     if arg[i] == '-i' and i < len(arg) - 1:
+    #         arg[i + 1] = Path(arg[i + 1]).as_posix()
+    #         file_name=arg[i+1]
+    #         if not vail_file(arg[i + 1]):
+    #             raise Exception(f'{cmd=},{arg[i + 1]} {config.transobj["vlctips2"]}')
 
     if not force_cpu and default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
@@ -313,23 +314,31 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
             config.queue_novice[noextname] = "end"
         return True
     except subprocess.CalledProcessError as e:
+        config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}',exc_info=True)
         # 处理视频时如果出错，尝试回退
         if not force_cpu and cmd[-1].endswith('.mp4'):
             # 存在视频的copy操作时，尝试回退使用重新编码
             # 切换为cpu
             set_process(text=config.transobj['huituicpu'], uuid=uuid)
-            config.logger.error(f'cuda上执行出错，退回到CPU执行')
+            config.logger.error(f'执行出错，退回到CPU执行')
             for i, it in enumerate(arg_copy):
                 if i > 0 and arg_copy[i - 1] == '-c:v' and arg_copy[i] not in ['copy','libx264','libx265']:
                     arg_copy[i] = default_codec
             return runffmpeg(arg_copy, noextname=noextname,force_cpu=True)
         if noextname:
             config.queue_novice[noextname] = "error"
-        config.logger.error(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}')
-        if file_name and re.search(r'["\'\`\s\[\]\{\}:\*\^\%\$\#\+\=\<\>\|]', file_name[2:]):
+
+        if platform.system() == 'Windows' and len(" ".join(cmd))>255:
+            if len(config.ROOT_DIR)>150:
+                raise Exception('本软件路径可能太深，请尝试缩短软件路径，例如移动到 E:/pyvideo 目录下')
+            else:
+                raise Exception('视频文件名或视频路径可能太深，请尝试使用短小的英文或数字重命名并缩短视频路径，例如视频重名为 1.mp4 并移动到 E:/video 目录')
+        elif file_name and re.search(r'["\'\`\s\[\]\{\}:\*\^\%\$\#\+\=\<\>\|]', file_name[2:]):
             raise Exception('请检查视频名字或路径中是否存在特殊符号，请重命名为英文或数字名称并移动到仅由英文和数字组成的路径中重试' if config.defaulelang=='zh' else 'Please check if there are any special characters in the video name or path. Rename the video to English or numeric names and move it to a path consisting only of English and numeric characters and try again')
         raise
     except Exception as e:
+        if noextname:
+            config.queue_novice[noextname] = "error"
         config.logger.exception(e)
         raise
 
@@ -352,7 +361,7 @@ def runffprobe(cmd):
         raise Exception(str(p.stderr))
     except subprocess.CalledProcessError as e:
         config.logger.exception(e)
-        msg = f'ffprobe error,:{str(e)}{str(e.stdout)},{str(e.stderr)}'
+        msg = f'ffprobe error {cmd=} :{str(e)}{str(e.stdout)},{str(e.stderr)}'
         msg = msg.replace('\n', ' ')
         raise Exception(msg)
     except Exception as e:
@@ -363,7 +372,7 @@ def runffprobe(cmd):
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     mp4_file = Path(mp4_file).as_posix()
     out = runffprobe(
-        ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', os.path.normpath(mp4_file)])
+        ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
     if out is False:
         raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
@@ -409,7 +418,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     if video_time:
         return result['time']
     if video_fps:
-        return ['video_fps']
+        return result['video_fps']
     if video_scale:
         return result['width'], result['height']
     if get_codec:
@@ -909,11 +918,11 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
         return True
     last_size = 0
     while True:
-        if config.current_status != 'ing':
-            return
+        if config.current_status != 'ing' or config.exit_soft:
+            return False
         if vail_file(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
-            if last_size > 0 and current_size == last_size and t > 600:
+            if last_size > 0 and current_size == last_size and t > 1200:
                 return True
             last_size = current_size
 
@@ -1427,13 +1436,17 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
-    rule=r'[\[\]\{\}\$\`\*\?\"\|]'
+    rule=r'[\[\]\*\?\"\|\'\:]'
     if re.search(rule,raw_noextname) or re.search(r'[\s\.]$',raw_noextname):
         # 规范化名字
-        raw_noextname=re.sub(rule,'-',raw_noextname)
-        raw_noextname=re.sub(r'[\.\s ]$','-',raw_noextname)
+        raw_noextname=re.sub(rule,f'',raw_noextname)
+        raw_noextname=re.sub(r'[\.\s]$', f'',raw_noextname)
+        raw_noextname=raw_noextname.strip()
         
-        new_name=f'{raw_dirname}/{raw_noextname}{ext}'
+        if Path(f'{config.TEMP_DIR}/{raw_noextname}{ext}').exists():
+            raw_noextname+=f'{chr(random.randint(97,122))}'
+
+        new_name=f'{config.TEMP_DIR}/{raw_noextname}{ext}'
         shutil.copy2(name,new_name)
         obj['name']=new_name
         obj['noextname']=raw_noextname

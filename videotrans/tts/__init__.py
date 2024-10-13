@@ -133,12 +133,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
         "play": play,
         "is_test": is_test
     }
-
-
-
-
-
-
     if tts_type == AZURE_TTS:
         from videotrans.tts._azuretts import AzureTTS
         AzureTTS(**kwargs).run()

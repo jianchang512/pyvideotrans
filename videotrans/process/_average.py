@@ -1,18 +1,19 @@
 import json
 import os
 import re
+import tempfile
+import time
 from pathlib import Path
 
 import torch
 import zhconv
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
-from pydub.silence import detect_nonsilent
 
-from videotrans.util.tools import ms_to_time_string, match_target_amplitude, vail_file, cleartext
+from videotrans.util.tools import ms_to_time_string,  vail_file, cleartext
 
 
-def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language, audio_file, q, settings,
+def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q, settings,
         TEMP_DIR, ROOT_DIR, defaulelang):
     os.chdir(ROOT_DIR)
 
@@ -22,7 +23,7 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
         except:
             pass
 
-    tmp_path = Path(f'{cache_folder}/{Path(audio_file).name}_tmp')
+    tmp_path =  Path(tempfile.gettempdir()+f'/recogn_{time.time()}')
     tmp_path.mkdir(parents=True, exist_ok=True)
     tmp_path = tmp_path.as_posix()
 
@@ -44,9 +45,9 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
     else:
         com_type = settings['cuda_com_type']
     # 如果不存在 / ，则是本地模型
-    local_res = True if model_name.find('/') == -1 else False
+    local_file_only = True if model_name.find('/') == -1 else False
     down_root = ROOT_DIR + "/models"
-    if not local_res:
+    if not local_file_only:
         if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
             msg = '下载模型中，用时可能较久' if defaulelang == 'zh' else 'Download model from huggingface'
         else:
@@ -58,7 +59,7 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
             device="cuda" if is_cuda else "cpu",
             compute_type=com_type,
             download_root=down_root,
-            local_files_only=local_res)
+            local_files_only=local_file_only)
     except Exception as e:
         if re.match(r'backend do not support', str(e), re.I):
             model = WhisperModel(
@@ -66,7 +67,7 @@ def run(raws, err,detect, *, cache_folder, model_name, is_cuda, detect_language,
                 device="cuda" if is_cuda else "cpu",
                 compute_type='default',
                 download_root=down_root,
-                local_files_only=local_res)
+                local_files_only=local_file_only)
         else:
             err['msg'] = str(e)
             return

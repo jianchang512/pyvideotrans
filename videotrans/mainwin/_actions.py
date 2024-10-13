@@ -14,6 +14,7 @@ from videotrans import translator, recognition,tts
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
+from videotrans.task._mult_video import MultVideo
 from videotrans.task._only_one import Worker
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
@@ -473,11 +474,12 @@ class WinAction(WinActionSub):
             obj=tools.format_video(video_path, target_dir)
             new_name.append(obj['name'])
             self.obj_list.append(obj)
-            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
+
         config.queue_mp4=new_name
         txt=self.main.subtitle_area.toPlainText().strip()
 
         if len(self.obj_list)==1 and self.main.app_mode not in ['biaozhun_jd','tiqu']:
+            self.add_process_btn(target_dir=Path(self.obj_list[0]['target_dir']).as_posix(), name=self.obj_list[0]['name'], uuid=self.obj_list[0]['uuid'])
             self.is_batch=False
             # 启动任务
             tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
@@ -490,15 +492,19 @@ class WinAction(WinActionSub):
             task.uito.connect(self.update_data)
             task.start()
             return
+
         self.is_batch=True
         config.params.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
-        # 保存任务实例
         for it in self.obj_list:
-            if config.params['clear_cache'] and Path(it['target_dir']).is_dir():
-                shutil.rmtree(it['target_dir'], ignore_errors=True)
-            Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
+            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(),name=it['name'], uuid=it['uuid'])
+
+        MultVideo(parent=self.main,cfg=config.params,obj_list=self.obj_list).start()
+        # QTimer.singleShot(100, self.start_mul_task)
+
+    def start_mul_task(self):
+        for it in self.obj_list:
             trk = TransCreate(copy.deepcopy(config.params), it)
             self.update_data({"text":config.transobj['kaishichuli'],"uuid":it['uuid'],"type":"logs"})
             # 压入识别队列开始执行

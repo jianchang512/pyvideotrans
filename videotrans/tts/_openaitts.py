@@ -29,7 +29,6 @@ class OPENAITTS(BaseTTS):
     def _exec(self):
         if not config.params['openaitts_key']:
             raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
-        print(f'{self.api_url=}')
         if self.api_url:
             te=requests.get(self.api_url,proxies=self.pro)
         while len(self.copydata) > 0:

@@ -122,16 +122,9 @@ FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
-    if Path(ROOT_DIR + '/ffmpeg/ffmpeg.exe').is_file():
-        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg.exe'
-    if Path(ROOT_DIR + '/ffmpeg/ffprobe.exe').is_file():
-        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe.exe'
 else:
     os.environ['PATH'] = ROOT_DIR + f':{ROOT_DIR}/ffmpeg:' + os.environ['PATH']
-    if Path(ROOT_DIR + '/ffmpeg/ffmpeg').is_file():
-        FFMPEG_BIN = ROOT_DIR + '/ffmpeg/ffmpeg'
-    if Path(ROOT_DIR + '/ffmpeg/ffprobe').is_file():
-        FFPROBE_BIN = ROOT_DIR + '/ffmpeg/ffprobe'
+
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'

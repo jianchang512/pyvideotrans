@@ -102,8 +102,6 @@ class AzureTTS(BaseTTS):
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:
-        print(f'{self.api_url=}')
-
         language = self.language.split("-", maxsplit=1)
         self.language = language[0].lower() + ("" if len(language) < 2 else '-' + language[1].upper())
         if self.len == 1:
