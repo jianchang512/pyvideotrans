@@ -99,21 +99,13 @@ class DubbingSrt(BaseTask):
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = self.config_params['voice_role']
             # 要保存到的文件
-            tmp_dict={
-                "text": it['text'],
-                "role": voice_role,
-                "start_time": it['start_time'],
-                "end_time": it['end_time'],
-                "rate": rate,
-                "startraw": it['startraw'],
-                "endraw": it['endraw'],
-                "volume": self.config_params['volume'],
-                "pitch": self.config_params['pitch'],
-                "tts_type": int(self.config_params['tts_type'])
-            }
-            tmp_dict["filename"]=config.SYS_TMP + "/dubbing_cache/"+tools.get_md5(json.dumps(tmp_dict))+'.mp3'
+            tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
+                       "end_time": it['end_time'], "rate": rate, "startraw": it['startraw'], "endraw": it['endraw'],
+                       "volume": self.config_params['volume'], "pitch": self.config_params['pitch'],
+                       "tts_type": int(self.config_params['tts_type']),
+                       "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}.mp3"}
             queue_tts.append(tmp_dict)
-        Path(config.SYS_TMP + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
@@ -135,8 +127,7 @@ class DubbingSrt(BaseTask):
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
                 shoud_audiorate=self.config_params['voice_autorate'] and int(float(config.settings.get('audio_rate',1))) > 1,
-                shoud_videorate=False,
-                novoice_mp4=None,
+                raw_total_time=self.queue_tts[-1]['end_time'],
                 noextname=self.config_params['noextname'],
                 target_audio=self.config_params['target_wav'],
                 cache_folder=self.config_params['cache_folder']

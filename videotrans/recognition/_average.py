@@ -59,7 +59,6 @@ class FasterAvg(BaseRecogn):
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
                     "audio_file": self.audio_file,
-                    "cache_folder": self.cache_folder,
                     "q": result_queue,
                     "settings": config.settings,
                     "defaulelang": config.defaulelang,

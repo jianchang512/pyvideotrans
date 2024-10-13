@@ -30,7 +30,6 @@ class ChatGPT(BaseTrans):
             c=httpx.Client(proxies=None)
             c.get(self.api_url)
         except Exception as e:
-            print(f'set proxy {e}')
             pro = self._set_proxy(type='set')
             if pro:
                 self.proxies = {"https://": pro, "http://": pro}

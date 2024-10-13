@@ -64,9 +64,6 @@ class FasterAll(BaseRecogn):
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
                     "audio_file": self.audio_file,
-                    "maxlen": self.maxlen,
-                    "flag": self.flag,
-                    "join_word_flag": self.join_word_flag,
                     "q": result_queue,
                     "settings": config.settings,
                     "defaulelang": config.defaulelang,
@@ -96,11 +93,10 @@ class FasterAll(BaseRecogn):
                 except:
                     pass
         except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
-            raise
-        except Exception as e:        
-            raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
+            self.error=str(e)
+        except Exception as e:
+            self.error=f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}"
         finally:
-            # 暂停2s，等待exit判断，循环线程退出
             config.model_process = None
             self.has_done = True
 

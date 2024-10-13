@@ -134,7 +134,6 @@ class BaseTTS(BaseCon):
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
-        print(f'{self.api_url=}')
         if self.api_url:
             requests.get(self.api_url, proxies=self.proxies)
 

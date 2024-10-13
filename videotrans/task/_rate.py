@@ -20,14 +20,19 @@ class SpeedRate:
     def __init__(self,
                  *,
                  queue_tts=None,
+                 # 是否需要视频慢速
                  shoud_videorate=False,
                  shoud_audiorate=False,
                  uuid=None,
                  novoice_mp4=None,
+                 raw_total_time=0,
                  noextname=None,
                  target_audio=None,
                  cache_folder=None
                  ):
+        # 原始视频时长，或用字幕配音时最后一个字幕的结束时长
+        self.raw_total_time=raw_total_time
+        # 如果需要视频慢速时，作为处理目标
         self.novoice_mp4 = novoice_mp4
         self.queue_tts = queue_tts
         self.shoud_videorate = shoud_videorate
@@ -50,8 +55,10 @@ class SpeedRate:
         # 4. 如果需要配音加速
         if self.shoud_audiorate and int(config.settings.get('audio_rate',1)) > 1:
             self._ajust_audio()
+        # 如果需要视频慢速
         if self.shoud_videorate:
             self._ajust_video()
+        # 合并
         self._merge_audio_segments()
         return self.queue_tts
 
@@ -85,8 +92,12 @@ class SpeedRate:
             # 记录实际配音后，未经任何处理的真实配音时长
             if tools.vail_file(it['filename']):
                 the_ext = it['filename'].split('.')[-1]
-                it['dubb_time'] = len(
-                    AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
+                try:
+                    it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
+                except Exception as  e:
+                    config.logger.exception(f'添加配音时长失败，{it["filename"]=} {e=}')
+                    it['dubb_time'] = 0
+                    it['video_extend'] = 0
             else:
                 # 不存在配音
                 it['dubb_time'] = 0
@@ -130,10 +141,7 @@ class SpeedRate:
     def _ajust_audio(self):
         # 遍历所有字幕条， 计算应该的配音加速倍数和延长的时间
         length = len(self.queue_tts)
-        if self.novoice_mp4 and os.path.exists(self.novoice_mp4):
-            video_time = tools.get_video_duration(self.novoice_mp4)
-        else:
-            video_time = self.queue_tts[-1]['end_time']
+        raw_total_time=self.raw_total_time
         for i, it in enumerate(self.queue_tts):
             # 是否需要音频加速
             it['speed'] = False
@@ -143,8 +151,7 @@ class SpeedRate:
                 continue
 
             # 可用时长，从本片段开始到下一个片段开始
-            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
-                'start_time']
+            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else raw_total_time - it['start_time']
             # 配音时长小于等于可用时长，无需加速
             if it['dubb_time'] <= able_time:
                 self.queue_tts[i] = it
@@ -163,7 +170,7 @@ class SpeedRate:
                               uuid=self.uuid)
 
             # 可用时长
-            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else video_time - it[
+            able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else raw_total_time - it[
                 'start_time']
             if able_time<=0 or it['dubb_time'] <= able_time:
                 continue
@@ -209,10 +216,7 @@ class SpeedRate:
         if not self.shoud_videorate or int(float(config.settings.get('video_rate',0))) <= 1:
             return
         concat_txt_arr = []
-        if not tools.is_novoice_mp4(self.novoice_mp4, self.noextname):
-            raise Exception("not novoice mp4")
         # 获取视频时长
-        last_time = tools.get_video_duration(self.novoice_mp4)
         length = len(self.queue_tts)
         max_pts = int(float(config.settings.get('video_rate',1)))
         # 按照原始字幕截取
@@ -310,7 +314,7 @@ class SpeedRate:
                 except Exception:
                     pass
                 # 是最后一个，并且未到视频末尾
-                if i == length - 1 and it['end_time_source'] < last_time:
+                if i == length - 1 and it['end_time_source'] < self.raw_total_time:
                     # 最后一个
                     before_dst = self.cache_folder + f'/{i}-after.mp4'
                     try:
@@ -345,14 +349,12 @@ class SpeedRate:
             tools.concat_multi_mp4(out=self.novoice_mp4, concat_txt=concat_txt)
 
     def _merge_audio_segments(self):
-        video_time = 0
-        if self.novoice_mp4 and Path(self.novoice_mp4).exists():
-            video_time = tools.get_video_duration(self.novoice_mp4)
         merged_audio = AudioSegment.empty()
         if len(self.queue_tts) == 1:
             the_ext = self.queue_tts[0]['filename'].split('.')[-1]
-            merged_audio += AudioSegment.from_file(self.queue_tts[0]['filename'],
-                                                   format="mp4" if the_ext == 'm4a' else the_ext)
+            merged_audio += AudioSegment.from_file(
+                self.queue_tts[0]['filename'],
+                format="mp4" if the_ext == 'm4a' else the_ext)
         else:
             # start is not 0
             if self.queue_tts[0]['start_time_source'] > 0:
@@ -363,6 +365,8 @@ class SpeedRate:
             cur = self.queue_tts[0]['start_time_source']
             length = len(self.queue_tts)
             for i, it in enumerate(self.queue_tts):
+                if config.exit_soft:
+                    return
                 # 存在有效配音文件则加入，否则配音时长大于0则加入静音
                 segment = None
                 the_ext = it['filename'].split('.')[-1]
@@ -410,11 +414,6 @@ class SpeedRate:
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 self.queue_tts[i] = it
                 tools.set_process(text=f"{config.transobj['audio_concat']}:{i + 1}/{length}", uuid=self.uuid)
-
-            if not self.shoud_videorate and video_time > 0 and merged_audio and (len(merged_audio) < video_time):
-                # 末尾补静音
-                silence = AudioSegment.silent(duration=video_time - len(merged_audio))
-                merged_audio += silence
 
         # 创建配音后的文件
         try:
