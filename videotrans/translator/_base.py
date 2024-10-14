@@ -140,9 +140,10 @@ class BaseTrans(BaseCon):
                         self.target_list += tmp
                 except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
                     api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
-                    proxy_msg = '无' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
                     raise Exception(
-                        f'网络连接失败，请检查代理地址{api_url_msg}, 当前代理: {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
+                        f'网络连接失败{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -214,9 +215,10 @@ class BaseTrans(BaseCon):
                     result_srt_str_list.append(result)
                 except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
                     api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
-                    proxy_msg = '无' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
                     raise Exception(
-                        f'网络连接失败，请检查代理地址{api_url_msg}, 当前代理: {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
+                        f'网络连接失败{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)

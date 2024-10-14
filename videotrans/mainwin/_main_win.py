@@ -87,6 +87,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
+        elif config.params['tts_type'] == tts.ELEVENLABS_TTS:
+            rolelist = tools.get_elevenlabs_role()
+            self.voice_role.addItems(['No']+rolelist)
         elif config.params['tts_type'] == tts.OPENAI_TTS:
             rolelist = config.openaiTTS_rolelist
             self.voice_role.addItems(rolelist)
@@ -144,12 +147,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 设置各种默认值和设置文字 提示等
     def _set_cache_set(self):
         if platform.system() == 'Darwin':
+            self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
-            config.params['cuda']=False
         self.source_mp4.setAcceptDrops(True)
 
         self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
-        self.proxy.setText(config.params['proxy'])
+        self.proxy.setText(config.proxy)
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
         self.split_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
         self.export_sub.setText(config.transobj['Export srt'])
@@ -184,13 +187,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_rate.setValue(int(config.params['voice_rate'].replace('%', '')))
         except Exception:
             self.voice_rate.setValue(0)
-
-        self.voice_autorate.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.voice_autorate.isChecked(), "voice"))
-        self.video_autorate.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "video"))
-        self.append_video.stateChanged.connect(
-            lambda: self.win_action.autorate_changed(self.video_autorate.isChecked(), "append_video"))
+        try:
+            self.pitch_rate.setValue(int(config.params['pitch'].replace('Hz', '')))
+            self.volume_rate.setValue(int(config.params['volume']))
+        except Exception:
+            self.pitch_rate.setValue(0)
+            self.volume_rate.setValue(0)
         self.addbackbtn.clicked.connect(self.win_action.get_background)
 
         self.split_type.setDisabled(True if config.params['recogn_type'] > 0 else False)
@@ -221,7 +223,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
-        self.voice_rate.valueChanged.connect(self.win_action.voice_rate_changed)
+        # self.voice_rate.valueChanged.connect(self.win_action.voice_rate_changed)
 
 
     def start_subform(self):

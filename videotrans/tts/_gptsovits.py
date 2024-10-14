@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import sys
 import time
@@ -96,9 +97,6 @@ class GPTSoVITS(BaseTTS):
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
-        except requests.ConnectionError as e:
-            self.error = str(e)
-            config.logger.exception(e, exc_info=True)
         except Exception as e:
             self.error = str(e)
             config.logger.exception(e, exc_info=True)

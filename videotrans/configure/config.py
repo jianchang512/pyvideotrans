@@ -30,6 +30,7 @@ _tmpname = f'tmp'
 # 程序根下临时目录tmp
 _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
+
 TEMP_DIR = _temp_path.as_posix()
 
 # 日志目录 logs
@@ -160,8 +161,6 @@ exit_soft = False
 # 所有设置窗口和子窗口
 child_forms = {}
 
-# 存放一次性多选的视频完整路径
-queue_mp4 = []
 
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
 queue_novice = {}
@@ -213,6 +212,8 @@ openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
+
+line_roles={}
 
 # 语言
 try:
@@ -386,7 +387,7 @@ rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
 langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
-
+proxy=""
 #############################################
 # openai  faster-whisper 识别模型
 WHISPER_MODEL_LIST = re.split('[,，]', settings['model_list'])
@@ -645,8 +646,6 @@ Translation:"""
         "chattts_api": "",
 
         "app_mode": "biaozhun",
-
-        "proxy": "",
 
         "stt_source_language":0,
         "stt_recogn_type":0,

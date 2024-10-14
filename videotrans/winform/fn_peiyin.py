@@ -75,16 +75,20 @@ def openwin():
         if isinstance(d, str):
             d = json.loads(d)
         if d['type']!='error':
-            winobj.loglabel.setStyleSheet("""color:#148cd2""")
+            winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
+            winobj.error_msg = ""
+            winobj.loglabel.setToolTip('')
         if d['type'] == 'replace':
             winobj.hecheng_plaintext.clear()
             winobj.hecheng_plaintext.insertPlainText(d['text'])
         elif d['type'] == 'error':
+            winobj.error_msg = d['text']
+            winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang=='zh' else 'View  details error')
             winobj.has_done = True
             winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             winobj.hecheng_startbtn.setDisabled(False)
             winobj.loglabel.setText(d['text'])
-            winobj.loglabel.setStyleSheet("""color:#ff0000""")
+            winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
@@ -98,6 +102,7 @@ def openwin():
             winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             winobj.hecheng_startbtn.setDisabled(False)
             winobj.hecheng_stop.setDisabled(True)
+            winobj.hecheng_plaintext.clear()
 
     # 试听配音
     def listen_voice_fun():
@@ -190,7 +195,7 @@ def openwin():
         if len(winobj.hecheng_files) < 1 and not txt:
             return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
-        elif len(winobj.hecheng_files) < 1:
+        if txt:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
             tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(txt), is_file=False), newsrtfile)
             winobj.hecheng_files.append(newsrtfile)
@@ -371,6 +376,10 @@ def openwin():
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
+    def show_detail_error():
+        if winobj.error_msg:
+            QMessageBox.critical(winobj,config.transobj['anerror'],winobj.error_msg)
+
     from videotrans.component import Peiyinform
     try:
         winobj = config.child_forms.get('peiyinform')
@@ -403,6 +412,7 @@ def openwin():
         winobj.hecheng_role.setCurrentIndex(config.params.get("dubb_role",0))
         winobj.out_format.setCurrentIndex(config.params.get("dubb_out_format",0))
 
+        winobj.loglabel.clicked.connect(show_detail_error)
 
         winobj.show()
     except Exception as e:

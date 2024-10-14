@@ -84,7 +84,7 @@ def pygameaudio(filepath):
 
 
 # 获取 elenevlabs 的角色列表
-def get_elevenlabs_role(force=False):
+def get_elevenlabs_role(force=False,raise_exception=False):
     jsonfile = os.path.join(config.ROOT_DIR, 'elevenlabs.json')
     namelist = []
     if vail_file(jsonfile):
@@ -110,12 +110,13 @@ def get_elevenlabs_role(force=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     except Exception as e:
-        print(e)
-
+        if raise_exception:
+            raise
+    return []
 
 def set_proxy(set_val=''):
     if set_val == 'del':
-        config.params['proxy'] = None
+        config.proxy = None
         # 删除代理
         if os.environ.get('http_proxy'):
             os.environ.pop('http_proxy')
@@ -126,14 +127,14 @@ def set_proxy(set_val=''):
         # 设置代理
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
-        config.params['proxy'] = set_val
+        config.proxy = set_val
         os.environ['http_proxy'] = set_val
         os.environ['https_proxy'] = set_val
         os.environ['all_proxy'] = set_val
         return set_val
 
     # 获取代理
-    http_proxy = config.params['proxy'] or os.environ.get('http_proxy') or os.environ.get('https_proxy')
+    http_proxy = config.proxy or os.environ.get('http_proxy') or os.environ.get('https_proxy')
     if http_proxy:
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"

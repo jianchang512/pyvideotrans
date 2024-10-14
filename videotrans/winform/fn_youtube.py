@@ -27,7 +27,7 @@ def openwin():
                                                'You must fill in the YouTube video playback page address'])
             return
         if proxy:
-            config.params['proxy'] = proxy
+            config.proxy = proxy
         from videotrans.task.download_youtube import Download
         down = Download(proxy=proxy, url=url, out=outdir, parent=winobj, vid=vid, thread_num=thread_num)
         down.uito.connect(feed)
@@ -68,8 +68,8 @@ def openwin():
     Path(config.HOME_DIR + '/youtube').mkdir(parents=True, exist_ok=True)
     # 创建事件过滤器实例并将其安装到 lineEdit 上
     winobj.outputdir.setText(outdir)
-    if config.params['proxy']:
-        winobj.proxy.setText(config.params['proxy'])
+    if config.proxy:
+        winobj.proxy.setText(config.proxy)
     winobj.selectdir.clicked.connect(selectdir)
 
     winobj.set.clicked.connect(download)

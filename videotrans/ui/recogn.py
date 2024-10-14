@@ -12,6 +12,7 @@ from videotrans.recognition import RECOGN_NAME_LIST
 class Ui_recogn(object):
     def setupUi(self, recogn):
         self.has_done = False
+        self.error_msg = ""
         recogn.setObjectName("recogn")
 
         self.centralwidget = QtWidgets.QWidget(recogn)
@@ -124,8 +125,8 @@ class Ui_recogn(object):
         self.horizontalLayout_8.addWidget(self.shibie_stop)
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
 
-        self.loglabel = QtWidgets.QLabel()
-        self.loglabel.setStyleSheet('''color:#148cd2''')
+        self.loglabel = QtWidgets.QPushButton()
+        self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.verticalLayout_3.addWidget(self.loglabel)
 
         self.shibie_text = QtWidgets.QPlainTextEdit()
