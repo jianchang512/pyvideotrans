@@ -10,63 +10,17 @@ from videotrans.util import tools
 
 class BaseTask(BaseCon):
 
-    def __init__(self, config_params: Dict = None, obj: Dict = None):
+    def __init__(self, cfg: Dict = None, obj: Dict = None):
         # 任务id
         super().__init__()
         # 配置信息
-        # 视频信息
-        """
-        result={
-            "video_fps":0,
-            "video_codec_name":"h264",
-            "audio_codec_name":"aac",
-            "width":0,
-            "height":0,
-            "time":0
-        }
-        """
-        self.config_params = {
-            "video_info": None,
-            "h264": None,
-
-            "cache_folder": None,
-            "target_dir": None,
-
-            "detect_language": None,
-            'subtitle_language': None,
-
-            "source_language_code": None,
-            "target_language_code": None,
-
-            "source_sub": None,
-            "target_sub": None,
-
-            "source_wav": None,
-            "target_wav": None,
-
-            "novoice_mp4": None,
-            "targetdir_mp4": None,
-
-            "instrument": None,
-            "vocal": None,
-
-            "shibie_audio": None,
-
-            'background_music': None,
-
-            'app_mode':"biaozhun",
-
-            "subtitle_type":0,
-            "append_video":False,
-            'only_video':False
-        }
-        self.config_params.update(config_params)
+        self.cfg=cfg
         if obj:
-            self.config_params.update(obj)
+            self.cfg.update(obj)
         # 名字规范化处理后，应该删除的
         self.shound_del_name=None
-        if "uuid" in self.config_params and self.config_params['uuid']:
-            self.uuid = self.config_params['uuid']
+        if "uuid" in self.cfg and self.cfg['uuid']:
+            self.uuid = self.cfg['uuid']
 
         # 进度
         self.precent = 1
@@ -75,8 +29,7 @@ class BaseTask(BaseCon):
         self.queue_tts = []
         # 本次任务结束标识
         self.hasend = False
-        # 264/265
-        self.video_codec = int(config.settings['video_codec'])
+
 
         # 预处理，prepare 全部需要
         self.shound_del = False

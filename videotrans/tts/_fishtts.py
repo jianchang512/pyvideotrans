@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import time
 from pathlib import Path
@@ -66,8 +67,8 @@ class FishTTS(BaseTTS):
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
-        except requests.ConnectionError as e:
-            self.error = str(e)
+        except json.JSONDecoder as e:
+            self.error = response.text
             config.logger.exception(e, exc_info=True)
         except Exception as e:
             self.error = str(e)

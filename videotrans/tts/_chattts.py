@@ -1,4 +1,5 @@
 import copy
+import json
 import re
 import time
 from pathlib import Path
@@ -64,8 +65,9 @@ class ChatTTS(BaseTTS):
                 self.inst.precent += 0.1
             self.has_done += 1
             self.error = ''
-        except requests.ConnectionError as e:
-            self.error = f'无法连接到ChatTTS服务，请确保已部署并启动了ChatTTS-ui {str(e)}'
+
+        except json.JSONDecoder as e:
+            self.error =res.text
             config.logger.exception(e, exc_info=True)
         except Exception as e:
             self.error = str(e)

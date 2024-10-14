@@ -26,7 +26,7 @@ class DropButton(QPushButton):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
         self.filelist = fnames
-        self.setText(f'{len(self.filelist)} files \n{",".join(namestr)}')
+        self.setText(f'{len(self.filelist)} files \n'+"\n".join(namestr))
 
     def dragEnterEvent(self, event):
         files = event.mimeData().text().strip().lower()

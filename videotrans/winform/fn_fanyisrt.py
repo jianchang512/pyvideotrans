@@ -70,11 +70,15 @@ def openwin():
             return
         d = json.loads(d)
         if d['type']!='error':
-            winobj.loglabel.setStyleSheet("""color:#148cd2""")
+            winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
+            winobj.error_msg = ""
+            winobj.loglabel.setToolTip('')
 
         if d['type'] == 'error':
+            winobj.error_msg = d['text']
             winobj.has_done = True
-            winobj.loglabel.setStyleSheet("""color:#ff0000""")
+            winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang=='zh' else 'View  details error')
+            winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.loglabel.setText(d['text'][:150])
             winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.fanyi_start.setDisabled(False)
@@ -275,6 +279,10 @@ def openwin():
         winobj.fanyi_start.setDisabled(False)
         winobj.fanyi_stop.setDisabled(True)
 
+    def show_detail_error():
+        if winobj.error_msg:
+            QMessageBox.critical(winobj,config.transobj['anerror'],winobj.error_msg)
+
     from videotrans.component import Fanyisrt
     try:
         winobj = config.child_forms.get('fanyiform')
@@ -313,7 +321,7 @@ def openwin():
 
         winobj.fanyi_sourcetext.setSizePolicy(sizePolicy)
         winobj.fanyi_sourcetext.setMinimumSize(300, 0)
-        winobj.fanyi_proxy.setText(config.params['proxy'])
+        winobj.fanyi_proxy.setText(config.proxy)
 
         winobj.fanyi_sourcetext.setPlaceholderText(config.transobj['tuodongfanyi'])
         winobj.fanyi_sourcetext.setToolTip(config.transobj['tuodongfanyi'])
@@ -322,6 +330,7 @@ def openwin():
         winobj.fanyi_layout.insertWidget(0, winobj.fanyi_sourcetext)
         winobj.daochu.clicked.connect(fanyi_save_fun)
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
+        winobj.loglabel.clicked.connect(show_detail_error)
 
         winobj.show()
     except Exception as e:

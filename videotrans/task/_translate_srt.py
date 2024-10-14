@@ -25,7 +25,7 @@ class TranslateSrt(BaseTask):
     uuid
     }
 
-    config_params={
+    cfg={
         translate_type
         text_list
         target_language
@@ -35,21 +35,21 @@ class TranslateSrt(BaseTask):
     }
     """
 
-    def __init__(self, config_params: Dict = None, obj: Dict = None):
-        super().__init__(config_params, obj)
+    def __init__(self, cfg: Dict = None, obj: Dict = None):
+        super().__init__(cfg, obj)
         self.shoud_trans = True
         # 存放目标文件夹
-        if 'target_dir' not in self.config_params or not self.config_params['target_dir']:
-            self.config_params['target_dir'] = config.HOME_DIR + f"/translate"
-        if not Path(self.config_params['target_dir']).exists():
-            Path(self.config_params['target_dir']).mkdir(parents=True, exist_ok=True)
-        self.out_format=int(config_params.get('out_format',0))
+        if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
+            self.cfg['target_dir'] = config.HOME_DIR + f"/translate"
+        if not Path(self.cfg['target_dir']).exists():
+            Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
+        self.out_format=int(cfg.get('out_format',0))
         # 生成目标字幕文件
-        self.config_params['target_sub'] = self.config_params['target_dir'] + '/' + self.config_params[
+        self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
             'noextname'] + '.srt'
-        self.config_params['source_sub'] = self.config_params['name']
+        self.cfg['source_sub'] = self.cfg['name']
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
-        self.rename=config_params.get('rename',False)
+        self.rename=cfg.get('rename',False)
 
 
     def prepare(self):
@@ -63,22 +63,22 @@ class TranslateSrt(BaseTask):
         if self._exit():
             return
         try:
-            source_sub_list=tools.get_subtitle_from_srt(self.config_params['source_sub'])
+            source_sub_list=tools.get_subtitle_from_srt(self.cfg['source_sub'])
 
             raw_subtitles = run(
-                translate_type=self.config_params['translate_type'],
+                translate_type=self.cfg['translate_type'],
                 text_list=source_sub_list,
-                target_language_name=self.config_params['target_language'],
+                target_language_name=self.cfg['target_language'],
                 uuid=self.uuid,
-                source_code=self.config_params['source_code'])
+                source_code=self.cfg['source_code'])
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception('Is emtpy '+self.config_params['basename'])
+                raise Exception('Is emtpy '+self.cfg['basename'])
             raw_subtitles=self._check_target_sub(source_sub_list,raw_subtitles)
             if self.out_format==0:
-                tools.save_srt(raw_subtitles, self.config_params['target_sub'])
-                self._signal(text=Path(self.config_params['target_sub']).read_text(encoding='utf-8'), type='replace')
+                tools.save_srt(raw_subtitles, self.cfg['target_sub'])
+                self._signal(text=Path(self.cfg['target_sub']).read_text(encoding='utf-8'), type='replace')
             else:
                 target_length = len(raw_subtitles)
                 srt_string = ""
@@ -90,15 +90,15 @@ class TranslateSrt(BaseTask):
                         tmp_text= f"{raw_subtitles[i]['text'].strip()}" if i<target_length else ''
                         tmp_text=f"{it['text'].strip()}\n{tmp_text}"
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
-                if self.rename and Path(self.config_params['target_sub']).is_file() and Path(self.config_params['target_sub']).stat().st_size>0:
-                    self.config_params['target_sub']=self.config_params['target_sub'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}.srt'
-                with Path(self.config_params['target_sub']).open('w', encoding='utf-8') as f:
+                if self.rename and Path(self.cfg['target_sub']).is_file() and Path(self.cfg['target_sub']).stat().st_size>0:
+                    self.cfg['target_sub']=self.cfg['target_sub'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}.srt'
+                with Path(self.cfg['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
                     f.flush()
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
-            tools.send_notification(msg, f'{self.config_params["basename"]}')
+            tools.send_notification(msg, f'{self.cfg["basename"]}')
             self._signal(text=f"{msg}", type='error')
             raise
 
@@ -119,11 +119,11 @@ class TranslateSrt(BaseTask):
             return
         self.hasend = True
         self.precent = 100
-        if Path(self.config_params['target_sub']).is_file():
-            self._signal(text=f"{self.config_params['name']}", type='succeed')
-            tools.send_notification(config.transobj['Succeed'], f"{self.config_params['basename']}")
-        if 'shound_del_name' in self.config_params:
-            Path(self.config_params['shound_del_name']).unlink(missing_ok=True)
+        if Path(self.cfg['target_sub']).is_file():
+            self._signal(text=f"{self.cfg['name']}", type='succeed')
+            tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
+        if 'shound_del_name' in self.cfg:
+            Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
 
     def _exit(self):
         if config.exit_soft or config.box_trans!='ing':

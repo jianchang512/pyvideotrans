@@ -147,7 +147,7 @@
     "daoruzimu": "导入字幕",
     "shitingpeiyin": "试听配音",
     "xianqidongrenwu": "先启动任务，待字幕翻译完成后可试听,配音速度、自动加速实时修改生效",
-    "juanzhu": " 小额捐赠帮助待续更新优化 / 免责声明 ",
+    "juanzhu": " 小额捐赠帮助项目待续更新优化",
     "nocuda": "你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，点击菜单栏-帮助支持-CUDA help",
     "nocudnn": "你的设备没有安装配置cuDNN，请参考 https://juejin.cn/post/7318704408727519270#heading-1 安装，然后重启软件，或者改用openai模型",
     "cudatips": "如果有英伟达显卡并且配置好了CUDA环境，可启用，将极大提升执行速度",

@@ -25,6 +25,7 @@ class Ui_peiyin(object):
         peiyin.setSizePolicy(sizePolicy)
 
         self.hecheng_files = []
+        self.error_msg = ""
 
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout(peiyin)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
@@ -201,8 +202,8 @@ class Ui_peiyin(object):
 
         self.verticalLayout_4.addLayout(h1)
 
-        self.loglabel = QtWidgets.QLabel()
-        self.loglabel.setStyleSheet("""color:#148cd2""")
+        self.loglabel = QtWidgets.QPushButton()
+        self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.verticalLayout_4.addWidget(self.loglabel)
 
         self.gridLayout_3 = QtWidgets.QGridLayout()

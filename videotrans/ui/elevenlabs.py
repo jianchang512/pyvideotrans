@@ -50,10 +50,21 @@ class Ui_elevenlabsform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.elevenlabstts_key)
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout_2.addLayout(self.verticalLayout)
+
+
         self.set = QtWidgets.QPushButton(elevenlabsform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
-        self.verticalLayout_2.addWidget(self.set)
+
+        self.test = QtWidgets.QPushButton(elevenlabsform)
+        self.test.setMinimumSize(QtCore.QSize(0, 35))
+        self.test.setObjectName("test")
+
+        hv=QtWidgets.QHBoxLayout()
+        hv.addWidget(self.set)
+        hv.addWidget(self.test)
+
+        self.verticalLayout_2.addLayout(hv)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
         self.retranslateUi(elevenlabsform)
@@ -63,3 +74,4 @@ class Ui_elevenlabsform(object):
         elevenlabsform.setWindowTitle("ElevenLabs")
         self.label.setText("API_KEY")
         self.set.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试并获取角色' if config.defaulelang == 'zh' else "Test & get roles")

@@ -534,7 +534,7 @@ class Ui_setini(object):
                 val=str(config.settings.get(key,"")).lower()
                 # 是 cuda_com_type
                 if key=='cuda_com_type':
-                    cuda_types=['float32','float16','int8','int8_float16','int8_float32']
+                    cuda_types=['float32','float16','int8','int16','int8_float16','int8_float32']
                     tmp1=QtWidgets.QComboBox()
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)

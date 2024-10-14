@@ -16,6 +16,7 @@ class Ui_fanyisrt(object):
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
         self.files = []
+        self.error_msg = ""
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -109,8 +110,8 @@ class Ui_fanyisrt(object):
 
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
 
-        self.loglabel = QtWidgets.QLabel()
-        self.loglabel.setStyleSheet('''color:#148cd2''')
+        self.loglabel = QtWidgets.QPushButton()
+        self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.verticalLayout_13.addWidget(self.loglabel)
 
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()

@@ -51,7 +51,7 @@ class WinActionSub:
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
-        config.params['cuda'] = res
+        self.cfg['cuda'] = res
 
     # 简单新手模式
     def set_xinshoujandann(self):
@@ -339,7 +339,7 @@ class WinActionSub:
 
         if len(mp4_list) > 0:
             self.main.source_mp4.setText(f'{len((mp4_list))} videos')
-            config.queue_mp4 = mp4_list
+            self.queue_mp4 = mp4_list
 
     # 保存目录
     def get_save_dir(self):
@@ -351,9 +351,9 @@ class WinActionSub:
 
     # 设置或删除代理
     def change_proxy(self, p):
-        config.params['proxy'] = p.strip()
+        config.proxy = p.strip()
         try:
-            if not config.params['proxy']:
+            if not config.proxy:
                 # 删除代理
                 tools.set_proxy('del')
         except Exception:
@@ -376,11 +376,11 @@ class WinActionSub:
                     self.update_status('stop')
                     return False
         # 设置或删除代理
-        config.params['proxy'] = proxy
+        config.proxy = proxy
         try:
-            if config.params['proxy']:
+            if config.proxy:
                 # 设置代理
-                tools.set_proxy(config.params['proxy'])
+                tools.set_proxy(config.proxy)
             else:
                 # 删除代理
                 tools.set_proxy('del')
@@ -398,15 +398,18 @@ class WinActionSub:
 
     # 如果选中了cuda，判断是否可用
     def cuda_isok(self):
-        if not config.params["cuda"] or platform.system() == 'Darwin':
+        if not self.main.enable_cuda.isChecked() or platform.system() == 'Darwin':
+            self.cfg['cuda']=False
             return True
 
         import torch
         if not torch.cuda.is_available():
+            self.cfg['cuda']=False
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
             return False
 
-        if config.params['recogn_type'] == recognition.OPENAI_WHISPER:
+        if self.main.recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
+            self.cfg['cuda']=True
             return True
         allow = True
         try:
@@ -417,29 +420,32 @@ class WinActionSub:
             allow = False
         finally:
             if not allow:
+                self.cfg['cuda']=False
                 self.main.enable_cuda.setChecked(False)
-                config.params['cuda'] = False
                 QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
                 return False
+        self.cfg['cuda']=True
         return True
 
     # 检测各个模式下参数是否设置正确
     def set_mode(self):
-        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and config.params['subtitle_type'] < 1 and config.params['voice_role'] == 'No'):
+        subtitle_type=self.main.subtitle_type.currentIndex()
+        voice_role=self.main.voice_role.currentText()
+        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role == 'No'):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            config.params['is_separate'] = False
-            config.params['subtitle_type'] = 0
-            config.params['voice_role'] = 'No'
-            config.params['voice_rate'] = '+0%'
-            config.params['voice_autorate'] = False
-            config.params['append_video'] = False
-            config.params['back_audio'] = ''
+            self.cfg['is_separate'] = False
+            self.cfg['subtitle_type'] = 0
+            self.cfg['voice_role'] = 'No'
+            self.cfg['voice_rate'] = '+0%'
+            self.cfg['voice_autorate'] = False
+            self.cfg['append_video'] = False
+            self.cfg['back_audio'] = ''
         elif self.main.app_mode == 'biaozhun_jd':
-            config.params['voice_autorate'] = True
-            config.params['append_video'] = True
-            config.params['is_separate'] = False
-            config.params['back_audio'] = ''
+            self.cfg['voice_autorate'] = True
+            self.cfg['append_video'] = True
+            self.cfg['is_separate'] = False
+            self.cfg['back_audio'] = ''
 
     # 导入背景声音
     def get_background(self):
@@ -483,9 +489,9 @@ class WinActionSub:
     # 1=均等分割模式
     def check_split_type(self, index):
         if index == 0:
-            config.params['split_type'] = 'all'
+            self.cfg['split_type'] = 'all'
         else:
-            config.params['split_type'] = 'avg'
+            self.cfg['split_type'] = 'avg'
 
     # 试听配音
     def listen_voice_fun(self):
@@ -516,7 +522,7 @@ class WinActionSub:
         pitch = int(self.main.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-        voice_file = f"{voice_dir}/{config.params['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        voice_file = f"{voice_dir}/{self.cfg['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
 
         obj = {
             "text": text,
@@ -536,8 +542,10 @@ class WinActionSub:
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
-        config.params["voice_role"] = role
-        if role == 'No' or (config.params['tts_type'] == tts.CLONE_VOICE_TTS and config.params['voice_role'] == 'clone'):
+        # config.params["voice_role"] = role
+        tts_type=self.main.tts_type.currentIndex()
+        voice_role = self.main.voice_role.currentText()
+        if role == 'No' or (tts_type == tts.CLONE_VOICE_TTS and voice_role == 'clone'):
             self.main.listen_btn.hide()
             return
         if self.main.app_mode in ['biaozhun']:
@@ -548,7 +556,7 @@ class WinActionSub:
     def url_right(self):
         if sys.platform != 'win32':
             return True
-        for vurl in config.queue_mp4:
+        for vurl in self.queue_mp4:
             if re.search(r'[:\?\*<>\|\"]', vurl[4:]):
                 return QMessageBox.critical(self.main, config.transobj['anerror'],
                                             '视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ')
@@ -561,15 +569,15 @@ class WinActionSub:
     # 如果有同名则停止
     def check_name(self):
         if self.main.app_mode != 'tiqu':
-            for it in config.queue_mp4:
+            for it in self.queue_mp4:
                 if Path(it).suffix.lower() in config.AUDIO_EXITS:
                     self.main.app_mode = 'tiqu'
-                    config.params['is_separate'] = False
+                    self.cfg['is_separate'] = False
                     break
 
-        if len(config.queue_mp4) > 1:
+        if len(self.queue_mp4) > 1:
             same_name = {}
-            for it in config.queue_mp4:
+            for it in self.queue_mp4:
                 p = Path(it)
                 stem = p.stem
                 if stem in same_name:

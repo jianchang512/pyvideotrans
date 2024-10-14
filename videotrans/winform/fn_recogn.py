@@ -74,8 +74,9 @@ def openwin():
             d = json.loads(d)
 
         if d['type']!='error':
-            winobj.loglabel.setStyleSheet("""color:#148cd2""")
-            
+            winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
+            winobj.error_msg = ""
+            winobj.loglabel.setToolTip('')
         if d['type'] in ['replace','replace_subtitle']:
             winobj.shibie_text.clear()
             winobj.shibie_text.insertPlainText(d["text"])
@@ -83,9 +84,11 @@ def openwin():
             winobj.shibie_text.moveCursor(QTextCursor.End)
             winobj.shibie_text.insertPlainText(d['text'])
         elif d['type'] == 'error':
+            winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang=='zh' else 'View  details error')
+            winobj.error_msg = d['text']
             winobj.has_done = True
             winobj.loglabel.setText(d['text'][:120])
-            winobj.loglabel.setStyleSheet("""color:#ff0000""")
+            winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.shibie_startbtn.setDisabled(False)
             winobj.shibie_startbtn.setText(config.box_lang["Start"])
         elif d['type'] == 'logs' and d['text']:
@@ -235,6 +238,11 @@ def openwin():
         winobj.shibie_stop.setDisabled(True)
         winobj.shibie_dropbtn.setText(config.transobj['xuanzeyinshipin'])
 
+    def show_detail_error():
+        if winobj.error_msg:
+            QMessageBox.critical(winobj, config.transobj['anerror'], winobj.error_msg)
+
+
     from videotrans.component import Recognform
     try:
         winobj = config.child_forms.get('recognform')
@@ -262,15 +270,14 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
-        # "stt_source_language": 0,
-        # "stt_recogn_type": 0,
-        # "stt_model_name": "tiny",
+
         winobj.shibie_language.setCurrentIndex(config.params.get('stt_source_language',0))
         winobj.shibie_recogn_type.setCurrentIndex(config.params.get('stt_recogn_type',0))
         winobj.shibie_model.setCurrentIndex(config.params.get('stt_model_name',0))
 
         winobj.shibie_recogn_type.currentIndexChanged.connect(recogn_type_change)
         winobj.shibie_model.currentIndexChanged.connect(recogn_type_change)
+        winobj.loglabel.clicked.connect(show_detail_error)
 
         winobj.show()
     except Exception as e:
