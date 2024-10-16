@@ -223,7 +223,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
-        # self.voice_rate.valueChanged.connect(self.win_action.voice_rate_changed)
+        self.reglabel.clicked.connect(self.win_action.click_reglabel)
 
 
     def start_subform(self):

@@ -77,6 +77,8 @@ class BaseTask(BaseCon):
 
     # 字幕是否存在并且有效
     def _srt_vail(self, file):
+        if not file:
+            return False
         if not tools.vail_file(file):
             return False
         try:
@@ -88,6 +90,8 @@ class BaseTask(BaseCon):
 
     # 删掉尺寸为0的无效文件
     def _unlink_size0(self, file):
+        if not file:
+            return
         p = Path(file)
         if p.exists() and p.stat().st_size == 0:
             p.unlink(missing_ok=True)

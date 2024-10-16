@@ -67,7 +67,7 @@ class OpenaiAPIRecogn(BaseRecogn):
             # 发送请求
             transcript = requests.post(self.api_url+f'/audio/translations',verify=False, headers= {
                 "Authorization": f"Bearer {config.params['openairecognapi_key']}",
-                "Content-Type": "multipart/form-data"
+                #"Content-Type": "multipart/form-data"
             }, files={
                 "file": open(self.audio_file, 'rb')
             }, data={

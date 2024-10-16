@@ -7,13 +7,13 @@ from videotrans.configure import config
 from videotrans.recognition import RECOGN_NAME_LIST
 from videotrans.tts import TTS_NAME_LIST
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.centralwidget.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-
 
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
@@ -32,8 +32,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout_3.setContentsMargins(0, 0, 3, 0)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
 
@@ -50,7 +49,8 @@ class Ui_MainWindow(object):
 
         self.select_file_type = QtWidgets.QCheckBox()
         self.select_file_type.setText('文件夹' if config.defaulelang == 'zh' else 'Folder')
-        self.select_file_type.setToolTip('默认可选择多个文件，选中该框则可选择文件夹' if config.defaulelang == 'zh' else 'Multiple files can be selected by default, check the box to select folders')
+        self.select_file_type.setToolTip(
+            '默认可选择多个文件，选中该框则可选择文件夹' if config.defaulelang == 'zh' else 'Multiple files can be selected by default, check the box to select folders')
 
         self.horizontalLayout_6.addWidget(self.btn_get_video)
         self.horizontalLayout_6.addWidget(self.select_file_type)
@@ -69,19 +69,16 @@ class Ui_MainWindow(object):
         self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
 
         self.horizontalLayout_6.addWidget(self.only_video)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
-        
-        
+        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
+
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.layout_translate_type = QtWidgets.QFormLayout()
-        self.layout_translate_type.setObjectName("layoutconfig.uilanglist.get_type")
-        self.label_9 = QtWidgets.QLabel(self.layoutWidget)
 
+        self.label_9 = QtWidgets.QLabel(self.layoutWidget)
         self.label_9.setMinimumSize(QtCore.QSize(0, 30))
         self.label_9.setObjectName("label_9")
-        
+
         self.translate_type = QtWidgets.QComboBox(self.layoutWidget)
         self.translate_type.setMinimumSize(QtCore.QSize(160, 30))
         self.translate_type.setObjectName("translate_type")
@@ -93,18 +90,14 @@ class Ui_MainWindow(object):
         self.label_2 = QtWidgets.QLabel(self.layoutWidget)
         self.label_2.setMinimumSize(QtCore.QSize(0, 30))
         self.label_2.setObjectName("label_2")
-        
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
-
         self.source_language.setMinimumSize(QtCore.QSize(145, 30))
         self.source_language.setObjectName("source_language")
 
         self.label_3 = QtWidgets.QLabel(self.layoutWidget)
-
         self.label_3.setMinimumSize(QtCore.QSize(0, 30))
         self.label_3.setObjectName("label_3")
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
-
         self.target_language.setMinimumSize(QtCore.QSize(145, 30))
         self.target_language.setObjectName("target_language")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
@@ -120,21 +113,16 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
 
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
-        
-
         self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
 
         self.horizontalLayout_5.addWidget(self.label)
         self.horizontalLayout_5.addWidget(self.proxy)
-        #self.horizontalLayout_5.addStretch()
-        
 
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
         self.listen_btn.setEnabled(False)
         self.listen_btn.setFixedWidth(80)
-
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_5)
 
         # 配音渠道行
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -189,30 +177,34 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.volume_rate)
         self.horizontalLayout.addWidget(self.pitch_label)
         self.horizontalLayout.addWidget(self.pitch_rate)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         # 语音识别
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.reglabel=QtWidgets.QLabel(self.layoutWidget)
-        self.reglabel.setText('语音识别' if config.defaulelang=='zh' else 'Speech Recognition')
+        self.reglabel = QtWidgets.QPushButton(self.layoutWidget)
+        self.reglabel.setStyleSheet("""background-color:transparent""")
+        # 在pyside6中输入向下的箭头 输入\u2193
+        self.reglabel.setText('语音识别\u2193' if config.defaulelang == 'zh' else 'Speech Recognition')
+        self.reglabel.setCursor(Qt.PointingHandCursor)
+        self.reglabel.setToolTip(
+            '当faster-whisper时，可点击设置详细识别参数' if config.defaulelang == 'zh' else 'Click to set detailed recognition parameters when using faster-whisper')
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
         self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
         self.recogn_type.setObjectName("label_5")
         self.recogn_type.addItems(RECOGN_NAME_LIST)
         self.recogn_type.setToolTip(config.uilanglist['model_type_tips'])
-        
-        self.model_name_help=QtWidgets.QPushButton(self.layoutWidget)
+
+        self.model_name_help = QtWidgets.QPushButton(self.layoutWidget)
         self.model_name_help.setStyleSheet("""background-color:transparent""")
-        self.model_name_help.setText('!选择模型' if config.defaulelang=='zh' else '!Model')
-        self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang=='zh' else 'Click for model description')
+        self.model_name_help.setText('!选择模型' if config.defaulelang == 'zh' else '!Model')
+        self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang == 'zh' else 'Click for model description')
         self.model_name_help.setMaximumSize(QtCore.QSize(60, 20))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
         self.model_name.setMinimumSize(QtCore.QSize(160, 30))
         self.model_name.setObjectName("model_name")
 
-        
         self.split_type = QtWidgets.QComboBox(self.layoutWidget)
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
@@ -224,45 +216,91 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         self.horizontalLayout_4.addWidget(self.split_type)
-        #self.horizontalLayout_4.addStretch()
 
         self.label_8 = QtWidgets.QLabel(self.layoutWidget)
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_4.addWidget(self.label_8)
-        
+
         self.subtitle_type = QtWidgets.QComboBox(self.layoutWidget)
         self.subtitle_type.setMinimumSize(QtCore.QSize(0, 30))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        #sizePolicy.setHorizontalStretch(0)
-        #sizePolicy.setVerticalStretch(0)
-        #sizePolicy.setHeightForWidth(self.subtitle_type.sizePolicy().hasHeightForWidth())
+
         self.subtitle_type.setSizePolicy(sizePolicy)
         self.subtitle_type.setObjectName("subtitle_type")
         self.horizontalLayout_4.addWidget(self.subtitle_type)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
+        # 语音识别高级行
+        self.hfaster_layout = QtWidgets.QHBoxLayout()
+        self.threshold_label = QtWidgets.QLabel()
+        self.threshold_label.setText('threshold' if config.defaulelang != 'zh' else '语音识别阈值')
+        self.threshold_label.setVisible(False)
+        self.threshold = QtWidgets.QLineEdit()
+        self.threshold.setPlaceholderText('200ms')
+        self.threshold.setMaximumWidth(80)
+        self.threshold.setVisible(False)
+        self.threshold.setToolTip(
+            '表示语音的概率阈值，VAD 会输出每个音频片段的语音概率。\n高于该值的概率被认为是语音（SPEECH），低于该值的概率被认为是静音或背景噪音。默认值为 0.5，这在大多数情况下是适用的。\n但针对不同的数据集，你可以调整这个值以更精确地区分语音和噪音。如果你发现误判太多，可以尝试将其调高到 0.6 或 0.7；\n如果语音片段丢失过多，则可以降低至 0.3 或 0.4。' if config.defaulelang == 'zh' else 'Threshold for speech detection')
+        self.threshold.setText(str(config.settings.get('threshold', 0.5)))
+        self.hfaster_layout.addWidget(self.threshold_label)
+        self.hfaster_layout.addWidget(self.threshold)
+        self.hfaster_layout.addStretch()
 
-        self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
-        self.gaoji_layout_inner2.setObjectName("gaoji_layout_inner2")
-        self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.addbackbtn.sizePolicy().hasHeightForWidth())
-        self.addbackbtn.setSizePolicy(sizePolicy)
-        self.addbackbtn.setMinimumSize(QtCore.QSize(100, 30))
-        self.addbackbtn.setObjectName("addbackbtn")
-        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
+        self.min_speech_duration_ms_label = QtWidgets.QLabel()
+        self.min_speech_duration_ms_label.setText(
+            'min_speech_duration_ms' if config.defaulelang != 'zh' else '最小语音持续毫秒')
+        self.min_speech_duration_ms_label.setVisible(False)
+        self.min_speech_duration_ms = QtWidgets.QLineEdit()
+        self.min_speech_duration_ms.setPlaceholderText('200ms')
+        self.min_speech_duration_ms.setMaximumWidth(80)
+        self.min_speech_duration_ms.setVisible(False)
+        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 250)))
+        self.min_speech_duration_ms.setToolTip(
+            '最小语音持续时间，单位：毫秒。\n如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。\n默认值为 250 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，\n例如设置为 500 毫秒' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
+        self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
+        self.hfaster_layout.addWidget(self.min_speech_duration_ms)
+        self.hfaster_layout.addStretch()
+        self.verticalLayout_3.addLayout(self.hfaster_layout)
 
-        self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.back_audio.sizePolicy().hasHeightForWidth())
-        self.back_audio.setSizePolicy(sizePolicy)
-        self.back_audio.setMinimumSize(QtCore.QSize(0, 30))
-        self.back_audio.setObjectName("back_audio")
-        self.gaoji_layout_inner2.addWidget(self.back_audio)
+        self.min_silence_duration_ms_label = QtWidgets.QLabel()
+        self.min_silence_duration_ms_label.setText(
+            'min_silence_duration_ms' if config.defaulelang != 'zh' else '最小静音持续毫秒')
+        self.min_silence_duration_ms_label.setVisible(False)
+        self.min_silence_duration_ms = QtWidgets.QLineEdit()
+        self.min_silence_duration_ms.setPlaceholderText('200ms')
+        self.min_silence_duration_ms.setMaximumWidth(80)
+        self.min_silence_duration_ms.setVisible(False)
+        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 2000)))
+        self.min_silence_duration_ms.setToolTip(
+            '最小静音持续时间，单位：毫秒。\n当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。默认值是 2000 毫秒（2 秒）。\n如果你希望更快速地检测和分割语音片段，可以减小这个值，比如设置为 500 毫秒；\n如果希望更宽松地分割，可以将其增大' if config.defaulelang == 'zh' else 'Minimum silence duration (ms)')
+        self.hfaster_layout.addWidget(self.min_silence_duration_ms_label)
+        self.hfaster_layout.addWidget(self.min_silence_duration_ms)
+
+        self.max_speech_duration_s_label = QtWidgets.QLabel()
+        self.max_speech_duration_s_label.setText('max_speech_duration_s' if config.defaulelang != 'zh' else '最大语音持续时长')
+        self.max_speech_duration_s_label.setVisible(False)
+        self.max_speech_duration_s = QtWidgets.QLineEdit()
+        self.max_speech_duration_s.setPlaceholderText('200ms')
+        self.max_speech_duration_s.setMaximumWidth(80)
+        self.max_speech_duration_s.setVisible(False)
+        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 2000)))
+        self.max_speech_duration_s.setToolTip(
+            '最大语音持续时间，单位：秒。\n单个语音片段的最大长度。如果语音片段超过这个时长，则会尝试在 100 毫秒以上的静音处进行分割。\n如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。默认是无穷大（不限制），\n如果需要处理较长的语音片段，可以保留默认值；\n但如果你希望控制片段长度，比如处理对话或分段输出，\n可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大' if config.defaulelang == 'zh' else 'max speech duration (s)')
+        self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
+        self.hfaster_layout.addWidget(self.max_speech_duration_s)
+
+        self.speech_pad_ms_label = QtWidgets.QLabel()
+        self.speech_pad_ms_label.setText('speech_pad_ms' if config.defaulelang != 'zh' else '填充毫秒')
+        self.speech_pad_ms_label.setVisible(False)
+        self.speech_pad_ms = QtWidgets.QLineEdit()
+        self.speech_pad_ms.setPlaceholderText('200ms')
+        self.speech_pad_ms.setMaximumWidth(80)
+        self.speech_pad_ms.setVisible(False)
+        self.speech_pad_ms.setToolTip(
+            '语音填充时间，单位：毫秒。\n在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。\n默认值是 400 毫秒。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。\n反之，如果语音片段过长或包含过多的无效部分，可以减少这个值' if config.defaulelang == 'zh' else 'Speech padding (ms)')
+        self.speech_pad_ms.setText(str(config.settings.get('speech_pad_ms', 400)))
+        self.hfaster_layout.addWidget(self.speech_pad_ms_label)
+        self.hfaster_layout.addWidget(self.speech_pad_ms)
 
         self.gaoji_layout_inner = QtWidgets.QHBoxLayout()
         self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
@@ -309,11 +347,32 @@ class Ui_MainWindow(object):
         self.gaoji_layout_inner.addWidget(self.enable_cuda)
 
         self.gaoji_layout_inner.setAlignment(Qt.AlignVCenter)
-        self.verticalLayout_2.addLayout(self.gaoji_layout_inner)
-        self.verticalLayout_2.addLayout(self.gaoji_layout_inner2)
+        self.verticalLayout_3.addLayout(self.gaoji_layout_inner)
 
+        self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
+        self.gaoji_layout_inner2.setObjectName("gaoji_layout_inner2")
+        self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.addbackbtn.sizePolicy().hasHeightForWidth())
+        self.addbackbtn.setSizePolicy(sizePolicy)
+        self.addbackbtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.addbackbtn.setObjectName("addbackbtn")
+        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
 
-        self.verticalLayout_3.addLayout(self.verticalLayout_2)
+        self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.back_audio.sizePolicy().hasHeightForWidth())
+        self.back_audio.setSizePolicy(sizePolicy)
+        self.back_audio.setMinimumSize(QtCore.QSize(0, 30))
+        self.back_audio.setObjectName("back_audio")
+        self.gaoji_layout_inner2.addWidget(self.back_audio)
+        self.verticalLayout_3.addLayout(self.gaoji_layout_inner2)
+
+        # self.verticalLayout_3.addLayout(self.verticalLayout_2)
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
         self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent;color:#aaaaaa""")
         self.show_tips.setObjectName("show_tips")
@@ -401,7 +460,6 @@ class Ui_MainWindow(object):
         self.verticalLayoutWidget = QtWidgets.QWidget(self.splitter)
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
 
-
         self.subtitle_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
@@ -430,7 +488,6 @@ class Ui_MainWindow(object):
         #
         self.layout_sub_bottom.addWidget(self.set_line_role)
         self.subtitle_layout.addLayout(self.layout_sub_bottom)
-
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -570,7 +627,6 @@ class Ui_MainWindow(object):
         self.action_yuyinhecheng.setObjectName("action_yuyinhecheng")
         self.action_tiquzimu = QtGui.QAction(MainWindow)
         self.action_tiquzimu.setCheckable(True)
-
 
         self.action_tiquzimu.setObjectName("action_tiquzimu")
 
@@ -753,13 +809,14 @@ class Ui_MainWindow(object):
     def retranslateUi(self):
         self.btn_get_video.setToolTip(
             config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
-        self.btn_get_video.setText('选择要处理的视频' if config.defaulelang=='zh' else 'Select the video')
-        self.btn_save_dir.setToolTip( config.uilanglist.get("Select where to save the processed output resources"))
+        self.btn_get_video.setText('选择要处理的视频' if config.defaulelang == 'zh' else 'Select the video')
+        self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
         self.label_9.setText(config.uilanglist.get("Translate channel"))
-        self.translate_type.setToolTip('翻译字幕文字时使用的翻译渠道' if config.defaulelang=='zh' else 'Translation channels used in translating subtitle text')
-        self.label.setText('网络代理'  if config.defaulelang=='zh' else  'Proxy')
+        self.translate_type.setToolTip(
+            '翻译字幕文字时使用的翻译渠道' if config.defaulelang == 'zh' else 'Translation channels used in translating subtitle text')
+        self.label.setText('网络代理' if config.defaulelang == 'zh' else 'Proxy')
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
         self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))

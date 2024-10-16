@@ -175,6 +175,8 @@ class BaseRecogn(BaseCon):
             flags=r'[,?!，。？！]|(\. )'
         shound_rephase=False
         for segment in data:
+            if "words" not in segment or len(segment['words'])<1:
+                continue
             if segment['words'][0]['end']-segment['words'][0]['start']>float(config.settings.get('overall_maxsecs',12))*1000:
                 shound_rephase=True
                 break
@@ -185,6 +187,8 @@ class BaseRecogn(BaseCon):
         new_data = []
         if not config.settings['rephrase'] or not shound_rephase:
             for segment in data:
+                if "words" not in segment or len(segment['words']) < 1:
+                    continue
                 tmp = {
                     "line": len(new_data) + 1,
                     "start_time": segment['words'][0]['start'],
@@ -212,6 +216,8 @@ class BaseRecogn(BaseCon):
         start_flag_word_info=None
 
         for seg_i,segment in enumerate(data):
+            if "words" not in segment or len(segment['words'])<1:
+                continue
             current_len=len(segment["words"])
             for i, word_info in enumerate(segment["words"]):
                 word = word_info["word"]
@@ -223,8 +229,11 @@ class BaseRecogn(BaseCon):
                     next_start= segment["words"][i + 1]["start"]
                     next_word=segment["words"][i + 1]["word"]
                 elif i+1 == current_len and seg_i+1<data_len:
-                    next_start=data[seg_i+1]['words'][0]['start']
-                    next_word=data[seg_i+1]['words'][0]['word']
+                    try:
+                        next_start=data[seg_i+1]['words'][0]['start']
+                        next_word=data[seg_i+1]['words'][0]['word']
+                    except:
+                        pass
                 elif i+1 == current_len and seg_i+1>=data_len:
                     next_start=data[-1]['words'][-1]['end']
                     next_word=data[-1]['words'][-1]['word']

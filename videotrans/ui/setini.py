@@ -155,10 +155,14 @@ class Ui_setini(object):
             },
             "whisper": {
                 "vad": "是否在faster-whisper字幕整体识别模式时启用VAD",
-                "overall_threshold": "VAD阈值",
-                "overall_speech_pad_ms": "VAD pad值",
-                "overall_silence": "字幕断句最小静音片段ms，默认200ms ",
+                "threshold": "表示语音的概率阈值，VAD 会输出每个音频片段的语音概率。高于该值的概率被认为是语音（SPEECH），低于该值的概率被认为是静音或背景噪音。默认值为 0.5，这在大多数情况下是适用的。但针对不同的数据集，你可以调整这个值以更精确地区分语音和噪音。如果你发现误判太多，可以尝试将其调高到 0.6 或 0.7；如果语音片段丢失过多，则可以降低至 0.3 或 0.4。",
+                "min_speech_duration_ms": "最小语音持续时间，单位：毫秒。如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。默认值为 250 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，例如设置为 500 毫秒",
+                "min_silence_duration_ms": "最小静音持续时间，单位：毫秒。当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。默认值是 2000 毫秒（2 秒）。如果你希望更快速地检测和分割语音片段，可以减小这个值，比如设置为 500 毫秒；如果希望更宽松地分割，可以将其增大 ",
+                "max_speech_duration_s": "最大语音持续时间，单位：秒。单个语音片段的最大长度。如果语音片段超过这个时长，则会尝试在 100 毫秒以上的静音处进行分割。如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。默认是无穷大（不限制），如果需要处理较长的语音片段，可以保留默认值；但如果你希望控制片段长度，比如处理对话或分段输出，可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大",
+                "speech_pad_ms":"语音填充时间，单位：毫秒。在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。默认值是 400 毫秒。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。反之，如果语音片段过长或包含过多的无效部分，可以减少这个值",
+
                 "overall_maxsecs": "字幕最大时长秒数，超过则强制断句",
+
                 "voice_silence": "Google识别api静音片段/ms",
                 "interval_split": "均等分割模式下每个片段时长秒数",
                 "rephrase":"faster/openai-whisper识别后重新断句",
@@ -226,11 +230,18 @@ class Ui_setini(object):
             "force_edit_srt": "强制修改字幕时间轴",
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
-            "overall_silence": "最小静音片段/ms",
+
+            "threshold": "判断是否为语音的阈值",
+            "max_speech_duration_s": "默认是无穷大（不限制）如果希望控制片段长度，可以根据具体需求设定，比如 10 秒或 30 秒。 0是无穷大",
+            "min_speech_duration_ms": "最短语音片段的持续时间（毫秒）",
+            "min_silence_duration_ms": "最短静音片段的持续时间（毫秒），低于此值的静音将被忽略 ",
+            "speech_pad_ms": "在检测到的语音片段前后添加的缓冲时间（毫秒）",
+
+
             "overall_maxsecs": "字幕最大时长持续秒数/s",
             "rephrase":"faster/openai-whisper识别后重新断句",
-            "overall_threshold": "VAD阈值",
-            "overall_speech_pad_ms": "VAD pad 值",
+
+
             "voice_silence": "Google识别api静音片段/ms",
             "interval_split": "均等分割时片段时长/s",
             "trans_thread": "同时翻译的字幕数",
@@ -356,9 +367,12 @@ class Ui_setini(object):
                 },
                 "whisper": {
                     "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
-                    "overall_threshold": "VAD threshold",
-                    "overall_speech_pad_ms": "VAD pad value",
-                    "overall_silence": "Minimum silence segment in ms, default is 200ms",
+
+                "threshold": "Threshold for audio activity detection for determining whether a voice",
+                "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
+                "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
+                "max_speech_duration_s": "The default is infinity (unlimited), so if you need to process longer voice clips, you can keep the default value; however, if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds. ",
+                "speech_pad_ms":"Buffer time (in milliseconds) added before and after detected speech segments",
                     "overall_maxsecs": "Maximum duration of a sentence in seconds",
                     "voice_silence": "Silence segment for Google api/ms",
                     "interval_split": "Segment duration in seconds in equal split mode",
@@ -440,11 +454,14 @@ class Ui_setini(object):
                 "remove_white_ms": "Remove Silence Between Subtitles",
                 "force_edit_srt": "Force Edit Subtitle Timing",
                 "bgm_split_time": "bgm segment time/s",
-                "vad": "Enable VAD",
-                "overall_silence": "Minimum Silence Segment",
+                "max_speech_duration_s": "if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds.",
+                "threshold": "Threshold for determining whether a voice",
+                "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
+                "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
+                "speech_pad_ms":"Buffer time (in milliseconds) added before and after detected speech segments",
+
                 "overall_maxsecs": "Maximum Speech Duration",
-                "overall_threshold": "VAD Threshold",
-                "overall_speech_pad_ms": "VAD Speech Padding",
+
                 "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",
                 "trans_thread": "Number of Subtitles Translated Simultaneously",

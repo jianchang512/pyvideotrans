@@ -149,6 +149,14 @@ class WinAction(WinActionSub):
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type)
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
+        if recogn_type>0:
+            self.hide_show_element(self.main.hfaster_layout, False)
+
+    def click_reglabel(self):
+        if self.main.recogn_type.currentIndex()==0:
+            # 判断 self.main.threshold 这个元素是否可见 is_visible
+            self.hide_show_element(self.main.hfaster_layout, not self.main.threshold.isVisible())
+
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -310,7 +318,7 @@ class WinAction(WinActionSub):
         if tts.is_input_api(tts_type=self.main.tts_type.currentIndex()) is not True:
             return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
-        if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() != 'No':
+        if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No','',' ']:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
         return True
@@ -474,8 +482,21 @@ class WinAction(WinActionSub):
         self.delete_process()
         # 设为开始
         self.update_status('ing')
+
+
+
         config.settings = config.parse_init()
-        
+        if self.main.recogn_type.currentIndex()==recognition.FASTER_WHISPER:
+            config.settings["threshold"]=min(
+                0.9,
+                max(float(self.main.threshold.text().strip()),0.1)
+            )
+            config.settings["min_speech_duration_ms"]=int(self.main.min_speech_duration_ms.text())
+            config.settings["min_silence_duration_ms"]=int(self.main.min_silence_duration_ms.text())
+            config.settings["speech_pad_ms"]=int(self.main.speech_pad_ms.text())
+            config.settings["max_speech_duration_s"]=int(self.main.max_speech_duration_s.text())
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         QTimer.singleShot(50, self.create_btns)

@@ -68,7 +68,7 @@ class TransCreate(BaseTask):
         self.source_srt_list = []
         # 存放目标语言字幕
         self.target_srt_list = []
-        
+
         # 原始视频时长  在慢速处理合并后，时长更新至此
         self.video_time = 0
         # 存储视频信息
@@ -83,7 +83,7 @@ class TransCreate(BaseTask):
             "time":0
         }
         """
-        self.video_info=None
+        self.video_info = None
         # 如果输入编码和输出编码一致，只需copy视频流，无需编码，除非嵌入硬字幕
         self.is_copy_video = False
         # 需要输出的视频编码选择，使用 h.264或h.265 : int   264 | 265
@@ -123,11 +123,12 @@ class TransCreate(BaseTask):
         self.set_source_language(self.cfg['source_language'])
 
         # 如果配音角色不是No 并且不存在目标音频，则需要配音
-        if self.cfg['voice_role'] != 'No':
+        if self.cfg['voice_role'] and self.cfg['voice_role'] not in ['No', '', ' '] and self.cfg[
+            'target_language'] not in ['No', '-']:
             self.shoud_dubbing = True
 
         # 如果不是tiqu，则均需要合并
-        if self.cfg['app_mode'] != 'tiqu':
+        if self.cfg['app_mode'] != 'tiqu' and (self.shoud_dubbing or self.cfg['subtitle_type'] > 0):
             self.shoud_hebing = True
 
         # 最终需要输出的mp4视频
@@ -175,7 +176,9 @@ class TransCreate(BaseTask):
     # 原始语言代码
     def set_source_language(self, source_language_code=None):
         self.cfg['source_language'] = source_language_code
-        source_code = self.cfg['source_language'] if self.cfg['source_language'] in config.langlist else config.rev_langlist.get(self.cfg['source_language'], None)
+        source_code = self.cfg['source_language'] if self.cfg[
+                                                         'source_language'] in config.langlist else config.rev_langlist.get(
+            self.cfg['source_language'], None)
         if source_code:
             self.cfg['source_language_code'] = source_code
         # 检测字幕原始语言
@@ -184,7 +187,6 @@ class TransCreate(BaseTask):
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
         self.cfg['source_wav'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.m4a"
-
 
         if self.cfg['source_language_code'] != 'auto' and Path(
                 f"{self.cfg['target_dir']}/auto.m4a").exists():
@@ -195,9 +197,10 @@ class TransCreate(BaseTask):
             # 作为识别音频
             self.cfg['shibie_audio'] = f"{self.cfg['target_dir']}/shibie.wav"
 
-
         # 目标语言代码
-        target_code = self.cfg['target_language'] if self.cfg['target_language'] in config.langlist else config.rev_langlist.get(self.cfg['target_language'], None)
+        target_code = self.cfg['target_language'] if self.cfg[
+                                                         'target_language'] in config.langlist else config.rev_langlist.get(
+            self.cfg['target_language'], None)
         if target_code:
             self.cfg['target_language_code'] = target_code
 
@@ -208,7 +211,8 @@ class TransCreate(BaseTask):
             self.cfg['target_wav'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.m4a"
 
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
-        if self.cfg['target_language_code'] and self.cfg['target_language_code'] != self.cfg['source_language_code'] and not Path(self.cfg['target_sub']).exists():
+        if self.cfg['target_language_code'] and self.cfg['target_language_code'] != self.cfg[
+            'source_language_code'] and not Path(self.cfg['target_sub']).exists():
             self.shoud_trans = True
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
@@ -220,7 +224,6 @@ class TransCreate(BaseTask):
         self._unlink_size0(self.cfg['target_sub'])
         self._unlink_size0(self.cfg['target_wav'])
         self._unlink_size0(self.cfg['shibie_audio'])
-
 
     # 预处理，分离音视频、分离人声等
     # 修改不规则的名字
@@ -283,8 +286,8 @@ class TransCreate(BaseTask):
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise Exception(
                     self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                                       self.cfg[
-                                                                                                           'source_language']))
+                                                                                             self.cfg[
+                                                                                                 'source_language']))
             self._save_srt_target(raw_subtitles, self.cfg['source_sub'])
             self._recogn_succeed()
 
@@ -433,6 +436,9 @@ class TransCreate(BaseTask):
     # 将 视频、音频、字幕合成
     def assembling(self) -> None:
         if self._exit():
+            return
+        if self.cfg['app_mode'] == 'tiqu':
+            self.precent = 100
             return
         if not self.shoud_hebing:
             self.precent = 100
@@ -738,7 +744,7 @@ class TransCreate(BaseTask):
         # 硬字幕时单行字符数
         maxlen = int(
             config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                             "ko"] else
+                                                                                   "ko"] else
             config.settings['other_len'])
         target_sub_list = tools.get_subtitle_from_srt(self.cfg['target_sub'])
 
@@ -746,7 +752,7 @@ class TransCreate(BaseTask):
         if self.cfg['subtitle_type'] in [3, 4]:
             maxlen_source = int(
                 config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                                 "ko"] else
+                                                                                       "ko"] else
                 config.settings['other_len'])
             source_sub_list = tools.get_subtitle_from_srt(self.cfg['source_sub'])
             source_length = len(source_sub_list)
@@ -756,7 +762,7 @@ class TransCreate(BaseTask):
                 # 硬字幕换行，软字幕无需处理
                 tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg[
                                                                                                  'subtitle_type'] == 3 else \
-                it['text'].strip()
+                    it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
                     srt_string += "\n" + (

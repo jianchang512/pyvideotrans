@@ -47,7 +47,7 @@ class FishTTS(BaseTTS):
                 data['reference_audio'] = self._audio_to_base64(f'{config.ROOT_DIR}/{data["reference_audio"]}')
             elif os.path.exists(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}'):
                 data['reference_audio'] = self._audio_to_base64(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}')
-
+            config.logger.info(f'fishTTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:
                 self.error = response.json()
