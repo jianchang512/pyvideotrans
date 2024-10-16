@@ -258,17 +258,23 @@ def parse_init():
         "remove_white_ms": 0,
         "force_edit_srt": True,
         "vad": True,
-        "overall_silence": 200,
-        "overall_threshold": 0.5,
-        "overall_speech_pad_ms": 100,
+
+        "threshold":0.5,
+        "min_speech_duration_ms":250,
+        "min_silence_duration_ms":2000,
+        "max_speech_duration_s":0,
+        "speech_pad_ms":400,
+
+
         "overall_maxsecs":12000,
-        "rephrase":True,
+
+        "rephrase":False,
         "voice_silence": 200,
         "interval_split": 10,
         "bgm_split_time": 300,
         "trans_thread": 20,
         "retries": 2,
-        "translation_wait": 0.1,
+        "translation_wait": 1,
         "dubbing_thread": 5,
         "countdown_sec": 120,
         "backaudio_volume": 0.8,
@@ -331,6 +337,8 @@ def parse_init():
     else:
         _settings = {}
         for key, val in temp_json.items():
+            if key not in default:
+                continue
             value = str(val).strip()
             if re.match(r'^\d+$', value):
                 _settings[key] = int(value)

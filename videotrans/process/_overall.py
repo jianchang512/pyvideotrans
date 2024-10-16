@@ -66,17 +66,16 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
         prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
         segments, info = model.transcribe(
             audio_file,
-            beam_size=settings['beam_size'],
-            best_of=settings['best_of'],
-            condition_on_previous_text=settings['condition_on_previous_text'],
-            temperature=0.0 if int(float(settings.get('temperature',0))) == 0 else [0.0, 0.2, 0.4, 0.6,
-                                                                       0.8, 1.0],
+            beam_size=int(settings['beam_size']),
+            best_of=int(settings['best_of']),
+            condition_on_previous_text=bool(settings['condition_on_previous_text']),
+            temperature=0.0 if int(float(settings.get('temperature',0))) == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
             vad_filter=bool(settings['vad']),
             vad_parameters=dict(
-                min_silence_duration_ms=settings['overall_silence'],
-                max_speech_duration_s=float('inf'),
-                threshold=settings['overall_threshold'],
-                speech_pad_ms=settings['overall_speech_pad_ms']
+                min_silence_duration_ms=int(settings['min_silence_duration_ms']),
+                max_speech_duration_s= int(settings['max_speech_duration_s']) if int(settings['max_speech_duration_s'])>0 else float('inf'),
+                threshold=int(settings['threshold']),
+                speech_pad_ms=int(settings['speech_pad_ms'])
             ),
             word_timestamps=True,
             language=detect_language[:2] if detect_language!='auto' else None,

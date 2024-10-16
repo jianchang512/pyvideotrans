@@ -86,7 +86,7 @@ class FasterAll(BaseRecogn):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
                         self.inst.set_source_language(detect['langcode'])
-                    self.raws=self.re_segment_sentences(list(raws))
+                    self.raws=list(raws)
                 try:
                     if process.is_alive():
                         process.terminate()
@@ -102,4 +102,6 @@ class FasterAll(BaseRecogn):
 
         if self.error:
             raise Exception(self.error)
-        return self.raws
+        if len(self.raws)<1:
+            raise Exception('未识别到有效文字' if config.defaulelang=='zh' else 'No speech detected')
+        return self.re_segment_sentences(self.raws)

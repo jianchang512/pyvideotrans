@@ -431,7 +431,7 @@ class WinActionSub:
     def set_mode(self):
         subtitle_type=self.main.subtitle_type.currentIndex()
         voice_role=self.main.voice_role.currentText()
-        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role == 'No'):
+        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No',''," ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
             self.cfg['is_separate'] = False
@@ -522,7 +522,7 @@ class WinActionSub:
         pitch = int(self.main.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-        voice_file = f"{voice_dir}/{self.cfg['tts_type']}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        voice_file = f"{voice_dir}/{self.main.tts_type.currentIndex()}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
 
         obj = {
             "text": text,

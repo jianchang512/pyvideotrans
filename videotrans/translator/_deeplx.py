@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import re
 from typing import Union, List
 
@@ -44,6 +45,8 @@ class DeepLX(BaseTrans):
         try:
             result = response.json()
             result = tools.cleartext(result['data'])
+        except json.JSONDecoder:
+            raise Exception(f'无有效返回:{response.text=}')
         except Exception as e:
             raise Exception(f'无有效返回:{response.text=}')
         return result
