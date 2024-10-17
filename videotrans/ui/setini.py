@@ -69,20 +69,14 @@ class Ui_setini(object):
 
 
     def setupUi(self, setini):
+        self.centralwidget = QtWidgets.QWidget(setini)
+        self.centralwidget.setObjectName("centralwidget")
         self.has_done = False
         setini.setObjectName("setini")
-        setini.setWindowModality(QtCore.Qt.NonModal)
-        setini.resize(900, 670)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(setini.sizePolicy().hasHeightForWidth())
-        setini.setSizePolicy(sizePolicy)
 
-        self.verticalLayoutWidget = QtWidgets.QWidget(setini)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 20, 860, 600))
-        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
-        self.layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        setini.setMinimumSize(900, 670)
+
+        self.layout = QtWidgets.QVBoxLayout(setini)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setObjectName("layout")
 
@@ -231,11 +225,11 @@ class Ui_setini(object):
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
 
-            "threshold": "判断是否为语音的阈值",
-            "max_speech_duration_s": "默认是无穷大（不限制）如果希望控制片段长度，可以根据具体需求设定，比如 10 秒或 30 秒。 0是无穷大",
-            "min_speech_duration_ms": "最短语音片段的持续时间（毫秒）",
-            "min_silence_duration_ms": "最短静音片段的持续时间（毫秒），低于此值的静音将被忽略 ",
-            "speech_pad_ms": "在检测到的语音片段前后添加的缓冲时间（毫秒）",
+            "threshold": "语音阈值",
+            "max_speech_duration_s": "最大语音持续时间/秒",
+            "min_speech_duration_ms": "最短语音片段的持续时间/毫秒",
+            "min_silence_duration_ms": "最短静音片段的持续时间/毫秒 ",
+            "speech_pad_ms": "语音填充时间/毫秒",
 
 
             "overall_maxsecs": "字幕最大时长持续秒数/s",
@@ -454,11 +448,12 @@ class Ui_setini(object):
                 "remove_white_ms": "Remove Silence Between Subtitles",
                 "force_edit_srt": "Force Edit Subtitle Timing",
                 "bgm_split_time": "bgm segment time/s",
-                "max_speech_duration_s": "if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds.",
+                
+                "max_speech_duration_s": "max speech duration sec.",
                 "threshold": "Threshold for determining whether a voice",
-                "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
-                "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
-                "speech_pad_ms":"Buffer time (in milliseconds) added before and after detected speech segments",
+                "min_speech_duration_ms": "Duration of the shortest speech (milliseconds)",
+                "min_silence_duration_ms": "Duration (in milliseconds)  ",
+                "speech_pad_ms":"Buffer time",
 
                 "overall_maxsecs": "Maximum Speech Duration",
 
@@ -541,7 +536,7 @@ class Ui_setini(object):
                 tmp = QtWidgets.QHBoxLayout()
                 tmp_0 = QtWidgets.QPushButton()
                 tmp_0.setStyleSheet("""background-color:transparent;text-align:right""")
-                tmp_0.setFixedWidth(250)
+                tmp_0.setFixedWidth(350)
                 tmp_0.setText(self.titles[key])
                 tmp_0.setObjectName(f'btn_{key}')
                 tmp_0.setToolTip(helptext)
@@ -643,9 +638,10 @@ class Ui_setini(object):
         self.layout.addWidget(scroll_area)
 
         self.set_ok = QtWidgets.QPushButton(setini)
-        self.set_ok.setGeometry(QtCore.QRect(325, 620, 150, 35))
+
         self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ok.setObjectName("set_ok")
+        self.layout.addWidget(self.set_ok)
 
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)

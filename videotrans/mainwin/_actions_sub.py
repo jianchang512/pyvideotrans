@@ -80,7 +80,7 @@ class WinActionSub:
         self.main.proxy.hide()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
+        self.main.tts_type.setCurrentIndex(0)
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.show()
@@ -96,6 +96,7 @@ class WinActionSub:
         self.main.split_type.setCurrentIndex(0)
         self.main.model_name.setCurrentIndex(0)
         self.main.reglabel.hide()
+        self.main.recogn_type.setCurrentIndex(0)
         self.main.recogn_type.hide()
         self.main.model_name_help.hide()
         self.main.model_name.hide()
@@ -488,10 +489,18 @@ class WinActionSub:
     # 0=整体识别模型
     # 1=均等分割模式
     def check_split_type(self, index):
-        if index == 0:
-            self.cfg['split_type'] = 'all'
+        index = self.main.split_type.currentIndex()
+        self.cfg['split_type'] = ['all','avg'][index]
+        recogn_type = self.main.recogn_type.currentIndex()
+        # 如果是均等分割，则阈值相关隐藏
+        if recogn_type > 0:
+            tools.hide_show_element(self.main.hfaster_layout, False)
+            tools.hide_show_element(self.main.equal_split_layout, False)
+        elif index == 1:
+            tools.hide_show_element(self.main.equal_split_layout, True)
+            tools.hide_show_element(self.main.hfaster_layout, False)
         else:
-            self.cfg['split_type'] = 'avg'
+            tools.hide_show_element(self.main.equal_split_layout, False)
 
     # 试听配音
     def listen_voice_fun(self):

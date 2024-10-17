@@ -29,17 +29,16 @@ class Worker(QThread):
         trk = TransCreate(copy.deepcopy(self.cfg), self.obj)
         config.task_countdown=0
         trk.prepare()
+        self._post(text=trk.cfg['source_sub'], type='edit_subtitle_source')
         trk.recogn()
         if trk.shoud_trans:
             time.sleep(1)
             countdown_sec = int(float(config.settings.get('countdown_sec',1)))
             config.task_countdown = countdown_sec
             # 设置secwin中wait_subtitle为原始语言字幕文件
-            self._post(text=trk.cfg['source_sub'], type='set_source_sub')
+            # self._post(text=trk.cfg['source_sub'], type='set_source_sub')
             # 等待编辑原字幕后翻译,允许修改字幕
-            self._post(text=config.transobj["xiugaiyuanyuyan"], type='edit_subtitle_source')
-            self._post(text=Path(trk.cfg['source_sub']).read_text(encoding='utf-8'),
-                       type='replace_subtitle')
+            self._post(text=Path(trk.cfg['source_sub']).read_text(encoding='utf-8'),type='replace_subtitle')
             self._post(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs')
             while config.task_countdown > 0:
                 if self._exit():
@@ -55,13 +54,13 @@ class Worker(QThread):
             while config.task_countdown>0:
                 time.sleep(1)
                 break
+            self._post(text=trk.cfg['target_sub'], type="edit_subtitle_target")
             trk.trans()
 
         if trk.shoud_dubbing:
             countdown_sec = int(float(config.settings.get('countdown_sec',1)))
             config.task_countdown = countdown_sec
-            self._post(text=trk.cfg['target_sub'], type='set_target_sub')
-            self._post(text=config.transobj["xiugaipeiyinzimu"], type="edit_subtitle_target")
+            # self._post(text=trk.cfg['target_sub'], type='set_target_sub')
             self._post(text=Path(trk.cfg['target_sub']).read_text(encoding='utf-8'),
                        type='replace_subtitle')
             self._post(
