@@ -188,7 +188,7 @@ class Ui_MainWindow(object):
         self.reglabel.setText('语音识别\u2193' if config.defaulelang == 'zh' else 'Speech Recognition')
         self.reglabel.setCursor(Qt.PointingHandCursor)
         self.reglabel.setToolTip(
-            '当faster-whisper时，可点击设置详细识别参数' if config.defaulelang == 'zh' else 'Click to set detailed recognition parameters when using faster-whisper')
+            '当选择faster-whisper本地并且整体识别时，可点击设置详细识别参数' if config.defaulelang == 'zh' else 'Click to set detailed recognition parameters when using faster-whisper')
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
         self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
         self.recogn_type.setObjectName("label_5")
@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
 
         self.model_name_help = QtWidgets.QPushButton(self.layoutWidget)
         self.model_name_help.setStyleSheet("""background-color:transparent""")
-        self.model_name_help.setText('!选择模型' if config.defaulelang == 'zh' else '!Model')
+        self.model_name_help.setText('选择模型\u2193' if config.defaulelang == 'zh' else 'Model\u2193')
         self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang == 'zh' else 'Click for model description')
         self.model_name_help.setMaximumSize(QtCore.QSize(60, 20))
 
@@ -211,15 +211,31 @@ class Ui_MainWindow(object):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.split_type.setSizePolicy(sizePolicy)
 
+        self.equal_split_time = QtWidgets.QLineEdit()
+        self.equal_split_time.setToolTip(
+            '每段分割时长/单位秒' if config.defaulelang == 'zh' else 'Duration of each segment/second')
+        self.equal_split_time.setText(str(config.settings.get('interval_split', 10)))
+        self.equal_split_time_label = QtWidgets.QLabel()
+        self.equal_split_time_label.setText('秒' if config.defaulelang == 'zh' else 'Sec')
+        self.equal_split_time.setVisible(False)
+        self.equal_split_time_label.setVisible(False)
+
+        self.equal_split_layout = QtWidgets.QHBoxLayout()
+        self.equal_split_layout.addWidget(self.equal_split_time)
+        self.equal_split_layout.addWidget(self.equal_split_time_label)
+
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         self.horizontalLayout_4.addWidget(self.split_type)
+        self.horizontalLayout_4.addLayout(self.equal_split_layout)
 
-        self.label_8 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_8 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_8.setObjectName("label_8")
-        self.horizontalLayout_4.addWidget(self.label_8)
+        self.label_8.setToolTip('点击设置硬字幕行字符数' if config.defaulelang=='zh' else 'Click to set the number of characters per line for hard subtitles')
+        self.label_8.setStyleSheet("""background-color:transparent""")
+        self.label_8.setCursor(Qt.PointingHandCursor)
 
         self.subtitle_type = QtWidgets.QComboBox(self.layoutWidget)
         self.subtitle_type.setMinimumSize(QtCore.QSize(0, 30))
@@ -227,6 +243,7 @@ class Ui_MainWindow(object):
 
         self.subtitle_type.setSizePolicy(sizePolicy)
         self.subtitle_type.setObjectName("subtitle_type")
+        self.horizontalLayout_4.addWidget(self.label_8)
         self.horizontalLayout_4.addWidget(self.subtitle_type)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
@@ -260,7 +277,7 @@ class Ui_MainWindow(object):
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
         self.hfaster_layout.addStretch()
-        self.verticalLayout_3.addLayout(self.hfaster_layout)
+
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
         self.min_silence_duration_ms_label.setText(
@@ -301,6 +318,8 @@ class Ui_MainWindow(object):
         self.speech_pad_ms.setText(str(config.settings.get('speech_pad_ms', 400)))
         self.hfaster_layout.addWidget(self.speech_pad_ms_label)
         self.hfaster_layout.addWidget(self.speech_pad_ms)
+
+        self.verticalLayout_3.addLayout(self.hfaster_layout)
 
         self.gaoji_layout_inner = QtWidgets.QHBoxLayout()
         self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
@@ -468,7 +487,17 @@ class Ui_MainWindow(object):
         self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.subtitle_area.setPlaceholderText(
             f"{config.transobj['zimubianjitishi']}\n\n{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
-        self.subtitle_layout.addWidget(self.subtitle_area)
+
+        self.subtitle_hbox_layout=QtWidgets.QHBoxLayout()
+        self.subtitle_hbox_layout.addWidget(self.subtitle_area,1)
+
+        self.target_subtitle_area=QtWidgets.QPlainTextEdit()
+        self.target_subtitle_area.setPlaceholderText('翻译后的字幕' if config.defaulelang=='zh' else 'Translated Subtitle')
+        self.target_subtitle_area.setVisible(False)
+        self.subtitle_hbox_layout.addWidget(self.target_subtitle_area,1)
+
+
+        self.subtitle_layout.addLayout(self.subtitle_hbox_layout)
 
         self.layout_sub_bottom = QtWidgets.QHBoxLayout()
         self.layout_sub_bottom.setObjectName("layout_sub_bottom")
@@ -832,7 +861,7 @@ class Ui_MainWindow(object):
             "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
         self.split_type.setToolTip(config.uilanglist.get(
             "Overall recognition is suitable for videos with or without background music and noticeable silence"))
-        self.label_8.setText(config.uilanglist.get("Embed subtitles"))
+        self.label_8.setText('嵌入字幕\u2193' if config.defaulelang=='zh' else "Embed subtitles\u2193")
         self.subtitle_type.setToolTip(config.uilanglist.get("shuoming02"))
 
         self.label_6.setText(config.uilanglist.get("Dubbing speed"))

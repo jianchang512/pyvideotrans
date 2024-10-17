@@ -177,7 +177,7 @@ class AI302TTSForm(QDialog, Ui_ai302ttsform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class SetINIForm(QDialog, Ui_setini):  # <===
+class SetINIForm(QtWidgets.QWidget, Ui_setini):  # <===
     def __init__(self, parent=None):
         super(SetINIForm, self).__init__(parent)
         self.setupUi(self)

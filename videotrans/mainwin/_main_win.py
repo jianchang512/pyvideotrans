@@ -224,6 +224,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
         self.reglabel.clicked.connect(self.win_action.click_reglabel)
+        self.label_8.clicked.connect(self.win_action.click_subtitle)
+
 
 
     def start_subform(self):

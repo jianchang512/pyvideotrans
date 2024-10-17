@@ -153,6 +153,13 @@ def openwin():
         winobj.shibie_startbtn.setText(config.transobj["running"])
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
+        if recogn_type==recognition.FASTER_WHISPER and split_type_index==1:
+            try:
+                config.settings['interval_split']=int(winobj.equal_split_time.text().strip())
+            except:
+                config.settings['interval_split']=10
+            with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
 
         winobj.shibie_opendir.setDisabled(False)
         try:
@@ -204,17 +211,22 @@ def openwin():
                     return False
         return True
 
-    # 设定模型类型
+    # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
             QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return False
+        # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type > 0:
             winobj.shibie_split_type.setDisabled(True)
+            tools.hide_show_element(winobj.equal_split_layout, False)
+            tools.hide_show_element(winobj.hfaster_layout, False)
         else:
             winobj.shibie_split_type.setDisabled(False)
-        
+            if winobj.shibie_split_type.currentIndex()==1:
+                tools.hide_show_element(winobj.equal_split_layout, True)
+
         
         if recogn_type > 1:
             winobj.shibie_model.setDisabled(True)
@@ -242,6 +254,28 @@ def openwin():
         if winobj.error_msg:
             QMessageBox.critical(winobj, config.transobj['anerror'], winobj.error_msg)
 
+    # 点击语音识别，显示隐藏faster时的详情设置
+    def click_reglabel(self):
+        if winobj.shibie_recogn_type.currentIndex()==0 and winobj.shibie_split_type.currentIndex()==0:
+            # 判断 self.main.threshold 这个元素是否可见 is_visible
+            tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
+        else:
+            tools.hide_show_element(winobj.hfaster_layout, False)
+
+    # 整体识别和均等分割变化
+    def shibie_split_type_change():
+        split_type_index = winobj.shibie_split_type.currentIndex()
+        recogn_type=winobj.shibie_recogn_type.currentIndex()
+        # 如果是均等分割，则阈值相关隐藏
+        if recogn_type>0:
+            tools.hide_show_element(winobj.hfaster_layout, False)
+            tools.hide_show_element(winobj.equal_split_layout, False)
+        elif split_type_index==1:
+            tools.hide_show_element(winobj.equal_split_layout, True)
+            tools.hide_show_element(winobj.hfaster_layout, False)
+        else:
+            tools.hide_show_element(winobj.equal_split_layout, False)
+
 
     from videotrans.component import Recognform
     try:
@@ -265,6 +299,7 @@ def openwin():
 
         winobj.shibie_language.addItems(config.langnamelist)
         winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
+        winobj.shibie_label.clicked.connect(click_reglabel)
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
@@ -278,6 +313,7 @@ def openwin():
         winobj.shibie_recogn_type.currentIndexChanged.connect(recogn_type_change)
         winobj.shibie_model.currentIndexChanged.connect(recogn_type_change)
         winobj.loglabel.clicked.connect(show_detail_error)
+        winobj.shibie_split_type.currentIndexChanged.connect(shibie_split_type_change)
 
         winobj.show()
     except Exception as e:

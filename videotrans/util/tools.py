@@ -369,6 +369,19 @@ def runffprobe(cmd):
         raise
 
 
+def hide_show_element(wrap_layout, show_status):
+    def hide_recursive(layout, show_status):
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item.widget():
+                if not show_status:
+                    item.widget().hide()
+                else:
+                    item.widget().show()
+            elif item.layout():
+                hide_recursive(item.layout(), show_status)
+    hide_recursive(wrap_layout, show_status)
+
 # 获取视频信息
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     mp4_file = Path(mp4_file).as_posix()
