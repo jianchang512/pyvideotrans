@@ -75,6 +75,11 @@ class StartWindow(QtWidgets.QWidget):
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
+    try:
+        QtWidgets.QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    except:
+        pass
+
     app = QtWidgets.QApplication(sys.argv)
     try:
         startwin = StartWindow()
