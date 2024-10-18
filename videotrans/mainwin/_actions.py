@@ -459,6 +459,8 @@ class WinAction(WinActionSub):
         if self.main.recogn_type.currentIndex()>1 and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
             QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return
+        if self.cfg['target_language'] =='-' and self.cfg['subtitle_type']>0:
+            return QMessageBox.critical(self.main, config.transobj['anerror'], '必须选择目标语言才可嵌入字幕' if config.defaulelang=='zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
@@ -506,8 +508,8 @@ class WinAction(WinActionSub):
             config.settings['other_len']=other_value
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
-            print(f"CJK 字幕一行字符数: {cjk_value}")
-            print(f"其他语言字幕一行字符数: {other_value}")
+            #print(f"CJK 字幕一行字符数: {cjk_value}")
+            #print(f"其他语言字幕一行字符数: {other_value}")
 
     def create_btns(self):
 
@@ -543,12 +545,13 @@ class WinAction(WinActionSub):
             )
             task.uito.connect(self.update_data)
             task.start()
-            w=self.main.size().width()+150
-            h=self.main.size().height()
-            self.main.resize(w,h)
+            if self.cfg['target_language'] !='-' and self.cfg['target_language'] != self.cfg['source_language']:
+                w=self.main.size().width()+150
+                h=self.main.size().height()
+                self.main.resize(w,h)
 
-            self.main.target_subtitle_area.setMinimumWidth(200)
-            self.main.target_subtitle_area.setVisible(True)
+                self.main.target_subtitle_area.setMinimumWidth(200)
+                self.main.target_subtitle_area.setVisible(True)
             return
         # 多个字幕
         self.main.target_subtitle_area.clear()
@@ -695,16 +698,16 @@ class WinAction(WinActionSub):
             if self.is_batch or ( not self.is_batch and self.edit_subtitle_type=='edit_subtitle_source'):
                 self.main.subtitle_area.moveCursor(QTextCursor.End)
                 self.main.subtitle_area.insertPlainText(d['text'])
-                print(f'插入1 {self.edit_subtitle_type=} {d["text"]=}')
+                #print(f'插入1 {self.edit_subtitle_type=} {d["text"]=}')
             elif not self.is_batch and self.edit_subtitle_type=='edit_subtitle_target':
                 self.main.target_subtitle_area.moveCursor(QTextCursor.End)
                 self.main.target_subtitle_area.insertPlainText(d['text'])
-                print(f'插入2 {self.edit_subtitle_type=} {d["text"]=}')
+                #print(f'插入2 {self.edit_subtitle_type=} {d["text"]=}')
 
         elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
             self.wait_subtitle = d['text']
             self.edit_subtitle_type = d['type']
-            print(f'{d=}')
+            #print(f'{d=}')
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             if d['type']=='edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)

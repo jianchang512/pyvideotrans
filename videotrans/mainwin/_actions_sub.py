@@ -504,6 +504,7 @@ class WinActionSub:
 
     # 试听配音
     def listen_voice_fun(self):
+        import tempfile
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
             return QMessageBox.critical(self.main, config.transobj['anerror'],
@@ -512,11 +513,7 @@ class WinActionSub:
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])
-        voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
-        if not voice_dir or not Path(voice_dir).exists():
-            voice_dir = config.TEMP_DIR + "/voice_tmp"
-        else:
-            voice_dir = Path(voice_dir + "/pyvideotrans").as_posix()
+        voice_dir = tempfile.gettempdir()+'/pyvideotrans'
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
