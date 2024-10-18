@@ -554,10 +554,12 @@ def conver_to_16k(audio, target_audio):
 
 #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
 def backandvocal(backwav, peiyinm4a):
+    import tempfile
     backwav = Path(backwav).as_posix()
     peiyinm4a = Path(peiyinm4a).as_posix()
-    tmpwav = Path((os.environ["TEMP"] or os.environ['temp']) + f'/{time.time()}-1.m4a').as_posix()
-    tmpm4a = Path((os.environ["TEMP"] or os.environ['temp']) + f'/{time.time()}.m4a').as_posix()
+    tmpdir=tempfile.gettempdir()
+    tmpwav = Path(tmpdir + f'/{time.time()}-1.m4a').as_posix()
+    tmpm4a = Path(tmpdir + f'/{time.time()}.m4a').as_posix()
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
