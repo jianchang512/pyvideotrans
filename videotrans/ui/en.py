@@ -75,13 +75,16 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
 
-        self.label_9 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_9 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_9.setMinimumSize(QtCore.QSize(0, 30))
         self.label_9.setObjectName("label_9")
+        self.label_9.setStyleSheet("""background-color:transparent""")
+        self.label_9.setToolTip('点击设置同时翻译的字幕条数' if config.defaulelang=='zh' else 'Click to set the number of subtitles to be translated at the same time')
 
         self.translate_type = QtWidgets.QComboBox(self.layoutWidget)
         self.translate_type.setMinimumSize(QtCore.QSize(160, 30))
         self.translate_type.setObjectName("translate_type")
+        self.translate_type.setToolTip('选择用来翻译文字的渠道' if config.defaulelang=='zh' else 'Select the channel used to translate text')
 
         self.horizontalLayout_5.addWidget(self.label_9)
         self.horizontalLayout_5.addWidget(self.translate_type)
@@ -128,12 +131,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.tts_text = QtWidgets.QLabel(self.layoutWidget)
+        self.tts_text = QtWidgets.QPushButton(self.layoutWidget)
         self.tts_text.setObjectName("tts_text")
+        self.tts_text.setStyleSheet("""background-color:transparent""")
+        self.tts_text.setToolTip('点击设置配音并发线程数' if config.defaulelang=='zh' else 'Click to set the number of threads to be used for dubbing')
         self.tts_type = QtWidgets.QComboBox(self.layoutWidget)
         self.tts_type.setMinimumSize(QtCore.QSize(160, 30))
         self.tts_type.setObjectName("tts_type")
         self.tts_type.addItems(TTS_NAME_LIST)
+        self.tts_type.setToolTip('选择用来配音的渠道' if config.defaulelang=='zh' else 'Select the channel used to dub')
         self.horizontalLayout.addWidget(self.tts_text)
         self.horizontalLayout.addWidget(self.tts_type)
 
@@ -842,7 +848,8 @@ class Ui_MainWindow(object):
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
-        self.label_9.setText(config.uilanglist.get("Translate channel"))
+        self.label_9.setText(config.uilanglist.get("Translate channel")+"\u2193")
+        self.label_9.setCursor(Qt.PointingHandCursor)
         self.translate_type.setToolTip(
             '翻译字幕文字时使用的翻译渠道' if config.defaulelang == 'zh' else 'Translation channels used in translating subtitle text')
         self.label.setText('网络代理' if config.defaulelang == 'zh' else 'Proxy')
@@ -853,7 +860,8 @@ class Ui_MainWindow(object):
         self.source_language.setToolTip(config.uilanglist.get("The language used for the original video pronunciation"))
         self.label_3.setText(config.uilanglist.get("Target lang"))
         self.target_language.setToolTip(config.uilanglist.get("What language do you want to translate into"))
-        self.tts_text.setText("配音渠道" if config.defaulelang == 'zh' else "Dubbing channel")
+        self.tts_text.setText("配音渠道\u2193" if config.defaulelang == 'zh' else "Dubbing channel\u2193")
+        self.tts_text.setCursor(Qt.PointingHandCursor)
         self.label_4.setText(config.uilanglist.get("Dubbing role"))
         self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
 

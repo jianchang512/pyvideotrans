@@ -456,6 +456,7 @@ class Ui_setini(object):
                 "speech_pad_ms":"Buffer time",
 
                 "overall_maxsecs": "Maximum Speech Duration",
+                "vad": "Enable VAD",
 
                 "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",
