@@ -225,6 +225,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
         self.reglabel.clicked.connect(self.win_action.click_reglabel)
         self.label_8.clicked.connect(self.win_action.click_subtitle)
+        self.label_9.clicked.connect(self.win_action.click_translate_type)
+        self.tts_text.clicked.connect(self.win_action.click_tts_type)
 
 
 

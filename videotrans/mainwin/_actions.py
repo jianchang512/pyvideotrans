@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, recognition,tts
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
+from videotrans.component.set_threads import SetThreadTransDubb
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task._mult_video import MultVideo
@@ -508,8 +509,20 @@ class WinAction(WinActionSub):
             config.settings['other_len']=other_value
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
-            #print(f"CJK 字幕一行字符数: {cjk_value}")
-            #print(f"其他语言字幕一行字符数: {other_value}")
+    def click_translate_type(self):
+        dialog = SetThreadTransDubb(name='trans_thread',nums=config.settings.get('trans_thread',5))
+        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+            num = dialog.get_values()
+            config.settings['trans_thread']=num
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
+    def click_tts_type(self):
+        dialog = SetThreadTransDubb(name='dubbing_thread',nums=config.settings.get('dubbing_thread',5))
+        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+            num = dialog.get_values()
+            config.settings['dubbing_thread']=num
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def create_btns(self):
 

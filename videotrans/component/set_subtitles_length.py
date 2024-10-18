@@ -9,6 +9,8 @@ class SubtitleSettingsDialog(QDialog):
         super().__init__(parent)
         self.cjk_len=cjk_len
         self.other_len=other_len
+        self.resize(300, 200)
+
 
         # 设置对话框标题
         self.setWindowTitle("设置硬字幕行字符数" if config.defaulelang=='zh' else "Set Subtitle Length")
@@ -26,6 +28,7 @@ class SubtitleSettingsDialog(QDialog):
         # 创建按钮
         self.ok_button = QPushButton("保存" if config.defaulelang=='zh' else "Save")
         self.ok_button.clicked.connect(self.accept)  # 点击OK按钮后关闭对话框
+        self.ok_button.setFixedHeight(35)
 
         # 布局
         layout = QVBoxLayout()
