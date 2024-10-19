@@ -35,11 +35,14 @@ class WinActionSub:
         self.update_btn.setText(text)
     # 关于页面
     def about(self):
+        if config.INFO_WIN['win']:
+            config.INFO_WIN['win'].show()
+            return
         def open():
             from videotrans.component import InfoForm
-            self.main.infofrom = InfoForm()
-            self.main.infofrom.show()
-        QTimer.singleShot(100,open)
+            config.INFO_WIN['win'] = InfoForm()
+            config.INFO_WIN['win'].show()
+        QTimer.singleShot(50,open)
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):

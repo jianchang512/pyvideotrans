@@ -64,3 +64,4 @@ class ElevenLabs(BaseTTS):
                     time.sleep(60)
             finally:
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+                time.sleep(self.wait_sec)

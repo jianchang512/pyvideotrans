@@ -332,6 +332,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if w and hasattr(w, 'close'):
                     w.hide()
                     w.close()
+            if config.INFO_WIN['win']:
+                config.INFO_WIN['win'].close()
         except Exception:
             pass
         time.sleep(2)

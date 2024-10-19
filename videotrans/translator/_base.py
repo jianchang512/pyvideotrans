@@ -39,7 +39,7 @@ class BaseTrans(BaseCon):
         # 出错重试次数
         self.retry = int(config.settings.get('retries', 2))
         # 每次翻译请求完成后等待秒数
-        self.wait_sec = float(config.settings.get('translation_wait', 0.1))
+        self.wait_sec = float(config.settings.get('translation_wait', 0))
         # 当前已重试次数
         self.iter_num = 0
         # 原始需翻译的字符串或字幕list

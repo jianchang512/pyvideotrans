@@ -45,6 +45,7 @@ class BaseTTS(BaseCon):
         self.queue_tts = copy.deepcopy(queue_tts)
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
+        self.wait_sec=float(config.settings.get('dubbing_wait', 0))
 
         self.dub_nums = int(float(config.settings.get('dubbing_thread', 1))) if self.len > 1 else 1
         self.error = ''
@@ -150,10 +151,15 @@ class BaseTTS(BaseCon):
             if self._exit():
                 return
             all_task = []
-            with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
+            if self.dub_nums==1:
                 for k, item in enumerate(self.queue_tts):
-                    all_task.append(pool.submit(self._item_task, item))
-                _ = [i.result() for i in all_task]
+                    self._item_task(item)
+                    time.sleep(self.wait_sec)
+            else:
+                with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
+                    for k, item in enumerate(self.queue_tts):
+                        all_task.append(pool.submit(self._item_task, item))
+                    _ = [i.result() for i in all_task]
 
             err_num = 0
             for it in self.queue_tts:
