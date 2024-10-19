@@ -1312,11 +1312,11 @@ def cleartext(text: str,remove_start_end=True):
     res_text=text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
     # 删掉连续的多个标点符号，只保留一个
     res_text=re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text)
-    if not remove_start_end:
+    if not res_text or not remove_start_end:
         return res_text
     if res_text[-1] in ['，',',']:
         res_text=res_text[:-1]
-    if res_text[0] in ['，',',']:
+    if res_text and res_text[0] in ['，',',']:
         res_text=res_text[1:]
     return res_text
 

@@ -303,3 +303,11 @@ Please visit https://pyvideotrans.com/guide.html
 4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 5. [openai-whisper](https://github.com/openai/whisper)
 6. [pydub](https://github.com/jiaaro/pydub)
+
+
+
+## Donate
+
+<img width="200" src="https://pyvideotrans.com/images/bianen.jpg">
+
+[https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)

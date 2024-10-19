@@ -111,3 +111,4 @@ class AzureTTS(BaseTTS):
             if self._exit():
                 return
             self._item_task(items)
+            time.sleep(self.wait_sec)

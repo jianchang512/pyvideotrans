@@ -63,6 +63,7 @@ class EdgeTTS(BaseTTS):
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.05
             self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
+            time.sleep(self.wait_sec)
 
 
     def _exec(self) -> None:

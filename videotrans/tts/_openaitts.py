@@ -73,6 +73,7 @@ class OPENAITTS(BaseTTS):
                     self.copydata.append(data_item)
             finally:
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+                time.sleep(self.wait_sec)
 
     def _get_url(self, url=""):
         if not url:

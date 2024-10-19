@@ -136,6 +136,7 @@ class Ui_setini(object):
             },
             "dubbing": {
                 "dubbing_thread": "同时配音的字幕条数",
+                "dubbing_wait": "每次配音后暂停时间/秒,用于限制请求频率",
                 "azure_lines": "azureTTS一次配音行数",
                 "chattts_voice": "chatTTS 音色值"
             },
@@ -262,6 +263,7 @@ class Ui_setini(object):
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
             "translation_wait": "翻译后暂停时间/s",
+            "dubbing_wait": "配音后暂停时间/s",
             "gemini_model": "Gemini模型列表",
             "google_trans_newadd": "Google字幕翻译新增语言代码",
             "aisendsrt":"使用AI翻译时发送完整字幕内容",
@@ -348,6 +350,7 @@ class Ui_setini(object):
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
+                    "dubbing_wait": "Pause time in seconds after each dubbing, used to limit request frequency",
                     "azure_lines": "Number of lines dubbed at once by azureTTS",
                     "chattts_voice": "chatTTS voice tone"
                 },
@@ -484,6 +487,7 @@ class Ui_setini(object):
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",
                 "translation_wait": "Pause Time After Translation",
+                "dubbing_wait": "Pause Time After Dubbing",
                 "gemini_model": "Gemini Model List",
                 "google_trans_newadd": "Google translation subtitles new language code",
 
@@ -642,6 +646,7 @@ class Ui_setini(object):
 
         self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ok.setObjectName("set_ok")
+        self.set_ok.setCursor(Qt.PointingHandCursor)
         self.layout.addWidget(self.set_ok)
 
         self.retranslateUi(setini)

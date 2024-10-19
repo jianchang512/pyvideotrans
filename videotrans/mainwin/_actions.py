@@ -510,17 +510,19 @@ class WinAction(WinActionSub):
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
     def click_translate_type(self):
-        dialog = SetThreadTransDubb(name='trans_thread',nums=config.settings.get('trans_thread',5))
+        dialog = SetThreadTransDubb(name='trans',nums=config.settings.get('trans_thread',5),sec=config.settings.get('translation_wait',0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num = dialog.get_values()
+            num,wait = dialog.get_values()
             config.settings['trans_thread']=num
+            config.settings['translation_wait']=wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
     def click_tts_type(self):
-        dialog = SetThreadTransDubb(name='dubbing_thread',nums=config.settings.get('dubbing_thread',5))
+        dialog = SetThreadTransDubb(name='dubbing',nums=config.settings.get('dubbing_thread',5),sec=config.settings.get('dubbing_wait',0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num = dialog.get_values()
+            num,wait = dialog.get_values()
             config.settings['dubbing_thread']=num
+            config.settings['dubbing_wait']=wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
