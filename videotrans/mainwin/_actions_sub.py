@@ -102,16 +102,19 @@ class WinActionSub:
         self.main.proxy.hide()
 
         # 配音角色
+        self.main.tts_text.show()
         self.main.tts_type.setCurrentIndex(0)
-        self.main.tts_text.hide()
-        self.main.tts_type.hide()
+        self.main.tts_type.setDisabled(True)
+        self.main.tts_type.show()
         self.main.label_4.show()
         self.main.voice_role.show()
         self.main.listen_btn.show()
-        self.main.volume_label.hide()
-        self.main.volume_rate.hide()
-        self.main.pitch_label.hide()
-        self.main.pitch_rate.hide()
+        self.main.volume_rate.setDisabled(True)
+        self.main.volume_rate.show()
+        self.main.volume_label.show()
+        self.main.pitch_label.show()
+        self.main.pitch_rate.setDisabled(True)
+        self.main.pitch_rate.show()
 
 
         # 语音识别行
@@ -179,13 +182,16 @@ class WinActionSub:
         self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.show()
         self.main.tts_type.show()
+        self.main.tts_type.setDisabled(False)
         self.main.label_4.show()
         self.main.voice_role.show()
         self.main.listen_btn.show()
         self.main.volume_label.show()
         self.main.volume_rate.show()
+        self.main.volume_rate.setDisabled(False)
         self.main.pitch_label.show()
         self.main.pitch_rate.show()
+        self.main.pitch_rate.setDisabled(False)
 
         # 语音识别行
         self.main.split_type.setCurrentIndex(0)
@@ -214,7 +220,8 @@ class WinActionSub:
         self.main.is_separate.setChecked(False)
         self.main.is_separate.show()
         self.main.enable_cuda.setChecked(False)
-        self.main.enable_cuda.show()
+        if platform.system() != 'Darwin':
+            self.main.enable_cuda.show()
         # 添加背景行
         self.main.addbackbtn.show()
         self.main.back_audio.show()
@@ -283,10 +290,10 @@ class WinActionSub:
         self.main.is_separate.setChecked(False)
         self.main.is_separate.hide()
         self.main.enable_cuda.setChecked(False)
-        self.main.enable_cuda.show()
+        if platform.system() != 'Darwin':
+            self.main.enable_cuda.show()
         # 添加背景行
         self.main.addbackbtn.hide()
-        self.main.back_audio.setReadOnly(True)
         self.main.back_audio.hide()
 
     # 隐藏布局及其元素
