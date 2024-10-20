@@ -4,6 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_chatgptform(object):
@@ -19,10 +20,13 @@ class Ui_chatgptform(object):
         chatgptform.setSizePolicy(sizePolicy)
         chatgptform.setMaximumSize(QtCore.QSize(600, 600))
 
-        self.label_0 = QtWidgets.QLabel(chatgptform)
+        self.label_0 = QtWidgets.QPushButton(chatgptform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setText(
-            '兼容ChatGPT接口的AI也在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+            '兼容ChatGPT接口的AI也在此使用,点击查看教程' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here,click to open document')
+        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/openai'))
+        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.label = QtWidgets.QLabel(chatgptform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))

@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_doubaoform(object):
@@ -19,9 +21,12 @@ class Ui_doubaoform(object):
         doubaoform.setSizePolicy(sizePolicy)
         doubaoform.setMaximumSize(QtCore.QSize(600, 500))
 
-        self.label_0 = QtWidgets.QLabel(doubaoform)
+        self.label_0 = QtWidgets.QPushButton(doubaoform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText('使用方法见 https://pyvideotrans.com/doubao')
+        self.label_0.setText('点击查看填写教程')
+        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        self.label_0.setCursor(Qt.PointingHandCursor)
+        self.label_0.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/doubao'))
 
         # line2
         self.label_2 = QtWidgets.QLabel(doubaoform)

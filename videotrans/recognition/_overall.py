@@ -54,6 +54,7 @@ class FasterAll(BaseRecogn):
         try:
             self.has_done = False
             threading.Thread(target=self._get_signal_from_process, args=(result_queue,)).start()
+            self.error=''
             with multiprocessing.Manager() as manager:
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
@@ -82,6 +83,7 @@ class FasterAll(BaseRecogn):
                 elif len(list(raws))<1:
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
                 else:
+                    self.error=''
                     if self.detect_language=='auto' and self.inst and  hasattr(self.inst,'set_source_language'):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']

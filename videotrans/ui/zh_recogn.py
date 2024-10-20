@@ -2,7 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel
+
+from videotrans.util import tools
 
 
 class Ui_zhrecognform(object):
@@ -17,12 +20,8 @@ class Ui_zhrecognform(object):
         sizePolicy.setHeightForWidth(zhrecogn.sizePolicy().hasHeightForWidth())
         zhrecogn.setSizePolicy(sizePolicy)
         zhrecogn.setMaximumSize(QtCore.QSize(500, 300))
-        self.gridLayout = QtWidgets.QGridLayout(zhrecogn)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(zhrecogn)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -40,17 +39,12 @@ class Ui_zhrecognform(object):
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.zhrecogn_address = QtWidgets.QLineEdit(zhrecogn)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.zhrecogn_address.sizePolicy().hasHeightForWidth())
-        self.zhrecogn_address.setSizePolicy(sizePolicy)
-        self.zhrecogn_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.zhrecogn_address.setMinimumSize(QtCore.QSize(0, 35))
         self.zhrecogn_address.setObjectName("zhrecogn_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.zhrecogn_address)
         self.verticalLayout.addLayout(self.formLayout_2)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+
 
         self.set = QtWidgets.QPushButton(zhrecogn)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -60,17 +54,25 @@ class Ui_zhrecognform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        label = QLabel("该项目地址 https://github.com/jianchang512/zh_recogn")
-        self.verticalLayout_2.addWidget(label)
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程")
+        help_btn.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/zh_recogn'))
+
+
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
 
         self.layout_btn.addWidget(self.set)
         self.layout_btn.addWidget(self.test)
+        self.layout_btn.addWidget(help_btn)
 
-        self.verticalLayout_2.addLayout(self.layout_btn)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.layout_btn)
+
 
         self.retranslateUi(zhrecogn)
         QtCore.QMetaObject.connectSlotsByName(zhrecogn)

@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_azureform(object):
@@ -18,31 +20,36 @@ class Ui_azureform(object):
         sizePolicy.setHeightForWidth(azureform.sizePolicy().hasHeightForWidth())
         azureform.setSizePolicy(sizePolicy)
         azureform.setMaximumSize(QtCore.QSize(600, 580))
-        self.label = QtWidgets.QLabel(azureform)
-        self.label.setGeometry(QtCore.QRect(10, 10, 130, 35))
+
+        v1=QtWidgets.QVBoxLayout(azureform)
+
+        h1=QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
-        self.azure_api = QtWidgets.QLineEdit(azureform)
-        self.azure_api.setGeometry(QtCore.QRect(150, 10, 431, 35))
+        self.azure_api = QtWidgets.QLineEdit()
         self.azure_api.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_api.setObjectName("azure_api")
+        h1.addWidget(self.label)
+        h1.addWidget(self.azure_api)
+        v1.addLayout(h1)
 
-        self.label_2 = QtWidgets.QLabel(azureform)
-        self.label_2.setGeometry(QtCore.QRect(10, 60, 130, 35))
+        h2=QtWidgets.QHBoxLayout()
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
-        self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
 
-        self.azure_key = QtWidgets.QLineEdit(azureform)
-        self.azure_key.setGeometry(QtCore.QRect(150, 60, 431, 35))
+        self.azure_key = QtWidgets.QLineEdit()
         self.azure_key.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_key.setObjectName("azure_key")
+        h2.addWidget(self.label_2)
+        h2.addWidget(self.azure_key)
+        v1.addLayout(h2)
 
-        self.label_version = QtWidgets.QLabel(azureform)
-        self.label_version.setGeometry(QtCore.QRect(10, 120, 121, 16))
+        h3=QtWidgets.QHBoxLayout()
+        self.label_version = QtWidgets.QLabel()
         self.label_version.setObjectName("label_version")
-        self.azure_version = QtWidgets.QComboBox(azureform)
-        self.azure_version.setGeometry(QtCore.QRect(130, 110, 451, 35))
+        self.azure_version = QtWidgets.QComboBox()
         self.azure_version.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_version.setObjectName("azure_version")
         self.azure_version.addItems([
@@ -54,36 +61,56 @@ class Ui_azureform(object):
             "2024-03-01-preview",
             "2024-02-01"
         ])
+        h3.addWidget(self.label_version)
+        h3.addWidget(self.azure_version)
+        v1.addLayout(h3)
 
-        self.label_3 = QtWidgets.QLabel(azureform)
-        self.label_3.setGeometry(QtCore.QRect(10, 160, 121, 16))
+        h4=QtWidgets.QHBoxLayout()
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.azure_model = QtWidgets.QComboBox(azureform)
-        self.azure_model.setGeometry(QtCore.QRect(130, 150, 451, 35))
+        self.azure_model = QtWidgets.QComboBox()
         self.azure_model.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_model.setObjectName("azure_model")
+        h4.addWidget(self.label_3)
+        h4.addWidget(self.azure_model)
+        v1.addLayout(h4)
 
-        self.label_allmodels = QtWidgets.QLabel(azureform)
+        self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setGeometry(QtCore.QRect(10, 200, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+        v1.addWidget(self.label_allmodels)
 
-        self.edit_allmodels = QtWidgets.QPlainTextEdit(azureform)
+        self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 230, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(azureform)
-        self.label_4.setGeometry(QtCore.QRect(10, 340, 571, 21))
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
-        self.azure_template = QtWidgets.QPlainTextEdit(azureform)
-        self.azure_template.setGeometry(QtCore.QRect(10, 360, 571, 151))
+        self.azure_template = QtWidgets.QPlainTextEdit()
         self.azure_template.setObjectName("azure_template")
+        v1.addWidget(self.label_4)
+        v1.addWidget(self.azure_template)
 
-        self.set_azure = QtWidgets.QPushButton(azureform)
-        self.set_azure.setGeometry(QtCore.QRect(10, 540, 93, 35))
+        self.set_azure = QtWidgets.QPushButton()
         self.set_azure.setMinimumSize(QtCore.QSize(0, 35))
         self.set_azure.setObjectName("set_azure")
+
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azure'))
+
+        h5=QtWidgets.QHBoxLayout()
+        h5.addWidget(self.set_azure)
+        h5.addWidget(help_btn)
+
+        v1.addLayout(h5)
 
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)

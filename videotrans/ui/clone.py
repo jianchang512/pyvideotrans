@@ -2,9 +2,11 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_cloneform(object):
@@ -19,12 +21,9 @@ class Ui_cloneform(object):
         sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
         clone.setSizePolicy(sizePolicy)
         clone.setMaximumSize(QtCore.QSize(500, 300))
-        self.gridLayout = QtWidgets.QGridLayout(clone)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(clone)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -52,7 +51,7 @@ class Ui_cloneform(object):
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
         self.verticalLayout.addLayout(self.formLayout_2)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+
 
         self.set_clone = QtWidgets.QPushButton(clone)
         self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
@@ -61,18 +60,24 @@ class Ui_cloneform(object):
         self.test = QtWidgets.QPushButton(clone)
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
-
-        label = QLabel(config.transobj['The project at'])
-        self.verticalLayout_2.addWidget(label)
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/clonevoice'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
 
         self.layout_btn.addWidget(self.set_clone)
         self.layout_btn.addWidget(self.test)
+        self.layout_btn.addWidget(help_btn)
 
-        self.verticalLayout_2.addLayout(self.layout_btn)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.layout_btn)
+
+
 
         self.retranslateUi(clone)
         QtCore.QMetaObject.connectSlotsByName(clone)

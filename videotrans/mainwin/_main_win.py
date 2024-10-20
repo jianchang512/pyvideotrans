@@ -14,6 +14,8 @@ from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans  import tts
 from videotrans.ui.en import Ui_MainWindow
 
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=700, height=600):
         super(MainWindow, self).__init__(parent)
@@ -227,7 +229,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_8.clicked.connect(self.win_action.click_subtitle)
         self.label_9.clicked.connect(self.win_action.click_translate_type)
         self.tts_text.clicked.connect(self.win_action.click_tts_type)
-
+        from videotrans.util import tools
+        self.label.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/proxy'))
+        self.hfaster_help.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/vad'))
+        self.split_label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/splitmode'))
+        self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/align'))
 
 
     def start_subform(self):

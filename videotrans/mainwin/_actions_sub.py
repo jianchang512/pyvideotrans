@@ -20,11 +20,30 @@ class WinActionSub:
 
     def show_model_help(self):
         
-        msg="从 tiny模型 到 base 到 small 到 medium 到 large-v3 模型，识别效果越来越好，但模型体积越来越大，识别速度越来越慢，需要更多CPU/内存/GPU资源。\n默认使用tiny模型，如果想要更好的效果，请使用更大模型\n\n .en 后缀模型和 distil 开头的模型只用于识别英文发音视频\n\n模型下载地址\n https://pyvideotrans.com/model"
+        msg="从 tiny 到 base -> small -> medium -> large-v3 模型，识别效果越来越好，但模型体积越来越大，识别速度越来越慢，需要更多CPU/内存/GPU资源。\n默认使用tiny模型，如果想要更好的效果，请使用更大模型\n\n .en 后缀模型和 distil 开头的模型只用于识别英文发音视频\n"
         if config.defaulelang!='zh':
-            msg='From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n\nModel Download Address\n https://pyvideotrans.com/model'
-        QMessageBox.information(self.main, "Help",msg)
-    
+            msg='From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n'
+
+        # 创建 QMessageBox
+        msg_box = QMessageBox(self.main)
+        msg_box.setWindowTitle("Help")
+        msg_box.setText(msg)
+
+        # 添加 OK 按钮
+        ok_button = msg_box.addButton(QMessageBox.Ok)
+        ok_button.setText("知道了" if config.defaulelang=='zh' else 'OK')
+
+        # 添加“模型选择教程”按钮
+        tutorial_button = QPushButton("点击查看模型选择教程" if config.defaulelang=='zh' else "Model Selection Tutorial")
+        msg_box.addButton(tutorial_button, QMessageBox.ActionRole)
+
+        # 显示消息框
+        msg_box.exec()
+
+        # 检查哪个按钮被点击
+        if msg_box.clickedButton() == tutorial_button:
+            tools.open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
+
     def update_tips(self,text):
         if not self.update_btn:
             self.update_btn = QPushButton()
@@ -103,6 +122,7 @@ class WinActionSub:
         self.main.recogn_type.hide()
         self.main.model_name_help.hide()
         self.main.model_name.hide()
+        self.main.split_label.hide()
         self.main.split_type.hide()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.label_8.hide()
@@ -112,6 +132,7 @@ class WinActionSub:
 
 
         # 字幕对齐行
+        self.main.align_btn.hide()
         self.main.label_6.hide()
         self.main.voice_rate.hide()
         self.main.append_video.setChecked(True)
@@ -173,12 +194,14 @@ class WinActionSub:
         self.main.recogn_type.show()
         self.main.model_name_help.show()
         self.main.model_name.show()
+        self.main.split_label.show()
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.label_8.show()
         self.main.subtitle_type.show()
 
         # 字幕对齐行
+        self.main.align_btn.show()
         self.main.voice_rate.show()
         self.main.label_6.show()
         self.main.append_video.setChecked(True)
@@ -240,12 +263,14 @@ class WinActionSub:
         self.main.recogn_type.show()
         self.main.model_name_help.show()
         self.main.model_name.show()
+        self.main.split_label.show()
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.label_8.hide()
         self.main.subtitle_type.hide()
 
         # 字幕对齐行
+        self.main.align_btn.hide()
         self.main.label_6.hide()
         self.main.voice_rate.hide()
         self.main.append_video.setChecked(True)

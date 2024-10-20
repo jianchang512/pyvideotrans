@@ -4,6 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_zijiehuoshanform(object):
@@ -19,9 +20,13 @@ class Ui_zijiehuoshanform(object):
         zijiehuoshanform.setSizePolicy(sizePolicy)
         zijiehuoshanform.setMaximumSize(QtCore.QSize(600, 570))
 
-        self.label_0 = QtWidgets.QLabel(zijiehuoshanform)
+        self.label_0 = QtWidgets.QPushButton(zijiehuoshanform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText('使用方法见 https://pyvideotrans.com/zijiehuoshan')
+        self.label_0.setText('点击打开使用教程')
+        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/zijiehuoshan'))
+        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
+
         self.label_2 = QtWidgets.QLabel(zijiehuoshanform)
         self.label_2.setGeometry(QtCore.QRect(10, 65, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
