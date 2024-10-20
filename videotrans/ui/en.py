@@ -92,18 +92,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.translate_type)
 
         # 原始语言 目标语言 start       
-        self.label_2 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_2.setMinimumSize(QtCore.QSize(0, 30))
+        self.label_2.setStyleSheet("""background-color:transparent""")
         self.label_2.setObjectName("label_2")
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
         self.source_language.setMinimumSize(QtCore.QSize(160, 30))
         self.source_language.setObjectName("source_language")
 
-        self.label_3 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_3 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_3.setMinimumSize(QtCore.QSize(0, 30))
         self.label_3.setObjectName("label_3")
+        self.label_3.setStyleSheet("""background-color:transparent""")
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
-        self.target_language.setMinimumSize(QtCore.QSize(145, 30))
+        self.target_language.setMinimumSize(QtCore.QSize(100, 30))
         self.target_language.setObjectName("target_language")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
         self.target_language.setSizePolicy(sizePolicy)
@@ -148,17 +150,18 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.tts_text)
         self.horizontalLayout.addWidget(self.tts_type)
 
-        self.label_4 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_4 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_4.setMinimumSize(QtCore.QSize(0, 30))
         self.label_4.setObjectName("label_4")
+        self.label_4.setStyleSheet("background-color:transparent")
         self.voice_role = QtWidgets.QComboBox(self.layoutWidget)
         self.voice_role.setMinimumSize(QtCore.QSize(160, 30))
+        self.voice_role.setMaximumWidth(160)
         self.voice_role.setObjectName("voice_role")
 
         self.horizontalLayout.addWidget(self.label_4)
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
-        self.horizontalLayout.addStretch()
 
         self.volume_label = QtWidgets.QLabel(self.layoutWidget)
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
@@ -188,6 +191,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.volume_rate)
         self.horizontalLayout.addWidget(self.pitch_label)
         self.horizontalLayout.addWidget(self.pitch_rate)
+
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         # 语音识别
@@ -210,10 +214,11 @@ class Ui_MainWindow(object):
         self.model_name_help.setStyleSheet("""background-color:transparent""")
         self.model_name_help.setText('选择模型\u2193' if config.defaulelang == 'zh' else 'Model\u2193')
         self.model_name_help.setToolTip('点击查看模型选择说明' if config.defaulelang == 'zh' else 'Click for model description')
-        self.model_name_help.setMaximumSize(QtCore.QSize(60, 20))
+        self.model_name_help.setMinimumSize(QtCore.QSize(0, 30))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
         self.model_name.setMinimumSize(QtCore.QSize(160, 30))
+        self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
 
         self.split_label=QtWidgets.QPushButton()
@@ -252,8 +257,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addLayout(self.equal_split_layout)
 
 
-        # self.horizontalLayout_4.addWidget(self.label_8)
-        # self.horizontalLayout_4.addWidget(self.subtitle_type)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
         # 语音识别高级行
@@ -279,7 +282,7 @@ class Ui_MainWindow(object):
         self.hfaster_layout.addWidget(self.hfaster_help)
         self.hfaster_layout.addWidget(self.threshold_label)
         self.hfaster_layout.addWidget(self.threshold)
-        # self.hfaster_layout.addStretch()
+
 
         self.min_speech_duration_ms_label = QtWidgets.QLabel()
         self.min_speech_duration_ms_label.setText(
@@ -294,7 +297,7 @@ class Ui_MainWindow(object):
             '最小语音持续时间，单位：毫秒。\n如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。\n默认值为 250 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，\n例如设置为 500 毫秒' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
-        # self.hfaster_layout.addStretch()
+
 
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
@@ -343,7 +346,7 @@ class Ui_MainWindow(object):
         self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
 
         self.align_btn = QtWidgets.QPushButton()
-        # align_btn.setMinimumSize(QtCore.QSize(0, 35))
+
         self.align_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         self.align_btn.setObjectName("align_btn")
         self.align_btn.setCursor(Qt.PointingHandCursor)
@@ -397,15 +400,6 @@ class Ui_MainWindow(object):
         self.gaoji_layout_inner.addWidget(self.video_autorate)
         self.gaoji_layout_inner.addWidget(self.label_8)
         self.gaoji_layout_inner.addWidget(self.subtitle_type)
-
-
-        # self.gaoji_layout_inner.addWidget(self.is_separate)
-
-
-        # self.gaoji_layout_inner.addWidget(self.enable_cuda)
-
-        # self.gaoji_layout_inner.setAlignment(Qt.AlignVCenter)
-        # self.gaoji_layout_inner.addStretch()
         self.verticalLayout_3.addLayout(self.gaoji_layout_inner)
 
         self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
@@ -421,7 +415,6 @@ class Ui_MainWindow(object):
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
 
         self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
-        # self.addbackbtn.setMinimumSize(QtCore.QSize(100, 30))
         self.addbackbtn.setObjectName("addbackbtn")
         self.gaoji_layout_inner2.addWidget(self.is_separate)
         self.gaoji_layout_inner2.addWidget(self.addbackbtn)
@@ -900,13 +893,13 @@ class Ui_MainWindow(object):
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
         self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
-        self.label_2.setText(config.uilanglist.get("Source lang"))
+        self.label_2.setText(config.uilanglist.get("Source lang")+" ")
         self.source_language.setToolTip(config.uilanglist.get("The language used for the original video pronunciation"))
         self.label_3.setText(config.uilanglist.get("Target lang"))
         self.target_language.setToolTip(config.uilanglist.get("What language do you want to translate into"))
         self.tts_text.setText("配音渠道\u2193" if config.defaulelang == 'zh' else "Dubbing channel\u2193")
         self.tts_text.setCursor(Qt.PointingHandCursor)
-        self.label_4.setText(config.uilanglist.get("Dubbing role"))
+        self.label_4.setText(config.uilanglist.get("Dubbing role")+" ")
         self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
 
         self.model_name.setToolTip(config.uilanglist.get(
