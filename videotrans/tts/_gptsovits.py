@@ -63,7 +63,8 @@ class GPTSoVITS(BaseTTS):
                     "text_lang":data.get('text_language','zh'),
                     "ref_audio_path":data.get('refer_wav_path',''),
                     "prompt_text":data.get('prompt_text',''),
-                    "prompt_lang":data.get('prompt_language','')
+                    "prompt_lang":data.get('prompt_language',''),
+                    "speed_factor":1.0
                 }
                 speed=float(float(self.rate.replace('+','').replace('-','').replace('%',''))/100)
                 if speed>0:
