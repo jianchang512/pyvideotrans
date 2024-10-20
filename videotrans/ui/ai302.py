@@ -29,7 +29,7 @@ class Ui_ai302form(object):
         self.label_01.setGeometry(QtCore.QRect(10, 50, 580, 35))
         self.label_01.setMinimumSize(QtCore.QSize(580, 35))
         self.label_01.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_01.setText('点此查看使用教程 https://pyvideotrans.com/302ai')
+        self.label_01.setText('点此查看填写教程 https://pyvideotrans.com/302ai')
 
         self.label_2 = QtWidgets.QLabel(ai302form)
         self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))

@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_deeplform(object):
@@ -13,13 +15,9 @@ class Ui_deeplform(object):
         deeplform.setWindowModality(QtCore.Qt.NonModal)
         deeplform.setMinimumSize(QtCore.QSize(550, 330))
 
-        self.gridLayout = QtWidgets.QGridLayout(deeplform)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
 
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(deeplform)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QFormLayout()
@@ -68,12 +66,23 @@ class Ui_deeplform(object):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_33)
 
-        self.verticalLayout_2.addLayout(self.verticalLayout)
         self.set_deepl = QtWidgets.QPushButton(deeplform)
         self.set_deepl.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deepl.setObjectName("set_deepl")
-        self.verticalLayout_2.addWidget(self.set_deepl)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/deepl'))
+
+        h1=QtWidgets.QHBoxLayout()
+        h1.addWidget(self.set_deepl)
+        h1.addWidget(help_btn)
+
+        self.verticalLayout.addLayout(h1)
+
 
         self.retranslateUi(deeplform)
         QtCore.QMetaObject.connectSlotsByName(deeplform)

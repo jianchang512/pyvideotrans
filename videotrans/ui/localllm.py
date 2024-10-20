@@ -4,6 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_localllmform(object):
@@ -19,10 +20,14 @@ class Ui_localllmform(object):
         localllmform.setSizePolicy(sizePolicy)
         localllmform.setMaximumSize(QtCore.QSize(600, 600))
 
-        self.label_0 = QtWidgets.QLabel(localllmform)
+        self.label_0 = QtWidgets.QPushButton(localllmform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            '兼容OpenAI ChatGPT接口的大模型可在此使用, 某些接口可能需要以 /v1 结尾' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
+            '兼容OpenAI ChatGPT接口的大模型可在此使用, 某些接口可能需要以 /v1 结尾,点击查看教程' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here,click to open doc')
+
+        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/localllm'))
+        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
 
         self.label = QtWidgets.QLabel(localllmform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))

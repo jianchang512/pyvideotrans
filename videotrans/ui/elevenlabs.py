@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_elevenlabsform(object):
@@ -18,12 +20,8 @@ class Ui_elevenlabsform(object):
         sizePolicy.setHeightForWidth(elevenlabsform.sizePolicy().hasHeightForWidth())
         elevenlabsform.setSizePolicy(sizePolicy)
         elevenlabsform.setMaximumSize(QtCore.QSize(400, 300))
-        self.gridLayout = QtWidgets.QGridLayout(elevenlabsform)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(elevenlabsform)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -49,7 +47,7 @@ class Ui_elevenlabsform(object):
         self.elevenlabstts_key.setObjectName("elevenlabstts_key")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.elevenlabstts_key)
         self.verticalLayout.addLayout(self.formLayout_2)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+
 
 
         self.set = QtWidgets.QPushButton(elevenlabsform)
@@ -60,12 +58,20 @@ class Ui_elevenlabsform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/elevenlabstts'))
+
         hv=QtWidgets.QHBoxLayout()
         hv.addWidget(self.set)
         hv.addWidget(self.test)
+        hv.addWidget(help_btn)
 
-        self.verticalLayout_2.addLayout(hv)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(hv)
 
         self.retranslateUi(elevenlabsform)
         QtCore.QMetaObject.connectSlotsByName(elevenlabsform)

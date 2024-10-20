@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_openaittsform(object):
@@ -19,57 +21,81 @@ class Ui_openaittsform(object):
         openaittsform.setSizePolicy(sizePolicy)
         openaittsform.setMaximumSize(QtCore.QSize(600, 600))
 
+        v1=QtWidgets.QVBoxLayout(openaittsform)
+
         self.label_0 = QtWidgets.QLabel(openaittsform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
             'OpenAI官方接口无需填写' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+        v1.addWidget(self.label_0)
 
+        h1=QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel(openaittsform)
-        self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
         self.openaitts_api = QtWidgets.QLineEdit(openaittsform)
-        self.openaitts_api.setGeometry(QtCore.QRect(150, 45, 431, 35))
         self.openaitts_api.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_api.setObjectName("openaitts_api")
+        h1.addWidget(self.label)
+        h1.addWidget(self.openaitts_api)
+        v1.addLayout(h1)
 
+        h2=QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel(openaittsform)
-        self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.openaitts_key = QtWidgets.QLineEdit(openaittsform)
-        self.openaitts_key.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.openaitts_key.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_key.setObjectName("openaitts_key")
+        h2.addWidget(self.label_2)
+        h2.addWidget(self.openaitts_key)
+        v1.addLayout(h2)
 
+        h3=QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(openaittsform)
-        self.label_3.setGeometry(QtCore.QRect(10, 150, 121, 16))
         self.label_3.setObjectName("label_3")
         self.openaitts_model = QtWidgets.QComboBox(openaittsform)
-        self.openaitts_model.setGeometry(QtCore.QRect(150, 145, 431, 35))
         self.openaitts_model.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_model.setObjectName("openaitts_model")
+        h3.addWidget(self.label_3)
+        h3.addWidget(self.openaitts_model)
+        v1.addLayout(h3)
 
         self.label_allmodels = QtWidgets.QLabel(openaittsform)
-        self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
+
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
-
+        v1.addWidget(self.label_allmodels)
         self.edit_allmodels = QtWidgets.QPlainTextEdit(openaittsform)
-        self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
+        self.edit_allmodels.setMinimumHeight(100)
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.edit_allmodels)
+
+
+        h4=QtWidgets.QHBoxLayout()
 
         self.set_openaitts = QtWidgets.QPushButton(openaittsform)
-        self.set_openaitts.setGeometry(QtCore.QRect(10, 370, 93, 35))
         self.set_openaitts.setMinimumSize(QtCore.QSize(0, 35))
         self.set_openaitts.setObjectName("set_openaitts")
 
         self.test_openaitts = QtWidgets.QPushButton(openaittsform)
-        self.test_openaitts.setGeometry(QtCore.QRect(130, 375, 93, 30))
         self.test_openaitts.setMinimumSize(QtCore.QSize(0, 30))
         self.test_openaitts.setObjectName("test_openaitts")
+
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openaitts'))
+
+        h4.addWidget(self.set_openaitts)
+        h4.addWidget(self.test_openaitts)
+        h4.addWidget(help_btn)
+        v1.addLayout(h4)
 
         self.retranslateUi(openaittsform)
         QtCore.QMetaObject.connectSlotsByName(openaittsform)

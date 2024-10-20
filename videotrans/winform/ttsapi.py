@@ -84,6 +84,4 @@ def openwin():
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.otherlink.clicked.connect(lambda: tools.open_url('https://github.com/kungful/openvoice-api'))
-    winobj.otherlink.setCursor(Qt.PointingHandCursor)
     winobj.show()

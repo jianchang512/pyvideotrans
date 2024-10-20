@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_azurettsform(object):
@@ -18,13 +20,9 @@ class Ui_azurettsform(object):
         sizePolicy.setHeightForWidth(azurettsform.sizePolicy().hasHeightForWidth())
         azurettsform.setSizePolicy(sizePolicy)
         azurettsform.setMaximumSize(QtCore.QSize(400, 250))
-        self.gridLayout = QtWidgets.QGridLayout(azurettsform)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
 
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(azurettsform)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QFormLayout()
@@ -157,13 +155,22 @@ class Ui_azurettsform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azuretts'))
+
         hv = QtWidgets.QHBoxLayout()
         hv.addWidget(self.save)
         hv.addWidget(self.test)
+        hv.addWidget(help_btn)
 
         self.verticalLayout.addLayout(hv)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+
+
 
         self.retranslateUi(azurettsform)
         QtCore.QMetaObject.connectSlotsByName(azurettsform)

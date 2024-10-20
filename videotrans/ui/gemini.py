@@ -2,8 +2,10 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_geminiform(object):
@@ -19,45 +21,65 @@ class Ui_geminiform(object):
         geminiform.setSizePolicy(sizePolicy)
         geminiform.setMaximumSize(QtCore.QSize(600, 500))
 
+        v1 = QtWidgets.QVBoxLayout(geminiform)
+
+        h1=QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel(geminiform)
-        self.label_2.setGeometry(QtCore.QRect(10, 40, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.gemini_key = QtWidgets.QLineEdit(geminiform)
-        self.gemini_key.setGeometry(QtCore.QRect(150, 40, 431, 35))
         self.gemini_key.setMinimumSize(QtCore.QSize(0, 35))
         self.gemini_key.setObjectName("gemini_key")
+        h1.addWidget(self.label_2)
+        h1.addWidget(self.gemini_key)
+        v1.addLayout(h1)
 
+        h2=QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(geminiform)
-        self.label_3.setGeometry(QtCore.QRect(10, 100, 121, 16))
         self.label_3.setObjectName("label_3")
         self.model = QtWidgets.QComboBox(geminiform)
-        self.model.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.model.setMinimumSize(QtCore.QSize(0, 35))
         self.model.setObjectName("model")
+        h2.addWidget(self.label_3)
+        h2.addWidget(self.model)
+        v1.addLayout(h2)
 
         self.label_allmodels = QtWidgets.QLabel(geminiform)
-        self.label_allmodels.setGeometry(QtCore.QRect(10, 140, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(geminiform)
-        self.edit_allmodels.setGeometry(QtCore.QRect(10, 175, 571, 60))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.label_allmodels)
+        v1.addWidget(self.edit_allmodels)
 
         self.label_4 = QtWidgets.QLabel(geminiform)
-        self.label_4.setGeometry(QtCore.QRect(10, 250, 571, 21))
         self.label_4.setObjectName("label_4")
         self.gemini_template = QtWidgets.QPlainTextEdit(geminiform)
-        self.gemini_template.setGeometry(QtCore.QRect(10, 275, 571, 151))
         self.gemini_template.setObjectName("gemini_template")
+        v1.addWidget(self.label_4)
+        v1.addWidget(self.gemini_template)
 
+        h3=QtWidgets.QHBoxLayout()
         self.set_gemini = QtWidgets.QPushButton(geminiform)
-        self.set_gemini.setGeometry(QtCore.QRect(10, 440, 93, 35))
         self.set_gemini.setMinimumSize(QtCore.QSize(0, 35))
         self.set_gemini.setObjectName("set_gemini")
+
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/gemini'))
+
+        h3.addWidget(self.set_gemini)
+        h3.addWidget(help_btn)
+        v1.addLayout(h3)
+
+
 
         self.retranslateUi(geminiform)
         QtCore.QMetaObject.connectSlotsByName(geminiform)

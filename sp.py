@@ -13,6 +13,8 @@ from videotrans import VERSION
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
+
+
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):
         super(StartWindow, self).__init__()
@@ -73,6 +75,7 @@ class StartWindow(QtWidgets.QWidget):
         self.move(QPoint(int((self.width - 560) / 2), int((self.height - 350) / 2)))
 
 
+
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
     try:
@@ -81,10 +84,10 @@ if __name__ == "__main__":
         pass
 
     app = QtWidgets.QApplication(sys.argv)
+
     try:
         startwin = StartWindow()
     except Exception as e:
         import traceback
-        from PySide6.QtWidgets import QMessageBox
-        QMessageBox.critical(startwin,"Error",traceback.format_exc())
+        QtWidgets.QMessageBox.critical(startwin,"Error",traceback.format_exc())
     sys.exit(app.exec())

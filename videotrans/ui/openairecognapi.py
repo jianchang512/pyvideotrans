@@ -1,6 +1,8 @@
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 class Ui_openairecognapiform(object):
@@ -8,7 +10,7 @@ class Ui_openairecognapiform(object):
         self.has_done = False
         openairecognapiform.setObjectName("openairecognapiform")
         openairecognapiform.setWindowModality(QtCore.Qt.NonModal)
-        openairecognapiform.resize(600, 600)
+        openairecognapiform.resize(600, 500)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -77,6 +79,14 @@ class Ui_openairecognapiform(object):
         self.test_openairecognapi.setGeometry(QtCore.QRect(130, 415, 93, 30))
         self.test_openairecognapi.setMinimumSize(QtCore.QSize(0, 30))
         self.test_openairecognapi.setObjectName("test_openairecognapi")
+
+        help_btn = QtWidgets.QPushButton(openairecognapiform)
+        help_btn.setGeometry(QtCore.QRect(250, 415, 120, 30))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openairecogn'))
 
         self.retranslateUi(openairecognapiform)
         QtCore.QMetaObject.connectSlotsByName(openairecognapiform)

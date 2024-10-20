@@ -25,7 +25,7 @@ TRANSAPI_INDEX = 13
 FREEGOOGLE_INDEX = 14
 # 翻译通道名字列表，显示在界面
 TRANSLASTE_NAME_LIST = [
-    "Google翻译",
+    "Google翻译" if config.defaulelang == 'zh' else 'Google',
     "微软翻译" if config.defaulelang == 'zh' else 'Microsoft',
     "302.AI",
     "百度翻译" if config.defaulelang == 'zh' else 'Baidu',

@@ -2,6 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPlainTextEdit
 
 from videotrans.configure import config
@@ -19,12 +20,8 @@ class Ui_sttform(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(sttform.sizePolicy().hasHeightForWidth())
         sttform.setSizePolicy(sizePolicy)
-        self.gridLayout = QtWidgets.QGridLayout(sttform)
-        self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(sttform)
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
@@ -89,7 +86,7 @@ class Ui_sttform(object):
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.stt_model)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+
 
         self.set = QtWidgets.QPushButton(sttform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -99,35 +96,34 @@ class Ui_sttform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
-        self.ask = QtWidgets.QPushButton(sttform)
-        self.ask.setCursor(QtCore.Qt.PointingHandCursor)
-        self.ask.setMinimumSize(QtCore.QSize(0, 40))
-        self.ask.setStyleSheet("""background-color:transparent""")
-        self.ask.clicked.connect(lambda: tools.open_url(title='stt'))
-        self.verticalLayout_2.addWidget(self.ask)
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/stt'))
+
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
 
+
         self.layout_btn.addWidget(self.set)
         self.layout_btn.addWidget(self.test)
+        self.layout_btn.addWidget(help_btn)
 
-        self.verticalLayout_2.addLayout(self.layout_btn)
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.layout_btn)
 
         self.retranslateUi(sttform)
         QtCore.QMetaObject.connectSlotsByName(sttform)
 
     def retranslateUi(self, sttform):
-        sttform.setWindowTitle("stt语音识别API" if config.defaulelang == 'zh' else 'stt Speech Recognition API')
+        sttform.setWindowTitle("STT语音识别API" if config.defaulelang == 'zh' else 'STT Speech Recognition API')
 
-        self.label.setText('stt API')
+        self.label.setText('STT API')
         self.labelkey.setText('选择使用的模型' if config.defaulelang == 'zh' else 'Select model')
-        tips = """该项目地址 https://github.com/jianchang512/stt"""
-        if config.defaulelang != 'zh':
-            tips = '''The project at https://github.com/jianchang512/stt'''
-        self.ask.setText(tips)
-        self.ask.setToolTip("点击打开stt项目主页" if config.defaulelang=='zh' else 'Click to open stt webpage')
+
         self.stt_url.setPlaceholderText('Api url')
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
         self.test.setText('测试连通性' if config.defaulelang == 'zh' else 'Test')
