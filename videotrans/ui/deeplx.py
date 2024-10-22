@@ -60,6 +60,10 @@ class Ui_deeplxform(object):
         self.set_deeplx = QtWidgets.QPushButton(deeplxform)
         self.set_deeplx.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deeplx.setObjectName("set_deeplx")
+
+        self.test = QtWidgets.QPushButton(deeplxform)
+        self.test.setObjectName("test")
+
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -70,6 +74,7 @@ class Ui_deeplxform(object):
 
         h1=QtWidgets.QHBoxLayout()
         h1.addWidget(self.set_deeplx)
+        h1.addWidget(self.test)
         h1.addWidget(help_btn)
 
         self.verticalLayout.addLayout(h1)
@@ -86,3 +91,4 @@ class Ui_deeplxform(object):
         self.deeplx_address.setPlaceholderText(
             '在此填写你部署的DeepLx地址' if config.defaulelang == 'zh' else 'Input your deeplx api url')
         self.set_deeplx.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

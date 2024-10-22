@@ -43,8 +43,7 @@ class AzureTTS(BaseTTS):
                                     {}
                                     </prosody>
                                 </voice>
-                                </speak>""".format(self.language, items[0]['role'], self.rate, self.pitch, self.volume,
-                                                   text_xml)
+                                </speak>""".format(self.language, items[0]['role'], self.rate, self.pitch, self.volume,text_xml)
         config.logger.info(f'{ssml=}')
         bookmarks = []
 

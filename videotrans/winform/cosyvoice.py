@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -53,6 +54,7 @@ def openwin():
 
         config.params["cosyvoice_role"] = role
         config.getset_params(config.params)
+        tools.set_process(text='cosyvoice', type="refreshtts")
 
         winobj.close()
 

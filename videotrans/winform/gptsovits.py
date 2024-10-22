@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -20,7 +21,7 @@ def openwin():
                 tts.run(
                     queue_tts=[{
                         "text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testai302tts.mp3", "tts_type": tts.GPTSOVITS_TTS}],
+                                "filename": config.TEMP_HOME + "/testgptsovitstts.mp3", "tts_type": tts.GPTSOVITS_TTS}],
                     language=self.language,
                     play=True,
                     is_test=True
@@ -82,6 +83,7 @@ def openwin():
         config.params["gptsovits_role"] = role
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         config.getset_params(config.params)
+        tools.set_process(text='gptsovits', type="refreshtts")
 
         winobj.close()
 

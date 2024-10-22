@@ -1,7 +1,9 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import recognition
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -13,15 +15,21 @@ def openwin():
 
         def run(self):
             try:
-                import requests
-                res = requests.get(config.params['zh_recogn_api'])
-                self.uito.emit("ok")
+                config.box_recogn = 'ing'
+                res = recognition.run(
+                    audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.mp3',
+                    cache_folder=config.SYS_TMP,
+                    recogn_type=recognition.ZH_RECOGN,
+                    detect_language="zh-cn"
+                )
+                srt_str = tools.get_srt_from_list(res)
+                self.uito.emit(f"ok:{srt_str}")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
-        if d == "ok":
-            QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
+        if d.startswith("ok:"):
+            QtWidgets.QMessageBox.information(winobj, "ok",d[3:])
         else:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')

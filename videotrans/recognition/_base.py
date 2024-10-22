@@ -207,7 +207,6 @@ class BaseRecogn(BaseCon):
             data = self.add_punctuation_to_words(data)
         except Exception as e:
             config.logger.exception(e)
-            print('\n\n使用nltk分句失败')
 
         sentence = ""
         sentence_start = data[0]["words"][0]['start']

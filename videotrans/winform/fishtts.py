@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -72,6 +73,7 @@ def openwin():
         config.params["fishtts_role"] = role
 
         config.getset_params(config.params)
+        tools.set_process(text='fishtts', type="refreshtts")
         winobj.close()
 
     from videotrans.component import FishTTSForm

@@ -96,7 +96,7 @@ class Ui_openairecognapiform(object):
             "OpenAI API Speech to text" if config.defaulelang != 'zh' else 'OpenAI 在线api语音识别')
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.set_openairecognapi.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_openairecognapi.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+        self.test_openairecognapi.setText('测试' if config.defaulelang == 'zh' else "Test")
         self.openairecognapi_url.setPlaceholderText(
             '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
         self.openairecognapi_url.setToolTip(

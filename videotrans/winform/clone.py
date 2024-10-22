@@ -43,6 +43,7 @@ def openwin():
         if not winobj.clone_address.text().strip():
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
             return
+
         config.params['clone_api'] = winobj.clone_address.text().strip()
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
@@ -58,6 +59,7 @@ def openwin():
             key = 'http://' + key.replace('http://', '')
         config.params["clone_api"] = key
         config.getset_params(config.params)
+        tools.set_process(text='clone', type="refreshtts")
         winobj.close()
 
     from videotrans.component import CloneForm

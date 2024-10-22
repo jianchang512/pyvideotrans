@@ -1,5 +1,6 @@
 import copy
 import json
+import re
 
 import shutil
 import threading
@@ -152,7 +153,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS]:
+        if type in [tts.EDGE_TTS, tts.AZURE_TTS,tts.VOLCENGINE_TTS]:
             return True
         if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'azure':
             return True
@@ -202,6 +203,7 @@ class WinAction(WinActionSub):
             threading.Thread(target=tools.get_clone_role).start()
         elif type == tts.CHATTTS:
             self.main.voice_role.clear()
+            config.ChatTTS_voicelist=re.split(r'[,，]', config.settings['chattts_voice'])
             self.main.current_rolelist = list(config.ChatTTS_voicelist)
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.TTS_API:
@@ -258,6 +260,8 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_edge_rolelist()
         elif tts_type == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             show_rolelist = tools.get_302ai_doubao()
+        elif tts_type==tts.VOLCENGINE_TTS:
+            show_rolelist = tools.get_volcenginetts_rolelist()
         else:
             # AzureTTS或 302.ai选择doubao模型
             show_rolelist = tools.get_azure_rolelist()
@@ -479,7 +483,9 @@ class WinAction(WinActionSub):
         self.update_status('ing')
 
         config.settings = config.parse_init()
-        if self.main.recogn_type.currentIndex()==recognition.FASTER_WHISPER:
+        if self.main.recogn_type.currentIndex()==recognition.FASTER_WHISPER or self.main.app_mode=='biaozhun':
+            config.settings['backaudio_volume']=float(self.main.bgmvolume.text())
+            config.settings['loop_backaudio']=self.main.is_loop_bgm.isChecked()
             if self.main.split_type.currentIndex()==1:
                 try:
                     config.settings['interval_split']=int(self.main.equal_split_time.text().strip())
@@ -561,9 +567,10 @@ class WinAction(WinActionSub):
             task.uito.connect(self.update_data)
             task.start()
             if self.cfg['target_language'] !='-' and self.cfg['target_language'] != self.cfg['source_language']:
-                w=self.main.size().width()+150
-                h=self.main.size().height()
-                self.main.resize(w,h)
+                if not self.main.isMaximized():
+                    w=self.main.size().width()+150
+                    h=self.main.size().height()
+                    self.main.resize(w,h)
 
                 self.main.target_subtitle_area.setMinimumWidth(200)
                 self.main.target_subtitle_area.setVisible(True)
@@ -707,7 +714,7 @@ class WinAction(WinActionSub):
                     config.child_forms['linerolew'].close()
                     config.child_forms.pop('linerolew', None)
             except Exception as e:
-                print(f'#########{e}')
+                print(e)
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == "subtitle" and config.current_status=='ing' and (self.is_batch or config.task_countdown<=0):
             if self.is_batch or ( not self.is_batch and self.edit_subtitle_type=='edit_subtitle_source'):
@@ -717,12 +724,9 @@ class WinAction(WinActionSub):
             elif not self.is_batch and self.edit_subtitle_type=='edit_subtitle_target':
                 self.main.target_subtitle_area.moveCursor(QTextCursor.End)
                 self.main.target_subtitle_area.insertPlainText(d['text'])
-                #print(f'插入2 {self.edit_subtitle_type=} {d["text"]=}')
-
         elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
             self.wait_subtitle = d['text']
             self.edit_subtitle_type = d['type']
-            #print(f'{d=}')
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
             if d['type']=='edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
@@ -785,6 +789,11 @@ class WinAction(WinActionSub):
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
         elif d['type']=='subform':
             self.main.start_subform()
+        elif d['type'] =='refreshtts':
+            currentIndex=self.main.tts_type.currentIndex()
+            if currentIndex  in [tts.GPTSOVITS_TTS,tts.COSYVOICE_TTS,tts.FISHTTS,tts.CHATTTS,tts.CLONE_VOICE_TTS]:
+                self.main.tts_type.setCurrentIndex(0)
+                self.main.tts_type.setCurrentIndex(currentIndex)
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):

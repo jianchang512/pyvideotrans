@@ -390,7 +390,6 @@ class Ui_subtitleEditor(QWidget):
             s, ms = re.split(r'\,|\.', s_ms)
             return int(h), int(m), int(s), int(ms)
         except ValueError:
-            print(f" 时间解析失败: {time_str}")
             return 0, 0, 0, 0
 
     def parse_ass_time(self, time_str):

@@ -248,6 +248,8 @@ class BaseTrans(BaseCon):
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
     def _get_cache(self, it):
+        if self.is_test:
+            return None
         key_cache = self._get_key(it)
         file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).is_file():

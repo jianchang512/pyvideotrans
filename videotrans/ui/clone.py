@@ -88,4 +88,4 @@ class Ui_cloneform(object):
         self.clone_address.setPlaceholderText(
             '填写clone-voice项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the clone voice program starts')
         self.set_clone.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+        self.test.setText('测试并更新角色' if config.defaulelang == 'zh' else "Test & update role")

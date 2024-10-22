@@ -177,7 +177,8 @@ def openwin():
                     "model_name": model,
                     "is_cuda": is_cuda,
                     "target_dir": RESULT_DIR,
-                    "detect_language": langcode
+                    "detect_language": langcode,
+                    "out_format":winobj.out_format.currentText()
                 }, it)
                 config.prepare_queue.append(trk)
             th = SignThread(uuid_list=uuid_list, parent=winobj)
@@ -317,6 +318,4 @@ def openwin():
 
         winobj.show()
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         print(e)

@@ -69,6 +69,10 @@ class Ui_deeplform(object):
         self.set_deepl = QtWidgets.QPushButton(deeplform)
         self.set_deepl.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deepl.setObjectName("set_deepl")
+
+        self.test = QtWidgets.QPushButton(deeplform)
+        self.test.setObjectName("test")
+
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -79,6 +83,7 @@ class Ui_deeplform(object):
 
         h1=QtWidgets.QHBoxLayout()
         h1.addWidget(self.set_deepl)
+        h1.addWidget(self.test)
         h1.addWidget(help_btn)
 
         self.verticalLayout.addLayout(h1)
@@ -97,3 +102,4 @@ class Ui_deeplform(object):
         self.deepl_api.setPlaceholderText(
             "官方接口无需填写，如果使用第三方deepl接口在此填写" if config.defaulelang == 'zh' else "No need to fill in the official interface, if you use a third-party deepl interface to fill in here")
         self.set_deepl.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

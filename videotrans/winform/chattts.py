@@ -8,6 +8,7 @@ from videotrans.configure import config
 
 
 # 使用内置的 open 函数
+from videotrans.util import tools
 
 
 def openwin():
@@ -67,6 +68,7 @@ def openwin():
         with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
+        tools.set_process(text='chattts', type="refreshtts")
         winobj.close()
 
     from videotrans.component import ChatttsForm

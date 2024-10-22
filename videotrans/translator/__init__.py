@@ -35,10 +35,10 @@ TRANSLASTE_NAME_LIST = [
     "腾讯翻译" if config.defaulelang == 'zh' else 'Tencent',
     "OpenAI ChatGPT" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
     "本地大模型及兼容AI" if config.defaulelang == 'zh' else 'Local LLM',
-    "字节火山引擎" if config.defaulelang == 'zh' else 'volcengine.com',
+    "字节火山大模型" if config.defaulelang == 'zh' else 'VolcEngine LLM',
     "AzureAI GPT",
     "Gemini",
-    "自定义翻译API" if config.defaulelang == 'zh' else 'Customized Translation API',
+    "自定义翻译API" if config.defaulelang == 'zh' else 'Customized API',
     "FreeGoogle翻译" if config.defaulelang == 'zh' else 'Free Google'
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
