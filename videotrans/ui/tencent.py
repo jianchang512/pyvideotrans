@@ -68,10 +68,15 @@ class Ui_tencentform(object):
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
+        h1=QtWidgets.QHBoxLayout()
+
         self.set_tencent = QtWidgets.QPushButton(tencentform)
         self.set_tencent.setMinimumSize(QtCore.QSize(0, 35))
         self.set_tencent.setObjectName("set_tencent")
-        self.verticalLayout_2.addWidget(self.set_tencent)
+
+        self.test = QtWidgets.QPushButton(tencentform)
+        self.test.setObjectName("test_tencent")
+
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
@@ -80,7 +85,12 @@ class Ui_tencentform(object):
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/tencent'))
-        self.verticalLayout_2.addWidget(help_btn)
+
+
+        h1.addWidget(self.set_tencent)
+        h1.addWidget(self.test)
+        h1.addWidget(help_btn)
+        self.verticalLayout_2.addLayout(h1)
         self.retranslateUi(tencentform)
         QtCore.QMetaObject.connectSlotsByName(tencentform)
 
@@ -91,3 +101,4 @@ class Ui_tencentform(object):
         self.tencent_term.setPlaceholderText("术语库id,多个以英文逗号隔开")
         self.label_2.setText("SecretKey")
         self.set_tencent.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

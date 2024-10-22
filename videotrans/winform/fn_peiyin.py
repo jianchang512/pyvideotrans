@@ -14,7 +14,7 @@ from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, CHATTTS, \
-    GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang
+    GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS
 from videotrans.util import tools
 
 
@@ -114,11 +114,7 @@ def openwin():
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
             return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['mustberole'])
-        voice_dir = os.environ.get('APPDATA') or os.environ.get('appdata')
-        if not voice_dir or not Path(voice_dir).exists():
-            voice_dir = config.TEMP_DIR + "/voice_tmp"
-        else:
-            voice_dir = Path(voice_dir + "/pyvideotrans").as_posix()
+        voice_dir = config.TEMP_DIR+'/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
@@ -149,11 +145,10 @@ def openwin():
 
         if role == 'clone':
             return
-
-        threading.Thread(target=tts.run, kwargs={"queue_tts": [obj], "play": True, "is_test": True}).start()
+        threading.Thread(target=tts.run, kwargs={'language':lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
-        if type in [EDGE_TTS, AZURE_TTS]:
+        if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS]:
             return True
         if type == AI302_TTS and config.params['ai302tts_model'] == 'azure':
             return True
@@ -323,6 +318,8 @@ def openwin():
             show_rolelist = tools.get_edge_rolelist()
         elif tts_type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             show_rolelist = tools.get_302ai_doubao()
+        elif tts_type==VOLCENGINE_TTS:
+            show_rolelist = tools.get_volcenginetts_rolelist()
         else:
             # AzureTTS或 302.ai选择doubao模型
             show_rolelist = tools.get_azure_rolelist()

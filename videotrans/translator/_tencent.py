@@ -26,7 +26,7 @@ class Tencent(BaseTrans):
 
         cred = credential.Credential(config.params['tencent_SecretId'], config.params['tencent_SecretKey'])
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
-        httpProfile = HttpProfile()
+        httpProfile = HttpProfile(proxy="")
         httpProfile.endpoint = "tmt.tencentcloudapi.com"
 
         # 实例化一个client选项，可选的，没有特殊需求可以跳过

@@ -47,6 +47,7 @@ from videotrans.ui.ttsapi import Ui_ttsapiform
 from videotrans.ui.vasrt import Ui_vasrt
 from videotrans.ui.videoandaudio import Ui_videoandaudio
 from videotrans.ui.videoandsrt import Ui_videoandsrt
+from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.zh_recogn import Ui_zhrecognform
@@ -307,6 +308,12 @@ class AzureForm(QDialog, Ui_azureform):  # <===
 class WatermarkForm(QDialog, Ui_watermark):  # <===
     def __init__(self, parent=None):
         super(WatermarkForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class VolcEngineTTSForm(QDialog, Ui_volcengineform):  # <===
+    def __init__(self, parent=None):
+        super(VolcEngineTTSForm,self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

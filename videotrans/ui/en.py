@@ -226,7 +226,7 @@ class Ui_MainWindow(object):
         self.split_label.setObjectName("split_label")
         self.split_label.setCursor(Qt.PointingHandCursor)
         self.split_label.setToolTip('选择音频切割方式,点击查看详细说明' if config.defaulelang=='zh' else 'Click for detailed description')
-        self.split_label.setText("语音切割模式\u2193" if config.defaulelang == 'zh' else "Speech Split Mode\u2193")
+        self.split_label.setText("语音切割模式\u2193" if config.defaulelang == 'zh' else "Speech Split\u2193")
 
 
         self.split_type = QtWidgets.QComboBox(self.layoutWidget)
@@ -416,12 +416,30 @@ class Ui_MainWindow(object):
 
         self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.addbackbtn.setObjectName("addbackbtn")
-        self.gaoji_layout_inner2.addWidget(self.is_separate)
-        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
 
         self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
         self.back_audio.setObjectName("back_audio")
+
+        # 是否循环播放背景
+        self.is_loop_bgm = QtWidgets.QCheckBox(self.layoutWidget)
+        self.is_loop_bgm.setChecked(True)
+        self.is_loop_bgm.setText('循环背景音' if config.defaulelang == 'zh' else 'loop the BGM')
+        self.is_loop_bgm.setToolTip('当背景音频时长不足时，是否循环播放' if config.defaulelang == 'zh' else 'Whether to loop the background music when the duration is insufficient')
+
+        self.bgmvolume_label=QtWidgets.QLabel()
+        self.bgmvolume_label.setText('背景音量' if config.defaulelang == 'zh' else 'Volume BGM')
+        self.bgmvolume=QtWidgets.QLineEdit()
+        self.bgmvolume.setText('0.8')
+        self.bgmvolume.setMaximumWidth(80)
+        self.bgmvolume.setToolTip('背景音量调整为原始音量的倍数，大于1升高，小于降低' if config.defaulelang=='zh' else 'BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases')
+
+
+        self.gaoji_layout_inner2.addWidget(self.is_separate)
+        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
         self.gaoji_layout_inner2.addWidget(self.back_audio)
+        self.gaoji_layout_inner2.addWidget(self.is_loop_bgm)
+        self.gaoji_layout_inner2.addWidget(self.bgmvolume_label)
+        self.gaoji_layout_inner2.addWidget(self.bgmvolume)
         self.gaoji_layout_inner2.addWidget(self.enable_cuda)
         self.verticalLayout_3.addLayout(self.gaoji_layout_inner2)
 
@@ -651,6 +669,8 @@ class Ui_MainWindow(object):
         self.actiontts_cosyvoice.setObjectName("actiontts_cosyvoice")
         self.actiontts_fishtts = QtGui.QAction(MainWindow)
         self.actiontts_fishtts.setObjectName("actiontts_fishtts")
+        self.actiontts_volcengine = QtGui.QAction(MainWindow)
+        self.actiontts_volcengine.setObjectName("actiontts_volcengine")
 
         self.action_website = QtGui.QAction(MainWindow)
         self.action_website.setObjectName("action_website")
@@ -778,6 +798,8 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actiontts_cosyvoice)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_fishtts)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_volcengine)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionElevenlabs_key)
         self.menu_TTS.addSeparator()
@@ -944,7 +966,7 @@ class Ui_MainWindow(object):
             "OpenAI语音识别API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
         self.actionai302_key.setText("302.AI接入翻译" if config.defaulelang == 'zh' else "302.AI for translation")
         self.actionlocalllm_key.setText("本地兼容openAI大模型翻译" if config.defaulelang == 'zh' else "Local LLM  API")
-        self.actionzijiehuoshan_key.setText("字节火山引擎模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
+        self.actionzijiehuoshan_key.setText("字节火山大模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
         self.actiondeepL_key.setText("DeepL Key")
 
         self.action_ffmpeg.setText("FFmpeg")
@@ -953,7 +975,7 @@ class Ui_MainWindow(object):
         self.action_issue.setText(config.uilanglist.get("Post issue"))
         self.actiondeepLX_address.setText("DeepLX Api")
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang == 'zh' else "OTT Api")
-        self.actionclone_address.setText("原音色克隆TTS" if config.defaulelang == 'zh' else "Clone-Voice TTS")
+        self.actionclone_address.setText("原音色克隆clone-voice" if config.defaulelang == 'zh' else "Clone-Voice TTS")
         self.actionchattts_address.setText("ChatTTS")
         self.actionai302tts_address.setText("302.AI 接入配音" if config.defaulelang == 'zh' else '302.AI TTS')
         self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
@@ -961,10 +983,11 @@ class Ui_MainWindow(object):
         self.actionzhrecogn_api.setText("zh_recogn中文语音识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese")
         self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
         self.actionsttapi.setText("stt语音识别API" if config.defaulelang == 'zh' else "stt Speech Recognition API")
-        self.actiondoubao_api.setText("豆包模型语音识别" if config.defaulelang == 'zh' else "Doubao")
+        self.actiondoubao_api.setText("字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine subtitles")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
+        self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
         self.action_blog.setText("在线体验" if config.defaulelang == 'zh' else 'Online Experience')

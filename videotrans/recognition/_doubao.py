@@ -37,8 +37,7 @@ class DoubaoRecogn(BaseRecogn):
 
         self._signal(text=f"识别可能较久，请耐心等待")
 
-        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU",
-                        "fr": "fr-FR"}
+        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU", "fr": "fr-FR"}
         langcode = self.detect_language[:2].lower()
         if langcode not in languagelist:
             raise Exception(f'不支持的语言代码:{langcode=}')

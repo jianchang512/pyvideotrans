@@ -1,7 +1,9 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThread, Signal
 
+from videotrans import recognition
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 def openwin():
@@ -13,19 +15,24 @@ def openwin():
 
         def run(self):
             try:
-                import requests
-                requests.get(config.params['stt_url'])
-                self.uito.emit("ok")
+                config.box_recogn = 'ing'
+                res = recognition.run(
+                    audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.mp3',
+                    cache_folder=config.SYS_TMP,
+                    recogn_type=recognition.STT_API,
+                    detect_language="zh-cn"
+                )
+                srt_str = tools.get_srt_from_list(res)
+                self.uito.emit(f"ok:{srt_str}")
             except Exception as e:
                 self.uito.emit(str(e))
 
     def feed(d):
-        if d == "ok":
-            QtWidgets.QMessageBox.information(winobj, "ok",
-                                              "测试可以连接到该API" if config.defaulelang == 'zh' else 'Tests can connect to this API')
+        if d.startswith("ok:"):
+            QtWidgets.QMessageBox.information(winobj, "ok",d[3:])
         else:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
-        winobj.test.setText('测试能否连接' if config.defaulelang == 'zh' else 'Test for connectivity')
+        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
         if not winobj.stt_url.text().strip():
@@ -34,7 +41,7 @@ def openwin():
             return
         config.params['stt_url'] = winobj.stt_url.text().strip()
         task = Test(parent=winobj)
-        winobj.test.setText('测试连通性...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText('测试...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 

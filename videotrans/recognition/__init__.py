@@ -22,8 +22,8 @@ RECOGN_NAME_LIST = [
     'faster-whisper本地' if config.defaulelang == 'zh' else 'faster-whisper',
     'openai-whisper本地' if config.defaulelang == 'zh' else 'openai-whisper',
     "Google识别api" if config.defaulelang == 'zh' else "Google Speech API",
-    "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn only Chinese",
-    "豆包模型识别" if config.defaulelang == 'zh' else "Doubao",
+    "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn for Chinese",
+    "字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine Subtitle Generation",
     "自定义识别API" if config.defaulelang == 'zh' else "Custom Recognition API",
     "OpenAI识别API" if config.defaulelang == 'zh' else "OpenAI Speech API",
     "Stt语音识别API" if config.defaulelang == 'zh' else "Stt Speech API",
@@ -119,7 +119,7 @@ def run(*,
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
-    if model_name.startswith('distil-'):
+    if model_name and model_name.startswith('distil-'):
         model_name = model_name.replace('-whisper', '')
     kwargs = {
         "detect_language": detect_language,

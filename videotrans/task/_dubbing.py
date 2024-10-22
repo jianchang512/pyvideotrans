@@ -96,7 +96,6 @@ class DubbingSrt(BaseTask):
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
                 continue
-            # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice_role = self.cfg['voice_role']
             # 要保存到的文件
             tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
@@ -155,7 +154,7 @@ class DubbingSrt(BaseTask):
         self.hasend = True
         self.precent = 100
         if Path(self.cfg['target_wav']).is_file():
-            tools.remove_silence_from_end(self.cfg['target_wav'])
+            tools.remove_silence_from_end(self.cfg['target_wav'],is_start=False)
             self._signal(text=f"{self.cfg['name']}", type='succeed')
             tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
         if 'shound_del_name' in self.cfg:

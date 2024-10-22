@@ -20,12 +20,9 @@ class Ui_baiduform(object):
         sizePolicy.setHeightForWidth(baiduform.sizePolicy().hasHeightForWidth())
         baiduform.setSizePolicy(sizePolicy)
         baiduform.setMaximumSize(QtCore.QSize(400, 300))
-        # self.gridLayout = QtWidgets.QGridLayout(baiduform)
-        # self.gridLayout.setObjectName("gridLayout")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(baiduform)
-        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(baiduform)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -75,11 +72,16 @@ class Ui_baiduform(object):
         self.baidu_miyue.setObjectName("baidu_miyue")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.baidu_miyue)
         self.verticalLayout.addLayout(self.formLayout)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+
+
+        h4=QtWidgets.QHBoxLayout()
         self.set_badiu = QtWidgets.QPushButton(baiduform)
         self.set_badiu.setMinimumSize(QtCore.QSize(0, 35))
         self.set_badiu.setObjectName("set_badiu")
-        self.verticalLayout_2.addWidget(self.set_badiu)
+
+        self.test = QtWidgets.QPushButton(baiduform)
+        self.test.setObjectName("test")
+
 
 
         help_btn = QtWidgets.QPushButton(baiduform)
@@ -89,7 +91,12 @@ class Ui_baiduform(object):
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/baidu'))
-        self.verticalLayout_2.addWidget(help_btn)
+
+        h4.addWidget(self.set_badiu)
+        h4.addWidget(self.test)
+        h4.addWidget(help_btn)
+
+        self.verticalLayout.addLayout(h4)
 
 
         self.retranslateUi(baiduform)
@@ -100,3 +107,4 @@ class Ui_baiduform(object):
         self.label.setText("Baidu Appid")
         self.label_2.setText("Baidu Secret")
         self.set_badiu.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")

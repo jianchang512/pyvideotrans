@@ -21,45 +21,60 @@ class Ui_doubaoform(object):
         doubaoform.setSizePolicy(sizePolicy)
         doubaoform.setMaximumSize(QtCore.QSize(600, 500))
 
-        self.label_0 = QtWidgets.QPushButton(doubaoform)
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText('点击查看填写教程')
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0)")
-        self.label_0.setCursor(Qt.PointingHandCursor)
-        self.label_0.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/doubao'))
+        v1=QtWidgets.QVBoxLayout(doubaoform)
 
+
+        h1=QtWidgets.QHBoxLayout()
         # line2
         self.label_2 = QtWidgets.QLabel(doubaoform)
-        self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.doubao_appid = QtWidgets.QLineEdit(doubaoform)
-        self.doubao_appid.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.doubao_appid.setMinimumSize(QtCore.QSize(0, 35))
         self.doubao_appid.setObjectName("doubao_appid")
+        h1.addWidget(self.label_2)
+        h1.addWidget(self.doubao_appid)
         # line3
-
+        h2=QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(doubaoform)
-        self.label_3.setGeometry(QtCore.QRect(10, 160, 130, 16))
         self.label_3.setObjectName("label_3")
         self.doubao_access = QtWidgets.QLineEdit(doubaoform)
-        self.doubao_access.setGeometry(QtCore.QRect(150, 150, 431, 35))
         self.doubao_access.setMinimumSize(QtCore.QSize(0, 35))
         self.doubao_access.setObjectName("doubao_access")
+        h2.addWidget(self.label_3)
+        h2.addWidget(self.doubao_access)
 
+        h3=QtWidgets.QHBoxLayout()
         self.set_save = QtWidgets.QPushButton(doubaoform)
-        self.set_save.setGeometry(QtCore.QRect(10, 200, 93, 35))
         self.set_save.setMinimumSize(QtCore.QSize(0, 35))
         self.set_save.setObjectName("set_save")
+
+        self.test = QtWidgets.QPushButton(doubaoform)
+        self.test.setObjectName("test")
+
+        self.label_0 = QtWidgets.QPushButton(doubaoform)
+        self.label_0.setText('点击查看填写教程')
+        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        self.label_0.setCursor(Qt.PointingHandCursor)
+        self.label_0.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/doubao'))
+        h3.addWidget(self.set_save)
+        h3.addWidget(self.test)
+        h3.addWidget(self.label_0)
+
+        v1.addLayout(h1)
+        v1.addLayout(h2)
+        v1.addLayout(h3)
+
 
         self.retranslateUi(doubaoform)
         QtCore.QMetaObject.connectSlotsByName(doubaoform)
 
     def retranslateUi(self, doubaoform):
-        doubaoform.setWindowTitle("豆包模型识别" if config.defaulelang == 'zh' else 'Doubao')
-        self.label_3.setText('填写 Access Token')
+        doubaoform.setWindowTitle("字节火山字幕生成" if config.defaulelang == 'zh' else "ByteDance VolcEngine Subtitle")
+        self.label_3.setText('Access Token')
 
         self.set_save.setText('保存')
+        self.test.setText('测试' if config.defaulelang=='zh' else 'Test')
         self.doubao_appid.setPlaceholderText("填写应用的APP ID")
         self.label_2.setText("APP ID")

@@ -15,6 +15,7 @@ OPENAI_TTS = 8
 ELEVENLABS_TTS = 9
 GOOGLE_TTS = 10
 TTS_API = 11
+VOLCENGINE_TTS = 12
 
 TTS_NAME_LIST = [
     "Edge-TTS",
@@ -28,7 +29,8 @@ TTS_NAME_LIST = [
     "OpenAI TTS",
     "Elevenlabs.io",
     "Google TTS",
-    "自定义TTS API" if config.defaulelang == 'zh' else 'Customize API'
+    "自定义TTS API" if config.defaulelang == 'zh' else 'Customize API',
+    "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
 ]
 
 
@@ -48,6 +50,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     if tts_type == AI302_TTS and config.params['ai302tts_model'] == 'doubao' and langcode[:2] not in ['zh', 'ja', 'en']:
         return '302.ai豆包通道 仅支持中日英语言配音' if config.defaulelang == 'zh' else '302.ai doubao model only supports Chinese, English, Japanese'
+
+    if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id']:
+        return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
 
     return True
 
@@ -115,6 +120,12 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  azuretts as azuretts_win
         azuretts_win.openwin()
         return False
+    if tts_type == VOLCENGINE_TTS and (not config.params['volcenginetts_appid'] or not config.params['volcenginetts_access'] or not config.params['volcenginetts_cluster']):
+        if return_str:
+            return "Please configure the api and key information of the VolcEngine TTS channel first."
+        from videotrans.winform import  volcenginetts as volcengine_win
+        volcengine_win.openwin()
+        return False
     return True
 
 
@@ -169,3 +180,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == TTS_API:
         from videotrans.tts._ttsapi import TTSAPI
         TTSAPI(**kwargs).run()
+    elif tts_type == VOLCENGINE_TTS:
+        from videotrans.tts._volcengine import VolcEngineTTS
+        VolcEngineTTS(**kwargs).run()

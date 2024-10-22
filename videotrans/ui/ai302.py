@@ -3,6 +3,8 @@
 
 from PySide6 import QtCore, QtWidgets
 
+from videotrans.util import tools
+
 
 class Ui_ai302form(object):
     def setupUi(self, ai302form):
@@ -17,63 +19,71 @@ class Ui_ai302form(object):
         ai302form.setMaximumSize(QtCore.QSize(600, 550))
 
         self.has_done = False
-        self.label_0 = QtWidgets.QPushButton(ai302form)
-        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setMinimumSize(QtCore.QSize(580, 35))
-        self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_0.setText('填写 https://302.ai 管理后台-Api超市-Api管理-创建的API KEY')
+        v1= QtWidgets.QVBoxLayout(ai302form)
 
-        self.label_01 = QtWidgets.QPushButton(ai302form)
-        self.label_01.setCursor(QtCore.Qt.PointingHandCursor)
-        self.label_01.setGeometry(QtCore.QRect(10, 50, 580, 35))
-        self.label_01.setMinimumSize(QtCore.QSize(580, 35))
-        self.label_01.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_01.setText('点此查看填写教程 https://pyvideotrans.com/302ai')
+        h1= QtWidgets.QHBoxLayout()
 
         self.label_2 = QtWidgets.QLabel(ai302form)
-        self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
-        self.label_2.setMinimumSize(QtCore.QSize(0, 35))
-        self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.ai302_key = QtWidgets.QLineEdit(ai302form)
-        self.ai302_key.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.ai302_key.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302_key.setObjectName("ai302_key")
+        h1.addWidget(self.label_2)
+        h1.addWidget(self.ai302_key)
+        v1.addLayout(h1)
+
+        h2= QtWidgets.QHBoxLayout()
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         self.label_3 = QtWidgets.QLabel(ai302form)
-        self.label_3.setGeometry(QtCore.QRect(10, 150, 121, 16))
         self.label_3.setObjectName("label_3")
         self.ai302_model = QtWidgets.QComboBox(ai302form)
-        self.ai302_model.setGeometry(QtCore.QRect(150, 145, 431, 35))
         self.ai302_model.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302_model.setObjectName("ai302_model")
+        self.ai302_model.setSizePolicy(sizePolicy)
+        h2.addWidget(self.label_3)
+        h2.addWidget(self.ai302_model)
+        v1.addLayout(h2)
 
         self.label_allmodels = QtWidgets.QLabel(ai302form)
-        self.label_allmodels.setGeometry(QtCore.QRect(10, 200, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
+        v1.addWidget(self.label_allmodels)
+
+
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(ai302form)
-        self.edit_allmodels.setGeometry(QtCore.QRect(10, 235, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.edit_allmodels)
 
         self.label_4 = QtWidgets.QLabel(ai302form)
-        self.label_4.setGeometry(QtCore.QRect(10, 340, 571, 21))
         self.label_4.setObjectName("label_4")
+        v1.addWidget(self.label_4)
 
         self.ai302_template = QtWidgets.QPlainTextEdit(ai302form)
-        self.ai302_template.setGeometry(QtCore.QRect(10, 370, 571, 100))
         self.ai302_template.setObjectName("ai302_template")
+        v1.addWidget(self.ai302_template)
 
+
+        h3= QtWidgets.QHBoxLayout()
         self.set_ai302 = QtWidgets.QPushButton(ai302form)
-        self.set_ai302.setGeometry(QtCore.QRect(10, 480, 93, 35))
         self.set_ai302.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ai302.setObjectName("set_ai302")
 
         self.test_ai302 = QtWidgets.QPushButton(ai302form)
-        self.test_ai302.setGeometry(QtCore.QRect(130, 485, 93, 30))
         self.test_ai302.setMinimumSize(QtCore.QSize(0, 30))
         self.test_ai302.setObjectName("test_ai302")
+
+        self.label_0 = QtWidgets.QPushButton(ai302form)
+        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
+        self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
+        self.label_0.setText('查看填写教程')
+        self.label_0.clicked.connect(lambda: tools.open_url("https://pyvideotrans.com/302ai"))
+
+
+        h3.addWidget(self.set_ai302)
+        h3.addWidget(self.test_ai302)
+        h3.addWidget(self.label_0)
+        v1.addLayout(h3)
 
         self.retranslateUi(ai302form)
         QtCore.QMetaObject.connectSlotsByName(ai302form)

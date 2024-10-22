@@ -151,6 +151,9 @@ class WinActionSub:
         # 添加背景行
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
+        self.main.is_loop_bgm.hide()
+        self.main.bgmvolume_label.hide()
+        self.main.bgmvolume.hide()
 
 
     # 启用标准模式
@@ -225,6 +228,9 @@ class WinActionSub:
         # 添加背景行
         self.main.addbackbtn.show()
         self.main.back_audio.show()
+        self.main.is_loop_bgm.show()
+        self.main.bgmvolume_label.show()
+        self.main.bgmvolume.show()
 
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
@@ -295,6 +301,9 @@ class WinActionSub:
         # 添加背景行
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
+        self.main.is_loop_bgm.hide()
+        self.main.bgmvolume_label.hide()
+        self.main.bgmvolume.hide()
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -516,6 +525,7 @@ class WinActionSub:
         self.main.append_video.setDisabled(type)
         self.main.voice_role.setDisabled(type)
         self.main.voice_rate.setDisabled(type)
+        self.main.is_loop_bgm.setDisabled(type)
         self.main.only_video.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
@@ -579,7 +589,7 @@ class WinActionSub:
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
             return
-        threading.Thread(target=tts.run, kwargs={"queue_tts": [obj], "play": True, "is_test": True}).start()
+        threading.Thread(target=tts.run, kwargs={"language":lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):

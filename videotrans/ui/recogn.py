@@ -64,6 +64,9 @@ class Ui_recogn(object):
         self.shibie_recogn_type.addItems(RECOGN_NAME_LIST)
 
 
+        label_model=QtWidgets.QLabel()
+        label_model.setText('选择模型' if config.defaulelang=='zh' else 'Select model')
+
         self.shibie_model = QtWidgets.QComboBox()
         self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_model.setObjectName("shibie_model")
@@ -74,6 +77,10 @@ class Ui_recogn(object):
              config.transobj['whisper_type_avg']]
         )
         self.shibie_split_type.setToolTip(config.transobj['fenge_tips'])
+
+
+        split_label=QtWidgets.QLabel()
+        split_label.setText('分割模式' if config.defaulelang=='zh' else 'Split mode')
 
         self.equal_split_time= QtWidgets.QLineEdit()
         self.equal_split_time.setToolTip('每段分割时长/单位秒' if config.defaulelang=='zh' else 'Duration of each segment/second')
@@ -87,10 +94,20 @@ class Ui_recogn(object):
         self.equal_split_layout.addWidget(self.equal_split_time)
         self.equal_split_layout.addWidget(self.equal_split_time_label)
 
+        lable_out=QtWidgets.QLabel()
+        lable_out.setText('输出字幕格式' if config.defaulelang=='zh' else 'Subtitle format:')
+        self.out_format=QtWidgets.QComboBox()
+        self.out_format.setMinimumSize(QtCore.QSize(100, 35))
+        self.out_format.addItems([
+            "srt",
+            "ass",
+            "vtt"
+        ])
+
 
 
         self.shibie_startbtn = QtWidgets.QPushButton()
-        self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 30))
+        self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 35))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
         self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
 
@@ -100,17 +117,34 @@ class Ui_recogn(object):
         self.shibie_stop.setText("停止" if config.defaulelang=='zh' else 'Stop')
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
 
-        self.horizontalLayout.addWidget(self.is_cuda)
+        self.horizontalLayout.addStretch()
+
         self.horizontalLayout.addWidget(self.label_3)
         self.horizontalLayout.addWidget(self.shibie_language)
         self.horizontalLayout.addWidget(self.shibie_label)
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
+        self.horizontalLayout.addWidget(label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
+        self.horizontalLayout.addWidget(split_label)
         self.horizontalLayout.addWidget(self.shibie_split_type)
         self.horizontalLayout.addLayout(self.equal_split_layout)
-        self.horizontalLayout.addWidget(self.shibie_startbtn)
-        self.horizontalLayout.addWidget(self.shibie_stop)
+        self.horizontalLayout.addWidget(lable_out)
+        self.horizontalLayout.addWidget(self.out_format)
+        self.horizontalLayout.addStretch()
+
+        h4= QtWidgets.QHBoxLayout()
+
+
+
+        h4.addStretch()
+        h4.addWidget(self.is_cuda)
+        h4.addWidget(self.shibie_startbtn)
+        h4.addWidget(self.shibie_stop)
+
+        h4.addStretch()
+
         self.verticalLayout_3.addLayout(self.horizontalLayout)
+
 
         # 语音调整行
         # 语音识别高级行
@@ -188,6 +222,7 @@ class Ui_recogn(object):
 
 
         self.verticalLayout_3.addLayout(self.hfaster_layout)
+        self.verticalLayout_3.addLayout(h4)
 
 
         self.loglabel = QtWidgets.QPushButton()

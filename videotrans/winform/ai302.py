@@ -107,6 +107,5 @@ def openwin():
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.set_ai302.clicked.connect(save_ai302)
     winobj.test_ai302.clicked.connect(test)
-    winobj.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://302.ai"))
-    winobj.label_01.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
+    winobj.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
     winobj.show()

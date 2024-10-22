@@ -654,6 +654,10 @@ Translation:"""
         "doubao_appid": "",
         "doubao_access": "",
 
+        "volcenginetts_appid":"",
+        "volcenginetts_access":"",
+        "volcenginetts_cluster":"",
+
         "chattts_api": "",
 
         "app_mode": "biaozhun",

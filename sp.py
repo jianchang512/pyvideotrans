@@ -5,7 +5,7 @@ import sys, os
 import time
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QTimer, QPoint
+from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
 from PySide6.QtGui import QPixmap, QPalette, QBrush, QIcon, QGuiApplication
 
 from videotrans import VERSION
@@ -13,16 +13,12 @@ from videotrans import VERSION
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
-
-
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):
         super(StartWindow, self).__init__()
         self.width = 1200
         self.height = 700
-        # 设置窗口无边框和标题
         self.setWindowFlags(Qt.FramelessWindowHint)
-        # 设置窗口的背景图片
         palette = QPalette()
         palette.setBrush(QPalette.Window, QBrush(QPixmap("./videotrans/styles/logo.png")))
         self.setPalette(palette)
@@ -58,23 +54,29 @@ class StartWindow(QtWidgets.QWidget):
             app.setStyleSheet(f.read())
         try:
             from videotrans.mainwin._main_win import MainWindow
-            MainWindow(width=self.width, height=self.height)
+            sets=QSettings("pyvideotrans", "settings")
+            w,h=int(self.width*0.85), int(self.height*0.85)
+            size = sets.value("windowSize", QSize(w,h))
+            try:
+                w=size.width()
+                h=size.height()
+            except:
+                pass
+            mw=MainWindow(width=w, height=h)
+            mw.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
         except Exception as e:
             import traceback
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self,"Error",traceback.format_exc())
-           
+
         print(time.time())
         QTimer.singleShot(1000, lambda :self.close())
-
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
         screen_resolution = screen.geometry()
         self.width, self.height = screen_resolution.width(), screen_resolution.height()
         self.move(QPoint(int((self.width - 560) / 2), int((self.height - 350) / 2)))
-
-
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
@@ -84,7 +86,6 @@ if __name__ == "__main__":
         pass
 
     app = QtWidgets.QApplication(sys.argv)
-
     try:
         startwin = StartWindow()
     except Exception as e:

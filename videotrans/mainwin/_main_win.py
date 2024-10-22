@@ -4,7 +4,7 @@ import threading
 import time
 
 
-from PySide6.QtCore import Qt, QTimer, QPoint
+from PySide6.QtCore import Qt, QTimer, QSettings
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar
 
@@ -17,11 +17,11 @@ from videotrans.ui.en import Ui_MainWindow
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None, width=700, height=600):
+    def __init__(self, parent=None, width=1200, height=650):
         super(MainWindow, self).__init__(parent)
         self.width = width
         self.height = height
-        self.resize(min(1240,int(width*0.85)), min(650,int(height*0.8)))
+        self.resize(width, height)
         self.win_action = None
         self.moshis = None
         self.target_dir=None
@@ -73,6 +73,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['tts_type']=0
 
         self.tts_type.setCurrentIndex(config.params['tts_type'])
+        self.voice_role.clear()
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
             threading.Thread(target=tools.get_clone_role).start()
@@ -88,7 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
         elif config.params['tts_type'] == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
-            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
+            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['No'])
         elif config.params['tts_type'] == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No']+rolelist)
@@ -123,9 +124,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "tiqu": self.action_tiquzimu
         }
 
-        w = self.size().width()
-        h = self.size().height()
-        self.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
+
 
     def _bindsignal(self):
         try:
@@ -206,6 +205,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
 
+        self.bgmvolume.setText(str(config.settings.get('backaudio_volume',0.8)))
+        self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio',True)))
+
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
@@ -285,6 +287,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenaitts_key.triggered.connect(winform.openaitts.openwin)
         self.actionopenairecognapi_key.triggered.connect(winform.openairecognapi.openwin)
         self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
+        self.actiontts_volcengine.triggered.connect(winform.volcenginetts.openwin)
 
 
         self.actionyoutube.triggered.connect(winform.fn_youtube.openwin)
@@ -332,6 +335,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         config.exit_soft = True
         config.current_status='stop'
+
+        sets=QSettings("pyvideotrans", "settings")
+        sets.setValue("windowSize", self.size())
         self.hide()
         try:
             for w in config.child_forms.values():

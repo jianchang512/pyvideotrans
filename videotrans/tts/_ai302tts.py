@@ -24,7 +24,8 @@ class AI302(BaseTTS):
             self.api_url='https://api.302.ai/v1/audio/speech'
         self.proxies=None
         
-    def _exec(self):        
+    def _exec(self):
+        self.dub_nums=1
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):

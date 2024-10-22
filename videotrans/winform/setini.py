@@ -12,7 +12,7 @@ def openwin():
     winobj=None
     def save():
         # 创建一个空字典来存储结果
-        line_edit_dict = {}
+        line_edit_dict = config.settings
 
         # 遍历找到的所有QLineEdit控件
         for line_edit in winobj.findChildren(QLineEdit):

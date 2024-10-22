@@ -37,6 +37,7 @@ class SpeechToText(BaseTask):
 
     def __init__(self, cfg: Dict = None, obj: Dict = None):
         super().__init__(cfg, obj)
+        self.out_format=cfg.get('out_format','srt')
         self.shoud_recogn = True
         # 存放目标文件夹
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
@@ -101,6 +102,9 @@ class SpeechToText(BaseTask):
             return
         self._signal(text=f"{self.cfg['name']}", type='succeed')
         tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
+        if self.out_format !='srt':
+            tools.runffmpeg(['-y', '-i',  self.cfg['target_sub'],  self.cfg['target_sub'][:-3]+self.out_format])
+            Path(self.cfg['target_sub']).unlink(missing_ok=True)
 
         if 'shound_del_name' in self.cfg:
             Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
