@@ -89,8 +89,7 @@ class CosyVoice(BaseTTS):
 
             if response.status_code != 200:
                 # 如果是JSON数据，使用json()方法解析
-                data = response.json()
-                self.error = f"CosyVoice 返回错误信息-1:{data['msg']}"
+                self.error = f"CosyVoice 返回错误信息 status_code={response.status_code} {response.reason}:{response.text}"
                 return
 
             # 如果是WAV音频流，获取原始音频数据

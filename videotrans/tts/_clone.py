@@ -45,6 +45,9 @@ class CloneVoice(BaseTTS):
                 files = {"audio": open(data_item['filename'], 'rb')}
             res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,
                                 timeout=3600)
+            if res.status_code != 200:
+                self.error = f'clonevoice: status_code={res.status_code} {res.reason} '
+                return
 
             config.logger.info(f'clone-voice:{data=},{res.text=}')
             res = res.json()
@@ -60,9 +63,6 @@ class CloneVoice(BaseTTS):
                 return
 
             resb = requests.get(res['url'],proxies=self.proxies)
-            if resb.status_code != 200:
-                self.error = f'clonevoice:{res["url"]=}'
-                return
             config.logger.info(f'clone-voice:resb={resb.status_code=}')
 
             with open(data_item['filename'] + ".wav", 'wb') as f:

@@ -126,4 +126,4 @@ class Ui_sttform(object):
 
         self.stt_url.setPlaceholderText('Api url')
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
-        self.test.setText('测试连通性' if config.defaulelang == 'zh' else 'Test')
+        self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')

@@ -629,6 +629,8 @@ Translation:"""
         "stt_url": "",
         "stt_model": "tiny",
 
+        "sense_url":"",
+
         "ttsapi_url": "",
         "ttsapi_voice_role": "",
         "ttsapi_extra": "pyvideotrans",

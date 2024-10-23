@@ -19,6 +19,7 @@ class LocalLLM(BaseTrans):
         self._check_proxy()
         if not self.api_url:
             raise Exception('必须填写api url')
+        self.model_name=config.params["localllm_model"] 
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):

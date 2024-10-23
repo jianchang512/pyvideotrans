@@ -15,6 +15,7 @@ class AI302(BaseTrans):
         super().__init__(**kwargs)
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='ai302',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self.model_name=config.params['ai302_model']
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         payload = {
@@ -34,7 +35,7 @@ class AI302(BaseTrans):
             }, json=payload, verify=False, proxies=self.proxies)
         config.logger.info(f'[302.ai]响应:{response.text=}')
         if response.status_code != 200:
-            raise Exception(f'{response.status_code=}')
+            raise Exception(f'status_code={response.status_code} {response.reason}')
         res = response.json()
         if res['choices']:
             result = res['choices'][0]['message']['content']

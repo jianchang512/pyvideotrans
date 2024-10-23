@@ -17,6 +17,7 @@ DOUBAO_API = 4
 CUSTOM_API = 5
 OPENAI_API = 6
 STT_API = 7
+SENSEVOICE_API = 8
 
 RECOGN_NAME_LIST = [
     'faster-whisper本地' if config.defaulelang == 'zh' else 'faster-whisper',
@@ -27,6 +28,7 @@ RECOGN_NAME_LIST = [
     "自定义识别API" if config.defaulelang == 'zh' else "Custom Recognition API",
     "OpenAI识别API" if config.defaulelang == 'zh' else "OpenAI Speech API",
     "Stt语音识别API" if config.defaulelang == 'zh' else "Stt Speech API",
+    "SenseVoice本地" if config.defaulelang == 'zh' else "SenseVoice",
 ]
 
 
@@ -36,6 +38,9 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None):
 
     if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
+
+    if recogn_type == SENSEVOICE_API and langcode[:2] not in ["zh", "en", "ja", "ko"]:
+        return 'SenseVoice语音识别仅支持中/英/日/韩语言，其他不支持'
 
     return True
 
@@ -72,7 +77,7 @@ def check_model_name(recogn_type=0, name='',source_language_isLast=False,source_
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win
+    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,senseapi as sense_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -83,6 +88,11 @@ def is_input_api(recogn_type: int = None,return_str=False):
         if return_str:
             return "Please configure the api and key information of the ZH_RECOGN channel first."
         zh_recogn_win.openwin()
+        return False
+    if recogn_type == SENSEVOICE_API and not config.params['sense_url']:
+        if return_str:
+            return "Please configure the api url information of the SenseVoice channel first."
+        sense_win.openwin()
         return False
 
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
@@ -153,8 +163,12 @@ def run(*,
     if recogn_type == OPENAI_API:
         from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
+    if recogn_type==SENSEVOICE_API:
+        from ._sense import SenseVoiceAPIRecogn
+        return SenseVoiceAPIRecogn(**kwargs).run()
     if split_type == 'avg':
         from ._average import FasterAvg
         return FasterAvg(**kwargs).run()
+
     from ._overall import FasterAll
     return FasterAll(**kwargs).run()

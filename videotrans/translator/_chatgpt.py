@@ -22,6 +22,7 @@ class ChatGPT(BaseTrans):
         # 是srt则获取srt的提示词
         self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language)
         self._check_proxy()
+        self.model_name=config.params["chatgpt_model"]
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):

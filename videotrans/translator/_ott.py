@@ -29,7 +29,7 @@ class OTT(BaseTrans):
         }
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
         if response.status_code != 200:
-            raise Exception(f'{response.status_code=}')
+            raise Exception(f'status_code={response.status_code} {response.reason}')
         result = response.json()
         if "error" in result:
             raise Exception(f'{result=}')

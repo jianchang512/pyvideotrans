@@ -6,4 +6,4 @@ from . import  baidu, ai302, ai302tts, fn_audiofromvideo, azure, azuretts, chatg
     fn_youtube, \
     zh_recogn, zijiehuoshan, fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi,sttapi, \
     openairecognapi, \
-    fn_subtitlescover, fn_editer,volcenginetts
+    fn_subtitlescover, fn_editer,volcenginetts,senseapi

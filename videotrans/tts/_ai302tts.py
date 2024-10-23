@@ -65,7 +65,7 @@ class AI302(BaseTTS):
             "speed": speed
         }, verify=False,proxies=self.proxies)
         if response.status_code != 200:
-            self.error = f"{response.status_code=}"
+            self.error = f"status_code={response.status_code} {response.reason}"
             return
         with open(data['filename'], 'wb') as f:
             f.write(response.content)
@@ -97,7 +97,7 @@ class AI302(BaseTTS):
                                  data=ssml.encode('utf-8'),
                                  verify=False,proxies=self.proxies)
         if response.status_code != 200:
-            self.error = f'{response.status_code=}'
+            self.error = f'status_code={response.status_code} {response.reason}'
             return
         # wav 需转为mp3
         with open(data['filename'] + ".wav", 'wb') as f:
@@ -132,7 +132,7 @@ class AI302(BaseTTS):
             'Content-Type': 'application/json'
         }, json=payload, verify=False,proxies=self.proxies)
         if response.status_code != 200:
-            self.error = f'{response.status_code=}'
+            self.error = f'status_code={response.status_code} {response.reason}'
             return
         res = response.json()
         if res['code'] != 3000:

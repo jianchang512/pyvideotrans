@@ -280,6 +280,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionzhrecogn_api.triggered.connect(winform.zh_recogn.openwin)
         self.actionrecognapi.triggered.connect(winform.recognapi.openwin)
         self.actionsttapi.triggered.connect(winform.sttapi.openwin)
+        self.actionsenseapi.triggered.connect(winform.senseapi.openwin)
         self.actiondoubao_api.triggered.connect(winform.doubao.openwin)
         self.actiontrans_api.triggered.connect(winform.transapi.openwin)
         self.actiontts_gptsovits.triggered.connect(winform.gptsovits.openwin)
@@ -329,7 +330,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
-
         self.rightbottom.clicked.connect(self.win_action.about)
 
     def closeEvent(self, event):
