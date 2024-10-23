@@ -192,10 +192,9 @@ class TransCreate(BaseTask):
                 f"{self.cfg['target_dir']}/auto.m4a").exists():
             Path(f"{self.cfg['target_dir']}/auto.m4a").rename(self.cfg['source_wav'])
         # 是否需要语音识别:只要不存在原始语言字幕文件就需要识别
-        if not Path(self.cfg['source_sub']).exists():
-            self.shoud_recogn = True
-            # 作为识别音频
-            self.cfg['shibie_audio'] = f"{self.cfg['target_dir']}/shibie.wav"
+        self.shoud_recogn = True
+        # 作为识别音频
+        self.cfg['shibie_audio'] = f"{self.cfg['target_dir']}/shibie.wav"
 
         # 目标语言代码
         target_code = self.cfg['target_language'] if self.cfg[
@@ -212,7 +211,7 @@ class TransCreate(BaseTask):
 
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
         if self.cfg['target_language_code'] and self.cfg['target_language_code'] != self.cfg[
-            'source_language_code'] and not Path(self.cfg['target_sub']).exists():
+            'source_language_code']:
             self.shoud_trans = True
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
@@ -322,7 +321,6 @@ class TransCreate(BaseTask):
             )
             return
         try:
-            # todo
             # 开始翻译,从目标文件夹读取原始字幕
             rawsrt = tools.get_subtitle_from_srt(self.cfg['source_sub'], is_file=True)
             self.status_text = config.transobj['kaishitiquhefanyi']

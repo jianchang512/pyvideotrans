@@ -35,6 +35,7 @@ from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
 from videotrans.ui.stt import Ui_sttform
+from videotrans.ui.sense import Ui_senseform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
@@ -124,6 +125,12 @@ class RecognAPIForm(QDialog, Ui_recognapiform):  # <===
 class SttAPIForm(QDialog, Ui_sttform):  # <===
     def __init__(self, parent=None):
         super(SttAPIForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class SenseVoiceAPIForm(QDialog, Ui_senseform):  # <===
+    def __init__(self, parent=None):
+        super(SenseVoiceAPIForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

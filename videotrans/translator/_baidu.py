@@ -28,6 +28,8 @@ class Baidu(BaseTrans):
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
         resraw = requests.get(requrl, proxies={"http": "", "https": ""})
+        if resraw.status_code != 200:
+            raise Exception(f'Baidu status_code={resraw.status_code} {resraw.reason}')
         res = resraw.json()
         config.logger.info(f'[Baidu]返回响应:{res=}')
 

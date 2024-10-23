@@ -33,6 +33,9 @@ class ChatTTS(BaseTTS):
         try:
             data = {"text": data_item['text'].strip(), "voice": data_item['role'], 'prompt': '', 'is_split': 1}
             res = requests.post(f"{self.api_url}/tts", data=data, proxies=self.proxies, timeout=3600)
+            if res.status_code != 200:
+                self.error = f'ChatTTS:{res.status_code} {res.reason}'
+                return
             config.logger.info(f'chatTTS:{data=}')
             res = res.json()
             if res is None:

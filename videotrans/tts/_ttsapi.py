@@ -47,6 +47,9 @@ class TTSAPI(BaseTTS):
             }
             config.logger.info(f'发送数据 {data=}')
             resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers,proxies=None)
+            if resraw.status_code != 200:
+                self.error = f'TTS-API:{resraw.status_code} {resraw.reason}'
+                return
             res = resraw.json()
             config.logger.info(f'返回数据 {res=}')
             if "code" not in res or "msg" not in res:

@@ -240,6 +240,8 @@ def openwin():
             QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
         if check_model_name(recogn_type,winobj.shibie_model.currentText()) is not True:
             return
+        if is_input_api(recogn_type=recogn_type) is not True:
+            return
 
 
     def stop_recogn():

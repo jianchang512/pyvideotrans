@@ -137,9 +137,13 @@ class WinAction(WinActionSub):
                 self.main.source_language.setCurrentIndex(0)
 
         lang = translator.get_code(show_text=self.main.source_language.currentText())
+
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type)
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
+            return
+        if recognition.is_input_api(recogn_type=recogn_type) is not True:
+            return
         if recogn_type>0:
             tools.hide_show_element(self.main.hfaster_layout, False)
             tools.hide_show_element(self.main.equal_split_layout, False)

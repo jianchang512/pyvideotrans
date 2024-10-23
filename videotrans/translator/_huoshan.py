@@ -16,7 +16,7 @@ class HuoShan(BaseTrans):
         super().__init__(*args, **kwargs)
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language)
-
+        self.model_name=config.params["zijiehuoshan_model"] 
     def _item_task(self, data: Union[List[str], str]) -> str:
         message = [
             {'role': 'system',
@@ -38,6 +38,8 @@ class HuoShan(BaseTrans):
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {config.params['zijiehuoshan_key']}"
                 })
+            if resp.status_code!=200:
+                raise Exception(f'字节火山引擎请求失败: status_code={resp.status_code} {resp.reason}')
             config.logger.info(f'[字节火山引擎]响应:{resp.text=}')
             data = resp.json()
             if 'choices' not in data or len(data['choices']) < 1:

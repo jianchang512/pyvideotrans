@@ -50,7 +50,7 @@ class FishTTS(BaseTTS):
             config.logger.info(f'fishTTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:
-                self.error = response.json()
+                self.error = f'status_code={response.status_code} {response.reason} {response.text}'
                 return
 
             # 如果是WAV音频流，获取原始音频数据

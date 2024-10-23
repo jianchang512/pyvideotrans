@@ -41,6 +41,8 @@ class DeepLX(BaseTrans):
         }
         config.logger.info(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
+        if response.status_code != 200:
+            raise Exception(f'DeepLx: status_code={response.status_code} {response.reason} {response.text}')
         config.logger.info(f'[DeepLX]返回响应,{response.text=}')
         try:
             result = response.json()
@@ -48,5 +50,5 @@ class DeepLX(BaseTrans):
         except json.JSONDecoder:
             raise Exception(f'无有效返回:{response.text=}')
         except Exception as e:
-            raise Exception(f'无有效返回:{response.text=}')
+            raise Exception(f'无有效返回 {response.status_code} {response.reason}:{response.text=} ')
         return result

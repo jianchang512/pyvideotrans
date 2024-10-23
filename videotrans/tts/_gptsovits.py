@@ -75,6 +75,9 @@ class GPTSoVITS(BaseTTS):
             config.logger.info(f'GPT-SoVITS post:{data=}\n{self.api_url=}')
             # 克隆声音
             response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
+            if response.status_code != 200:
+                self.error = f'GPT-SoVITS合成声音失败: status_code={response.status_code} {response.reason} {response.text}'
+                return
             # 获取响应头中的Content-Type
             content_type = response.headers.get('Content-Type')
 

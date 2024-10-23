@@ -53,6 +53,7 @@ class BaseTrans(BaseCon):
         # 整理待翻译的文字为 List[str]
         self.split_source_text = []
         self.proxies = None
+        self.model_name=""
 
     # 发出请求获取内容 data=[text1,text2,text] | text
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -258,4 +259,4 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         return tools.get_md5(
-            f'{self.__class__.__name__}-{self.source_code}-{self.target_language}-{it if isinstance(it, str) else json.dumps(it)}')
+            f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_language}-{it if isinstance(it, str) else json.dumps(it)}')

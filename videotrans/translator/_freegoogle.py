@@ -40,7 +40,7 @@ class FreeGoogle(BaseTrans):
             time.sleep(random.randint(1, 5))
             return self._item_task_srt(data)
         if response.status_code != 200:
-            raise Exception(f'{response.status_code=},{response.reason=}')
+            raise Exception(f'status_code={response.status_code},{response.reason}')
 
         re_result=re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<',response.text)
         if not re_result or len(re_result.groups())<1:
@@ -63,7 +63,7 @@ class FreeGoogle(BaseTrans):
             time.sleep(random.randint(1, 5))
             return self._item_task(data)
         if response.status_code != 200:
-            raise Exception(f'{response.status_code=},{response.reason=}')
+            raise Exception(f'status_code={response.status_code},{response.reason}')
 
         re_result = response.json()
         if len(re_result[0]) < 1:
