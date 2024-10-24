@@ -32,6 +32,7 @@ _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
 
 TEMP_DIR = _temp_path.as_posix()
+Path(TEMP_DIR+'/dubbing_cache').mkdir(exist_ok=True)
 
 # 日志目录 logs
 _logs_path = _root_path / "logs"
@@ -255,6 +256,7 @@ def parse_init():
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "audio_rate": 3,
         "video_rate": 20,
+        "video_goback":50,
         "remove_silence": False,
         "remove_srt_silence": False,
         "remove_white_ms": 0,
@@ -652,6 +654,10 @@ Translation:"""
 
         "fishtts_url": "",
         "fishtts_role": "",
+        
+        "f5tts_url": "",
+        "f5tts_model": "",
+        "f5tts_role": "",
 
         "doubao_appid": "",
         "doubao_access": "",

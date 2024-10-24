@@ -53,6 +53,7 @@ from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.zh_recogn import Ui_zhrecognform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
+from videotrans.ui.f5tts import Ui_f5ttsform
 
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -167,6 +168,11 @@ class CosyVoiceForm(QDialog, Ui_cosyvoiceform):  # <===
 class FishTTSForm(QDialog, Ui_fishttsform):  # <===
     def __init__(self, parent=None):
         super(FishTTSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class F5TTSForm(QDialog, Ui_f5ttsform):  # <===
+    def __init__(self, parent=None):
+        super(F5TTSForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

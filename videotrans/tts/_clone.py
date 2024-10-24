@@ -47,6 +47,7 @@ class CloneVoice(BaseTTS):
                                 timeout=3600)
             if res.status_code != 200:
                 self.error = f'clonevoice: status_code={res.status_code} {res.reason} '
+                Path(data_item['filename']).unlink(missing_ok=True)
                 return
 
             config.logger.info(f'clone-voice:{data=},{res.text=}')
@@ -75,6 +76,7 @@ class CloneVoice(BaseTTS):
             self.error = ''
             self.has_done += 1
         except Exception as e:
+            Path(data_item['filename']).unlink(missing_ok=True)
             self.error = str(e)
             config.logger.exception(e, exc_info=True)
         finally:

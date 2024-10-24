@@ -143,6 +143,7 @@ class Ui_setini(object):
             "justify": {
                 "audio_rate": "音频最大加速倍数，默认3，即最大加速到 3倍速度，需设置1-100的数字，比如3，代表最大加速3倍",
                 "video_rate": "视频慢速倍数：大于1的数，代表最大允许慢速多少倍，0或1代表不进行视频慢放",
+                "video_goback":"视频补偿延长毫秒(由于ffmpeg精度问题，随着时长延长，视频可能愈发落后于配音，可在此设置补偿)",
                 "remove_silence": "是否移除配音末尾空白",
                 "remove_srt_silence": "是否移除原始字幕时长大于配音时长 的静音，比如原时长5s，配音后3s，是否移除这2s静音",
                 "remove_white_ms": "移除2条字幕间的静音长度ms，比如100ms，即如果两条字幕间的间隔大于100ms时，将移除100ms, -1=完全移除",
@@ -219,6 +220,7 @@ class Ui_setini(object):
             "model_list": "faster和openai的模型列表",
             "audio_rate": "音频最大加速倍数",
             "video_rate": "视频慢速倍数",
+            "video_goback":"视频慢速时额外延长毫秒",
             "remove_silence": "移除配音末尾空白",
             "remove_srt_silence": "移除字幕时长大于配音时长",
             "remove_white_ms": "移除2条字幕间的静音长度",
@@ -359,6 +361,7 @@ class Ui_setini(object):
                 "justify": {
                     "audio_rate": "Maximum audio speed multiplier, default is 3, which means a maximum speed of 3 times, should be a number between 1 and 100, e.g., 3 represents a maximum speed of 3 times",
                     "video_rate": "Video slow motion multiplier: a number greater than 1 represents the maximum allowable slow motion, 0 or 1 means no slow motion",
+                    "video_goback":"When video slow motion multiplier, extra add ms",
                     "remove_silence": "Whether to remove silence at the end of the dubbing",
                     "remove_srt_silence": "Whether to remove silence when the original subtitle duration is longer than the dubbing duration, e.g., the original duration is 5s, and the dubbing is 3s, should the 2s silence be removed",
                     "remove_white_ms": "Silence length in ms between two subtitles to be removed, e.g., 100ms, if the interval between two subtitles is greater than 100ms, 100ms will be removed, -1 = remove completely",
@@ -448,6 +451,7 @@ class Ui_setini(object):
                 "audio_rate": "Maximum Audio Speed Multiplier",
                 "rephrase":"faster/openai-whisper rephrase",
                 "video_rate": "Video Slow Motion Multiplier",
+                "video_goback":"When video slow motion multiplier, extra add ms",
                 "remove_silence": "Remove End Silence in Dubbing",
                 "remove_srt_silence": "Remove Silence Exceeding Dubbing Duration",
                 "remove_white_ms": "Remove Silence Between Subtitles",

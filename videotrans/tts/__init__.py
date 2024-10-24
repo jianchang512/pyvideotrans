@@ -16,6 +16,7 @@ ELEVENLABS_TTS = 9
 GOOGLE_TTS = 10
 TTS_API = 11
 VOLCENGINE_TTS = 12
+F5_TTS = 13
 
 TTS_NAME_LIST = [
     "Edge-TTS",
@@ -31,6 +32,7 @@ TTS_NAME_LIST = [
     "Google TTS",
     "自定义TTS API" if config.defaulelang == 'zh' else 'Customize API',
     "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
+    "F5-TTS"
 ]
 
 
@@ -53,6 +55,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id']:
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
+    if tts_type == F5_TTS and  langcode[:2] not in ['zh', 'en']:
+        return 'F5-TTS语音合成 仅支持中、英语言配音' if config.defaulelang == 'zh' else 'F5-TTS only supports Chinese, English'
 
     return True
 
@@ -126,6 +130,12 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  volcenginetts as volcengine_win
         volcengine_win.openwin()
         return False
+    if tts_type == F5_TTS and (not config.params['f5tts_url'] or not config.params['f5tts_model']):
+        if return_str:
+            return "Please configure the api and key information of the VolcEngine F5-TTS channel first."
+        from videotrans.winform import  f5tts as f5tts_win
+        f5_win.openwin()
+        return False
     return True
 
 
@@ -183,3 +193,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == VOLCENGINE_TTS:
         from videotrans.tts._volcengine import VolcEngineTTS
         VolcEngineTTS(**kwargs).run()
+    elif tts_type == F5_TTS:
+        from videotrans.tts._f5tts import F5TTS
+        F5TTS(**kwargs).run()

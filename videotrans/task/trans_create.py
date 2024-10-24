@@ -15,7 +15,7 @@ from videotrans import translator
 from videotrans.configure import config
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans, get_audio_code
-from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS
+from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS
 from videotrans.util import tools
 from ._base import BaseTask
 from ._rate import SpeedRate
@@ -545,6 +545,7 @@ class TransCreate(BaseTask):
         queue_tts = []
         # 获取字幕 可能之前写入尚未释放，暂停1s等待并重试一次
         subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
+        source_subs = tools.get_subtitle_from_srt(self.cfg['source_sub'])
         if len(subs) < 1:
             raise Exception(f"字幕格式不正确，请打开查看:{self.cfg['target_sub']}")
         try:
@@ -568,6 +569,7 @@ class TransCreate(BaseTask):
 
             tmp_dict = {
                 "text": it['text'],
+                "ref_text": source_subs[i]['text'] if source_subs and i<len(source_subs) else '',
                 "role": voice_role,
                 "start_time": it['start_time'],
                 "end_time": it['end_time'],
@@ -581,7 +583,7 @@ class TransCreate(BaseTask):
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
-            if self.cfg['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS] and voice_role == 'clone':
+            if self.cfg['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS,F5_TTS] and voice_role == 'clone':
                 if self.cfg['is_separate'] and not tools.vail_file(self.cfg['vocal']):
                     raise Exception(
                         f"背景分离出错,请使用其他角色名" if config.defaulelang == 'zh' else 'Background separation error, please use another character name.')
