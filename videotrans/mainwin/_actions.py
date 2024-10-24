@@ -229,7 +229,13 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['FishTTS']
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.F5_TTS:
+            rolelist = tools.get_f5tts_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = ['clone']+list(rolelist.keys()) if rolelist else ['clone']
+            self.main.voice_role.addItems(self.main.current_rolelist)
 
+    
     # 目标语言改变时设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
@@ -572,9 +578,7 @@ class WinAction(WinActionSub):
             task.start()
             if self.cfg['target_language'] !='-' and self.cfg['target_language'] != self.cfg['source_language']:
                 if not self.main.isMaximized():
-                    w=self.main.size().width()+150
-                    h=self.main.size().height()
-                    self.main.resize(w,h)
+                    self.main.showMaximized()
 
                 self.main.target_subtitle_area.setMinimumWidth(200)
                 self.main.target_subtitle_area.setVisible(True)
@@ -795,7 +799,7 @@ class WinAction(WinActionSub):
             self.main.start_subform()
         elif d['type'] =='refreshtts':
             currentIndex=self.main.tts_type.currentIndex()
-            if currentIndex  in [tts.GPTSOVITS_TTS,tts.COSYVOICE_TTS,tts.FISHTTS,tts.CHATTTS,tts.CLONE_VOICE_TTS]:
+            if currentIndex  in [tts.GPTSOVITS_TTS,tts.COSYVOICE_TTS,tts.FISHTTS,tts.CHATTTS,tts.CLONE_VOICE_TTS,tts.F5_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
 

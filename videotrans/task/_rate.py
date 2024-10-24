@@ -219,6 +219,7 @@ class SpeedRate:
         # 获取视频时长
         length = len(self.queue_tts)
         max_pts = int(float(config.settings.get('video_rate',1)))
+        extra_video_goback=int(config.settings.get('video_goback',0))
         # 按照原始字幕截取
         for i, it in enumerate(self.queue_tts):
             jindu = f'{i + 1}/{length}'
@@ -253,7 +254,7 @@ class SpeedRate:
                 # 是否需要延长视频
                 pts = ""
                 if it['video_extend'] > 0 and duration>0:
-                    pts = round((it['video_extend'] + duration) / duration, 2)
+                    pts = round((it['video_extend'] + duration+extra_video_goback) / duration, 3)
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
@@ -295,7 +296,7 @@ class SpeedRate:
                 pts = ""
                 duration = it['end_time_source'] - st_time
                 if it['video_extend'] > 0 and duration>0:
-                    pts = round((it['video_extend'] + duration) / duration, 2)
+                    pts = round((it['video_extend'] + duration+extra_video_goback) / duration, 3)
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration

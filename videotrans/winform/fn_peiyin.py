@@ -13,8 +13,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, CHATTTS, \
-    GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS
 from videotrans.util import tools
 
 
@@ -167,9 +166,9 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
         langcode = translator.get_code(show_text=language)
 
-        if language == '-' or role == 'No':
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        config.transobj['yuyanjuesebixuan'])
+        if language == '-' or role in ['No','-','']:
+            return QMessageBox.critical(winobj, config.transobj['anerror'],config.transobj['yuyanjuesebixuan'])
+                                        
         if is_input_api(tts_type=tts_type) is not True:
             return False
 
@@ -297,6 +296,10 @@ def openwin():
             rolelist = tools.get_fishtts_role()
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
+        elif type == F5_TTS:
+            rolelist = tools.get_f5tts_role()
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):

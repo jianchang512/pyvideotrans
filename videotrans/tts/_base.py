@@ -78,6 +78,7 @@ class BaseTTS(BaseCon):
     # 若捕获到异常，则直接抛出  出错时发送停止信号
     def run(self) -> None:
         self._signal(text="")
+        
         try:
             self._exec()
         except IPLimitExceeded as e:
@@ -121,7 +122,7 @@ class BaseTTS(BaseCon):
             for it in self.queue_tts:
                 if tools.vail_file(it['filename']):
                     tools.remove_silence_from_end(it['filename'])
-
+        print(f'{err=},{len(self.queue_tts)=}')
     # 实际业务逻辑 子类实现 在此创建线程池，或单线程时直接创建逻辑
     # 抛出异常则停止
     def _exec(self) -> None:
@@ -139,46 +140,22 @@ class BaseTTS(BaseCon):
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
-        # if self.api_url:
-        #     requests.get(self.api_url, proxies=self.proxies)
-
         # 单个无需线程池
         if self.len == 1:
             self._item_task(self.queue_tts[0])
             return
-        # 出错重试一次
-        for i in range(2):
-            if self._exit():
-                return
-            all_task = []
-            if self.dub_nums==1:
-                for k, item in enumerate(self.queue_tts):
-                    self._item_task(item)
-                    time.sleep(self.wait_sec)
-            else:
-                with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
-                    for k, item in enumerate(self.queue_tts):
-                        all_task.append(pool.submit(self._item_task, item))
-                    _ = [i.result() for i in all_task]
 
-            err_num = 0
-            for it in self.queue_tts:
-                if it['text'].strip() and not tools.vail_file(it['filename']):
-                    err_num += 1
-            # 有错误则降低并发，重试
-            # 如果全部出错，则直接停止，不再重试
-            if err_num >= self.len:
-                break
-            if err_num > 0:
-                config.logger.error(f'存在失败的配音，重试')
-                self.copydata = copy.deepcopy(self.queue_tts)
-                self.dub_nums = 1
-                self.has_done = 0
-                self._signal(
-                    text=f'存在失败配音，尝试重试' if config.defaulelang == 'zh' else 'Failed dubbing exists, try retrying')
-                time.sleep(5)
-            else:
-                break
+        all_task = []
+        if self.dub_nums==1:
+            for k, item in enumerate(self.queue_tts):
+                self._item_task(item)
+                time.sleep(self.wait_sec)
+        else:
+            with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
+                for k, item in enumerate(self.queue_tts):
+                    all_task.append(pool.submit(self._item_task, item))
+                _ = [i.result() for i in all_task]
+
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
         if not encoded_str:

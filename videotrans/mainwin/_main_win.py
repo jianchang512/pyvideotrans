@@ -87,6 +87,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
+        elif config.params['tts_type'] == tts.F5_TTS:
+            rolelist = tools.get_f5tts_role()
+            self.voice_role.addItems(['clone']+list(rolelist.keys()) if rolelist else ['clone'])
         elif config.params['tts_type'] == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['No'])
@@ -288,6 +291,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenaitts_key.triggered.connect(winform.openaitts.openwin)
         self.actionopenairecognapi_key.triggered.connect(winform.openairecognapi.openwin)
         self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
+        self.actiontts_f5tts.triggered.connect(winform.f5tts.openwin)
         self.actiontts_volcengine.triggered.connect(winform.volcenginetts.openwin)
 
 

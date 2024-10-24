@@ -28,7 +28,7 @@ class CosyVoice(BaseTTS):
     def _item_task(self, data_item: dict = None):
         if self._exit():
             return
-        if not data_item or (data_item['role'] !='clone' and tools.vail_file(data_item['filename'])):
+        if not data_item:
             return
         try:
             text = data_item['text'].strip()
@@ -51,8 +51,7 @@ class CosyVoice(BaseTTS):
                     data['speaker'] = '中文女'
                 elif role in rolelist:
                     tmp = rolelist[role]
-                    data['speaker'] = tmp if isinstance(tmp, str) or 'reference_audio' not in tmp else tmp[
-                        'reference_audio']
+                    data['speaker'] = tmp if isinstance(tmp, str) or 'reference_audio' not in tmp else tmp['reference_audio']
                 else:
                     data['speaker'] = '中文女'
 
@@ -90,6 +89,7 @@ class CosyVoice(BaseTTS):
             if response.status_code != 200:
                 # 如果是JSON数据，使用json()方法解析
                 self.error = f"CosyVoice 返回错误信息 status_code={response.status_code} {response.reason}:{response.text}"
+                Path(data_item['filename']).unlink(missing_ok=True)
                 return
 
             # 如果是WAV音频流，获取原始音频数据
@@ -106,10 +106,8 @@ class CosyVoice(BaseTTS):
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
-        except json.JSONDecoder as e:
-            self.error = response.text
-            config.logger.exception(e, exc_info=True)
         except Exception as e:
+            Path(data_item['filename']).unlink(missing_ok=True)
             self.error = str(e)
             config.logger.exception(e, exc_info=True)
         finally:

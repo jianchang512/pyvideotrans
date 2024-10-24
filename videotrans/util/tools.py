@@ -75,6 +75,17 @@ def get_fishtts_role():
             continue
         rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
     return rolelist
+    
+def get_f5tts_role():
+    if not config.params['f5tts_role'].strip():
+        return
+    rolelist = {}
+    for it in config.params['f5tts_role'].strip().split("\n"):
+        tmp = it.strip().split('#')
+        if len(tmp) != 2:
+            continue
+        rolelist[tmp[0]] = {"ref_audio": tmp[0], "ref_text": tmp[1]}
+    return rolelist
 
 
 def pygameaudio(filepath):
