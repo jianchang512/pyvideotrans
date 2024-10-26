@@ -176,7 +176,7 @@ def openwin(model_name=None, recogn_type=None):
         winobj.text_help.setPlainText(text_help)
         winobj.down_btn.clicked.connect(lambda: tools.open_url(url=url))
         winobj.online_btn.clicked.connect(start_down)
-        if config.params['proxy']:
+        if 'proxy' in config.params and config.params['proxy']:
             winobj.proxy.setText(config.params['proxy'])
         winobj.show()
     except Exception as e:
