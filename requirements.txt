@@ -6,12 +6,11 @@ elevenlabs
 google-ai-generativelanguage
 google-generativeai
 gtts
-httpx==0.25.1
-huggingface-hub==0.17.3
+httpx
+huggingface-hub
 librosa
 multidict
 numpy==1.26.4
-nltk
 onnxruntime
 openai
 openai-whisper
@@ -39,4 +38,8 @@ flask
 waitress
 srt
 py7zr
+deepgram-sdk
+deepgram-captions
+funasr
+modelscope
 samplerate

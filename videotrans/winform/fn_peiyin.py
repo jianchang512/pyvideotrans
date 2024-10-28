@@ -86,8 +86,9 @@ def openwin():
             winobj.has_done = True
             winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
             winobj.hecheng_startbtn.setDisabled(False)
-            winobj.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text'][:150])
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
+            winobj.loglabel.setCursor(Qt.PointingHandCursor)
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
@@ -370,8 +371,9 @@ def openwin():
         if len(fnames) > 0:
             config.params['last_opendir'] = os.path.dirname(fnames[0])
             winobj.hecheng_files = fnames
-            winobj.hecheng_importbtn.setText(
-                f'导入{len(fnames)}个srt文件 \n{",".join(namestr)}' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles \n{",".join(namestr)}')
+            file_str= f'导入{len(fnames)}个srt文件 \n' if config.defaulelang == 'zh' else f'Import {len(fnames)} Subtitles \n'
+            file_str+=("\n".join(namestr))
+            winobj.hecheng_importbtn.setText(file_str)
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))

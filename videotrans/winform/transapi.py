@@ -16,10 +16,10 @@ def openwin():
         def run(self):
 
             try:
-                raw = "你好啊我的朋友" if config.defaulelang != 'zh' else "hello,my friend"
+                raw = "你好啊我的朋友"
                 text = translator.run(translate_type=translator.TRANSAPI_INDEX, text_list=raw,
-                                      source_code='zh-cn' if config.defaulelang != 'zh' else "en",
-                                      target_language_name="en" if config.defaulelang != 'zh' else "zh", is_test=True)
+                                      source_code='zh-cn',
+                                      target_language_name="en", is_test=True)
                 self.uito.emit(f"ok:{raw}\n{str(text)}")
             except Exception as e:
                 self.uito.emit(str(e))

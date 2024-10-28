@@ -130,7 +130,7 @@ else:
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
-
+os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 ####################################
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
@@ -245,7 +245,7 @@ def parse_init():
         "cuda_qp": False,
         "preset": "slow",
         "ffmpeg_cmd": "",
-        "aisendsrt":"false",
+        "aisendsrt":False,
         "video_codec": 264,
         "openaitts_model": "tts-1,tts-1-hd",
         "openairecognapi_model": "whisper-1",
@@ -322,7 +322,7 @@ def parse_init():
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
         "subtitle_bottom": 10,
-        "cjk_len": 24,
+        "cjk_len": 20,
         "other_len": 60,
         "gemini_model": "gemini-1.5-pro,gemini-pro,gemini-1.5-flash",
         "zh_hant_s": True,
@@ -674,6 +674,10 @@ Translation:"""
         "stt_recogn_type":0,
         "stt_model_name":0,
 
+        "deepgram_apikey":"",
+        "deepgram_model":"whisper-large",
+        "deepgram_utt":200,
+
         "trans_translate_type":0,
         "trans_source_language":0,
         "trans_target_language":1,
@@ -718,3 +722,282 @@ Translation:"""
 
 # api key 翻译配置等信息，每次执行任务均有变化
 params = getset_params()
+
+
+explames={
+    "zh-cn":"""1
+00:00:01,950 --> 00:00:04,410
+古老星系中发现了有机分子.
+
+2
+00:00:04,880 --> 00:00:06,780
+我们离第三类接触还有多远。
+
+3
+00:00:07,260 --> 00:00:09,880
+韦伯正式展开拍摄任务已经届满周年。""",
+    "zh-tw":"""1
+00:00:01,950 --> 00:00:04,410
+在古代星系中發現的有機分子。
+
+2
+00:00:04,880 --> 00:00:06,780
+我們距離 III 型接觸還有多遠。
+
+3
+00:00:07,260 --> 00:00:09,880
+韋伯正式啟動拍攝任務的周年紀念日已過。""",
+    "en":"""1
+00:00:01,950 --> 00:00:04,410
+Organic Molecules Found in Ancient Galaxies.
+
+2
+00:00:04,880 --> 00:00:06,780
+How far we are from Type III contact.
+
+3
+00:00:07,260 --> 00:00:09,880
+The anniversary of Webb's official launch of his filming mission has expired.""",
+    "ja":"""1
+00:00:01,950 --> 00:00:04,410
+古代の銀河で発見された有機分子。
+
+2
+00:00:04,880 --> 00:00:06,780
+未知との遭遇からどれくらい離れていますか?
+
+3
+00:00:07,260 --> 00:00:09,880
+ウェーバーが正式に撮影を開始してから記念日となった。""",
+    "ko":"""1
+00:00:01,950 --> 00:00:04,410
+고대 은하계에서 발견된 유기분자.
+
+2
+00:00:04,880 --> 00:00:06,780
+우리는 제3종 근접 조우로부터 얼마나 멀리 떨어져 있나요?
+
+3
+00:00:07,260 --> 00:00:09,880
+웨버가 정식으로 촬영을 시작한 지 1주년이 되는 날이다.""",
+    "ru":"""1
+00:00:01,950 --> 00:00:04,410
+Органические молекулы обнаружены в древних галактиках.
+
+2
+00:00:04,880 --> 00:00:06,780
+Насколько мы далеки от близких контактов третьего рода?
+
+3
+00:00:07,260 --> 00:00:09,880
+Это была годовщина с тех пор, как Вебер официально начал съемки.""",
+    "es":"""1
+00:00:01,950 --> 00:00:04,410
+Moléculas orgánicas descubiertas en galaxias antiguas.
+
+2
+00:00:04,880 --> 00:00:06,780
+¿Qué tan lejos estamos de Encuentros Cercanos del Tercer Tipo?
+
+3
+00:00:07,260 --> 00:00:09,880
+Ha sido el aniversario desde que Weber comenzó oficialmente a filmar.""",
+    "pt":"""1
+00:00:01.950 --> 00:00:04.410
+Moléculas orgânicas descobertas em galáxias antigas.
+
+2
+00:00:04.880 --> 00:00:06.780
+A que distância estamos dos Encontros Imediatos de Terceiro Grau?
+
+3
+00:00:07.260 --> 00:00:09.880
+Já faz anos desde que Weber começou oficialmente a filmar.""",
+    "it":"""1
+00:00:01,950 --> 00:00:04,410
+Molecole organiche scoperte nelle galassie antiche.
+
+2
+00:00:04,880 --> 00:00:06,780
+Quanto siamo lontani dagli Incontri Ravvicinati del Terzo Tipo?
+
+3
+00:00:07,260 --> 00:00:09,880
+È l'anniversario da quando Weber ha iniziato ufficialmente le riprese.""",
+    "fr":"""1
+00:00:01,950 --> 00:00:04,410
+Molécules organiques découvertes dans les galaxies anciennes.
+
+2
+00:00:04,880 --> 00:00:06,780
+Où sommes-nous des rencontres rapprochées du troisième type ?
+
+3
+00:00:07,260 --> 00:00:09,880
+C'est l'anniversaire du début officiel du tournage de Weber.""",
+    "de":"""1
+00:00:01.950 --> 00:00:04.410
+Organische Moleküle in alten Galaxien entdeckt.
+
+2
+00:00:04.880 --> 00:00:06.780
+Wie weit sind wir von Unheimlichen Begegnungen der Dritten Art entfernt?
+
+3
+00:00:07.260 --> 00:00:09.880
+Es ist der Jahrestag, seit Weber offiziell mit den Dreharbeiten begonnen hat.""",
+    "th":"""1
+00:00:01,950 --> 00:00:04,410
+โมเลกุลอินทรีย์ที่ค้นพบในกาแลคซีโบราณ
+
+2
+00:00:04,880 --> 00:00:06,780
+เราอยู่ห่างจากการเผชิญหน้าอย่างใกล้ชิดของประเภทที่สามมากแค่ไหน?
+
+3
+00:00:07,260 --> 00:00:09,880
+ถือเป็นวันครบรอบที่เวเบอร์เริ่มถ่ายทำอย่างเป็นทางการ""",
+    "tr":"""1
+00:00:01,950 --> 00:00:04,410
+Antik galaksilerde keşfedilen organik moleküller.
+
+2
+00:00:04,880 --> 00:00:06,780
+Üçüncü Türden Yakın Karşılaşmalardan ne kadar uzaktayız?
+
+3
+00:00:07,260 --> 00:00:09,880
+Weber'in resmi olarak çekime başlamasının yıldönümü oldu.""",
+    "vi":"""1
+00:00:01,950 --> 00:00:04,410
+Các phân tử hữu cơ được phát hiện trong các thiên hà cổ đại
+
+2
+00:00:04,880 --> 00:00:06,780
+Chúng ta còn cách Close Encounters of the Third Kind bao xa?
+
+3
+00:00:07,260 --> 00:00:09,880
+Đã là ngày kỷ niệm Weber chính thức bắt đầu quay phim.""",
+    "ar":"""1
+00:00:01,950 --> 00:00:04,410
+الجزيئات العضوية المكتشفة في المجرات القديمة
+
+2
+00:00:04,880 --> 00:00:06,780
+إلى أي مدى نحن بعيدون عن اللقاءات القريبة من النوع الثالث؟
+
+3
+00:00:07,260 --> 00:00:09,880
+لقد كانت الذكرى السنوية منذ أن بدأ ويبر التصوير رسميًا.""",
+    "hu":"""1
+00:00:01,950 --> 00:00:04,410
+Az ősi galaxisokban felfedezett szerves molekulák.
+
+2
+00:00:04,880 --> 00:00:06,780
+Milyen messze vagyunk a Harmadik típusú közeli találkozásoktól?
+
+3
+00:00:07,260 --> 00:00:09,880
+Eltelt az évforduló, hogy Weber hivatalosan is elkezdte a forgatást.""",
+    "hi":"""1
+00:00:01,950 --> 00:00:04,410
+प्राचीन आकाशगंगाओं में कार्बनिक अणुओं की खोज की गई।
+
+2
+00:00:04,880 --> 00:00:06,780
+हम तीसरी तरह की करीबी मुठभेड़ों से कितनी दूर हैं?
+
+3
+00:00:07,260 --> 00:00:09,880
+वेबर द्वारा आधिकारिक तौर पर फिल्मांकन शुरू करने की यह सालगिरह है।""",
+    "id":"""1
+00:00:01,950 --> 00:00:04,410
+Molekul organik ditemukan di galaksi kuno.
+
+2
+00:00:04,880 --> 00:00:06,780
+Seberapa jauh kita dari Close Encounters of the Third Kind?
+
+3
+00:00:07,260 --> 00:00:09,880
+Ini adalah hari jadi sejak Weber secara resmi mulai syuting.""",
+    "uk":"""1
+00:00:01,950 --> 00:00:04,410
+Органічні молекули, виявлені в стародавніх галактиках.
+
+2
+00:00:04,880 --> 00:00:06,780
+Наскільки ми далекі від близьких зустрічей третього роду?
+
+3
+00:00:07,260 --> 00:00:09,880
+Це був ювілей, відколи Вебер офіційно почав зніматися.""",
+    "ms":"""1
+00:00:01,950 --> 00:00:04,410
+Molekul organik ditemui dalam galaksi purba.
+
+2
+00:00:04,880 --> 00:00:06,780
+Berapa jauhkah kita dari Pertemuan Dekat Jenis Ketiga?
+
+3
+00:00:07,260 --> 00:00:09,880
+Ia telah menjadi ulang tahun sejak Weber secara rasmi memulakan penggambaran.""",
+    "kk":"""1
+00:00:01,950 --> 00:00:04,410
+Ежелгі галактикаларда табылған органикалық молекулалар.
+
+2
+00:00:04,880 --> 00:00:06,780
+Үшінші түрдегі жақын кездесулерден қаншалықты алыспыз?
+
+3
+00:00:07,260 --> 00:00:09,880
+Вебер ресми түрде түсірілімді бастағанына бір мерейтой болды.""",
+    "cs":"""1
+00:00:01,950 --> 00:00:04,410
+Organické molekuly objevené ve starověkých galaxiích.
+
+2
+00:00:04,880 --> 00:00:06,780
+Jak daleko jsme od Blízkých setkání třetího druhu?
+
+3
+00:00:07,260 --> 00:00:09,880
+Je to výročí, kdy Weber oficiálně začal natáčet.""",
+    "pl":"""1
+00:00:01,950 --> 00:00:04,410
+Cząsteczki organiczne odkryte w starożytnych galaktykach.
+
+2
+00:00:04,880 --> 00:00:06,780
+Jak daleko jesteśmy od Bliskich Spotkań Trzeciego Stopnia?
+
+3
+00:00:07,260 --> 00:00:09,880
+Minęła rocznica oficjalnego rozpoczęcia zdjęć przez Webera.""",
+    "nl":"""1
+00:00:01,950 --> 00:00:04,410
+Organische moleculen ontdekt in oude sterrenstelsels.
+
+2
+00:00:04,880 --> 00:00:06,780
+Hoe ver zijn we verwijderd van Close Encounters of the Third Kind?
+
+3
+00:00:07,260 --> 00:00:09,880
+Het is de verjaardag sinds Weber officieel begon met filmen.""",
+    "sv":"""1
+00:00:01,950 --> 00:00:04,410
+Organiska molekyler upptäckta i antika galaxer.
+
+2
+00:00:04,880 --> 00:00:06,780
+Hur långt är vi från Close Encounters of the Third Kind?
+
+3
+00:00:07,260 --> 00:00:09,880
+Det är jubileum sedan Weber officiellt började filma.""",
+}

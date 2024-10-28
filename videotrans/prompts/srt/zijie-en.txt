@@ -1,13 +1,12 @@
 Please translate the content of srt subtitle format in <source> to {lang}, and then output only the translated text without adding any description or guide words:
 
-Note the following requirements:
+**Note the following requirements:**
 1. **Translate **subtitle text content only, do not translate subtitle line numbers and timestamps.
 2. **Must ensure that **the translated translation format is a valid srt subtitle.
 3. **Must ensure that the number of **translated subtitles is exactly the same as the original subtitles, and that each subtitle corresponds to one of the original subtitles.
 4. **Keep the timestamps as they are** and translate only the content of the subtitles.
 5. If you can't translate the subtitle, you can return the original text directly without reporting any error.
 
-The following is the content of the srt subtitle to be translated:
 
 <source>[TEXT]</source>
 

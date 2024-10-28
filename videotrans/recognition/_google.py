@@ -85,7 +85,7 @@ class GoogleRecogn(BaseRecogn):
             if self.inst and self.inst.precent < 55:
                 self.inst.precent += 0.1
             self._signal(text=f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
-            self._signal(text=f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", type='subtitle')
+            self._signal(text=f"{srt_line['text']}\n", type='subtitle')
         return self.raws
 
     # split audio by silence

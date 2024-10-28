@@ -37,7 +37,7 @@ class DeepLX(BaseTrans):
         jsondata = {
             "text": "\n".join(data),
             "source_lang": self.source_code.upper()[:2] if self.source_code else None,
-            "target_lang": 'EN-US' if self.target_language == 'EN' else self.target_language
+            "target_lang": 'EN-US' if self.target_code.lower() == 'en' else self.target_code
         }
         config.logger.info(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)

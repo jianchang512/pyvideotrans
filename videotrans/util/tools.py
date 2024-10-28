@@ -455,13 +455,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     # 默认视频编码 libx264 / libx265
     default_codec = f"libx{config.settings['video_codec']}"
 
-    # for i, it in enumerate(arg):
-    #     if arg[i] == '-i' and i < len(arg) - 1:
-    #         arg[i + 1] = Path(arg[i + 1]).as_posix()
-    #         file_name=arg[i+1]
-    #         if not vail_file(arg[i + 1]):
-    #             raise Exception(f'{cmd=},{arg[i + 1]} {config.transobj["vlctips2"]}')
-
     if not force_cpu and default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
             config.video_codec = get_video_codec()

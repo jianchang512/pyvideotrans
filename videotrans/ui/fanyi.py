@@ -12,7 +12,7 @@ class Ui_fanyisrt(object):
         self.has_done = False
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
-        fanyisrt.resize(1100, 535)
+        fanyisrt.resize(1150, 535)
         fanyisrt.setWindowModality(QtCore.Qt.NonModal)
 
         self.files = []
@@ -41,6 +41,12 @@ class Ui_fanyisrt(object):
         self.fanyi_translate_type = QtWidgets.QComboBox()
         self.fanyi_translate_type.setMinimumSize(QtCore.QSize(100, 30))
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
+
+        self.aisendsrt=QtWidgets.QCheckBox()
+        self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send full subtitles')
+        self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
+        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+
         self.fanyi_model_list = QtWidgets.QComboBox()
         self.fanyi_model_list.setMinimumSize(QtCore.QSize(100, 30))
         self.fanyi_model_list.setObjectName("fanyi_model_list")
@@ -49,6 +55,7 @@ class Ui_fanyisrt(object):
 
 
         self.horizontalLayout_18.addWidget(self.fanyi_translate_type)
+        self.horizontalLayout_18.addWidget(self.aisendsrt)
         self.horizontalLayout_18.addWidget(self.fanyi_model_list)
 
         self.label_source = QtWidgets.QLabel()
@@ -87,9 +94,11 @@ class Ui_fanyisrt(object):
             "目标语言在下(双语)" if config.defaulelang == 'zh' else 'Target language under(Bilingual)'
         ])
 
+
+
         label_out = QtWidgets.QLabel()
-        label_out.setText('输出字幕' if config.defaulelang == 'zh' else 'Output')
-        label_out.setFixedWidth(60)
+        label_out.setText('输出' if config.defaulelang == 'zh' else 'Output')
+        # label_out.setFixedWidth(60)
         self.horizontalLayout_18.addWidget(label_out)
         self.horizontalLayout_18.addWidget(self.out_format)
 
@@ -179,10 +188,10 @@ class Ui_fanyisrt(object):
 
     def retranslateUi(self, fanyisrt):
         fanyisrt.setWindowTitle(config.uilanglist.get("Text  Or Srt  Translation"))
-        self.label_13.setText(box_lang.get("Translation channels"))
+        self.label_13.setText('翻译渠道' if config.defaulelang=='zh' else "Translation channels")
         self.label_613.setText(box_lang.get("Target lang"))
-        self.label_source.setText('原始语言' if config.defaulelang == 'zh' else 'Source language')
-        self.label_614.setText(box_lang.get("Proxy"))
+        self.label_source.setText('原语言' if config.defaulelang == 'zh' else 'Source language')
+        self.label_614.setText('网络代理' if config.defaulelang=='zh' else 'Proxy')
         self.fanyi_proxy.setPlaceholderText(
             box_lang.get("Failed to access Google services. Please set up the proxy correctly"))
         self.fanyi_import.setText(box_lang.get("Import text to be translated from a file.."))

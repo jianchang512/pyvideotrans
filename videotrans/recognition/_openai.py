@@ -4,6 +4,7 @@ from typing import Union, List, Dict
 
 import torch
 import whisper
+import zhconv
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -73,17 +74,33 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     new_seg=copy.deepcopy(segment['words'])
                     text=tools.cleartext(segment['text'],remove_start_end=False)
                     for idx, word in enumerate(new_seg):
-                        new_seg[idx]['start']=int(word['start']*1000+start_time)
-                        new_seg[idx]['end']=int(word['end']*1000+start_time)
+                        new_seg[idx]['start']=word['start']+start_time/1000
+                        new_seg[idx]['end']=word['end']+start_time/1000
                     alllist.append({"words":new_seg,"text":text})
-                    time_str=f'{tools.ms_to_time_string(ms=int(segment["start"]*1000))} --> {tools.ms_to_time_string(ms=int(segment["end"]*1000))}'
                     self._signal(text=f"{config.transobj['yuyinshibiejindu']} {nums}" )
                     self._signal(
-                        text=f'{nums}\n{time_str}\n{text}\n\n',
+                        text=f'{text}\n',
                         type='subtitle'
                     )
             if len(alllist)>0:
-                self.raws=self.re_segment_sentences(alllist)
+                if not config.settings['rephrase'] or self.detect_language[:2] !='zh':
+                    jianfan=config.settings.get('zh_hant_s')
+                    for i in alllist:
+                        tmp = {
+                            'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
+                            'start_time': int(i['words'][0]['start'] * 1000),
+                            'end_time': int(i['words'][-1]['end'] * 1000)
+                        }
+                        tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+                        tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                        tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+                        self.raws.append(tmp)
+                else:
+                    words_list = []
+                    for it in list(alllist):
+                        words_list += it['words']
+                    self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
+                    self.raws = self.re_segment_sentences(words_list)
         except Exception as e:
             raise
         finally:

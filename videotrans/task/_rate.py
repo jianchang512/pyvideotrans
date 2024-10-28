@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -94,7 +95,7 @@ class SpeedRate:
                 the_ext = it['filename'].split('.')[-1]
                 try:
                     it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
-                except Exception as  e:
+                except CouldntDecodeError:
                     config.logger.exception(f'添加配音时长失败，{it["filename"]=} {e=}')
                     it['dubb_time'] = 0
                     it['video_extend'] = 0
@@ -206,9 +207,12 @@ class SpeedRate:
             # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
             # 如果视频需要变化，更新视频时长需要变化的长度
             if tools.vail_file(tmp_mp3):
-                mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
-                it['filename'] = tmp_mp3
-                it['dubb_time'] = mp3_len
+                try:
+                    mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
+                    it['filename'] = tmp_mp3
+                    it['dubb_time'] = mp3_len
+                except CouldntDecodeError:
+                    it['dubb_time']=0
             self.queue_tts[i] = it
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
@@ -353,9 +357,10 @@ class SpeedRate:
         merged_audio = AudioSegment.empty()
         if len(self.queue_tts) == 1:
             the_ext = self.queue_tts[0]['filename'].split('.')[-1]
-            merged_audio += AudioSegment.from_file(
-                self.queue_tts[0]['filename'],
-                format="mp4" if the_ext == 'm4a' else the_ext)
+            try:
+                merged_audio += AudioSegment.from_file(self.queue_tts[0]['filename'],format="mp4" if the_ext == 'm4a' else the_ext)
+            except CouldntDecodeError:
+                merged_audio+=AudioSegment.silent(duration=self.queue_tts[0]['end_time_source']-self.queue_tts[0]['start_time_source'])
         else:
             # start is not 0
             if self.queue_tts[0]['start_time_source'] > 0:
@@ -378,8 +383,12 @@ class SpeedRate:
                     continue
                 # 存在配音文件
                 if tools.vail_file(it['filename']):
-                    segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
-                    it['dubb_time'] = len(segment)
+                    try:
+                        segment = AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext)
+                        it['dubb_time'] = len(segment)
+                    except CouldntDecodeError:
+                        segment = AudioSegment.silent(duration=raw_source)
+                        it['dubb_time'] = raw_source
                 else:
                     # 不存在配音文件
                     segment = AudioSegment.silent(duration=raw_source)

@@ -161,9 +161,6 @@ class Ui_setini(object):
 
                 "voice_silence": "Google识别api静音片段/ms",
                 "interval_split": "均等分割模式下每个片段时长秒数",
-                "rephrase":"faster/openai-whisper识别后重新断句",
-                "cjk_len": "中日韩一行长度字符个数，多于这个将换行,硬字幕换行和重新断句的主要依据",
-                "other_len": "其他语言一行长度，多于这个字符数量将换行,硬字幕换行和重新断句的主要依据",
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
                 "whisper_threads": "faster模式下，字幕识别时，cpu进程数",
@@ -236,8 +233,6 @@ class Ui_setini(object):
 
 
             "overall_maxsecs": "字幕最大时长持续秒数/s",
-            "rephrase":"faster/openai-whisper识别后重新断句",
-
 
             "voice_silence": "Google识别api静音片段/ms",
             "interval_split": "均等分割时片段时长/s",
@@ -259,8 +254,6 @@ class Ui_setini(object):
             "fontcolor": "硬字幕文字颜色",
             "fontbordercolor": "硬字幕文字边框颜色",
             "subtitle_bottom": "硬字幕上移距离",
-            "cjk_len": "中日韩一行字幕字符数",
-            "other_len": "其他语言一行字幕字符数",
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
@@ -379,9 +372,6 @@ class Ui_setini(object):
                     "voice_silence": "Silence segment for Google api/ms",
                     "interval_split": "Segment duration in seconds in equal split mode",
 
-                    "rephrase":"faster/openai-whisper rephrase",
-                    "cjk_len": "CJK line length characters, more than this will be line breaks, the main basis for line breaks and re-breaks in hard subtitles.",
-                    "other_len": "Other languages have a line length above which line breaks occur, the main basis for line breaks and re-breaks in hard subtitles.",
                     "model_list": "Model names list for faster mode and openai mode, separated by commas",
                     "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
                     "whisper_threads": "Number of CPU processes for subtitle recognition in faster mode",
@@ -449,7 +439,6 @@ class Ui_setini(object):
                 "zijiehuoshan_model": "Byte Volcano Inference Access Point",
                 "model_list": "Models for Faster and OpenAI",
                 "audio_rate": "Maximum Audio Speed Multiplier",
-                "rephrase":"faster/openai-whisper rephrase",
                 "video_rate": "Video Slow Motion Multiplier",
                 "video_goback":"When video slow motion multiplier, extra add ms",
                 "remove_silence": "Remove End Silence in Dubbing",
@@ -487,8 +476,6 @@ class Ui_setini(object):
                 "fontcolor": "Font Color",
                 "fontbordercolor": "Font Border Color",
                 "subtitle_bottom": "Subtitle Vertical Offset",
-                "cjk_len": "CJK Subtitle Line Length",
-                "other_len": "Other Language Subtitle Line Length",
                 "zh_hant_s": "Traditional to Simplified Chinese Conversion",
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",

@@ -14,9 +14,10 @@ class AzureGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         self.model_name=config.params["azure_model"]
+        self.prompt=self._replace_prompt()
         
     def _check_proxy(self):
         try:

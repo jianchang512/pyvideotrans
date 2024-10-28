@@ -204,7 +204,7 @@ if __name__ == '__main__':
         cfg = {
             "translate_type": int(data.get('translate_type', 0)),
             "text_list": tools.get_subtitle_from_srt(name),
-            "target_language": data.get('target_language'),
+            "target_code": data.get('target_language'),
             "source_code": data.get('source_code', '')
         }
         is_allow=translator.is_allow_translate(translate_type=cfg['translate_type'],show_target=cfg['target_language'],return_str=True)

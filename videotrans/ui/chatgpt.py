@@ -2,6 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -20,74 +21,95 @@ class Ui_chatgptform(object):
         chatgptform.setSizePolicy(sizePolicy)
         chatgptform.setMaximumSize(QtCore.QSize(600, 600))
 
-        self.label_0 = QtWidgets.QPushButton(chatgptform)
+        v1=QtWidgets.QVBoxLayout(chatgptform)
+        h1=QtWidgets.QHBoxLayout()
+        h2=QtWidgets.QHBoxLayout()
+        h3=QtWidgets.QHBoxLayout()
+        h4=QtWidgets.QHBoxLayout()
+
+
+        self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setText(
-            '兼容ChatGPT接口的AI也在此使用,点击查看教程' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here,click to open document')
-        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/openai'))
-        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
+            'OpenAI ChatGPT及兼容的AI可在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+        v1.addWidget(self.label_0)
+
 
         self.label = QtWidgets.QLabel(chatgptform)
-        self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
         self.chatgpt_api = QtWidgets.QLineEdit(chatgptform)
-        self.chatgpt_api.setGeometry(QtCore.QRect(150, 45, 431, 35))
         self.chatgpt_api.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_api.setObjectName("chatgpt_api")
+        h1.addWidget(self.label)
+        h1.addWidget(self.chatgpt_api)
+        v1.addLayout(h1)
 
         self.label_2 = QtWidgets.QLabel(chatgptform)
-        self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.chatgpt_key = QtWidgets.QLineEdit(chatgptform)
-        self.chatgpt_key.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.chatgpt_key.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_key.setObjectName("chatgpt_key")
+        h2.addWidget(self.label_2)
+        h2.addWidget(self.chatgpt_key)
+        v1.addLayout(h2)
 
         self.label_3 = QtWidgets.QLabel(chatgptform)
-        self.label_3.setGeometry(QtCore.QRect(10, 150, 121, 16))
         self.label_3.setObjectName("label_3")
         self.chatgpt_model = QtWidgets.QComboBox(chatgptform)
-        self.chatgpt_model.setGeometry(QtCore.QRect(150, 145, 431, 35))
         self.chatgpt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_model.setObjectName("chatgpt_model")
+        h3.addWidget(self.label_3)
+        h3.addWidget(self.chatgpt_model)
+        v1.addLayout(h3)
 
         self.label_allmodels = QtWidgets.QLabel(chatgptform)
-        self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+        v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(chatgptform)
-        self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.edit_allmodels)
 
         self.label_4 = QtWidgets.QLabel(chatgptform)
-        self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
         self.label_4.setObjectName("label_4")
 
         self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
-        self.chatgpt_template.setGeometry(QtCore.QRect(10, 340, 571, 151))
         self.chatgpt_template.setObjectName("chatgpt_template")
+        v1.addWidget(self.label_4)
+        v1.addWidget(self.chatgpt_template)
+
 
         self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.set_chatgpt.setGeometry(QtCore.QRect(10, 520, 93, 35))
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
 
         self.test_chatgpt = QtWidgets.QPushButton(chatgptform)
-        self.test_chatgpt.setGeometry(QtCore.QRect(130, 525, 93, 30))
         self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
         self.test_chatgpt.setObjectName("test_chatgpt")
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openai'))
+
+        h4.addWidget(self.set_chatgpt)
+        h4.addWidget(self.test_chatgpt)
+        h4.addWidget(help_btn)
+        v1.addLayout(h4)
 
         self.retranslateUi(chatgptform)
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
     def retranslateUi(self, chatgptform):
-        chatgptform.setWindowTitle("OpenAI ChatGPT API")
+        chatgptform.setWindowTitle("OpenAI ChatGPT API 及兼容AI" if config.defaulelang=='zh' else "OpenAI ChatGPT API and Compatible AI")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText(

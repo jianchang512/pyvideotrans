@@ -3,9 +3,12 @@ import threading
 import time
 from pathlib import Path
 
+import zhconv
+
 from videotrans.configure import config
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
+from videotrans.util import tools
 
 
 class FasterAll(BaseRecogn):
@@ -88,7 +91,24 @@ class FasterAll(BaseRecogn):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
                         self.inst.set_source_language(detect['langcode'])
-                    self.raws=list(raws)
+                    jianfan=config.settings.get('zh_hant_s')
+                    if not config.settings['rephrase'] or self.detect_language[:2]!='zh':
+                        for i in list(raws):
+                            tmp={
+                                'text':zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
+                                'start_time':int(i['words'][0]['start']*1000),
+                                'end_time':int(i['words'][-1]['end']*1000)
+                            }
+                            tmp['startraw']=tools.ms_to_time_string(ms=tmp['start_time'])
+                            tmp['endraw']=tools.ms_to_time_string(ms=tmp['end_time'])
+                            tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
+                            self.raws.append(tmp)
+                    else:
+                        words_list=[]
+                        for it in list(raws):
+                            words_list+=it['words']
+                        self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
+                        self.raws=self.re_segment_sentences(words_list)
                 try:
                     if process.is_alive():
                         process.terminate()
@@ -106,4 +126,4 @@ class FasterAll(BaseRecogn):
             raise Exception(self.error)
         if len(self.raws)<1:
             raise Exception('未识别到有效文字' if config.defaulelang=='zh' else 'No speech detected')
-        return self.re_segment_sentences(self.raws)
+        return self.raws

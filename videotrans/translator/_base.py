@@ -7,6 +7,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.configure._except import IPLimitExceeded
 from videotrans.util import tools
 
 
@@ -14,20 +15,22 @@ class BaseTrans(BaseCon):
 
     def __init__(self,
                  text_list: Union[List, str] = "",
-                 target_language="en",
+                 target_language_name="",# AI翻译渠道下是语言名称，其他渠道下是语言代码
                  inst=None,
                  source_code="",
                  uuid=None,
                  is_test=False,
+                 target_code=""
                  ):
         # 目标语言，语言代码或文字名称
         super().__init__()
         self.api_url = ''
-        self.target_language = target_language
+        self.target_language_name = target_language_name
         # trans_create实例
         self.inst = inst
         # 原始语言代码
         self.source_code = source_code
+        self.target_code = target_code
         # 任务文件绑定id
         self.uuid = uuid
         # 用于测试
@@ -140,11 +143,11 @@ class BaseTrans(BaseCon):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
                 except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
-                    api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
-                    proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
-                    proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
-                    raise Exception(
-                        f'网络连接失败{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
+                    msg = ''
+                    if self.api_url:
+                        msg = f'请检查当前API:{self.api_url}' if config.defaulelang == 'zh' else f'Check API:{self.api_url}'
+                    raise IPLimitExceeded(proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}',
+                                          msg=msg, name=self.__class__.__name__)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -238,6 +241,16 @@ class BaseTrans(BaseCon):
             self._set_proxy(type='del')
         return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
+
+    def _replace_prompt(self):
+        if self.is_srt and self.aisendsrt and self.source_code and self.target_code and self.source_code in config.explames and self.target_code in config.explames:
+            replace_str='**示例:**\n' if config.defaulelang=='zh' else '**Example:**\n'
+            replace_str+=config.explames[self.source_code]
+            replace_str+='\n\n译文:\n' if config.defaulelang=='zh' else '**Translation:**\n'
+            replace_str+=config.explames[self.target_code]
+            self.prompt=self.prompt.replace('<source>[TEXT]',replace_str+'\n\n<source>[TEXT]')
+        return self.prompt
+
     def _set_cache(self, it, res_str):
         if not res_str.strip():
             return
@@ -254,9 +267,10 @@ class BaseTrans(BaseCon):
         key_cache = self._get_key(it)
         file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).is_file():
+            print(f'使用缓存 {file_cache=}')
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
     def _get_key(self, it):
         return tools.get_md5(
-            f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_language}-{it if isinstance(it, str) else json.dumps(it)}')
+            f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

@@ -128,8 +128,9 @@ class WinActionSub:
         self.main.split_label.hide()
         self.main.split_type.hide()
         self.main.subtitle_type.setCurrentIndex(1)
-        self.main.label_8.hide()
         self.main.subtitle_type.hide()
+        self.main.rephrase.setChecked(False)
+        self.main.rephrase.hide()
 
 
 
@@ -148,6 +149,10 @@ class WinActionSub:
         self.main.is_separate.hide()
         self.main.enable_cuda.setChecked(False)
         self.main.enable_cuda.hide()
+        self.main.label_cjklinenums.hide()
+        self.main.cjklinenums.hide()
+        self.main.label_othlinenums.hide()
+        self.main.othlinenums.hide()
         # 添加背景行
         self.main.addbackbtn.hide()
         self.main.back_audio.hide()
@@ -206,8 +211,9 @@ class WinActionSub:
         self.main.split_label.show()
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
-        self.main.label_8.show()
         self.main.subtitle_type.show()
+        # self.main.rephrase.setChecked(False)
+        self.main.rephrase.show()
 
         # 字幕对齐行
         self.main.align_btn.show()
@@ -223,6 +229,10 @@ class WinActionSub:
         self.main.is_separate.setChecked(False)
         self.main.is_separate.show()
         self.main.enable_cuda.setChecked(False)
+        self.main.label_cjklinenums.show()
+        self.main.cjklinenums.show()
+        self.main.label_othlinenums.show()
+        self.main.othlinenums.show()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
         # 添加背景行
@@ -279,8 +289,9 @@ class WinActionSub:
         self.main.split_label.show()
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
-        self.main.label_8.hide()
         self.main.subtitle_type.hide()
+        # self.main.rephrase.setChecked(False)
+        self.main.rephrase.show()
 
         # 字幕对齐行
         self.main.align_btn.hide()
@@ -296,6 +307,10 @@ class WinActionSub:
         self.main.is_separate.setChecked(False)
         self.main.is_separate.hide()
         self.main.enable_cuda.setChecked(False)
+        self.main.label_cjklinenums.hide()
+        self.main.cjklinenums.hide()
+        self.main.label_othlinenums.hide()
+        self.main.othlinenums.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
         # 添加背景行
@@ -305,6 +320,10 @@ class WinActionSub:
         self.main.bgmvolume_label.hide()
         self.main.bgmvolume.hide()
 
+    def source_language_change(self):
+        langtext=self.main.source_language.currentText()
+        langcode=translator.get_code(show_text=langtext)
+        self.main.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
         def hide_recursive(layout, show_status):

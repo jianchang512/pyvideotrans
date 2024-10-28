@@ -107,7 +107,7 @@ class VolcEngineTTS(BaseTTS):
 
                 }
             }
-            resp = requests.post(api_url, json.dumps(request_json), headers=header)
+            resp = requests.post(api_url, json.dumps(request_json), headers=header,proxies={"http":"","https":""})
             if resp.status_code != 200:
                 self.error = f"字节火山语音合成失败:{resp.status_code} {resp.reason}"
             resp_json = resp.json()

@@ -19,9 +19,8 @@ class Ui_subtitlescover(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(subtitlescover.sizePolicy().hasHeightForWidth())
         subtitlescover.setSizePolicy(sizePolicy)
-        self.gridLayout = QtWidgets.QVBoxLayout(subtitlescover)
-        self.gridLayout.setObjectName("gridLayout")
-        self.gridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        v1 = QtWidgets.QVBoxLayout(subtitlescover)
 
         self.formLayout_2 = QtWidgets.QHBoxLayout()
         self.formLayout_2.setObjectName("formLayout_2")
@@ -39,16 +38,12 @@ class Ui_subtitlescover(object):
 
         self.formLayout_2.addWidget(self.selectbtn)
         self.formLayout_2.addWidget(self.pathdir)
-        self.gridLayout.addSpacing(10)
-
-        self.gridLayout.addLayout(self.formLayout_2)
+        v1.addLayout(self.formLayout_2)
 
         # sk
         self.formLayout_3 = QtWidgets.QHBoxLayout()
         self.formLayout_3.setAlignment(QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-
-        self.gridLayout.addSpacing(10)
 
         self.labelformat = QtWidgets.QLabel(subtitlescover)
         self.labelformat.setMinimumSize(QtCore.QSize(0, 35))
@@ -67,8 +62,7 @@ class Ui_subtitlescover(object):
         self.formLayout_3.addWidget(self.labelformat)
         self.formLayout_3.addStretch()
         self.formLayout_3.addWidget(self.formatlist)
-        self.gridLayout.addLayout(self.formLayout_3)
-        self.gridLayout.addSpacing(30)
+        v1.addLayout(self.formLayout_3)
 
         self.startbtn = QtWidgets.QPushButton(subtitlescover)
         self.startbtn.setMinimumSize(QtCore.QSize(200, 35))
@@ -93,9 +87,9 @@ class Ui_subtitlescover(object):
         self.opendir_layout.addWidget(self.opendir)
         self.opendir_layout.addStretch()
 
-        self.gridLayout.addLayout(self.layout_btn)
-        self.gridLayout.addSpacing(50)
-        self.gridLayout.addLayout(self.opendir_layout)
+        v1.addLayout(self.layout_btn)
+        v1.addStretch()
+        v1.addLayout(self.opendir_layout)
 
         self.retranslateUi(subtitlescover)
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
