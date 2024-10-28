@@ -134,12 +134,44 @@ class Ui_recogn(object):
 
         h4= QtWidgets.QHBoxLayout()
 
+        self.label_cjklinenums = QtWidgets.QLabel()
+        self.label_cjklinenums.setObjectName("label_cjklinenums")
+        self.label_cjklinenums.setText(
+            '中日韩单行字符' if config.defaulelang == 'zh' else 'CJK line length')
 
+        self.cjklinenums = QtWidgets.QSpinBox()
+        self.cjklinenums.setMinimum(5)
+        self.cjklinenums.setMaximum(100)
+        self.cjklinenums.setObjectName("cjklinenums")
+        self.cjklinenums.setToolTip("中日韩字幕单行字符数" if config.defaulelang=='zh' else 'Chinese/Japanese/Korean line length')
+        self.cjklinenums.setValue(int(config.settings.get('cjk_len', 20)))
+
+        self.label_othlinenums = QtWidgets.QLabel()
+        self.label_othlinenums.setObjectName("label_othlinenums")
+        self.label_othlinenums.setText(
+            '其他语言' if config.defaulelang == 'zh' else 'Other line length')
+
+
+        self.othlinenums = QtWidgets.QSpinBox()
+        self.othlinenums.setToolTip("其他语言字幕单行字符数" if config.defaulelang=='zh' else 'Other language line length')
+        self.othlinenums.setMinimum(5)
+        self.othlinenums.setMaximum(100)
+        self.othlinenums.setObjectName("othlinenums")
+        self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
+
+        self.rephrase=QtWidgets.QCheckBox()
+        self.rephrase.setText('中文重新断句' if config.defaulelang=='zh' else 'Chinese Rephrase')
+        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram并且发音语言为中文时可选择是否重新断句')
 
         h4.addStretch()
-        h4.addWidget(self.is_cuda)
         h4.addWidget(self.shibie_startbtn)
         h4.addWidget(self.shibie_stop)
+        h4.addWidget(self.is_cuda)
+        h4.addWidget(self.label_cjklinenums)
+        h4.addWidget(self.cjklinenums)
+        h4.addWidget(self.label_othlinenums)
+        h4.addWidget(self.othlinenums)
+        h4.addWidget(self.rephrase)
 
         h4.addStretch()
 

@@ -26,7 +26,7 @@ class DeepL(BaseTrans):
         result = deepltranslator.translate_text(
                 "\n".join(data),
                 source_lang=self.source_code.upper()[:2] if self.source_code else None,
-                target_lang='EN-US' if self.target_language == 'EN' else self.target_language,
+                target_lang='EN-US' if self.target_code.lower() == 'en' else self.target_code,
                 glossary=config.params['deepl_gid'] if config.params['deepl_gid'] else None
             )
 

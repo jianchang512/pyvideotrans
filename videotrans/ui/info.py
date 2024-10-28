@@ -37,7 +37,9 @@ class Ui_infoform(object):
 当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎小额捐助。
 
 Email: jianchang512@gmail.com
-文档站: pyvideotrans.com""" if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
+文档站/下载: pyvideotrans.com
+【软件免费下载使用，不收取任何费用，也未在任何平台销售】
+""" if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
 All code is open source and can be reviewed.
 As for the maintenance issue, it is all about giving love to the open source, so idle time will spend more time on this, and sometimes just a period of time. 
 Of course, if you think this project is useful to you and want it to be stable and continue to maintain, you are welcome to donate a small amount.

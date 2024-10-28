@@ -64,13 +64,13 @@ class TranslateSrt(BaseTask):
             return
         try:
             source_sub_list=tools.get_subtitle_from_srt(self.cfg['source_sub'])
-
             raw_subtitles = run(
                 translate_type=self.cfg['translate_type'],
-                text_list=source_sub_list,
-                target_language_name=self.cfg['target_language'],
+                text_list=copy.deepcopy(source_sub_list),
                 uuid=self.uuid,
-                source_code=self.cfg['source_code'])
+                source_code=self.cfg['source_code'],
+                target_code=self.cfg['target_code'],
+            )
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:

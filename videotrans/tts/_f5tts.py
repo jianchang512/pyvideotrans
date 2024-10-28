@@ -14,7 +14,7 @@ from videotrans.util import tools
 
 # 线程池并发  返回wav数据转为mp3
 class F5TTS(BaseTTS):
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.copydata = copy.deepcopy(self.queue_tts)
@@ -23,26 +23,28 @@ class F5TTS(BaseTTS):
         if not self.api_url.endswith('/api'):
             self.api_url+='/api'
         self.proxies={"http": "", "https": ""}
-
+    
+    def replace_digits_with_chinese(self,text):
+        # 创建映射表，将 '0'-'9' 映射为中文数字
+        translation_table = str.maketrans('0123456789', '零一二三四五六七八九')
+        # 使用 translate 方法替换字符
+        return text.translate(translation_table)
+    
     def _exec(self):
-        print(f'1111111111')
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        print(f'2222222222')
         if self._exit():
             return
         if not data_item:
             return
-        print(f'{data_item=}')
         try:
-            text = data_item['text'].strip()
+            text = self.replace_digits_with_chinese(data_item['text'].strip()) if self.language.startswith('zh') else data_item['text'].strip()
             role = data_item['role']
             if not text:
                 return
             data = {"model":config.params['f5tts_model']}
             data['gen_text']=text
-            print(f'data1={data}')
             if role=='clone':
                 files={"audio":open(data_item['filename'],'rb')}
                 data['ref_text']=data_item.get('ref_text').strip()
@@ -51,15 +53,12 @@ class F5TTS(BaseTTS):
                     return
             else:
                 roledict = tools.get_f5tts_role()
-                print(f'{roledict=}')
                 if role in roledict:
                     data['ref_text']=roledict[role]['ref_text']
-                    print(f'data1.5={data}')
                     files={"audio":open(config.ROOT_DIR+f"/f5-tts/{role}",'rb')}
                 else:
                     self.error = f'{role} 角色不存在'
                     return
-            print(f'data2={data}')
             config.logger.info(f'f5TTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}",files=files,data=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:

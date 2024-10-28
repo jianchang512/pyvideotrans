@@ -2,6 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -20,75 +21,93 @@ class Ui_localllmform(object):
         localllmform.setSizePolicy(sizePolicy)
         localllmform.setMaximumSize(QtCore.QSize(600, 600))
 
-        self.label_0 = QtWidgets.QPushButton(localllmform)
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setText(
-            '兼容OpenAI ChatGPT接口的大模型可在此使用, 某些接口可能需要以 /v1 结尾,点击查看教程' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here,click to open doc')
+        v1=QtWidgets.QVBoxLayout(localllmform)
 
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/localllm'))
-        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
+        h1=QtWidgets.QHBoxLayout()
+        h2=QtWidgets.QHBoxLayout()
+        h3=QtWidgets.QHBoxLayout()
+        h4=QtWidgets.QHBoxLayout()
+
+        self.label_0 = QtWidgets.QLabel()
+        self.label_0.setText(
+            '兼容OpenAI ChatGPT接口的大模型可在此使用，例如 moonshot/deepseek/bigmodel/ollama本地部署' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
+
+        v1.addWidget(self.label_0)
 
         self.label = QtWidgets.QLabel(localllmform)
-        self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
         self.localllm_api = QtWidgets.QLineEdit(localllmform)
-        self.localllm_api.setGeometry(QtCore.QRect(150, 45, 431, 35))
         self.localllm_api.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_api.setObjectName("localllm_api")
+        h1.addWidget(self.label)
+        h1.addWidget(self.localllm_api)
+        v1.addLayout(h1)
+
 
         self.label_2 = QtWidgets.QLabel(localllmform)
-        self.label_2.setGeometry(QtCore.QRect(10, 95, 130, 35))
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.localllm_key = QtWidgets.QLineEdit(localllmform)
-        self.localllm_key.setGeometry(QtCore.QRect(150, 95, 431, 35))
         self.localllm_key.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_key.setObjectName("localllm_key")
+        h2.addWidget(self.label_2)
+        h2.addWidget(self.localllm_key)
+        v1.addLayout(h2)
 
         self.label_3 = QtWidgets.QLabel(localllmform)
-        self.label_3.setGeometry(QtCore.QRect(10, 150, 121, 16))
         self.label_3.setObjectName("label_3")
         self.localllm_model = QtWidgets.QComboBox(localllmform)
-        self.localllm_model.setGeometry(QtCore.QRect(150, 145, 431, 35))
         self.localllm_model.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_model.setObjectName("localllm_model")
+        h3.addWidget(self.label_3)
+        h3.addWidget(self.localllm_model)
+        v1.addLayout(h3)
 
         self.label_allmodels = QtWidgets.QLabel(localllmform)
-        self.label_allmodels.setGeometry(QtCore.QRect(10, 180, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
-
+        v1.addWidget(self.label_allmodels)
         self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
-        self.edit_allmodels.setGeometry(QtCore.QRect(10, 210, 571, 100))
         self.edit_allmodels.setObjectName("edit_allmodels")
+        v1.addWidget(self.edit_allmodels)
+
 
         self.label_4 = QtWidgets.QLabel(localllmform)
-        self.label_4.setGeometry(QtCore.QRect(10, 315, 571, 21))
         self.label_4.setObjectName("label_4")
+        v1.addWidget(self.label_4)
 
         self.localllm_template = QtWidgets.QPlainTextEdit(localllmform)
-        self.localllm_template.setGeometry(QtCore.QRect(10, 340, 571, 151))
         self.localllm_template.setObjectName("localllm_template")
+        v1.addWidget(self.localllm_template)
 
         self.set_localllm = QtWidgets.QPushButton(localllmform)
-        self.set_localllm.setGeometry(QtCore.QRect(10, 510, 93, 35))
+
         self.set_localllm.setMinimumSize(QtCore.QSize(0, 35))
         self.set_localllm.setObjectName("set_localllm")
 
         self.test_localllm = QtWidgets.QPushButton(localllmform)
-        self.test_localllm.setGeometry(QtCore.QRect(130, 515, 93, 30))
         self.test_localllm.setMinimumSize(QtCore.QSize(0, 30))
         self.test_localllm.setObjectName("test_localllm")
+        help_btn = QtWidgets.QPushButton()
+        help_btn.setMinimumSize(QtCore.QSize(0, 35))
+        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+        help_btn.setObjectName("help_btn")
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/localllm'))
+        h4.addWidget(self.set_localllm)
+        h4.addWidget(self.test_localllm)
+        h4.addWidget(help_btn)
+        v1.addLayout(h4)
 
         self.retranslateUi(localllmform)
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '本地大模型及兼容OpenAI的接口')
+        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '兼容AI及本地大模型')
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.localllm_template.setPlaceholderText("prompt")
         self.label_4.setText(

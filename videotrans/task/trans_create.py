@@ -1,6 +1,7 @@
 import copy
 import math
 import os
+import random
 import re
 import shutil
 import textwrap
@@ -326,11 +327,12 @@ class TransCreate(BaseTask):
             self.status_text = config.transobj['kaishitiquhefanyi']
             target_srt = run_trans(
                 translate_type=self.cfg['translate_type'],
-                text_list=rawsrt,
-                target_language_name=self.cfg['target_language'],
+                text_list=copy.deepcopy(rawsrt),
                 inst=self,
                 uuid=self.uuid,
-                source_code=self.cfg['source_language_code'])
+                source_code=self.cfg['source_language_code'],
+                target_code=self.cfg['target_language_code']
+            )
             #
             self._check_target_sub(rawsrt, target_srt)
 
@@ -579,7 +581,7 @@ class TransCreate(BaseTask):
                 "volume": self.cfg['volume'],
                 "pitch": self.cfg['pitch'],
                 "tts_type": self.cfg['tts_type'],
-                "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}.mp3"
+                "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{len(it['text'])}-{i}.mp3"
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆

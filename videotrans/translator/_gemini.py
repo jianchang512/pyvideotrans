@@ -36,8 +36,9 @@ class Gemini(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._set_proxy(type='set')
-        self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["gemini_model"]
+        self.prompt=self._replace_prompt()
         
     def _item_task(self, data: Union[List[str], str]) -> str:
         response = None

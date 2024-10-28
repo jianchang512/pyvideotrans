@@ -27,8 +27,8 @@ class FreeGoogle(BaseTrans):
 
     def _item_task_srt(self, data: Union[List[str], str]) -> str:
         text = quote(data)
-        url = f"https://g1.pyvideotrans.com/m?sl={'auto' if not self.source_code else self.source_code}&tl={self.target_language}&hl={self.target_language}&q={text}"
-        config.logger.info(f'[Google] {self.target_language} 请求数据:{url=}')
+        url = f"https://g1.pyvideotrans.com/m?sl={'auto' if not self.source_code else self.source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
+        config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
@@ -51,7 +51,7 @@ class FreeGoogle(BaseTrans):
         if self.is_srt and self.aisendsrt:
             return self._item_task_srt(data)
         text = "\n".join([quote(text) for text in data]) if isinstance(data, list) else quote(data)
-        url = f"{random.choice(urls)}/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_language}&q={text}"
+        url = f"{random.choice(urls)}/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_code}&q={text}"
         config.logger.info(f'[Google]请求数据:{url=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'

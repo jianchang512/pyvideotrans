@@ -14,6 +14,7 @@ from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
+from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.doubao import Ui_doubaoform
@@ -128,6 +129,14 @@ class SttAPIForm(QDialog, Ui_sttform):  # <===
         super(SttAPIForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
+class DeepgramForm(QDialog, Ui_deepgramform):  # <===
+    def __init__(self, parent=None):
+        super(DeepgramForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
 
 class SenseVoiceAPIForm(QDialog, Ui_senseform):  # <===
     def __init__(self, parent=None):

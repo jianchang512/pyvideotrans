@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Union, Dict, List
 
 import requests
+from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
@@ -97,6 +99,13 @@ class GPTSoVITS(BaseTTS):
                     self.error = f'GPT-SoVITS合成声音失败-2:{text=}'
                 tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
                 Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
+                try:
+                    len(AudioSegment.from_file(data_item['filename'], format='mp3'))
+                except CouldntDecodeError:
+                    config.logger.info(f'GPT-SoVITS 配音失败')
+                    self.error = f"GPT-SoVITS返回错误信息"
+                    return
+
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1

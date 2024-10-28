@@ -84,11 +84,10 @@ class BaseTTS(BaseCon):
         except IPLimitExceeded as e:
             raise
         except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
-            api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
-            proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
-            proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
-            raise Exception(
-                f'网络连接失败{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else 'Network connection failed, please check the proxy or set the proxy address')
+            msg = ''
+            if self.api_url:
+                msg=f'请检查当前API:{self.api_url}' if config.defaulelang=='zh' else f'Check API:{self.api_url}'
+            raise IPLimitExceeded(proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}',msg=msg,name=self.__class__.__name__)
         except Exception as e:
             self.error = str(e) if not self.error else self.error
             self._signal(text=self.error, type="error")
@@ -122,7 +121,6 @@ class BaseTTS(BaseCon):
             for it in self.queue_tts:
                 if tools.vail_file(it['filename']):
                     tools.remove_silence_from_end(it['filename'])
-        print(f'{err=},{len(self.queue_tts)=}')
     # 实际业务逻辑 子类实现 在此创建线程池，或单线程时直接创建逻辑
     # 抛出异常则停止
     def _exec(self) -> None:

@@ -102,7 +102,7 @@ class DubbingSrt(BaseTask):
                        "end_time": it['end_time'], "rate": rate, "startraw": it['startraw'], "endraw": it['endraw'],
                        "volume": self.cfg['volume'], "pitch": self.cfg['pitch'],
                        "tts_type": int(self.cfg['tts_type']),
-                       "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}.mp3"}
+                       "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{len(it['text'])}-{i}.mp3"}
             queue_tts.append(tmp_dict)
         Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts

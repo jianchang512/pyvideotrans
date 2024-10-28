@@ -38,7 +38,7 @@ class Tencent(BaseTrans):
         reqdata = {
             "SourceText": "\n".join(data),
             "Source": "auto",
-            "Target": self.target_language,
+            "Target": self.target_code,
             "ProjectId": 0,
         }
         if config.params['tencent_termlist']:

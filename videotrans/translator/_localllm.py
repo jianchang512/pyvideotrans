@@ -15,11 +15,12 @@ class LocalLLM(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_url = config.params['localllm_api']
-        self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language)
+        self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         if not self.api_url:
-            raise Exception('必须填写api url')
-        self.model_name=config.params["localllm_model"] 
+            raise Exception('Input your API URL')
+        self.model_name=config.params["localllm_model"]
+        self.prompt=self._replace_prompt()
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):

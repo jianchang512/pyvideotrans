@@ -21,10 +21,11 @@ def openwin():
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, remain=False, folder=None):
+        def __init__(self, *, parent=None, remain=False, folder=None,audio_process=0):
             super().__init__(parent=parent)
             self.remain = remain
             self.folder = folder
+            self.audio_process = audio_process
 
         # 取出具有相同名称的视频和音频文件，组装为dict待处理
         def get_list(self):
@@ -69,6 +70,15 @@ def openwin():
                 audio = info['audio']
                 try:
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
+                    video_time=tools.get_video_duration(info['video'])
+                    audio_time=int(tools.get_audio_time(audio)*1000)
+                    tmp_audio=config.TEMP_HOME + f"/{time.time()}-{Path(audio).name}"
+                    if audio_time > video_time and self.audio_process==0:
+                        tools.runffmpeg(['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time/1000), tmp_audio])
+                        audio = tmp_audio
+                    elif audio_time>video_time and self.audio_process==1:
+                        tools.precise_speed_up_audio(file_path=audio, out=tmp_audio, target_duration_ms=video_time)
+                        audio=tmp_audio
                     if self.remain:
                         # 需要保留原声
                         video_info = tools.get_video_info(info['video'])
@@ -128,7 +138,7 @@ def openwin():
             winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
             winobj.loglabel.setText(d['text'])
-        else:
+        elif d['type']=='ok':
             winobj.has_done = True
             winobj.startbtn.setText(config.transobj['zhixingwc'])
             winobj.startbtn.setDisabled(False)
@@ -150,10 +160,11 @@ def openwin():
 
         winobj.startbtn.setText(
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+        winobj.loglabel.setText('')
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
 
-        task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked())
+        task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked(),audio_process=winobj.audio_process.currentIndex())
 
         task.uito.connect(feed)
         task.start()

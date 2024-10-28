@@ -34,7 +34,7 @@ TRANSLASTE_NAME_LIST = [
     "离线翻译OTT" if config.defaulelang == 'zh' else 'OTT',
     "腾讯翻译" if config.defaulelang == 'zh' else 'Tencent',
     "OpenAI ChatGPT" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
-    "本地大模型及兼容AI" if config.defaulelang == 'zh' else 'Local LLM',
+    "兼容AI及本地大模型" if config.defaulelang == 'zh' else 'Local LLM',
     "字节火山大模型" if config.defaulelang == 'zh' else 'VolcEngine LLM',
     "AzureAI GPT",
     "Gemini",
@@ -508,18 +508,24 @@ def get_subtitle_code(*, show_target=None):
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
 def run(*, translate_type=None,
         text_list=None,
-        target_language_name=None,
         inst=None,
         is_test=False,
         source_code=None,
+        target_code=None,
         uuid=None) -> Union[List, str, None]:
     translate_type=int(translate_type)
-    _, target_language = get_source_target_code(show_target=target_language_name, translate_type=translate_type)
+    # ai渠道下，target_language是语言名称
+    # 其他渠道下是语言代码
+    # source_code是原语言代码
+    target_language_name=target_code
+    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX,CHATGPT_INDEX,AI302_INDEX,LOCALLLM_INDEX,ZIJIE_INDEX]:
+        _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
-        "target_language": target_language,
+        "target_language_name": target_language_name,
         "inst": inst,
         "source_code": source_code,
+        "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,
     }

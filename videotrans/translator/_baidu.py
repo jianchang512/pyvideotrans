@@ -24,7 +24,7 @@ class Baidu(BaseTrans):
         md5.update(strtext.encode('utf-8'))
         sign = md5.hexdigest()
 
-        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={self.target_language}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
+        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={self.target_code}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
         resraw = requests.get(requrl, proxies={"http": "", "https": ""})

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl, QThread, Signal
-from PySide6.QtGui import QDesktopServices, QTextCursor
+from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPlainTextEdit
 
 from videotrans import translator
@@ -80,6 +80,7 @@ def openwin():
             winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang=='zh' else 'View  details error')
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.loglabel.setText(d['text'][:150])
+            winobj.loglabel.setCursor(Qt.PointingHandCursor)
             winobj.fanyi_start.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.fanyi_start.setDisabled(False)
             winobj.fanyi_import.setDisabled(False)
@@ -134,8 +135,8 @@ def openwin():
         config.settings = config.parse_init()
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
-        source_language, _ = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),
-                                                               translate_type=translate_type)
+        source_code = translator.get_code(show_text=winobj.fanyi_source.currentText())
+        target_code = translator.get_code(show_text=target_language)
         if target_language == '-':
             return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = winobj.fanyi_proxy.text()
@@ -144,7 +145,7 @@ def openwin():
             tools.set_proxy(proxy)
             config.params['proxy'] = proxy
 
-        rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
+        rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
         if rs is not True:
             return False
         if len(winobj.files) < 1:
@@ -154,6 +155,9 @@ def openwin():
         winobj.loglabel.setText('')
 
         config.box_trans = 'ing'
+        config.settings['aisendsrt']=winobj.aisendsrt.isChecked()
+        with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
 
         video_list = [tools.format_video(it, None) for it in winobj.files]
@@ -163,12 +167,12 @@ def openwin():
                 "out_format":winobj.out_format.currentIndex(),
                 "translate_type": translate_type,
                 "text_list": tools.get_subtitle_from_srt(it['name']),
-                "target_language": target_language,
                 "target_dir": RESULT_DIR,
                 "inst": None,
                 "rename":True,
                 "uuid": it['uuid'],
-                "source_code": source_language if source_language and source_language != '-' else ''
+                "source_code": source_code,
+                "target_code": target_code
             }, it)
             config.trans_queue.append(trk)
 
@@ -207,7 +211,7 @@ def openwin():
     def update_target_language():
         current_target = winobj.fanyi_target.currentText()
         config.settings = config.parse_init()
-        language_namelist = ["-"] + config.langnamelist
+        language_namelist = ["-"] + [ it for it in config.langnamelist if config.rev_langlist[it]!='auto']
         if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX]:
             language_namelist += get_google_trans_newcode()
         winobj.fanyi_target.clear()
@@ -292,6 +296,7 @@ def openwin():
             update_target_language()
             winobj.raise_()
             winobj.activateWindow()
+            # winobj.aisendsrt.setChecked(config.settings.get('rephrase'))
             return
 
         winobj = Fanyisrt()

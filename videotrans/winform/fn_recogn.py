@@ -6,7 +6,7 @@ from pathlib import Path
 import torch
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl, QThread, Signal
-from PySide6.QtGui import QDesktopServices, QTextCursor
+from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
 from PySide6.QtWidgets import QMessageBox
 
 from videotrans import translator, recognition
@@ -88,6 +88,7 @@ def openwin():
             winobj.error_msg = d['text']
             winobj.has_done = True
             winobj.loglabel.setText(d['text'][:120])
+            winobj.loglabel.setCursor(Qt.PointingHandCursor)
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.shibie_startbtn.setDisabled(False)
             winobj.shibie_startbtn.setText(config.box_lang["Start"])
@@ -158,8 +159,11 @@ def openwin():
                 config.settings['interval_split']=int(winobj.equal_split_time.text().strip())
             except:
                 config.settings['interval_split']=10
-            with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
+        config.settings['rephrase']=winobj.rephrase.isChecked()
+        config.settings['cjk_len']=winobj.cjklinenums.value()
+        config.settings['oth_len']=winobj.othlinenums.value()
+        with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
         winobj.shibie_opendir.setDisabled(False)
         try:
@@ -212,6 +216,7 @@ def openwin():
                     return False
         return True
 
+
     # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
@@ -242,6 +247,10 @@ def openwin():
             return
         if is_input_api(recogn_type=recogn_type) is not True:
             return
+        if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram]:
+            winobj.rephrase.setDisabled(False)
+        else:
+            winobj.rephrase.setDisabled(True)
 
 
     def stop_recogn():
@@ -279,7 +288,10 @@ def openwin():
         else:
             tools.hide_show_element(winobj.equal_split_layout, False)
 
-
+    def source_language_change():
+        langtext=winobj.shibie_language.currentText()
+        langcode=translator.get_code(show_text=langtext)
+        winobj.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
     from videotrans.component import Recognform
     try:
         winobj = config.child_forms.get('recognform')
@@ -308,8 +320,11 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
+        winobj.rephrase.setChecked(config.settings.get('rephrase'))
 
         winobj.shibie_language.setCurrentIndex(config.params.get('stt_source_language',0))
+
+        winobj.shibie_language.currentIndexChanged.connect(source_language_change)
         winobj.shibie_recogn_type.setCurrentIndex(config.params.get('stt_recogn_type',0))
         winobj.shibie_model.setCurrentIndex(config.params.get('stt_model_name',0))
 

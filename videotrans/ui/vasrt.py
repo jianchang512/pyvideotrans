@@ -14,7 +14,7 @@ class Ui_vasrt(object):
         self.has_done = False
         if not vasrt.objectName():
             vasrt.setObjectName(u"vasrt")
-        vasrt.resize(700, 500)
+        vasrt.resize(800, 500)
         vasrt.setWindowModality(QtCore.Qt.NonModal)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -101,6 +101,15 @@ class Ui_vasrt(object):
         self.ysphb_replace.setDisabled(True)
         self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
 
+        label_audio = QtWidgets.QLabel()
+        label_audio.setText("音频时长大于视频时" if config.defaulelang == 'zh' else "Audio duration > video")
+        self.audio_process = QtWidgets.QComboBox()
+        self.audio_process.addItems([
+            "截断" if config.defaulelang == 'zh' else "Truncate",
+            "自动加速" if config.defaulelang == 'zh' else "Auto Accelerate"
+        ])
+
+
         self.ysphb_maxlenlabel = QtWidgets.QLabel()
         self.ysphb_maxlenlabel.setText("硬字幕单行字符数")
         self.ysphb_maxlen = QtWidgets.QLineEdit()
@@ -131,6 +140,8 @@ class Ui_vasrt(object):
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.language)
 
         self.h7.addWidget(self.ysphb_replace)
+        self.h7.addWidget(label_audio)
+        self.h7.addWidget(self.audio_process)
         self.h7.addLayout(self.layout_form0)
         self.h7.addStretch()
         self.h7.addWidget(self.ysphb_issoft)

@@ -18,6 +18,7 @@ CUSTOM_API = 5
 OPENAI_API = 6
 STT_API = 7
 SENSEVOICE_API = 8
+Deepgram = 9
 
 RECOGN_NAME_LIST = [
     'faster-whisper本地' if config.defaulelang == 'zh' else 'faster-whisper',
@@ -29,6 +30,7 @@ RECOGN_NAME_LIST = [
     "OpenAI识别API" if config.defaulelang == 'zh' else "OpenAI Speech API",
     "Stt语音识别API" if config.defaulelang == 'zh' else "Stt Speech API",
     "SenseVoice本地" if config.defaulelang == 'zh' else "SenseVoice",
+    "Deepgram.com" if config.defaulelang == 'zh' else "Deepgram.com",
 ]
 
 
@@ -77,7 +79,7 @@ def check_model_name(recogn_type=0, name='',source_language_isLast=False,source_
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,senseapi as sense_win
+    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,senseapi as sense_win,deepgram as deepgram_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -110,6 +112,11 @@ def is_input_api(recogn_type: int = None,return_str=False):
         if return_str:
             return "Please configure the api and key information of the DOUBAO_API channel first."
         doubao_win.openwin()
+        return False
+    if recogn_type == Deepgram and not config.params['deepgram_apikey']:
+        if return_str:
+            return "Please configure the API Key information of the Deepgram channel first."
+        deepgram_win.openwin()
         return False
     return True
 
@@ -166,6 +173,9 @@ def run(*,
     if recogn_type==SENSEVOICE_API:
         from ._sense import SenseVoiceAPIRecogn
         return SenseVoiceAPIRecogn(**kwargs).run()
+    if recogn_type==Deepgram:
+        from ._deepgram import DeepgramRecogn
+        return DeepgramRecogn(**kwargs).run()
     if split_type == 'avg':
         from ._average import FasterAvg
         return FasterAvg(**kwargs).run()

@@ -15,8 +15,9 @@ class HuoShan(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.proxies = {"http": "", "https": ""}
-        self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language)
-        self.model_name=config.params["zijiehuoshan_model"] 
+        self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.model_name=config.params["zijiehuoshan_model"]
+        self.prompt=self._replace_prompt()
     def _item_task(self, data: Union[List[str], str]) -> str:
         message = [
             {'role': 'system',

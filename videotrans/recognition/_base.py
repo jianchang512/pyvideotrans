@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import re
@@ -86,237 +87,97 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[Dict], None]:
         pass
 
-    def add_punctuation_to_words(self, data):
-        import nltk, os
-        # 指定 nltk 数据存放路径
-        nltk.data.path.append(config.ROOT_DIR + "/models")
-
-        # 下载 punkt_tab 资源到指定路径
-        if not os.path.exists(config.ROOT_DIR + "/models/tokenizers/punkt_tab"):
-            nltk.download('punkt_tab', download_dir=config.ROOT_DIR + "/models")
-
-        """
-        在字级别信息中插入标点符号。
-
-        Args:
-            data: openai-whisper 返回的字幕数据，包含字级别信息。
-
-        Returns:
-            添加标点符号后的字幕数据，格式与输入相同。
-        """
-        for i,segment in enumerate(data):
-            for j,word_info in enumerate(segment["words"]):
-                if self.jianfan:
-                    segment['words'][j]['word']=zhconv.convert(word_info['word'], 'zh-hans')
-                if self.detect_language[:2] in ['zh','ja','ko']:
-                    segment['words'][j]['word']=word_info['word'].replace(' ',',')
-            data[i]=segment
-
-        for i,segment in enumerate(data):
-            if "words" not in segment:
+    def re_segment_sentences(self,words):
+        from funasr import AutoModel
+        import zhconv
+        # 删掉标点和不含有文字的word
+        new_words = []
+        pat = re.compile(r'[，。！？；｛｝“”‘’"\'{}\[\](),.?!;_ \s-]')
+        jianfan=config.settings.get('zh_hant_s')
+        for i, it in enumerate(words):
+            it['word'] = pat.sub('', it['word']).strip()
+            if not it['word']:
                 continue
+            it['word']=zhconv.convert(it['word'], 'zh-hans') if jianfan else it['word']
+            new_words.append(it)
+        text = "".join([w["word"] for w in new_words])
+        model = AutoModel(model="ct-punc-c", model_revision="v2.0.4",
+                          disable_update=True,
+                          disable_log=True,
+                          local_files_only=True,
+                          local_dir=config.ROOT_DIR + "/models")
+        res = model.generate(input=text)
+        # 移除空格防止位置变化
+        text = re.sub(r'[ \s]', '', res[0]['text']).strip()
+        flag_list = ['，', '。', '？', '！', '；', '、', ',', '?', '.', '!', ';']
 
-            text = "".join([word_info["word"] for word_info in segment["words"]])
+        # 记录每个标点符号在原text中应该插入的位置
+        flags = {}
+        pos_index = -1
+        for i in range(len(text)):
+            if text[i] not in flag_list:
+                pos_index += 1
+            else:
+                flags[str(pos_index)] = text[i]
 
-
-            sentences = nltk.sent_tokenize(text)  # 使用 nltk 分句
-            punctuated_text = ""
-            for sentence in sentences:
-                if self.detect_language[:2] in ['zh','ja','ko']:
-                    sentence=sentence.strip().replace(' ',',')
-                if sentence[-1] in [',', '?', '!', '，', '。', '？', '！']:
-                    punctuated_text += sentence + " "
-                else:
-                    punctuated_text += sentence + (". " if self.detect_language[:2] not in ['zh','ja','ko'] else ',')
-            punctuated_text = punctuated_text.strip()
-
-            # 将标点符号插入到对应的 word 中
-            word_index = 0
-            punc_index = 0
-            new_words = []
-            for word_info in segment["words"]:
-                tmp=word_info
-                word = word_info["word"]
-                while punc_index < len(punctuated_text) and punctuated_text[punc_index] in word:
-                    punc_index += 1
-                if punc_index < len(punctuated_text) and punctuated_text[punc_index] in [',', '.', '?', '!', '，', '。',
-                                                                                         '？', '！']:
-                    if punctuated_text[punc_index] not in word:
-                        tmp={
-                            "word": word + punctuated_text[punc_index],
-                            "start": word_info["start"],
-                            "end": word_info["end"]}
-
-                        punc_index += 1
-                tmp['word'] = re.sub(r"(?<!\d)\.(?!\d)", ",", tmp['word'])
-                new_words.append(tmp)
-
-            segment["words"] = new_words
-            segment["text"] = punctuated_text
-            data[i]=segment
-
-        return data
-
-    def re_segment_sentences(self, data):
-        with open(config.ROOT_DIR+"/test.srt", "w", encoding="utf-8") as f:
-            f.write(json.dumps(data, ensure_ascii=False))
-        """
-        根据字级别信息重新划分句子，考虑 word 中可能包含多个字符的情况，并优化断句逻辑。
-
-        Args:
-            data: openai-whisper 返回的字幕数据，包含字级别信息。
-
-        Returns:
-            重新划分后的字幕数据，格式与输入相同。
-        """
-        flags=r'[,?!，。？！]|(\. )'
-        flags_list=[',','.','!','?','，','。','！','？']
-        if self.detect_language[:2] in ['zh', 'ja', 'ko']:
-            flags=r'[,?!，。？！]|(\. )'
-        shound_rephase=False
-        for segment in data:
-            if "words" not in segment or len(segment['words'])<1:
-                continue
-            if segment['words'][0]['end']-segment['words'][0]['start']>float(config.settings.get('overall_maxsecs',12))*1000:
-                shound_rephase=True
+        # 复制一份words，将标点插入
+        pos_start = -1
+        flags_index = list(flags.keys())
+        copy_words = copy.deepcopy(new_words)
+        for w_index, it in enumerate(new_words):
+            if len(flags_index) < 1:
+                new_words[w_index] = it
                 break
-            if len(segment['text'])>=2.8*self.maxlen:
-                shound_rephase=True
-                break
-
-        new_data = []
-        if not config.settings['rephrase'] or not shound_rephase:
-            for segment in data:
-                if "words" not in segment or len(segment['words']) < 1:
-                    continue
-                tmp = {
-                    "line": len(new_data) + 1,
-                    "start_time": segment['words'][0]['start'],
-                    "end_time": segment['words'][-1]['end'],
-                    "text": tools.cleartext(segment['text']),
-                }
-                if self.jianfan:
-                    tmp['text'] = zhconv.convert(tmp['text'], 'zh-hans')
-                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
-                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
-                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
-                new_data.append(tmp)
-            return new_data
-
-        try:
-            data = self.add_punctuation_to_words(data)
-        except Exception as e:
-            config.logger.exception(e)
-
-        sentence = ""
-        sentence_start = data[0]["words"][0]['start']
-        sentence_end = 0
-        data_len=len(data)
-        start_flag_word_info=None
-
-        for seg_i,segment in enumerate(data):
-            if "words" not in segment or len(segment['words'])<1:
+            f0 = int(flags_index[0])
+            if pos_start + len(it['word']) < f0:
+                pos_start += len(it['word'])
                 continue
-            current_len=len(segment["words"])
-            for i, word_info in enumerate(segment["words"]):
-                word = word_info["word"]
-                if len(word.strip())<1 or word.strip() in flags_list:
-                    continue
-                next_start=word_info['end']
-                next_word=""
-                if i+1 < current_len:
-                    next_start= segment["words"][i + 1]["start"]
-                    next_word=segment["words"][i + 1]["word"]
-                elif i+1 == current_len and seg_i+1<data_len:
-                    try:
-                        next_start=data[seg_i+1]['words'][0]['start']
-                        next_word=data[seg_i+1]['words'][0]['word']
-                    except:
-                        pass
-                elif i+1 == current_len and seg_i+1>=data_len:
-                    next_start=data[-1]['words'][-1]['end']
-                    next_word=data[-1]['words'][-1]['word']
+            # 当前应该插入的标点位置 f0大于 pos_start 并且小于 pos_start+长度，即位置存在于当前word
+            # word中可能是1-多个字符
+            if f0 > pos_start and f0 <= pos_start + len(it['word']):
+                if len(it['word']) == 1:
+                    copy_words[w_index]['word'] += flags[str(f0)]
+                    pos_start += len(it['word'])
+                    flags_index.pop(0)
+                elif len(it['word']) > 1:
+                    for j in range(f0 - pos_start):
+                        if pos_start + j + 1 == f0:
+                            copy_words[w_index]['word'] += flags[str(f0)]
+                            pos_start += len(it['word'])
+                            flags_index.pop(0)
+                            break
+                new_words[w_index] = it
+        # 根据标点符号断句
 
-                sentence += ('' if not start_flag_word_info else start_flag_word_info['word'])
-                # 开头是标点符号
-                if word.strip()[0] in flags_list:
-                    if len(sentence)>=0.5*self.maxlen:
-                        # 肯定不是第一个
-                        tmp = {
-                            "line": len(new_data) + 1,
-                            "start_time": sentence_start,
-                            "end_time": start_flag_word_info['end'] if start_flag_word_info else sentence_end,
-                            "text": tools.cleartext(sentence),
-                        }
-                        tmp["startraw"] = tools.ms_to_time_string(ms=tmp["start_time"])
-                        tmp["endraw"] = tools.ms_to_time_string(ms=tmp["end_time"])
-                        tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
-                        new_data.append(tmp)
-                        sentence_start=word_info['start']
-                        sentence_end=word_info['end']
-                        sentence=''
-                    start_flag_word_info=word_info
-                    continue
-
-                start_flag_word_info=None
-                end = word_info["end"]
-                sentence_end = end
-                sentence+=word
-
-                is_insert=False
-                # 判断如果下个字符存在符号，且下个字符长度小于0.2*maxlen，则不插入
-                if next_word and len(sentence.strip()) < 1.2*self.maxlen and re.search(flags,next_word) and len(next_word)<0.2*self.maxlen:
-                    continue
-
-                if next_start >= end+1000:
-                    is_insert=True
-                elif next_start>=end+200 and len(sentence.strip())>0.1*self.maxlen:
-                    is_insert=True
-                elif next_start> end and re.search(flags, word) and len(sentence.strip())>self.maxlen*0.2:
-                    is_insert=True
-
-                if not is_insert and re.search(flags, word) and len(sentence.strip())>=0.5*self.maxlen:
-                    is_insert=True
-
-                if not is_insert:
-                    if self.subtitle_type>0 and len(sentence.strip())>=self.maxlen*1.8:
-                        is_insert=True
-                    elif  self.subtitle_type==0 and len(sentence.strip())>self.maxlen*2:
-                        is_insert=True
-
-                if not is_insert:
-                    continue
-
-                tmp = {
-                    "line": len(new_data) + 1,
-                    "start_time": sentence_start,
-                    "end_time": sentence_end,
-                    "text": tools.cleartext(sentence),
+        raws = []
+        last_tmp = None
+        length = int(config.settings.get('cjk_len'))
+        for i, w in enumerate(copy_words):
+            if not last_tmp:
+                last_tmp = {
+                    "line": 1 + len(raws),
+                    "start_time": int(w['start'] * 1000),
+                    "end_time": int(w['end'] * 1000),
+                    "text": w['word'],
                 }
-                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
-                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
-                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
-                new_data.append(tmp)
-
-                sentence = ""
-                sentence_start = next_start
-        if start_flag_word_info:
-            sentence_end=start_flag_word_info['end'] if start_flag_word_info['end'] >sentence_end else sentence_end
-            sentence+=start_flag_word_info['word']
-        # 处理最后一句
-        if sentence:
-            if sentence_end - sentence_start > 0:
-                tmp = {
-                    "line": len(new_data) + 1,
-                    "start_time": sentence_start,
-                    "end_time": sentence_end,
-                    "text": tools.cleartext(sentence),
-                }
-                tmp["startraw"]=tools.ms_to_time_string(ms=tmp["start_time"])
-                tmp["endraw"]=tools.ms_to_time_string(ms=tmp["end_time"])
-                tmp['time'] = f'{tmp["startraw"]} --> {tmp["endraw"]}'
-                new_data.append(tmp)
-        return new_data
+            elif w['word'][-1] in flag_list and (
+                    w['start'] * 1000 > last_tmp['end_time']  or len(last_tmp['text']) + len(w['word']) > length/2):
+                last_tmp['text'] += w['word']
+                last_tmp['end_time'] = int(w['end'] * 1000)
+                last_tmp['startraw']=tools.ms_to_time_string(ms=last_tmp["start_time"])
+                last_tmp['endraw']=tools.ms_to_time_string(ms=last_tmp["end_time"])
+                last_tmp['time'] = f"{last_tmp['startraw']} --> {last_tmp['endraw']}"
+                raws.append(last_tmp)
+                last_tmp = None
+            else:
+                last_tmp['text'] += w['word']
+                last_tmp['end_time'] = int(w['end'] * 1000)
+        if last_tmp:
+            last_tmp['startraw'] = tools.ms_to_time_string(ms=last_tmp["start_time"])
+            last_tmp['endraw'] = tools.ms_to_time_string(ms=last_tmp["end_time"])
+            last_tmp['time'] = f"{last_tmp['startraw']} --> {last_tmp['endraw']}"
+            raws.append(last_tmp)
+        return raws
 
     # True 退出
     def _exit(self) -> bool:

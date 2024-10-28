@@ -24,7 +24,7 @@ def openwin():
         uito = Signal(str)
 
         def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
-                     maxlen=30):
+                     maxlen=30,audio_process=0):
             super().__init__(parent=parent)
             self.video = video
             self.audio = audio
@@ -33,6 +33,7 @@ def openwin():
             self.is_soft = is_soft
             self.language = language
             self.maxlen = maxlen
+            self.audio_process=audio_process
             self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
             self.video_time = tools.get_video_duration(self.video)
@@ -77,6 +78,16 @@ def openwin():
                 end_mp4 = None
                 # 存在音频
                 if self.audio:
+                    video_time = tools.get_video_duration(self.video)
+                    audio_time = int(tools.get_audio_time(self.audio) * 1000)
+                    tmp_audio = config.TEMP_HOME + f"/{time.time()}-{Path(self.audio).name}"
+                    if audio_time > video_time and self.audio_process == 0:
+                        tools.runffmpeg(
+                            ['-y', '-i', self.audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
+                        self.audio = tmp_audio
+                    elif audio_time > video_time and self.audio_process == 1:
+                        tools.precise_speed_up_audio(file_path=self.audio, out=tmp_audio, target_duration_ms=video_time)
+                        self.audio = tmp_audio
                     # 需要保留原视频中声音 并且原视频中有声音
                     if self.saveraw and self.video_info['streams_audio']:
                         tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.m4a"
@@ -191,7 +202,7 @@ def openwin():
             winobj.ysphb_startbtn.setText(d['text'])
         elif d['type'] == 'logs':
             winobj.ysphb_startbtn.setText(d['text'])
-        else:
+        elif d['type']=='ok':
             winobj.has_done = True
             winobj.ysphb_startbtn.setText(config.transobj['zhixingwc'])
             winobj.ysphb_startbtn.setDisabled(False)
@@ -257,7 +268,8 @@ def openwin():
                           saveraw=saveraw,
                           is_soft=is_soft,
                           language=language,
-                          maxlen=maxlen
+                          maxlen=maxlen,
+                          audio_process=winobj.audio_process.currentIndex()
                           )
         task.uito.connect(feed)
         task.start()

@@ -20,9 +20,9 @@ class Ui_formatcover(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(formatcover.sizePolicy().hasHeightForWidth())
         formatcover.setSizePolicy(sizePolicy)
-        self.gridLayout = QtWidgets.QVBoxLayout(formatcover)
-        self.gridLayout.setObjectName("gridLayout")
-        self.gridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+
+        v1=QtWidgets.QVBoxLayout(formatcover)
 
         self.formLayout_2 = QtWidgets.QHBoxLayout()
         self.formLayout_2.setObjectName("formLayout_2")
@@ -40,16 +40,14 @@ class Ui_formatcover(object):
 
         self.formLayout_2.addWidget(self.selectbtn)
         self.formLayout_2.addWidget(self.pathdir)
-        self.gridLayout.addSpacing(10)
 
-        self.gridLayout.addLayout(self.formLayout_2)
+        v1.addLayout(self.formLayout_2)
 
         # sk
         self.formLayout_3 = QtWidgets.QHBoxLayout()
         self.formLayout_3.setAlignment(QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
 
-        self.gridLayout.addSpacing(10)
 
         self.labelformat = QtWidgets.QLabel(formatcover)
         self.labelformat.setMinimumSize(QtCore.QSize(0, 35))
@@ -64,8 +62,7 @@ class Ui_formatcover(object):
         self.formLayout_3.addWidget(self.labelformat)
         self.formLayout_3.addStretch()
         self.formLayout_3.addWidget(self.formatlist)
-        self.gridLayout.addLayout(self.formLayout_3)
-        self.gridLayout.addSpacing(30)
+        v1.addLayout(self.formLayout_3)
 
         self.startbtn = QtWidgets.QPushButton(formatcover)
         self.startbtn.setMinimumSize(QtCore.QSize(200, 35))
@@ -90,9 +87,9 @@ class Ui_formatcover(object):
         self.layout_opendir.addWidget(self.opendir)
         self.layout_opendir.addStretch()
 
-        self.gridLayout.addLayout(self.layout_btn)
-        self.gridLayout.addSpacing(50)
-        self.gridLayout.addLayout(self.layout_opendir)
+        v1.addLayout(self.layout_btn)
+        v1.addStretch()
+        v1.addLayout(self.layout_opendir)
 
         self.retranslateUi(formatcover)
         QtCore.QMetaObject.connectSlotsByName(formatcover)

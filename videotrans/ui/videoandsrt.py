@@ -55,6 +55,7 @@ class Ui_videoandsrt(object):
         self.v3.addLayout(self.h3)
 
         self.labeltips = QLabel()
+        self.labeltips.setStyleSheet('''color:#999''')
         self.v3.addWidget(self.labeltips)
 
         # h6
@@ -62,7 +63,7 @@ class Ui_videoandsrt(object):
         self.h7.setObjectName("h7")
 
         self.maxlenlabel = QtWidgets.QLabel()
-        self.maxlenlabel.setText("硬字幕单行字符数")
+        self.maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang=='zh' else 'Hard Subtitle Line Characters')
         self.maxlen = QtWidgets.QLineEdit()
         self.maxlen.setText('30')
 
@@ -130,7 +131,7 @@ class Ui_videoandsrt(object):
         self.language.setDisabled(False if state else True)
 
     def retranslateUi(self, videoandsrt):
-        videoandsrt.setWindowTitle('视频与字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
+        videoandsrt.setWindowTitle('批量视频与字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
 
         self.labeltips.setText(
             "将把所选文件夹内同名的视频和srt字幕进行合并，例如 1.mp4 和 1.srt" if config.defaulelang == 'zh' else 'Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt')

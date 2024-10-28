@@ -207,6 +207,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_cuda.setChecked(True if config.params['cuda'] else False)
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
+        self.rephrase.setChecked(config.settings.get('rephrase'))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume',0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio',True)))
@@ -216,6 +217,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
+        self.source_language.currentTextChanged.connect(self.win_action.source_language_change)
 
         self.set_line_role.clicked.connect(self.win_action.set_line_role_fun)
         self.proxy.textChanged.connect(self.win_action.change_proxy)
@@ -231,7 +233,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
         self.reglabel.clicked.connect(self.win_action.click_reglabel)
-        self.label_8.clicked.connect(self.win_action.click_subtitle)
         self.label_9.clicked.connect(self.win_action.click_translate_type)
         self.tts_text.clicked.connect(self.win_action.click_tts_type)
         from videotrans.util import tools
@@ -283,6 +284,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionzhrecogn_api.triggered.connect(winform.zh_recogn.openwin)
         self.actionrecognapi.triggered.connect(winform.recognapi.openwin)
         self.actionsttapi.triggered.connect(winform.sttapi.openwin)
+        self.actiondeepgram.triggered.connect(winform.deepgram.openwin)
         self.actionsenseapi.triggered.connect(winform.senseapi.openwin)
         self.actiondoubao_api.triggered.connect(winform.doubao.openwin)
         self.actiontrans_api.triggered.connect(winform.transapi.openwin)
@@ -335,6 +337,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
         self.rightbottom.clicked.connect(self.win_action.about)
+
+
 
     def closeEvent(self, event):
         config.exit_soft = True

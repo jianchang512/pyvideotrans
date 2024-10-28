@@ -150,6 +150,10 @@ class WinAction(WinActionSub):
         elif self.main.split_type.currentIndex()==1:
             tools.hide_show_element(self.main.equal_split_layout, True)
 
+        if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram]:
+            self.main.rephrase.setDisabled(False)
+        else:
+            self.main.rephrase.setDisabled(True)
     def click_reglabel(self):
         if self.main.recogn_type.currentIndex()==0 and self.main.split_type.currentIndex()==0:
             # 判断 self.main.threshold 这个元素是否可见 is_visible
@@ -510,8 +514,12 @@ class WinAction(WinActionSub):
             config.settings["min_silence_duration_ms"]=int(self.main.min_silence_duration_ms.text())
             config.settings["speech_pad_ms"]=int(self.main.speech_pad_ms.text())
             config.settings["max_speech_duration_s"]=int(self.main.max_speech_duration_s.text())
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
+
+        config.settings['rephrase']=self.main.rephrase.isChecked()
+        config.settings['cjk_len']=self.main.cjklinenums.value()
+        config.settings['oth_len']=self.main.othlinenums.value()
+        with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         QTimer.singleShot(50, self.create_btns)
@@ -728,7 +736,6 @@ class WinAction(WinActionSub):
             if self.is_batch or ( not self.is_batch and self.edit_subtitle_type=='edit_subtitle_source'):
                 self.main.subtitle_area.moveCursor(QTextCursor.End)
                 self.main.subtitle_area.insertPlainText(d['text'])
-                #print(f'插入1 {self.edit_subtitle_type=} {d["text"]=}')
             elif not self.is_batch and self.edit_subtitle_type=='edit_subtitle_target':
                 self.main.target_subtitle_area.moveCursor(QTextCursor.End)
                 self.main.target_subtitle_area.insertPlainText(d['text'])
