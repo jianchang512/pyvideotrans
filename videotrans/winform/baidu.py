@@ -19,7 +19,7 @@ def openwin():
                 text = translator.run(translate_type=translator.BAIDU_INDEX,
                                       text_list=raw,
                                       source_code="zh-cn",
-                                      target_language_name="en", is_test=True)
+                                      target_code="en", is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")
             except Exception as e:
                 self.uito.emit(str(e))

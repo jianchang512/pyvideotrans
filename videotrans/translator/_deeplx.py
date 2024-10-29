@@ -34,10 +34,17 @@ class DeepLX(BaseTrans):
             self.proxies = {"http": "", "https": ""}
 
     def _item_task(self, data: Union[List[str], str]) -> str:
+        target_code=self.target_code.upper()
+        if target_code=='EN':
+            target_code='EN-US'
+        elif target_code=='ZH-CN':
+            target_code='ZH-HANS'
+        elif target_code=='ZH-TW':
+            target_code='ZH-HANT'
         jsondata = {
             "text": "\n".join(data),
             "source_lang": self.source_code.upper()[:2] if self.source_code else None,
-            "target_lang": 'EN-US' if self.target_code.lower() == 'en' else self.target_code
+            "target_lang": target_code
         }
         config.logger.info(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)

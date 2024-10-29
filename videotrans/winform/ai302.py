@@ -20,7 +20,7 @@ class TestAI302(QThread):
         try:
             raw = "你好啊我的朋友"
             text = translator.run(translate_type=translator.AI302_INDEX, text_list=raw,
-                                  target_language_name="English" if config.defaulelang != 'zh' else "英语",
+                                  target_code="en",
                                   source_code="zh-cn",
                                   is_test=True)
             self.uito.emit(f"ok:{raw}\n{text}")
