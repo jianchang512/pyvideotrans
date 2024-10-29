@@ -4,9 +4,53 @@ from pathlib import Path
 
 from videotrans.configure import config
 from videotrans.util import tools
-
+from videotrans import translator
+from PySide6.QtCore import QThread, Signal
+from PySide6 import QtWidgets
 
 def openwin():
+    class TestTask(QThread):
+        uito = Signal(str)
+
+        def __init__(self, *, parent=None):
+            super().__init__(parent=parent)
+
+        def run(self):
+            try:
+                raw = "你好啊我的朋友"
+                text = translator.run(translate_type=translator.GEMINI_INDEX,
+                                      text_list=raw,
+                                      target_code="en",
+                                      source_code="zh-cn",
+                                      is_test=True)
+                self.uito.emit(f"ok:{raw}\n{text}")
+            except Exception as e:
+                self.uito.emit(str(e))
+    
+    def feed(d):
+        if not d.startswith("ok:"):
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        else:
+            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
+        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+    
+    def test():
+        key = winobj.gemini_key.text()
+        model = winobj.model.currentText()
+        template = winobj.gemini_template.toPlainText()
+        os.environ['GOOGLE_API_KEY'] = key
+        config.params["gemini_model"] = model
+        config.params["gemini_key"] = key
+        config.params["gemini_template"] = template
+        with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
+            f.write(template)
+            f.flush()
+
+        task = TestTask(parent=winobj)
+        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task.uito.connect(feed)
+        task.start()
+    
     def save():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
@@ -59,5 +103,6 @@ def openwin():
     config.child_forms['geminiw'] = winobj
     update_ui()
     winobj.set_gemini.clicked.connect(save)
+    winobj.test.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.show()

@@ -39,16 +39,16 @@ def openwin():
 
     def test():
         key = winobj.localllm_key.text()
-        api = winobj.localllm_api.text().strip()
-        if not api:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写api地址' if config.defaulelang == 'zh' else 'Please input LLM API url')
-
+        url = winobj.localllm_api.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.localllm_model.currentText()
         template = winobj.localllm_template.toPlainText()
 
         config.params["localllm_key"] = key
-        config.params["localllm_api"] = api
+        config.params["localllm_api"] = url
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
 
@@ -59,20 +59,17 @@ def openwin():
 
     def save_localllm():
         key = winobj.localllm_key.text()
-        api = winobj.localllm_api.text().strip()
-
+        url = winobj.localllm_api.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.localllm_model.currentText()
         template = winobj.localllm_template.toPlainText()
 
         config.params["localllm_key"] = key
-        config.params["localllm_api"] = api
-        # try:
-        #     m=re.search(r'/((?:\d+\.){3}\d+):',api)
-        #     if m:
-        #         os.environ['OLLAMA_HOST']=m.group(1)
-        #         os.environ['OLLAMA_ORIGINS']='*'
-        # except:
-        #     pass
+        config.params["localllm_api"] = url
+
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
         with Path(tools.get_prompt_file('localllm')).open('w', encoding='utf-8') as f:

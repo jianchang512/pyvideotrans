@@ -94,6 +94,8 @@ class FasterAll(BaseRecogn):
                     jianfan=config.settings.get('zh_hant_s')
                     if not config.settings['rephrase'] or self.detect_language[:2]!='zh':
                         for i in list(raws):
+                            if len(i['words'])<1:
+                                continue
                             tmp={
                                 'text':zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
                                 'start_time':int(i['words'][0]['start']*1000),

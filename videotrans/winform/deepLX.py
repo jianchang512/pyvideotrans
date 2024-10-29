@@ -3,7 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
-
+from videotrans.util import tools
 
 def openwin():
     class TestTask(QThread):
@@ -32,11 +32,12 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        url = winobj.deeplx_address.text()
+        url = winobj.deeplx_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         key = winobj.deeplx_key.text().strip()
-        if not url:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写 api 地址' if config.defaulelang == 'zh' else 'Please input api url')
 
         config.params["deeplx_address"] = url
         config.params["deeplx_key"] = key
@@ -48,7 +49,11 @@ def openwin():
         task.start()
 
     def save():
-        url = winobj.deeplx_address.text()
+        url = winobj.deeplx_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
         key = winobj.deeplx_key.text().strip()
         config.params["deeplx_address"] = url
         config.params["deeplx_key"] = key

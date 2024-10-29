@@ -5,7 +5,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
-
+from videotrans.util import tools
 
 # set chatgpt
 def openwin():
@@ -38,12 +38,17 @@ def openwin():
 
     def test():
         key = winobj.openaitts_key.text()
-        api = winobj.openaitts_api.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.openaitts_api.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.openaitts_model.currentText()
 
         config.params["openaitts_key"] = key
-        config.params["openaitts_api"] = api
+        config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
 
         task = TestOpenaitts(parent=winobj, text="你好啊我的朋友")
@@ -54,12 +59,17 @@ def openwin():
 
     def save_openaitts():
         key = winobj.openaitts_key.text()
-        api = winobj.openaitts_api.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.openaitts_api.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
+        
         model = winobj.openaitts_model.currentText()
 
         config.params["openaitts_key"] = key
-        config.params["openaitts_api"] = api
+        config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
         config.getset_params(config.params)
         winobj.close()

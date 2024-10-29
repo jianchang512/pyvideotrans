@@ -7,10 +7,8 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
-
-
-# set chatgpt
 from videotrans.util import tools
+
 
 
 def openwin():
@@ -40,14 +38,18 @@ def openwin():
 
     def test():
         key = winobj.chatgpt_key.text()
-        api = winobj.chatgpt_api.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.chatgpt_api.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
 
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key
-        config.params["chatgpt_api"] = api
+        config.params["chatgpt_api"] = url
         config.params["chatgpt_model"] = model
         config.params["chatgpt_template"] = template
 
@@ -55,12 +57,15 @@ def openwin():
         winobj.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
-        winobj.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_chatgpt():
         key = winobj.chatgpt_key.text()
-        api = winobj.chatgpt_api.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.chatgpt_api.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
         with Path(tools.get_prompt_file('chatgpt')).open('w', encoding='utf-8') as f:
@@ -68,7 +73,7 @@ def openwin():
             f.flush()
         os.environ['OPENAI_API_KEY'] = key
         config.params["chatgpt_key"] = key
-        config.params["chatgpt_api"] = api
+        config.params["chatgpt_api"] = url
         config.params["chatgpt_model"] = model
         config.params["chatgpt_template"] = template
         config.getset_params(config.params)

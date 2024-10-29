@@ -36,7 +36,11 @@ def openwin():
         winobj.test.setText('测试api')
 
     def test():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         config.params["fishtts_url"] = url
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
@@ -66,7 +70,11 @@ def openwin():
         return role
 
     def save():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         role = winobj.role.toPlainText().strip()
 
         config.params["fishtts_url"] = url

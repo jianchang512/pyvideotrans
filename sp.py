@@ -53,6 +53,8 @@ class StartWindow(QtWidgets.QWidget):
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
         try:
+            
+            from videotrans.configure import config
             from videotrans.mainwin._main_win import MainWindow
             sets=QSettings("pyvideotrans", "settings")
             w,h=int(self.width*0.85), int(self.height*0.85)
@@ -62,8 +64,8 @@ class StartWindow(QtWidgets.QWidget):
                 h=size.height()
             except:
                 pass
-            mw=MainWindow(width=w, height=h)
-            mw.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
+            config.MAINWIN=MainWindow(width=w, height=h)
+            config.MAINWIN.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
         except Exception as e:
             import traceback
             from PySide6.QtWidgets import QMessageBox

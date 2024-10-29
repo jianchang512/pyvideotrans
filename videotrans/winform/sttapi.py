@@ -35,11 +35,12 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not winobj.stt_url.text().strip():
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                           '必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
+        url = winobj.stt_url.text().strip()
+        if tools.check_local_api(url) is not True:
             return
-        config.params['stt_url'] = winobj.stt_url.text().strip()
+        if not url.startswith('http'):
+            url = 'http://' + url
+        config.params['stt_url'] = url
         task = Test(parent=winobj)
         winobj.test.setText('测试...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
@@ -47,11 +48,13 @@ def openwin():
 
     def save():
         url = winobj.stt_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.stt_model.currentText()
-        if url:
-            url = url.rstrip('/')
-            url = 'http://' + url.replace('http://', '')
-            
+        url = url.rstrip('/')
+        
         config.params["stt_url"] = url
         config.params["stt_model"] = model
         config.getset_params(config.params)

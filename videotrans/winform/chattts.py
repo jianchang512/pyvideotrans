@@ -5,10 +5,8 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
-
-
-# 使用内置的 open 函数
 from videotrans.util import tools
+
 
 
 def openwin():
@@ -40,15 +38,13 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not winobj.chattts_address.text().strip():
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
+        
+        url = winobj.chattts_address.text().strip()
+        if tools.check_local_api(url) is not True:
             return
-        apiurl = winobj.chattts_address.text().strip()
-        if not apiurl:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写api地址' if config.defaulelang == 'zh' else 'Please input ChatTTS API url')
-
-        config.params['chattts_api'] = apiurl
+        if not url.startswith('http'):
+            url = 'http://' + url    
+        config.params['chattts_api'] = url
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友"
                        )
@@ -57,12 +53,14 @@ def openwin():
         task.start()
 
     def save():
-        key = winobj.chattts_address.text().strip()
+        url = winobj.chattts_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
+        url = url.rstrip('/').replace('/tts', '')
         voice = winobj.chattts_voice.text().strip()
-        if key:
-            key = key.rstrip('/')
-            key = 'http://' + key.replace('http://', '').replace('/tts', '')
-        config.params["chattts_api"] = key
+        config.params["chattts_api"] = url
         config.getset_params(config.params)
         config.settings['chattts_voice'] = voice
         with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:

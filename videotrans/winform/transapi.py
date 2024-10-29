@@ -3,7 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
-
+from videotrans.util import tools
 
 def openwin():
     class Test(QThread):
@@ -32,12 +32,11 @@ def openwin():
         winobj.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
 
     def test():
-        url = winobj.api_url.text()
-        config.params["ttsapi_url"] = url
-        if not url:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  "必须填写自定义翻译的url" if config.defaulelang == 'zh' else "The url of the custom translation must be filled in")
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         miyue = winobj.miyue.text()
         config.params["trans_api_url"] = url
         config.params["trans_secret"] = miyue
@@ -47,7 +46,11 @@ def openwin():
         task.start()
 
     def save():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         miyue = winobj.miyue.text()
         config.params["trans_api_url"] = url
         config.params["trans_secret"] = miyue

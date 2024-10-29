@@ -38,7 +38,11 @@ def openwin():
         winobj.test.setText('测试api')
 
     def test():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.model.currentText()
         role = winobj.role.toPlainText().strip()
         if not role:
@@ -84,7 +88,11 @@ def openwin():
         return role
 
     def save():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         role = winobj.role.toPlainText().strip()
         model = winobj.model.currentText()
 
