@@ -379,6 +379,7 @@ class Ui_MainWindow(object):
         self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.voice_rate.setMinimum(-50)
         self.voice_rate.setMaximum(50)
+        self.voice_rate.setMinimumSize(QtCore.QSize(50, 30))
         self.voice_rate.setObjectName("voice_rate")
 
         self.layout_voice_rate.setAlignment(Qt.AlignVCenter)

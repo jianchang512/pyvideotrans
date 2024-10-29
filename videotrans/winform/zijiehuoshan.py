@@ -20,7 +20,7 @@ def openwin():
             try:
                 raw = "你好啊我的朋友"
                 text = translator.run(translate_type=translator.ZIJIE_INDEX, text_list=raw,
-                                      target_language_name="英语" if config.defaulelang=='zh' else 'English',
+                                      target_code="en",
                                       source_code="zh-cn",
                                       is_test=True)
                 self.uito.emit(f"ok:{raw}\n{text}")

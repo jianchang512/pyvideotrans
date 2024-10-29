@@ -23,10 +23,17 @@ class DeepL(BaseTrans):
 
         deepltranslator = deepl.Translator(config.params['deepl_authkey'], server_url=self.api_url, proxy=self.proxies)
         config.logger.info(f'[DeepL]请求数据:{data=},{config.params["deepl_gid"]=}')
+        target_code=self.target_code.upper()
+        if target_code=='EN':
+            target_code='EN-US'
+        elif target_code=='ZH-CN':
+            target_code='ZH-HANS'
+        elif target_code=='ZH-TW':
+            target_code='ZH-HANT'
         result = deepltranslator.translate_text(
                 "\n".join(data),
                 source_lang=self.source_code.upper()[:2] if self.source_code else None,
-                target_lang='EN-US' if self.target_code.lower() == 'en' else self.target_code,
+                target_lang=target_code,
                 glossary=config.params['deepl_gid'] if config.params['deepl_gid'] else None
             )
 

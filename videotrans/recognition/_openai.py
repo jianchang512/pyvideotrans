@@ -86,6 +86,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 if not config.settings['rephrase'] or self.detect_language[:2] !='zh':
                     jianfan=config.settings.get('zh_hant_s')
                     for i in alllist:
+                        if len(i['words'])<1:
+                            continue
                         tmp = {
                             'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
                             'start_time': int(i['words'][0]['start'] * 1000),
