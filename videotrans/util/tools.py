@@ -1745,3 +1745,29 @@ def clean_srt(srt):
     # 行号前添加换行符
     srt=re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)',r"\n\n\1\n\2",srt)
     return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
+
+
+def check_local_api(api):
+    from PySide6 import QtWidgets,QtGui
+    # 创建消息框
+    msg_box = QtWidgets.QMessageBox()
+    msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+    msg_box.setText("API url error:")
+    msg_box.setWindowTitle(config.transobj['anerror'])
+    
+
+    # 设置窗口图标
+    icon = QtGui.QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico")  # 替换为你的图标路径
+    msg_box.setWindowIcon(icon)
+
+    # 显示消息框
+    
+    if not api:
+        msg_box.setInformativeText('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
+        msg_box.exec()
+        return False
+    if api.find('0.0.0.0:')>-1:
+        msg_box.setInformativeText('请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
+        msg_box.exec()
+        return False
+    return True

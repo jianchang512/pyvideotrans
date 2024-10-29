@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from queue import Queue
 
+MAINWIN=None
 
 # 获取程序执行目录
 def _get_executable_path():

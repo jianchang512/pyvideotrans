@@ -35,21 +35,25 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not winobj.zhrecogn_address.text().strip():
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
+        url = winobj.zhrecogn_address.text().strip()
+        if tools.check_local_api(url) is not True:
             return
-        config.params['zh_recogn_api'] = winobj.zhrecogn_address.text().strip()
+        if not url.startswith('http'):
+            url = 'http://' + url
+        config.params['zh_recogn_api'] = url
         task = Test(parent=winobj)
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
         task.start()
 
     def save():
-        key = winobj.zhrecogn_address.text().strip()
-        if key:
-            key = key.rstrip('/')
-            key = 'http://' + key.replace('http://', '')
-        config.params["zh_recogn_api"] = key
+        url = winobj.zhrecogn_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        url = url.rstrip('/')
+        if not url.startswith('http'):
+            url = 'http://' + url        
+        config.params["zh_recogn_api"] = url
         config.getset_params(config.params)
         winobj.close()
 

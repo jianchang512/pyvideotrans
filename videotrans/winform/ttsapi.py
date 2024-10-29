@@ -39,7 +39,11 @@ def openwin():
         winobj.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
 
     def test():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         extra = winobj.extra.text()
         role = winobj.voice_role.text().strip()
 
@@ -56,7 +60,11 @@ def openwin():
         task.start()
 
     def save():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
         extra = winobj.extra.text()
         role = winobj.voice_role.text().strip()
 

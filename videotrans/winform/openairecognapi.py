@@ -44,12 +44,16 @@ def openwin():
     def test():
         key = winobj.openairecognapi_key.text()
         prompt = winobj.openairecognapi_prompt.text()
-        api = winobj.openairecognapi_url.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.openairecognapi_url.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         model = winobj.openairecognapi_model.currentText()
 
         config.params["openairecognapi_key"] = key
-        config.params["openairecognapi_url"] = api
+        config.params["openairecognapi_url"] = url
         config.params["openairecognapi_model"] = model
         config.params["openairecognapi_prompt"] = prompt
         task = TestOpenairecognapi(parent=winobj)
@@ -61,12 +65,18 @@ def openwin():
     def save_openairecognapi():
         key = winobj.openairecognapi_key.text()
         prompt = winobj.openairecognapi_prompt.text()
-        api = winobj.openairecognapi_url.text().strip()
-        api = api if api else 'https://api.openai.com/v1'
+        url = winobj.openairecognapi_url.text().strip()
+        url = url if url else 'https://api.openai.com/v1'
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
+        
+        
         model = winobj.openairecognapi_model.currentText()
 
         config.params["openairecognapi_key"] = key
-        config.params["openairecognapi_url"] = api
+        config.params["openairecognapi_url"] = url
         config.params["openairecognapi_model"] = model
         config.params["openairecognapi_prompt"] = prompt
         config.getset_params(config.params)

@@ -38,7 +38,11 @@ def openwin():
         winobj.test.setText('测试api')
 
     def test():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url    
         config.params["gptsovits_url"] = url
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         task = TestTTS(parent=winobj,
@@ -74,7 +78,11 @@ def openwin():
         return role
 
     def save():
-        url = winobj.api_url.text()
+        url = winobj.api_url.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
         extra = winobj.extra.text()
         role = winobj.role.toPlainText().strip()
 

@@ -66,6 +66,9 @@ class Ui_geminiform(object):
         self.set_gemini = QtWidgets.QPushButton(geminiform)
         self.set_gemini.setMinimumSize(QtCore.QSize(0, 35))
         self.set_gemini.setObjectName("set_gemini")
+        
+        self.test = QtWidgets.QPushButton(geminiform)
+        self.test.setObjectName("test")
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
@@ -76,6 +79,7 @@ class Ui_geminiform(object):
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/gemini'))
 
         h3.addWidget(self.set_gemini)
+        h3.addWidget(self.test)
         h3.addWidget(help_btn)
         v1.addLayout(h3)
 
@@ -90,6 +94,7 @@ class Ui_geminiform(object):
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
         self.set_gemini.setText('保存' if config.defaulelang == 'zh' else "Save")
+        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
         self.gemini_key.setPlaceholderText("secret key")
         self.label_2.setText("Gemini  Key ")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Select model")

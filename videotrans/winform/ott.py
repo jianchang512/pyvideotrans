@@ -1,10 +1,14 @@
 from videotrans.configure import config
-
-
+from PySide6 import QtWidgets
+from videotrans.util import tools
 def openwin():
     def save():
-        key = winobj.ott_address.text()
-        config.params["ott_address"] = key
+        url = winobj.ott_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        if not url.startswith('http'):
+            url = 'http://' + url
+        config.params["ott_address"] = url
         config.getset_params(config.params)
         winobj.close()
 

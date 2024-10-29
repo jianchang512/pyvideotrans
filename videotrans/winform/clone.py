@@ -40,11 +40,12 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        if not winobj.clone_address.text().strip():
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写http地址')
+        url = winobj.clone_address.text().strip()
+        if tools.check_local_api(url) is not True:
             return
-
-        config.params['clone_api'] = winobj.clone_address.text().strip()
+        if not url.startswith('http'):
+            url = 'http://' + url
+        config.params['clone_api'] = url
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend'
                        , language="zh-cn" if config.defaulelang == 'zh' else 'en')
@@ -53,11 +54,13 @@ def openwin():
         task.start()
 
     def save():
-        key = winobj.clone_address.text().strip()
-        if key:
-            key = key.rstrip('/')
-            key = 'http://' + key.replace('http://', '')
-        config.params["clone_api"] = key
+        url = winobj.clone_address.text().strip()
+        if tools.check_local_api(url) is not True:
+            return
+        url = url.rstrip('/')
+        if not url.startswith('http'):
+            url = 'http://' + url
+        config.params["clone_api"] = url
         config.getset_params(config.params)
         tools.set_process(text='clone', type="refreshtts")
         winobj.close()
