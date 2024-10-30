@@ -570,15 +570,17 @@ class WinAction(WinActionSub):
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
 
-        if len(self.obj_list)==1 and self.main.app_mode not in ['biaozhun_jd','tiqu']:
-            self.add_process_btn(target_dir=Path(self.obj_list[0]['target_dir']).as_posix(), name=self.obj_list[0]['name'], uuid=self.obj_list[0]['uuid'])
+        for it in self.obj_list:
+            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(),name=it['name'], uuid=it['uuid'])
+
+        # 启动任务
+        tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
+        if self.main.app_mode not in ['biaozhun_jd','tiqu'] and config.settings.get('is_queue'):
             self.is_batch=False
-            # 启动任务
-            tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
             task = Worker(
                 parent=self.main,
                 app_mode=self.main.app_mode,
-                obj=self.obj_list[0],
+                obj_list=self.obj_list,
                 txt=txt,
                 cfg=self.cfg
             )
@@ -595,8 +597,7 @@ class WinAction(WinActionSub):
         self.main.target_subtitle_area.clear()
         self.main.target_subtitle_area.setVisible(False)
         self.is_batch=True
-        for it in self.obj_list:
-            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(),name=it['name'], uuid=it['uuid'])
+
 
         MultVideo(parent=self.main,cfg=self.cfg,obj_list=self.obj_list).start()
 

@@ -242,6 +242,8 @@ def parse_init():
         "ai302tts_models": "tts-1,tts-1-hd,azure,doubao",
         "homedir": _defaulthomedir,
         "lang": "",
+        "is_queue":False,
+
         "crf": 13,
         "cuda_qp": False,
         "preset": "slow",
@@ -647,7 +649,7 @@ Translation:"""
 
         "gptsovits_url": "",
         "gptsovits_role": "",
-        "gptsovits_isv2": False,
+        "gptsovits_isv2": True,
         "gptsovits_extra": "pyvideotrans",
 
         "cosyvoice_url": "",
