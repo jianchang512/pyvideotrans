@@ -121,7 +121,10 @@ class TransCreate(BaseTask):
         # 存放分离后的无声音mp4
         self.cfg['novoice_mp4'] = f"{self.cfg['target_dir']}/novoice.mp4"
 
-        self.set_source_language(self.cfg['source_language'])
+
+
+
+        self.set_source_language(self.cfg['source_language'],is_del=True)
 
         # 如果配音角色不是No 并且不存在目标音频，则需要配音
         if self.cfg['voice_role'] and self.cfg['voice_role'] not in ['No', '', ' '] and self.cfg[
@@ -161,6 +164,8 @@ class TransCreate(BaseTask):
         # 禁止修改字幕
         self._signal(text="forbid", type="disabled_edit")
 
+
+
         # 开启一个线程读秒
         def runing():
             t = 0
@@ -175,7 +180,7 @@ class TransCreate(BaseTask):
 
     ### 同原始语言相关，当原始语言变化或检测出结果时，需要修改==========
     # 原始语言代码
-    def set_source_language(self, source_language_code=None):
+    def set_source_language(self, source_language_code=None,is_del=False):
         self.cfg['source_language'] = source_language_code
         source_code = self.cfg['source_language'] if self.cfg[
                                                          'source_language'] in config.langlist else config.rev_langlist.get(
@@ -219,11 +224,13 @@ class TransCreate(BaseTask):
         if self.cfg['voice_role'] != 'No' and self.cfg['source_language_code'] == self.cfg['target_language_code']:
             self.cfg['target_wav'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-dubbing.m4a"
 
-        self._unlink_size0(self.cfg['source_sub'])
-        self._unlink_size0(self.cfg['source_wav'])
-        self._unlink_size0(self.cfg['target_sub'])
-        self._unlink_size0(self.cfg['target_wav'])
-        self._unlink_size0(self.cfg['shibie_audio'])
+        if is_del:
+            self._unlink_size0(self.cfg['source_sub'])
+            self._unlink_size0(self.cfg['target_sub'])
+
+            Path(self.cfg['source_wav']).unlink(missing_ok=True)
+            Path(self.cfg['target_wav']).unlink(missing_ok=True)
+            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
 
     # 预处理，分离音视频、分离人声等
     # 修改不规则的名字
@@ -250,16 +257,19 @@ class TransCreate(BaseTask):
             return
         if not self.shoud_recogn:
             return
-        self.status_text = config.transobj['kaishitiquzimu']
+        self.status_text = '开始识别创建字幕' if config.defaulelang=='zh' else 'Start to create subtitles'
         self.precent += 3
         self._signal(text=config.transobj["kaishishibie"])
         if tools.vail_file(self.cfg['source_sub']):
             self._recogn_succeed()
             return
         # 分离未完成，需等待
-        while not tools.vail_file(self.cfg['source_wav']):
-            self._signal(text=config.transobj["running"])
-            time.sleep(1)
+        if not tools.vail_file(self.cfg['source_wav']):
+            error="分离音频失败，请检查日志或重试" if config.defaulelang=='zh' else "Failed to separate audio, please check the log or retry"
+            self._signal(text=error, type='error')
+            tools.send_notification(error, f'{self.cfg["basename"]}')
+            self.hasend = True
+            raise Exception(error)
 
         try:
             if not tools.vail_file(self.cfg['shibie_audio']):

@@ -94,22 +94,11 @@ class Ui_setini(object):
             "common": {
                 "lang": "设置软件界面语言，修改后需要重启软件",
                 "countdown_sec": "当单个视频翻译时，暂停时倒计时秒数",
-                # "backaudio_volume": "背景音频音量值为原本的倍数",
-                # "loop_backaudio": "如果背景音频时长短于视频，是否重复播放背景音，默认否",
                 "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
-                "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录"
+                "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
+                "is_queue":"视频翻译任务默认交叉并发执行，以提高速度，选中该项则排队挨个翻译,速度会降低"
             },
-            # "model": {
-            #     "ai302_models": "填写302.ai用于翻译的模型名字，以英文逗号分隔",
-            #     "ai302tts_models": "填写302.ai用于配音的模型名字，以英文逗号分隔",
-            #     "chatgpt_model": "可供选择的chatGPT模型，以英文逗号分隔",
-            #     "openaitts_model": "可供选择的OpenAI TTS模型，以英文逗号分隔",
-            #     "openairecognapi_model": "OpenAI语音识别可供选择的模型，目前仅支持whisper-1",
-            #     "gemini_model": "Gemini模型列表，以英文逗号分隔",
-            #     "azure_model": "可供选择的模型，以英文逗号分隔",
-            #     "localllm_model": "可供选择的模型，以英文逗号分隔",
-            #     "zijiehuoshan_model": "填写在字节火山方舟创建的推理接入点名称 创建方法见 https://pyvideotrans.com/zijiehuoshan"
-            # },
+
             "video": {
                 "crf": "视频转码时损失控制，0=损失最低，51=损失最大，默认13",
                 "cuda_qp": "是否在 NVIDIA cuda上使用 qp代替crf",
@@ -203,6 +192,7 @@ class Ui_setini(object):
             "ai302tts_models": "302.aiTTS模型列表",
             "openairecognapi_model": "OpenAI语音识别模型",
             "homedir": "设置家目录",
+            "is_queue": "视频翻译排队处理(默认交叉)",
             "lang": "界面语言",
             "crf": "视频转码损失控制",
             "cuda_qp": "NVIDIA使用qp代替crf",
@@ -305,24 +295,10 @@ class Ui_setini(object):
                 "common": {
                     "lang": "Set the software interface language, a restart is required after modification",
                     "countdown_sec": "Countdown seconds when pausing during single video translation",
-                    # "backaudio_volume": "Background audio volume multiplier of the original value",
-                    # "loop_backaudio": "Whether to loop background audio if its duration is shorter than the video, default is no",
+                    "is_queue":"Video translation tasks are cross-executed concurrently by default to increase speed, checking this item queues the translations one by one.",
                     "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
                     "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory"
                 },
-                # "model": {
-                #     "ai302_models": "Specify the model names for translation used by 302.ai, separated by commas",
-                #     "chatgpt_model": "Available chatGPT models, separated by commas",
-                #     "gemini_model": "Gemini model list, separated by commas",
-                #     "azure_model": "Available models, separated by commas",
-                #     "localllm_model": "Available models, separated by commas",
-                #     "zijiehuoshan_model": "Specify the inference access point name created in ByteDance HuoShan Ark, see https://pyvideotrans.com/zijiehuoshan for instructions",
-                #
-                #     "ai302tts_models": "Specify the model names for dubbing used by 302.ai, separated by commas",
-                #     "openaitts_model": "Optional OpenAI TTS models, separated by English commas",
-                #     "openairecognapi_model": "OpenAI Speech to Text model, whisper-1",
-                # },
-
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
                     "cuda_qp": "Whether to use qp instead of crf on NVIDIA cuda",
@@ -412,6 +388,7 @@ class Ui_setini(object):
             self.heads = {
                 "common": "General Settings",
                 "model": "AI Model List",
+
                 "video": "Video Output",
                 "whisper": "faster-whisper/openai-whisper speech to text",
                 "justify": "Subtitle  Alignment",
@@ -422,6 +399,7 @@ class Ui_setini(object):
 
             self.titles = {
                 "homedir": "Set Home directory",
+                "is_queue":"Video Translation Task Queuing Translation",
                 "ai302_models": "302.ai Translation Models",
                 "ai302tts_models": "302.ai TTS Models",
                 "openairecognapi_model": "OpenAI Speech",

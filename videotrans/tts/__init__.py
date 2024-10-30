@@ -39,8 +39,8 @@ TTS_NAME_LIST = [
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
-    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'en']:
-        return 'GPT-SoVITS 仅支持中日英语言配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese'
+    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko','en']:
+        return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
     if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko']:
         return 'CosyVoice仅支持中日韩语言配音' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean'
 
