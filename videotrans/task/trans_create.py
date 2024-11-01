@@ -227,9 +227,11 @@ class TransCreate(BaseTask):
         if is_del:
             self._unlink_size0(self.cfg['source_sub'])
             self._unlink_size0(self.cfg['target_sub'])
-
+        if self.cfg['source_wav']:
             Path(self.cfg['source_wav']).unlink(missing_ok=True)
+        if self.cfg['target_wav']:
             Path(self.cfg['target_wav']).unlink(missing_ok=True)
+        if self.cfg['shibie_audio']:
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
 
     # 预处理，分离音视频、分离人声等
