@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from typing import List, Dict, Union
 
+import torch
 import zhconv
 
 from videotrans.configure import config
@@ -29,6 +30,7 @@ class BaseRecogn(BaseCon):
         self.has_done = False
         self.error = ''
         self.subtitle_type=subtitle_type
+        self.device="cuda" if  torch.cuda.is_available() else 'cpu'
 
 
         self.api_url = ''
@@ -104,8 +106,9 @@ class BaseRecogn(BaseCon):
         model = AutoModel(model="ct-punc-c", model_revision="v2.0.4",
                           disable_update=True,
                           disable_log=True,
-                          local_files_only=True,
-                          local_dir=config.ROOT_DIR + "/models")
+                          local_dir=config.ROOT_DIR + "/models",
+                          disable_progress_bar=True,
+                        device=self.device)
         res = model.generate(input=text)
         # 移除空格防止位置变化
         text = re.sub(r'[ \s]', '', res[0]['text']).strip()

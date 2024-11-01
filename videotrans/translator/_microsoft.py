@@ -40,8 +40,12 @@ class Microsoft(BaseTrans):
                 time.sleep(5)
             else:
                 break
-
-        url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={self.target_code}&api-version=3.0&includeSentenceLength=true"
+        tocode=self.target_code
+        if tocode.lower()=='zh-cn':
+            tocode='zh-Hans'
+        elif tocode.lower()=='zh-tw':
+            tocode='zh-Hant'
+        url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={tocode}&api-version=3.0&includeSentenceLength=true"
         headers['Authorization'] = f"Bearer {self.auth.text}"
         config.logger.info(f'[Mircosoft]请求数据:{url=},{self.auth.text=}')
         response = requests.post(url, json=[{"Text": "\n".join(data)}], proxies=self.proxies, headers=headers,verify=False,  timeout=300)

@@ -20,6 +20,7 @@ def openwin():
                     audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.mp3',
                     cache_folder=config.SYS_TMP,
                     recogn_type=recognition.Deepgram,
+                    model_name="whisper-large",
                     detect_language="zh-CN"
                 )
                 srt_str = tools.get_srt_from_list(res)
@@ -37,13 +38,11 @@ def openwin():
     def test():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
-        model = winobj.model.currentText()
         if not apikey:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                            '必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
             return
         config.params["deepgram_apikey"] = apikey
-        config.params["deepgram_model"] = model
         config.params["deepgram_utt"] = 200 if utt else 200
         config.getset_params(config.params)
         task = Test(parent=winobj)
@@ -54,14 +53,12 @@ def openwin():
     def save():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
-        model = winobj.model.currentText()
         if not apikey:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                            '必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
             return
             
         config.params["deepgram_apikey"] = apikey
-        config.params["deepgram_model"] = model
         config.params["deepgram_utt"] = 200 if utt else 200
         config.getset_params(config.params)
         winobj.close()
@@ -77,8 +74,6 @@ def openwin():
     config.child_forms['deepgramw'] = winobj
     if config.params["deepgram_apikey"]:
         winobj.apikey.setText(config.params["deepgram_apikey"])
-    if config.params["deepgram_model"]:
-        winobj.model.setCurrentText(config.params["deepgram_model"])
     if config.params["deepgram_utt"]:
         winobj.utt.setText(str(config.params["deepgram_utt"]))
     winobj.set.clicked.connect(save)

@@ -132,6 +132,7 @@ else:
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
+os.environ['HF_HOME'] = ROOT_DIR + "/models"
 ####################################
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
@@ -200,6 +201,20 @@ assemb_queue = []
 
 # 执行模式 gui 或 api
 exec_mode="gui"
+
+# funasr模型
+FUNASR_MODEL=['paraformer-zh','SenseVoiceSmall']
+DEEPGRAM_MODEL=[
+            "whisper-large",
+            "whisper-medium",
+            "whisper-small",
+            "whisper-base",
+            "whisper-tiny",
+            "nova-2-general",
+            "enhanced-2-general",
+            "base-2-general",
+
+        ]
 
 
 # 支持的视频格式
@@ -675,10 +690,9 @@ Translation:"""
 
         "stt_source_language":0,
         "stt_recogn_type":0,
-        "stt_model_name":0,
+        "stt_model_name":"",
 
         "deepgram_apikey":"",
-        "deepgram_model":"whisper-large",
         "deepgram_utt":200,
 
         "trans_translate_type":0,

@@ -47,6 +47,10 @@ class FasterAll(BaseRecogn):
                 Path(self.pidfile).unlink(missing_ok=True)
                 return
             if config.model_process is not None:
+                import glob
+                if len(glob.glob(config.TEMP_DIR+'/*.lock'))==0:
+                    config.model_process=None
+                    break
                 self._signal(text="等待另外进程退出")
                 time.sleep(1)
                 continue
@@ -78,7 +82,6 @@ class FasterAll(BaseRecogn):
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
                 with Path(self.pidfile).open('w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
-                    f.flush()
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:

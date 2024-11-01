@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt, QTimer, QSettings
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar
 
-from videotrans import VERSION
+from videotrans import VERSION, recognition
 from videotrans.configure import config
 from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans  import tts
@@ -109,17 +109,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
 
-        self.model_name.addItems(config.WHISPER_MODEL_LIST)
-        if config.params['model_name'] in config.WHISPER_MODEL_LIST:
-            self.model_name.setCurrentText(config.params['model_name'])
+
 
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except Exception:
             config.params['recogn_type'] = 0
-
+        if config.params['recogn_type']>8:
+            config.params['recogn_type']=8
+        # 设置当前识别类型
         self.recogn_type.setCurrentIndex(config.params['recogn_type'])
 
+        # 设置需要显示的模型
+        self.model_name.clear()
+        if config.params['recogn_type']==recognition.Deepgram:
+            self.model_name.addItems(config.DEEPGRAM_MODEL)
+            curr=config.DEEPGRAM_MODEL
+        elif config.params['recogn_type']==recognition.FUNASR_CN:
+            self.model_name.addItems(config.FUNASR_MODEL)
+            curr=config.FUNASR_MODEL
+        else:
+            self.model_name.addItems(config.WHISPER_MODEL_LIST)
+            curr=config.WHISPER_MODEL_LIST
+        if config.params['model_name'] in curr:
+            self.model_name.setCurrentText(config.params['model_name'])
+
+        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+            self.model_name.setDisabled(True)
+        else:
+            self.model_name.setDisabled(False)
 
         self.moshis = {
             "biaozhun_jd": self.action_xinshoujandan,
@@ -281,11 +299,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionchattts_address.triggered.connect(winform.chattts.openwin)
         self.actionai302tts_address.triggered.connect(winform.ai302tts.openwin)
         self.actiontts_api.triggered.connect(winform.ttsapi.openwin)
-        self.actionzhrecogn_api.triggered.connect(winform.zh_recogn.openwin)
         self.actionrecognapi.triggered.connect(winform.recognapi.openwin)
         self.actionsttapi.triggered.connect(winform.sttapi.openwin)
         self.actiondeepgram.triggered.connect(winform.deepgram.openwin)
-        self.actionsenseapi.triggered.connect(winform.senseapi.openwin)
         self.actiondoubao_api.triggered.connect(winform.doubao.openwin)
         self.actiontrans_api.triggered.connect(winform.transapi.openwin)
         self.actiontts_gptsovits.triggered.connect(winform.gptsovits.openwin)

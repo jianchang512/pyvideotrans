@@ -36,7 +36,6 @@ from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
 from videotrans.ui.stt import Ui_sttform
-from videotrans.ui.sense import Ui_senseform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
@@ -52,7 +51,6 @@ from videotrans.ui.videoandsrt import Ui_videoandsrt
 from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
-from videotrans.ui.zh_recogn import Ui_zhrecognform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.f5tts import Ui_f5ttsform
 
@@ -136,14 +134,6 @@ class DeepgramForm(QDialog, Ui_deepgramform):  # <===
         super(DeepgramForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class SenseVoiceAPIForm(QDialog, Ui_senseform):  # <===
-    def __init__(self, parent=None):
-        super(SenseVoiceAPIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
 
 
 class OpenaiRecognAPIForm(QDialog, Ui_openairecognapiform):  # <===
@@ -270,11 +260,6 @@ class ChatttsForm(QDialog, Ui_chatttsform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class ZhrecognForm(QDialog, Ui_zhrecognform):  # <===
-    def __init__(self, parent=None):
-        super(ZhrecognForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class DoubaoForm(QDialog, Ui_doubaoform):  # <===

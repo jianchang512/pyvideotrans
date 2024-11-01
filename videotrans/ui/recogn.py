@@ -61,7 +61,7 @@ class Ui_recogn(object):
         self.shibie_recogn_type = QtWidgets.QComboBox()
         self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_recogn_type.setObjectName("shibie_recogn_type")
-        self.shibie_recogn_type.addItems(RECOGN_NAME_LIST)
+
 
 
         label_model=QtWidgets.QLabel()
@@ -141,6 +141,7 @@ class Ui_recogn(object):
 
         self.cjklinenums = QtWidgets.QSpinBox()
         self.cjklinenums.setMinimum(5)
+        self.cjklinenums.setMinimumWidth(90)
         self.cjklinenums.setMaximum(100)
         self.cjklinenums.setObjectName("cjklinenums")
         self.cjklinenums.setToolTip("中日韩字幕单行字符数" if config.defaulelang=='zh' else 'Chinese/Japanese/Korean line length')
@@ -156,6 +157,7 @@ class Ui_recogn(object):
         self.othlinenums.setToolTip("其他语言字幕单行字符数" if config.defaulelang=='zh' else 'Other language line length')
         self.othlinenums.setMinimum(5)
         self.othlinenums.setMaximum(100)
+        self.othlinenums.setMinimumWidth(90)
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
 

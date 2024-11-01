@@ -114,50 +114,57 @@ class WinAction(WinActionSub):
                 rs = translator.is_allow_translate(translate_type=idx, show_target=t, win=self.main)
                 if rs is not True:
                     return False
-            # config.params['translate_type'] = idx
         except Exception as e:
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
 
     # 语音识别方式改变时
     def recogn_type_change(self):
         recogn_type= self.main.recogn_type.currentIndex()
-        self.main.split_type.setDisabled(True if recogn_type > 0 else False)
-
-        if recogn_type > 1:
-            self.main.model_name.setDisabled(True)
-            self.main.model_name_help.setDisabled(True)
-        else:
-            self.main.model_name_help.setDisabled(False)
-            self.main.model_name.setDisabled(False)
-            self.check_model_name()
-        if recogn_type>1:
-            # >1 禁用 auto 自动检测
-            # 禁用最后一项
-            if self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
-                self.main.source_language.setCurrentIndex(0)
 
         lang = translator.get_code(show_text=self.main.source_language.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=self.main.model_name.currentText())
 
-        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type)
+        # 判断不是 faster，禁用分割模式、隐藏vad参数和均等分割设置
+        if recogn_type!=recognition.FASTER_WHISPER:
+            self.main.split_type.setDisabled(True)
+            self.main.split_type.setCurrentIndex(0)
+            tools.hide_show_element(self.main.hfaster_layout, False)
+            tools.hide_show_element(self.main.equal_split_layout, False)
+        else:
+            #是 faster，启用 分割模式，根据需要显示均等分割
+            self.main.split_type.setDisabled(False)
+            tools.hide_show_element(self.main.equal_split_layout, False  if self.main.split_type.currentIndex()==0  else True)
+
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+            # 禁止模块选择
+            self.main.model_name.setDisabled(True)
+            self.main.model_name_help.setDisabled(True)
+            self.main.rephrase.setDisabled(True)
+        else:
+            # 允许模块选择
+            self.main.rephrase.setDisabled(False)
+            self.main.model_name_help.setDisabled(False)
+            self.main.model_name.setDisabled(False)
+            self.main.model_name.clear()
+            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
+                self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
+            elif recogn_type == recognition.Deepgram:
+                self.main.model_name.addItems(config.DEEPGRAM_MODEL)
+            else:
+                self.main.model_name.addItems(config.FUNASR_MODEL)
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
-        if recogn_type>0:
-            tools.hide_show_element(self.main.hfaster_layout, False)
-            tools.hide_show_element(self.main.equal_split_layout, False)
-        elif self.main.split_type.currentIndex()==1:
-            tools.hide_show_element(self.main.equal_split_layout, True)
 
-        if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram]:
-            self.main.rephrase.setDisabled(False)
-        else:
-            self.main.rephrase.setDisabled(True)
+    # 判断 语音参数 vad参数区域是否应该可见
+    # 仅当是 faster并且 是整体识别
     def click_reglabel(self):
-        if self.main.recogn_type.currentIndex()==0 and self.main.split_type.currentIndex()==0:
-            # 判断 self.main.threshold 这个元素是否可见 is_visible
+        if self.main.recogn_type.currentIndex()== recognition.FASTER_WHISPER and self.main.split_type.currentIndex()==0:
             self.hide_show_element(self.main.hfaster_layout, not self.main.threshold.isVisible())
+        else:
+            self.hide_show_element(self.main.hfaster_layout, False)
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -335,19 +342,21 @@ class WinAction(WinActionSub):
 
     # 核对所选语音识别模式是否正确
     def check_reccogn(self):
-        if self.main.recogn_type.currentIndex()>1 and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
+        if self.main.recogn_type.currentIndex() not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]  and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
             QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
             return False
+
+        # 原始语言是最后一个，即auto自动检查
         if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
             QMessageBox.critical(self.main, config.transobj['anerror'], '已导入字幕情况下，不可再使用检测功能' if config.defaulelang=='zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
-        langcode = translator.get_code(show_text=self.main.source_language.currentText())
 
-        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
+        langcode = translator.get_code(show_text=self.main.source_language.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return False
-        # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
+        # 判断是否填写自定义识别api openai-api识别
         return recognition.is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
     def check_model_name(self):
@@ -722,6 +731,10 @@ class WinAction(WinActionSub):
             self.set_process_btn_text(d)
             if d['type'] in ['error', 'succeed']:
                 config.stoped_uuid_set.add(d['uuid'])
+
+                self.edit_subtitle_type = 'edit_subtitle_source'
+                self.wait_subtitle = None
+
         # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end
@@ -750,7 +763,6 @@ class WinAction(WinActionSub):
             else:
                 self.main.target_subtitle_area.setReadOnly(False)
                 self.main.target_subtitle_area.setFocus()
-
 
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
@@ -824,9 +836,6 @@ class WinAction(WinActionSub):
             # 不是批量才允许更新字幕
             with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
                 f.write(txt)
-                f.flush()
-        # if self.edit_subtitle_type == 'edit_subtitle_source':
-        #     self.main.subtitle_area.clear()
         return True
 
     # 设置每行角色

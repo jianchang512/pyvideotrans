@@ -267,7 +267,6 @@ class BaseTrans(BaseCon):
         key_cache = self._get_key(it)
         file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).is_file():
-            print(f'使用缓存 {file_cache=}')
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 

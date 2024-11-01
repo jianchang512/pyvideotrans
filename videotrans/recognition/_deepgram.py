@@ -42,7 +42,7 @@ class DeepgramRecogn(BaseRecogn):
 
             # STEP 2: Configure Deepgram options for audio analysis
             options = PrerecordedOptions(
-                model=config.params.get('deepgram_model'),
+                model=self.model_name,
                 # detect_language=True,
                 language=self.detect_language[:2],
                 smart_format=True,
