@@ -59,7 +59,6 @@ class APIRecogn(BaseRecogn):
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:
             res = requests.post(f"{self.api_url}",data={"language":self.detect_language}, files=files, proxies={"http": "", "https": ""}, timeout=3600)
-            config.logger.info(f'RECOGN_API:{res=}')
             res = res.json()
             if "code" not in res or res['code'] != 0:
                 raise Exception(f'{res["msg"]}')

@@ -144,7 +144,7 @@ def openwin():
         if not files or len(files) < 1:
             return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['bixuyinshipin'])
 
-        is_allow_lang_res = is_allow_lang(langcode=langcode, recogn_type=recogn_type)
+        is_allow_lang_res = is_allow_lang(langcode=langcode, recogn_type=recogn_type,model_name=model)
         if is_allow_lang_res is not True:
             return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
@@ -190,7 +190,7 @@ def openwin():
             th.start()
             config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
             config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
-            config.params["stt_model_name"]=winobj.shibie_model.currentIndex()
+            config.params["stt_model_name"]=winobj.shibie_model.currentText()
             config.getset_params(config.params)
 
         except Exception as e:
@@ -220,38 +220,42 @@ def openwin():
     # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
-        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
-            QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
-            return False
+
+        lang = translator.get_code(show_text=winobj.shibie_language.currentText())
+        is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=winobj.shibie_model.currentText())
+        if is_allow_lang_res is not True:
+            QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+
+
+
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
-        if recogn_type > 0:
+        if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
             winobj.shibie_split_type.setDisabled(True)
+            winobj.shibie_split_type.setCurrentIndex(0)
             tools.hide_show_element(winobj.equal_split_layout, False)
             tools.hide_show_element(winobj.hfaster_layout, False)
         else:
             winobj.shibie_split_type.setDisabled(False)
-            if winobj.shibie_split_type.currentIndex()==1:
-                tools.hide_show_element(winobj.equal_split_layout, True)
+            # faster
+            tools.hide_show_element(winobj.equal_split_layout, True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        
-        if recogn_type > 1:
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
+            winobj.rephrase.setDisabled(True)
         else:
+            winobj.rephrase.setDisabled(False)
             winobj.shibie_model.setDisabled(False)
-            
-        lang = translator.get_code(show_text=winobj.shibie_language.currentText())
-        is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=config.params['recogn_type'])
-        if is_allow_lang_res is not True:
-            QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+            winobj.shibie_model.clear()
+            if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER] :
+                winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
+            elif recogn_type==recognition.Deepgram:
+                winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
+            else:
+                winobj.shibie_model.addItems(config.FUNASR_MODEL)
         if check_model_name(recogn_type,winobj.shibie_model.currentText()) is not True:
             return
         if is_input_api(recogn_type=recogn_type) is not True:
             return
-        if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram]:
-            winobj.rephrase.setDisabled(False)
-        else:
-            winobj.rephrase.setDisabled(True)
-
 
     def stop_recogn():
         config.box_recogn = 'stop'
@@ -268,8 +272,7 @@ def openwin():
 
     # 点击语音识别，显示隐藏faster时的详情设置
     def click_reglabel(self):
-        if winobj.shibie_recogn_type.currentIndex()==0 and winobj.shibie_split_type.currentIndex()==0:
-            # 判断 self.main.threshold 这个元素是否可见 is_visible
+        if winobj.shibie_recogn_type.currentIndex()==recognition.FASTER_WHISPER and winobj.shibie_split_type.currentIndex()==0:
             tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
         else:
             tools.hide_show_element(winobj.hfaster_layout, False)
@@ -279,12 +282,14 @@ def openwin():
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type=winobj.shibie_recogn_type.currentIndex()
         # 如果是均等分割，则阈值相关隐藏
-        if recogn_type>0:
+        if recogn_type != recognition.FASTER_WHISPER:
             tools.hide_show_element(winobj.hfaster_layout, False)
             tools.hide_show_element(winobj.equal_split_layout, False)
+            winobj.shibie_split_type.setCurrentIndex(0)
+            winobj.shibie_split_type.setDisabled(True)
         elif split_type_index==1:
-            tools.hide_show_element(winobj.equal_split_layout, True)
             tools.hide_show_element(winobj.hfaster_layout, False)
+            tools.hide_show_element(winobj.equal_split_layout, True)
         else:
             tools.hide_show_element(winobj.equal_split_layout, False)
 
@@ -313,7 +318,6 @@ def openwin():
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
 
         winobj.shibie_language.addItems(config.langnamelist)
-        winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
         winobj.shibie_label.clicked.connect(click_reglabel)
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
@@ -322,14 +326,36 @@ def openwin():
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.rephrase.setChecked(config.settings.get('rephrase'))
 
-        winobj.shibie_language.setCurrentIndex(config.params.get('stt_source_language',0))
-
+        default_lang=int(config.params.get('stt_source_language',0))
+        winobj.shibie_language.setCurrentIndex(default_lang)
         winobj.shibie_language.currentIndexChanged.connect(source_language_change)
-        winobj.shibie_recogn_type.setCurrentIndex(config.params.get('stt_recogn_type',0))
-        winobj.shibie_model.setCurrentIndex(config.params.get('stt_model_name',0))
-
+        try:
+            default_type=int(config.params.get('stt_recogn_type',0))
+        except:
+            default_type=0
+        winobj.shibie_recogn_type.clear()
+        winobj.shibie_recogn_type.addItems(recognition.RECOGN_NAME_LIST)
+        winobj.shibie_recogn_type.setCurrentIndex(default_type)
         winobj.shibie_recogn_type.currentIndexChanged.connect(recogn_type_change)
-        winobj.shibie_model.currentIndexChanged.connect(recogn_type_change)
+
+        winobj.shibie_model.clear()
+        if default_type == recognition.Deepgram:
+            curr=config.DEEPGRAM_MODEL
+            winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
+        elif default_type==recognition.FUNASR_CN:
+            curr=config.FUNASR_MODEL
+            winobj.shibie_model.addItems(config.FUNASR_MODEL)
+        else:
+            curr=config.WHISPER_MODEL_LIST
+            winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
+        if config.params.get('stt_model_name') in curr:
+            winobj.shibie_model.setCurrentText(config.params.get('stt_model_name'))
+
+        if default_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+            winobj.shibie_model.setDisabled(True)
+        else:
+            winobj.shibie_model.setDisabled(False)
+
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_split_type.currentIndexChanged.connect(shibie_split_type_change)
 

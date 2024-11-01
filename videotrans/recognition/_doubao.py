@@ -61,7 +61,6 @@ class DoubaoRecogn(BaseRecogn):
                 },
                 timeout=3600
             )
-            config.logger.info(f'{res.text}')
             if res.status_code != 200:
                 raise Exception(f'请求失败:{res.text=},{res.status_code=},{base_url=}')
             res = res.json()

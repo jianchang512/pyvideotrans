@@ -11,45 +11,44 @@ from videotrans.configure import config
 # 数字代表界面中的现实顺序
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
-GOOGLE_SPEECH = 2
-ZH_RECOGN = 3
+FUNASR_CN = 2
+STT_API = 3
 DOUBAO_API = 4
-CUSTOM_API = 5
+Deepgram = 5
 OPENAI_API = 6
-STT_API = 7
-SENSEVOICE_API = 8
-Deepgram = 9
+CUSTOM_API = 7
+GOOGLE_SPEECH = 8
 
 RECOGN_NAME_LIST = [
-    'faster-whisper本地' if config.defaulelang == 'zh' else 'faster-whisper',
-    'openai-whisper本地' if config.defaulelang == 'zh' else 'openai-whisper',
-    "Google识别api" if config.defaulelang == 'zh' else "Google Speech API",
-    "zh_recogn中文识别" if config.defaulelang == 'zh' else "zh_recogn for Chinese",
-    "字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine Subtitle Generation",
-    "自定义识别API" if config.defaulelang == 'zh' else "Custom Recognition API",
+    'faster-whisper(本)' if config.defaulelang == 'zh' else 'faster-whisper',
+    'openai-whisper(本)' if config.defaulelang == 'zh' else 'openai-whisper',
+    "FunASR中文(本)" if config.defaulelang == 'zh' else "FunASR-CN",
+    "STT语音识别(本)" if config.defaulelang == 'zh' else "Stt Speech API",
+    "字节火山字幕生成API" if config.defaulelang == 'zh' else "VolcEngine Subtitle API",
+    "DeepgramAPI" if config.defaulelang == 'zh' else "DeepgramAPI",
     "OpenAI识别API" if config.defaulelang == 'zh' else "OpenAI Speech API",
-    "Stt语音识别API" if config.defaulelang == 'zh' else "Stt Speech API",
-    "SenseVoice本地" if config.defaulelang == 'zh' else "SenseVoice",
-    "Deepgram.com" if config.defaulelang == 'zh' else "Deepgram.com",
+    "自定义识别API" if config.defaulelang == 'zh' else "Custom Recognition API",
+    "Google识别api" if config.defaulelang == 'zh' else "Google Speech API",
 ]
 
 
-def is_allow_lang(langcode: str = None, recogn_type: int = None):
-    if recogn_type == ZH_RECOGN and langcode[:2] != 'zh':
-        return 'zh_recogn 仅支持中文语音识别' if config.defaulelang == 'zh' else 'zh_recogn Supports Chinese speech recognition only'
+def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None):
+    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER]:
+        return '仅在 faster-whisper和 openai-whisper模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper and openai-whisper modes.'
+    if recogn_type == FUNASR_CN and langcode[:2] !='zh':
+            return 'FunASR 下 paraformer-zh 和 SenseVoiceSmall 模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh and SenseVoiceSmall models only support Chinese speech recognition'
 
     if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
 
-    if recogn_type == SENSEVOICE_API and langcode[:2] not in ["zh", "en", "ja", "ko"]:
-        return 'SenseVoice语音识别仅支持中/英/日/韩语言，其他不支持'
 
     return True
 
 # 判断 openai whisper和 faster whisper 模型是否存在
-def check_model_name(recogn_type=0, name='',source_language_isLast=False,source_language_currentText=''):
-    if recogn_type > 1:
+def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=False,source_language_currentText=''):
+    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return True
+    # 含 / 的需要下载
     if name.find('/') > 0:
         return True
     if name.endswith('.en') and source_language_isLast:
@@ -69,10 +68,8 @@ def check_model_name(recogn_type=0, name='',source_language_isLast=False,source_
     file = f'{config.ROOT_DIR}/models/models--Systran--faster-whisper-{name}/snapshots'
     if name.startswith('distil'):
         file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
-
     if not Path(file).exists():
         return 'download'
-
     return True
 
 
@@ -86,17 +83,6 @@ def is_input_api(recogn_type: int = None,return_str=False):
         sttapi_win.openwin()
         return False
         
-    if recogn_type == ZH_RECOGN and not config.params['zh_recogn_api']:
-        if return_str:
-            return "Please configure the api and key information of the ZH_RECOGN channel first."
-        zh_recogn_win.openwin()
-        return False
-    if recogn_type == SENSEVOICE_API and not config.params['sense_url']:
-        if return_str:
-            return "Please configure the api url information of the SenseVoice channel first."
-        sense_win.openwin()
-        return False
-
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
         if return_str:
             return "Please configure the api and key information of the CUSTOM_API channel first."
@@ -154,9 +140,7 @@ def run(*,
     if recogn_type == GOOGLE_SPEECH:
         from ._google import GoogleRecogn
         return GoogleRecogn(**kwargs).run()
-    if recogn_type == ZH_RECOGN:
-        from ._zh import ZhRecogn
-        return ZhRecogn(**kwargs).run()
+
     if recogn_type == DOUBAO_API:
         from ._doubao import DoubaoRecogn
         return DoubaoRecogn(**kwargs).run()
@@ -170,9 +154,9 @@ def run(*,
     if recogn_type == OPENAI_API:
         from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
-    if recogn_type==SENSEVOICE_API:
-        from ._sense import SenseVoiceAPIRecogn
-        return SenseVoiceAPIRecogn(**kwargs).run()
+    if recogn_type==FUNASR_CN:
+        from ._funasr import FunasrRecogn
+        return FunasrRecogn(**kwargs).run()
     if recogn_type==Deepgram:
         from ._deepgram import DeepgramRecogn
         return DeepgramRecogn(**kwargs).run()

@@ -75,7 +75,6 @@ class OpenaiAPIRecogn(BaseRecogn):
                 "timestamp_granularities[]": "segment",
                 "response_format": "verbose_json"
             },proxies=self.proxies)
-            config.logger.info(f'{transcript.text=}')
             resdata=transcript.json()
 
             if 'error' in resdata and resdata['error']:

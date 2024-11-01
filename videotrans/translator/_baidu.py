@@ -23,8 +23,12 @@ class Baidu(BaseTrans):
         md5 = hashlib.md5()
         md5.update(strtext.encode('utf-8'))
         sign = md5.hexdigest()
-
-        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={self.target_code}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
+        tocode=self.target_code
+        if tocode.lower() == 'zh-tw':
+            tocode= 'cht'
+        elif tocode.lower() == 'zh-cn':
+            tocode= 'zh'
+        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={tocode}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
         resraw = requests.get(requrl, proxies={"http": "", "https": ""})

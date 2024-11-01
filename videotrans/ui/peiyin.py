@@ -132,9 +132,9 @@ class Ui_peiyin(object):
         self.label_12.setObjectName("label_12")
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_12)
         self.hecheng_rate = QtWidgets.QSpinBox()
-        self.hecheng_rate.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_rate.setMinimum(-100)
         self.hecheng_rate.setMaximum(100)
+        self.hecheng_rate.setMinimumWidth(90)
         self.hecheng_rate.setObjectName("hecheng_rate")
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_rate)
         self.horizontalLayout_10_1.addLayout(self.formLayout_5)
@@ -152,6 +152,7 @@ class Ui_peiyin(object):
         self.volume_rate = QtWidgets.QSpinBox()
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setMaximum(100)
+        self.volume_rate.setMinimumWidth(90)
         self.volume_rate.setObjectName("volume_rate")
 
         self.pitch_label = QtWidgets.QLabel()
@@ -159,6 +160,7 @@ class Ui_peiyin(object):
         self.pitch_rate = QtWidgets.QSpinBox()
         self.pitch_rate.setMinimum(-100)
         self.pitch_rate.setMaximum(100)
+        self.pitch_rate.setMinimumWidth(90)
         self.pitch_rate.setObjectName("pitch_rate")
 
         self.out_format_label = QtWidgets.QLabel(text='输出格式' if config.defaulelang == 'zh' else 'Out format')

@@ -37,6 +37,10 @@ class FasterAvg(BaseRecogn):
                 Path(self.pidfile).unlink(missing_ok=True)
                 return
             if config.model_process is not None:
+                import glob
+                if len(glob.glob(config.TEMP_DIR+'/*.lock'))==0:
+                    config.model_process=None
+                    break
                 self._signal(text="等待另外进程退出")
                 time.sleep(1)
                 continue

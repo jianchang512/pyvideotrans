@@ -74,38 +74,28 @@ class Ui_deepgramform(object):
 
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.label_model = QtWidgets.QLabel(deepgramform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_model.sizePolicy().hasHeightForWidth())
-        self.label_model.setSizePolicy(sizePolicy)
-        self.label_model.setMinimumSize(QtCore.QSize(100, 35))
-        self.label_model.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.label_model.setObjectName("label")
-        self.label_model.setText('识别模型')
-
-        self.model = QtWidgets.QComboBox(deepgramform)
-        self.model.addItems([
-            "whisper-large",
-            "whisper-medium",
-            "whisper-small",
-            "whisper-base",
-            "whisper-tiny",
-            "nova-2-general",
-            "enhanced-2-general",
-            "base-2-general",
-
-        ])
-        self.model.setObjectName("model")
-        self.formLayout_4 = QtWidgets.QFormLayout()
-        self.formLayout_4.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_4.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.formLayout_4.setObjectName("formLayout_4")
-        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_model)
-        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.model)
-
-        self.verticalLayout.addLayout(self.formLayout_4)
+        # self.label_model = QtWidgets.QLabel(deepgramform)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.label_model.sizePolicy().hasHeightForWidth())
+        # self.label_model.setSizePolicy(sizePolicy)
+        # self.label_model.setMinimumSize(QtCore.QSize(100, 35))
+        # self.label_model.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
+        # self.label_model.setObjectName("label")
+        # self.label_model.setText('识别模型')
+        #
+        # self.model = QtWidgets.QComboBox(deepgramform)
+        # self.model.addItems(config.DEEPGRAM_MODEL)
+        # self.model.setObjectName("model")
+        # self.formLayout_4 = QtWidgets.QFormLayout()
+        # self.formLayout_4.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        # self.formLayout_4.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
+        # self.formLayout_4.setObjectName("formLayout_4")
+        # self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_model)
+        # self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.model)
+        #
+        # self.verticalLayout.addLayout(self.formLayout_4)
 
 
 
@@ -145,6 +135,5 @@ class Ui_deepgramform(object):
         self.label_apikey.setText('API Key')
         self.label_utt.setText('静默时长/毫秒' if config.defaulelang == 'zh' else 'silence between words/ms')
 
-        self.label_model.setText('识别模型' if config.defaulelang == 'zh' else 'Select Model')
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
         self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
