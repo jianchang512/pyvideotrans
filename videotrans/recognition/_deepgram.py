@@ -59,8 +59,6 @@ class DeepgramRecogn(BaseRecogn):
 
             # STEP 4: Print the response
             # res=response.to_json()
-            with open(config.ROOT_DIR+"./test.json", 'w') as f:
-                f.write(res.to_json())
             raws=[]
             if self.detect_language[:2]=='zh' and config.settings.get('rephrase'):
                 result=json.loads(res.to_json())
