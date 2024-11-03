@@ -49,4 +49,4 @@ class Libre(BaseTrans):
             raise Exception(f'无有效返回:{response.text=}')
         except Exception as e:
             raise Exception(f'无有效返回 {response.status_code} {response.reason}:{response.text=} ')
-        return result
+        return result.lower()  if self.target_code[:2]=='en' else result
