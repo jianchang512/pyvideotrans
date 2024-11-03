@@ -25,7 +25,7 @@ class OTT(BaseTrans):
         jsondata = {
             "q": "\n".join(data),
             "source": "auto",
-            "target": self.target_code
+            "target": self.target_code[:2]
         }
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
         if response.status_code != 200:

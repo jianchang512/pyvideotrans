@@ -268,6 +268,7 @@ def parse_init():
         "openaitts_model": "tts-1,tts-1-hd",
         "openairecognapi_model": "whisper-1",
         "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen,moonshot-v1-8k,deepseek-chat",
+        "claude_model":"claude-3-5-sonnet-latest,claude-3-5-sonnet-20241022,claude-3-opus-latest,claude-3-sonnet-20240229,claude-3-haiku-20240307",
         "azure_model": "gpt-4o,gpt-4,gpt-35-turbo",
         "localllm_model": "qwen:7b,qwen:1.8b-chat-v1.5-q2_k,moonshot-v1-8k,deepseek-chat",
         "zijiehuoshan_model": "",
@@ -425,11 +426,14 @@ WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
 
 ChatTTS_voicelist = re.split(r'[,，]', settings['chattts_voice'])
 _chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
+_claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
 _azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 _localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
 _zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
 if len(_chatgpt_model_list) < 1:
     _chatgpt_model_list = ['']
+if len(_claude_model_list) < 1:
+    _claude_model_list = ['']
 if len(_localllm_model_list) < 1:
     _localllm_model_list = ['']
 if len(_zijiehuoshan_model_list) < 1:
@@ -582,6 +586,8 @@ Translation:"""
 
         "deeplx_address": "",
         "deeplx_key": "",
+        "libre_address": "",
+        "libre_key": "",
 
         "ott_address": "",
 
@@ -596,6 +602,11 @@ Translation:"""
         "chatgpt_key": "",
         "chatgpt_model": _chatgpt_model_list[0],
         "chatgpt_template": "",
+
+        "claude_api": "",
+        "claude_key": "",
+        "claude_model": _claude_model_list[0],
+        "claude_template": "",
 
         "azure_api": "",
         "azure_key": "",

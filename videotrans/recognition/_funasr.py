@@ -89,7 +89,7 @@ class FunasrRecogn(BaseRecogn):
 
             model = AutoModel(
                 model="iic/SenseVoiceSmall",
-                punc_model="ct-punc-c",
+                punc_model="ct-punc",
                 disable_update=True,
                 device=self.device,
                 local_dir=config.ROOT_DIR + "/models",

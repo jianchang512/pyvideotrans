@@ -12,6 +12,7 @@ from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
+from videotrans.ui.claude import Ui_claudeform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
@@ -28,6 +29,7 @@ from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
 from videotrans.ui.hunliu import Ui_hunliu
 from videotrans.ui.info import Ui_infoform
+from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
@@ -139,6 +141,17 @@ class DeepgramForm(QDialog, Ui_deepgramform):  # <===
 class OpenaiRecognAPIForm(QDialog, Ui_openairecognapiform):  # <===
     def __init__(self, parent=None):
         super(OpenaiRecognAPIForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class ClaudeForm(QDialog, Ui_claudeform):  # <===
+    def __init__(self, parent=None):
+        super(ClaudeForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class LibreForm(QDialog, Ui_libretranslateform):  # <===
+    def __init__(self, parent=None):
+        super(LibreForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

@@ -37,6 +37,7 @@ class BaseTrans(BaseCon):
         self.is_test = is_test
         #
         self.error = ""
+        self.error_code=0
         # 同时翻译字幕条数
         self.trans_thread = int(config.settings.get('trans_thread', 5))
         # 出错重试次数
@@ -95,10 +96,16 @@ class BaseTrans(BaseCon):
 
                 self.iter_num += 1
                 if self.iter_num > 1:
-                    self._signal(
-                        text=f"第{self.iter_num}次出错，10s后重试," if config.defaulelang == 'zh' else f'{self.iter_num} retries occurs,10s later retry')
-                    time.sleep(10)
-                    continue
+                    if self.error_code==429:
+                        msg='429 超出api每分钟频率限制，暂停60s后重试' if config.defaulelang=='zh' else '429 Exceeded the frequency limit of the api per minute, pause for 60s and retry'
+                        self._signal(text=msg)
+                        if self.inst and self.inst.status_text:
+                            self.inst.status_text=msg
+                        time.sleep(60)
+                    else:
+                        self._signal(
+                            text=f"第{self.iter_num}次出错，{self.wait_sec}s后重试," if config.defaulelang == 'zh' else f'{self.iter_num} retries occurs, {self.wait_sec}s later retry')
+                        time.sleep(self.wait_sec)
 
                 try:
                     result = self._get_cache(it)
@@ -151,11 +158,13 @@ class BaseTrans(BaseCon):
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
-                    time.sleep(self.wait_sec)
                 else:
                     # 成功 未出错
                     self.error = ''
+                    self.error_code=0
                     self.iter_num = 0
+                    if self.inst and self.inst.status_text:
+                        self.inst.status_text='字幕翻译中' if config.defaulelang=='zh' else 'Translation of subtitles'
                 finally:
                     time.sleep(self.wait_sec)
                 if self.iter_num == 0:
@@ -197,10 +206,16 @@ class BaseTrans(BaseCon):
 
                 self.iter_num += 1
                 if self.iter_num > 1:
-                    self._signal(
-                        text=f"第{self.iter_num}次出错重试" if config.defaulelang == 'zh' else f'{self.iter_num} retries after error')
-                    time.sleep(10)
-                    continue
+                    if self.error_code==429:
+                        msg='429 超出api每分钟频率限制，暂停60s后重试' if config.defaulelang=='zh' else '429 Exceeded the frequency limit of the api per minute, pause for 60s and retry'
+                        self._signal(text=msg)
+                        if self.inst and self.inst.status_text:
+                            self.inst.status_text=msg
+                        time.sleep(60)
+                    else:
+                        self._signal(
+                            text=f"第{self.iter_num}次出错，{self.wait_sec} s后重试," if config.defaulelang == 'zh' else f'{self.iter_num} retries occurs, {self.wait_sec}s later retry')
+                        time.sleep(self.wait_sec)
 
                 try:
                     srt_str = "\n\n".join(
@@ -229,7 +244,10 @@ class BaseTrans(BaseCon):
                 else:
                     # 成功 未出错
                     self.error = ''
+                    self.error_code=0
                     self.iter_num = 0
+                    if self.inst and self.inst.status_text:
+                        self.inst.status_text='字幕翻译中' if config.defaulelang=='zh' else 'Translation of subtitles'
                 finally:
                     time.sleep(self.wait_sec)
                 if self.iter_num == 0:

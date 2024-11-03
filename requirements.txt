@@ -42,4 +42,5 @@ deepgram-sdk
 deepgram-captions
 funasr
 modelscope
+anthropic
 samplerate

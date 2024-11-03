@@ -35,13 +35,15 @@ RECOGN_NAME_LIST = [
 def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None):
     if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER]:
         return '仅在 faster-whisper和 openai-whisper模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper and openai-whisper modes.'
-    if recogn_type == FUNASR_CN and langcode[:2] !='zh':
-            return 'FunASR 下 paraformer-zh 和 SenseVoiceSmall 模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh and SenseVoiceSmall models only support Chinese speech recognition'
+    if recogn_type == FUNASR_CN:
+        if model_name=='paraformer-zh' and langcode[:2] !='zh':
+            return 'FunASR 下 paraformer-zh  模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh  models only support Chinese speech recognition'
+        if model_name =='SenseVoiceSmall' and langcode[:2] not in ['zh','en','ja','ko']:
+            return 'FunASR 下  SenseVoiceSmall 模型仅支持中英日韩语音识别' if config.defaulelang == 'zh' else 'SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition'
+        return True
 
     if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
-
-
     return True
 
 # 判断 openai whisper和 faster whisper 模型是否存在
