@@ -220,14 +220,6 @@ def openwin():
     # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
-
-        lang = translator.get_code(show_text=winobj.shibie_language.currentText())
-        is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=winobj.shibie_model.currentText())
-        if is_allow_lang_res is not True:
-            QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
-
-
-
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
             winobj.shibie_split_type.setDisabled(True)
@@ -256,6 +248,10 @@ def openwin():
             return
         if is_input_api(recogn_type=recogn_type) is not True:
             return
+        lang = translator.get_code(show_text=winobj.shibie_language.currentText())
+        is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=winobj.shibie_model.currentText())
+        if is_allow_lang_res is not True:
+            QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
 
     def stop_recogn():
         config.box_recogn = 'stop'

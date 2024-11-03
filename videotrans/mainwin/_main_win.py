@@ -287,6 +287,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongemini_key.triggered.connect(winform.gemini.openwin)
         self.actiontencent_key.triggered.connect(winform.tencent.openwin)
         self.actionchatgpt_key.triggered.connect(winform.chatgpt.openwin)
+        self.actionclaude_key.triggered.connect(winform.claude.openwin)
+        self.actionlibretranslate_key.triggered.connect(winform.libre.openwin)
 
         self.actionai302_key.triggered.connect(winform.ai302.openwin)
         self.actionlocalllm_key.triggered.connect(winform.localllm.openwin)

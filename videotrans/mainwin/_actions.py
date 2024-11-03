@@ -121,9 +121,6 @@ class WinAction(WinActionSub):
     def recogn_type_change(self):
         recogn_type= self.main.recogn_type.currentIndex()
 
-        lang = translator.get_code(show_text=self.main.source_language.currentText())
-        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=self.main.model_name.currentText())
-
         # 判断不是 faster，禁用分割模式、隐藏vad参数和均等分割设置
         if recogn_type!=recognition.FASTER_WHISPER:
             self.main.split_type.setDisabled(True)
@@ -152,6 +149,8 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
+        lang = translator.get_code(show_text=self.main.source_language.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return

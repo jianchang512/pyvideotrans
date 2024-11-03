@@ -23,6 +23,8 @@ AZUREGPT_INDEX = 11
 GEMINI_INDEX = 12
 TRANSAPI_INDEX = 13
 FREEGOOGLE_INDEX = 14
+CLAUDE_INDEX = 15
+LIBRE_INDEX = 16
 # 翻译通道名字列表，显示在界面
 TRANSLASTE_NAME_LIST = [
     "Google翻译" if config.defaulelang == 'zh' else 'Google',
@@ -39,7 +41,9 @@ TRANSLASTE_NAME_LIST = [
     "AzureAI GPT",
     "Gemini",
     "自定义翻译API" if config.defaulelang == 'zh' else 'Customized API',
-    "FreeGoogle翻译" if config.defaulelang == 'zh' else 'Free Google'
+    "FreeGoogle翻译" if config.defaulelang == 'zh' else 'Free Google',
+    "Claude API",
+    "LibreTranslate"
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
@@ -354,7 +358,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif translate_type == TENCENT_INDEX:
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
-                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX]:
+                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX,CLAUDE_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif translate_type == OTT_INDEX:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
@@ -384,6 +388,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             return "Please configure the api and key information of the 302.AI channel first."
         from videotrans.winform import ai302
         ai302.openwin()
+        return False
+    if translate_type == CLAUDE_INDEX and not config.params['claude_key']:
+        if return_str:
+            return "Please configure the api and key information of the Claude API channel first."
+        from videotrans.winform import claude
+        claude.openwin()
         return False
     if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
         if return_str:
@@ -445,6 +455,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             return "Please configure the api and key information of the DeepLx channel first."
         from videotrans.winform import deepLX
         deepLX.openwin()
+        return False
+    if translate_type == LIBRE_INDEX and not config.params["libre_address"]:
+        if return_str:
+            return "Please configure the api and key information of the LibreTranslate channel first."
+        from videotrans.winform import libre
+        libre.openwin()
         return False
 
     if translate_type == TRANSAPI_INDEX and not config.params["trans_api_url"]:
@@ -518,7 +534,7 @@ def run(*, translate_type=None,
     # 其他渠道下是语言代码
     # source_code是原语言代码
     target_language_name=target_code
-    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX,CHATGPT_INDEX,AI302_INDEX,LOCALLLM_INDEX,ZIJIE_INDEX]:
+    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX,CHATGPT_INDEX,AI302_INDEX,LOCALLLM_INDEX,ZIJIE_INDEX,CLAUDE_INDEX]:
         _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
@@ -588,5 +604,11 @@ def run(*, translate_type=None,
     if translate_type == GEMINI_INDEX:
         from videotrans.translator._gemini import Gemini
         return Gemini(**kwargs).run()
+    if translate_type == CLAUDE_INDEX:
+        from videotrans.translator._claude import Claude
+        return Claude(**kwargs).run()
+    if translate_type == LIBRE_INDEX:
+        from videotrans.translator._libre import Libre
+        return Libre(**kwargs).run()
 
     raise Exception('No translation channel')
