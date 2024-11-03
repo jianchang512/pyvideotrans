@@ -2,10 +2,10 @@
 
 import re
 from typing import Union, List
-
+import requests
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
+from google.api_core.exceptions import ServerError,TooManyRequests,RetryError
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
@@ -63,6 +63,12 @@ class Gemini(BaseTrans):
             if not result:
                 raise Exception("result is empty")
             return re.sub(r'\n{2,}', "\n", result)
+        except (ServerError,RetryError) as e:
+            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini'
+            raise requests.ConnectionError(error)
+        except TooManyRequests as e:
+            self.error_code=429
+            raise
         except Exception as e:
             error = str(e)
             config.logger.error(f'[Gemini]请求失败:{error=}')
