@@ -23,6 +23,7 @@ class Google(BaseTrans):
     # 实际发出请求获取结果
     def _item_task_srt(self, data: Union[List[str], str]) -> str:
         text = quote(data)
+        print(f'[Google] {text=}')
         url = f"https://translate.google.com/m?sl={'auto' if not self.source_code else self.source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
         config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
         headers = {
@@ -47,6 +48,7 @@ class Google(BaseTrans):
         if self.is_srt and self.aisendsrt:
             return self._item_task_srt(data)
         text = "\n".join([quote(text) for text in data]) if isinstance(data, list) else quote(data)
+        print(f'[Google] {text=}')
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl={self.target_code}&q={text}"
         config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
         headers = {

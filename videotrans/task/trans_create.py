@@ -164,8 +164,6 @@ class TransCreate(BaseTask):
         # 禁止修改字幕
         self._signal(text="forbid", type="disabled_edit")
 
-
-
         # 开启一个线程读秒
         def runing():
             t = 0

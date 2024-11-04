@@ -98,7 +98,6 @@ class Ui_fanyisrt(object):
 
         label_out = QtWidgets.QLabel()
         label_out.setText('输出' if config.defaulelang == 'zh' else 'Output')
-        # label_out.setFixedWidth(60)
         self.horizontalLayout_18.addWidget(label_out)
         self.horizontalLayout_18.addWidget(self.out_format)
 
@@ -136,11 +135,18 @@ class Ui_fanyisrt(object):
         self.fanyi_import.setCursor(Qt.PointingHandCursor)
 
         self.horizontalLayout_19.addWidget(self.fanyi_import)
+
         self.daochu = QtWidgets.QToolButton()
         self.daochu.setMinimumSize(QtCore.QSize(0, 28))
         self.daochu.setObjectName("daochu")
         self.daochu.setCursor(Qt.PointingHandCursor)
+        self.exportsrt = QtWidgets.QToolButton()
+        self.exportsrt.setMinimumSize(QtCore.QSize(0, 28))
+        self.exportsrt.setObjectName("exportsrt")
+        self.exportsrt.setCursor(Qt.PointingHandCursor)
+        self.exportsrt.setVisible(False)
         self.horizontalLayout_19.addStretch()
+        self.horizontalLayout_19.addWidget(self.exportsrt)
         self.horizontalLayout_19.addWidget(self.daochu)
         self.verticalLayout_13.addLayout(self.horizontalLayout_19)
 
@@ -197,4 +203,5 @@ class Ui_fanyisrt(object):
         self.fanyi_import.setText(box_lang.get("Import text to be translated from a file.."))
         self.daochu.setText(config.transobj['dakaizimubaocunmulu'])
         self.fanyi_start.setText(box_lang.get("Start>"))
-        self.fanyi_targettext.setPlaceholderText(box_lang.get("The translation result is displayed here"))
+        self.exportsrt.setText('保存修改' if config.defaulelang=='zh' else 'Save ')
+        self.fanyi_targettext.setPlaceholderText('一次只翻译一个字幕文件时，可在此处修改翻译结果，然后保存' if config.defaulelang=='zh' else 'Modify the translation result and save it when translating a single subtitle file')

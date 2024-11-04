@@ -97,15 +97,14 @@ class GPTSoVITS(BaseTTS):
                 time.sleep(1)
                 if not os.path.exists(data_item['filename'] + ".wav"):
                     self.error = f'GPT-SoVITS合成声音失败-2:{text=}'
+                    return
                 tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
-                Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
                 try:
-                    len(AudioSegment.from_file(data_item['filename'], format='mp3'))
+                    Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
                 except CouldntDecodeError:
                     config.logger.info(f'GPT-SoVITS 配音失败')
                     self.error = f"GPT-SoVITS返回错误信息"
                     return
-
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1

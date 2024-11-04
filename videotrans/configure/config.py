@@ -218,7 +218,7 @@ DEEPGRAM_MODEL=[
 
 
 # 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov","mts"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 
@@ -259,9 +259,9 @@ def parse_init():
         "lang": "",
         "is_queue":False,
 
-        "crf": 13,
+        "crf": 23,
         "cuda_qp": False,
-        "preset": "slow",
+        "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt":False,
         "video_codec": 264,
@@ -347,7 +347,8 @@ def parse_init():
         "zh_hant_s": True,
         "azure_lines": 150,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
-        "google_trans_newadd": ""
+        "google_trans_newadd": "",
+        "proxy":""
 
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
@@ -419,12 +420,12 @@ rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
 langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
-proxy=""
+proxy=settings.get('proxy','')
 #############################################
 # openai  faster-whisper 识别模型
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
 
-ChatTTS_voicelist = re.split(r'[,，]', settings['chattts_voice'])
+ChatTTS_voicelist = re.split(r'[,，]', str(settings['chattts_voice']))
 _chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
 _claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
 _azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]

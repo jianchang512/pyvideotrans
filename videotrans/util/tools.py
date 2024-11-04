@@ -1739,11 +1739,22 @@ def clean_srt(srt):
     # 删掉以空格或换行连接的多个时间行
     time_line2=r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
     srt=re.sub(time_line2,r'\n\1 --> \2\n',srt)
+    srt_list=[it.strip() for it in srt.splitlines() if it.strip()]
 
-    srt="\n".join([it.strip() for it in srt.splitlines() if it.strip()])
+    remove_list=[]
+    for it in srt_list:
+        if len(remove_list)>0 and str(it)==str(remove_list[-1]):
+            if re.match(r'^\d{1,4}$',it):
+                continue
+            if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
+                continue
+        remove_list.append(it)
+
+    srt="\n".join(remove_list)
 
     # 行号前添加换行符
     srt=re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)',r"\n\n\1\n\2",srt)
+    print(srt)
     return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
 
 
