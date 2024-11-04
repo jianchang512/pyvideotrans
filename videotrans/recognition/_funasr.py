@@ -89,6 +89,8 @@ class FunasrRecogn(BaseRecogn):
 
             model = AutoModel(
                 model="iic/SenseVoiceSmall",
+                trust_remote_code=False,
+                model_revision="master",
                 punc_model="ct-punc",
                 disable_update=True,
                 device=self.device,

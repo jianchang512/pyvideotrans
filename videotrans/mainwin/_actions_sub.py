@@ -445,6 +445,7 @@ class WinActionSub:
             if config.proxy:
                 # 设置代理
                 tools.set_proxy(config.proxy)
+                config.settings['proxy']=config.proxy
             else:
                 # 删除代理
                 tools.set_proxy('del')

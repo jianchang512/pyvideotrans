@@ -65,7 +65,6 @@ class Ui_setini(object):
             Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
             with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings,ensure_ascii=False))
-                f.flush()
 
 
     def setupUi(self, setini):

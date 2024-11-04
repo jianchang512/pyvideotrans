@@ -178,7 +178,7 @@ LANG_CODE = {
         "vie",
         "No",
         "vi",
-        "No",
+        "vi",
         "vi",
         "Vietnamese language" if config.defaulelang != 'zh' else '越南语'
     ],
@@ -218,7 +218,7 @@ LANG_CODE = {
         "hu",
         "HU",
         "No",
-        "No",
+        "hu",
         "hu",
         "Hungarian language" if config.defaulelang != 'zh' else '匈牙利语'
     ],
@@ -228,7 +228,7 @@ LANG_CODE = {
         "ukr",  # 百度
         "UK",  # deepl
         "No",  # 腾讯
-        "No",  # ott
+        "uk",  # ott
         "uk",  # 微软
         "Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语'
     ],
@@ -238,7 +238,7 @@ LANG_CODE = {
         "id",
         "ID",
         "id",
-        "No",
+        "id",
         "id",
         "Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语'
     ],
@@ -248,7 +248,7 @@ LANG_CODE = {
         "may",
         "No",
         "ms",
-        "No",
+        "ms",
         "ms",
         "Malay language" if config.defaulelang != 'zh' else '马来西亚语'
     ],
@@ -268,7 +268,7 @@ LANG_CODE = {
         "cs",
         "CS",
         "No",
-        "No",
+        "cs",
         "cs",
         "Czech language" if config.defaulelang != 'zh' else '捷克语'
     ],
@@ -278,7 +278,7 @@ LANG_CODE = {
         "pl",
         "PL",
         "No",
-        "No",
+        "pl",
         "pl",
         "Polish language" if config.defaulelang != 'zh' else '波兰语'
     ],
@@ -288,7 +288,7 @@ LANG_CODE = {
         "nl",  # 百度通道
         "NL",  # deepl deeplx通道
         "No",  # 腾讯通道
-        "No",  # OTT通道
+        "nl",  # OTT通道
         "nl",  # 微软翻译
         "Dutch" if config.defaulelang != 'zh' else '荷兰语'  # AI翻译
     ],
@@ -298,7 +298,7 @@ LANG_CODE = {
         "swe",  # 百度通道
         "SV",  # deepl deeplx通道
         "No",  # 腾讯通道
-        "No",  # OTT通道
+        "sv",  # OTT通道
         "sv",  # 微软翻译
         "Swedish" if config.defaulelang != 'zh' else '瑞典语'  # AI翻译
     ],
@@ -360,7 +360,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
                             LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX,CLAUDE_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
-    elif translate_type == OTT_INDEX:
+    elif translate_type in [OTT_INDEX,LIBRE_INDEX]:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     elif translate_type == MICROSOFT_INDEX:
         return (source_list[6] if source_list else "-", target_list[6] if target_list else "-")
@@ -540,7 +540,7 @@ def run(*, translate_type=None,
         "text_list": text_list,
         "target_language_name": target_language_name,
         "inst": inst,
-        "source_code": source_code,
+        "source_code": source_code if source_code and source_code not in ['-','No'] else None,
         "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,

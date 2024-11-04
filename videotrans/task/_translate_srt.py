@@ -94,7 +94,7 @@ class TranslateSrt(BaseTask):
                     self.cfg['target_sub']=self.cfg['target_sub'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}.srt'
                 with Path(self.cfg['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
-                    f.flush()
+                print(f"{self.cfg['target_sub']=}")
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'

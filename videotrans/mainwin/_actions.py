@@ -381,6 +381,7 @@ class WinAction(WinActionSub):
             if question == QMessageBox.Yes:
                 self.update_status('stop')
                 return
+        config.settings = config.parse_init()
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
@@ -394,7 +395,6 @@ class WinAction(WinActionSub):
             return
 
         config.task_countdown = int(float(config.settings.get('countdown_sec',1)))
-        config.settings = config.parse_init()
 
         # 顶部行
         self.cfg['append_video']=self.main.append_video.isChecked()
@@ -504,7 +504,7 @@ class WinAction(WinActionSub):
         # 设为开始
         self.update_status('ing')
 
-        config.settings = config.parse_init()
+
         if self.main.recogn_type.currentIndex()==recognition.FASTER_WHISPER or self.main.app_mode=='biaozhun':
             config.settings['backaudio_volume']=float(self.main.bgmvolume.text())
             config.settings['loop_backaudio']=self.main.is_loop_bgm.isChecked()
@@ -583,7 +583,7 @@ class WinAction(WinActionSub):
 
         # 启动任务
         tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
-        if self.main.app_mode not in ['biaozhun_jd','tiqu'] and config.settings.get('is_queue'):
+        if self.main.app_mode not in ['biaozhun_jd','tiqu'] and (config.settings.get('is_queue') or len(self.obj_list)==1):
             self.is_batch=False
             task = Worker(
                 parent=self.main,
@@ -680,7 +680,8 @@ class WinAction(WinActionSub):
             self.main.startbtn.setText(config.transobj["starting..."])
             return
         # stop 停止，end=结束
-
+        self.main.subtitle_area.clear()
+        self.main.target_subtitle_area.clear()
         self.main.startbtn.setText(config.transobj[type])
         self.main.export_sub.setDisabled(False)
         self.main.set_line_role.setDisabled(False)
@@ -733,6 +734,9 @@ class WinAction(WinActionSub):
 
                 self.edit_subtitle_type = 'edit_subtitle_source'
                 self.wait_subtitle = None
+                if not self.is_batch:
+                    self.main.target_subtitle_area.clear()
+                    self.main.subtitle_area.clear()
 
         # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
@@ -794,7 +798,7 @@ class WinAction(WinActionSub):
             self.main.continue_compos.show()
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(
-                '可以点击暂停后修改字幕或继续下一步' if config.defaulelang == 'zh' else 'You can edit subtitle or continue next step')
+                '继续下一步操作' if config.defaulelang == 'zh' else 'Continue next step')
             self.main.stop_djs.show()
             self.main.timeout_tips.setText(d['text'])
             if self.edit_subtitle_type=='edit_subtitle_source':

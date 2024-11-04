@@ -104,9 +104,9 @@ def openwin():
             winobj.has_done = True
             winobj.loglabel.setText(config.transobj['quanbuend'])
             winobj.fanyi_start.setText('执行完成/开始执行' if config.defaulelang == 'zh' else 'Ended/Start operate')
+            winobj.fanyi_start.setDisabled(False)
             winobj.fanyi_import.setDisabled(False)
             winobj.daochu.setDisabled(False)
-            winobj.fanyi_start.setDisabled(False)
             config.box_trans = 'stop'
             winobj.fanyi_stop.setDisabled(True)
 
@@ -143,7 +143,8 @@ def openwin():
 
         if proxy:
             tools.set_proxy(proxy)
-            config.params['proxy'] = proxy
+            config.proxy = proxy
+            config.settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
         if rs is not True:
@@ -152,6 +153,7 @@ def openwin():
             return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         '必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files')
         winobj.fanyi_sourcetext.clear()
+        winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
 
         config.box_trans = 'ing'
@@ -179,6 +181,13 @@ def openwin():
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)
         th.start()
+        if len(video_list)==1:
+            winobj.fanyi_sourcetext.setPlainText(Path(video_list[0]['name']).read_text(encoding='utf-8'))
+            winobj.exportsrt.setVisible(True)
+            winobj.fanyi_targettext.setReadOnly(False)
+        else:
+            winobj.fanyi_targettext.setReadOnly(True)
+            winobj.exportsrt.setVisible(False)
 
         config.params["trans_translate_type"]=winobj.fanyi_translate_type.currentIndex()
         config.params["trans_source_language"]=winobj.fanyi_source.currentIndex()
@@ -189,7 +198,6 @@ def openwin():
         winobj.fanyi_start.setDisabled(True)
         winobj.fanyi_stop.setDisabled(False)
         winobj.fanyi_start.setText(config.transobj["running"])
-        winobj.fanyi_targettext.clear()
         winobj.daochu.setDisabled(True)
 
     # 翻译目标语言变化时
@@ -287,6 +295,27 @@ def openwin():
         if winobj.error_msg:
             QMessageBox.critical(winobj,config.transobj['anerror'],winobj.error_msg)
 
+    def export_srt():
+        srt_string=winobj.fanyi_targettext.toPlainText().strip()
+        if not srt_string:
+            return QMessageBox.critical(winobj,config.transobj['anerror'],'没有翻译结果，无需保存' if config.defaulelang == 'zh' else 'No result, no need to save')
+        dialog = QFileDialog()
+        dialog.setWindowTitle(config.transobj['savesrtto'])
+        dialog.setNameFilters(["subtitle files (*.srt)"])
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.exec_()
+        if not dialog.selectedFiles():
+            return
+        else:
+            path_to_file = dialog.selectedFiles()[0]
+        ext = ".srt"
+        if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
+            path_to_file = path_to_file[:-4] + ext
+        else:
+            path_to_file += ext
+        with open(path_to_file, "w", encoding='utf-8') as file:
+            file.write(srt_string)
+
     from videotrans.component import Fanyisrt
     try:
         winobj = config.child_forms.get('fanyiform')
@@ -296,7 +325,6 @@ def openwin():
             update_target_language()
             winobj.raise_()
             winobj.activateWindow()
-            # winobj.aisendsrt.setChecked(config.settings.get('rephrase'))
             return
 
         winobj = Fanyisrt()
@@ -336,6 +364,7 @@ def openwin():
         winobj.daochu.clicked.connect(fanyi_save_fun)
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
         winobj.loglabel.clicked.connect(show_detail_error)
+        winobj.exportsrt.clicked.connect(export_srt)
 
         winobj.show()
     except Exception as e:

@@ -1,12 +1,18 @@
+import json
 import re
+import time
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTime, Signal, QTimer, QSize, QEvent
+from PySide6.QtCore import Qt, QTime, Signal, QTimer, QSize, QEvent, QThread
 from PySide6.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QComboBox, QPushButton, QLineEdit, \
     QFileDialog, QTextEdit, QFontDialog, QColorDialog, QTimeEdit, QMessageBox
 
+from videotrans import translator
 from videotrans.configure import config
+from videotrans.task._translate_srt import TranslateSrt
+from videotrans.util import tools
+
 
 class NoWheelTimeEdit(QTimeEdit):
     def __init__(self, parent=None):
@@ -70,10 +76,51 @@ class DropScrollArea(QScrollArea):
             widget.dropEvent(event)
 
 
+class SignThread(QThread):
+    uito = Signal(str)
+
+    def __init__(self, uuid=None, parent=None):
+        super().__init__(parent=parent)
+        self.uuid = uuid
+
+    def post(self, jsondata):
+        self.uito.emit(json.dumps(jsondata))
+
+    def run(self):
+        while 1:
+            if not self.uuid or config.exit_soft:
+                self.post({"type": "end"})
+                time.sleep(1)
+                return
+
+            if self.uuid in config.stoped_uuid_set:
+                self.uuid=None
+                return
+            q = config.uuid_logs_queue.get(self.uuid)
+            if not q:
+                return
+            try:
+                if q.empty():
+                    time.sleep(0.5)
+                    continue
+                data = q.get(block=False)
+                if not data:
+                    continue
+                self.post(data)
+                if data['type'] in ['error', 'succeed']:
+                    self.uuid=None
+                    config.stoped_uuid_set.add(self.uuid)
+                    del config.uuid_logs_queue[self.uuid]
+            except:
+                pass
+
+
+
 class Ui_subtitleEditor(QWidget):
     def __init__(self):
         super().__init__()
         self.has_done = False
+        self.target_file=None
         self.lastend_time = 0
 
         self.setWindowTitle("Subtitle Editor" if config.defaulelang != 'zh' else '导入字幕编辑修改后导出')
@@ -111,8 +158,50 @@ class Ui_subtitleEditor(QWidget):
 
         main_layout.addLayout(button_layout)
 
+        self.fanyi_layout = QHBoxLayout()
+
+
+        self.fanyi_button = QPushButton()
+        self.fanyi_button.setText('翻译' if config.defaulelang == 'zh' else 'Translate')
+        self.fanyi_button.setFixedHeight(35)
+        self.fanyi_button.setFixedWidth(150)
+        self.fanyi_button.setCursor(Qt.PointingHandCursor)
+        self.fanyi_button.clicked.connect(self.fanyi)
+
+        self.translate_type= QComboBox()
+        self.translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
+
+        label_fanyi_source=QLabel()
+        label_fanyi_source.setText('原始语言' if config.defaulelang == 'zh' else 'Source Language')
+        self.fanyi_source = QComboBox()
+        self.fanyi_source.setFixedHeight(35)
+        self.fanyi_source.addItems(["-"] + [ it for it in config.langnamelist if config.rev_langlist[it]!='auto'])
+        label_fanyi_target=QLabel()
+        label_fanyi_target.setText('目标语言' if config.defaulelang == 'zh' else 'Target Language')
+        self.fanyi_target = QComboBox()
+        self.fanyi_target.setFixedHeight(35)
+        self.fanyi_target.addItems(["-"] + [ it for it in config.langnamelist if config.rev_langlist[it]!='auto'])
+
+        self.fanyi_log=QLabel()
+
+
+        self.fanyi_layout.addStretch()
+        self.fanyi_layout.addWidget(self.translate_type)
+        self.fanyi_layout.addWidget(label_fanyi_source)
+        self.fanyi_layout.addWidget(self.fanyi_source)
+        self.fanyi_layout.addWidget(label_fanyi_target)
+        self.fanyi_layout.addWidget(self.fanyi_target)
+        self.fanyi_layout.addWidget(self.fanyi_button)
+        self.fanyi_layout.addWidget(self.fanyi_log)
+        self.fanyi_layout.addStretch()
+        tools.hide_show_element(self.fanyi_layout,False)
+
+        main_layout.addLayout(self.fanyi_layout)
+
+
+
+
         # 第二行：内容区域（初始为空白）
-        # self.content_widget = QWidget()
         self.content_widget = DropWidget()
         self.content_layout = QVBoxLayout()
         self.content_layout.setAlignment(Qt.AlignTop)  # 顶部对齐
@@ -146,6 +235,13 @@ class Ui_subtitleEditor(QWidget):
         self.export_button.setFixedHeight(35)
         self.export_button.setFixedWidth(200)
         self.export_button.setCursor(Qt.PointingHandCursor)
+        self.export_format = QComboBox()
+        self.export_format.addItems([
+            "原始语言字幕",
+            "目标语言字幕",
+            "双语字幕",
+        ])
+        self.export_format.setVisible(False)
 
         format_label = QLabel("输出字幕格式:" if config.defaulelang == 'zh' else 'Output Subtitle Format')
         format_label.setFixedWidth(100)
@@ -201,6 +297,7 @@ class Ui_subtitleEditor(QWidget):
         self.marginLRV.setVisible(False)
 
         format_layout.addWidget(self.export_button)
+        format_layout.addWidget(self.export_format)
         format_layout.addWidget(format_label)
         format_layout.addWidget(self.format_combo)
         format_layout.addWidget(self.font_button)
@@ -225,6 +322,88 @@ class Ui_subtitleEditor(QWidget):
         self.import_button.clicked.connect(self.import_subtitles)
         self.export_button.clicked.connect(self.export_subtitles)
 
+    def fanyi(self):
+        target_language = self.fanyi_target.currentText()
+        if target_language=='-':
+            return QMessageBox.critical(self, config.transobj['anerror'], '必须选择目标语言' if config.defaulelang=='zh' else 'Please select target language')
+
+        if target_language==self.fanyi_source.currentText():
+            return QMessageBox.critical(self, config.transobj['anerror'], '原语言和目标语言不得相同' if config.defaulelang=='zh' else 'Can not translate to source language')
+
+        RESULT_DIR=config.TEMP_HOME+'/subtitle_editor'
+        Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
+        source_file=config.TEMP_HOME + f'/{time.time()}.srt'
+        self.save_srt(source_file,-1)
+
+        it=tools.format_video(source_file, None)
+        print(f'{it=}')
+
+        self.target_file=f'{RESULT_DIR}/{it["noextname"]}.srt'
+
+        source_code = translator.get_code(show_text=self.fanyi_source.currentText())
+        target_code = translator.get_code(show_text=target_language)
+        config.box_trans='ing'
+        trk = TranslateSrt({
+            "out_format":0,
+            "translate_type": self.translate_type.currentIndex(),
+            "text_list": tools.get_subtitle_from_srt(source_file),
+            "target_dir": RESULT_DIR,
+            "inst": None,
+            "rename": False,
+            "uuid": it['uuid'],
+            "source_code": source_code,
+            "target_code": target_code
+        }, it)
+        print(f'{trk.cfg=}')
+        th = SignThread(uuid=it['uuid'], parent=self)
+        th.uito.connect(self.feed)
+        th.start()
+        config.trans_queue.append(trk)
+        self.fanyi_button.setDisabled(True)
+
+    def feed(self,d):
+        if config.box_trans != 'ing':
+            return
+        d = json.loads(d)
+
+        if d['type'] == 'error':
+            self.fanyi_log.setStyleSheet("""color:#ff0000;background-color:transparent""")
+            self.fanyi_log.setText(d['text'][:150])
+            self.fanyi_log.setCursor(Qt.PointingHandCursor)
+            self.fanyi_button.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            self.fanyi_button.setDisabled(False)
+        # 挨个从顶部添加已翻译后的文字
+        elif d['type'] in ['logs']:
+            if d['text']:
+                self.fanyi_log.setText(d["text"])
+        elif d['type'] in ['succeed']:
+            self.fanyi_log.setText('请保持原文译文各占一行，勿加换行' if config.defaulelang == 'zh' else 'Please keep the original and translated text in one line, do')
+            self.fanyi_button.setText('翻译完成' if config.defaulelang == 'zh' else 'Translate Ended')
+            self.fanyi_button.setDisabled(False)
+            config.box_trans = 'stop'
+            self.set_target_text()
+            self.export_format.setVisible(True)
+
+    def set_target_text(self):
+        if not Path(self.target_file).exists():
+            return QMessageBox.critical(self, config.transobj['anerror'], '翻译失败' if config.defaulelang == 'zh' else 'Translate failed')
+        target_list=tools.get_subtitle_from_srt(self.target_file)
+        for i in range(self.content_layout.count()):
+            layout = self.content_layout.itemAt(i)
+            if layout:
+                for j in range(layout.layout().count()):
+                    widget = layout.layout().itemAt(j).widget()
+                    if isinstance(widget, QTextEdit):
+                        text = widget.toPlainText()
+                        try:
+                            tmp=target_list.pop(0)
+                        except:
+                            pass
+                        else:
+                            text=text.strip().replace("\n",'')+"\n"+tmp['text'].strip().replace("\n",'')
+                            widget.setPlainText(text)
+
+
     def import_subtitles(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Subtitles files", config.params['last_opendir'], "Subtitle Files (*.srt *.ass *.vtt)"
@@ -248,7 +427,8 @@ class Ui_subtitleEditor(QWidget):
                 self.load_vtt(file_path)
             self.loglabel.setVisible(False)
             self.loglabel.setText('字幕编辑区' if config.defaulelang == 'zh' else 'Subtitles Edit area')
-
+            tools.hide_show_element(self.fanyi_layout,True)
+            self.export_format.setVisible(False)
         QTimer.singleShot(50, render)
 
     def load_srt(self, file_path):
@@ -452,14 +632,18 @@ class Ui_subtitleEditor(QWidget):
             self, "Save", "", f"Subtitle Files (*.{format})"
         )
         if file_path:
+            out_format= -1
+            if self.export_format.isVisible() and self.export_format.currentIndex()<2:
+                out_format=self.export_format.currentIndex()
             if format == "srt":
-                self.save_srt(file_path)
+                self.save_srt(file_path,out_format)
             elif format == "ass":
-                self.save_ass(file_path)
+                self.save_ass(file_path,out_format)
             elif format == "vtt":
-                self.save_vtt(file_path)
+                self.save_vtt(file_path,out_format)
 
-    def save_srt(self, file_path):
+
+    def save_srt(self, file_path,out_format=-1):
         self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             index = 1
@@ -487,7 +671,11 @@ class Ui_subtitleEditor(QWidget):
                                 return QMessageBox.critical(self, config.transobj['anerror'], msg)
                             self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
-                            text = widget.toPlainText()
+                            text = widget.toPlainText().strip()
+                            if out_format>-1:
+                                text_split=text.split('\n')
+                                if len(text_split)>out_format:
+                                    text=text_split[out_format]
                     if start_time and end_time:
                         start_str = f"{start_time}"
                         end_str = f"{end_time}"
@@ -504,7 +692,7 @@ class Ui_subtitleEditor(QWidget):
         # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
         return f"&H{b:02X}{g:02X}{r:02X}"
 
-    def save_ass(self, file_path):
+    def save_ass(self, file_path,out_format=-1):
         self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             # 写入 ASS 文件的头部信息
@@ -561,6 +749,10 @@ class Ui_subtitleEditor(QWidget):
                             self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
+                            if out_format>-1:
+                                text_split=text.split('\n')
+                                if len(text_split)>out_format:
+                                    text=text_split[out_format]
 
                     if start_time and end_time:
                         start_str = f"{start_time}"
@@ -569,7 +761,7 @@ class Ui_subtitleEditor(QWidget):
                         file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
                         index += 1
 
-    def save_vtt(self, file_path):
+    def save_vtt(self, file_path,out_format=-1):
         self.lastend_time = 0
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write("WEBVTT\n\n")
@@ -600,6 +792,10 @@ class Ui_subtitleEditor(QWidget):
 
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
+                            if out_format>-1:
+                                text_split=text.split('\n')
+                                if len(text_split)>out_format:
+                                    text=text_split[out_format]
 
                     if start_time and end_time:
                         start_str = f"{start_time}"
@@ -629,6 +825,8 @@ class Ui_subtitleEditor(QWidget):
     def clear_content_layout(self):
         # 遍历并删除所有子布局和部件
         self.loglabel.setVisible(True)
+        tools.hide_show_element(self.fanyi_layout,False)
+        self.export_format.setVisible(False)
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
             if item is not None:
