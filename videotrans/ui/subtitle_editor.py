@@ -330,10 +330,15 @@ class Ui_subtitleEditor(QWidget):
         if target_language==self.fanyi_source.currentText():
             return QMessageBox.critical(self, config.transobj['anerror'], '原语言和目标语言不得相同' if config.defaulelang=='zh' else 'Can not translate to source language')
 
+        rs = translator.is_allow_translate(translate_type=self.translate_type.currentIndex(), show_target=target_language)
+        if rs is not True:
+            return False
+
         RESULT_DIR=config.TEMP_HOME+'/subtitle_editor'
         Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
         source_file=config.TEMP_HOME + f'/{time.time()}.srt'
-        self.save_srt(source_file,-1)
+        if self.save_srt(source_file,-1) is not True:
+            return
 
         it=tools.format_video(source_file, None)
         print(f'{it=}')
@@ -365,6 +370,9 @@ class Ui_subtitleEditor(QWidget):
         if config.box_trans != 'ing':
             return
         d = json.loads(d)
+        
+        if d['type'] != 'error':
+            self.fanyi_log.setStyleSheet("""color:#ddd""")
 
         if d['type'] == 'error':
             self.fanyi_log.setStyleSheet("""color:#ff0000;background-color:transparent""")
@@ -681,7 +689,8 @@ class Ui_subtitleEditor(QWidget):
                         end_str = f"{end_time}"
                         file.write(f"{index}\n{start_str} --> {end_str}\n{text}\n\n")
                         index += 1
-
+        return True        
+        
     def qcolor_to_ass_color(self, color, type='fc'):
         # 获取颜色的 RGB 值
         r = color.red()
@@ -760,6 +769,7 @@ class Ui_subtitleEditor(QWidget):
                         text = text.replace('\n', '\\N')
                         file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
                         index += 1
+        return True                
 
     def save_vtt(self, file_path,out_format=-1):
         self.lastend_time = 0
@@ -802,7 +812,8 @@ class Ui_subtitleEditor(QWidget):
                         end_str = f"{end_time}"
                         file.write(f"{index}\n{start_str} --> {end_str}\n{text}\n\n")
                         index += 1
-
+        return True        
+        
     def update_format_options(self):
         format = self.format_combo.currentText()
         if format == "ass":
@@ -827,6 +838,7 @@ class Ui_subtitleEditor(QWidget):
         self.loglabel.setVisible(True)
         tools.hide_show_element(self.fanyi_layout,False)
         self.export_format.setVisible(False)
+        self.fanyi_log.setText('')
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
             if item is not None:

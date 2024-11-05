@@ -10,7 +10,7 @@ from videotrans.configure import config
 # 数字代表显示顺序
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
-AI302_INDEX = 2
+MyMemoryAPI_INDEX = 2
 BAIDU_INDEX = 3
 DEEPL_INDEX = 4
 DEEPLX_INDEX = 5
@@ -25,25 +25,27 @@ TRANSAPI_INDEX = 13
 FREEGOOGLE_INDEX = 14
 CLAUDE_INDEX = 15
 LIBRE_INDEX = 16
+AI302_INDEX = 17
 # 翻译通道名字列表，显示在界面
 TRANSLASTE_NAME_LIST = [
-    "Google翻译" if config.defaulelang == 'zh' else 'Google',
-    "微软翻译" if config.defaulelang == 'zh' else 'Microsoft',
-    "302.AI",
+    "Google(免费)" if config.defaulelang == 'zh' else 'Google',
+    "微软(免费)" if config.defaulelang == 'zh' else 'Microsoft',
+    "MyMemory API(免费)" if config.defaulelang == 'zh' else 'MyMemory API',
     "百度翻译" if config.defaulelang == 'zh' else 'Baidu',
     "DeepL",
     "DeepLx",
-    "离线翻译OTT" if config.defaulelang == 'zh' else 'OTT',
+    "OTT(本地)" if config.defaulelang == 'zh' else 'OTT',
     "腾讯翻译" if config.defaulelang == 'zh' else 'Tencent',
     "OpenAI ChatGPT" if config.defaulelang == 'zh' else 'OpenAI ChatGPT',
-    "兼容AI及本地大模型" if config.defaulelang == 'zh' else 'Local LLM',
-    "字节火山大模型" if config.defaulelang == 'zh' else 'VolcEngine LLM',
-    "AzureAI GPT",
-    "Gemini",
+    "兼容AI/本地模型" if config.defaulelang == 'zh' else 'Local LLM',
+    "字节火山AI" if config.defaulelang == 'zh' else 'VolcEngine LLM',
+    "AzureGPT AI",
+    "Gemini AI",
     "自定义翻译API" if config.defaulelang == 'zh' else 'Customized API',
-    "FreeGoogle翻译" if config.defaulelang == 'zh' else 'Free Google',
-    "Claude API",
-    "LibreTranslate"
+    "FreeGoogle(免费)" if config.defaulelang == 'zh' else 'FreeGoogle',
+    "Claude AI",
+    "LibreTranslate(本地)" if config.defaulelang == 'zh' else 'LibreTranslate',
+    "302.AI",
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
@@ -349,7 +351,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if show_target and show_target != '-':
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
+    if translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif translate_type == BAIDU_INDEX:
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -374,7 +376,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None,return_str=False):
-    if translate_type in [GOOGLE_INDEX, FREEGOOGLE_INDEX,MICROSOFT_INDEX]:
+    if translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, FREEGOOGLE_INDEX,MICROSOFT_INDEX]:
         return True
 
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
@@ -549,6 +551,9 @@ def run(*, translate_type=None,
     if translate_type == GOOGLE_INDEX:
         from videotrans.translator._google import Google
         return Google(**kwargs).run()
+    if translate_type == MyMemoryAPI_INDEX:
+        from videotrans.translator._mymemory import MyMemory
+        return MyMemory(**kwargs).run()
     if translate_type == FREEGOOGLE_INDEX:
         from videotrans.translator._freegoogle import FreeGoogle
         return FreeGoogle(**kwargs).run()

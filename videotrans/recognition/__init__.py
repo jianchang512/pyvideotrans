@@ -20,15 +20,15 @@ CUSTOM_API = 7
 GOOGLE_SPEECH = 8
 
 RECOGN_NAME_LIST = [
-    'faster-whisper(本)' if config.defaulelang == 'zh' else 'faster-whisper',
-    'openai-whisper(本)' if config.defaulelang == 'zh' else 'openai-whisper',
-    "FunASR中文(本)" if config.defaulelang == 'zh' else "FunASR-CN",
-    "STT语音识别(本)" if config.defaulelang == 'zh' else "Stt Speech API",
-    "字节火山字幕生成API" if config.defaulelang == 'zh' else "VolcEngine Subtitle API",
-    "DeepgramAPI" if config.defaulelang == 'zh' else "DeepgramAPI",
-    "OpenAI识别API" if config.defaulelang == 'zh' else "OpenAI Speech API",
-    "自定义识别API" if config.defaulelang == 'zh' else "Custom Recognition API",
-    "Google识别api" if config.defaulelang == 'zh' else "Google Speech API",
+    'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
+    'openai-whisper(本地)' if config.defaulelang == 'zh' else 'OpenAI-whisper',
+    "阿里FunASR中文(本地)" if config.defaulelang == 'zh' else "FunASR-Chinese",
+    "STT语音识别(本地)" if config.defaulelang == 'zh' else "STT Speech API",
+    "字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine Subtitle API",
+    "Deepgram.com" if config.defaulelang == 'zh' else "Deepgram.com",
+    "OpenAI语音识别" if config.defaulelang == 'zh' else "OpenAI Speech to Text",
+    "自定义识别API" if config.defaulelang == 'zh' else "Custom API",
+    "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
 ]
 
 
