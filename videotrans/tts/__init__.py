@@ -19,20 +19,20 @@ VOLCENGINE_TTS = 12
 F5_TTS = 13
 
 TTS_NAME_LIST = [
-    "Edge-TTS",
-    'CosyVoice',
-    "ChatTTS",
+    "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
+    'CosyVoice(本地)' if config.defaulelang=='zh' else 'CosyVoice',
+    "ChatTTS(本地)" if config.defaulelang=='zh' else 'ChatTTS',
     "302.AI",
-    "FishTTS",
+    "FishTTS(本地)" if config.defaulelang=='zh' else 'FishTTS',
     "Azure-TTS",
-    "GPT-SoVITS",
-    "clone-voice",
+    "GPT-SoVITS(本地)" if config.defaulelang=='zh' else 'GPT-SoVITS',
+    "clone-voice(本地)" if config.defaulelang=='zh' else 'clone-voice',
     "OpenAI TTS",
     "Elevenlabs.io",
     "Google TTS",
-    "自定义TTS API" if config.defaulelang == 'zh' else 'Customize API',
+    "自定义TTSAPI" if config.defaulelang == 'zh' else 'Customize API',
     "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
-    "F5-TTS"
+    "F5-TTS(本地)" if config.defaulelang=='zh' else 'F5-TTS'
 ]
 
 
