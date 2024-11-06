@@ -14,7 +14,7 @@ from videotrans.util.tools import ms_to_time_string,  vail_file, cleartext
 
 
 def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q, settings,
-        TEMP_DIR, ROOT_DIR, defaulelang):
+        TEMP_DIR, ROOT_DIR, defaulelang,proxy=None):
     os.chdir(ROOT_DIR)
 
     def write_log(jsondata):
@@ -50,6 +50,8 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q
     if not local_file_only:
         if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
             msg = '下载模型中，用时可能较久' if defaulelang == 'zh' else 'Download model from huggingface'
+            if proxy:
+                os.environ['https_proxy'] = proxy
         else:
             msg = '加载或下载模型中，用时可能较久' if defaulelang == 'zh' else 'Load model from local or download model from huggingface'
         write_log({"text": msg, "type": "logs"})
@@ -71,7 +73,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q
         else:
             err['msg'] = str(e)
             return
-
+    write_log({"text": model_name+" Loaded", "type": "logs"})
     prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
     try:
         last_detect=detect_language

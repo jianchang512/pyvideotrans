@@ -22,7 +22,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-
+        if self.model_name.find('/')>-1:
+            raise Exception('huggingface上的自定义模型只可用于faster-whisper模式' if config.defaulelang=='zh' else 'The model only use when faster-whisper')
         tmp_path = Path(f'{self.cache_folder}/{Path(self.audio_file).name}_tmp')
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_path = tmp_path.as_posix()

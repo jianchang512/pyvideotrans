@@ -11,7 +11,7 @@ from faster_whisper import WhisperModel
 from videotrans.util.tools import ms_to_time_string,cleartext
 
 def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
-        q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang):
+        q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang,proxy=None):
     os.chdir(ROOT_DIR)
     down_root = ROOT_DIR + "/models"
     settings['whisper_threads']=int(float(settings.get('whisper_threads',1)))
@@ -27,6 +27,9 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
         if not local_file_only:
             if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
                 msg = '下载模型中，用时可能较久' if defaulelang == 'zh' else 'Download model from huggingface'
+                print(f'{proxy=}')
+                if proxy:
+                    os.environ['https_proxy'] = proxy
             else:
                 msg = '加载或下载模型中，用时可能较久' if defaulelang == 'zh' else 'Load model from local or download model from huggingface'
             write_log({"text": msg, "type": "logs"})
@@ -62,7 +65,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             else:
                 err['msg'] = str(e)
                 return
-
+        write_log({"text": model_name+" Loaded", "type": "logs"})
         prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
         segments, info = model.transcribe(
             audio_file,

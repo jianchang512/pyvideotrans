@@ -553,6 +553,7 @@ def run(*, translate_type=None,
         return Google(**kwargs).run()
     if translate_type == MyMemoryAPI_INDEX:
         from videotrans.translator._mymemory import MyMemory
+        config.settings['trans_thread']=min(10,int(config.settings.get('trans_thread',5)))
         return MyMemory(**kwargs).run()
     if translate_type == FREEGOOGLE_INDEX:
         from videotrans.translator._freegoogle import FreeGoogle
