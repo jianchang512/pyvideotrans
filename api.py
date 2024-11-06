@@ -207,7 +207,7 @@ if __name__ == '__main__':
             "target_code": data.get('target_language'),
             "source_code": data.get('source_code', '')
         }
-        is_allow=translator.is_allow_translate(translate_type=cfg['translate_type'],show_target=cfg['target_language'],return_str=True)
+        is_allow=translator.is_allow_translate(translate_type=cfg['translate_type'],show_target=cfg['target_code'],return_str=True)
         if is_allow is not True:
             return jsonify({"code":5,"msg":is_allow})
         obj = tools.format_video(name, None)

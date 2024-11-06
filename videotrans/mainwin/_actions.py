@@ -825,6 +825,14 @@ class WinAction(WinActionSub):
             if currentIndex  in [tts.GPTSOVITS_TTS,tts.COSYVOICE_TTS,tts.FISHTTS,tts.CHATTTS,tts.CLONE_VOICE_TTS,tts.F5_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
+        elif d['type']=='refreshmodel_list':
+            config.WHISPER_MODEL_LIST=re.split(r'[,，]', config.settings['model_list'])
+            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
+                current_model_name=self.main.model_name.currentText()
+                self.main.model_name.clear()
+                self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
+                self.main.model_name.setCurrentText(current_model_name)
+                
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):

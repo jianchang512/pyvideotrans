@@ -7,6 +7,7 @@ from typing import List, Dict, Union
 from videotrans.configure import config
 from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
+from videotrans.util import tools
 
 
 class FasterAvg(BaseRecogn):
@@ -67,7 +68,8 @@ class FasterAvg(BaseRecogn):
                     "settings": config.settings,
                     "defaulelang": config.defaulelang,
                     "ROOT_DIR": config.ROOT_DIR,
-                    "TEMP_DIR": config.TEMP_DIR
+                    "TEMP_DIR": config.TEMP_DIR,
+                    "proxy":tools.set_proxy()
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'

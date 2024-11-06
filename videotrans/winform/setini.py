@@ -5,6 +5,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton, QCheckBox, QComboBox
 
 from videotrans.configure import config
+from videotrans.util import tools
 
 
 # 高级设置
@@ -13,12 +14,15 @@ def openwin():
     def save():
         # 创建一个空字典来存储结果
         line_edit_dict = config.settings
+        shoud_model_list_sign=False
 
         # 遍历找到的所有QLineEdit控件
         for line_edit in winobj.findChildren(QLineEdit):
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
+                if name=='model_list' and line_edit.text() != line_edit_dict[name]:
+                    shoud_model_list_sign=True
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.text()
         for line_edit in winobj.findChildren(QCheckBox):
@@ -42,6 +46,8 @@ def openwin():
             return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
         else:
             config.settings = line_edit_dict
+            if shoud_model_list_sign:
+                tools.set_process(text="",type='refreshmodel_list')
 
         winobj.close()
 
@@ -51,12 +57,8 @@ def openwin():
     def create():
         nonlocal winobj
         from videotrans.component import SetINIForm
-        # winobj = config.child_forms.get('setiniw')
-        # if winobj is not None:
-        #     winobj.show()
-        #     winobj.raise_()
-        #     winobj.activateWindow()
-        #     return
+        
+        
         winobj = SetINIForm()
         config.child_forms['setiniw'] = winobj
         for button in winobj.findChildren(QPushButton):

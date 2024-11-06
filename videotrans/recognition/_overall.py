@@ -76,7 +76,8 @@ class FasterAll(BaseRecogn):
                     "settings": config.settings,
                     "defaulelang": config.defaulelang,
                     "ROOT_DIR": config.ROOT_DIR,
-                    "TEMP_DIR": config.TEMP_DIR
+                    "TEMP_DIR": config.TEMP_DIR,
+                    "proxy":tools.set_proxy()
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
