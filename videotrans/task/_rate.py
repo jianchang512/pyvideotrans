@@ -96,7 +96,7 @@ class SpeedRate:
                 try:
                     it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
                 except CouldntDecodeError:
-                    config.logger.exception(f'添加配音时长失败，{it["filename"]=} {e=}')
+                    config.logger.exception(f'添加配音时长失败')
                     it['dubb_time'] = 0
                     it['video_extend'] = 0
             else:

@@ -42,8 +42,10 @@ class TransCreate(BaseTask):
             "source_sub": None,
             "target_sub": None,
 
-            "source_wav": None,
-            "target_wav": None,
+            "source_wav": "",
+            "source_wav_output": "",
+            "target_wav": "",
+            "target_wav_output": "",
 
             "novoice_mp4": None,
             "targetdir_mp4": None,
@@ -119,7 +121,7 @@ class TransCreate(BaseTask):
         Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
         Path(self.cfg['cache_folder']).mkdir(parents=True, exist_ok=True)
         # 存放分离后的无声音mp4
-        self.cfg['novoice_mp4'] = f"{self.cfg['target_dir']}/novoice.mp4"
+        self.cfg['novoice_mp4'] = f"{self.cfg['cache_folder']}/novoice.mp4"
 
 
 
@@ -142,9 +144,9 @@ class TransCreate(BaseTask):
         # 是否需要背景音分离：分离出的原始音频文件
         if self.cfg['is_separate']:
             # 背景音乐
-            self.cfg['instrument'] = f"{self.cfg['target_dir']}/instrument.wav"
+            self.cfg['instrument'] = f"{self.cfg['cache_folder']}/instrument.wav"
             # 转为8k采样率，降低文件
-            self.cfg['vocal'] = f"{self.cfg['target_dir']}/vocal.wav"
+            self.cfg['vocal'] = f"{self.cfg['cache_folder']}/vocal.wav"
             self.shoud_separate = True
             self._unlink_size0(self.cfg['instrument'])
             self._unlink_size0(self.cfg['vocal'])
@@ -190,11 +192,11 @@ class TransCreate(BaseTask):
         # 原始语言一定存在
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
-        self.cfg['source_wav'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.m4a"
+        self.cfg['source_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.m4a"
+        self.cfg['source_wav'] = f"{self.cfg['cache_folder']}/{self.cfg['source_language_code']}.m4a"
 
-        if self.cfg['source_language_code'] != 'auto' and Path(
-                f"{self.cfg['target_dir']}/auto.m4a").exists():
-            Path(f"{self.cfg['target_dir']}/auto.m4a").rename(self.cfg['source_wav'])
+        if self.cfg['source_language_code'] != 'auto' and Path(f"{self.cfg['cache_folder']}/auto.m4a").exists():
+            Path(f"{self.cfg['cache_folder']}/auto.m4a").rename(self.cfg['source_wav'])
         # 是否需要语音识别:只要不存在原始语言字幕文件就需要识别
         self.shoud_recogn = True
         # 作为识别音频
@@ -211,7 +213,8 @@ class TransCreate(BaseTask):
         if self.cfg['target_language_code']:
             self.cfg['target_sub'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.srt"
             # 配音后的目标语言音频文件
-            self.cfg['target_wav'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.m4a"
+            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.m4a"
+            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target.m4a"
 
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
         if self.cfg['target_language_code'] and self.cfg['target_language_code'] != self.cfg[
@@ -220,15 +223,20 @@ class TransCreate(BaseTask):
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
         if self.cfg['voice_role'] != 'No' and self.cfg['source_language_code'] == self.cfg['target_language_code']:
-            self.cfg['target_wav'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-dubbing.m4a"
+            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-dubbing.m4a"
+            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target-dubbing.m4a"
 
         if is_del:
             self._unlink_size0(self.cfg['source_sub'])
             self._unlink_size0(self.cfg['target_sub'])
         if self.cfg['source_wav']:
             Path(self.cfg['source_wav']).unlink(missing_ok=True)
+        if self.cfg['source_wav_output']:
+            Path(self.cfg['source_wav_output']).unlink(missing_ok=True)
         if self.cfg['target_wav']:
             Path(self.cfg['target_wav']).unlink(missing_ok=True)
+        if self.cfg['target_wav_output']:
+            Path(self.cfg['target_wav_output']).unlink(missing_ok=True)
         if self.cfg['shibie_audio']:
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
 
@@ -553,6 +561,8 @@ class TransCreate(BaseTask):
             except Exception as e:
                 self._signal(text=str(e), type='error')
                 raise
+        if self.cfg['source_wav']:
+            shutil.copy2(self.cfg['source_wav'], self.cfg['target_dir']+f"/{os.path.basename(self.cfg['source_wav'])}")
         self.status_text = config.transobj['endfenliyinpin']
 
     # 配音预处理，去掉无效字符，整理开始时间
@@ -724,9 +734,9 @@ class TransCreate(BaseTask):
                 # 获取音频长度
                 atime = tools.get_audio_time(self.cfg['instrument'])
                 beishu = math.ceil(vtime / atime)
-                instrument_file = self.cfg['cache_folder'] + f'/instrument.wav'
-                shutil.copy2(self.cfg['instrument'], instrument_file)
-                self.cfg['instrument'] = instrument_file
+                # instrument_file = self.cfg['cache_folder'] + f'/instrument.wav'
+                # shutil.copy2(self.cfg['instrument'], instrument_file)
+                instrument_file=self.cfg['instrument']
                 config.logger.info(f'合并背景音 {beishu=},{atime=},{vtime=}')
                 if config.settings['loop_backaudio'] and atime + 1 < vtime:
                     # 背景音连接延长片段
@@ -755,7 +765,7 @@ class TransCreate(BaseTask):
             elif self.cfg['subtitle_type'] == 4:
                 self.cfg['subtitle_type'] = 2
         # 最终处理后需要嵌入视频的字幕
-        process_end_subtitle = self.cfg['target_dir'] + f'/end.srt'
+        process_end_subtitle = self.cfg['cache_folder'] + f'/end.srt'
         # 硬字幕时单行字符数
         maxlen = int(
             config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp",
@@ -784,10 +794,10 @@ class TransCreate(BaseTask):
                         textwrap.fill(source_sub_list[i]['text'], maxlen_source, replace_whitespace=False).strip() if
                         self.cfg['subtitle_type'] == 3 else source_sub_list[i]['text'])
                 srt_string += "\n\n"
-            with Path(f"{self.cfg['target_dir']}/shuang.srt").open('w', encoding='utf-8') as f:
+            process_end_subtitle = f"{self.cfg['cache_folder']}/shuang.srt"
+            with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string.strip())
-                f.flush()
-            process_end_subtitle = f"{self.cfg['target_dir']}/shuang.srt"
+            shutil.copy2(process_end_subtitle,self.cfg['target_dir']+"/shuang.srt")
         elif self.cfg['subtitle_type'] == 1:
             # 单硬字幕，需处理字符数换行
             srt_string = ""
@@ -796,10 +806,11 @@ class TransCreate(BaseTask):
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string)
-                f.flush()
         else:
             # 单软字幕
-            process_end_subtitle = self.cfg['target_sub']
+            basename=os.path.basename(self.cfg['target_sub'])
+            process_end_subtitle = self.cfg['cache_folder']+f"/{basename}"
+            shutil.copy2(self.cfg['target_sub'],process_end_subtitle)
 
         # 目标字幕语言
         subtitle_langcode = translator.get_subtitle_code(show_target=self.cfg['target_language'])
@@ -810,7 +821,8 @@ class TransCreate(BaseTask):
 
         # 硬字幕转为ass格式 并设置样式
         process_end_subtitle_ass = tools.set_ass_font(process_end_subtitle)
-        return os.path.basename(process_end_subtitle_ass), subtitle_langcode
+        basename=os.path.basename(process_end_subtitle_ass)
+        return basename, subtitle_langcode
 
     # 延长视频末尾对齐声音
     def _append_video(self) -> None:
@@ -865,8 +877,7 @@ class TransCreate(BaseTask):
 
         # 需要配音但没有配音文件
         if self.shoud_dubbing and not tools.vail_file(self.cfg['target_wav']):
-            raise Exception(
-                f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.cfg['target_wav']}")
+            raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.cfg['target_wav']}")
 
         subtitles_file, subtitle_langcode = None, None
         if self.cfg['subtitle_type'] > 0:
@@ -887,6 +898,8 @@ class TransCreate(BaseTask):
 
         # 字幕嵌入时进入视频目录下
         os.chdir(Path(self.cfg['novoice_mp4']).parent.resolve())
+        if tools.vail_file(self.cfg['target_wav']):
+            shutil.copy2(self.cfg['target_wav'], self.cfg['target_wav_output'])
         try:
             self.status_text = '视频+字幕+配音合并中' if config.defaulelang == 'zh' else 'Video + Subtitles + Dubbing in merge'
             # 有配音有字幕
@@ -1070,7 +1083,7 @@ class TransCreate(BaseTask):
     # 创建说明txt
     def _create_txt(self) -> None:
         try:
-            Path(self.cfg['novoice_mp4']).unlink(missing_ok=True)
+            # Path(self.cfg['novoice_mp4']).unlink(missing_ok=True)
             if not self.cfg['only_video']:
                 with open(
                         self.cfg['target_dir'] + f'/{"readme" if config.defaulelang != "zh" else "文件说明"}.txt',
@@ -1114,8 +1127,8 @@ class TransCreate(BaseTask):
         Docs: https://pyvideotrans.com
 
                         """)
-            Path(self.cfg['target_dir'] + f'/end.srt').unlink(missing_ok=True)
-            Path(self.cfg['target_dir'] + f'/end.srt.ass').unlink(missing_ok=True)
-            Path(self.cfg['target_dir'] + f'/shuang.srt.ass').unlink(missing_ok=True)
+            # Path(self.cfg['target_dir'] + f'/end.srt').unlink(missing_ok=True)
+            # Path(self.cfg['target_dir'] + f'/end.srt.ass').unlink(missing_ok=True)
+            # Path(self.cfg['target_dir'] + f'/shuang.srt.ass').unlink(missing_ok=True)
         except:
             pass

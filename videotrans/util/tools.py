@@ -1648,7 +1648,7 @@ def format_video(name, target_dir=None):
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()
 
-    obj['uuid'] = get_md5(f'{name}-{time.time()}')
+    obj['uuid'] = get_md5(f'{name}-{time.time()}')[:10]
     return obj
 
 # 获取 prompt提示词

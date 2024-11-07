@@ -159,7 +159,6 @@ def openwin():
     # tab-4 语音合成
     def hecheng_start_fun():
         winobj.has_done = False
-        config.settings = config.parse_init()
         txt = winobj.hecheng_plaintext.toPlainText().strip()
         language = winobj.hecheng_language.currentText()
         role = winobj.hecheng_role.currentText()

@@ -55,13 +55,14 @@ def openwin():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
         template = winobj.gemini_template.toPlainText()
+        gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
         os.environ['GOOGLE_API_KEY'] = key
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
+        config.params["gemini_srtprompt"] = gemini_srtprompt
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
-            f.flush()
         config.getset_params(config.params)
         winobj.close()
 
@@ -89,6 +90,8 @@ def openwin():
             winobj.model.setCurrentText(config.params["gemini_model"])
         if config.params["gemini_template"]:
             winobj.gemini_template.setPlainText(config.params["gemini_template"])
+        if config.settings["gemini_srtprompt"]:
+            winobj.gemini_srtprompt.setPlainText(config.settings["gemini_srtprompt"])
 
     from videotrans.component import GeminiForm
     winobj = config.child_forms.get('geminiw')

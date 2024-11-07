@@ -54,7 +54,9 @@ class APIRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        files = {"audio": open(self.audio_file, 'rb')}
+        with open(self.audio_file, 'rb') as f:
+            chunk=f.read()    
+        files = {"audio": chunk}
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:

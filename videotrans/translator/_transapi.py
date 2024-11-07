@@ -23,7 +23,7 @@ class TransAPI(BaseTrans):
     # 实际发出请求获取结果
     def _item_task(self, data: Union[List[str], str]) -> str:
         text = quote("\n".join(data))
-        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code if self.source_code else ''}&text={text}&secret={config.params['trans_secret']}"
+        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params['trans_secret']}"
         config.logger.info(f'[TransAPI]请求数据：{requrl=}')
         response = requests.get(url=requrl, proxies=self.proxies)
         config.logger.info(f'[TransAPI]返回:{response.text=}')

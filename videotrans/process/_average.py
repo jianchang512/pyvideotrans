@@ -63,11 +63,10 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q
             download_root=down_root,
             local_files_only=local_file_only)
     except Exception as e:
-        if re.match(r'backend do not support', str(e), re.I):
+        if re.match(r'not support', str(e), re.I):
             model = WhisperModel(
                 model_name,
                 device="cuda" if is_cuda else "cpu",
-                compute_type='default',
                 download_root=down_root,
                 local_files_only=local_file_only)
         else:

@@ -123,7 +123,6 @@ def openwin():
 
     def shibie_start_fun():
         winobj.has_done = False
-        config.settings = config.parse_init()
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()

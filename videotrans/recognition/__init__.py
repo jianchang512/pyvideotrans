@@ -18,6 +18,7 @@ Deepgram = 5
 OPENAI_API = 6
 CUSTOM_API = 7
 GOOGLE_SPEECH = 8
+GEMINI_SPEECH = 9
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -29,6 +30,7 @@ RECOGN_NAME_LIST = [
     "OpenAI语音识别" if config.defaulelang == 'zh' else "OpenAI Speech to Text",
     "自定义识别API" if config.defaulelang == 'zh' else "Custom API",
     "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
+    "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
 ]
 
 
@@ -78,7 +80,7 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import zh_recogn as zh_recogn_win, recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,senseapi as sense_win,deepgram as deepgram_win
+    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -105,6 +107,11 @@ def is_input_api(recogn_type: int = None,return_str=False):
         if return_str:
             return "Please configure the API Key information of the Deepgram channel first."
         deepgram_win.openwin()
+        return False
+    if recogn_type == GEMINI_SPEECH and not config.params['gemini_key']:
+        if return_str:
+            return "Please configure the API Key information of the Gemini channel first."
+        gemini_win.openwin()
         return False
     return True
 
@@ -162,6 +169,9 @@ def run(*,
     if recogn_type==Deepgram:
         from ._deepgram import DeepgramRecogn
         return DeepgramRecogn(**kwargs).run()
+    if recogn_type==GEMINI_SPEECH:
+        from ._gemini import GeminiRecogn
+        return GeminiRecogn(**kwargs).run()
     if split_type == 'avg':
         from ._average import FasterAvg
         return FasterAvg(**kwargs).run()

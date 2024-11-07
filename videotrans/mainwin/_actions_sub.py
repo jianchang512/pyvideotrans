@@ -420,6 +420,8 @@ class WinActionSub:
             if not config.proxy:
                 # 删除代理
                 tools.set_proxy('del')
+            elif re.match(r'https?://(\d+\.){3}\d+:\d+',config.proxy):
+                config.settings['proxy']=config.proxy
         except Exception:
             pass
 

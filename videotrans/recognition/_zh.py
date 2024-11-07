@@ -25,7 +25,9 @@ class ZhRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        files = {"audio": open(self.audio_file, 'rb')}
+        with open(self.audio_file, 'rb') as f:
+            chunk=f.read()
+        files = {"audio": chunk}
         self._signal(text=f"识别可能较久，请耐心等待，进度可查看zh_recogn终端")
         try:
             res = requests.post(f"{self.api_url}", files=files, proxies={"http": "", "https": ""}, timeout=3600)

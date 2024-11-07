@@ -46,7 +46,9 @@ class F5TTS(BaseTTS):
             data = {"model":config.params['f5tts_model']}
             data['gen_text']=text
             if role=='clone':
-                files={"audio":open(data_item['filename'],'rb')}
+                with open(data_item['filename'],'rb') as f:
+                    chunk=f.read()
+                files={"audio":chunk}
                 data['ref_text']=data_item.get('ref_text').strip()
                 if not data['ref_text']:
                     Path(data_item['filename']).unlink(missing_ok=True)
@@ -55,7 +57,9 @@ class F5TTS(BaseTTS):
                 roledict = tools.get_f5tts_role()
                 if role in roledict:
                     data['ref_text']=roledict[role]['ref_text']
-                    files={"audio":open(config.ROOT_DIR+f"/f5-tts/{role}",'rb')}
+                    with open(config.ROOT_DIR+f"/f5-tts/{role}",'rb') as f:
+                        chunk=f.read()
+                    files={"audio":chunk}
                 else:
                     self.error = f'{role} 角色不存在'
                     return
