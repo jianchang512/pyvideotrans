@@ -42,7 +42,9 @@ class CloneVoice(BaseTTS):
                 files = None
             else:
                 # 克隆声音
-                files = {"audio": open(data_item['filename'], 'rb')}
+                with open(data_item['filename'], 'rb') as f:
+                    chunk=f.read()
+                files = {"audio": chunk}
             res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,
                                 timeout=3600)
             if res.status_code != 200:

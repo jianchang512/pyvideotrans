@@ -13,7 +13,7 @@ class Ui_geminiform(object):
         self.has_done = False
         geminiform.setObjectName("geminiform")
         geminiform.setWindowModality(QtCore.Qt.NonModal)
-        geminiform.resize(600, 500)
+        geminiform.resize(600, 550)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -49,6 +49,7 @@ class Ui_geminiform(object):
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+        self.label_allmodels.setStyleSheet("color:#999")
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(geminiform)
         self.edit_allmodels.setObjectName("edit_allmodels")
@@ -59,8 +60,16 @@ class Ui_geminiform(object):
         self.label_4.setObjectName("label_4")
         self.gemini_template = QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_template.setObjectName("gemini_template")
+
+        self.label_srt=QtWidgets.QLabel(geminiform)
+        self.label_srt.setObjectName("label_srt")
+        self.gemini_srtprompt=QtWidgets.QPlainTextEdit(geminiform)
+        self.gemini_srtprompt.setObjectName("gemini_srtprompt")
+
         v1.addWidget(self.label_4)
         v1.addWidget(self.gemini_template)
+        v1.addWidget(self.label_srt)
+        v1.addWidget(self.gemini_srtprompt)
 
         h3=QtWidgets.QHBoxLayout()
         self.set_gemini = QtWidgets.QPushButton(geminiform)
@@ -93,8 +102,11 @@ class Ui_geminiform(object):
         self.gemini_template.setPlaceholderText("prompt")
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
+        self.label_4.setStyleSheet("color: #999;")
         self.set_gemini.setText('保存' if config.defaulelang == 'zh' else "Save")
         self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
         self.gemini_key.setPlaceholderText("secret key")
         self.label_2.setText("Gemini  Key ")
+        self.label_srt.setText('转录音视频为字幕时的提示词' if config.defaulelang=='zh' else 'Prompt for subtitles when converting audio to video')
+        self.label_srt.setStyleSheet("color: #999;")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Select model")

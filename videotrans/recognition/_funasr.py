@@ -40,7 +40,7 @@ class FunasrRecogn(BaseRecogn):
             model = AutoModel(
                             model=self.model_name,model_revision="v2.0.4",
                               vad_model="fsmn-vad", vad_model_revision="v2.0.4",
-                              punc_model="ct-punc-c", punc_model_revision="v2.0.4",
+                              punc_model="ct-punc", punc_model_revision="v2.0.4",
                               local_dir=config.ROOT_DIR + "/models",
                               hub='ms',
                               disable_update=True,disable_progress_bar=True,disable_log=True,

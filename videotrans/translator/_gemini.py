@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import socket
 from typing import Union, List
 import requests
 import google.generativeai as genai
@@ -63,8 +64,8 @@ class Gemini(BaseTrans):
             if not result:
                 raise Exception("result is empty")
             return re.sub(r'\n{2,}', "\n", result)
-        except (ServerError,RetryError) as e:
-            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini'
+        except (ServerError,RetryError,socket.timeout) as e:
+            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
             raise requests.ConnectionError(error)
         except TooManyRequests as e:
             self.error_code=429

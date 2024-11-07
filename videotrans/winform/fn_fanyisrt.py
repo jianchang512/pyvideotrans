@@ -132,7 +132,6 @@ def openwin():
 
     def fanyi_start_fun():
         winobj.has_done = False
-        config.settings = config.parse_init()
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
         source_code = translator.get_code(show_text=winobj.fanyi_source.currentText())
@@ -218,7 +217,6 @@ def openwin():
     # 更新目标语言列表
     def update_target_language():
         current_target = winobj.fanyi_target.currentText()
-        config.settings = config.parse_init()
         language_namelist = ["-"] + [ it for it in config.langnamelist if config.rev_langlist[it]!='auto']
         if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX,translator.FREEGOOGLE_INDEX]:
             language_namelist += get_google_trans_newcode()

@@ -65,11 +65,13 @@ class OpenaiAPIRecogn(BaseRecogn):
             if not Path(self.audio_file).is_file():
                 raise Exception(f'No file {self.audio_file}')
             # 发送请求
+            with open(self.audio_file, 'rb') as f:
+                chunk=f.read()
             transcript = requests.post(self.api_url+f'/audio/translations',verify=False, headers= {
                 "Authorization": f"Bearer {config.params['openairecognapi_key']}",
                 #"Content-Type": "multipart/form-data"
             }, files={
-                "file": open(self.audio_file, 'rb')
+                "file": chunk
             }, data={
                 "model": "whisper-1",
                 "timestamp_granularities[]": "segment",
