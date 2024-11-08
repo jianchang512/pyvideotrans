@@ -1074,9 +1074,9 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
 
-        self.action_subtitleediter.setText('导入字幕并编辑' if config.defaulelang == 'zh' else 'Import Subtitle Editing')
+        self.action_subtitleediter.setText('字幕编辑与翻译' if config.defaulelang == 'zh' else 'Subtitle Editing & Translate')
         self.action_subtitleediter.setToolTip(
-            '导入字幕并修改后导出' if config.defaulelang == 'zh' else 'Importing subtitles and exporting them after modifying them')
+            '导入字幕修改与翻译' if config.defaulelang == 'zh' else 'Importing subtitles and exporting them after modifying them or translation')
 
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))

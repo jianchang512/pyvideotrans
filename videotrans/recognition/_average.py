@@ -84,8 +84,8 @@ class FasterAvg(BaseRecogn):
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
                 else:
                     self.raws = list(raws)
-                    if self.detect_language=='auto' and self.inst and hasattr(self.inst,'set_source_language'):
-                        self.inst.set_source_language(detect['langcode'])
+                    #if self.detect_language=='auto' and self.inst and hasattr(self.inst,'set_source_language'):
+                    #    self.inst.set_source_language(detect['langcode'])
                 try:
                     if process.is_alive():
                         process.terminate()

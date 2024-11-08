@@ -35,8 +35,8 @@ RECOGN_NAME_LIST = [
 
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None):
-    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER]:
-        return '仅在 faster-whisper和 openai-whisper模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper and openai-whisper modes.'
+    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER,GEMINI_SPEECH]:
+        return '仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.'
     if recogn_type == FUNASR_CN:
         if model_name=='paraformer-zh' and langcode[:2] !='zh':
             return 'FunASR 下 paraformer-zh  模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh  models only support Chinese speech recognition'

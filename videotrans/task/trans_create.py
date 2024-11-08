@@ -188,7 +188,7 @@ class TransCreate(BaseTask):
         if source_code:
             self.cfg['source_language_code'] = source_code
         # 检测字幕原始语言
-        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code'])
+        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code']) if self.cfg['source_language_code']!='auto' else 'auto'
         # 原始语言一定存在
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
