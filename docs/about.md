@@ -1,6 +1,5 @@
 # 👑捐助该项目，助力项目持续维护
 
-Contribute to the project to help with its ongoing maintenance
 
 ----
 
@@ -12,16 +11,6 @@ Contribute to the project to help with its ongoing maintenance
 
 如果不愿捐助或者没有能力捐助，也无妨欢迎继续使用，点个star、提交个pr或关注下公众号(内容均是本项目教程，搜一搜公众号`pyvideotrans` )，也是对开发者的一种帮助。
 
-> 
-> This project was created based on interest and has no business plan, which means you can always use it for free, or fork it and modify it yourself.
-> Don't worry about the charges. If you encounter the need to pay for the purchase, please decisively reject and then come here to use the free open source version.
->
-> As for the maintenance , open source well are with love power, leisure time to spend more energy on this, busy time may be a period of time can not care.
-> Of course, if you think the project is valuable to you, and hope that the project has been stable and continuous maintenance, you are welcome to donate. If you don't want to donate, it doesn't matter, help me point a star or submit a pr, or recommend the need of friends to use, is also a kind of help.
->
-> **Donate URL:** https://ko-fi.com/jianchang512
->
-
 ----
 
 
@@ -29,12 +18,13 @@ Contribute to the project to help with its ongoing maintenance
 
 你可以向微信或支付宝二维码付款，备注你的github名称
 
-> Donate url:https://ko-fi.com/jianchang512
-
+> **Donate URL at ko-fo.com:** https://ko-fi.com/jianchang512
 
 <img src="https://pyvideotrans.com/images/wx.png" width="200">
 
 <img src="https://pyvideotrans.com/images/alipay.png" width="200">
+
+<img src="https://pyvideotrans.com/images/biancn.jpg" width="200">
 
 
 # [pyVideoTrans项目](https://github.com/jianchang512/pyvideotrans)捐助者列表
@@ -374,7 +364,57 @@ Contribute to the project to help with its ongoing maintenance
 |A*n|2024-9-29|捐助 0.1 元|
 |wilson araujo|2024-9-29|捐助 $5 美元|
 |*。|2024-10-1|捐助 5 元|
-|*钱|2024-10-1|捐助 66 元|
+|*钱(支付宝)|2024-10-1|捐助 66 元|
+|*溪|2024-10-3 |捐助  33 元|
+|*EXSP|2024-10-4 |捐助  18.8 元|
+|*凡|2024-10-4 |捐助  10 元|
+|*秋|2024-10-4 |捐助  5 元|
+|*焦|2024-10-4 |捐助  6 元|
+|*鹏|2024-10-5 |捐助  20 元|
+|*骨|2024-10-5 |捐助  20 元|
+|*|2024-10-6 |捐助  10 元|
+|*仔|2024-10-8 |捐助  5 元|
+|*|2024-10-8 |捐助  20 元|
+|*璠(支付宝)|2024-10-8 |捐助  20 元|
+|*喆(支付宝)|2024-10-9 |捐助  50 元|
+|*垠|2024-10-11|捐助 30  元|
+|*仔|2024-10-11 |捐助  5 元|
+|*F|2024-10-12 |捐助  10 元|
+|Y*S|2024-10-13 |捐助  66 元|
+|*淀|2024-10-15 |捐助  6.6 元|
+|*章|2024-10-15 |捐助  5 元|
+|*宁(支付宝)|2024-10-15 |捐助  20 元|
+|*姚|2024-10-16 |捐助  15 元|
+|*军(支付宝)|2024-10-16 |捐助  1 元|
+|*哦|2024-10-17 |捐助  10 元|
+|*兴(支付宝)|2024-10-17 |捐助  10 元|
+|*猫|2024-10-18 |捐助  6.66 元|
+|*爱|2024-10-18 |捐助  10 元|
+|*叶|2024-10-19 |捐助  1 元|
+|*磊|2024-10-19 |捐助  20 元|
+|*见|2024-10-20 |捐助 9.9  元|
+|*山|2024-10-20 |捐助  1 元|
+|M*4|2024-10-21 |捐助  30 元|
+|月夜|2024-10-21 |捐助 100  元|
+|*意|2024-10-22 |捐助  10 元|
+|*空|2024-10-22 |捐助 5  元|
+|n*n|2024-10-23 |捐助  20 元|
+|s*l|2024-10-23 |捐助  0.2 元|
+|*中(支付宝)|2024-10-23 |捐助  66 元|
+|pyirun*|2024-10-24 |捐助  20 元|
+|*元|2024-10-30 |捐助 100  元|
+|*哦|2024-10-30 |捐助  10 元|
+|*彪(支付宝)|2024-10-31 |捐助  1.88 元|
+|*z|2024-11-1 |捐助  1 元|
+|*|2024-11-2  |捐助 10 元|
+|*瞳(支付宝)|2024-11-3  |捐助 10 元|
+|*山|2024-11-4  |捐助 10 元|
+|F*n|2024-11-5  |捐助 5 元|
+|深蓝广告|2024-11-6  |捐助 5 元|
+|a*l|2024-11-7  |捐助 10 元|
+|*!|2024-11-7  |捐助 10 元|
+|*观2024-11-8  |捐助 10 元|
+
 
 
 
