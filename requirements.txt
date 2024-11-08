@@ -1,7 +1,8 @@
 faster-whisper
 ctranslate2
+aiohttp
+certifi
 deepl
-edge-tts
 elevenlabs
 google-ai-generativelanguage
 google-generativeai
@@ -42,5 +43,6 @@ deepgram-sdk
 deepgram-captions
 funasr
 modelscope
+edge-tts
 anthropic
 samplerate

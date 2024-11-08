@@ -94,7 +94,7 @@ class FasterAll(BaseRecogn):
                     if self.detect_language=='auto' and self.inst and  hasattr(self.inst,'set_source_language'):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
-                        self.inst.set_source_language(detect['langcode'])
+                        #self.inst.set_source_language(detect['langcode'])
                     jianfan=config.settings.get('zh_hant_s')
                     if not config.settings['rephrase'] or self.detect_language[:2]!='zh':
                         for i in list(raws):

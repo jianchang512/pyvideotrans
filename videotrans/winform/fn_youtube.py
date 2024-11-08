@@ -41,6 +41,7 @@ def openwin():
         if d['type'] == 'error':
             winobj.has_done = True
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            winobj.set.setText(config.transobj['start download'])
         elif d['type'] == 'logs':
             winobj.set.setText(d['text'])
         else:

@@ -341,8 +341,12 @@ class WinAction(WinActionSub):
 
     # 核对所选语音识别模式是否正确
     def check_reccogn(self):
-        if self.main.recogn_type.currentIndex() not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]  and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
+        langcode = translator.get_code(show_text=self.main.source_language.currentText())
+        print(f'{langcode=}')
+        res=recognition.is_allow_lang(langcode=langcode,recogn_type=self.main.recogn_type.currentIndex())
+        if res is not True:
+            print(f'{res=}')
+            QMessageBox.critical(self.main, config.transobj['anerror'], res)
             return False
 
         # 原始语言是最后一个，即auto自动检查
@@ -350,7 +354,6 @@ class WinAction(WinActionSub):
             QMessageBox.critical(self.main, config.transobj['anerror'], '已导入字幕情况下，不可再使用检测功能' if config.defaulelang=='zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
 
-        langcode = translator.get_code(show_text=self.main.source_language.currentText())
         is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
@@ -483,9 +486,7 @@ class WinAction(WinActionSub):
         if self.url_right() is not True:
             self.main.startbtn.setDisabled(False)
             return
-        if self.main.recogn_type.currentIndex()>1 and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
-            return
+
         if self.cfg['target_language'] =='-' and self.cfg['subtitle_type']>0:
             return QMessageBox.critical(self.main, config.transobj['anerror'], '必须选择目标语言才可嵌入字幕' if config.defaulelang=='zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式

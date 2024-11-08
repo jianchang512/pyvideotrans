@@ -127,9 +127,7 @@ def openwin():
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
 
-        if recogn_type>1 and winobj.shibie_language.currentIndex()==winobj.shibie_language.count() - 1:
-            QMessageBox.critical(winobj, config.transobj['anerror'], '仅faster-whisper和open-whisper模式下可使用检测语言' if config.defaulelang=='zh' else 'Detection language available only in fast-whisper and open-whisper modes.')
-            return False
+
 
         if check_model_name(recogn_type,model) is not True:
             return

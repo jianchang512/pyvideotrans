@@ -65,8 +65,8 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 if self.detect_language=='auto' and last_detect=='auto':
                     last_detect='zh-cn' if result['language'][:2]=='zh' else result['language']
                     self.detect_language=last_detect
-                    if self.inst and hasattr(self.inst,'set_source_language'):
-                        self.inst.set_source_language(last_detect)
+                    #if self.inst and hasattr(self.inst,'set_source_language'):
+                    #    self.inst.set_source_language(last_detect)
                 nums=0
                 for segment in result['segments']:
                     if self._exit():

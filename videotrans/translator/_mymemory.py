@@ -19,7 +19,7 @@ class MyMemory(BaseTrans):
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if not self.source_code or self.source_code=='auto':
-            raise Exception(f'必须选择原始语言')
+            raise Exception(f'该翻译渠道必须明确指定原始语言')
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         }

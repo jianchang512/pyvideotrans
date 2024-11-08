@@ -76,11 +76,11 @@ class GeminiRecogn(BaseRecogn):
                     history=[
                         {
                             "role": "user",
-                            "parts": [config.settings['gemini_srtprompt']],
+                            "parts": [config.params['gemini_srtprompt']],
                         }
                     ]
                 )
-
+                config.logger.info(f'发送音频到Gemini:prompt={config.params["gemini_srtprompt"]},{self.audio_file=}')
                 response = chat_session.send_message(files[0])
             except (ServerError,RetryError,socket.timeout) as e:
                 error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
@@ -103,6 +103,7 @@ class GeminiRecogn(BaseRecogn):
 
                 if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
                     raise Exception(self._get_error(response.candidates[0].finish_reason))
+                raise Exception(e.reason)
             else:
                 raw=response.text.strip()
                 self._signal(
