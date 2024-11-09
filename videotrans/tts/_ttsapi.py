@@ -36,7 +36,7 @@ class TTSAPI(BaseTTS):
             if not text:
                 return
             data = {"text": text.strip(),
-                    # "language": self.language,
+                    "language": self.language[:2] if self.language else "",
                     "extra": config.params['ttsapi_extra'],
                     "voice": role,
                     "ostype": sys.platform,
