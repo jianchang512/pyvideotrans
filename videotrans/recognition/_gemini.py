@@ -1,6 +1,6 @@
 # zh_recogn 识别
 import socket
-import time
+import time,os
 from typing import Union, List, Dict
 
 import requests
@@ -10,7 +10,8 @@ from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-from google.api_core.exceptions import ServerError,TooManyRequests,RetryError
+from google.api_core.exceptions import ServerError, TooManyRequests, RetryError, DeadlineExceeded, GatewayTimeout
+
 safetySettings = [
     {
         "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -39,22 +40,23 @@ class GeminiRecogn(BaseRecogn):
         genai.configure(api_key=config.params['gemini_key'])
 
 
-    def upload_to_gemini(self,path, mime_type=None):
-        """Uploads the given file to Gemini.
-
-        See https://ai.google.dev/gemini-api/docs/prompting_with_media
-        """
-        pro = self._set_proxy(type='set')
-        file = genai.upload_file(path, mime_type=mime_type)
-        return file
+ 
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+        pro = self._set_proxy(type='set')
 
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         response = None
+        # 尺寸大于190MB，转为 mp3
+        mime='audio/wav'
+        if os.path.getsize(self.audio_file) > 31457280:
+            tools.runffmpeg(
+                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/gemini-tmp.mp3'])
+            self.audio_file = self.cache_folder + '/gemini-tmp.mp3'
+            mime='audio/mpeg'
         while 1:
             try:
                 # Create the model
@@ -70,7 +72,7 @@ class GeminiRecogn(BaseRecogn):
                   safety_settings=safetySettings
                 )
                 files = [
-                      self.upload_to_gemini(self.audio_file, mime_type="audio/wav"),
+                      genai.upload_file(self.audio_file, mime_type=mime),
                     ]
                 chat_session = model.start_chat(
                     history=[
@@ -81,10 +83,7 @@ class GeminiRecogn(BaseRecogn):
                     ]
                 )
                 config.logger.info(f'发送音频到Gemini:prompt={config.params["gemini_srtprompt"]},{self.audio_file=}')
-                response = chat_session.send_message(files[0])
-            except (ServerError,RetryError,socket.timeout) as e:
-                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-                raise requests.ConnectionError(error)
+                response = chat_session.send_message(files[0],request_options={"timeout":600})
             except TooManyRequests as e:
                 self._signal(
                     text='429频率限制，暂停60s后重试' if config.defaulelang=='zh' else 'Too many requests, pause for 60s and retry',
@@ -92,6 +91,12 @@ class GeminiRecogn(BaseRecogn):
                 )
                 time.sleep(60)
                 continue
+            except ServerError as e:
+                error=str(e) if config.defaulelang !='zh' else '连接Gemini服务超时，请尝试更换代理'
+                raise requests.ConnectionError(error)
+            except (RetryError,socket.timeout) as e:
+                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+                raise requests.ConnectionError(error)
             except Exception as e:
                 error = str(e)
                 config.logger.exception(f'[Gemini]请求失败:{error=}', exc_info=True)
@@ -103,7 +108,7 @@ class GeminiRecogn(BaseRecogn):
 
                 if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
                     raise Exception(self._get_error(response.candidates[0].finish_reason))
-                raise Exception(e.reason)
+                raise
             else:
                 raw=response.text.strip()
                 self._signal(

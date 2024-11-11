@@ -1,5 +1,6 @@
 # stt项目识别接口
 import json
+import os
 from typing import Union, List, Dict
 
 import requests
@@ -27,8 +28,12 @@ class DeepgramRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+        if os.path.getsize(self.audio_file) > 52428800:
+            tools.runffmpeg(
+                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/deepgram-tmp.mp3'])
+            self.audio_file = self.cache_folder + '/deepgram-tmp.mp3'
         with open(self.audio_file, "rb") as file:
-                buffer_data = file.read()
+            buffer_data = file.read()
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:
