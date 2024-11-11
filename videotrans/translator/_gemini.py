@@ -64,12 +64,12 @@ class Gemini(BaseTrans):
             if not result:
                 raise Exception("result is empty")
             return re.sub(r'\n{2,}', "\n", result)
-        except (ServerError,RetryError,socket.timeout) as e:
-            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-            raise requests.ConnectionError(error)
         except TooManyRequests as e:
             self.error_code=429
             raise
+        except (ServerError,RetryError,socket.timeout) as e:
+            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+            raise requests.ConnectionError(error)
         except Exception as e:
             error = str(e)
             config.logger.error(f'[Gemini]请求失败:{error=}')
