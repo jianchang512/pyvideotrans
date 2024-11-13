@@ -1,7 +1,7 @@
 import copy
 from pathlib import Path
 from typing import Dict
-
+import datetime
 from videotrans.configure import config
 
 from videotrans.task._base import BaseTask
@@ -46,7 +46,7 @@ class TranslateSrt(BaseTask):
         self.out_format=int(cfg.get('out_format',0))
         # 生成目标字幕文件
         self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
-            'noextname'] + '.srt'
+            'noextname'] + '-translated.srt'
         self.cfg['source_sub'] = self.cfg['name']
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
         self.rename=cfg.get('rename',False)
@@ -90,8 +90,7 @@ class TranslateSrt(BaseTask):
                         tmp_text= f"{raw_subtitles[i]['text'].strip()}" if i<target_length else ''
                         tmp_text=f"{it['text'].strip()}\n{tmp_text}"
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
-                if self.rename and Path(self.cfg['target_sub']).is_file() and Path(self.cfg['target_sub']).stat().st_size>0:
-                    self.cfg['target_sub']=self.cfg['target_sub'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}.srt'
+                self.cfg['target_sub']=self.cfg['target_sub'][:-4]+f'-{self.out_format}.srt'
                 with Path(self.cfg['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
                 print(f"{self.cfg['target_sub']=}")

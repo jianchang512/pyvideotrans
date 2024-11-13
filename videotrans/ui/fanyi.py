@@ -136,6 +136,9 @@ class Ui_fanyisrt(object):
 
         self.horizontalLayout_19.addWidget(self.fanyi_import)
 
+        self.save_source=QtWidgets.QCheckBox()
+        self.save_source.setText('原地保存' if config.defaulelang =='zh'else 'save in situ')
+
         self.daochu = QtWidgets.QToolButton()
         self.daochu.setMinimumSize(QtCore.QSize(0, 28))
         self.daochu.setObjectName("daochu")
@@ -146,6 +149,7 @@ class Ui_fanyisrt(object):
         self.exportsrt.setCursor(Qt.PointingHandCursor)
         self.exportsrt.setVisible(False)
         self.horizontalLayout_19.addStretch()
+        self.horizontalLayout_19.addWidget(self.save_source)
         self.horizontalLayout_19.addWidget(self.exportsrt)
         self.horizontalLayout_19.addWidget(self.daochu)
         self.verticalLayout_13.addLayout(self.horizontalLayout_19)
@@ -165,6 +169,8 @@ class Ui_fanyisrt(object):
         self.fanyi_stop.setDisabled(True)
         self.fanyi_stop.setCursor(Qt.PointingHandCursor)
         self.fanyi_stop.setText("停止" if config.defaulelang=='zh' else 'Stop')
+        
+        
 
         v1=QtWidgets.QVBoxLayout()
         v1.setAlignment(QtCore.Qt.AlignmentFlag.AlignVCenter)

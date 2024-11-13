@@ -64,6 +64,7 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文'  # AI翻译
     ],
+
     "zh-tw": [
         "zh-tw",
         "chi",
@@ -303,6 +304,16 @@ LANG_CODE = {
         "sv",  # OTT通道
         "sv",  # 微软翻译
         "Swedish" if config.defaulelang != 'zh' else '瑞典语'  # AI翻译
+    ],
+    "he": [
+        "iw",  # google通道
+        "heb",  # 字幕嵌入语言
+        "heb",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "he",  # 微软翻译
+        "Hebrew" if config.defaulelang != 'zh' else '希伯来语'  # AI翻译
     ],
     "auto":[
         "auto",

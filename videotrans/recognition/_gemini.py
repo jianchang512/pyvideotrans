@@ -68,7 +68,6 @@ class GeminiRecogn(BaseRecogn):
                 }
                 model = genai.GenerativeModel(
                   model_name=config.params['gemini_model'],
-                  generation_config=generation_config,
                   safety_settings=safetySettings
                 )
                 files = [
@@ -85,12 +84,8 @@ class GeminiRecogn(BaseRecogn):
                 config.logger.info(f'发送音频到Gemini:prompt={config.params["gemini_srtprompt"]},{self.audio_file=}')
                 response = chat_session.send_message(files[0],request_options={"timeout":600})
             except TooManyRequests as e:
-                self._signal(
-                    text='429频率限制，暂停60s后重试' if config.defaulelang=='zh' else 'Too many requests, pause for 60s and retry',
-                    type='replace_subtitle'
-                )
-                time.sleep(60)
-                continue
+
+                raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
             except ServerError as e:
                 error=str(e) if config.defaulelang !='zh' else '连接Gemini服务超时，请尝试更换代理'
                 raise requests.ConnectionError(error)

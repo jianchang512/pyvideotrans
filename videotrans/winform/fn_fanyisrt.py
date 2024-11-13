@@ -64,6 +64,7 @@ class SignThread(QThread):
 def openwin():
     RESULT_DIR = config.HOME_DIR + "/translate"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+    SOURCE_DIR=None
 
     def feed(d):
         if winobj.has_done or config.box_trans!='ing':
@@ -128,9 +129,13 @@ def openwin():
                 f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}\n{",".join(namestr)}')
 
     def fanyi_save_fun():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
+        global SOURCE_DIR
+        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR if not SOURCE_DIR else SOURCE_DIR))
 
     def fanyi_start_fun():
+        global SOURCE_DIR
+        SOURCE_DIR=""
+        
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
@@ -163,12 +168,15 @@ def openwin():
 
         video_list = [tools.format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
+        if winobj.save_source.isChecked():
+            SOURCE_DIR=Path(video_list[0]['name']).parent.as_posix()
+            print(f'{SOURCE_DIR=}')
         for it in video_list:
             trk = TranslateSrt({
                 "out_format":winobj.out_format.currentIndex(),
                 "translate_type": translate_type,
                 "text_list": tools.get_subtitle_from_srt(it['name']),
-                "target_dir": RESULT_DIR,
+                "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
                 "inst": None,
                 "rename":True,
                 "uuid": it['uuid'],
