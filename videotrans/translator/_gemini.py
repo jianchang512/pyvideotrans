@@ -65,8 +65,7 @@ class Gemini(BaseTrans):
                 raise Exception("result is empty")
             return re.sub(r'\n{2,}', "\n", result)
         except TooManyRequests as e:
-            self.error_code=429
-            raise
+            raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:
             error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
             raise requests.ConnectionError(error)
