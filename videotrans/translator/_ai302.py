@@ -19,6 +19,8 @@ class AI302(BaseTrans):
         self.prompt=self._replace_prompt()
 
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self.refine3:
+            return self._item_task_refine3(data)
         payload = {
             "model": config.params['ai302_model'],
             "messages": [
@@ -41,4 +43,35 @@ class AI302(BaseTrans):
         if res['choices']:
             result = res['choices'][0]['message']['content']
             return re.sub(r'\n{2,}', "\n", result)
+        raise Exception(f"No choices:{res=}")
+
+
+    def _item_task_refine3(self, data: Union[List[str], str]) -> str:
+        prompt=self._refine3_prompt()
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
+        prompt=prompt.replace('{lang}',self.target_language_name).replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
+        payload = {
+            "model": config.params['ai302_model'],
+            "messages": [
+                {'role': 'system',
+                 'content': "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。'},
+                {'role': 'user',
+                 'content': prompt},
+            ]
+        }
+        response = requests.post('https://api.302.ai/v1/chat/completions', headers={
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {config.params["ai302_key"]}',
+                'User-Agent': 'pyvideotrans',
+                'Content-Type': 'application/json'
+            }, json=payload, verify=False, proxies=self.proxies)
+        config.logger.info(f'[302.ai]响应:{response.text=}')
+        if response.status_code != 200:
+            raise Exception(f'status_code={response.status_code} {response.reason}')
+        res = response.json()
+        if res['choices']:
+            result = res['choices'][0]['message']['content']
+            match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
+            if match:
+                return match.group(1)
         raise Exception(f"No choices:{res=}")

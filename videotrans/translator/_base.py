@@ -54,6 +54,7 @@ class BaseTrans(BaseCon):
         self.is_srt = False if isinstance(text_list, str) else True
         # 非AI翻译时强制设为False，是AI翻译时根据配置确定
         self.aisendsrt = True if config.settings.get('aisendsrt', False) and self.trans_thread > 1 else False
+        self.refine3=True if self.aisendsrt and not self.is_test and config.settings.get('refine3',False) else False
         # 整理待翻译的文字为 List[str]
         self.split_source_text = []
         self.proxies = None
@@ -90,7 +91,7 @@ class BaseTrans(BaseCon):
                 if self._exit():
                     return
                 if self.iter_num > self.retry:
-                    msg = f'{self.iter_num}{"次重试后失败" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
+                    msg = f'{"字幕翻译失败" if config.defaulelang == "zh" else " Translation Subtitles error"},{self.error}'
                     self._signal(text=msg, type="error")
                     raise Exception(msg)
 
@@ -199,7 +200,7 @@ class BaseTrans(BaseCon):
                 if self._exit():
                     return
                 if self.iter_num > self.retry:
-                    msg = f'{self.iter_num}{"次重试后依然出错" if config.defaulelang == "zh" else " retries after error persists "},{self.error}'
+                    msg = f'{"字幕翻译阶段失败" if config.defaulelang == "zh" else " Translate subtitles error "},{self.error}'
                     self._signal(text=msg, type="error")
                     raise Exception(msg)
 
@@ -267,6 +268,118 @@ class BaseTrans(BaseCon):
             self.prompt=self.prompt.replace('<source>[TEXT]',replace_str+'\n\n<source>[TEXT]')
         return self.prompt
 
+    def _refine3_prompt(self):
+        zh_prompt="""
+        # 三步反思法翻译srt字幕
+
+您是一位技术娴熟的翻译人员，专门负责将 SRT 格式的字幕从其他语言精准翻译成{lang}语言的 SRT 格式字幕。请仔细按以下要求完成翻译：
+
+## 输入
+提供的内容为合法的 SRT 字幕格式。请确保在翻译中严格保持 SRT 格式正确，不添加或省略任何内容。
+
+## 翻译流程
+请按照以下三步流程执行翻译任务：
+
+1. **初步翻译**：
+   - 将字幕内容翻译成{lang}语言，忠实保留原意，并确保格式完全保持 SRT 标准。
+   - 不增加或删减任何信息，不添加解释或说明。
+
+2. **翻译改进建议**：
+   - 仔细比对原文和译文，提出具体改进建议，提升翻译准确性与流畅性。建议内容包括：
+     - **准确性**：纠正可能的误译、遗漏或添加多余信息。
+     - **流畅性**：确保符合{lang}的语法、拼写和标点规则，避免不必要的重复。
+     - **简洁性**：在保持原意的前提下，优化译文的简洁度，避免冗长。
+     - **格式正确性**：确保翻译后 SRT 字幕格式有效，字幕条数与原文一致。
+
+3. **润色与完善**：
+   - 根据初步翻译和改进建议，进一步优化和润色译文，确保翻译忠实、简洁流畅。
+   - 不要添加解释或附加说明，确保最终字幕符合 SRT 格式要求，且条数与原文一致。
+
+## 输出格式
+
+请使用以下 XML 标签结构，分别输出每个步骤的结果：
+
+```xml
+<step1_initial_translation>
+[插入初步翻译结果]
+</step1_initial_translation>
+
+<step2_reflection>
+[插入针对改进的具体建议，每条建议应对应一个翻译改进方面]
+</step2_reflection>
+
+<step3_refined_translation>
+[插入润色后的最终翻译结果]
+</step3_refined_translation>
+```
+
+## 注意事项
+- 始终确保最终翻译保留原文含义，并严格符合 SRT 格式。
+- 输出的字幕数量须与原始字幕一致。
+
+以下<INPUT>标签内为需翻译的 SRT 字幕内容：
+
+<INPUT></INPUT>
+        
+        """
+        en_prompt="""        
+# Three-step reflection method for translating SRT subtitles
+
+You are a skilled translator specializing in translating SRT subtitles from other languages into {lang} SRT subtitles. Please carefully complete the translation according to the following requirements:
+
+## Input
+
+The provided content is in a legal SRT subtitle format. Please ensure that the SRT format is strictly maintained throughout the translation process, with no content added or omitted. 
+
+## Translation Process
+
+Please follow the following three-step process to perform the translation task:
+
+1. **Preliminary Translation**:
+   - Translate the subtitle content into {lang}, faithfully retaining the original meaning and ensuring the format fully adheres to the SRT standard.
+   - Do not add or delete any information, nor include explanations or instructions.
+
+2. **Translation Improvement Suggestions**:
+   - Carefully compare the original text and the translated text, providing specific improvement suggestions to enhance the accuracy and fluency of the translation. These suggestions should focus on:
+     - **Accuracy**: Correct potential mistranslations, omissions, or the addition of redundant information.
+     - **Fluency**: Ensure the grammar, spelling, and punctuation rules of {lang} are met, avoiding unnecessary repetition.
+     - **Conciseness**: Optimize the conciseness of the translation, avoiding verbosity while preserving the original meaning.
+     - **Format Correctness**: Ensure the SRT subtitle format remains valid after translation, with the number of subtitles consistent with the original text.
+
+3. **Polishing and Perfection**:
+   - Based on the preliminary translation and improvement suggestions, further optimize and polish the translation to ensure it is faithful, concise, and fluent.
+   - Do not add explanations or additional instructions. Ensure the final subtitles meet the SRT format requirements and that the number of subtitles is consistent with the original text.
+
+## Output Format
+
+Please use the following XML tag structure to output the results of each step separately:
+
+```xml
+<step1_initial_translation>
+[Insert initial translation results]
+</step1_initial_translation>
+
+<step2_reflection>
+[Insert specific suggestions for improvement, each suggestion corresponding to one aspect of translation improvement]
+</step2_reflection>
+
+<step3_refined_translation>
+[Insert final translation after polishing]
+</step3_refined_translation>
+```
+
+## Notes
+
+- Always ensure the final translation retains the original meaning and strictly conforms to the SRT format.
+- The number of subtitles output must be the same as the original subtitles.
+
+The following `<INPUT>` tags contain the SRT subtitles to be translated:
+
+<INPUT></INPUT>
+
+        """
+        return zh_prompt if config.defaulelang=='zh' else en_prompt
+
     def _set_cache(self, it, res_str):
         if not res_str.strip():
             return
@@ -282,10 +395,11 @@ class BaseTrans(BaseCon):
             return None
         key_cache = self._get_key(it)
         file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
-        if Path(file_cache).is_file():
+        if Path(file_cache).exists():
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
     def _get_key(self, it):
+        Path(config.SYS_TMP + '/translate_cache').mkdir(parents=True, exist_ok=True)
         return tools.get_md5(
             f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

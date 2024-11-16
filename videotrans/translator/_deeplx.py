@@ -41,9 +41,11 @@ class DeepLX(BaseTrans):
             target_code='ZH-HANS'
         elif target_code=='ZH-TW':
             target_code='ZH-HANT'
+        sourcecode=self.source_code.upper()[:2] if self.source_code else None
+        sourcecode=sourcecode if sourcecode!='AUTO' else None 
         jsondata = {
             "text": "\n".join(data),
-            "source_lang": self.source_code.upper()[:2] if self.source_code else None,
+            "source_lang": sourcecode,
             "target_lang": target_code
         }
         config.logger.info(f'[DeepLX]发送请求数据,{jsondata=}')

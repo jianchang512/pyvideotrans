@@ -306,7 +306,7 @@ LANG_CODE = {
         "Swedish" if config.defaulelang != 'zh' else '瑞典语'  # AI翻译
     ],
     "he": [
-        "iw",  # google通道
+        "he",  # google通道
         "heb",  # 字幕嵌入语言
         "heb",  # 百度通道
         "No",  # deepl deeplx通道

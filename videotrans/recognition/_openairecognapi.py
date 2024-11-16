@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from typing import Union, List, Dict
 
-
+import httpx
 import requests
 import json
 
@@ -14,7 +14,7 @@ from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-
+from openai import OpenAI, APIConnectionError
 
 class OpenaiAPIRecogn(BaseRecogn):
 
@@ -30,9 +30,9 @@ class OpenaiAPIRecogn(BaseRecogn):
         if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"http": pro, "https": pro}
+                self.proxies = {"http://": pro, "https://": pro}
         else:
-            self.proxies = {"http": "", "https": ""}
+            self.proxies = {"http://": "", "https://": ""}
 
         try:
             # 大于20M 从wav转为mp3
@@ -65,53 +65,31 @@ class OpenaiAPIRecogn(BaseRecogn):
             if not Path(self.audio_file).is_file():
                 raise Exception(f'No file {self.audio_file}')
             # 发送请求
-            with open(self.audio_file, 'rb') as f:
-                chunk=f.read()
-            transcript = requests.post(self.api_url+f'/audio/translations',verify=False, headers= {
-                "Authorization": f"Bearer {config.params['openairecognapi_key']}",
-                #"Content-Type": "multipart/form-data"
-            }, files={
-                "file": chunk
-            }, data={
-                "model": "whisper-1",
-                "timestamp_granularities[]": "segment",
-                "response_format": "verbose_json"
-            },proxies=self.proxies)
-            resdata=transcript.json()
-
-            if 'error' in resdata and resdata['error']:
-                raise Exception(resdata['error']['message'])
-            if  "segments" not in resdata:
-                raise Exception( f'{resdata}' if  self.api_url.startswith("https://api.openai.com") else f'该api不支持返回带时间戳字幕格式 {self.api_url} ')
-
-            segments=resdata['segments']
-
-            if len(segments) < 1:
-                msg = '未返回识别结果，请检查文件是否包含清晰人声' if config.defaulelang == 'zh' else 'No result returned, please check if the file contains clear vocals.'
-                raise Exception(msg)
-            for it in segments:
-                if self._exit():
-                    return
-                srt_tmp = {
-                    "line": len(self.raws) + 1,
-                    "start_time": int(it["start"] * 1000),
-                    "end_time": int(it["end"] * 1000),
-                    "text": it["text"]
-                }
-                srt_tmp["startraw"]=tools.ms_to_time_string(ms=srt_tmp["start_time"])
-                srt_tmp["endraw"]=tools.ms_to_time_string(ms=srt_tmp["end_time"])
-                srt_tmp['time'] = f'{srt_tmp["startraw"]} --> {srt_tmp["endraw"]}'
-                self._signal(
-                    text=f'{srt_tmp["line"]}\n{srt_tmp["time"]}\n{srt_tmp["text"]}\n\n',
-                    type='subtitle'
+            raws=[]
+            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxies=self.proxies))
+            with open(self.audio_file, 'rb') as file:
+                transcript = client.audio.transcriptions.create(
+                    file=(self.audio_file, file.read()),
+                    model=config.params["openairecognapi_model"],
+                    prompt=config.params['openairecognapi_prompt'],
+                    response_format="verbose_json"
                 )
-                self.raws.append(srt_tmp)
-            return self.raws
+                if not hasattr(transcript, 'segments'):
+                    raise Exception(f'返回字幕无时间戳，无法使用')
+                for i, it in enumerate(transcript.segments):
+                    raws.append({
+                        "line":len(raws)+1,
+                        "start_time":it['start']*1000,
+                        "end_time":it['end']*1000,
+                        "text":it['text'],
+                        "time":tools.ms_to_time_string(ms=it['start']*1000)+' --> '+tools.ms_to_time_string(ms=it['end']*1000),
+                    })
+            return raws
         except json.decoder.JSONDecodeError as e:
             msg=re.sub(r'</?\w+[^>]*?>','',transcript.text,re.I|re.S)            
             raise Exception(msg)
         except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError) as e:
-            api_url_msg = f',请检查Api地址,当前Api: {self.api_url}' if self.api_url else ''
+            api_url_msg = f' 当前Api: {self.api_url}' if self.api_url else ''
             proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
             proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
             msg = f'网络连接错误{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else str(e)
