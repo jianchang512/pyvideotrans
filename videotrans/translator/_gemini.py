@@ -42,6 +42,8 @@ class Gemini(BaseTrans):
         self.prompt=self._replace_prompt()
         
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self.refine3:
+            return self._item_task_refine3(data)
         response = None
         try:
             if '{text}' in self.prompt:
@@ -111,3 +113,47 @@ class Gemini(BaseTrans):
         if config.defaulelang == 'zh':
             return REASON_CN[num] if type == 'error' else forbid_cn[num]
         return REASON_EN[num] if type == 'error' else forbid_en[num]
+
+    def _item_task_refine3(self, data: Union[List[str], str]) -> str:
+        prompt=self._refine3_prompt()
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
+        prompt=prompt.replace('{lang}',self.target_language_name).replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
+
+        response = None
+        try:
+            genai.configure(api_key=config.params['gemini_key'])
+            model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
+            response = model.generate_content(
+                prompt,
+                safety_settings=safetySettings
+            )
+            config.logger.info(f'[Gemini]请求发送:{prompt=}')
+
+            config.logger.info(f'[Gemini]返回:{response.text=}')
+            match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text,re.S)
+            if match:
+                return match.group(1)
+            raise Exception("result is empty")
+        except TooManyRequests as e:
+            raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
+        except (ServerError,RetryError,socket.timeout) as e:
+            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+            raise requests.ConnectionError(error)
+        except Exception as e:
+            error = str(e)
+            config.logger.error(f'[Gemini]请求失败:{error=}')
+            if response and response.prompt_feedback.block_reason:
+                raise Exception(self._get_error(response.prompt_feedback.block_reason, "forbid"))
+
+            if error.find('User location is not supported') > -1 or error.find('time out') > -1:
+                raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
+
+            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
+                raise Exception(self._get_error(response.candidates[0].finish_reason))
+
+            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and response.candidates[0].content and response.candidates[0].content.parts:
+                match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text, re.S)
+                if match:
+                    return match.group(1)
+
+            raise

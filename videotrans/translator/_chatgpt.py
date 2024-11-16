@@ -56,6 +56,8 @@ class ChatGPT(BaseTrans):
         return url
 
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self.refine3:
+            return self._item_task_refine3(data)
         message = [
             {
                 'role': 'system',
@@ -87,3 +89,40 @@ class ChatGPT(BaseTrans):
 
         result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
         return result
+
+    def _item_task_refine3(self, data: Union[List[str], str]) -> str:
+        prompt=self._refine3_prompt()
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
+        prompt=prompt.replace('{lang}',self.target_language_name).replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
+
+        message = [
+            {
+                'role': 'system',
+                'content':  "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。'},
+            {
+                'role': 'user',
+                'content': prompt},
+        ]
+
+        config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
+        model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
+                       http_client=httpx.Client(proxies=self.proxies))
+        try:
+            response = model.chat.completions.create(
+                model=config.params['chatgpt_model'],
+                messages=message
+            )
+        except APIConnectionError:
+            raise requests.ConnectionError('Network connection failed')
+        config.logger.info(f'[chatGPT]响应:{response=}')
+
+        if response.choices:
+            result = response.choices[0].message.content.strip()
+        else:
+            config.logger.error(f'[chatGPT]请求失败:{response=}')
+            raise Exception(f"no choices:{response=}")
+
+        match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result, re.S)
+        if match:
+            return match.group(1)
+        raise Exception(f"Error: {response=}")

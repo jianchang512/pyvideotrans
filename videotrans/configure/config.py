@@ -350,7 +350,8 @@ def parse_init():
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy":"",
-        "gemini_srtprompt":"请将我上传的音频转录为符合srt格式的字幕，请直接返回合法的srt字幕内容，禁止附带任何其他提示,也不要添加任何辅助标记，每条字幕最多2行，最大时长不超过12s。如果转录结果是繁体中文，请转为简体" if defaulelang=='zh' else "Please transcribe my uploaded audio into srt format subtitles, please return the legal srt subtitle content directly, do not attach any other cues, and do not add any auxiliary markers, each subtitle can be up to 2 lines, and the maximum length of the subtitle does not exceed 12s."
+        "refine3":False,
+        "gemini_srtprompt":"请将我上传的音频转录为符合srt格式的字幕，请直接返回合法的srt字幕内容，禁止附带任何其他提示,也不要添加任何辅助标记，每条字幕最多2行，最大时长不超过12s" if defaulelang=='zh' else "Please transcribe my uploaded audio into srt format subtitles, please return the legal srt subtitle content directly, do not attach any other cues, and do not add any auxiliary markers, each subtitle can be up to 2 lines, and the maximum length of the subtitle does not exceed 12s."
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:

@@ -29,6 +29,8 @@ class AzureGPT(BaseTrans):
                 self.proxies = {"https://": pro, "http://": pro}        
 
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self.refine3:
+            return self._item_task_refine3(data)
         model = AzureOpenAI(
             api_key=config.params["azure_key"],
             api_version=config.params['azure_version'],
@@ -60,3 +62,41 @@ class AzureGPT(BaseTrans):
             raise Exception(f"no choices:{response=}")
         result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
         return re.sub(r'\n{2,}', "\n", result)
+
+    def _item_task_refine3(self, data: Union[List[str], str]) -> str:
+        prompt=self._refine3_prompt()
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
+        prompt=prompt.replace('{lang}',self.target_language_name).replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
+
+        model = AzureOpenAI(
+            api_key=config.params["azure_key"],
+            api_version=config.params['azure_version'],
+            azure_endpoint=config.params["azure_api"],
+            http_client=httpx.Client(proxies=self.proxies)
+        )
+        message = [
+            {'role': 'system',
+             'content':  "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。'},
+            {'role': 'user',
+             'content': prompt},
+        ]
+
+        config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
+        try:
+            response = model.chat.completions.create(
+                model=config.params["azure_model"],
+                messages=message
+            )
+        except APIConnectionError:
+            raise requests.ConnectionError('Network connection failed')
+        config.logger.info(f'[AzureGPT]返回响应:{response=}')
+
+        if response.choices:
+            result = response.choices[0].message.content.strip()
+        else:
+            config.logger.error(f'[AzureGPT]请求失败:{response=}')
+            raise Exception(f"no choices:{response=}")
+        match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
+        if match:
+            return match.group(1)
+        raise Exception(f"error:{response=}")

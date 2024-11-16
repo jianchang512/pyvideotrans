@@ -30,9 +30,11 @@ class DeepL(BaseTrans):
             target_code='ZH-HANS'
         elif target_code=='ZH-TW':
             target_code='ZH-HANT'
+        sourcecode=self.source_code.upper()[:2] if self.source_code else None
+        sourcecode if sourcecode!='AUTO' else None 
         result = deepltranslator.translate_text(
                 "\n".join(data),
-                source_lang=self.source_code.upper()[:2] if self.source_code else None,
+                source_lang=sourcecode,
                 target_lang=target_code,
                 glossary=config.params['deepl_gid'] if config.params['deepl_gid'] else None
             )
