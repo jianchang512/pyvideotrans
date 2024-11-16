@@ -17,11 +17,11 @@
 
 
 > **[赞助商]**
->
-> [![](https://github.com/user-attachments/assets/e3e2e6f9-e2e4-44e4-860b-9d1ce5b53d4f)](https://302.ai/)
->  [302.AI](https://302.ai)是一个汇集全球顶级品牌的AI超市，按需付费，零月费，零门槛使用各种类型AI。
->
-> 功能全面/简单易用/按需付费零门槛/管理者和使用者分离
+> 
+> [![](https://github.com/user-attachments/assets/5348c86e-2d5f-44c7-bc1b-3cc5f077e710)](https://302.ai/)
+>  [302.AI](https://302.ai)是一个按需付费的一站式AI应用平台，开放平台，开源生态, [302.AI开源地址](https://github.com/302ai)
+> 
+> 集合了最新最全的AI模型和品牌/按需付费零月费/管理和使用分离/所有AI能力均提供API/每周推出2-3个新应用
 
 
 # 主要用途和功能
