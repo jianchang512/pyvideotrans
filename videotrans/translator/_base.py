@@ -385,21 +385,21 @@ The following `<INPUT>` tags contain the SRT subtitles to be translated:
             return
         key_cache = self._get_key(it)
 
-        file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
-        if not Path(config.SYS_TMP + f'/translate_cache').is_dir():
-            Path(config.SYS_TMP + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
+        if not Path(config.TEMP_DIR + f'/translate_cache').is_dir():
+            Path(config.TEMP_DIR + f'/translate_cache').mkdir(parents=True, exist_ok=True)
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
     def _get_cache(self, it):
         if self.is_test:
             return None
         key_cache = self._get_key(it)
-        file_cache = config.SYS_TMP + f'/translate_cache/{key_cache}.txt'
+        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).exists():
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
     def _get_key(self, it):
-        Path(config.SYS_TMP + '/translate_cache').mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
         return tools.get_md5(
             f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

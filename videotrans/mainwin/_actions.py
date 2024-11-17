@@ -1,17 +1,14 @@
-import copy
 import json
 import re
-
-import shutil
 import threading
 from pathlib import Path
 
-from PySide6 import  QtWidgets
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-from videotrans import translator, recognition,tts
+from videotrans import translator, recognition, tts
 from videotrans.component.progressbar import ClickableProgressBar
 from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
 from videotrans.component.set_threads import SetThreadTransDubb
@@ -19,7 +16,6 @@ from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task._mult_video import MultVideo
 from videotrans.task._only_one import Worker
-
 from videotrans.util import tools
 from videotrans.winform import fn_downmodel
 
@@ -38,9 +34,10 @@ class WinAction(WinActionSub):
         self.wait_subtitle = None
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
-        self.is_batch=True
-        self.cfg={}
-        self.queue_mp4=[]
+        self.is_render = False
+        self.is_batch = True
+        self.cfg = {}
+        self.queue_mp4 = []
 
     def _reset(self):
         # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
@@ -50,7 +47,6 @@ class WinAction(WinActionSub):
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
         self.main.source_mp4.setText(config.transobj["No select videos"])
-
 
     # 删除进度按钮
     def delete_process(self):
@@ -64,36 +60,36 @@ class WinAction(WinActionSub):
         self.processbtns = {}
 
     # 右侧字幕区导出
-    def export_sub_fun(self):
-        srttxt = self.main.subtitle_area.toPlainText().strip()
-        if not srttxt:
-            return
-        dialog = QFileDialog()
-        dialog.setWindowTitle(config.transobj['savesrtto'])
-        dialog.setNameFilters(["subtitle files (*.srt)"])
-        dialog.setAcceptMode(QFileDialog.AcceptSave)
-        dialog.exec_()
-        if not dialog.selectedFiles():
-            return
-        else:
-            path_to_file = dialog.selectedFiles()[0]
-        ext = ".srt"
-        if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
-            path_to_file = path_to_file[:-4] + ext
-        else:
-            path_to_file += ext
-        with open(path_to_file, "w", encoding='utf-8') as file:
-            file.write(srttxt)
+    # def export_sub_fun(self):
+    #     srttxt = self.main.subtitle_area.toPlainText().strip()
+    #     if not srttxt:
+    #         return
+    #     dialog = QFileDialog()
+    #     dialog.setWindowTitle(config.transobj['savesrtto'])
+    #     dialog.setNameFilters(["subtitle files (*.srt)"])
+    #     dialog.setAcceptMode(QFileDialog.AcceptSave)
+    #     dialog.exec_()
+    #     if not dialog.selectedFiles():
+    #         return
+    #     else:
+    #         path_to_file = dialog.selectedFiles()[0]
+    #     ext = ".srt"
+    #     if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
+    #         path_to_file = path_to_file[:-4] + ext
+    #     else:
+    #         path_to_file += ext
+    #     with open(path_to_file, "w", encoding='utf-8') as file:
+    #         file.write(srttxt)
 
     # 将倒计时设为立即超时
-    def set_djs_timeout(self):        
+    def set_djs_timeout(self):
         self.main.timeout_tips.setText('')
         self.main.stop_djs.hide()
         self.main.continue_compos.hide()
         self.main.continue_compos.setText('')
         self.main.continue_compos.setDisabled(True)
         self.main.subtitle_area.setReadOnly(True)
-        self.main.target_subtitle_area.setReadOnly(True)
+        # self.main.target_subtitle_area.setReadOnly(True)
         self.update_subtitle()
         config.task_countdown = -1
 
@@ -119,20 +115,22 @@ class WinAction(WinActionSub):
 
     # 语音识别方式改变时
     def recogn_type_change(self):
-        recogn_type= self.main.recogn_type.currentIndex()
+        recogn_type = self.main.recogn_type.currentIndex()
 
         # 判断不是 faster，禁用分割模式、隐藏vad参数和均等分割设置
-        if recogn_type!=recognition.FASTER_WHISPER:
+        if recogn_type != recognition.FASTER_WHISPER:
             self.main.split_type.setDisabled(True)
             self.main.split_type.setCurrentIndex(0)
             tools.hide_show_element(self.main.hfaster_layout, False)
             tools.hide_show_element(self.main.equal_split_layout, False)
         else:
-            #是 faster，启用 分割模式，根据需要显示均等分割
+            # 是 faster，启用 分割模式，根据需要显示均等分割
             self.main.split_type.setDisabled(False)
-            tools.hide_show_element(self.main.equal_split_layout, False  if self.main.split_type.currentIndex()==0  else True)
+            tools.hide_show_element(self.main.equal_split_layout,
+                                    False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+                               recognition.Deepgram]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -150,7 +148,8 @@ class WinAction(WinActionSub):
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=self.main.model_name.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
+                                                  model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return
@@ -160,14 +159,14 @@ class WinAction(WinActionSub):
     # 判断 语音参数 vad参数区域是否应该可见
     # 仅当是 faster并且 是整体识别
     def click_reglabel(self):
-        if self.main.recogn_type.currentIndex()== recognition.FASTER_WHISPER and self.main.split_type.currentIndex()==0:
+        if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER and self.main.split_type.currentIndex() == 0:
             self.hide_show_element(self.main.hfaster_layout, not self.main.threshold.isVisible())
         else:
             self.hide_show_element(self.main.hfaster_layout, False)
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS,tts.VOLCENGINE_TTS]:
+        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS]:
             return True
         if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'azure':
             return True
@@ -217,7 +216,7 @@ class WinAction(WinActionSub):
             threading.Thread(target=tools.get_clone_role).start()
         elif type == tts.CHATTTS:
             self.main.voice_role.clear()
-            config.ChatTTS_voicelist=re.split(r'[,，]', config.settings['chattts_voice'])
+            config.ChatTTS_voicelist = re.split(r'[,，]', config.settings['chattts_voice'])
             self.main.current_rolelist = list(config.ChatTTS_voicelist)
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.TTS_API:
@@ -242,10 +241,9 @@ class WinAction(WinActionSub):
         elif type == tts.F5_TTS:
             rolelist = tools.get_f5tts_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = ['clone']+list(rolelist.keys()) if rolelist else ['clone']
+            self.main.current_rolelist = ['clone'] + list(rolelist.keys()) if rolelist else ['clone']
             self.main.voice_role.addItems(self.main.current_rolelist)
 
-    
     # 目标语言改变时设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
@@ -275,12 +273,12 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'])
             return
         show_rolelist = None
-        tts_type=self.main.tts_type.currentIndex()
+        tts_type = self.main.tts_type.currentIndex()
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
         elif tts_type == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
             show_rolelist = tools.get_302ai_doubao()
-        elif tts_type==tts.VOLCENGINE_TTS:
+        elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
         else:
             # AzureTTS或 302.ai选择doubao模型
@@ -306,7 +304,8 @@ class WinAction(WinActionSub):
 
     # 从本地导入字幕文件
     def import_sub_fun(self):
-        fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], config.params['last_opendir'], "Srt files(*.srt *.txt)")
+        fname, _ = QFileDialog.getOpenFileName(self.main, config.transobj['selectmp4'], config.params['last_opendir'],
+                                               "Srt files(*.srt *.txt)")
         if fname:
             content = ""
             try:
@@ -334,7 +333,7 @@ class WinAction(WinActionSub):
         if tts.is_input_api(tts_type=self.main.tts_type.currentIndex()) is not True:
             return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
-        if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No','',' ']:
+        if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No', '', ' ']:
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
             return False
         return True
@@ -342,19 +341,19 @@ class WinAction(WinActionSub):
     # 核对所选语音识别模式是否正确
     def check_reccogn(self):
         langcode = translator.get_code(show_text=self.main.source_language.currentText())
-        print(f'{langcode=}')
-        res=recognition.is_allow_lang(langcode=langcode,recogn_type=self.main.recogn_type.currentIndex())
+        res = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
         if res is not True:
-            print(f'{res=}')
             QMessageBox.critical(self.main, config.transobj['anerror'], res)
             return False
 
         # 原始语言是最后一个，即auto自动检查
-        if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex()==self.main.source_language.count() - 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'], '已导入字幕情况下，不可再使用检测功能' if config.defaulelang=='zh' else 'The detection function cannot be used when subtitles have already been imported.')
+        if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
+            QMessageBox.critical(self.main, config.transobj['anerror'],
+                                 '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
 
-        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),model_name=self.main.model_name.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),
+                                                  model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return False
@@ -369,13 +368,16 @@ class WinAction(WinActionSub):
             source_language_currentText=self.main.source_language.currentText()
         )
         if res == 'download':
-            return fn_downmodel.openwin(model_name=self.main.model_name.currentText(), recogn_type=self.main.recogn_type.currentIndex())
+            return fn_downmodel.openwin(model_name=self.main.model_name.currentText(),
+                                        recogn_type=self.main.recogn_type.currentIndex())
         if res is not True:
             return QMessageBox.critical(self.main, config.transobj['anerror'], res)
         return True
+
     # 检测开始状态并启动
     def check_start(self):
-        self.cfg={}
+        self.cfg = {}
+        self.is_render = False
         self.edit_subtitle_type = 'edit_subtitle_source'
 
         if config.current_status == 'ing':
@@ -397,18 +399,18 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
 
-        config.task_countdown = int(float(config.settings.get('countdown_sec',1)))
+        config.task_countdown = int(float(config.settings.get('countdown_sec', 1)))
 
         # 顶部行
-        self.cfg['append_video']=self.main.append_video.isChecked()
-        self.cfg['translate_type']=self.main.translate_type.currentIndex()
+        self.cfg['append_video'] = self.main.append_video.isChecked()
+        self.cfg['translate_type'] = self.main.translate_type.currentIndex()
         self.cfg['source_language'] = self.main.source_language.currentText()
         self.cfg['target_language'] = self.main.target_language.currentText()
 
         # 配音行
         # 配音角色
-        self.cfg['tts_type']=self.main.tts_type.currentIndex()
-        self.cfg['voice_role']=self.main.voice_role.currentText()
+        self.cfg['tts_type'] = self.main.tts_type.currentIndex()
+        self.cfg['voice_role'] = self.main.voice_role.currentText()
         try:
             volume = int(self.main.volume_rate.value())
             pitch = int(self.main.pitch_rate.value())
@@ -426,7 +428,7 @@ class WinAction(WinActionSub):
         self.cfg['subtitle_type'] = self.main.subtitle_type.currentIndex()
 
         # 对齐行
-        self.cfg['voice_rate']=self.main.voice_rate.value()
+        self.cfg['voice_rate'] = self.main.voice_rate.value()
         try:
             voice_rate = int(self.main.voice_rate.value())
             self.cfg['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
@@ -439,14 +441,12 @@ class WinAction(WinActionSub):
         self.cfg['is_separate'] = self.main.is_separate.isChecked()
         if self.cfg['voice_role'] == 'No':
             self.cfg['is_separate'] = False
-        self.cfg['cuda']=self.main.enable_cuda.isChecked()
+        self.cfg['cuda'] = self.main.enable_cuda.isChecked()
 
         # 添加背景音频
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
         self.cfg['only_video'] = self.main.only_video.isChecked()
         self.cfg['clear_cache'] = True if self.main.clear_cache.isChecked() else False
-
-
 
         # 核对识别是否正确
         if self.check_reccogn() is not True:
@@ -475,7 +475,8 @@ class WinAction(WinActionSub):
         self.set_mode()
 
         # 检测模型是否存在
-        if not txt and self.main.recogn_type.currentIndex() in [recognition.OPENAI_WHISPER, recognition.FASTER_WHISPER] and  self.check_model_name() is not True:
+        if not txt and self.main.recogn_type.currentIndex() in [recognition.OPENAI_WHISPER,
+                                                                recognition.FASTER_WHISPER] and self.check_model_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
         # 判断CUDA
@@ -487,14 +488,15 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.cfg['target_language'] =='-' and self.cfg['subtitle_type']>0:
-            return QMessageBox.critical(self.main, config.transobj['anerror'], '必须选择目标语言才可嵌入字幕' if config.defaulelang=='zh' else 'Target language must be selected to embed subtitles')
+        if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
+            return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                        '必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
 
-        config.line_roles={}
+        config.line_roles = {}
 
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             self.cfg['app_mode'] = self.main.app_mode
@@ -505,57 +507,60 @@ class WinAction(WinActionSub):
         # 设为开始
         self.update_status('ing')
 
-
-        if self.main.recogn_type.currentIndex()==recognition.FASTER_WHISPER or self.main.app_mode=='biaozhun':
-            config.settings['backaudio_volume']=float(self.main.bgmvolume.text())
-            config.settings['loop_backaudio']=self.main.is_loop_bgm.isChecked()
-            if self.main.split_type.currentIndex()==1:
+        if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
+            config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
+            config.settings['loop_backaudio'] = self.main.is_loop_bgm.isChecked()
+            if self.main.split_type.currentIndex() == 1:
                 try:
-                    config.settings['interval_split']=int(self.main.equal_split_time.text().strip())
+                    config.settings['interval_split'] = int(self.main.equal_split_time.text().strip())
                 except:
-                    config.settings['interval_split']=10
+                    config.settings['interval_split'] = 10
 
-            config.settings["threshold"]=min(
+            config.settings["threshold"] = min(
                 0.9,
-                max(float(self.main.threshold.text().strip()),0.1)
+                max(float(self.main.threshold.text().strip()), 0.1)
             )
-            config.settings["min_speech_duration_ms"]=int(self.main.min_speech_duration_ms.text())
-            config.settings["min_silence_duration_ms"]=int(self.main.min_silence_duration_ms.text())
-            config.settings["speech_pad_ms"]=int(self.main.speech_pad_ms.text())
-            config.settings["max_speech_duration_s"]=int(self.main.max_speech_duration_s.text())
+            config.settings["min_speech_duration_ms"] = int(self.main.min_speech_duration_ms.text())
+            config.settings["min_silence_duration_ms"] = int(self.main.min_silence_duration_ms.text())
+            config.settings["speech_pad_ms"] = int(self.main.speech_pad_ms.text())
+            config.settings["max_speech_duration_s"] = int(self.main.max_speech_duration_s.text())
 
-        config.settings['rephrase']=self.main.rephrase.isChecked()
-        config.settings['cjk_len']=self.main.cjklinenums.value()
-        config.settings['oth_len']=self.main.othlinenums.value()
+        config.settings['rephrase'] = self.main.rephrase.isChecked()
+        config.settings['cjk_len'] = self.main.cjklinenums.value()
+        config.settings['other_len'] = self.main.othlinenums.value()
         with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         QTimer.singleShot(50, self.create_btns)
 
-
     def click_subtitle(self):
-        dialog = SubtitleSettingsDialog(self.main,config.settings.get('cjk_len',24),config.settings.get('other_len',66))
+        dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
+                                        config.settings.get('other_len', 66))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
             cjk_value, other_value = dialog.get_values()
-            config.settings['cjk_len']=cjk_value
-            config.settings['other_len']=other_value
+            config.settings['cjk_len'] = cjk_value
+            config.settings['other_len'] = other_value
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
+
     def click_translate_type(self):
-        dialog = SetThreadTransDubb(name='trans',nums=config.settings.get('trans_thread',5),sec=config.settings.get('translation_wait',0))
+        dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
+                                    sec=config.settings.get('translation_wait', 0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num,wait = dialog.get_values()
-            config.settings['trans_thread']=num
-            config.settings['translation_wait']=wait
+            num, wait = dialog.get_values()
+            config.settings['trans_thread'] = num
+            config.settings['translation_wait'] = wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
+
     def click_tts_type(self):
-        dialog = SetThreadTransDubb(name='dubbing',nums=config.settings.get('dubbing_thread',5),sec=config.settings.get('dubbing_wait',0))
+        dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
+                                    sec=config.settings.get('dubbing_wait', 0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num,wait = dialog.get_values()
-            config.settings['dubbing_thread']=num
-            config.settings['dubbing_wait']=wait
+            num, wait = dialog.get_values()
+            config.settings['dubbing_thread'] = num
+            config.settings['dubbing_wait'] = wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -563,29 +568,30 @@ class WinAction(WinActionSub):
 
         target_dir = Path(self.main.target_dir if self.main.target_dir else Path(
             self.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
-        self.cfg["target_dir"]=target_dir
+        self.cfg["target_dir"] = target_dir
         self.main.btn_save_dir.setToolTip(target_dir)
         self.obj_list = []
         # queue_mp4中的名字可能已修改为规范
-        new_name=[]
+        new_name = []
         for video_path in self.queue_mp4:
-            obj=tools.format_video(video_path, target_dir)
+            obj = tools.format_video(video_path, target_dir)
             new_name.append(obj['name'])
             self.obj_list.append(obj)
 
-        self.queue_mp4=new_name
-        txt=self.main.subtitle_area.toPlainText().strip()
+        self.queue_mp4 = new_name
+        txt = self.main.subtitle_area.toPlainText().strip()
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
 
         for it in self.obj_list:
-            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(),name=it['name'], uuid=it['uuid'])
+            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(), name=it['name'], uuid=it['uuid'])
 
         # 启动任务
-        tools.set_process(text=config.transobj['kaishichuli'],uuid=self.obj_list[0]['uuid'])
-        if self.main.app_mode not in ['biaozhun_jd','tiqu'] and (config.settings.get('is_queue') or len(self.obj_list)==1):
-            self.is_batch=False
+        tools.set_process(text=config.transobj['kaishichuli'], uuid=self.obj_list[0]['uuid'])
+        if self.main.app_mode not in ['biaozhun_jd', 'tiqu'] and (
+                config.settings.get('is_queue') or len(self.obj_list) == 1):
+            self.is_batch = False
             task = Worker(
                 parent=self.main,
                 app_mode=self.main.app_mode,
@@ -595,20 +601,19 @@ class WinAction(WinActionSub):
             )
             task.uito.connect(self.update_data)
             task.start()
-            if self.cfg['target_language'] !='-' and self.cfg['target_language'] != self.cfg['source_language']:
+            if self.cfg['target_language'] != '-' and self.cfg['target_language'] != self.cfg['source_language']:
                 if not self.main.isMaximized():
                     self.main.showMaximized()
 
-                self.main.target_subtitle_area.setMinimumWidth(200)
-                self.main.target_subtitle_area.setVisible(True)
+                # self.main.target_subtitle_area.setMinimumWidth(200)
+                # self.main.target_subtitle_area.setVisible
             return
         # 多个字幕
-        self.main.target_subtitle_area.clear()
-        self.main.target_subtitle_area.setVisible(False)
-        self.is_batch=True
+        # self.main.target_subtitle_area.clear()
+        # self.main.target_subtitle_area.setVisible(False)
+        self.is_batch = True
 
-
-        MultVideo(parent=self.main,cfg=self.cfg,obj_list=self.obj_list).start()
+        MultVideo(parent=self.main, cfg=self.cfg, obj_list=self.obj_list).start()
 
     # 启动时禁用相关模式按钮，停止时重新启用
     def _disabled_button(self, disabled=True):
@@ -620,7 +625,6 @@ class WinAction(WinActionSub):
             else:
                 v.setDisabled(False)
                 v.setChecked(True)
-
 
     # 任务end结束或暂停时，清空队列
     # 先不清空 stoped_uuid_set 标志，用于背景分离任务稍后结束
@@ -641,7 +645,8 @@ class WinAction(WinActionSub):
         clickable_progress_bar.setToolTip(config.transobj['mubiao'])
         # # 将按钮添加到布局中
 
-        clickable_progress_bar.setTarget(target_dir=Path(target_dir).parent.as_posix() if self.cfg.get('only_video') else target_dir, name=name)
+        clickable_progress_bar.setTarget(
+            target_dir=Path(target_dir).parent.as_posix() if self.cfg.get('only_video') else target_dir, name=name)
         clickable_progress_bar.setCursor(Qt.PointingHandCursor)
         self.main.processlayout.addWidget(clickable_progress_bar)
         if uuid:
@@ -656,7 +661,7 @@ class WinAction(WinActionSub):
             return
         if _type == 'set_precent' and self.processbtns[uuid].precent < 100:
             t, precent = text.split('???')
-            precent = int(float(precent)*100)/100
+            precent = int(float(precent) * 100) / 100
             self.processbtns[uuid].setPrecent(precent)
             self.processbtns[uuid].setText(f'{config.transobj["running"].replace("..", "")} {t}')
         elif _type == 'logs' and self.processbtns[uuid].precent < 100:
@@ -682,10 +687,10 @@ class WinAction(WinActionSub):
             return
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
-        self.main.target_subtitle_area.clear()
+        # self.main.target_subtitle_area.clear()
         self.main.startbtn.setText(config.transobj[type])
-        self.main.export_sub.setDisabled(False)
-        self.main.set_line_role.setDisabled(False)
+        # self.main.export_sub.setDisabled(False)
+        # self.main.set_line_role.setDisabled(False)
         # 删除本次任务的所有进度队列
         self._clear_task()
         # 启用
@@ -694,8 +699,8 @@ class WinAction(WinActionSub):
         self._disabled_button(False)
         if type == 'end':
             self.main.subtitle_area.clear()
-            self.main.target_subtitle_area.clear()
-            self.main.target_subtitle_area.setVisible(False)
+            # self.main.target_subtitle_area.clear()
+            # self.main.target_subtitle_area.setVisible(False)
             for prb in self.processbtns.values():
                 prb.setEnd()
             # 成功完成
@@ -706,7 +711,7 @@ class WinAction(WinActionSub):
                 except Exception as e:
                     QMessageBox.critical(self.main, config.transobj['anerror'],
                                          config.transobj['shutdownerror'] + str(e))
-            self.main.target_dir=None
+            self.main.target_dir = None
             self.main.btn_save_dir.setToolTip('')
         else:
             # 任务队列中设为停止并删除队列，防止后续到来的日志继续显示
@@ -724,7 +729,6 @@ class WinAction(WinActionSub):
             self.set_tiquzimu()
         self._reset()
 
-
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data) if isinstance(json_data, str) else json_data
@@ -736,8 +740,10 @@ class WinAction(WinActionSub):
                 self.edit_subtitle_type = 'edit_subtitle_source'
                 self.wait_subtitle = None
                 if not self.is_batch:
-                    self.main.target_subtitle_area.clear()
-                    self.main.subtitle_area.clear()
+                    self.clear_target_subtitle(self.main.target_subtitle_area)
+                    # self.main.target_subtitle_area.clear()
+                    # self.main.subtitle_area.clear()
+                    pass
 
         # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
@@ -750,49 +756,54 @@ class WinAction(WinActionSub):
             except Exception as e:
                 print(e)
         # 一行一行插入字幕到字幕编辑区
-        elif d['type'] == "subtitle" and config.current_status=='ing' and (self.is_batch or config.task_countdown<=0):
-            if self.is_batch or ( not self.is_batch and self.edit_subtitle_type=='edit_subtitle_source'):
+        elif d['type'] == "subtitle" and config.current_status == 'ing' and (
+                self.is_batch or config.task_countdown <= 0):
+            if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
                 self.main.subtitle_area.moveCursor(QTextCursor.End)
                 self.main.subtitle_area.insertPlainText(d['text'])
-            elif not self.is_batch and self.edit_subtitle_type=='edit_subtitle_target':
-                self.main.target_subtitle_area.moveCursor(QTextCursor.End)
-                self.main.target_subtitle_area.insertPlainText(d['text'])
+            elif not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_target':
+                pass
+                # self.main.target_subtitle_area.moveCursor(QTextCursor.End)
+                # self.main.target_subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
             self.wait_subtitle = d['text']
             self.edit_subtitle_type = d['type']
             # 显示出合成按钮,等待编辑字幕,允许修改字幕
-            if d['type']=='edit_subtitle_source':
+            if d['type'] == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
                 self.main.subtitle_area.setFocus()
             else:
-                self.main.target_subtitle_area.setReadOnly(False)
-                self.main.target_subtitle_area.setFocus()
+                pass
+                # self.main.target_subtitle_area.setReadOnly(False)
+                # self.main.target_subtitle_area.setFocus()
 
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
             self.main.subtitle_area.setReadOnly(True)
-            self.main.target_subtitle_area.setReadOnly(True)
-            self.main.export_sub.setDisabled(True)
-            self.main.set_line_role.setDisabled(True)
+            # self.main.target_subtitle_area.setReadOnly(True)
+            # self.main.export_sub.setDisabled(True)
+            # self.main.set_line_role.setDisabled(True)
         elif d['type'] == 'allow_edit':
             # 允许修改字幕
-            if self.edit_subtitle_type=='edit_subtitle_source':
+            if self.edit_subtitle_type == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
                 self.main.subtitle_area.setFocus()
             else:
-                self.main.target_subtitle_area.setReadOnly(False)
-                self.main.target_subtitle_area.setFocus()
-            self.main.export_sub.setDisabled(False)
-            self.main.set_line_role.setDisabled(False)
+                pass
+                # self.main.target_subtitle_area.setReadOnly(False)
+                # self.main.target_subtitle_area.setFocus()
+            # self.main.export_sub.setDisabled(False)
+            # self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
-            if self.is_batch or (not self.is_batch and self.edit_subtitle_type=='edit_subtitle_source'):
+            if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
                 self.main.subtitle_area.clear()
                 self.main.subtitle_area.insertPlainText(d['text'])
-
-            elif not self.is_batch and self.edit_subtitle_type=='edit_subtitle_target':
-                self.main.target_subtitle_area.clear()
-                self.main.target_subtitle_area.insertPlainText(d['text'])
+            elif not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_target' and not self.is_render:
+                # self.main.target_subtitle_area.clear()
+                # self.main.target_subtitle_area.insertPlainText(d['text'])
+                self.is_render = True
+                self.show_target_edit(d['text'])
         elif d['type'] == 'timeout_djs':
             self.set_djs_timeout()
         elif d['type'] == 'show_djs':
@@ -802,10 +813,12 @@ class WinAction(WinActionSub):
                 '继续下一步操作' if config.defaulelang == 'zh' else 'Continue next step')
             self.main.stop_djs.show()
             self.main.timeout_tips.setText(d['text'])
-            if self.edit_subtitle_type=='edit_subtitle_source':
+            if self.edit_subtitle_type == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
             else:
-                self.main.target_subtitle_area.setReadOnly(False)
+                pass
+                # self.show_target_edit()
+                # self.main.target_subtitle_area.setReadOnly(False)
         elif d['type'] == 'check_soft_update':
             self.update_tips(d['text'])
         elif d['type'] == 'set_clone_role' and self.main.tts_type.currentText() == 'clone-voice':
@@ -815,43 +828,126 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.voice_role.addItems(config.params["clone_voicelist"])
             self.main.voice_role.setCurrentText(current)
-        elif d['type']=='ffmpeg':
+        elif d['type'] == 'ffmpeg':
             self.main.startbtn.setText(d['text'])
             self.main.startbtn.setDisabled(True)
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
-        elif d['type']=='subform':
+        elif d['type'] == 'subform':
             self.main.start_subform()
-        elif d['type'] =='refreshtts':
-            currentIndex=self.main.tts_type.currentIndex()
-            if currentIndex  in [tts.GPTSOVITS_TTS,tts.COSYVOICE_TTS,tts.FISHTTS,tts.CHATTTS,tts.CLONE_VOICE_TTS,tts.F5_TTS]:
+        elif d['type'] == 'refreshtts':
+            currentIndex = self.main.tts_type.currentIndex()
+            if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,
+                                tts.F5_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
-        elif d['type']=='refreshmodel_list':
-            config.WHISPER_MODEL_LIST=re.split(r'[,，]', config.settings['model_list'])
-            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
-                current_model_name=self.main.model_name.currentText()
+        elif d['type'] == 'refreshmodel_list':
+            config.WHISPER_MODEL_LIST = re.split(r'[,，]', config.settings['model_list'])
+            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
+                current_model_name = self.main.model_name.currentText()
                 self.main.model_name.clear()
                 self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
                 self.main.model_name.setCurrentText(current_model_name)
-                
 
     # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
     def update_subtitle(self):
         self.main.stop_djs.hide()
         self.main.continue_compos.setDisabled(True)
-        txt = self.main.subtitle_area.toPlainText().strip() if self.edit_subtitle_type == 'edit_subtitle_source' else self.main.target_subtitle_area.toPlainText().strip()
+        # 是单个视频执行时
+        if self.is_batch or not self.wait_subtitle:
+            return
+        if self.edit_subtitle_type == 'edit_subtitle_source':
+            txt = self.main.subtitle_area.toPlainText().strip()
+        # 目标字幕区
+        else:
+            txt = self.get_target_subtitle()
         if not txt:
             return
-
-        # 是单个视频执行时
-        if not self.is_batch and self.wait_subtitle:
-            # 不是批量才允许更新字幕
-            with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
-                f.write(txt)
+        with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
+            f.write(txt)
         return True
 
-    # 设置每行角色
-    def set_line_role_fun(self):
+    def clear_target_subtitle(self, layout):
+        """安全地清除布局中的所有项目，保留布局本身。"""
+        if layout is None:
+            return
+
+        while layout.count() > 0:
+            item = layout.itemAt(0)
+            if item is None:
+                continue  # 防止takeAt() 返回None
+
+            widget = item.widget()
+            if widget:
+                widget.setParent(None)  # 断开Widget与Layout的父子关系
+                widget.deleteLater()  # 安全删除
+            else:
+                child_layout = item.layout()
+                if child_layout:
+                    self.clear_target_subtitle(child_layout)  # 递归清理嵌套布局
+            layout.removeItem(item)  # 从布局中移除项目
+
+    def get_target_subtitle(self):
+        srts = self.extract_subtitle_data_from_area(self.main.target_subtitle_area)
+        return '\n\n'.join(srts)
+
+    def extract_subtitle_data_from_area(self, target_layout):
+        """
+        从 self.main.target_subtitle_area 开始查找 box，然后提取字幕数据。
+
+        Args:
+            target_layout:  QtWidgets.QLayout 对象，例如 self.main.target_subtitle_area。
+
+        Returns:
+            一个列表，其中每个元素都是一个包含 (line_time_text, line_edit_text) 的元组。  返回空列表表示没有找到box或数据。
+        """
+
+        def find_box(layout):
+            if layout is None:
+                return None
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item is None:
+                    continue
+                widget = item.widget()
+                if isinstance(widget, QtWidgets.QScrollArea):
+                    box = widget.widget()
+                    if isinstance(box, QtWidgets.QWidget) and box.objectName() == 'box_name':
+                        return box
+                elif item.layout():
+                    box = find_box(item.layout())
+                    if box:
+                        return box
+            return None
+
+        box = find_box(target_layout)
+        if box is None:
+            return []  # 没有找到box
+
+        return self.extract_subtitle_data(box)  # 使用之前的 extract_subtitle_data 函数
+
+    def extract_subtitle_data(self, box):
+        # (这个函数与之前的解答相同，功能不变)
+        data = []
+        layout = box.layout()
+        if layout is None:
+            return data
+        num = 1
+        for item in layout.children():
+            if isinstance(item, QtWidgets.QVBoxLayout):
+                for i in range(item.count()):
+                    child = item.itemAt(i)
+                    if child is None:
+                        continue
+                    widget = child.widget()
+                    if isinstance(widget, QtWidgets.QLineEdit):
+                        line_time_text = widget.text()
+                    elif isinstance(widget, QtWidgets.QPlainTextEdit):
+                        line_edit_text = widget.toPlainText()
+                        data.append(f'{num}\n{line_time_text}\n{line_edit_text}')
+                        num += 1
+        return data
+
+    def show_target_edit(self, srt_str):
         def get_checked_boxes(widget):
             checked_boxes = []
             for child in widget.children():
@@ -863,69 +959,80 @@ class WinAction(WinActionSub):
 
         def save(role):
             # 初始化一个列表，用于存放所有选中 checkbox 的名字
-            checked_checkbox_names = get_checked_boxes(linerolew)
+            checked_checkbox_names = get_checked_boxes(box)
+            default_role = self.cfg.get('voice_role', 'No')
 
             if len(checked_checkbox_names) < 1:
-                return QtWidgets.QMessageBox.critical(linerolew, config.transobj['anerror'],
-                                                      config.transobj['zhishaoxuanzeyihang'])
+                return
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
                 # 设置labe为角色名
-                ck = linerolew.findChild(QtWidgets.QCheckBox, n)
-                ck.setText(config.transobj['default'] if role in ['No', 'no', '-'] else role)
+                ck = box.findChild(QtWidgets.QCheckBox, n)
+                ck.setText(default_role if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
-                config.line_roles[line] = self.cfg['voice_role'] if role in ['No', 'no', '-'] else role
+                config.line_roles[line] = default_role if role in ['No', 'no', '-'] else role
+            print(f'{config.line_roles=}')
 
-        from videotrans.component import SetLineRole
-        linerolew = config.child_forms.get('linerolew')
-        if linerolew is not None:
-            linerolew.show()
-            linerolew.raise_()
-            linerolew.activateWindow()
-            return
-        linerolew = SetLineRole()
-        config.child_forms['linerolew'] = linerolew
         box = QtWidgets.QWidget()
+        box.setObjectName('box_name')
         box.setLayout(QtWidgets.QVBoxLayout())
-        if self.cfg['voice_role'].lower() in ['-', 'no']:
-            return QtWidgets.QMessageBox.critical(linerolew, config.transobj['anerror'],
-                                                  config.transobj['xianxuanjuese'])
-        if not self.main.target_subtitle_area.toPlainText().strip():
-            return QtWidgets.QMessageBox.critical(linerolew, config.transobj['anerror'],
-                                                  config.transobj['youzimuyouset'])
 
         #  获取字幕
-        srt_json = tools.get_subtitle_from_srt(self.main.target_subtitle_area.toPlainText().strip(), is_file=False)
+        srt_json = tools.get_subtitle_from_srt(srt_str, is_file=False)
         for it in srt_json:
             # 创建新水平布局
+            v_layout = QtWidgets.QVBoxLayout()
+            v_layout.setObjectName(f'hlayout_{it["line"]}')
             h_layout = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel()
+            label.setText(f'{it["line"]}')
             check = QtWidgets.QCheckBox()
+            check.setToolTip(
+                "选中后可在底部单独设置配音角色" if config.defaulelang == 'zh' else "Check to set the voice role separately at the bottom")
             check.setText(
                 config.line_roles[f'{it["line"]}'] if f'{it["line"]}' in config.line_roles else
-                config.transobj['default'])
+                self.cfg.get('voice_role', 'No'))
             check.setObjectName(f'check_{it["line"]}')
             # 创建并配置 QLineEdit
-            line_edit = QtWidgets.QLineEdit()
+            line_time = QtWidgets.QLineEdit()
+            line_time.setObjectName(f'time_{it["line"]}')
+            # line_time.setFixedWidth(150)
+            line_time.setText(f'{it["time"]}')
+
+            line_edit = QtWidgets.QPlainTextEdit()
+            line_edit.setObjectName(f'text_{it["line"]}')
             line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
-
-            line_edit.setText(f'[{it["line"]}] {it["text"]}')
-            line_edit.setReadOnly(True)
+            line_edit.setPlainText(f'{it["text"]}')
             # 将标签和编辑线添加到水平布局
+            h_layout.addWidget(label)
             h_layout.addWidget(check)
-            h_layout.addWidget(line_edit)
-            box.layout().addLayout(h_layout)
+            h_layout.addStretch()
+            v_layout.addLayout(h_layout)
+            v_layout.addWidget(line_time)
+            v_layout.addWidget(line_edit)
+            box.layout().addLayout(v_layout)
         box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
-        linerolew.select_role.addItems(self.main.current_rolelist)
-        linerolew.set_role_label.setText(config.transobj['shezhijuese'])
 
-        linerolew.select_role.currentTextChanged.connect(save)
+        select_role = QtWidgets.QComboBox()
+        select_role.addItems(self.main.current_rolelist)
+        # select_role.setFixedWidth(200)
+        select_role.setFixedHeight(35)
+        select_role.currentTextChanged.connect(save)
+        if self.cfg.get('voice_role', '-') in ['-', 'No']:
+            select_role.setDisabled(True)
+        label_role = QtWidgets.QLabel()
+        label_role.setText('单独设置角色' if config.defaulelang == 'zh' else 'Select Role')
+
+        h1 = QtWidgets.QHBoxLayout()
+        h1.addWidget(label_role)
+        h1.addWidget(select_role)
+
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidget(box)
         scroll_area.setWidgetResizable(True)
         scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 将 QScrollArea 添加到主窗口的 layout
-        linerolew.layout.addWidget(scroll_area)
-        linerolew.set_ok.clicked.connect(lambda: linerolew.close())
-        linerolew.show()
+        self.main.target_subtitle_area.addWidget(scroll_area)
+        self.main.target_subtitle_area.addLayout(h1)

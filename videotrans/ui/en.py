@@ -25,8 +25,8 @@ class Ui_MainWindow(object):
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
         self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.splitter.setMaximumWidth(700)
-        self.splitter.setMinimumWidth(380)
+        # self.splitter.setMaximumWidth(700)
+        self.splitter.setMinimumWidth(500)
 
         self.layoutWidget = QtWidgets.QWidget(self.splitter)
         self.layoutWidget.setObjectName("layoutWidget")
@@ -103,7 +103,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.label_9)
         self.horizontalLayout_5.addWidget(self.translate_type)
 
-        # 原始语言 目标语言 start       
+        # 原始语言 目标语言 start
         self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_2.setMinimumSize(QtCore.QSize(0, 30))
         self.label_2.setStyleSheet("""background-color:transparent""")
@@ -565,44 +565,49 @@ class Ui_MainWindow(object):
         self.verticalLayoutWidget = QtWidgets.QWidget(self.splitter)
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
 
-        self.subtitle_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.subtitle_layout = QtWidgets.QHBoxLayout(self.verticalLayoutWidget)
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
 
+        source_area_layout=QtWidgets.QVBoxLayout()
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.subtitle_area.setPlaceholderText(
             f"{config.transobj['zimubianjitishi']}\n\n{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
-
-        self.subtitle_hbox_layout=QtWidgets.QHBoxLayout()
-        self.subtitle_hbox_layout.addWidget(self.subtitle_area,1)
-
-        self.target_subtitle_area=QtWidgets.QPlainTextEdit()
-        self.target_subtitle_area.setPlaceholderText('翻译后的字幕' if config.defaulelang=='zh' else 'Translated Subtitle')
-        self.target_subtitle_area.setVisible(False)
-        self.subtitle_hbox_layout.addWidget(self.target_subtitle_area,1)
-
-
-        self.subtitle_layout.addLayout(self.subtitle_hbox_layout)
-
-        self.layout_sub_bottom = QtWidgets.QHBoxLayout()
-        self.layout_sub_bottom.setObjectName("layout_sub_bottom")
-
-        #
         self.import_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.import_sub.setObjectName("import_sub")
-        self.layout_sub_bottom.addWidget(self.import_sub)
+        source_area_layout.addWidget(self.subtitle_area)
+        source_area_layout.addWidget(self.import_sub)
+
+        # self.subtitle_hbox_layout=QtWidgets.QHBoxLayout()
+        # self.subtitle_hbox_layout.addWidget(self.subtitle_area,1)
+
+        self.target_subtitle_area= QtWidgets.QVBoxLayout() #QtWidgets.QPlainTextEdit()
+        # self.target_subtitle_area.setPlaceholderText('翻译后的字幕' if config.defaulelang=='zh' else 'Translated Subtitle')
+        # self.target_subtitle_area.setVisible(False)
+        # self.subtitle_hbox_layout.addWidget(self.target_subtitle_area,1)
+
+
+        self.subtitle_layout.addLayout(source_area_layout)
+        self.subtitle_layout.addLayout(self.target_subtitle_area)
+
+        # self.layout_sub_bottom = QtWidgets.QHBoxLayout()
+        # self.layout_sub_bottom.setObjectName("layout_sub_bottom")
+
         #
-        self.export_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.export_sub.setObjectName("export_sub")
+
+        # self.layout_sub_bottom.addWidget(self.import_sub)
         #
-        self.layout_sub_bottom.addWidget(self.export_sub)
+        # self.export_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        # self.export_sub.setObjectName("export_sub")
         #
-        self.set_line_role = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.set_line_role.setObjectName("set_line_role")
+        # self.layout_sub_bottom.addWidget(self.export_sub)
         #
-        self.layout_sub_bottom.addWidget(self.set_line_role)
-        self.subtitle_layout.addLayout(self.layout_sub_bottom)
+        # self.set_line_role = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        # self.set_line_role.setObjectName("set_line_role")
+        #
+        # self.layout_sub_bottom.addWidget(self.set_line_role)
+        # self.subtitle_layout.addLayout(self.layout_sub_bottom)
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -998,7 +1003,7 @@ class Ui_MainWindow(object):
         self.stop_djs.setText(config.uilanglist.get("Pause"))
         self.import_sub.setText(config.uilanglist.get("Import srt"))
 
-        self.set_line_role.setText(config.uilanglist.get("Set role by line"))
+        # self.set_line_role.setText(config.uilanglist.get("Set role by line"))
         self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
         self.menu_TTS.setTitle(config.uilanglist.get("&TTSsetting"))
         self.menu_RECOGN.setTitle(config.uilanglist.get("&RECOGNsetting"))

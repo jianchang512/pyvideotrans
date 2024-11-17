@@ -123,7 +123,7 @@ class FasterAll(BaseRecogn):
         except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
             self.error=str(e)
         except Exception as e:
-            self.error=f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}"
+            self.error=f"{e}"
         finally:
             config.model_process = None
             self.has_done = True

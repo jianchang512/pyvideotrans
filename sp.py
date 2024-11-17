@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # 代码是一坨屎，但又不是不能跑O(∩_∩)O~
+# 代码越写越是坨屎，好烦
 import multiprocessing
 import sys, os
 import time

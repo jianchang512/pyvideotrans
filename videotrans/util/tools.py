@@ -451,22 +451,35 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     file_name=""
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
-    # 启用了CUDA 并且没有禁用GPU
     # 默认视频编码 libx264 / libx265
     default_codec = f"libx{config.settings['video_codec']}"
 
+    # 尝试cuda加速解码编码
     if not force_cpu and default_codec in arg and config.video_codec != default_codec:
         if not config.video_codec:
             config.video_codec = get_video_codec()
-
+        # 判断第一个输入是不是mp4，是则尝试cuda解码
+        has_mp4=False
+        # 插入解码位置
+        insert_index=-1
         for i, it in enumerate(arg):
+            if insert_index==-1 and arg[i]=='-i':
+                insert_index=i
+                has_mp4=True if arg[i+1][-3:] in ['mp4','txt'] else False
+                
             if i > 0 and arg[i - 1] == '-c:v' and arg[i] !='copy':
                 arg[i] = config.video_codec
             elif it == '-crf' and config.settings['cuda_qp'] and re.search(r'\sh(264|evc)_nvenc\s'," ".join(cmd),re.I):
                 arg[i] = '-qp'
                 if arg[i]=='copy':
                     arg[i+1]='0'
-
+        # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
+        # 因显卡兼容性，出错率较高
+        if config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
+            arg.insert(i,'h264_cuvid' if config.video_codec=='h264_nvenc' else 'hevc_cuvid')
+            arg.insert(i,'-c:v')
+            arg.insert(i,'cuda')
+            arg.insert(i,'-hwaccel')
 
     cmd += arg
     if Path(cmd[-1]).is_file():
