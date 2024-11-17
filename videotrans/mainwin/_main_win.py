@@ -177,7 +177,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.proxy.setText(config.proxy)
         self.continue_compos.setToolTip(config.transobj['Click to start the next step immediately'])
         self.split_type.addItems([config.transobj['whisper_type_all'], config.transobj['whisper_type_avg']])
-        self.export_sub.setText(config.transobj['Export srt'])
+        # self.export_sub.setText(config.transobj['Export srt'])
         self.subtitle_type.addItems(
             [
                 config.transobj['nosubtitle'],
@@ -237,10 +237,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
         self.source_language.currentTextChanged.connect(self.win_action.source_language_change)
 
-        self.set_line_role.clicked.connect(self.win_action.set_line_role_fun)
+        # self.set_line_role.clicked.connect(self.win_action.set_line_role_fun)
         self.proxy.textChanged.connect(self.win_action.change_proxy)
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)
-        self.export_sub.clicked.connect(self.win_action.export_sub_fun)
+        # self.export_sub.clicked.connect(self.win_action.export_sub_fun)
         self.startbtn.clicked.connect(self.win_action.check_start)
         self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
         self.btn_get_video.clicked.connect(self.win_action.get_mp4)
@@ -262,8 +262,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_subform(self):
         self.import_sub.setCursor(Qt.PointingHandCursor)
-        self.export_sub.setCursor(Qt.PointingHandCursor)
-        self.set_line_role.setCursor(Qt.PointingHandCursor)
+        # self.export_sub.setCursor(Qt.PointingHandCursor)
+        # self.set_line_role.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.stop_djs.setCursor(Qt.PointingHandCursor)
         self.continue_compos.setCursor(Qt.PointingHandCursor)

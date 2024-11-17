@@ -84,8 +84,6 @@ class FasterAvg(BaseRecogn):
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
                 else:
                     self.raws = list(raws)
-                    #if self.detect_language=='auto' and self.inst and hasattr(self.inst,'set_source_language'):
-                    #    self.inst.set_source_language(detect['langcode'])
                 try:
                     if process.is_alive():
                         process.terminate()
@@ -94,7 +92,7 @@ class FasterAvg(BaseRecogn):
         except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
             raise
         except Exception as e:
-            raise Exception(f"faster-whisper进程崩溃，请尝试使用openai-whisper模式或查看解决方案 https://pyvideotrans.com/12.html   :{e}")
+            raise Exception(f"{e}")
         finally:
             config.model_process = None
             self.has_done = True

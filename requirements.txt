@@ -27,8 +27,8 @@ soundfile
 SpeechRecognition
 tencentcloud-sdk-python-common
 tencentcloud-sdk-python-tmt
-torch==2.2.0
-torchaudio==2.2.0
+torch
+torchaudio
 zhconv
 azure-cognitiveservices-speech
 pydantic==2.4.2
