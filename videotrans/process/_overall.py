@@ -76,7 +76,6 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             vad_parameters=dict(
                 min_silence_duration_ms=int(settings['min_silence_duration_ms']),
                 max_speech_duration_s= int(settings['max_speech_duration_s']) if int(settings['max_speech_duration_s'])>0 else float('inf'),
-                threshold=int(settings['threshold']),
                 speech_pad_ms=int(settings['speech_pad_ms'])
             ),
             word_timestamps=True,

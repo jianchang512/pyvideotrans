@@ -167,7 +167,9 @@ def openwin(model_name=None, recogn_type=None):
             url = config.MODELS_DOWNLOAD['faster'][model_name]
             zipname = url.split('/')[-1].replace('?download=true', '')
             folder_name = f'models--Systran--faster-whisper-{model_name}'
-            if model_name.startswith('distil'):
+            if model_name=='large-v3-turbo': 
+                folder_name = f'models--mobiuslabsgmbh--faster-whisper-{model_name}'
+            elif model_name.startswith('distil'):
                 folder_name = f'models--Systran--faster-{model_name}'
             text_help = f'如果在线下载失败，请点击打开浏览器下载，下载 {zipname} 后将该压缩包内的文件夹 {folder_name} 复制到 {config.ROOT_DIR}/models 文件夹内' if config.defaulelang == 'zh' else f'Please download {zipname}, open the zip file, and copy the folder {folder_name} into {config.ROOT_DIR}/models folder.'
 
