@@ -68,9 +68,10 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
         if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
             return 'download'
         return True
-
     file = f'{config.ROOT_DIR}/models/models--Systran--faster-whisper-{name}/snapshots'
-    if name.startswith('distil'):
+    if name=='large-v3-turbo':
+        file = f'{config.ROOT_DIR}/models/models--mobiuslabsgmbh--faster-whisper-{name}/snapshots'
+    elif name.startswith('distil'):
         file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
     if not Path(file).exists():
         return 'download'
