@@ -7,6 +7,7 @@ from videotrans.configure import config
 
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
+from videotrans.task._remove_noise import remove_noise
 from videotrans.util import tools
 
 """
@@ -68,6 +69,9 @@ class SpeechToText(BaseTask):
                 break
             time.sleep(1)
         try:
+            if self.cfg['remove_noise']:
+                self._signal(text='开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang=='zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient')
+                self.cfg['shibie_audio']=remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/remove_noise.wav")
 
             raw_subtitles = run(
                 # faster-whisper openai-whisper googlespeech

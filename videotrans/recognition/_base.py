@@ -74,7 +74,9 @@ class BaseRecogn(BaseCon):
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             msg = f'{str(e)}'
-            if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
+            if re.search(r'cudaErrorNoKernelImageForDevice', msg, re.I) is not None:
+                msg=f'请升级显卡驱动并安装CUDA 12.x，如果已是该版本，可能你的显卡太旧不兼容pytorch2.5，请取消CUDA加速:{msg}' if config.defaulelang=='zh' else f'Please upgrade your graphics card driver and install CUDA 12.x, or cancel CUDA acceleration:{msg}'
+            elif re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 {msg} ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
             elif re.search(r'out\s+?of.*?memory', msg, re.I):
                 msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'

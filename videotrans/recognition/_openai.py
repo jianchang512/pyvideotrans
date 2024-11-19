@@ -19,6 +19,20 @@ class OpenaiWhisperRecogn(BaseRecogn):
         super().__init__(*args, **kwargs)
         self.raws = []
         self.model = None
+    def get_srtlist(self,alllist):
+        jianfan=config.settings.get('zh_hant_s')
+        for i in alllist:
+            if len(i['words'])<1:
+                continue
+            tmp = {
+                'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
+                'start_time': int(i['words'][0]['start'] * 1000),
+                'end_time': int(i['words'][-1]['end'] * 1000)
+            }
+            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+            self.raws.append(tmp)    
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -65,8 +79,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 if self.detect_language=='auto' and last_detect=='auto':
                     last_detect='zh-cn' if result['language'][:2]=='zh' else result['language']
                     self.detect_language=last_detect
-                    #if self.inst and hasattr(self.inst,'set_source_language'):
-                    #    self.inst.set_source_language(last_detect)
                 nums=0
                 for segment in result['segments']:
                     if self._exit():
@@ -85,25 +97,16 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     )
             if len(alllist)>0:
                 if not config.settings['rephrase'] or self.detect_language[:2] !='zh':
-                    jianfan=config.settings.get('zh_hant_s')
-                    for i in alllist:
-                        if len(i['words'])<1:
-                            continue
-                        tmp = {
-                            'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
-                            'start_time': int(i['words'][0]['start'] * 1000),
-                            'end_time': int(i['words'][-1]['end'] * 1000)
-                        }
-                        tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                        tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-                        tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                        self.raws.append(tmp)
+                    self.get_srtlist(alllist)                    
                 else:
-                    words_list = []
-                    for it in list(alllist):
-                        words_list += it['words']
-                    self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                    self.raws = self.re_segment_sentences(words_list)
+                    try:
+                        words_list = []
+                        for it in list(alllist):
+                            words_list += it['words']
+                        self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
+                        self.raws = self.re_segment_sentences(words_list)
+                    except:
+                        self.get_srtlist(alllist)
         except Exception as e:
             raise
         finally:

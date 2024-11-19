@@ -226,6 +226,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
         self.rephrase.setChecked(config.settings.get('rephrase'))
+        self.remove_noise.setChecked(config.params.get('remove_noise'))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume',0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio',True)))

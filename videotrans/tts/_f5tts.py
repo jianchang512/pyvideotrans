@@ -1,6 +1,6 @@
 import copy
 import json
-import os
+import os,re
 import time
 from pathlib import Path
 from typing import Union, Dict, List
@@ -24,27 +24,53 @@ class F5TTS(BaseTTS):
             self.api_url+='/api'
         self.proxies={"http": "", "https": ""}
     
-    def replace_digits_with_chinese(self,text):
-        # 创建映射表，将 '0'-'9' 映射为中文数字
-        translation_table = str.maketrans('0123456789', '零一二三四五六七八九')
-        # 使用 translate 方法替换字符
-        return text.translate(translation_table)
+
     
     def _exec(self):
         self._local_mul_thread()
+
+    def convert_numbers_in_text(self,text):
+        """
+        将文本中的数字0-9转换为中文或英文，原地修改文本。
+
+        Args:
+            text: 输入文本字符串。
+        """
+
+        def replace_with_chinese(match):
+            num = int(match.group(0))
+            chinese_nums = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
+            return chinese_nums[num]
+
+        def replace_with_english(match):
+            num = int(match.group(0))
+            english_nums = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+            return english_nums[num]
+
+        # 使用正则表达式查找所有数字
+        if self.language.startswith('zh'):
+            return re.sub(r'[0-9]', replace_with_chinese, text) #修改为中文
+        return re.sub(r'\b[0-9]\b', replace_with_english, text) #修改为英文
+
 
     def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit():
             return
         if not data_item:
             return
+        speed=1.0
         try:
-            text = self.replace_digits_with_chinese(data_item['text'].strip()) if self.language.startswith('zh') else data_item['text'].strip()
+            speed=1+float(self.rate.replace('%',''))/100
+        except:
+            pass
+        try:
+            text = self.convert_numbers_in_text(data_item['text'].strip())
             role = data_item['role']
             if not text:
                 return
-            data = {"model":config.params['f5tts_model']}
+            data = {"model":config.params['f5tts_model'],'speed':speed}
             data['gen_text']=text
+            
             if role=='clone':
                 with open(data_item['filename'],'rb') as f:
                     chunk=f.read()

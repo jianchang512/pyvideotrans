@@ -38,6 +38,7 @@ class Ui_infoform(object):
 
 Email: jianchang512@gmail.com
 文档站/下载: pyvideotrans.com
+微信群: 加微信号(pyvideotranscom)邀请入群
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
 """ if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
 All code is open source and can be reviewed.

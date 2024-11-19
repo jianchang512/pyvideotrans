@@ -20,6 +20,7 @@ from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS
 from videotrans.util import tools
 from ._base import BaseTask
 from ._rate import SpeedRate
+from ._remove_noise import remove_noise
 
 
 class TransCreate(BaseTask):
@@ -32,6 +33,7 @@ class TransCreate(BaseTask):
         cfg_default = {
             "cache_folder": None,
             "target_dir": None,
+            "remove_noise":False,
 
             "detect_language": None,
             'subtitle_language': None,
@@ -283,6 +285,9 @@ class TransCreate(BaseTask):
             if not tools.vail_file(self.cfg['shibie_audio']):
                 tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
             # todo
+            if self.cfg['remove_noise']:
+                self.status_text='开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang=='zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient'
+                self.cfg['shibie_audio']=remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/remove_noise.wav")
             self.status_text = '语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing'
             raw_subtitles = run_recogn(
                 # faster-whisper openai-whisper googlespeech
@@ -508,8 +513,10 @@ class TransCreate(BaseTask):
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'])
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-        except:
-            pass
+        except Exception as e:
+            config.logger.exception(e, exc_info=True)
+            print(f'eee{e}')
+            # pass
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self) -> None:
@@ -773,6 +780,10 @@ class TransCreate(BaseTask):
             config.settings['other_len'])
         target_sub_list = tools.get_subtitle_from_srt(self.cfg['target_sub'])
 
+        if self.cfg['subtitle_type'] in [3, 4] and not Path(self.cfg['source_sub']).exists():
+            config.logger.info(f'无源语言字幕，使用目标语言字幕')
+            self.cfg['subtitle_type']=1 if self.cfg['subtitle_type']==3 else 2
+
         # 双硬 双软字幕组装
         if self.cfg['subtitle_type'] in [3, 4]:
             maxlen_source = int(
@@ -909,6 +920,8 @@ class TransCreate(BaseTask):
                     # 需要配音+硬字幕
                     tools.runffmpeg([
                         "-y",
+                        "-threads",
+                        f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -972,6 +985,8 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlyyingzimu'])
                 cmd = [
                     "-y",
+                    "-threads",
+                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",

@@ -165,6 +165,10 @@ class Ui_recogn(object):
         self.rephrase.setText('中文重新断句' if config.defaulelang=='zh' else 'Chinese Rephrase')
         self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram并且发音语言为中文时可选择是否重新断句')
 
+        self.remove_noise=QtWidgets.QCheckBox()
+        self.remove_noise.setText('降噪处理' if config.defaulelang=='zh' else 'Noise reduction')
+        self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
+
         h4.addStretch()
         h4.addWidget(self.shibie_startbtn)
         h4.addWidget(self.shibie_stop)
@@ -174,6 +178,7 @@ class Ui_recogn(object):
         h4.addWidget(self.label_othlinenums)
         h4.addWidget(self.othlinenums)
         h4.addWidget(self.rephrase)
+        h4.addWidget(self.remove_noise)
 
         h4.addStretch()
 

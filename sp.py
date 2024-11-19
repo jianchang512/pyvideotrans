@@ -52,9 +52,8 @@ class StartWindow(QtWidgets.QWidget):
         import videotrans.ui.dark.darkstyle_rc
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
+        from videotrans.configure import config
         try:
-            
-            from videotrans.configure import config
             from videotrans.mainwin._main_win import MainWindow
             sets=QSettings("pyvideotrans", "settings")
             w,h=int(self.width*0.85), int(self.height*0.85)
@@ -69,7 +68,11 @@ class StartWindow(QtWidgets.QWidget):
         except Exception as e:
             import traceback
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.critical(self,"Error",traceback.format_exc())
+            msg=traceback.format_exc()
+            if msg.find('torch._C')>0:
+                QtWidgets.QMessageBox.critical(startwin,"Error",'因底层torch升级，请重新下载完整包' if config.defaulelang=='zh' else 'Please download the full package again')
+            else:
+                QtWidgets.QMessageBox.critical(startwin,"Error",msg)
 
         print(time.time())
         QTimer.singleShot(1000, lambda :self.close())
@@ -88,6 +91,7 @@ if __name__ == "__main__":
         pass
 
     app = QtWidgets.QApplication(sys.argv)
+    startwin = None
     try:
         startwin = StartWindow()
     except Exception as e:

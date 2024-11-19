@@ -41,6 +41,21 @@ class FasterAll(BaseRecogn):
                 print(e)
             time.sleep(0.2)
 
+    def get_srtlist(self,raws):
+        jianfan=config.settings.get('zh_hant_s')
+        for i in list(raws):
+            if len(i['words'])<1:
+                continue
+            tmp={
+                'text':zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
+                'start_time':int(i['words'][0]['start']*1000),
+                'end_time':int(i['words'][-1]['end']*1000)
+            }
+            tmp['startraw']=tools.ms_to_time_string(ms=tmp['start_time'])
+            tmp['endraw']=tools.ms_to_time_string(ms=tmp['end_time'])
+            tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
+            self.raws.append(tmp)
+
     def _exec(self):
         while 1:
             if self._exit():
@@ -94,27 +109,18 @@ class FasterAll(BaseRecogn):
                     if self.detect_language=='auto' and self.inst and  hasattr(self.inst,'set_source_language'):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
-                        #self.inst.set_source_language(detect['langcode'])
-                    jianfan=config.settings.get('zh_hant_s')
+                        
                     if not config.settings['rephrase'] or self.detect_language[:2]!='zh':
-                        for i in list(raws):
-                            if len(i['words'])<1:
-                                continue
-                            tmp={
-                                'text':zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2]=='zh' else i['text'],
-                                'start_time':int(i['words'][0]['start']*1000),
-                                'end_time':int(i['words'][-1]['end']*1000)
-                            }
-                            tmp['startraw']=tools.ms_to_time_string(ms=tmp['start_time'])
-                            tmp['endraw']=tools.ms_to_time_string(ms=tmp['end_time'])
-                            tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
-                            self.raws.append(tmp)
+                        self.get_srtlist(raws)
                     else:
-                        words_list=[]
-                        for it in list(raws):
-                            words_list+=it['words']
-                        self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                        self.raws=self.re_segment_sentences(words_list)
+                        try:
+                            words_list=[]
+                            for it in list(raws):
+                                words_list+=it['words']
+                            self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
+                            self.raws=self.re_segment_sentences(words_list)
+                        except:
+                            self.get_srtlist(raws)
                 try:
                     if process.is_alive():
                         process.terminate()

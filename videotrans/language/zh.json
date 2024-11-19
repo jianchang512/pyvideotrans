@@ -75,7 +75,7 @@
     "Unable to connect to the API": "无法连接到该API，请检查网络",
     "bixutianxiecloneapi": "TTS类型如何选择 clone-voice ,就必须先部署clone-voice, 并在 菜单栏-设置-原音色克隆api 中填写API地址",
     "Save": "保存",
-    "Open Documents": "打开文档站点",
+    "Open Documents": "查看使用文档",
     "Preserve the original sound in the video": "保留视频中原声音",
     "Clone voice cannot be used in subtitle dubbing mode as there are no replicable voices": "字幕配音模式下不可使用clone-voice,因为不存在可复制的音色",
     "lanjie": "已限制",
