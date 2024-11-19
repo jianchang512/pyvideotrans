@@ -501,6 +501,7 @@ class WinAction(WinActionSub):
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
             self.cfg['app_mode'] = self.main.app_mode
 
+        self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
         config.params.update(self.cfg)
         config.getset_params(config.params)
         self.delete_process()
@@ -532,7 +533,7 @@ class WinAction(WinActionSub):
             f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
-        QTimer.singleShot(50, self.create_btns)
+        tools.set_process(text='start', type='create_btns')
 
     def click_subtitle(self):
         dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
@@ -565,7 +566,6 @@ class WinAction(WinActionSub):
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def create_btns(self):
-
         target_dir = Path(self.main.target_dir if self.main.target_dir else Path(
             self.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
         self.cfg["target_dir"] = target_dir
@@ -577,15 +577,13 @@ class WinAction(WinActionSub):
             obj = tools.format_video(video_path, target_dir)
             new_name.append(obj['name'])
             self.obj_list.append(obj)
+            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
 
         self.queue_mp4 = new_name
         txt = self.main.subtitle_area.toPlainText().strip()
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
-
-        for it in self.obj_list:
-            self.add_process_btn(target_dir=Path(it['target_dir']).as_posix(), name=it['name'], uuid=it['uuid'])
 
         # 启动任务
         tools.set_process(text=config.transobj['kaishichuli'], uuid=self.obj_list[0]['uuid'])
@@ -744,7 +742,8 @@ class WinAction(WinActionSub):
                     # self.main.target_subtitle_area.clear()
                     # self.main.subtitle_area.clear()
                     pass
-
+        elif d['type']=='create_btns':
+            self.create_btns()
         # 任务开始执行，初始化按钮等
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end

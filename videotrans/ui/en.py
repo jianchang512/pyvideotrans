@@ -82,7 +82,16 @@ class Ui_MainWindow(object):
         self.only_video.setText(config.uilanglist['onlyvideo'])
         self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
 
+        self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
+        self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
+        self.shutdown.setObjectName("shutdown")
+        self.shutdown.setToolTip(
+            '完成全部任务后自动关机' if config.defaulelang == 'zh' else 'Automatic shutdown after completing all tasks')
+        self.shutdown.setText('完成后关机' if config.defaulelang == 'zh' else 'Automatic shutdown')
+        self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
         self.horizontalLayout_6.addWidget(self.only_video)
+        self.horizontalLayout_6.addWidget(self.shutdown)
         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
 
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
@@ -264,6 +273,9 @@ class Ui_MainWindow(object):
         self.rephrase=QtWidgets.QCheckBox()
         self.rephrase.setText('中文重新断句' if config.defaulelang=='zh' else 'Chinese Rephrase')
         self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram并且发音语言为中文时可选择是否重新断句')
+        self.remove_noise=QtWidgets.QCheckBox()
+        self.remove_noise.setText('降噪处理' if config.defaulelang=='zh' else 'Noise reduction')
+        self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
@@ -273,6 +285,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.split_type)
         self.horizontalLayout_4.addLayout(self.equal_split_layout)
         self.horizontalLayout_4.addWidget(self.rephrase)
+        self.horizontalLayout_4.addWidget(self.remove_noise)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
         # 语音识别高级行
@@ -494,13 +507,7 @@ class Ui_MainWindow(object):
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.enable_cuda.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
-        self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
-        self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
-        self.shutdown.setObjectName("shutdown")
-        self.shutdown.setToolTip(
-            '完成全部任务后自动关机' if config.defaulelang == 'zh' else 'Automatic shutdown after completing all tasks')
-        self.shutdown.setText('完成后关机' if config.defaulelang == 'zh' else 'Automatic shutdown')
-        self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
 
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -514,7 +521,6 @@ class Ui_MainWindow(object):
         vhlayout = QtWidgets.QVBoxLayout()
         vhlayout.setAlignment(Qt.AlignVCenter)
         vhlayout.addWidget(self.enable_cuda)
-        vhlayout.addWidget(self.shutdown)
 
         self.horizontalLayout_3.addLayout(vhlayout)
         self.horizontalLayout_3.addWidget(self.startbtn)
@@ -578,36 +584,12 @@ class Ui_MainWindow(object):
         self.import_sub.setObjectName("import_sub")
         source_area_layout.addWidget(self.subtitle_area)
         source_area_layout.addWidget(self.import_sub)
-
-        # self.subtitle_hbox_layout=QtWidgets.QHBoxLayout()
-        # self.subtitle_hbox_layout.addWidget(self.subtitle_area,1)
-
-        self.target_subtitle_area= QtWidgets.QVBoxLayout() #QtWidgets.QPlainTextEdit()
-        # self.target_subtitle_area.setPlaceholderText('翻译后的字幕' if config.defaulelang=='zh' else 'Translated Subtitle')
-        # self.target_subtitle_area.setVisible(False)
-        # self.subtitle_hbox_layout.addWidget(self.target_subtitle_area,1)
+        self.target_subtitle_area= QtWidgets.QVBoxLayout()
 
 
         self.subtitle_layout.addLayout(source_area_layout)
         self.subtitle_layout.addLayout(self.target_subtitle_area)
 
-        # self.layout_sub_bottom = QtWidgets.QHBoxLayout()
-        # self.layout_sub_bottom.setObjectName("layout_sub_bottom")
-
-        #
-
-        # self.layout_sub_bottom.addWidget(self.import_sub)
-        #
-        # self.export_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        # self.export_sub.setObjectName("export_sub")
-        #
-        # self.layout_sub_bottom.addWidget(self.export_sub)
-        #
-        # self.set_line_role = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        # self.set_line_role.setObjectName("set_line_role")
-        #
-        # self.layout_sub_bottom.addWidget(self.set_line_role)
-        # self.subtitle_layout.addLayout(self.layout_sub_bottom)
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -1003,7 +985,6 @@ class Ui_MainWindow(object):
         self.stop_djs.setText(config.uilanglist.get("Pause"))
         self.import_sub.setText(config.uilanglist.get("Import srt"))
 
-        # self.set_line_role.setText(config.uilanglist.get("Set role by line"))
         self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
         self.menu_TTS.setTitle(config.uilanglist.get("&TTSsetting"))
         self.menu_RECOGN.setTitle(config.uilanglist.get("&RECOGNsetting"))
@@ -1044,7 +1025,7 @@ class Ui_MainWindow(object):
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
-        self.action_blog.setText("在线体验" if config.defaulelang == 'zh' else 'Online Experience')
+        self.action_blog.setText("更新地址" if config.defaulelang == 'zh' else 'Upgrade URL')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_dll.setText(config.uilanglist["Download cuBLASxx.dll"])
         self.action_gtrans.setText(config.transobj["miandailigoogle"])

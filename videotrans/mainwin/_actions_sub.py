@@ -131,6 +131,8 @@ class WinActionSub:
         self.main.subtitle_type.hide()
         self.main.rephrase.setChecked(False)
         self.main.rephrase.hide()
+        self.main.remove_noise.setChecked(False)
+        self.main.remove_noise.hide()
 
 
 
@@ -212,8 +214,8 @@ class WinActionSub:
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.show()
-        # self.main.rephrase.setChecked(False)
         self.main.rephrase.show()
+        self.main.remove_noise.show()
 
         # 字幕对齐行
         self.main.align_btn.show()
@@ -290,8 +292,8 @@ class WinActionSub:
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.hide()
-        # self.main.rephrase.setChecked(False)
         self.main.rephrase.show()
+        self.main.remove_noise.show()
 
         # 字幕对齐行
         self.main.align_btn.hide()

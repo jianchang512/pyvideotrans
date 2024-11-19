@@ -179,7 +179,9 @@ def openwin():
                     "is_cuda": is_cuda,
                     "target_dir": RESULT_DIR,
                     "detect_language": langcode,
-                    "out_format":winobj.out_format.currentText()
+                    "out_format":winobj.out_format.currentText(),
+                    "remove_noise":winobj.remove_noise.isChecked()
+
                 }, it)
                 config.prepare_queue.append(trk)
             th = SignThread(uuid_list=uuid_list, parent=winobj)
@@ -188,6 +190,7 @@ def openwin():
             config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
             config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
             config.params["stt_model_name"]=winobj.shibie_model.currentText()
+            config.params["remove_noise"]=winobj.remove_noise.isChecked()
             config.getset_params(config.params)
 
         except Exception as e:
@@ -318,6 +321,7 @@ def openwin():
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.rephrase.setChecked(config.settings.get('rephrase'))
+        winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
 
         default_lang=int(config.params.get('stt_source_language',0))
         winobj.shibie_language.setCurrentIndex(default_lang)

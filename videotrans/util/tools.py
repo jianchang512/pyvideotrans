@@ -652,6 +652,8 @@ def get_codec_name(file_path):
 def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
     cmd = [
         "-y",
+        "-threads",
+        f'{os.cpu_count()}',
         "-i",
         Path(source_mp4).as_posix(),
         "-an",
@@ -841,7 +843,7 @@ def concat_multi_mp4(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
     os.chdir(os.path.dirname(concat_txt))
     runffmpeg(
-        ['-y', '-f', 'concat', '-i', concat_txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
+        ['-y',"-threads",f'{os.cpu_count()}', '-f', 'concat', '-i', concat_txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
          f'{config.settings["crf"]}', '-preset', config.settings['preset'], out])
     os.chdir(config.ROOT_DIR)
     return True
@@ -853,7 +855,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    runffmpeg(['-y', '-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
+    runffmpeg(['-y',"-threads",f'{os.cpu_count()}', '-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
     os.chdir(config.TEMP_DIR)
     return True
 
@@ -1159,6 +1161,8 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
         "-y",
+        "-threads",
+        f'{os.cpu_count()}',
         "-ss",
         format_time(ss, '.')]
     if to != '':
@@ -1364,13 +1368,13 @@ def open_url(url=None, title: str = None):
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://tts.pyvideotrans.com/",
+        'blog': "https://pyvideotrans.com/downpackage",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
         'discord': "https://discord.gg/7ZWbwKGMcx",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
-        'dll': "https://github.com/jianchang512/stt/releases/tag/v0.0.1",
+        'dll': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
         'gtrans': "https://pyvideotrans.com/15.html",
         'cuda': "https://pyvideotrans.com/gpu.html",

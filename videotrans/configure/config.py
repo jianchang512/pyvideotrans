@@ -277,7 +277,7 @@ def parse_init():
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "audio_rate": 3,
         "video_rate": 20,
-        "video_goback":50,
+        "video_goback":1,
         "remove_silence": False,
         "remove_srt_silence": False,
         "remove_white_ms": 0,
@@ -294,6 +294,7 @@ def parse_init():
         "overall_maxsecs":12000,
 
         "rephrase":False,
+
         "voice_silence": 200,
         "interval_split": 10,
         "bgm_split_time": 300,
@@ -538,6 +539,7 @@ Translation:"""
 
         "only_video": False,
         "is_separate": False,
+        "remove_noise":False,
 
         "target_dir": "",
 
@@ -706,6 +708,7 @@ Translation:"""
         "stt_source_language":0,
         "stt_recogn_type":0,
         "stt_model_name":"",
+        "stt_remove_noise":False,
 
         "deepgram_apikey":"",
         "deepgram_utt":200,

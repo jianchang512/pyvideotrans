@@ -11,7 +11,7 @@ httpx
 huggingface-hub
 librosa
 multidict
-numpy==1.26.4
+numpy==1.26
 onnxruntime
 openai
 openai-whisper
@@ -45,4 +45,8 @@ funasr
 modelscope
 edge-tts
 anthropic
+addict
+datasets==3.0
+simplejson
+sortedcontainers
 samplerate

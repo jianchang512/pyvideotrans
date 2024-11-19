@@ -66,6 +66,8 @@ class SpeedRate:
     # 1. 将每个配音的实际长度加入 dubb_time
     def _add_dubb_time(self):
         length = len(self.queue_tts)
+        # 最后一次
+
         for i, it in enumerate(self.queue_tts):
             if it is None:
                 continue
@@ -104,6 +106,19 @@ class SpeedRate:
                 it['dubb_time'] = 0
                 it['video_extend'] = 0
             self.queue_tts[i] = it
+        if int(config.settings.get('video_goback',1))>0:
+            left_move= 0
+            last_time=0
+            for i, it in enumerate(self.queue_tts):
+                if it is None:
+                    continue
+                # 每3分钟后，在第一个与前一条字幕存在空白大于50ms处，将视频向左移动该空白，防止随着时间延迟配音越来越后移
+                if i>0 and it['start_time']-last_time>=180000 and (it['start_time']-self.queue_tts[i-1]['start_time']>50):
+                    left_move+=it['start_time']-self.queue_tts[i-1]['start_time']
+                    last_time=it['start_time']
+                it['start_time']-=left_move
+                it['end_time']-=left_move
+                self.queue_tts[i] = it
 
     # 2.  移除原字幕多于配音的时长，实际是字幕结束时间向前移动，和下一条之间的空白更加多了
     # 配音时长不变， end_time 时间戳变化， raw_duration变化
@@ -223,7 +238,7 @@ class SpeedRate:
         # 获取视频时长
         length = len(self.queue_tts)
         max_pts = int(float(config.settings.get('video_rate',1)))
-        extra_video_goback=int(config.settings.get('video_goback',0))
+
         # 按照原始字幕截取
         for i, it in enumerate(self.queue_tts):
             jindu = f'{i + 1}/{length}'
@@ -258,7 +273,7 @@ class SpeedRate:
                 # 是否需要延长视频
                 pts = ""
                 if it['video_extend'] > 0 and duration>0:
-                    pts = round((it['video_extend'] + duration+extra_video_goback) / duration, 3)
+                    pts = round((it['video_extend'] + duration) / duration, 3)
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
@@ -300,7 +315,7 @@ class SpeedRate:
                 pts = ""
                 duration = it['end_time_source'] - st_time
                 if it['video_extend'] > 0 and duration>0:
-                    pts = round((it['video_extend'] + duration+extra_video_goback) / duration, 3)
+                    pts = round((it['video_extend'] + duration) / duration, 3)
                     if pts > max_pts:
                         pts = max_pts
                         it['video_extend'] = duration * max_pts - duration
