@@ -621,12 +621,13 @@ class TransCreate(BaseTask):
                         f"背景分离出错,请使用其他角色名" if config.defaulelang == 'zh' else 'Background separation error, please use another character name.')
 
                 if tools.vail_file(self.cfg['source_wav']):
+                    tmp_dict['ref_wav']=config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{i}.wav"
                     tools.cut_from_audio(
                         audio_file=self.cfg['vocal'] if self.cfg[
                             'is_separate'] else self.cfg['source_wav'],
                         ss=it['startraw'],
                         to=it['endraw'],
-                        out_file=tmp_dict['filename']
+                        out_file=tmp_dict['ref_wav']
                     )
             queue_tts.append(tmp_dict)
         self.queue_tts = queue_tts

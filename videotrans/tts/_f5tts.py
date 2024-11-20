@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Union, Dict, List
 
 import requests
+from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
@@ -72,7 +73,15 @@ class F5TTS(BaseTTS):
             data['gen_text']=text
             
             if role=='clone':
-                with open(data_item['filename'],'rb') as f:
+                if not Path(data_item['ref_wav']).exists():
+                    self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang=='zh' else 'No reference audio exists and cannot use clone function'
+                    return
+                audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
+                if len(audio_chunk)<4000:
+                    audio_chunk=audio_chunk*2
+                    audio_chunk.export(data_item['ref_wav'],format='wav')
+
+                with open(data_item['ref_wav'],'rb') as f:
                     chunk=f.read()
                 files={"audio":chunk}
                 data['ref_text']=data_item.get('ref_text').strip()
