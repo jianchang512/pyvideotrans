@@ -353,7 +353,7 @@ def parse_init():
         "google_trans_newadd": "",
         "proxy":"",
         "refine3":False,
-        "gemini_srtprompt":"请将我上传的音频转录为符合srt格式的字幕，请直接返回合法的srt字幕内容，禁止附带任何其他提示,也不要添加任何辅助标记，每条字幕最多2行，最大时长不超过12s" if defaulelang=='zh' else "Please transcribe my uploaded audio into srt format subtitles, please return the legal srt subtitle content directly, do not attach any other cues, and do not add any auxiliary markers, each subtitle can be up to 2 lines, and the maximum length of the subtitle does not exceed 12s."
+        "gemini_srtprompt":"请将我上传的音频转录为符合SRT格式的字幕，请注意时间戳要精确到字级别，转录后返回合法的SRT字幕内容，禁止附带任何提示说明或解释,也不要添加任何辅助标记、html标记，每条字幕最多2行，时长在1秒到12s之间" if defaulelang=='zh' else "Please transcribe the audio I uploaded into subtitles in SRT format. Please note that the timestamp must be accurate to the level of a word, and return the legal SRT subtitle content after the transcription. Do not add any auxiliary marks or HTML tags, and each subtitle can have up to 2 lines, and the duration should be between 1 second and 12 seconds."
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:

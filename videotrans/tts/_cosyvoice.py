@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import requests
+from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
@@ -68,8 +69,15 @@ class CosyVoice(BaseTTS):
                 }
                 rolelist = tools.get_cosyvoice_role()
                 if role == 'clone':
+                    if not Path(data_item['ref_wav']).exists():
+                        self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang=='zh' else 'No reference audio exists and cannot use clone function'
+                        return
+                    audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
+                    if len(audio_chunk)<4000:
+                        audio_chunk=audio_chunk*2
+                        audio_chunk.export(data_item['ref_wav'],format='wav')
                     # 克隆音色
-                    data['reference_audio'] = self._audio_to_base64(data_item['filename'])
+                    data['reference_audio'] = self._audio_to_base64(data_item['ref_wav'])
                     api_url += '/clone_mul'
                     data['encode'] = 'base64'
                 elif role and role.endswith('.wav'):
