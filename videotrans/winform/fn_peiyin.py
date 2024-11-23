@@ -6,7 +6,7 @@ import threading
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, QThread, Signal
+from PySide6.QtCore import QUrl, QThread, Signal,Qt
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 

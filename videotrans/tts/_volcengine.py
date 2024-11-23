@@ -19,7 +19,7 @@ class VolcEngineTTS(BaseTTS):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.error_status={
-            "3001":"无效的请求",
+            "3001":"无效的请求,若是正式版，可能当前所用音色需要单独从字节火山购买",
             "3003":"并发超限",
             "3005":"后端服务器负载高",
             "3006":"服务中断",

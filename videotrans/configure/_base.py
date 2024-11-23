@@ -11,7 +11,8 @@ class BaseCon:
         self.shound_del = False
 
     def _signal(self, **kwargs):
-        kwargs['uuid'] = self.uuid
+        if 'uuid' not in kwargs:
+            kwargs['uuid'] = self.uuid
         tools.set_process(**kwargs)
 
     def _set_proxy(self, type='set'):

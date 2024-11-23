@@ -19,7 +19,7 @@ def openwin():
             from videotrans.tts import run
             try:
                 run(
-                    queue_tts=[{"text": self.text, "role": "灿灿2.0", "filename": config.TEMP_HOME + "/testvolcenginetts.mp3",  "tts_type": tts.VOLCENGINE_TTS}],
+                    queue_tts=[{"text": self.text, "role": "通用男声", "filename": config.TEMP_HOME + "/testvolcenginetts.mp3",  "tts_type": tts.VOLCENGINE_TTS}],
                     language="zh-CN",
                     play=True,
                     is_test=True

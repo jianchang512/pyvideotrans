@@ -63,12 +63,24 @@ class Ui_geminiform(object):
 
         self.label_srt=QtWidgets.QLabel(geminiform)
         self.label_srt.setObjectName("label_srt")
+        
+        hrecogn=QtWidgets.QHBoxLayout()
+        self.gemini_cut_audio=QtWidgets.QCheckBox()
+        self.gemini_cut_audio.setText('语音识别时切片发送音频?' if config.defaulelang=='zh' else 'Whether to slice and send audio during speech recognition')
+        self.gemini_cut_audio.setToolTip('切片为1-10s，短时间将发送大量请求，免费账号切勿使用' if config.defaulelang=='zh' else 'Slice for 1-10s, short time will send a lot of requests, free account do not use')
+        
+        hrecogn.addWidget(self.label_srt)
+        hrecogn.addWidget(self.gemini_cut_audio)
+        hrecogn.addStretch()
+        
+        
+        
         self.gemini_srtprompt=QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_srtprompt.setObjectName("gemini_srtprompt")
 
         v1.addWidget(self.label_4)
         v1.addWidget(self.gemini_template)
-        v1.addWidget(self.label_srt)
+        v1.addLayout(hrecogn)
         v1.addWidget(self.gemini_srtprompt)
 
         h3=QtWidgets.QHBoxLayout()

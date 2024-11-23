@@ -101,8 +101,9 @@ class BaseTTS(BaseCon):
         # 是否播放
         if self.play:
             if not tools.vail_file(self.queue_tts[0]['filename']):
-                raise Exception(
-                    f'配音出错:{self.error}' if config.defaulelang == 'zh' else f'Dubbing occur error:{self.error}')
+                err=f'配音出错:{self.error}' if config.defaulelang == 'zh' else f'Dubbing occur error:{self.error}'
+                self._signal(text=err,type="shitingerror",uuid=None)
+                raise Exception(err)
             threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
             return
 
@@ -138,19 +139,23 @@ class BaseTTS(BaseCon):
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
-        # 单个无需线程池
-        if self.len == 1:
-            self._item_task(self.queue_tts[0])
-            return
-
         all_task = []
-        if self.dub_nums==1:
+        normalizer=None
+        if self.language[:2]=='zh':
+            from videotrans.util.cn_tn import TextNorm
+            normalizer = TextNorm(to_banjiao = True)
+        if len(self.queue_tts)==1 or self.dub_nums==1:
             for k, item in enumerate(self.queue_tts):
+                if k>0:
+                    time.sleep(self.wait_sec)
+                if normalizer:
+                    item['text']=normalizer(item['text'])
                 self._item_task(item)
-                time.sleep(self.wait_sec)
         else:
             with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
                 for k, item in enumerate(self.queue_tts):
+                    if normalizer:
+                        item['text']=normalizer(item['text'])
                     all_task.append(pool.submit(self._item_task, item))
                 _ = [i.result() for i in all_task]
 
