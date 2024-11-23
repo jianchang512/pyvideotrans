@@ -71,20 +71,21 @@ class F5TTS(BaseTTS):
                 return
             data = {"model":config.params['f5tts_model'],'speed':speed}
             data['gen_text']=text
-            
+            print(f'TTS:{text=}')
             if role=='clone':
                 if not Path(data_item['ref_wav']).exists():
                     self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang=='zh' else 'No reference audio exists and cannot use clone function'
                     return
                 audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
+                data['ref_text']=data_item.get('ref_text').strip()
                 if len(audio_chunk)<4000:
                     audio_chunk=audio_chunk*2
                     audio_chunk.export(data_item['ref_wav'],format='wav')
+                    data['ref_text']+=f". {data['ref_text']}"
 
                 with open(data_item['ref_wav'],'rb') as f:
                     chunk=f.read()
                 files={"audio":chunk}
-                data['ref_text']=data_item.get('ref_text').strip()
                 if not data['ref_text']:
                     Path(data_item['filename']).unlink(missing_ok=True)
                     return

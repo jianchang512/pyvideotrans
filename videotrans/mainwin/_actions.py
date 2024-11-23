@@ -59,27 +59,6 @@ class WinAction(WinActionSub):
                     pass
         self.processbtns = {}
 
-    # 右侧字幕区导出
-    # def export_sub_fun(self):
-    #     srttxt = self.main.subtitle_area.toPlainText().strip()
-    #     if not srttxt:
-    #         return
-    #     dialog = QFileDialog()
-    #     dialog.setWindowTitle(config.transobj['savesrtto'])
-    #     dialog.setNameFilters(["subtitle files (*.srt)"])
-    #     dialog.setAcceptMode(QFileDialog.AcceptSave)
-    #     dialog.exec_()
-    #     if not dialog.selectedFiles():
-    #         return
-    #     else:
-    #         path_to_file = dialog.selectedFiles()[0]
-    #     ext = ".srt"
-    #     if path_to_file.endswith('.srt') or path_to_file.endswith('.txt'):
-    #         path_to_file = path_to_file[:-4] + ext
-    #     else:
-    #         path_to_file += ext
-    #     with open(path_to_file, "w", encoding='utf-8') as file:
-    #         file.write(srttxt)
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
@@ -685,10 +664,11 @@ class WinAction(WinActionSub):
             return
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
-        # self.main.target_subtitle_area.clear()
+        if not self.is_batch:
+            self.clear_target_subtitle(self.main.target_subtitle_area)
+
         self.main.startbtn.setText(config.transobj[type])
-        # self.main.export_sub.setDisabled(False)
-        # self.main.set_line_role.setDisabled(False)
+
         # 删除本次任务的所有进度队列
         self._clear_task()
         # 启用
@@ -697,8 +677,7 @@ class WinAction(WinActionSub):
         self._disabled_button(False)
         if type == 'end':
             self.main.subtitle_area.clear()
-            # self.main.target_subtitle_area.clear()
-            # self.main.target_subtitle_area.setVisible(False)
+
             for prb in self.processbtns.values():
                 prb.setEnd()
             # 成功完成
@@ -739,31 +718,20 @@ class WinAction(WinActionSub):
                 self.wait_subtitle = None
                 if not self.is_batch:
                     self.clear_target_subtitle(self.main.target_subtitle_area)
-                    # self.main.target_subtitle_area.clear()
-                    # self.main.subtitle_area.clear()
-                    pass
         elif d['type']=='create_btns':
             self.create_btns()
         # 任务开始执行，初始化按钮等
+        elif d['type']=='shitingerror':
+            QMessageBox.critical(self.main, config.transobj['anerror'],d['text'])
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end
-            try:
-                self.update_status(d['type'])
-                if "linerolew" in config.child_forms and hasattr(config.child_forms['linerolew'], 'close'):
-                    config.child_forms['linerolew'].close()
-                    config.child_forms.pop('linerolew', None)
-            except Exception as e:
-                print(e)
+            self.update_status(d['type'])
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == "subtitle" and config.current_status == 'ing' and (
                 self.is_batch or config.task_countdown <= 0):
             if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
                 self.main.subtitle_area.moveCursor(QTextCursor.End)
                 self.main.subtitle_area.insertPlainText(d['text'])
-            elif not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_target':
-                pass
-                # self.main.target_subtitle_area.moveCursor(QTextCursor.End)
-                # self.main.target_subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
             self.wait_subtitle = d['text']
             self.edit_subtitle_type = d['type']
@@ -771,36 +739,20 @@ class WinAction(WinActionSub):
             if d['type'] == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
                 self.main.subtitle_area.setFocus()
-            else:
-                pass
-                # self.main.target_subtitle_area.setReadOnly(False)
-                # self.main.target_subtitle_area.setFocus()
-
         elif d['type'] == 'disabled_edit':
             # 禁止修改字幕
             self.main.subtitle_area.setReadOnly(True)
-            # self.main.target_subtitle_area.setReadOnly(True)
-            # self.main.export_sub.setDisabled(True)
-            # self.main.set_line_role.setDisabled(True)
         elif d['type'] == 'allow_edit':
             # 允许修改字幕
             if self.edit_subtitle_type == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
                 self.main.subtitle_area.setFocus()
-            else:
-                pass
-                # self.main.target_subtitle_area.setReadOnly(False)
-                # self.main.target_subtitle_area.setFocus()
-            # self.main.export_sub.setDisabled(False)
-            # self.main.set_line_role.setDisabled(False)
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
             if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
                 self.main.subtitle_area.clear()
                 self.main.subtitle_area.insertPlainText(d['text'])
             elif not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_target' and not self.is_render:
-                # self.main.target_subtitle_area.clear()
-                # self.main.target_subtitle_area.insertPlainText(d['text'])
                 self.is_render = True
                 self.show_target_edit(d['text'])
         elif d['type'] == 'timeout_djs':
@@ -814,10 +766,6 @@ class WinAction(WinActionSub):
             self.main.timeout_tips.setText(d['text'])
             if self.edit_subtitle_type == 'edit_subtitle_source':
                 self.main.subtitle_area.setReadOnly(False)
-            else:
-                pass
-                # self.show_target_edit()
-                # self.main.target_subtitle_area.setReadOnly(False)
         elif d['type'] == 'check_soft_update':
             self.update_tips(d['text'])
         elif d['type'] == 'set_clone_role' and self.main.tts_type.currentText() == 'clone-voice':
@@ -922,10 +870,9 @@ class WinAction(WinActionSub):
         if box is None:
             return []  # 没有找到box
 
-        return self.extract_subtitle_data(box)  # 使用之前的 extract_subtitle_data 函数
+        return self.extract_subtitle_data(box) 
 
     def extract_subtitle_data(self, box):
-        # (这个函数与之前的解答相同，功能不变)
         data = []
         layout = box.layout()
         if layout is None:

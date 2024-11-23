@@ -424,6 +424,7 @@
     "nl": "Dutch",
     "sv": "Swedish",
     "he": "Hebrew",
+	"bn":"Bengali",
     "auto": "Detection"
   }
 }

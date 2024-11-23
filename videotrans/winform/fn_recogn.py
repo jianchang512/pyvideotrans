@@ -190,7 +190,7 @@ def openwin():
             config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
             config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
             config.params["stt_model_name"]=winobj.shibie_model.currentText()
-            config.params["remove_noise"]=winobj.remove_noise.isChecked()
+            config.params["stt_remove_noise"]=winobj.remove_noise.isChecked()
             config.getset_params(config.params)
 
         except Exception as e:

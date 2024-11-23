@@ -353,6 +353,7 @@ def parse_init():
         "google_trans_newadd": "",
         "proxy":"",
         "refine3":False,
+        
         "gemini_srtprompt":"请将我上传的音频转录为符合SRT格式的字幕，请注意时间戳要精确到字级别，转录后返回合法的SRT字幕内容，禁止附带任何提示说明或解释,也不要添加任何辅助标记、html标记，每条字幕最多2行，时长在1秒到12s之间" if defaulelang=='zh' else "Please transcribe the audio I uploaded into subtitles in SRT format. Please note that the timestamp must be accurate to the level of a word, and return the legal SRT subtitle content after the transcription. Do not add any auxiliary marks or HTML tags, and each subtitle can have up to 2 lines, and the duration should be between 1 second and 12 seconds."
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
@@ -539,7 +540,7 @@ Translation:"""
 
         "only_video": False,
         "is_separate": False,
-        "remove_noise":False,
+        "remove_noise":True,
 
         "target_dir": "",
 
@@ -574,6 +575,9 @@ Translation:"""
         "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
         "listen_text_nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
         "listen_text_sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
+        
+        "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
+        "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
@@ -623,6 +627,11 @@ Translation:"""
         "gemini_key": "",
         "gemini_model": "gemini-1.5-pro",
         "gemini_template": "",
+        "gemini_cut_audio":False,
+        "gemini_min_silence_duration_ms":200,
+        "gemini_speech_pad_ms":100, 
+        "gemini_onset":0.5,
+        "gemini_offset":0.35,
 
         "localllm_api": "",
         "localllm_key": "",
@@ -708,7 +717,7 @@ Translation:"""
         "stt_source_language":0,
         "stt_recogn_type":0,
         "stt_model_name":"",
-        "stt_remove_noise":False,
+        "stt_remove_noise":True,
 
         "deepgram_apikey":"",
         "deepgram_utt":200,
@@ -1035,4 +1044,26 @@ Hur långt är vi från Close Encounters of the Third Kind?
 3
 00:00:07,260 --> 00:00:09,880
 Det är jubileum sedan Weber officiellt började filma.""",
+    "he":"""1
+00:00:01,950 --> 00:00:04,410
+מולקולות אורגניות שהתגלו בגלקסיות עתיקות.
+
+2
+00:00:04,880 --> 00:00:06,780
+כמה אנחנו רחוקים ממפגשים קרובים מהסוג השלישי?
+
+3
+00:00:07,260 --> 00:00:09,880
+זה היה יום השנה מאז ובר החל לצלם באופן רשמי.""",
+    "bn":"""1
+00:00:01,950 --> 00:00:04,410
+প্রাচীন ছায়াপথে আবিষ্কৃত জৈব অণু।
+
+2
+00:00:04,880 --> 00:00:06,780
+আমরা তৃতীয় ধরণের ক্লোজ এনকাউন্টার থেকে কত দূরে?
+
+3
+00:00:07,260 --> 00:00:09,880
+ওয়েবার আনুষ্ঠানিকভাবে চিত্রগ্রহণ শুরু করার পর থেকে এটি বার্ষিকী।"""
 }

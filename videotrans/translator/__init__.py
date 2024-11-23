@@ -315,6 +315,16 @@ LANG_CODE = {
         "he",  # 微软翻译
         "Hebrew" if config.defaulelang != 'zh' else '希伯来语'  # AI翻译
     ],
+    "bn": [
+        "bn",  # google通道
+        "ben",  # 字幕嵌入语言
+        "ben",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "bn",  # 微软翻译
+        "Bengali" if config.defaulelang != 'zh' else '孟加拉语'  # AI翻译
+    ],
     "auto":[
         "auto",
         "auto",

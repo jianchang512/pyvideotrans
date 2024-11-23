@@ -475,11 +475,17 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                     arg[i+1]='0'
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
         # 因显卡兼容性，出错率较高
-        if config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
+        # 启用硬件加速
+        if platform.system() =='Darwin':
+            if config.video_codec.find('_videotoolbox')>0:
+                cmd.append('-hwaccel')
+                cmd.append('videotoolbox')            
+        elif config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
             arg.insert(i,'h264_cuvid' if config.video_codec=='h264_nvenc' else 'hevc_cuvid')
             arg.insert(i,'-c:v')
             arg.insert(i,'cuda')
             arg.insert(i,'-hwaccel')
+            
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -586,7 +592,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "height": 0,
         "time": 0,
         "streams_len": 0,
-        "streams_audio": 0
+        "streams_audio": 0,
+        "color":"yuv420p"
     }
     if "streams" not in out or len(out["streams"]) < 1:
         raise Exception(f'ffprobe error:streams is 0')
@@ -599,6 +606,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             result['video_codec_name'] = it['codec_name']
             result['width'] = int(it['width'])
             result['height'] = int(it['height'])
+            result['color'] = it['pix_fmt'].lower()
 
             fps_split = it['r_frame_rate'].split('/')
             if len(fps_split) != 2 or fps_split[1] == '0':
@@ -1423,7 +1431,7 @@ def get_video_codec():
     if not Path(mp4_test).is_file():
         return f'libx{video_codec}'
     mp4_target = config.TEMP_DIR + "/test.mp4"
-    codec = ''
+    codec = f"libx{video_codec}"
     if plat in ['Windows', 'Linux']:
         import torch
         if torch.cuda.is_available():
@@ -1434,8 +1442,7 @@ def get_video_codec():
             codec = f'{hhead}_vaapi'
     elif plat == 'Darwin':
         codec = f'{hhead}_videotoolbox'
-
-    if not codec:
+    else:
         return f"libx{video_codec}"
 
     try:
@@ -1453,27 +1460,8 @@ def get_video_codec():
         ],
             check=True,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    except Exception as e:
-        if sys.platform == 'win32':
-            try:
-                codec = f"{hhead}_amf"
-                subprocess.run([
-                    "ffmpeg",
-                    "-y",
-                    "-hide_banner",
-                    "-ignore_unknown",
-                    "-i",
-                    mp4_test,
-                    "-c:v",
-                    codec,
-                    mp4_target
-                ],
-                    check=True,
-                    creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-            except Exception:
-                codec = f"libx{video_codec}"
-        else:            
-            codec = f"libx{video_codec}"
+    except Exception as e:          
+        codec = f"libx{video_codec}"
     return codec
 
 

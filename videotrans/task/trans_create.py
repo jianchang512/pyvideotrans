@@ -111,7 +111,7 @@ class TransCreate(BaseTask):
                 raise Exception(config.transobj['get video_info error'])
             vcodec_name = 'h264' if self.video_codec_num == 264 else 'hevc'
             # 如果获得原始视频编码格式同需要输出编码格式一致，设 is_copy_video=True
-            if self.video_info['video_codec_name'] == vcodec_name:
+            if self.video_info['video_codec_name'] == vcodec_name and self.video_info['color']=='yuv420p':
                 self.is_copy_video = True
 
         # 临时文件夹
