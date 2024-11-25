@@ -136,7 +136,7 @@ class GeminiRecogn(BaseRecogn):
           model_name=config.params['gemini_model'],
           safety_settings=safetySettings
         )
-        prompt='Please transcribe the audio that was sent to you into text, then return the transcribed text without any explanations, hints, instructions or any other superfluous information attached to the returned text.'
+        prompt=config.params.get('gemini_srtprompt_cut','Please transcribe the audio that was sent to you into text, then return the transcribed text without any explanations, hints, instructions or any other superfluous information attached to the returned text.')
         for f in seg_list:
             retry=0
             startraw=tools.ms_to_time_string(ms=f['start_time'])

@@ -286,8 +286,8 @@ def parse_init():
 
         "threshold":0.5,
         "min_speech_duration_ms":250,
-        "min_silence_duration_ms":2000,
         "max_speech_duration_s":0,
+        "min_silence_duration_ms":250,
         "speech_pad_ms":400,
 
 
@@ -352,9 +352,8 @@ def parse_init():
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy":"",
-        "refine3":False,
+        "refine3":False      
         
-        "gemini_srtprompt":"请将我上传的音频转录为符合SRT格式的字幕，请注意时间戳要精确到字级别，转录后返回合法的SRT字幕内容，禁止附带任何提示说明或解释,也不要添加任何辅助标记、html标记，每条字幕最多2行，时长在1秒到12s之间" if defaulelang=='zh' else "Please transcribe the audio I uploaded into subtitles in SRT format. Please note that the timestamp must be accurate to the level of a word, and return the legal SRT subtitle content after the transcription. Do not add any auxiliary marks or HTML tags, and each subtitle can have up to 2 lines, and the duration should be between 1 second and 12 seconds."
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
@@ -632,6 +631,10 @@ Translation:"""
         "gemini_speech_pad_ms":100, 
         "gemini_onset":0.5,
         "gemini_offset":0.35,
+        "gemini_srtprompt":"请将我上传的音频转录为符合SRT格式的字幕，请注意时间戳要精确到字级别，转录后返回合法的SRT字幕内容，禁止附带任何提示说明或解释,也不要添加任何辅助标记、html标记，每条字幕最多2行，时长在1秒到12s之间" if defaulelang=='zh' else "Please transcribe the audio I uploaded into subtitles in SRT format. Please note that the timestamp must be accurate to the level of a word, and return the legal SRT subtitle content after the transcription. Do not add any auxiliary marks or HTML tags, and each subtitle can have up to 2 lines, and the duration should be between 1 second and 12 seconds.",
+        
+        "gemini_srtprompt_cut":'Please transcribe the audio that was sent to you into text, then return the transcribed text without any explanations, hints, instructions or any other superfluous information attached to the returned text.',
+
 
         "localllm_api": "",
         "localllm_key": "",

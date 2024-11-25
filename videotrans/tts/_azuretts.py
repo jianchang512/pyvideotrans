@@ -15,7 +15,7 @@ class AzureTTS(BaseTTS):
         super().__init__(*args, **kwargs)
         self.con_num = int(float(config.settings.get('azure_lines',1)))
 
-    def _item_task(self, items: list = None):
+    def _item_task_pl(self, items: list = None):
         if self._exit():
             return
         filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
@@ -98,16 +98,61 @@ class AzureTTS(BaseTTS):
         else:
             self.error = '请检查 Azure TTS 配置'
             raise Exception('请检查 Azure TTS 配置')
-
+    
+    def _item_task(self, data_item: Union[Dict, List, None]):
+        if self._exit():
+            return
+        filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
+        try:
+            speech_config = speechsdk.SpeechConfig(
+                subscription=config.params['azure_speech_key'],
+                region=config.params['azure_speech_region']
+            )
+            speech_config.set_speech_synthesis_output_format(
+                speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
+        except Exception as e:
+            raise
+        audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True, filename=filename )
+        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+        text_xml = f"<prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{data_item['text']}</prosody>"
+        ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
+                                <voice name='{}'>
+                                    <prosody rate="{}" pitch='{}'  volume='{}'>
+                                    {}
+                                    </prosody>
+                                </voice>
+                                </speak>""".format(self.language, data_item['role'], self.rate, self.pitch, self.volume,text_xml)
+        config.logger.info(f'{ssml=}')
+        speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
+        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:self.has_done += 1
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            tools.wav2mp3(filename, items[0]['filename'])
+            self.has_done+=1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}')
+        elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
+            cancellation_details = speech_synthesis_result.cancellation_details
+            if cancellation_details.reason == speechsdk.CancellationReason.Error:
+                if cancellation_details.error_details:
+                    self.error = str(cancellation_details.error_details)
+                    raise Exception(cancellation_details.error_details)
+            raise Exception(cancellation_details.reason)
+        else:
+            self.error = '请检查 Azure TTS 配置'
+            raise Exception('Azure TTS SK or API is error')
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:
-        language = self.language.split("-", maxsplit=1)
-        self.language = language[0].lower() + ("" if len(language) < 2 else '-' + language[1].upper())
-        if self.len == 1:
-            return self._item_task(self.queue_tts)
-        split_queue = [self.queue_tts[i:i + self.con_num] for i in range(0, self.len, self.con_num)]
-        for idx, items in enumerate(split_queue):
-            if self._exit():
-                return
-            self._item_task(items)
-            time.sleep(self.wait_sec)
+        if int(config.settings.get('azure_lines',1))<=150:
+            self._local_mul_thread()
+        else:
+            language = self.language.split("-", maxsplit=1)
+            self.language = language[0].lower() + ("" if len(language) < 2 else '-' + language[1].upper())
+            if self.len == 1:
+                return self._item_task_pl(self.queue_tts)
+            split_queue = [self.queue_tts[i:i + self.con_num] for i in range(0, self.len, self.con_num)]
+            for idx, items in enumerate(split_queue):
+                if self._exit():
+                    return
+                self._item_task_pl(items)
+                time.sleep(self.wait_sec)

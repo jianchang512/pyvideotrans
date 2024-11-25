@@ -77,11 +77,14 @@ class Ui_geminiform(object):
         
         self.gemini_srtprompt=QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_srtprompt.setObjectName("gemini_srtprompt")
+        self.gemini_srtprompt_cut=QtWidgets.QPlainTextEdit(geminiform)
+        self.gemini_srtprompt_cut.setObjectName("gemini_srtprompt_cut")
 
         v1.addWidget(self.label_4)
         v1.addWidget(self.gemini_template)
         v1.addLayout(hrecogn)
         v1.addWidget(self.gemini_srtprompt)
+        v1.addWidget(self.gemini_srtprompt_cut)
 
         h3=QtWidgets.QHBoxLayout()
         self.set_gemini = QtWidgets.QPushButton(geminiform)

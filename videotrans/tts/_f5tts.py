@@ -30,29 +30,6 @@ class F5TTS(BaseTTS):
     def _exec(self):
         self._local_mul_thread()
 
-    def convert_numbers_in_text(self,text):
-        """
-        将文本中的数字0-9转换为中文或英文，原地修改文本。
-
-        Args:
-            text: 输入文本字符串。
-        """
-
-        def replace_with_chinese(match):
-            num = int(match.group(0))
-            chinese_nums = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
-            return chinese_nums[num]
-
-        def replace_with_english(match):
-            num = int(match.group(0))
-            english_nums = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
-            return english_nums[num]
-
-        # 使用正则表达式查找所有数字
-        if self.language.startswith('zh'):
-            return re.sub(r'[0-9]', replace_with_chinese, text) #修改为中文
-        return re.sub(r'\b[0-9]\b', replace_with_english, text) #修改为英文
-
 
     def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit():
@@ -65,13 +42,12 @@ class F5TTS(BaseTTS):
         except:
             pass
         try:
-            text = self.convert_numbers_in_text(data_item['text'].strip())
+            text = data_item['text'].strip()
             role = data_item['role']
             if not text:
                 return
             data = {"model":config.params['f5tts_model'],'speed':speed}
             data['gen_text']=text
-            print(f'TTS:{text=}')
             if role=='clone':
                 if not Path(data_item['ref_wav']).exists():
                     self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang=='zh' else 'No reference audio exists and cannot use clone function'
@@ -102,7 +78,7 @@ class F5TTS(BaseTTS):
             config.logger.info(f'f5TTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}",files=files,data=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:
-                self.error = f'{response.text}, status_code={response.status_code} {response.reason} '
+                self.error = f'{response.json()["error"]}, status_code={response.status_code} {response.reason} '
                 Path(data_item['filename']).unlink(missing_ok=True)
                 return
 
