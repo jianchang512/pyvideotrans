@@ -107,5 +107,6 @@ if __name__ == "__main__":
         startwin = StartWindow()
     except Exception as e:
         import traceback
-        QtWidgets.QMessageBox.critical(startwin,"Error",traceback.format_exc())
+        msg=traceback.format_exc()
+        QtWidgets.QMessageBox.critical(startwin,"Error",msg)
     sys.exit(app.exec())

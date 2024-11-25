@@ -131,7 +131,7 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
 
-    # 用于除  azure openai elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
+    # 用于除  openai elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
     def _local_mul_thread(self) -> None:
         if self._exit():
             return
@@ -144,18 +144,24 @@ class BaseTTS(BaseCon):
         if self.language[:2]=='zh':
             from videotrans.util.cn_tn import TextNorm
             normalizer = TextNorm(to_banjiao = True)
+        elif self.language[:2]=='en':
+            from videotrans.util.en_tn import EnglishNormalizer
+            normalizer = EnglishNormalizer()
+            
         if len(self.queue_tts)==1 or self.dub_nums==1:
             for k, item in enumerate(self.queue_tts):
                 if k>0:
                     time.sleep(self.wait_sec)
                 if normalizer:
                     item['text']=normalizer(item['text'])
+                    print(f'normalizer:{item["text"]}')
                 self._item_task(item)
         else:
             with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
                 for k, item in enumerate(self.queue_tts):
                     if normalizer:
                         item['text']=normalizer(item['text'])
+                        print(f'normalizer:{item["text"]}')
                     all_task.append(pool.submit(self._item_task, item))
                 _ = [i.result() for i in all_task]
 
