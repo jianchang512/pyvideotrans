@@ -1,4 +1,5 @@
 # stt项目识别接口
+import os
 from typing import Union, List, Dict
 
 import requests
@@ -43,7 +44,7 @@ class SttAPIRecogn(BaseRecogn):
             return
         with open(self.audio_file, 'rb') as f:
             chunk=f.read()
-        files = {"file": chunk}
+        files = {"file": (os.path.basename(self.audio_file),chunk)}
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:

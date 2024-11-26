@@ -100,7 +100,8 @@ class DubbingSrt(BaseTask):
             # 要保存到的文件
             tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
                        "end_time": it['end_time'], "rate": rate, "startraw": it['startraw'], "endraw": it['endraw'],
-                       "volume": self.cfg['volume'], "pitch": self.cfg['pitch'],
+                       "volume": self.cfg['volume'],
+                       "pitch": self.cfg['pitch'],
                        "tts_type": int(self.cfg['tts_type']),
                        "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{len(it['text'])}-{i}.mp3"}
             queue_tts.append(tmp_dict)
@@ -131,6 +132,15 @@ class DubbingSrt(BaseTask):
                 target_audio=self.cfg['target_wav'],
                 cache_folder=self.cfg['cache_folder']
             )
+            volume=self.cfg['volume'].strip()
+            print(f'{volume=}')
+            if volume !='+0%':
+                try:
+                    volume=1+float(volume)/100
+                    tmp_name=self.cfg['cache_folder']+f'/volume-{volume}-{Path(self.cfg["target_wav"]).name}'
+                    tools.runffmpeg(['-y','-i',self.cfg['target_wav'],'-af',f"volume={volume}",tmp_name])
+                except:
+                    pass
             self.queue_tts = rate_inst.run()
             # 更新字幕
             if config.settings['force_edit_srt']:

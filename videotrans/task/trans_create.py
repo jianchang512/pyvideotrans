@@ -16,7 +16,7 @@ from videotrans import translator
 from videotrans.configure import config
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans, get_audio_code
-from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS
+from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS,EDGE_TTS,AZURE_TTS
 from videotrans.util import tools
 from ._base import BaseTask
 from ._rate import SpeedRate
@@ -63,7 +63,11 @@ class TransCreate(BaseTask):
 
             "subtitle_type": 0,
             "append_video": False,
-            'only_video': False
+            'only_video': False,
+
+            "volume":"+0%",
+            "pitch":"+0Hz",
+            "voice_rate":"+0%",
         }
         cfg_default.update(cfg)
         super().__init__(cfg_default, obj)
@@ -404,8 +408,7 @@ class TransCreate(BaseTask):
             self._signal(text=str(e), type='error')
             tools.send_notification(str(e), f'{self.cfg["basename"]}')
             raise
-        if self.cfg['app_mode'] in ['tiqu']:
-            self.precent = 100
+
 
     def align(self) -> None:
         if self._exit():
@@ -458,6 +461,18 @@ class TransCreate(BaseTask):
             self._signal(text=str(e), type='error')
             tools.send_notification(str(e), f'{self.cfg["basename"]}')
             raise
+
+        # 成功后，如果存在 音量，则调节音量
+        if self.cfg['tts_type'] not in [EDGE_TTS,AZURE_TTS] and self.cfg['volume']!='+0%' and tools.vail_file(self.cfg['target_wav']):
+            volume=self.cfg['volume'].replace('%','').strip()
+            try:
+                volume=1+float(volume)/100
+                tmp_name=self.cfg['cache_folder']+f'/volume-{volume}-{Path(self.cfg["target_wav"]).name}'
+                tools.runffmpeg(['-y','-i',self.cfg['target_wav'],'-af',f"volume={volume}",tmp_name])
+            except:
+                pass
+            else:
+                shutil.copy2(tmp_name,self.cfg['target_wav'])
 
     # 将 视频、音频、字幕合成
     def assembling(self) -> None:
@@ -891,6 +906,7 @@ class TransCreate(BaseTask):
         if self.shoud_dubbing and not tools.vail_file(self.cfg['target_wav']):
             raise Exception(f"{config.transobj['Dubbing']}{config.transobj['anerror']}:{self.cfg['target_wav']}")
 
+
         subtitles_file, subtitle_langcode = None, None
         if self.cfg['subtitle_type'] > 0:
             subtitles_file, subtitle_langcode = self._process_subtitles()
@@ -921,8 +937,8 @@ class TransCreate(BaseTask):
                     # 需要配音+硬字幕
                     tools.runffmpeg([
                         "-y",
-                        "-threads",
-                        f'{os.cpu_count()}',
+                        # "-threads",
+                        # f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -986,8 +1002,8 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlyyingzimu'])
                 cmd = [
                     "-y",
-                    "-threads",
-                    f'{os.cpu_count()}',
+                    # "-threads",
+                    # f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",
