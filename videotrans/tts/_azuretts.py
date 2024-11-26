@@ -99,7 +99,7 @@ class AzureTTS(BaseTTS):
             self.error = '请检查 Azure TTS 配置'
             raise Exception('请检查 Azure TTS 配置')
     
-    def _item_task(self, data_item: Union[Dict, List, None]):
+    def _item_task(self, data_item):
         if self._exit():
             return
         filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
@@ -124,7 +124,8 @@ class AzureTTS(BaseTTS):
                                 </speak>""".format(self.language, data_item['role'], self.rate, self.pitch, self.volume,text_xml)
         config.logger.info(f'{ssml=}')
         speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
-        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:self.has_done += 1
+        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            self.has_done += 1
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''

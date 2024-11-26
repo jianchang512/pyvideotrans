@@ -27,6 +27,7 @@ class ChatGPT(BaseTrans):
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
+            self.proxies=None
             return
         try:
             c=httpx.Client(proxies=None)
