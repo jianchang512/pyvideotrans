@@ -97,6 +97,10 @@ class SpeedRate:
                 the_ext = it['filename'].split('.')[-1]
                 try:
                     it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
+                    # 如果配音时长大于原字幕时长，则移除前后静音
+                    if it['dubb_time']>it['raw_duration']:
+                        _,new_dubb_time=tools.remove_silence_from_file(it['filename'],is_start=True)
+                        it['dubb_time']=new_dubb_time
                 except CouldntDecodeError:
                     config.logger.exception(f'添加配音时长失败')
                     it['dubb_time'] = 0

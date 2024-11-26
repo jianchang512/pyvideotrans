@@ -993,7 +993,7 @@ def srt_str_to_listdict(content):
             "start_time":toms(sub.start),
             "end_time":toms(sub.end),
             "line":line,
-            "text":sub.content
+            "text":re.sub(r'</?[a-zA-Z]+>','',sub.content.replace("\n","  ").replace("\r",'').strip())
         }
         it['startraw']=ms_to_time_string(ms=it['start_time'])
         it['endraw']=ms_to_time_string(ms=it['end_time'])
@@ -1302,6 +1302,38 @@ def kill_ffmpeg_processes():
     except:
         pass
 
+def remove_silence_from_chunk(audio, silence_threshold=-50.0, chunk_size=10, is_start=True):
+    from pydub.silence import detect_nonsilent
+    """
+    Removes silence from the end of an audio file.
+
+    :param input_file_path: path to the input mp3 file
+    :param silence_threshold: the threshold in dBFS considered as silence
+    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
+    :return: an AudioSegment without silence at the end
+    """
+    # Load the audio file
+    # Detect non-silent chunks
+    nonsilent_chunks = detect_nonsilent(
+        audio,
+        min_silence_len=chunk_size,
+        silence_thresh=silence_threshold
+    )
+
+    # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
+    if nonsilent_chunks:
+        start_index, end_index = nonsilent_chunks[-1]
+    else:
+        # If the whole audio is silent, just return it as is
+        return audio
+
+    # Remove the silence from the end by slicing the audio segment
+    trimmed_audio = audio[:end_index]
+    if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
+        trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
+    return trimmed_audio
+
+
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
@@ -1361,6 +1393,64 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
             pass
         return input_file_path
     return trimmed_audio
+
+
+def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
+    from pydub import AudioSegment
+    from pydub.silence import detect_nonsilent
+    """
+    Removes silence from the end of an audio file.
+
+    :param input_file_path: path to the input mp3 file
+    :param silence_threshold: the threshold in dBFS considered as silence
+    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
+    :return: an AudioSegment without silence at the end
+    """
+    # Load the audio file
+    format = input_file_path.split('.')[-1].lower()
+    length=0
+    if format in ['wav', 'mp3', 'm4a']:
+        audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
+        length=len(audio)
+    else:
+        # 转为mp3
+        try:
+            runffmpeg(['-y', '-i', input_file_path, input_file_path + ".mp3"])
+            audio = AudioSegment.from_file(input_file_path + ".mp3", format="mp3")
+            length=len(audio)
+        except Exception:
+            return input_file_path,length
+
+
+    # Detect non-silent chunks
+    nonsilent_chunks = detect_nonsilent(
+        audio,
+        min_silence_len=chunk_size,
+        silence_thresh=silence_threshold
+    )
+
+    # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
+    if nonsilent_chunks:
+        start_index, end_index = nonsilent_chunks[-1]
+    else:
+        # If the whole audio is silent, just return it as is
+        return input_file_path,length
+
+    # Remove the silence from the end by slicing the audio segment
+    trimmed_audio = audio[:end_index]
+    if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
+        trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
+    length=len(trimmed_audio)
+    if format in ['wav', 'mp3', 'm4a']:
+        trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
+        return input_file_path,length
+    try:
+        trimmed_audio.export(input_file_path + ".mp3", format="mp3")
+        runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
+    except Exception:
+        pass
+    return input_file_path,length
+
 
 
 def remove_qsettings_data():

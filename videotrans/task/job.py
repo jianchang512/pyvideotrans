@@ -174,12 +174,11 @@ class WorkerAssemb(Thread):
                 continue
             try:
                 trk.assembling()
+                trk.task_done()
             except Exception as e:
                 msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
-            else:
-                trk.task_done()
 
 
 def start_thread(parent=None):

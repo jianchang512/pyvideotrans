@@ -183,10 +183,22 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
 
+        self.label_6 = QtWidgets.QLabel(self.layoutWidget)
+        # self.label_6.setMinimumSize(QtCore.QSize(0, 30))
+        self.label_6.setObjectName("label_6")
+
+        self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.voice_rate.setMinimum(-50)
+        self.voice_rate.setMaximum(50)
+        self.voice_rate.setMinimumWidth(90)
+        self.voice_rate.setObjectName("voice_rate")
+
+
         self.volume_label = QtWidgets.QLabel(self.layoutWidget)
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
         self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.volume_rate.setMinimum(-95)
+        self.volume_rate.setToolTip('音量增减的百分比' if config.defaulelang=='zh' else "Percentage of volume adjustment")
         self.volume_rate.setMaximum(100)
         self.volume_rate.setMinimumWidth(100)
         self.volume_rate.setObjectName("volume_rate")
@@ -209,6 +221,8 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.pitch_rate.sizePolicy().hasHeightForWidth())
         self.pitch_rate.setSizePolicy(sizePolicy)
 
+        self.horizontalLayout.addWidget(self.label_6)
+        self.horizontalLayout.addWidget(self.voice_rate)
         self.horizontalLayout.addWidget(self.volume_label)
         self.horizontalLayout.addWidget(self.volume_rate)
         self.horizontalLayout.addWidget(self.pitch_label)
@@ -382,24 +396,9 @@ class Ui_MainWindow(object):
         self.align_btn.setToolTip("点击查看字幕、配音、画面对齐教程" if config.defaulelang == 'zh' else "View alignment tutorial")
         self.gaoji_layout_inner.addWidget(self.align_btn)
 
-        self.layout_voice_rate = QtWidgets.QFormLayout()
-        self.layout_voice_rate.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        self.layout_voice_rate.setObjectName("layout_voice_rate")
-        self.label_6 = QtWidgets.QLabel(self.layoutWidget)
-        self.label_6.setMinimumSize(QtCore.QSize(0, 30))
-        self.label_6.setObjectName("label_6")
 
-        self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_6)
 
-        self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
-        self.voice_rate.setMinimum(-50)
-        self.voice_rate.setMaximum(50)
-        self.voice_rate.setMinimumWidth(90)
-        self.voice_rate.setObjectName("voice_rate")
-
-        self.layout_voice_rate.setAlignment(Qt.AlignVCenter)
-        self.layout_voice_rate.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.voice_rate)
-        self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
+        # self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
 
         self.append_video = QtWidgets.QCheckBox(self.layoutWidget)
         self.append_video.setObjectName("append_video")

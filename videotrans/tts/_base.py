@@ -189,6 +189,7 @@ class BaseTTS(BaseCon):
                 # 将解码后的字节写入文件
                 with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
                     wav_file.write(wav_bytes)
+
                 tools.runffmpeg([
                     "-y", "-i", output_path + f'.{base64data_ext}', output_path
                 ])
