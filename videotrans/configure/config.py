@@ -288,7 +288,7 @@ def parse_init():
         "min_speech_duration_ms":250,
         "max_speech_duration_s":0,
         "min_silence_duration_ms":250,
-        "speech_pad_ms":400,
+        "speech_pad_ms":150,
 
 
         "overall_maxsecs":12000,

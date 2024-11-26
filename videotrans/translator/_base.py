@@ -154,7 +154,8 @@ class BaseTrans(BaseCon):
                     msg=''
                     if self.api_url:
                         msg = f'请检查当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise IPLimitExceeded(proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}',  msg=msg+str(e), name=self.__class__.__name__)
+                    proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    raise IPLimitExceeded(proxy=proxy,  msg=msg+str(e), name=self.__class__.__name__)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
