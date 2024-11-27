@@ -581,13 +581,8 @@ class WinAction(WinActionSub):
             if self.cfg['target_language'] != '-' and self.cfg['target_language'] != self.cfg['source_language']:
                 if not self.main.isMaximized():
                     self.main.showMaximized()
-
-                # self.main.target_subtitle_area.setMinimumWidth(200)
-                # self.main.target_subtitle_area.setVisible
             return
-        # 多个字幕
-        # self.main.target_subtitle_area.clear()
-        # self.main.target_subtitle_area.setVisible(False)
+
         self.is_batch = True
 
         MultVideo(parent=self.main, cfg=self.cfg, obj_list=self.obj_list).start()

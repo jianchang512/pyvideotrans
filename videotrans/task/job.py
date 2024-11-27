@@ -35,7 +35,10 @@ class WorkerPrepare(Thread):
             if len(config.prepare_queue) < 1:
                 time.sleep(0.5)
                 continue
-            trk: BaseTask = config.prepare_queue.pop(0)
+            try:
+                trk: BaseTask = config.prepare_queue.pop(0)
+            except:
+                continue
             if task_is_stop(trk.uuid):
                 continue
             try:

@@ -87,14 +87,19 @@ class Worker(QThread):
                     time.sleep(1)
                     break
                 trk.dubbing()
-
-            trk.align()
-            trk.assembling()
-            trk.task_done()
+            try:
+                trk.align()
+                trk.assembling()
+                trk.task_done()
+            except Exception as e:
+                raise
 
 
     def _post(self,text,type='logs'):
-        self.uito.emit(json.dumps({"text":text,"type":type}))
+        try:
+            self.uito.emit(json.dumps({"text":text,"type":type}))
+        except:
+            pass
 
     def _exit(self):
         if config.exit_soft or config.current_status != 'ing':
