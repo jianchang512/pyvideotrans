@@ -129,7 +129,7 @@ class AzureTTS(BaseTTS):
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''
-            tools.wav2mp3(filename, items[0]['filename'])
+            tools.wav2mp3(filename, data_item['filename'])
             self.has_done+=1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}')
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
