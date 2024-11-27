@@ -69,9 +69,7 @@ class ChatTTS(BaseTTS):
             self.has_done += 1
             self.error = ''
 
-        except json.JSONDecoder as e:
-            self.error =res.text
-            config.logger.exception(e, exc_info=True)
+
         except Exception as e:
             self.error = str(e)
             config.logger.exception(e, exc_info=True)
