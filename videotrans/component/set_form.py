@@ -10,6 +10,7 @@ from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.baidu import Ui_baiduform
+from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.claude import Ui_claudeform
@@ -70,6 +71,11 @@ class SetLineRole(QDialog, Ui_setlinerole):  # <===
 class BaiduForm(QDialog, Ui_baiduform):  # <===
     def __init__(self, parent=None):
         super(BaiduForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class AliForm(QDialog, Ui_aliform):  # <===
+    def __init__(self, parent=None):
+        super(AliForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

@@ -31,8 +31,8 @@ def openwin():
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
-        SecretId = winobj.tencent_SecretId.text()
-        SecretKey = winobj.tencent_SecretKey.text()
+        SecretId = winobj.tencent_SecretId.text().strip()
+        SecretKey = winobj.tencent_SecretKey.text().strip()
         term = winobj.tencent_term.text().strip()
         if not SecretId or not SecretKey:
             return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
@@ -48,8 +48,8 @@ def openwin():
         task.start()
 
     def save():
-        SecretId = winobj.tencent_SecretId.text()
-        SecretKey = winobj.tencent_SecretKey.text()
+        SecretId = winobj.tencent_SecretId.text().strip()
+        SecretKey = winobj.tencent_SecretKey.text().strip()
         term = winobj.tencent_term.text().strip()
         config.params["tencent_SecretId"] = SecretId
         config.params["tencent_SecretKey"] = SecretKey

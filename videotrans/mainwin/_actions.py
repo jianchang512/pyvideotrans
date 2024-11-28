@@ -3,8 +3,8 @@ import re
 import threading
 from pathlib import Path
 
-from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
+
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
@@ -22,22 +22,8 @@ from videotrans.winform import fn_downmodel
 
 class WinAction(WinActionSub):
     def __init__(self, main=None):
-        super().__init__()
-        self.main = main
-        # 更新按钮
-        self.update_btn = None
-        # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
-        self.edit_subtitle_type = 'edit_subtitle_source'
-        # 进度按钮
-        self.processbtns = {}
-        # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
-        self.wait_subtitle = None
-        # 存放需要处理的视频dict信息，包括uuid
-        self.obj_list = []
-        self.is_render = False
-        self.is_batch = True
-        self.cfg = {}
-        self.queue_mp4 = []
+        super().__init__(main=main)
+
 
     def _reset(self):
         # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
@@ -474,7 +460,20 @@ class WinAction(WinActionSub):
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
+        source_code=translator.get_code(show_text=self.cfg['source_language'])
+        target_code=translator.get_code(show_text=self.cfg['target_language'])
 
+        if self.cfg['voice_role']=='clone' and self.cfg['tts_type']==tts.ELEVENLABS_TTS:
+            err=''
+            if (source_code !='auto' and source_code[:2] not in config.ELEVENLABS_CLONE):
+                err="ElevenLabs 不支持所选发音语言的克隆" if config.defaulelang == 'zh' else 'ElevenLabs: Cloning of the selected pronunciation language is not supported'
+            elif target_code[:2] not in config.ELEVENLABS_CLONE:
+                err="ElevenLabs 不支持所选目标语言的克隆" if config.defaulelang == 'zh' else 'ElevenLabs: Cloning in the selected target language is not supported'
+            
+            if err:
+                self.main.startbtn.setDisabled(False)
+                return QMessageBox.critical(self.main, config.transobj['anerror'],err)
+            
         config.line_roles = {}
 
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
@@ -512,6 +511,7 @@ class WinAction(WinActionSub):
             f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
+
         tools.set_process(text='start', type='create_btns')
 
     def click_subtitle(self):
@@ -659,9 +659,6 @@ class WinAction(WinActionSub):
             return
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
-        if not self.is_batch:
-            self.clear_target_subtitle(self.main.target_subtitle_area)
-
         self.main.startbtn.setText(config.transobj[type])
 
         # 删除本次任务的所有进度队列
@@ -712,7 +709,7 @@ class WinAction(WinActionSub):
                 self.edit_subtitle_type = 'edit_subtitle_source'
                 self.wait_subtitle = None
                 if not self.is_batch:
-                    self.clear_target_subtitle(self.main.target_subtitle_area)
+                    self.clear_target_subtitle()
         elif d['type']=='create_btns':
             self.create_btns()
         # 任务开始执行，初始化按钮等
@@ -807,173 +804,3 @@ class WinAction(WinActionSub):
         with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
             f.write(txt)
         return True
-
-    def clear_target_subtitle(self, layout):
-        """安全地清除布局中的所有项目，保留布局本身。"""
-        if layout is None:
-            return
-
-        while layout.count() > 0:
-            item = layout.itemAt(0)
-            if item is None:
-                continue  # 防止takeAt() 返回None
-
-            widget = item.widget()
-            if widget:
-                widget.setParent(None)  # 断开Widget与Layout的父子关系
-                widget.deleteLater()  # 安全删除
-            else:
-                child_layout = item.layout()
-                if child_layout:
-                    self.clear_target_subtitle(child_layout)  # 递归清理嵌套布局
-            layout.removeItem(item)  # 从布局中移除项目
-
-    def get_target_subtitle(self):
-        srts = self.extract_subtitle_data_from_area(self.main.target_subtitle_area)
-        return '\n\n'.join(srts)
-
-    def extract_subtitle_data_from_area(self, target_layout):
-        """
-        从 self.main.target_subtitle_area 开始查找 box，然后提取字幕数据。
-
-        Args:
-            target_layout:  QtWidgets.QLayout 对象，例如 self.main.target_subtitle_area。
-
-        Returns:
-            一个列表，其中每个元素都是一个包含 (line_time_text, line_edit_text) 的元组。  返回空列表表示没有找到box或数据。
-        """
-
-        def find_box(layout):
-            if layout is None:
-                return None
-            for i in range(layout.count()):
-                item = layout.itemAt(i)
-                if item is None:
-                    continue
-                widget = item.widget()
-                if isinstance(widget, QtWidgets.QScrollArea):
-                    box = widget.widget()
-                    if isinstance(box, QtWidgets.QWidget) and box.objectName() == 'box_name':
-                        return box
-                elif item.layout():
-                    box = find_box(item.layout())
-                    if box:
-                        return box
-            return None
-
-        box = find_box(target_layout)
-        if box is None:
-            return []  # 没有找到box
-
-        return self.extract_subtitle_data(box) 
-
-    def extract_subtitle_data(self, box):
-        data = []
-        layout = box.layout()
-        if layout is None:
-            return data
-        num = 1
-        for item in layout.children():
-            if isinstance(item, QtWidgets.QVBoxLayout):
-                for i in range(item.count()):
-                    child = item.itemAt(i)
-                    if child is None:
-                        continue
-                    widget = child.widget()
-                    if isinstance(widget, QtWidgets.QLineEdit):
-                        line_time_text = widget.text()
-                    elif isinstance(widget, QtWidgets.QPlainTextEdit):
-                        line_edit_text = widget.toPlainText()
-                        data.append(f'{num}\n{line_time_text}\n{line_edit_text}')
-                        num += 1
-        return data
-
-    def show_target_edit(self, srt_str):
-        def get_checked_boxes(widget):
-            checked_boxes = []
-            for child in widget.children():
-                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
-                    checked_boxes.append(child.objectName())
-                else:
-                    checked_boxes.extend(get_checked_boxes(child))
-            return checked_boxes
-
-        def save(role):
-            # 初始化一个列表，用于存放所有选中 checkbox 的名字
-            checked_checkbox_names = get_checked_boxes(box)
-            default_role = self.cfg.get('voice_role', 'No')
-
-            if len(checked_checkbox_names) < 1:
-                return
-
-            for n in checked_checkbox_names:
-                _, line = n.split('_')
-                # 设置labe为角色名
-                ck = box.findChild(QtWidgets.QCheckBox, n)
-                ck.setText(default_role if role in ['No', 'no', '-'] else role)
-                ck.setChecked(False)
-                config.line_roles[line] = default_role if role in ['No', 'no', '-'] else role
-            print(f'{config.line_roles=}')
-
-        box = QtWidgets.QWidget()
-        box.setObjectName('box_name')
-        box.setLayout(QtWidgets.QVBoxLayout())
-
-        #  获取字幕
-        srt_json = tools.get_subtitle_from_srt(srt_str, is_file=False)
-        for it in srt_json:
-            # 创建新水平布局
-            v_layout = QtWidgets.QVBoxLayout()
-            v_layout.setObjectName(f'hlayout_{it["line"]}')
-            h_layout = QtWidgets.QHBoxLayout()
-            label = QtWidgets.QLabel()
-            label.setText(f'{it["line"]}')
-            check = QtWidgets.QCheckBox()
-            check.setToolTip(
-                "选中后可在底部单独设置配音角色" if config.defaulelang == 'zh' else "Check to set the voice role separately at the bottom")
-            check.setText(
-                config.line_roles[f'{it["line"]}'] if f'{it["line"]}' in config.line_roles else
-                self.cfg.get('voice_role', 'No'))
-            check.setObjectName(f'check_{it["line"]}')
-            # 创建并配置 QLineEdit
-            line_time = QtWidgets.QLineEdit()
-            line_time.setObjectName(f'time_{it["line"]}')
-            # line_time.setFixedWidth(150)
-            line_time.setText(f'{it["time"]}')
-
-            line_edit = QtWidgets.QPlainTextEdit()
-            line_edit.setObjectName(f'text_{it["line"]}')
-            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
-            line_edit.setPlainText(f'{it["text"]}')
-            # 将标签和编辑线添加到水平布局
-            h_layout.addWidget(label)
-            h_layout.addWidget(check)
-            h_layout.addStretch()
-            v_layout.addLayout(h_layout)
-            v_layout.addWidget(line_time)
-            v_layout.addWidget(line_edit)
-            box.layout().addLayout(v_layout)
-        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        select_role = QtWidgets.QComboBox()
-        select_role.addItems(self.main.current_rolelist)
-        # select_role.setFixedWidth(200)
-        select_role.setFixedHeight(35)
-        select_role.currentTextChanged.connect(save)
-        if self.cfg.get('voice_role', '-') in ['-', 'No']:
-            select_role.setDisabled(True)
-        label_role = QtWidgets.QLabel()
-        label_role.setText('单独设置角色' if config.defaulelang == 'zh' else 'Select Role')
-
-        h1 = QtWidgets.QHBoxLayout()
-        h1.addWidget(label_role)
-        h1.addWidget(select_role)
-
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidget(box)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # 将 QScrollArea 添加到主窗口的 layout
-        self.main.target_subtitle_area.addWidget(scroll_area)
-        self.main.target_subtitle_area.addLayout(h1)

@@ -1,3 +1,4 @@
+import copy
 import json
 import json
 import os
@@ -158,6 +159,7 @@ def openwin():
 
     # tab-4 语音合成
     def hecheng_start_fun():
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
         language = winobj.hecheng_language.currentText()
@@ -265,13 +267,16 @@ def openwin():
             winobj.hecheng_role.addItems(['gtts'])
         elif type == CHATTTS:
             winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(['No'] + list(config.ChatTTS_voicelist))
+            winobj.hecheng_role.addItems(list(config.ChatTTS_voicelist))
         elif type == OPENAI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['openaitts_role'].split(","))
         elif type == ELEVENLABS_TTS:
             winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.params['elevenlabstts_role'])
+            rolelist=copy.deepcopy(config.params['elevenlabstts_role'])
+            if "clone" in rolelist:
+                rolelist.remove("clone")
+            winobj.hecheng_role.addItems(rolelist)
         elif change_by_lang(type):
             hecheng_language_fun(winobj.hecheng_language.currentText())
         elif type == AI302_TTS:

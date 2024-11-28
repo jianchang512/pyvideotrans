@@ -281,6 +281,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 
         self.actionbaidu_key.triggered.connect(winform.baidu.openwin)
+        self.actionali_key.triggered.connect(winform.ali.openwin)
 
         self.actionazure_key.triggered.connect(winform.azure.openwin)
         self.actionazure_tts.triggered.connect(winform.azuretts.openwin)

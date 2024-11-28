@@ -85,6 +85,8 @@ class CloneVoice(BaseTTS):
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
+        except (requests.ConnectionError, requests.Timeout) as e:
+            self.error="连接失败，请检查是否启动了api服务" if config.defaulelang=='zh' else  'Connection failed, please check if the api service is started'
         except Exception as e:
             Path(data_item['filename']).unlink(missing_ok=True)
             self.error = str(e)
