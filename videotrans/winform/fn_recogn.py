@@ -122,6 +122,7 @@ def openwin():
         return True
 
     def shibie_start_fun():
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()

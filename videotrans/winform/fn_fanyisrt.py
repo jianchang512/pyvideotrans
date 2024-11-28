@@ -135,6 +135,7 @@ def openwin():
     def fanyi_start_fun():
         global SOURCE_DIR
         SOURCE_DIR=""
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()

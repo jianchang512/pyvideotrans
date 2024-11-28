@@ -97,7 +97,7 @@ def pygameaudio(filepath):
 # 获取 elenevlabs 的角色列表
 def get_elevenlabs_role(force=False,raise_exception=False):
     jsonfile = os.path.join(config.ROOT_DIR, 'elevenlabs.json')
-    namelist = []
+    namelist = ["clone"]
     if vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
             cache = json.loads(f.read())
@@ -107,14 +107,13 @@ def get_elevenlabs_role(force=False,raise_exception=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     try:
-        from elevenlabs import voices, set_api_key
-        if config.params["elevenlabstts_key"]:
-            set_api_key(config.params["elevenlabstts_key"])
-        voiceslist = voices()
+        from elevenlabs import ElevenLabs
+        client=ElevenLabs(api_key=config.params["elevenlabstts_key"])
+        voiceslist = client.voices.get_all()
         result = {}
-        for it in voiceslist:
+        for it in voiceslist.voices:
             n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name).strip()
-            result[n] = {"name": n, "voice_id": it.voice_id, 'url': it.preview_url}
+            result[n] = {"name": n, "voice_id": it.voice_id}
             namelist.append(n)
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))

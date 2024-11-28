@@ -603,7 +603,10 @@ Translation:"""
         "tencent_SecretId": "",
         "tencent_SecretKey": "",
         "tencent_termlist": "",
-
+        
+        "ali_id":"",
+        "ali_key":"",
+    
         "baidu_appid": "",
         "baidu_miyue": "",
 
@@ -1070,3 +1073,6 @@ Det är jubileum sedan Weber officiellt började filma.""",
 00:00:07,260 --> 00:00:09,880
 ওয়েবার আনুষ্ঠানিকভাবে চিত্রগ্রহণ শুরু করার পর থেকে এটি বার্ষিকী।"""
 }
+
+
+ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs']

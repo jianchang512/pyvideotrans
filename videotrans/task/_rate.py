@@ -118,7 +118,7 @@ class SpeedRate:
                     continue
                 # 每3分钟后，在第一个与前一条字幕存在空白大于50ms处，将视频向左移动该空白，防止随着时间延迟配音越来越后移
                 if i>0 and it['start_time']-last_time>=180000 and (it['start_time']-self.queue_tts[i-1]['start_time']>50):
-                    left_move+=it['start_time']-self.queue_tts[i-1]['start_time']
+                    left_move+=min(it['start_time']-self.queue_tts[i-1]['start_time'],500)
                     last_time=it['start_time']
                 it['start_time']-=left_move
                 it['end_time']-=left_move

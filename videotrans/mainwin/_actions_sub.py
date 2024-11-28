@@ -6,8 +6,8 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6 import QtCore
-from PySide6.QtCore import QTimer
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import QTimer, Qt
 
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
@@ -17,6 +17,26 @@ from videotrans.util import tools
 
 
 class WinActionSub:
+
+    def __init__(self,main=None):
+        self.main = main
+        # 更新按钮
+        self.update_btn = None
+        # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
+        self.edit_subtitle_type = 'edit_subtitle_source'
+        # 进度按钮
+        self.processbtns = {}
+        # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
+        self.wait_subtitle = None
+        # 存放需要处理的视频dict信息，包括uuid
+        self.obj_list = []
+        self.is_render = False
+        self.is_batch = True
+        self.cfg = {}
+        self.queue_mp4 = []
+        self.scroll_area = None
+        self.scroll_area_after = None
+        self.removing_layout=False
 
     def show_model_help(self):
         
@@ -668,3 +688,181 @@ class WinActionSub:
                                      f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ')
                 return False
         return True
+
+
+    def clear_target_subtitle(self):
+        """安全地清除布局中的所有项目，保留布局本身。"""
+        if self.removing_layout or not self.scroll_area or not self.scroll_area_after:
+            return
+        self.removing_layout=True
+        def clear_and_delete_scroll_area(scroll_area):
+            if scroll_area is None:
+                return
+            widget = scroll_area.takeWidget()
+            if widget:
+                if widget.layout():
+                    delete_layout_and_children(widget.layout())
+            if scroll_area.parent() and isinstance(scroll_area.parent(), QtWidgets.QLayout):
+                scroll_area.parent().removeWidget(scroll_area)
+
+            scroll_area.deleteLater()
+
+        def delete_layout_and_children(layout):
+            if layout is None:
+                return
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
+                elif item.layout():
+                    delete_layout_and_children(item.layout())
+                del item
+        try:
+            clear_and_delete_scroll_area(self.scroll_area)
+            delete_layout_and_children(self.scroll_area_after)
+        except Exception as e:
+            print(e)
+        self.scroll_area=None
+        self.scroll_area_after=None
+        self.removing_layout=False
+
+    def get_target_subtitle(self):
+        srts = self.extract_subtitle_data_from_area(self.main.target_subtitle_area)
+        return '\n\n'.join(srts)
+
+    def extract_subtitle_data_from_area(self, target_layout):
+        def find_box(layout):
+            if layout is None:
+                return None
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item is None:
+                    continue
+                widget = item.widget()
+                if isinstance(widget, QtWidgets.QScrollArea):
+                    box = widget.widget()
+                    if isinstance(box, QtWidgets.QWidget) and box.objectName() == 'box_name':
+                        return box
+                elif item.layout():
+                    box = find_box(item.layout())
+                    if box:
+                        return box
+            return None
+
+        box = find_box(target_layout)
+        if box is None:
+            return []  # 没有找到box
+
+        return self.extract_subtitle_data(box)
+
+    def extract_subtitle_data(self, box):
+        data = []
+        layout = box.layout()
+        if layout is None:
+            return data
+        num = 1
+        for item in layout.children():
+            if isinstance(item, QtWidgets.QVBoxLayout):
+                for i in range(item.count()):
+                    child = item.itemAt(i)
+                    if child is None:
+                        continue
+                    widget = child.widget()
+                    if isinstance(widget, QtWidgets.QLineEdit):
+                        line_time_text = widget.text()
+                    elif isinstance(widget, QtWidgets.QPlainTextEdit):
+                        line_edit_text = widget.toPlainText()
+                        data.append(f'{num}\n{line_time_text}\n{line_edit_text}')
+                        num += 1
+        return data
+
+    def show_target_edit(self, srt_str):
+        def get_checked_boxes(widget):
+            checked_boxes = []
+            for child in widget.children():
+                if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
+                    checked_boxes.append(child.objectName())
+                else:
+                    checked_boxes.extend(get_checked_boxes(child))
+            return checked_boxes
+
+        def save(role):
+            # 初始化一个列表，用于存放所有选中 checkbox 的名字
+            checked_checkbox_names = get_checked_boxes(box)
+            default_role = self.cfg.get('voice_role', 'No')
+
+            if len(checked_checkbox_names) < 1:
+                return
+
+            for n in checked_checkbox_names:
+                _, line = n.split('_')
+                # 设置labe为角色名
+                ck = box.findChild(QtWidgets.QCheckBox, n)
+                ck.setText(default_role if role in ['No', 'no', '-'] else role)
+                ck.setChecked(False)
+                config.line_roles[line] = default_role if role in ['No', 'no', '-'] else role
+            print(f'{config.line_roles=}')
+
+        box = QtWidgets.QWidget()
+        box.setObjectName('box_name')
+        box.setLayout(QtWidgets.QVBoxLayout())
+
+        #  获取字幕
+        srt_json = tools.get_subtitle_from_srt(srt_str, is_file=False)
+        for it in srt_json:
+            # 创建新水平布局
+            v_layout = QtWidgets.QVBoxLayout()
+            v_layout.setObjectName(f'hlayout_{it["line"]}')
+            h_layout = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel()
+            label.setText(f'{it["line"]}')
+            check = QtWidgets.QCheckBox()
+            check.setToolTip(
+                "选中后可在底部单独设置配音角色" if config.defaulelang == 'zh' else "Check to set the voice role separately at the bottom")
+            check.setText(
+                config.line_roles[f'{it["line"]}'] if f'{it["line"]}' in config.line_roles else
+                self.cfg.get('voice_role', 'No'))
+            check.setObjectName(f'check_{it["line"]}')
+            # 创建并配置 QLineEdit
+            line_time = QtWidgets.QLineEdit()
+            line_time.setObjectName(f'time_{it["line"]}')
+            # line_time.setFixedWidth(150)
+            line_time.setText(f'{it["time"]}')
+
+            line_edit = QtWidgets.QPlainTextEdit()
+            line_edit.setObjectName(f'text_{it["line"]}')
+            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
+            line_edit.setPlainText(f'{it["text"]}')
+            # 将标签和编辑线添加到水平布局
+            h_layout.addWidget(label)
+            h_layout.addWidget(check)
+            h_layout.addStretch()
+            v_layout.addLayout(h_layout)
+            v_layout.addWidget(line_time)
+            v_layout.addWidget(line_edit)
+            box.layout().addLayout(v_layout)
+        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        select_role = QtWidgets.QComboBox()
+        select_role.addItems(self.main.current_rolelist)
+
+        select_role.setFixedHeight(35)
+        select_role.currentTextChanged.connect(save)
+        if self.cfg.get('voice_role', '-') in ['-', 'No','clone']:
+            select_role.setDisabled(True)
+        label_role = QtWidgets.QLabel()
+        label_role.setText('单独设置角色' if config.defaulelang == 'zh' else 'Select Role')
+
+        self.scroll_area_after = QtWidgets.QHBoxLayout()
+        self.scroll_area_after.addWidget(label_role)
+        self.scroll_area_after.addWidget(select_role)
+
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_area.setWidget(box)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 将 QScrollArea 添加到主窗口的 layout
+        self.main.target_subtitle_area.addWidget(self.scroll_area)
+        self.main.target_subtitle_area.addLayout(self.scroll_area_after)

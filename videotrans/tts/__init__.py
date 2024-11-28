@@ -182,8 +182,8 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
         from videotrans.tts._openaitts import OPENAITTS
         OPENAITTS(**kwargs).run()
     elif tts_type == ELEVENLABS_TTS:
-        from videotrans.tts._elevenlabs import ElevenLabs
-        ElevenLabs(**kwargs).run()
+        from videotrans.tts._elevenlabs import ElevenLabsC
+        ElevenLabsC(**kwargs).run()
     elif tts_type == GOOGLE_TTS:
         from videotrans.tts._gtts import GTTS
         GTTS(**kwargs).run()

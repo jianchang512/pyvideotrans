@@ -16,7 +16,7 @@ from videotrans import translator
 from videotrans.configure import config
 from videotrans.recognition import run as run_recogn
 from videotrans.translator import run as run_trans, get_audio_code
-from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS,EDGE_TTS,AZURE_TTS
+from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS,EDGE_TTS,AZURE_TTS,ELEVENLABS_TTS
 from videotrans.util import tools
 from ._base import BaseTask
 from ._rate import SpeedRate
@@ -92,6 +92,7 @@ class TransCreate(BaseTask):
             "time":0
         }
         """
+        self.ignore_align=False
         self.video_info = None
         # 如果输入编码和输出编码一致，只需copy视频流，无需编码，除非嵌入硬字幕
         self.is_copy_video = False
@@ -402,7 +403,17 @@ class TransCreate(BaseTask):
         self.status_text = config.transobj['kaishipeiyin']
         self.precent += 3
         try:
-            self._tts()
+            if self.cfg['voice_role']=='clone' and self.cfg['tts_type']==ELEVENLABS_TTS:
+                if (self.cfg['source_language_code'] !='auto' and self.cfg['source_language_code'][:2] not in config.ELEVENLABS_CLONE) or (self.cfg['target_language_code'][:2] not in config.ELEVENLABS_CLONE):
+                    self.hasend = True
+                    raise Exception('ElevenLabs: Cloning of the selected language is not supported')
+                
+
+                self.ignore_align=True
+                from videotrans.tts._elevenlabs import ElevenLabsClone
+                ElevenLabsClone(self.cfg['source_wav'],self.cfg['target_wav'],self.cfg['source_language_code'],self.cfg['target_language_code']).run()
+            else:
+                self._tts()
         except Exception as e:
             self.hasend = True
             self._signal(text=str(e), type='error')
@@ -417,7 +428,7 @@ class TransCreate(BaseTask):
             self.precent = 100
             return
 
-        if not self.shoud_dubbing:
+        if not self.shoud_dubbing or self.ignore_align:
             return
 
         self.status_text = config.transobj['duiqicaozuo']
