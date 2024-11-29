@@ -69,7 +69,7 @@ class SpeechToText(BaseTask):
                 break
             time.sleep(1)
         try:
-            if self.cfg['remove_noise']:
+            if self.cfg.get('remove_noise'):
                 self._signal(text='开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang=='zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient')
                 self.cfg['shibie_audio']=remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/removed_noise_{time.time()}.wav")
 
