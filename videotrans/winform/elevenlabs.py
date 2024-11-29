@@ -18,6 +18,7 @@ def openwin():
 
         def run(self):
             try:
+                tools.get_elevenlabs_role(force=True, raise_exception=True)
                 tts.run(
                     queue_tts=[{"text": "Hello my friends.", "role": "Aria",
                                 "filename": config.TEMP_HOME + "/testelevlabstts", "tts_type": tts.ELEVENLABS_TTS}],
@@ -30,7 +31,7 @@ def openwin():
                 self.uito.emit(str(e))
 
     def feed(d):
-        if not d.startswith("ok:"):
+        if not d.startswith("ok"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
@@ -47,7 +48,7 @@ def openwin():
         config.params['elevenlabstts_key'] = key
 
         try:
-            tools.get_elevenlabs_role(force=True, raise_exception=True)
+            
             task = Test(parent=winobj)
             winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
             task.uito.connect(feed)
