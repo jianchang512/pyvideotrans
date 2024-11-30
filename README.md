@@ -58,6 +58,7 @@
 
 ![pyvideotrans-home](https://github.com/user-attachments/assets/b2f95a7f-b4e5-4a6d-b2a5-eb6cd22531e0)
 
+[![Open In Colab](https://img.shields.io/badge/Colab-F9AB00?style=for-the-badge&logo=googlecolab&color=525252)](https://colab.research.google.com/drive/1kPTeAMz3LnWRnGmabcz4AWW42hiehmfm?usp=sharing)
 
 # 预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
 
