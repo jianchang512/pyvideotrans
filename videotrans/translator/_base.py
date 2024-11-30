@@ -150,12 +150,14 @@ class BaseTrans(BaseCon):
                     if len(sep_res) < len(it):
                         tmp = ["" for x in range(len(it) - len(sep_res))]
                         self.target_list += tmp
-                except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError) as e:
+                except requests.exceptions.ProxyError as e:
+                    proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    raise Exception(f'代理错误请检查:{proxy=} {e}')
+                except (requests.ConnectionError, requests.exceptions.RetryError, requests.Timeout) as e:
                     msg=''
                     if self.api_url:
-                        msg = f'请检查当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
-                    raise IPLimitExceeded(proxy=proxy,  msg=msg+str(e), name=self.__class__.__name__)
+                        msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
+                    raise IPLimitExceeded(msg=msg+str(e), name=self.__class__.__name__)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -233,11 +235,14 @@ class BaseTrans(BaseCon):
 
                     self._signal(text=result, type='subtitle')
                     result_srt_str_list.append(result)
-                except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError) as e:
+                except requests.exceptions.ProxyError as e:
+                    proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
+                    raise Exception(f'代理错误请检查:{proxy=} {e}')
+                except (requests.ConnectionError, requests.Timeout, requests.exceptions.RetryError) as e:
                     msg=''
                     if self.api_url:
-                        msg = f'请检查当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise IPLimitExceeded(proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}',  msg=msg+str(e), name=self.__class__.__name__)
+                        msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
+                    raise IPLimitExceeded(msg=msg+str(e), name=self.__class__.__name__)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)

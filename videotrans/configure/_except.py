@@ -9,14 +9,11 @@ class LogExcept(BaseException):
 
 class IPLimitExceeded(BaseException):
 
-    def __init__(self, proxy=None,msg='',name=""):
+    def __init__(self, msg='',name=""):
         super().__init__(msg)
         config.logger.error(msg)
-        self.proxy=proxy
         self.msg=msg
         self.name=name
     def __str__(self):
-        if self.proxy and (self.proxy.startswith('http') or self.proxy.startswith('sock')):
-            return f'[{self.name}]: {self.msg}. 当前代理地址:{self.proxy}' if config.defaulelang=='zh' else f'{self.msg} Current proxy address {self.proxy} cannot be connected'
         return f'[{self.name}]: {self.msg} 连接服务失败' if config.defaulelang=='zh' else f'{self.msg} Current IP is restricted or cannot be connected'
 

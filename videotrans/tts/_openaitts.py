@@ -3,7 +3,7 @@ import re
 import time
 
 import httpx,requests
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, APIConnectionError
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
@@ -62,17 +62,23 @@ class OPENAITTS(BaseTTS):
                     self.inst.precent += 0.1
                 self.error = ''
                 self.has_done += 1
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+            except RateLimitError:
+                self._signal(
+                    text='超过频率限制，等待60s后重试' if config.defaulelang == 'zh' else 'Frequency limit exceeded, wait 60s and retry')
+                time.sleep(60)
+                self.copydata.append(data_item)
+            except APIConnectionError as e:
+                config.logger.exception(e, exc_info=True)
+                error = str(e)
+                self._signal(
+                    text='无法连接到OpenAI服务，请尝试使用或更换代理' if config.defaulelang == 'zh' else 'Cannot connect to OpenAI service, please try using or changing proxy')
+                self.error = error
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
                 error = str(e)
                 self.error = error
-                if error and re.search(r'Rate limit', error, re.I) is not None:
-                    self._signal(
-                        text='超过频率限制，等待60s后重试' if config.defaulelang == 'zh' else 'Frequency limit exceeded, wait 60s and retry')
-                    time.sleep(60)
-                    self.copydata.append(data_item)
             finally:
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 time.sleep(self.wait_sec)
 
     def _get_url(self, url=""):

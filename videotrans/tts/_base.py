@@ -83,11 +83,14 @@ class BaseTTS(BaseCon):
             self._exec()
         except IPLimitExceeded as e:
             raise
-        except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError):
+        except requests.exceptions.ProxyError as e:
+            proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
+            raise Exception(f'代理错误请检查:{proxy=} {e}')
+        except (requests.ConnectionError, requests.exceptions.RetryError, requests.Timeout):
             msg = ''
             if self.api_url:
-                msg=f'请检查当前API:{self.api_url}' if config.defaulelang=='zh' else f'Check API:{self.api_url}'
-            raise IPLimitExceeded(proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}',msg=msg,name=self.__class__.__name__)
+                msg=f'无法连接当前API:{self.api_url}' if config.defaulelang=='zh' else f'Check API:{self.api_url}'
+            raise IPLimitExceeded(msg=msg,name=self.__class__.__name__)
         except Exception as e:
             self.error = str(e) if not self.error else self.error
             self._signal(text=self.error, type="error")

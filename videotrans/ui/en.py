@@ -81,6 +81,13 @@ class Ui_MainWindow(object):
         self.only_video.setObjectName("only_video")
         self.only_video.setText(config.uilanglist['onlyvideo'])
         self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
+        
+        self.copysrt_rawvideo=QtWidgets.QCheckBox(self.layoutWidget)
+        self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
+        self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
+        self.copysrt_rawvideo.setVisible(False)
+        self.copysrt_rawvideo.setText('转移字幕位置' if config.defaulelang=='zh' else 'Moving subtitle')
+        self.copysrt_rawvideo.setToolTip('选中该项，并且目标语言和发音语言不同时\n将移动翻译后srt文件到原视频位置，并重命名为视频同名' if config.defaulelang=='zh' else 'When this item is checked, and the target language is different from the language of the pronunciation \n will move the translated srt file to the original video location and rename it to the same name as the video.')
 
         self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
         self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
@@ -90,6 +97,7 @@ class Ui_MainWindow(object):
         self.shutdown.setText('完成后关机' if config.defaulelang == 'zh' else 'Automatic shutdown')
         self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
+        self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
         self.horizontalLayout_6.addWidget(self.only_video)
         self.horizontalLayout_6.addWidget(self.shutdown)
         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
