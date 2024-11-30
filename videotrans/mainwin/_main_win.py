@@ -8,10 +8,10 @@ from PySide6.QtCore import Qt, QTimer, QSettings
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar
 
-from videotrans import VERSION, recognition
+
 from videotrans.configure import config
-from videotrans.translator import TRANSLASTE_NAME_LIST
-from videotrans  import tts
+
+
 from videotrans.ui.en import Ui_MainWindow
 
 
@@ -30,8 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
 
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
-        self.setWindowTitle(self.rawtitle)
+
         self.languagename = config.langnamelist
         self.setupUi(self)
         self.initUI()
@@ -40,6 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QTimer.singleShot(150, self._bindsignal)
 
     def initUI(self):
+        from videotrans.translator import TRANSLASTE_NAME_LIST
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
@@ -56,6 +56,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def bind_action(self):
         from videotrans.util import tools
         from videotrans.mainwin._actions import WinAction
+        from videotrans import VERSION, recognition
+        from videotrans  import tts
+        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
+        self.setWindowTitle(self.rawtitle)
 
         self.win_action = WinAction(self)
         self.win_action.tts_type_change(config.params['tts_type'])
@@ -227,6 +231,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
         self.rephrase.setChecked(config.settings.get('rephrase'))
         self.remove_noise.setChecked(config.params.get('remove_noise'))
+        self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo',False))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume',0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio',True)))

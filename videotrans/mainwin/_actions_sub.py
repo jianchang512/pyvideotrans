@@ -11,7 +11,7 @@ from PySide6.QtCore import QTimer, Qt
 
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
-from videotrans import translator, tts,recognition
+
 from videotrans.configure import config
 from videotrans.util import tools
 
@@ -109,6 +109,7 @@ class WinActionSub:
         # 仅保存视频行
         self.main.only_video.setChecked(False)
         self.main.only_video.hide()
+        self.main.copysrt_rawvideo.hide()
 
         # 翻译
         self.main.translate_type.setCurrentIndex(1)
@@ -196,9 +197,10 @@ class WinActionSub:
         # 仅保存视频行
         self.main.only_video.setDisabled(False)
         self.main.only_video.show()
+        self.main.copysrt_rawvideo.hide()
 
         # 翻译
-        self.main.translate_type.setCurrentIndex(1)
+        #self.main.translate_type.setCurrentIndex(1)
         self.main.label_9.show()
         self.main.translate_type.show()
         self.main.label_2.show()
@@ -209,7 +211,7 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
+        #self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.show()
         self.main.tts_type.show()
         self.main.tts_type.setDisabled(False)
@@ -224,8 +226,8 @@ class WinActionSub:
         self.main.pitch_rate.setDisabled(False)
 
         # 语音识别行
-        self.main.split_type.setCurrentIndex(0)
-        self.main.model_name.setCurrentIndex(0)
+        #self.main.split_type.setCurrentIndex(0)
+        #self.main.model_name.setCurrentIndex(0)
         self.main.reglabel.show()
         self.main.recogn_type.show()
         self.main.model_name_help.show()
@@ -277,9 +279,10 @@ class WinActionSub:
         # 仅保存视频行
         self.main.only_video.setChecked(False)
         self.main.only_video.hide()
+        self.main.copysrt_rawvideo.show()
 
         # 翻译
-        self.main.translate_type.setCurrentIndex(1)
+        #self.main.translate_type.setCurrentIndex(1)
         self.main.label_9.show()
         self.main.translate_type.show()
         self.main.label_2.show()
@@ -290,7 +293,7 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
+        #self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.hide()
@@ -302,8 +305,8 @@ class WinActionSub:
         self.main.pitch_rate.hide()
 
         # 语音识别行
-        self.main.split_type.setCurrentIndex(0)
-        self.main.model_name.setCurrentIndex(0)
+        #self.main.split_type.setCurrentIndex(0)
+        #self.main.model_name.setCurrentIndex(0)
         self.main.reglabel.show()
         self.main.recogn_type.show()
         self.main.model_name_help.show()
@@ -343,6 +346,7 @@ class WinActionSub:
         self.main.bgmvolume.hide()
 
     def source_language_change(self):
+        from videotrans import translator
         langtext=self.main.source_language.currentText()
         langcode=translator.get_code(show_text=langtext)
         self.main.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
@@ -492,6 +496,7 @@ class WinActionSub:
             return True
 
         import torch
+        from videotrans import recognition
         if not torch.cuda.is_available():
             self.cfg['cuda']=False
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
@@ -520,6 +525,7 @@ class WinActionSub:
     def set_mode(self):
         subtitle_type=self.main.subtitle_type.currentIndex()
         voice_role=self.main.voice_role.currentText()
+        self.cfg['copysrt_rawvideo']=False
         if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No',''," ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
@@ -530,6 +536,7 @@ class WinActionSub:
             self.cfg['voice_autorate'] = False
             self.cfg['append_video'] = False
             self.cfg['back_audio'] = ''
+            self.cfg['copysrt_rawvideo']=self.main.copysrt_rawvideo.isChecked()
         elif self.main.app_mode == 'biaozhun_jd':
             self.cfg['voice_autorate'] = True
             self.cfg['append_video'] = True
@@ -594,10 +601,12 @@ class WinActionSub:
     # 试听配音
     def listen_voice_fun(self):
         import tempfile
+        from videotrans import translator
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
             return QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
+        from videotrans import tts
         text = config.params[f'listen_text_{lang}']
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
@@ -637,7 +646,7 @@ class WinActionSub:
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
-        # config.params["voice_role"] = role
+        from videotrans import tts
         tts_type=self.main.tts_type.currentIndex()
         voice_role = self.main.voice_role.currentText()
         if role == 'No' or (tts_type == tts.CLONE_VOICE_TTS and voice_role == 'clone'):

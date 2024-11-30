@@ -49,10 +49,10 @@ class Ui_f5ttsform(object):
 
         self.label_4 = QLabel(f5ttsform)
         self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频#音频文字内容')
+        self.label_4.setText('参考音频#音频文字内容' if config.defaulelang=='zh' else 'Reference Audio#Audio Text')
         v1.addWidget(self.label_4)
         self.req = QLabel(f5ttsform)
-        self.req.setText('参考音频需要wav格式，时长10s内，发音清晰无背景噪声，存放到本软件/f5-tts目录下')
+        self.req.setText('参考音频需要wav格式，时长10s内，发音清晰无背景噪声，存放到本软件/f5-tts目录下' if config.defaulelang=='zh' else 'Reference audio needs to be in wav format, with a duration of no more than 10 seconds, and stored in the /f5-tts directory of this software')
         self.req.setStyleSheet('color:#999')
         v1.addWidget(self.req)
         
@@ -64,7 +64,7 @@ class Ui_f5ttsform(object):
 
         self.label_5 = QLabel(f5ttsform)
         self.label_5.setObjectName("label_5")
-        self.label_5.setText('API请求说明')
+        self.label_5.setText('API请求说明' if config.defaulelang=='zh' else 'API Request Instructions')
         v1.addWidget(self.label_5)
 
         self.tips = QPlainTextEdit(f5ttsform)
@@ -115,13 +115,23 @@ model,ref_text,gen_text,audio二进制音频数据
 请求失败时返回json格式数据
       
 请求成功时返回音频流
+""" if config.defaulelang=='zh' else """
+Send POST requests to the API address filled in with formdata data:
+
+api.py, which accepts requests
+
+model, ref_text, gen_text, audio binary audio data
+
+Returns json data when request fails
+
+Returns audio stream when request succeeds
 """
 
         f5ttsform.setWindowTitle("F5-TTS API")
-        self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
+        self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友" if config.defaulelang=='zh' else "Fill in the reference audio information, format as follows\nFor example: One line per group\n123.wav#Hello, my friend")
         self.tips.setPlainText(tips)
         self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
-        self.api_url.setPlaceholderText("填写http开头的API地址")
+        self.api_url.setPlaceholderText("填写http开头的API地址"if config.defaulelang=='zh' else "Fill in the http starting API address")
         self.label.setText("API")
         self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
-    # retranslateUi
+

@@ -58,7 +58,7 @@ class EdgeTTS(BaseTTS):
             for t in tasks:
                 t.join()
             if str(self.error)=='Invalid response status':
-                raise IPLimitExceeded(proxy=self.proxies, msg='EdgeTTS:403',name=self.__class__.__name__)
+                raise IPLimitExceeded(msg='EdgeTTS:403',name=self.__class__.__name__)
             self.has_done += len(items)
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.05

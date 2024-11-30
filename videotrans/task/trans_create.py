@@ -259,11 +259,14 @@ class TransCreate(BaseTask):
         # 仅提取字幕
         self.precent += 5
         if self.cfg['app_mode'] == 'tiqu':
-            shutil.copy2(self.cfg['source_sub'],
-                         f"{self.cfg['target_dir']}/{self.cfg['noextname']}.srt")
+            dest_name=f"{self.cfg['target_dir']}/{self.cfg['noextname']}"
             if not self.shoud_trans:
                 self.hasend = True
                 self.precent = 100
+                dest_name+='.srt'
+            else:
+                dest_name+=f"-{self.cfg['source_language_code']}.srt"
+            shutil.copy2(self.cfg['source_sub'],dest_name)
         self.status_text = config.transobj['endtiquzimu']
 
     # 开始识别
@@ -367,7 +370,10 @@ class TransCreate(BaseTask):
             # 仅提取，该名字删原
             if self.cfg['app_mode'] == 'tiqu':
                 shutil.copy2(self.cfg['target_sub'],
-                             f"{self.cfg['target_dir']}/{self.cfg['noextname']}-{self.cfg['target_language_code']}.srt")
+                             f"{self.cfg['target_dir']}/{self.cfg['noextname']}.srt")
+                if self.cfg.get('copysrt_rawvideo'):
+                    p=Path(self.cfg['name'])
+                    shutil.copy2(self.cfg['target_sub'],f'{p.parent.as_posix()}/{p.stem}.srt')
                 self.hasend = True
                 self.precent = 100
         except Exception as e:

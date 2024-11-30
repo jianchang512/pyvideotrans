@@ -9,16 +9,10 @@ from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans import translator, recognition, tts
-from videotrans.component.progressbar import ClickableProgressBar
-from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
-from videotrans.component.set_threads import SetThreadTransDubb
+
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
-from videotrans.task._mult_video import MultVideo
-from videotrans.task._only_one import Worker
 from videotrans.util import tools
-from videotrans.winform import fn_downmodel
-
 
 class WinAction(WinActionSub):
     def __init__(self, main=None):
@@ -333,6 +327,7 @@ class WinAction(WinActionSub):
             source_language_currentText=self.main.source_language.currentText()
         )
         if res == 'download':
+            from videotrans.winform import fn_downmodel
             return fn_downmodel.openwin(model_name=self.main.model_name.currentText(),
                                         recogn_type=self.main.recogn_type.currentIndex())
         if res is not True:
@@ -515,6 +510,7 @@ class WinAction(WinActionSub):
         tools.set_process(text='start', type='create_btns')
 
     def click_subtitle(self):
+        from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
         dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
                                         config.settings.get('other_len', 66))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
@@ -525,6 +521,7 @@ class WinAction(WinActionSub):
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def click_translate_type(self):
+        from videotrans.component.set_threads import SetThreadTransDubb
         dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
                                     sec=config.settings.get('translation_wait', 0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
@@ -535,6 +532,7 @@ class WinAction(WinActionSub):
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def click_tts_type(self):
+        from videotrans.component.set_threads import SetThreadTransDubb
         dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
                                     sec=config.settings.get('dubbing_wait', 0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
@@ -569,6 +567,7 @@ class WinAction(WinActionSub):
         if self.main.app_mode not in ['biaozhun_jd', 'tiqu'] and (
                 config.settings.get('is_queue') or len(self.obj_list) == 1):
             self.is_batch = False
+            from videotrans.task._only_one import Worker
             task = Worker(
                 parent=self.main,
                 app_mode=self.main.app_mode,
@@ -584,7 +583,7 @@ class WinAction(WinActionSub):
             return
 
         self.is_batch = True
-
+        from videotrans.task._mult_video import MultVideo
         MultVideo(parent=self.main, cfg=self.cfg, obj_list=self.obj_list).start()
 
     # 启动时禁用相关模式按钮，停止时重新启用
@@ -610,6 +609,7 @@ class WinAction(WinActionSub):
 
     # 添加进度条
     def add_process_btn(self, *, target_dir: str = None, name: str = None, uuid=None):
+        from videotrans.component.progressbar import ClickableProgressBar
         clickable_progress_bar = ClickableProgressBar(self)
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(config.transobj["waitforstart"])

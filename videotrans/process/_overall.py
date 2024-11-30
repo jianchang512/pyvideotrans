@@ -20,7 +20,13 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             q.put_nowait(jsondata)
         except:
             pass
-
+    print(
+        float(settings['threshold']),
+        int(settings['min_speech_duration_ms']),
+        int(settings['max_speech_duration_s']) if int(settings['max_speech_duration_s'])>0 else float('inf'),
+        int(settings['min_silence_duration_ms']),
+        int(settings['speech_pad_ms'])
+    )
     try:
         # 不存在 / ，是普通本地已有模型，直接本地加载，否则在线下载
         local_file_only = True if model_name.find('/') == -1 else False

@@ -39,8 +39,11 @@ class AI302(BaseTTS):
             if config.params['ai302tts_model'] == 'doubao':
                 return self._doubao(data=data_item)
             return self._openai(data=data_item)
-        except requests.ConnectionError as e:
-            self.error = str(e)
+        except requests.exceptions.ProxyError:
+            self.error='连接代理出错，请检查' if config.defaulelang=='zh' else 'Connect to proxy failed, please check'
+        except (requests.ConnectionError,requests.Timeout,requests.exceptions.RetryError) as e:
+            # 中文和英文
+            self.error = '连接302.ai失败，请尝试使用或切换代理' if config.defaulelang=='zh' else 'Connect to 302.ai failed, please try to use or switch proxy'
         except Exception as e:
             self.error = str(e)
         finally:
