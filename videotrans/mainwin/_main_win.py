@@ -13,6 +13,10 @@ from videotrans.configure import config
 
 
 from videotrans.ui.en import Ui_MainWindow
+from videotrans.util import tools
+from videotrans.mainwin._actions import WinAction
+from videotrans import VERSION, recognition
+from videotrans  import tts
 
 
 
@@ -35,8 +39,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
         self.show()
-        QTimer.singleShot(100, self._set_cache_set)
-        QTimer.singleShot(150, self._bindsignal)
+        QTimer.singleShot(50, self._set_cache_set)
+        QTimer.singleShot(100, self._start_subform)
+        QTimer.singleShot(500, self._bindsignal)
 
     def initUI(self):
         from videotrans.translator import TRANSLASTE_NAME_LIST
@@ -50,14 +55,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename[:-1])
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
-        self.bind_action()
 
-
-    def bind_action(self):
-        from videotrans.util import tools
-        from videotrans.mainwin._actions import WinAction
-        from videotrans import VERSION, recognition
-        from videotrans  import tts
+        
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
         self.setWindowTitle(self.rawtitle)
 
@@ -266,7 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/align'))
 
 
-    def start_subform(self):
+    def _start_subform(self):
         self.import_sub.setCursor(Qt.PointingHandCursor)
 
         self.model_name_help.setCursor(Qt.PointingHandCursor)
