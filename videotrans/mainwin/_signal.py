@@ -22,7 +22,7 @@ class UUIDSignalThread(QThread):
     def run(self):
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
             self.uito.emit(json.dumps({"type":"ffmpeg","text": '请安装ffmpeg' if config.defaulelang=='zh' else 'Please install ffmpeg'}))
-        self.uito.emit(json.dumps({"type":"subform","text":''}))
+        #self.uito.emit(json.dumps({"type":"subform","text":''}))
         while 1:
             if config.exit_soft:
                 return

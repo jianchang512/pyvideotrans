@@ -46,32 +46,37 @@ class FunasrRecogn(BaseRecogn):
                               disable_update=True,disable_progress_bar=True,disable_log=True,
                             device=self.device
                     )
-        except Exception as e:
-            raise Exception(f'load model :{e}')
-        msg=f"模型加载完毕，进入识别" if config.defaulelang == 'zh' else 'Model loading is complete, enter recognition'
-        self._signal(text=msg)
-        if self.inst and self.inst.status_text:
-            self.inst.status_text=msg
-        res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
-                             sentence_timestamp=True, batch_size_s=100)
-        raw_subtitles = []
+        
+            msg=f"模型加载完毕，进入识别" if config.defaulelang == 'zh' else 'Model loading is complete, enter recognition'
+            self._signal(text=msg)
+            if self.inst and self.inst.status_text:
+                self.inst.status_text=msg
+            res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
+                                 sentence_timestamp=True, batch_size_s=100)
+            raw_subtitles = []
 
-        for it in res[0]['sentence_info']:
-            tmp={
-                "line": len(raw_subtitles) + 1,
-                "text": it['text'],
-                "start_time": it['start'],
-                "end_time": it['end'],
-                "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
-                "endraw":f'{tools.ms_to_time_string(ms=it["end"])}'
-            }
-            self._signal(text=it['text']+"\n",type='subtitle')
-            tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
-            raw_subtitles.append(tmp)
-        try:
-            del model
-        except:
-            pass
+            for it in res[0]['sentence_info']:
+                tmp={
+                    "line": len(raw_subtitles) + 1,
+                    "text": it['text'],
+                    "start_time": it['start'],
+                    "end_time": it['end'],
+                    "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
+                    "endraw":f'{tools.ms_to_time_string(ms=it["end"])}'
+                }
+                self._signal(text=it['text']+"\n",type='subtitle')
+                tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
+                raw_subtitles.append(tmp)
+        except Exception as e:
+            err=str(e)
+            if err.find('is not registered')>0:
+                raise Exception('可能网络连接出错，请关闭代理后重试')
+            raise
+        finally:                
+            try:
+                del model
+            except:
+                pass
         return raw_subtitles
 
     def _exec1(self) -> Union[List[Dict], None]:
@@ -143,6 +148,9 @@ class FunasrRecogn(BaseRecogn):
                 )
             return srts
         except Exception as e:
+            err=str(e)
+            if err.find('is not registered')>0:
+                raise Exception('可能网络连接出错，请关闭代理后重试')
             raise
         finally:
             try:

@@ -771,8 +771,8 @@ class WinAction(WinActionSub):
             self.main.startbtn.setText(d['text'])
             self.main.startbtn.setDisabled(True)
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
-        elif d['type'] == 'subform':
-            self.main.start_subform()
+        #elif d['type'] == 'subform':
+        #    self.main.start_subform()
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
             if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,
