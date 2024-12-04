@@ -1,5 +1,5 @@
 # stt项目识别接口
-import re
+import re,os
 from pathlib import Path
 from typing import Union, List, Dict
 
@@ -18,6 +18,11 @@ class FunasrRecogn(BaseRecogn):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        proxy = os.environ.get('http_proxy')
+        if proxy:
+            del os.environ['http_proxy']
+            del os.environ['https_proxy']
+            del os.environ['all_proxy']
         self.raws = []
 
     def remove_unwanted_characters(self,text: str) -> str:
@@ -29,6 +34,7 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self)->Union[List[Dict], None]:
         if self._exit():
             return
+        self._set_proxy(type='del')
         if self.model_name=='SenseVoiceSmall':
             return self._exec1()
         if not Path(config.ROOT_DIR+'/models/hub/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/model.pt').exists() or not Path(config.ROOT_DIR+'/models/hub/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch/model.pt').exists():
@@ -72,7 +78,8 @@ class FunasrRecogn(BaseRecogn):
             if err.find('is not registered')>0:
                 raise Exception('可能网络连接出错，请关闭代理后重试')
             raise
-        finally:                
+        finally:         
+            self._set_proxy(type='set')
             try:
                 del model
             except:
@@ -153,6 +160,7 @@ class FunasrRecogn(BaseRecogn):
                 raise Exception('可能网络连接出错，请关闭代理后重试')
             raise
         finally:
+            self._set_proxy(type='set')
             try:
                 if model:
                     del model

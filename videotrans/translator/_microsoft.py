@@ -28,7 +28,7 @@ class Microsoft(BaseTrans):
             try:
                 if not self.auth:
                     self.auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers,
-                                             proxies=self.proxies)
+                                             proxies=self.proxies,verify=False)
                     if self.auth.status_code!=200:
                         raise Exception(f'[Mircosoft]:status_code={self.auth.status_code} {self.auth.reason}')
             except (requests.ConnectionError,requests.HTTPError,requests.Timeout,requests.exceptions.ProxyError):

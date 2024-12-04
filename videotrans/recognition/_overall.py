@@ -110,7 +110,7 @@ class FasterAll(BaseRecogn):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
                         
-                    if not config.settings['rephrase'] or self.detect_language[:2]!='zh':
+                    if not config.settings['rephrase']:
                         self.get_srtlist(raws)
                     else:
                         try:
@@ -118,8 +118,8 @@ class FasterAll(BaseRecogn):
                             for it in list(raws):
                                 words_list+=it['words']
                             self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                            self.raws=self.re_segment_sentences(words_list)
-                        except:
+                            self.raws=self.re_segment_sentences(words_list,self.detect_language[:2])
+                        except Exception as e:
                             self.get_srtlist(raws)
                 try:
                     if process.is_alive():

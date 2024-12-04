@@ -342,10 +342,10 @@ class WinAction(WinActionSub):
 
         if config.current_status == 'ing':
             # 已在执行中，则停止
-            question = tools.show_popup(config.transobj['exit'], config.transobj['confirmstop'])
-            if question == QMessageBox.Yes:
-                self.update_status('stop')
-                return
+            self.update_status('stop')
+            return
+            #question = tools.show_popup(config.transobj['exit'], config.transobj['confirmstop'])
+            #if question == QMessageBox.Yes:
         config.settings = config.parse_init()
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
@@ -506,6 +506,7 @@ class WinAction(WinActionSub):
             f.write(json.dumps(config.settings, ensure_ascii=False))
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
+        self.clear_target_subtitle()
 
         tools.set_process(text='start', type='create_btns')
 

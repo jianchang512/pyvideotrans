@@ -96,7 +96,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         type='subtitle'
                     )
             if len(alllist)>0:
-                if not config.settings['rephrase'] or self.detect_language[:2] !='zh':
+                if not config.settings['rephrase']:
                     self.get_srtlist(alllist)                    
                 else:
                     try:
@@ -104,7 +104,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         for it in list(alllist):
                             words_list += it['words']
                         self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                        self.raws = self.re_segment_sentences(words_list)
+                        self.raws = self.re_segment_sentences(words_list,self.detect_language[:2])
                     except:
                         self.get_srtlist(alllist)
         except Exception as e:

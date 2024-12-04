@@ -293,8 +293,8 @@ class Ui_MainWindow(object):
         self.equal_split_layout.addWidget(self.equal_split_time_label)
 
         self.rephrase=QtWidgets.QCheckBox()
-        self.rephrase.setText('中文重新断句' if config.defaulelang=='zh' else 'Chinese Rephrase')
-        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram并且发音语言为中文时可选择是否重新断句')
+        self.rephrase.setText('重新断句' if config.defaulelang=='zh' else 'Rephrase')
+        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram渠道时时有效' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
         self.remove_noise=QtWidgets.QCheckBox()
         self.remove_noise.setText('降噪处理' if config.defaulelang=='zh' else 'Noise reduction')
         self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')

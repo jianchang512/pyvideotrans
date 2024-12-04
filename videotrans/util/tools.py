@@ -444,6 +444,11 @@ def get_azure_rolelist():
     return voice_list
 
 
+def get_preset(encoder):
+    if encoder in ['ultrafast','superfast','veryfast','faster','fast']:
+        return 'hp'
+    return 'hq'
+
 # 执行 ffmpeg
 def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
     arg_copy = copy.deepcopy(arg)
@@ -461,6 +466,9 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
         has_mp4=False
         # 插入解码位置
         insert_index=-1
+        # 不支持预设的硬件，例如 _qsv _videotoolbox 需要移除预设
+        # 0 不做操作，1=移除预设，2=使用新的预设替代
+        remove_preset=0
         for i, it in enumerate(arg):
             if insert_index==-1 and arg[i]=='-i':
                 insert_index=i
@@ -468,6 +476,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                 
             if i > 0 and arg[i - 1] == '-c:v' and arg[i] !='copy':
                 arg[i] = config.video_codec
+                if config.video_codec.find('_qsv')>0 or config.video_codec.find('_videotoolbox')>0:
+                    remove_preset=1
+                elif config.video_codec.find('_nvenc')>0:
+                    remove_preset=2
             elif it == '-crf' and config.settings['cuda_qp'] and re.search(r'\sh(264|evc)_nvenc\s'," ".join(cmd),re.I):
                 arg[i] = '-qp'
                 if arg[i]=='copy':
@@ -484,7 +496,18 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
             arg.insert(i,'-c:v')
             arg.insert(i,'cuda')
             arg.insert(i,'-hwaccel')
+        
+        #移除预设，防止出错 -preset
+        if  '-preset' in arg:
+            pos=arg.index('-preset')        
+            if remove_preset==1:
+                arg.pop(pos)
+                arg.pop(pos)
+            elif remove_preset==2:
+                arg[pos+1]=get_preset(arg[pos+1])
             
+
+        
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -873,9 +896,7 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None,
 
     # 首先确保原时长和目标时长单位一致（毫秒）
     current_duration_ms = len(audio)
-    # 计算音频变速比例
-    # current_duration_ms = len(audio)
-    # speedup_ratio = current_duration_ms / target_duration_ms
+
     # 计算速度变化率
     speedup_ratio = current_duration_ms / target_duration_ms
 
@@ -981,8 +1002,79 @@ def get_ms_from_hmsm(time_str):
     
     return int(int(h) * 3600000 + int(m) * 60000 +int(sec)*1000 + int(ms))
 
+
+
+def srt_str_to_listdict(srt_string):
+    """解析 SRT 字幕字符串，更精确地处理数字行和时间行之间的关系"""
+    srt_list = []
+    time_pattern = r'\s?(\d+):(\d+):(\d+)([,.]\d+)?\s*?-->\s*?(\d+):(\d+):(\d+)([,.]\d+)?\n?'
+    lines = srt_string.splitlines()
+    i = 0
+    while i < len(lines):
+        time_match = re.match(time_pattern, lines[i].strip())
+        if time_match:
+            # 解析时间戳
+            start_time_groups = time_match.groups()[0:4]
+            end_time_groups = time_match.groups()[4:8]
+
+            def parse_time(time_groups):
+                h, m, s, ms = time_groups
+                ms = ms.replace(',', '.') if ms else ".000"
+                try:
+                    return int(h) * 3600 + int(m) * 60 + int(s) + float(ms)
+                except (ValueError, TypeError):
+                    return None
+
+            start_time = parse_time(start_time_groups)
+            end_time = parse_time(end_time_groups)
+
+            if start_time is None or end_time is None:
+                i += 1
+                continue
+
+            i += 1
+            text_lines = []
+            while i < len(lines):
+                current_line = lines[i].strip()
+                next_line = lines[i+1].strip() if i + 1 < len(lines) else "" # 获取下一行，如果没有则为空字符串
+
+                if re.match(time_pattern, next_line): #判断下一行是否为时间行
+                    if re.fullmatch(r'\d+', current_line): #如果当前行为纯数字，则跳过
+                        i += 1
+                        break
+                    else:
+                        text_lines.append(current_line)
+                        i += 1
+                        break
+
+                if current_line:
+                    text_lines.append(current_line)
+                    i += 1
+                else:
+                    i += 1
+
+            text = '\n'.join(text_lines).strip()
+
+            it={
+                "line": len(srt_list)+1,  #字幕索引，转换为整数
+                "start_time": int(start_time*1000), 
+                "end_time":int(end_time*1000),  #起始和结束时间
+                "text": re.sub(r'</?[a-zA-Z]+>','',text.replace("\n","  ").replace("\r",'').strip()), #字幕文本
+            }
+            it['startraw']=ms_to_time_string(ms=it['start_time'])
+            it['endraw']=ms_to_time_string(ms=it['end_time'])
+            it["time"]=f"{it['startraw']} --> {it['endraw']}"
+            srt_list.append(it)
+
+
+        else:
+            i += 1 # 跳过非时间行
+      
+
+    return srt_list
+
 # 合法的srt字符串转为 dict list
-def srt_str_to_listdict(content):
+def srt_str_to_listdict0(content):
     import srt
     line=0
     result=[]
@@ -1167,27 +1259,28 @@ def match_target_amplitude(sound, target_dBFS):
 def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
-        "-y",
-        "-threads",
-        f'{os.cpu_count()}',
-        "-ss",
-        format_time(ss, '.')]
+        "-y",        
+        '-i',
+        source,
+        '-ss',
+        format_time(ss, '.')
+        ]
     if to != '':
         cmd1.append("-to")
         cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-    cmd1.append('-i')
-    cmd1.append(source)
 
     if pts:
         cmd1.append("-vf")
-        cmd1.append(f'setpts={pts}*PTS')
+        cmd1.append(f"setpts={pts}*PTS")
     cmd = cmd1 + ["-c:v",
                   f"libx{video_codec}",
                   '-an',
-                  '-crf', f'{config.settings["crf"]}',
-                  '-preset', config.settings['preset'],
+                  '-crf', 
+                  f'{config.settings.get("crf",1)}',
+                  '-preset', 
+                  config.settings.get('preset','slow'),
                   f'{out}'
-                  ]
+    ]
     return runffmpeg(cmd)
 
 
@@ -1397,14 +1490,6 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
-    """
-    Removes silence from the end of an audio file.
-
-    :param input_file_path: path to the input mp3 file
-    :param silence_threshold: the threshold in dBFS considered as silence
-    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
-    :return: an AudioSegment without silence at the end
-    """
     # Load the audio file
     format = input_file_path.split('.')[-1].lower()
     length=0
@@ -1658,11 +1743,13 @@ def split_line(sep_list):
 def _unlink_tmp():
     try:
         shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-    except Exception:
+    except Exception as e:
+        print(f'删除文件失败 {e}')
         pass
     try:
         shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-    except Exception:
+    except Exception as e:
+        print(f'删除文件失败 {e}')
         pass
 
 
@@ -1821,12 +1908,15 @@ def clean_srt(srt):
     srt=re.sub(r'([：:])\s*',':',srt)
     # ,， 换成 ,
     srt=re.sub(r'([,，])\s*',',',srt)
+    srt=re.sub(r'([`’\'\"])\s*','',srt)
+    
     # 秒和毫秒间的.换成,
     srt=re.sub(r'(:\d+)\.\s*?(\d+)',r'\1,\2',srt)
     # 时间行前后加空格
     time_line=r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
     srt=re.sub(time_line,r"\n\1 --> \2\n",srt)
-
+    # twenty one\n00:01:18,560 --> 00:01:22,000\n
+    srt=re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',"\n"+r'1\n\1\n',srt)
     # 去除多余的空行
     srt="\n".join([it.strip() for it in srt.splitlines() if it.strip()])
 
@@ -1845,6 +1935,7 @@ def clean_srt(srt):
         remove_list.append(it)
 
     srt="\n".join(remove_list)
+    
 
     # 行号前添加换行符
     srt=re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)',r"\n\n\1\n\2",srt)

@@ -16,8 +16,9 @@ class BaseCon:
         tools.set_process(**kwargs)
 
     def _set_proxy(self, type='set'):
-        if type == 'del' and self.shound_del:
+        if type == 'del':
             try:
+                os.environ['bak_proxy']=os.environ.get('http_proxy') or os.environ.get('https_proxy')
                 del os.environ['http_proxy']
                 del os.environ['https_proxy']
                 del os.environ['all_proxy']
@@ -27,7 +28,7 @@ class BaseCon:
             return
 
         if type == 'set':
-            raw_proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy')
+            raw_proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy') or os.environ.get('bak_proxy')
             if raw_proxy:
                 return raw_proxy
             if not raw_proxy:
