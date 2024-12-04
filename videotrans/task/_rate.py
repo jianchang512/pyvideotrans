@@ -8,6 +8,8 @@ from pydub.exceptions import CouldntDecodeError
 
 from videotrans.configure import config
 from videotrans.util import tools
+import concurrent.futures
+
 
 '''
 对配音进行音频加速
@@ -15,6 +17,98 @@ from videotrans.util import tools
 实现对齐操作
 '''
 
+
+def process_audio(item):
+    """处理单个音频文件"""
+    try:
+        from pydub import AudioSegment
+        from pydub.silence import detect_nonsilent
+        input_file_path=item['filename']
+        target_duration_ms=item["target_duration_ms"]
+
+        format = input_file_path.split('.')[-1].lower()
+        audio = AudioSegment.from_file(input_file_path,format=format)
+        
+        current_duration_ms=len(audio)
+
+        if target_duration_ms <= 0 or current_duration_ms <= target_duration_ms:
+            return input_file_path,current_duration_ms,""
+
+
+        # Detect non-silent chunks
+        nonsilent_chunks = detect_nonsilent(
+            audio,
+            min_silence_len=10,
+            silence_thresh=50.0
+        )
+
+        # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
+        if nonsilent_chunks:
+            start_index, end_index = nonsilent_chunks[-1]
+
+            # Remove the silence from the end by slicing the audio segment
+            trimmed_audio = audio[:end_index]
+            if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
+                trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
+            current_duration_ms=len(trimmed_audio)
+            if current_duration_ms <= target_duration_ms:
+                audio.export(input_file_path, format=format)
+                return input_file_path,current_duration_ms,""
+            audio=trimmed_audio
+            
+            
+
+
+        
+
+        # 计算速度变化率
+        speedup_ratio = current_duration_ms / target_duration_ms
+
+        if speedup_ratio <= 1:
+            return input_file_path,current_duration_ms,""
+        rate = min(100, speedup_ratio)
+        # 变速处理
+        try:
+            fast_audio = audio.speedup(playback_speed=rate)
+            # 如果处理后的音频时长稍长于目标时长，进行剪裁
+            if len(fast_audio) > target_duration_ms:
+                fast_audio = fast_audio[:target_duration_ms]
+        except Exception:
+            fast_audio = audio[:target_duration_ms]
+
+        fast_audio.export(input_file_path, format=format)
+        return input_file_path, len(fast_audio), ""  # 文件名, 成功标志, 错误信息
+    except Exception as e:
+        return input_file_path, False, str(e) # 文件名, 成功标志, 错误信息
+
+
+
+def process_video(item,codenum,crf,preset):
+    #print(f'{item=}')
+    try:
+        tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
+        if item['pts']=='':
+            return True,None
+        current_duration=tools.get_video_duration(item['out'])
+        if current_duration<=0:
+            return False,"durtion is 0"
+        cmd = [
+            '-y',  #覆盖输出文件
+            '-i', item['out'],
+            '-filter:v', f'setpts={round((item["pts"])/current_duration,2)}*PTS',
+            '-c:v', f'libx{codenum}', 
+            '-crf','1',
+            '-preset','slow',
+            item['out']+'-pts.mp4'
+        ]
+        # 使用 concat demuxer 将帧重新编码成视频片段
+        tools.runffmpeg(cmd,force_cpu=True)
+        shutil.copy2(item['out']+'-pts.mp4',item['out'])
+        #shutil.rmtree(folder_name, ignore_errors=True)
+        return True,None
+    except Exception as e:
+        print(e)
+        return False,str(e)
 
 class SpeedRate:
 
@@ -97,10 +191,6 @@ class SpeedRate:
                 the_ext = it['filename'].split('.')[-1]
                 try:
                     it['dubb_time'] = len(AudioSegment.from_file(it['filename'], format="mp4" if the_ext == 'm4a' else the_ext))
-                    # 如果配音时长大于原字幕时长，则移除前后静音
-                    if it['dubb_time']>it['raw_duration']:
-                        _,new_dubb_time=tools.remove_silence_from_file(it['filename'],is_start=True)
-                        it['dubb_time']=new_dubb_time
                 except CouldntDecodeError:
                     config.logger.exception(f'添加配音时长失败')
                     it['dubb_time'] = 0
@@ -181,13 +271,14 @@ class SpeedRate:
             self.queue_tts[i] = it
         # 允许最大音频加速倍数
         max_speed = float(config.settings['audio_rate'])
+        # 需要加速的数据
+        should_speed=[]
         for i, it in enumerate(self.queue_tts):
             # 不需要或不存在配音文件 跳过
             if not it['speed'] or not tools.vail_file(it['filename']):
                 continue
 
-            tools.set_process(text=f"{config.transobj['dubbing speed up']}  {i + 1}/{length}",
-                              uuid=self.uuid)
+            
 
             # 可用时长
             able_time = self.queue_tts[i + 1]['start_time'] - it['start_time'] if i < length - 1 else raw_total_time - it[
@@ -197,9 +288,12 @@ class SpeedRate:
 
             # 配音大于可用时长毫秒数
             diff = it['dubb_time'] - able_time
+            if diff<=50:
+                continue
 
             # 如果加速到恰好等于 able_time 时长，需要加速的倍数
             shound_speed = round(it['dubb_time'] / able_time, 2)
+            audio_extend=0
 
             # 仅当开启视频慢速，shound_speed大于1.5，diff大于1s，才考虑视频慢速
             if self.shoud_videorate and int(float(config.settings.get('video_rate',0))) > 1 and diff > 500 and shound_speed > 1.2:
@@ -215,27 +309,209 @@ class SpeedRate:
                     audio_extend = able_time
                 elif max_speed>0:
                     audio_extend = int(it['dubb_time'] / max_speed)
-
+            if audio_extend<=0:
+                continue
+            should_speed.append({"filename":it['filename'],'target_duration_ms':audio_extend})
             # # 调整音频
-            tmp_mp3 = f'{it["filename"]}-speed.mp3'
-            tools.precise_speed_up_audio(file_path=it['filename'],
-                                         out=tmp_mp3,
-                                         target_duration_ms=audio_extend,
-                                         max_rate=100)
+            #tools.precise_speed_up_audio(file_path=it['filename'],
+            #                             out=it['filename'],
+            #                             target_duration_ms=audio_extend,
+            #                             max_rate=100)
+        
+        total_files = len(should_speed)
+        if total_files<1:
+            return
+        results = []
+        with concurrent.futures.ProcessPoolExecutor(max_workers=min(os.cpu_count(),total_files)  ) as executor:
+            futures = [executor.submit(process_audio, item.copy()) for item in should_speed]
+            for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                filename, success, error_message = future.result()
+                progress = (i + 1) / total_files * 100
+                tools.set_process(text=f"{config.transobj['dubbing speed up']}  {i + 1}/{total_files}",uuid=self.uuid)
+                print(f"进度: {progress:.2f}%, 状态: {'成功' if success else '失败'}")
+                if success is False or success is None:
+                    print(f"错误信息: {error_message}")
+                else:
+                    results.append({filename:success})
 
+        for i, it in enumerate(self.queue_tts):
             # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
             # 如果视频需要变化，更新视频时长需要变化的长度
-            if tools.vail_file(tmp_mp3):
-                try:
-                    mp3_len = len(AudioSegment.from_file(tmp_mp3, format="mp3"))
-                    it['filename'] = tmp_mp3
-                    it['dubb_time'] = mp3_len
-                except CouldntDecodeError:
-                    it['dubb_time']=0
+            if tools.vail_file(it['filename']) and it['filename'] in results:
+                it['dubb_time'] = int(results.get(it['filename']))
             self.queue_tts[i] = it
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self):
+        if not self.shoud_videorate or int(float(config.settings.get('video_rate',0))) <= 1:
+            return
+        # 获取视频时长
+        length = len(self.queue_tts)
+        max_pts = int(float(config.settings.get('video_rate',1)))
+
+        # 按照原始字幕截取
+        concat_txt_arr = []
+        should_speed=[]
+        for i, it in enumerate(self.queue_tts):
+            jindu = f'{i + 1}/{length}'
+
+            # 可用的时长
+            able_time = it['end_time_source'] - it['start_time_source']
+            # 视频需要和配音对齐，video_extend是需要增加的时长
+            it['video_extend'] = it['dubb_time'] - able_time
+            print(f"{it['video_extend']=}")
+            self.queue_tts[i] = it
+            sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+            # 如果i==0即第一个视频，前面若是还有片段，需要截取
+            if i == 0:
+                # 如果前面有大于 0 的片段，需截取
+                if it['start_time_source'] > 0:
+                    before_dst = self.cache_folder + f'/{i}-before.mp4'
+                    # 下一片段起始时间
+                    st_time = it['start_time_source']
+                    try:
+                        #tools.cut_from_video(ss='00:00:00.000',
+                        #                     to=tools.ms_to_time_string(ms=it['start_time_source']),
+                        #                     source=self.novoice_mp4,
+                        #                     out=before_dst)
+                        #concat_txt_arr.append(before_dst)
+                        sp_speed['ss']='00:00:00.000'
+                        sp_speed['to']=tools.ms_to_time_string(ms=it['start_time_source'])
+                        sp_speed['out']=before_dst
+                        should_speed.append(sp_speed)
+                        sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                    except Exception:
+                        pass
+                else:
+                    # 下一片段起始时间,从视频开始处
+                    st_time = 0
+
+                # 当前视频实际时长
+                duration = it['end_time_source'] - st_time
+                # 是否需要延长视频
+                if it['video_extend'] > 0 and duration>0:
+                    sp_speed['pts']=it['dubb_time']
+                
+                before_dst = self.cache_folder + f'/{i}-current.mp4'
+                sp_speed['ss']='00:00:00.000' if st_time == 0 else tools.ms_to_time_string(ms=st_time)
+                sp_speed['to']=tools.ms_to_time_string(ms=it['end_time_source'])
+                sp_speed['out']=before_dst
+                try:
+                    #tools.cut_from_video(
+                    #    ss='00:00:00.000' if st_time == 0 else tools.ms_to_time_string(ms=st_time),
+                    #    to=tools.ms_to_time_string(ms=it['end_time_source']),
+                    #    source=self.novoice_mp4,
+                    #    pts=pts,
+                    #    out=before_dst
+                    #)
+                    concat_txt_arr.append(before_dst)
+                    should_speed.append(sp_speed)
+                    sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                except Exception:
+                    pass
+            else:
+                # 距离前面一个的时长
+                diff = it['start_time_source'] - self.queue_tts[i - 1]['end_time_source']
+                if diff > 0:
+                    before_dst = self.cache_folder + f'/{i}-before.mp4'
+                    st_time = it['start_time_source']
+                    sp_speed['ss']=tools.ms_to_time_string(ms=self.queue_tts[i - 1]['end_time_source'])
+                    sp_speed['to']=tools.ms_to_time_string(ms=it['start_time_source'])
+                    sp_speed['out']=before_dst
+                    try:
+                        #tools.cut_from_video(
+                        #    ss=tools.ms_to_time_string(ms=self.queue_tts[i - 1]['end_time_source']),
+                        #    to=tools.ms_to_time_string(ms=it['start_time_source']),
+                        #    source=self.novoice_mp4,
+                        #    out=before_dst
+                        #)
+                        concat_txt_arr.append(before_dst)
+                        should_speed.append(sp_speed)
+                        sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                    except Exception:
+                        pass
+                else:
+                    st_time = self.queue_tts[i - 1]['end_time_source']
+
+                # 是否需要延长视频
+                duration = it['end_time_source'] - st_time
+                if it['video_extend'] > 0 and duration>0:
+                    sp_speed['pts'] = it['dubb_time']
+                #tools.set_process(text=f"{config.transobj['videodown..']} {pts=} {jindu}", uuid=self.uuid)
+                before_dst = self.cache_folder + f'/{i}-current.mp4'
+
+                sp_speed['out']=before_dst
+                sp_speed['ss']=tools.ms_to_time_string(ms=st_time)
+                sp_speed['to']=tools.ms_to_time_string(ms=it['end_time_source'])
+                try:
+                    #tools.cut_from_video(ss=tools.ms_to_time_string(ms=st_time),
+                    #                     to=tools.ms_to_time_string(ms=it['end_time_source']),
+                    #                     source=self.novoice_mp4,
+                    #                     pts=pts,
+                    #                     out=before_dst)
+                    concat_txt_arr.append(before_dst)
+                    should_speed.append(sp_speed)
+                    sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+
+                except Exception:
+                    pass
+                # 是最后一个，并且未到视频末尾
+                if i == length - 1 and it['end_time_source'] < self.raw_total_time:
+                    # 最后一个
+                    before_dst = self.cache_folder + f'/{i}-after.mp4'
+                    sp_speed['out']=before_dst
+                    sp_speed['ss']=tools.ms_to_time_string(ms=it['end_time_source'])
+                    sp_speed['to']=''
+                    try:
+                        #tools.cut_from_video(ss=tools.ms_to_time_string(ms=it['end_time_source']),
+                        #                     source=self.novoice_mp4,
+                        #                     out=before_dst)
+                        concat_txt_arr.append(before_dst)
+                        should_speed.append(sp_speed)
+                    except Exception:
+                        pass
+
+        # 开始切片和延长
+        total_files = len(should_speed)
+        if total_files<1:
+            return
+
+
+        config.logger.info(should_speed)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=min(os.cpu_count(),total_files)  ) as executor:
+            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow')) for item in should_speed]
+            for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                success,error = future.result()
+                print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
+                tools.set_process(text=f"{config.transobj['videodown..']} {i+1}/{total_files}", uuid=self.uuid)
+                if success is False or success is None:
+                    config.logger.error(f'[错误信息] {error}')
+                    print(f"错误信息 {error}")
+
+        # 需要调整 原字幕时长，延长视频相当于延长了原字幕时长
+        offset = 0
+        for i, it in enumerate(self.queue_tts):
+            it['start_time_source'] += offset
+            it['end_time_source'] += offset
+            if it['video_extend'] > 0:
+                it['end_time_source'] += it['video_extend']
+                offset += it['video_extend']
+            self.queue_tts[i] = it
+
+        # 将所有视频片段连接起来
+        new_arr = []
+        for it in concat_txt_arr:
+            if tools.vail_file(it):
+                new_arr.append(it)
+        if len(new_arr) > 0:
+            tools.set_process(text=f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...',
+                              uuid=self.uuid)
+            config.logger.info(f'视频片段:{concat_txt_arr=}')
+            concat_txt = self.cache_folder + f'/{time.time()}.txt'
+            tools.create_concat_txt(concat_txt_arr, concat_txt=concat_txt)
+            tools.concat_multi_mp4(out=self.novoice_mp4, concat_txt=concat_txt)
+
+    def _ajust_video0(self):
         if not self.shoud_videorate or int(float(config.settings.get('video_rate',0))) <= 1:
             return
         concat_txt_arr = []

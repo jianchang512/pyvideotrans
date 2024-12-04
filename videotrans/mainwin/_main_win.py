@@ -379,11 +379,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.INFO_WIN['win'].close()
         except Exception:
             pass
-        time.sleep(2)
+        from videotrans.util import tools
+        tools._unlink_tmp()
+        time.sleep(3)
         print('等待所有进程退出...')
         from videotrans.util import tools
         try:
             tools.kill_ffmpeg_processes()
+            tools._unlink_tmp()
         except Exception:
             pass
         time.sleep(3)

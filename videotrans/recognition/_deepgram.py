@@ -65,7 +65,7 @@ class DeepgramRecogn(BaseRecogn):
             # STEP 4: Print the response
             # res=response.to_json()
             raws=[]
-            if self.detect_language[:2]=='zh' and config.settings.get('rephrase'):
+            if config.settings.get('rephrase'):
                 result=json.loads(res.to_json())
                 words=[]
                 for seg in result['results']['utterances']:
@@ -76,7 +76,7 @@ class DeepgramRecogn(BaseRecogn):
                             "word":it['word']
                         })
                 self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                raws=self.re_segment_sentences(words)
+                raws=self.re_segment_sentences(words,self.detect_language[:2])
 
             else:
                 # take the "response" result from transcribe_url() and pass into DeepgramConverter

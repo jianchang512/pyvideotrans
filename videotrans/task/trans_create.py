@@ -693,6 +693,8 @@ class TransCreate(BaseTask):
             default_codec = f"libx{config.settings['video_codec']}"
             cmd = [
                 '-y',
+                "-threads",
+                f'{os.cpu_count()}',
                 '-i',
                 self.cfg['novoice_mp4'],
                 '-vf',
@@ -954,8 +956,8 @@ class TransCreate(BaseTask):
                     # 需要配音+硬字幕
                     tools.runffmpeg([
                         "-y",
-                        # "-threads",
-                        # f'{os.cpu_count()}',
+                        "-threads",
+                        f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -979,6 +981,8 @@ class TransCreate(BaseTask):
                     self._signal(text=config.transobj['peiyin-ruanzimu'])
                     tools.runffmpeg([
                         "-y",
+                        "-threads",
+                        f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -1002,6 +1006,8 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlypeiyin'])
                 tools.runffmpeg([
                     "-y",
+                    "-threads",
+                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",
@@ -1019,8 +1025,8 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlyyingzimu'])
                 cmd = [
                     "-y",
-                    # "-threads",
-                    # f'{os.cpu_count()}',
+                    "-threads",
+                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",
@@ -1051,6 +1057,8 @@ class TransCreate(BaseTask):
                 # 原视频
                 cmd = [
                     "-y",
+                    "-threads",
+                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",

@@ -291,7 +291,7 @@ def parse_init():
         "speech_pad_ms":150,
 
 
-        "overall_maxsecs":12000,
+        "overall_maxsecs":12,
 
         "rephrase":False,
 
@@ -362,7 +362,7 @@ def parse_init():
     try:
         temp_json = json.loads(Path(ROOT_DIR + "/videotrans/cfg.json").read_text(encoding='utf-8'))
     except Exception as e:
-        raise
+        return default
     else:
         _settings = {}
         for key, val in temp_json.items():

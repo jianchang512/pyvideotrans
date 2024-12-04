@@ -330,7 +330,7 @@ class WinActionSub:
         self.main.video_autorate.hide()
 
         self.main.is_separate.setChecked(False)
-        self.main.is_separate.hide()
+        self.main.is_separate.show()
         self.main.enable_cuda.setChecked(False)
         self.main.label_cjklinenums.hide()
         self.main.cjklinenums.hide()
@@ -476,6 +476,7 @@ class WinActionSub:
                 config.settings['proxy']=config.proxy
             else:
                 # 删除代理
+                config.settings['proxy']=''
                 tools.set_proxy('del')
         except Exception:
             pass
@@ -529,7 +530,7 @@ class WinActionSub:
         if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No',''," ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            self.cfg['is_separate'] = False
+            #self.cfg['is_separate'] = False
             self.cfg['subtitle_type'] = 0
             self.cfg['voice_role'] = 'No'
             self.cfg['voice_rate'] = '+0%'
