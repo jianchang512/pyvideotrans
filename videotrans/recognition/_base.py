@@ -92,6 +92,8 @@ class BaseRecogn(BaseCon):
         pass
 
     def re_segment_sentences(self,words,langcode):
+        if self.inst and self.inst.status_text:
+            self.inst.status_text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting..."
         import zhconv
         # 删掉标点和不含有文字的word
         new_words = []
@@ -190,7 +192,7 @@ class BaseRecogn(BaseCon):
         last_tmp = None
         length = int(config.settings.get('cjk_len' if langcode in ['zh','ja','ko'] else 'other_len' ))
         
-        
+        join_flag=''  if langcode in ['zh','ja','ko'] else ' '
         for i, w in enumerate(new_words):
             #config.logger.info(new_words)
             if not last_tmp:
@@ -205,12 +207,12 @@ class BaseRecogn(BaseCon):
             last_duration=last_tmp['end_time']- last_tmp['start_time']
             #config.logger.info(f'\n{last_tmp=},\n{last_diff=},{last_duration=}')
             if last_duration<1000:
-                last_tmp['text'] += w['word']
+                last_tmp['text'] += join_flag +w['word']
                 last_tmp['end_time'] = int(w['end'] * 1000)
                 continue
                 
             if (w['word'][-1] in flag_list and last_duration>=2000)  or (langcode in ['zh','ja','ko'] and  w['word'][-1]==' ' and last_duration>=2000):
-                last_tmp['text'] += w['word']
+                last_tmp['text'] +=join_flag + w['word']
                 last_tmp['end_time'] = int(w['end'] * 1000)
                 last_tmp['startraw']=tools.ms_to_time_string(ms=last_tmp["start_time"])
                 last_tmp['endraw']=tools.ms_to_time_string(ms=last_tmp["end_time"])
@@ -232,7 +234,7 @@ class BaseRecogn(BaseCon):
                     "text": w['word'],
                 }
             else:
-                last_tmp['text'] += w['word']
+                last_tmp['text'] +=join_flag + w['word']
                 last_tmp['end_time'] = int(w['end'] * 1000)
         if last_tmp:
             last_tmp['startraw'] = tools.ms_to_time_string(ms=last_tmp["start_time"])

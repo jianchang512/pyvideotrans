@@ -349,7 +349,7 @@ class WinActionSub:
         from videotrans import translator
         langtext=self.main.source_language.currentText()
         langcode=translator.get_code(show_text=langtext)
-        self.main.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
+        #self.main.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
         def hide_recursive(layout, show_status):
