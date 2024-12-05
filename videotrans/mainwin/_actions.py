@@ -88,7 +88,7 @@ class WinAction(WinActionSub):
             tools.hide_show_element(self.main.equal_split_layout,
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, 
                                recognition.Deepgram]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)

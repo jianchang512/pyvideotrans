@@ -232,7 +232,7 @@ def openwin():
             # faster
             tools.hide_show_element(winobj.equal_split_layout, True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:  # 可选模型，whisper funasr deepram
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
         else:
@@ -293,7 +293,7 @@ def openwin():
     def source_language_change():
         langtext=winobj.shibie_language.currentText()
         langcode=translator.get_code(show_text=langtext)
-        winobj.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
+
     from videotrans.component import Recognform
     try:
         winobj = config.child_forms.get('recognform')

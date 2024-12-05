@@ -102,9 +102,8 @@ def process_video(item,codenum,crf,preset):
             item['out']+'-pts.mp4'
         ]
         # 使用 concat demuxer 将帧重新编码成视频片段
-        tools.runffmpeg(cmd,force_cpu=True)
+        tools.runffmpeg(cmd,force_cpu=False if config.video_codec and config.video_codec.find('nvenc')>0 else True)
         shutil.copy2(item['out']+'-pts.mp4',item['out'])
-        #shutil.rmtree(folder_name, ignore_errors=True)
         return True,None
     except Exception as e:
         print(e)
