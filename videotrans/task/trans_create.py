@@ -461,8 +461,7 @@ class TransCreate(BaseTask):
             )
             self.queue_tts = rate_inst.run()
             # 慢速处理后，更新新视频总时长，用于音视频对齐
-            if shoud_video_rate:
-                self.video_time = tools.get_video_duration(self.cfg['novoice_mp4'])
+            self.video_time = tools.get_video_duration(self.cfg['novoice_mp4'])
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(self.queue_tts):
@@ -543,8 +542,9 @@ class TransCreate(BaseTask):
             if self.cfg['only_video']:
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
-                shutil.rmtree(self.cfg['target_dir'])
+                shutil.rmtree(self.cfg['target_dir'],ignore_errors=True)
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+            shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             print(f'eee{e}')
@@ -873,16 +873,23 @@ class TransCreate(BaseTask):
     # 延长视频末尾对齐声音
     def _append_video(self) -> None:
         # 有配音 延长视频或音频对齐
-        if self._exit() or not self.shoud_dubbing or not self.cfg['append_video']:
+        if self._exit() or not self.shoud_dubbing  :
             return
         video_time = self.video_time
         try:
             audio_length = int(tools.get_audio_time(self.cfg['target_wav']) * 1000)
         except Exception:
             audio_length = 0
-
         if audio_length <= 0 or audio_length == video_time:
             return
+
+        # 不延长视频末尾，如果音频大于时长则阶段
+        if  not self.cfg['append_video']
+            if audio_length>video_time:
+                m = AudioSegment.from_file( self.cfg['target_wav'],  format="mp4" if ext == 'm4a' else ext)
+                m[0:video_time].export(self.cfg['target_wav'], format="mp4" if ext == 'm4a' else ext)
+            return
+
 
         if audio_length > video_time:
             try:
@@ -937,6 +944,7 @@ class TransCreate(BaseTask):
         self._separate()
         # 有配音 延长视频或音频对齐
         self._append_video()
+        
 
         self.precent = min(max(90, self.precent), 90)
 

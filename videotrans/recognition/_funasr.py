@@ -49,7 +49,9 @@ class FunasrRecogn(BaseRecogn):
                               punc_model="ct-punc", punc_model_revision="v2.0.4",
                               local_dir=config.ROOT_DIR + "/models",
                               hub='ms',
-                              disable_update=True,disable_progress_bar=True,disable_log=True,
+                              disable_update=True,
+                              disable_progress_bar=True,
+                              disable_log=True,
                             device=self.device
                     )
         
@@ -101,14 +103,14 @@ class FunasrRecogn(BaseRecogn):
 
             model = AutoModel(
                 model="iic/SenseVoiceSmall",
-                trust_remote_code=False,
-                model_revision="master",
                 punc_model="ct-punc",
-                disable_update=True,
                 device=self.device,
                 local_dir=config.ROOT_DIR + "/models",
-                disable_progress_bar=True,
-                disable_log=True,
+                  disable_update=True,
+                  disable_progress_bar=True,
+                  disable_log=True,
+                  #trust_remote_code=True,
+                  hub='ms'
             )
             #vad
             vm = AutoModel(
@@ -116,6 +118,7 @@ class FunasrRecogn(BaseRecogn):
                 local_dir=config.ROOT_DIR + "/models",
                 max_single_segment_time=20000,
                 max_end_silence_time=250,
+                hub='ms',
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,

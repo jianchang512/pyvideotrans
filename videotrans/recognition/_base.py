@@ -135,12 +135,14 @@ class BaseRecogn(BaseCon):
             try:
                 self._set_proxy(type='del')
                 from funasr import AutoModel
-                model = AutoModel(model="ct-punc-c", model_revision="v2.0.4",
-                                  disable_update=True,
-                                  disable_log=True,
-                                  local_dir=config.ROOT_DIR + "/models",
-                                  disable_progress_bar=True,
-                                device=self.device)
+                model = AutoModel(model="ct-punc", 
+                    model_revision="v2.0.4",
+                    local_dir=config.ROOT_DIR + "/models",
+                    disable_update=True,
+                    disable_log=True,
+                    disable_progress_bar=True,
+                    hub='ms',
+                    device=self.device)
                 res = model.generate(input=text)
                 text=res[0]['text'].strip()       
 
