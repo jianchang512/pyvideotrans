@@ -80,7 +80,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             temperature=0.0 if int(float(settings.get('temperature',0))) == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
             vad_filter=bool(settings['vad']),
             vad_parameters=dict(
-                onset=float(settings['threshold']),
+                threshold=float(settings['threshold']),
                 min_speech_duration_ms=int(settings['min_speech_duration_ms']),
                 max_speech_duration_s= int(settings['max_speech_duration_s']) if int(settings['max_speech_duration_s'])>0 else float('inf'),
                 min_silence_duration_ms=int(settings['min_silence_duration_ms']),

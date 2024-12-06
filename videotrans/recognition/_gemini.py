@@ -254,8 +254,8 @@ class GeminiRecogn(BaseRecogn):
 
             return milliseconds_timestamps
         vad_p={
-            "onset":  float(config.params.get('gemini_onset',0.5)),
-            "offset": float(config.params.get('gemini_offset',0.35)),
+            "threshold":  float(config.params.get('gemini_onset',0.5)),
+            "neg_threshold": float(config.params.get('gemini_offset',0.35)),
             "min_speech_duration_ms":  0,
             "max_speech_duration_s":  float("inf"),
             "min_silence_duration_ms": int(config.params.get('gemini_min_silence_duration_ms',250)),
