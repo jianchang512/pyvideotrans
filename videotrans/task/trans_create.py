@@ -886,6 +886,7 @@ class TransCreate(BaseTask):
         # 不延长视频末尾，如果音频大于时长则阶段
         if  not self.cfg['append_video']:
             if audio_length>video_time:
+                ext=self.cfg['target_wav'].split('.')[-1]
                 m = AudioSegment.from_file( self.cfg['target_wav'],  format="mp4" if ext == 'm4a' else ext)
                 m[0:video_time].export(self.cfg['target_wav'], format="mp4" if ext == 'm4a' else ext)
             return

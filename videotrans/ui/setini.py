@@ -102,6 +102,7 @@ class Ui_setini(object):
                 "crf": "视频转码时损失控制，0=损失最低，51=损失最大，默认13",
                 "cuda_qp": "是否在 NVIDIA cuda上使用 qp代替crf",
                 "preset": "主要调节编码速度和质量的平衡，有ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
+                "videoslow_hard":"视频慢速处理时是否尝试硬件加速(速度快但易出错)",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
                 "cuda_decode":"使用cuda解码视频",
                 "video_codec": "采用 libx264 编码或 libx265编码，264兼容性更好，265压缩比更大清晰度更高"
@@ -194,6 +195,7 @@ class Ui_setini(object):
             "openairecognapi_model": "OpenAI语音识别模型",
             "homedir": "设置家目录",
             "is_queue": "视频翻译排队处理(默认交叉)",
+            "videoslow_hard":"视频慢速时尝试硬件加速(速度快易出错)",
             "lang": "界面语言",
             "crf": "视频转码损失控制",
             "cuda_decode":"使用cuda解码视频",
@@ -308,6 +310,7 @@ class Ui_setini(object):
                     "cuda_qp": "Whether to use qp instead of crf on NVIDIA cuda",
                     "cuda_decode":"Decode the video using cuda",
                     "preset": "Mainly adjust the balance of encoding speed and quality, there are ultrafast, superfast, veryfast, fast, fast, medium, slow, slow, veryslow options, encoding speed from fast to slow, compression rate from low to high, video size from large to small.",
+                    "videoslow_hard":"Whether to try hardware acceleration when video is processed slowly (fast but error prone)",
                     "ffmpeg_cmd": "Custom ffmpeg command parameters, added at the penultimate position, e.g., -bf 7 -b_ref_mode middle",
                     "video_codec": "Use libx264 or libx265 encoding, 264 has better compatibility, 265 has higher compression ratio and clarity"
                 },
@@ -412,6 +415,7 @@ class Ui_setini(object):
                 "lang": "Software Interface Language",
                 "aisendsrt":"Sending full subtitle content when ai translation",
                 "crf": "Video Transcoding Loss Control",
+                "videoslow_hard":"Try hardware acceleration when video slowly",
                 "cuda_qp": "NVIDIA Use QP Instead of CRF",
                 "cuda_decode":"Decode the video using cuda",
                 "preset": "Output Video Quality compression rate",
