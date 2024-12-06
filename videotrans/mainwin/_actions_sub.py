@@ -36,6 +36,7 @@ class WinActionSub:
         self.queue_mp4 = []
         self.scroll_area = None
         self.scroll_area_after = None
+        self.scroll_area_search = None
         self.removing_layout=False
 
     def show_model_help(self):
@@ -702,7 +703,7 @@ class WinActionSub:
 
     def clear_target_subtitle(self):
         """安全地清除布局中的所有项目，保留布局本身。"""
-        if self.removing_layout or not self.scroll_area or not self.scroll_area_after:
+        if self.removing_layout or not self.scroll_area or not self.scroll_area_after or not self.scroll_area_search:
             return
         self.removing_layout=True
         def clear_and_delete_scroll_area(scroll_area):
@@ -731,10 +732,12 @@ class WinActionSub:
         try:
             clear_and_delete_scroll_area(self.scroll_area)
             delete_layout_and_children(self.scroll_area_after)
+            delete_layout_and_children(self.scroll_area_search)
         except Exception as e:
             print(e)
         self.scroll_area=None
         self.scroll_area_after=None
+        self.scroll_area_search=None
         self.removing_layout=False
 
     def get_target_subtitle(self):
@@ -786,6 +789,39 @@ class WinActionSub:
                         data.append(f'{num}\n{line_time_text}\n{line_edit_text}')
                         num += 1
         return data
+    
+    def replace_text(self, s_text='', t_text=''):
+        if not s_text:
+            return QMessageBox.critical(self.main, config.transobj['anerror'], "必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered')
+
+        top_layout = self.scroll_area.widget().layout()
+        if top_layout is None:
+            return
+
+        for i in range(top_layout.count()):
+            item = top_layout.itemAt(i)
+            if not item:
+                continue
+
+            if not isinstance(item, QtWidgets.QLayoutItem):
+                continue
+            layout = item.layout()
+            if not layout:
+                continue
+            for j in range(layout.count()):
+                child = layout.itemAt(j)
+                if not child or not isinstance(child, QtWidgets.QWidgetItem):
+                    continue
+                widget = child.widget()
+                if not isinstance(widget, QtWidgets.QPlainTextEdit):
+                    continue
+                line_edit_text = widget.toPlainText()
+
+                if line_edit_text.lower().find(s_text.lower()) > -1:
+                    new_text = line_edit_text.replace(s_text, t_text)
+                    widget.setPlainText(new_text)
+
+
 
     def show_target_edit(self, srt_str):
         def get_checked_boxes(widget):
@@ -803,7 +839,7 @@ class WinActionSub:
             default_role = self.cfg.get('voice_role', 'No')
 
             if len(checked_checkbox_names) < 1:
-                return
+                return QMessageBox.critical(self.main, config.transobj['anerror'], "至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle')
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
@@ -812,7 +848,8 @@ class WinActionSub:
                 ck.setText(default_role if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
                 config.line_roles[line] = default_role if role in ['No', 'no', '-'] else role
-            print(f'{config.line_roles=}')
+
+
 
         box = QtWidgets.QWidget()
         box.setObjectName('box_name')
@@ -842,7 +879,6 @@ class WinActionSub:
 
             line_edit = QtWidgets.QPlainTextEdit()
             line_edit.setObjectName(f'text_{it["line"]}')
-            line_edit.setPlaceholderText(config.transobj['shezhijueseline'])
             line_edit.setPlainText(f'{it["text"]}')
             # 将标签和编辑线添加到水平布局
             h_layout.addWidget(label)
@@ -863,7 +899,33 @@ class WinActionSub:
             select_role.setDisabled(True)
         label_role = QtWidgets.QLabel()
         label_role.setText('单独设置角色' if config.defaulelang == 'zh' else 'Select Role')
+        
+        
+        source_text=QtWidgets.QLineEdit()
+        source_text.setPlaceholderText('原文字' if config.defaulelang=='zh' else 'Original text')
+        source_text.setMaximumWidth(200)
+        
+        tips_text=QtWidgets.QLabel()
+        tips_text.setText('替换为' if config.defaulelang=='zh' else 'Replace')
+        
+        target_text=QtWidgets.QLineEdit()
+        target_text.setPlaceholderText('目标文字' if config.defaulelang=='zh' else 'Original text')
+        target_text.setMaximumWidth(200)
+        
+        replace_btn=QtWidgets.QPushButton()
+        replace_btn.setMinimumSize(80, 30)
+        replace_btn.setText('替换' if config.defaulelang=='zh' else 'Replace')
+        replace_btn.clicked.connect(lambda:self.replace_text(source_text.text(),target_text.text()))
+        
+        self.scroll_area_search = QtWidgets.QHBoxLayout()
+        self.scroll_area_search.addWidget(source_text)  # Give more space to LineEdits
+        self.scroll_area_search.addWidget(tips_text)
+        self.scroll_area_search.addWidget(target_text)  # Give more space to LineEdits
+        self.scroll_area_search.addWidget(replace_btn) # Align to right and less space to button
+        self.scroll_area_search.addStretch()
 
+        
+        
         self.scroll_area_after = QtWidgets.QHBoxLayout()
         self.scroll_area_after.addWidget(label_role)
         self.scroll_area_after.addWidget(select_role)
@@ -875,4 +937,5 @@ class WinActionSub:
 
         # 将 QScrollArea 添加到主窗口的 layout
         self.main.target_subtitle_area.addWidget(self.scroll_area)
+        self.main.target_subtitle_area.addLayout(self.scroll_area_search)
         self.main.target_subtitle_area.addLayout(self.scroll_area_after)

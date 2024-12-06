@@ -263,6 +263,9 @@ def parse_init():
         "crf": 23,
         "cuda_qp": False,
         "cuda_decode":False,
+        
+        "videoslow_hard":False,
+        
         "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt":False,

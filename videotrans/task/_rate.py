@@ -83,7 +83,7 @@ def process_audio(item):
 
 
 
-def process_video(item,codenum,crf,preset):
+def process_video(item,codenum,crf,preset,video_hard):
     #print(f'{item=}')
     try:
         tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
@@ -102,7 +102,7 @@ def process_video(item,codenum,crf,preset):
             item['out']+'-pts.mp4'
         ]
         # 使用 concat demuxer 将帧重新编码成视频片段
-        tools.runffmpeg(cmd,force_cpu=False if config.video_codec and config.video_codec.find('nvenc')>0 else True)
+        tools.runffmpeg(cmd,force_cpu=not video_hard)
         shutil.copy2(item['out']+'-pts.mp4',item['out'])
         return True,None
     except Exception as e:
@@ -477,8 +477,9 @@ class SpeedRate:
 
 
         config.logger.info(should_speed)
-        with concurrent.futures.ProcessPoolExecutor(max_workers=min(os.cpu_count(),total_files)  ) as executor:
-            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow')) for item in should_speed]
+        worker_nums=max(min(int(os.cpu_count()/2),total_files),1)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
+            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow'),config.settings.get('videoslow_hard',False)) for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 success,error = future.result()
                 print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
