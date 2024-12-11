@@ -321,7 +321,7 @@ class SpeedRate:
         if total_files<1:
             return
         results = []
-        with concurrent.futures.ProcessPoolExecutor(max_workers=min(os.cpu_count(),total_files)  ) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=min(2,total_files)  ) as executor:
             futures = [executor.submit(process_audio, item.copy()) for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 filename, success, error_message = future.result()
@@ -477,7 +477,7 @@ class SpeedRate:
 
 
         config.logger.info(should_speed)
-        worker_nums=max(min(int(os.cpu_count()/2),total_files),1)
+        worker_nums=1#min(1,total_files)
         with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
             futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow'),config.settings.get('videoslow_hard',False)) for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):

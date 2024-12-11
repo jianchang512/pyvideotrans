@@ -1645,17 +1645,19 @@ def set_ass_font(srtfile=None):
         return os.path.basename(srtfile)
     runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
     assfile = f'{srtfile}.ass'
+    #import shutil
+    #shutil.copy2(assfile,assfile+"-test2.ass")
     with open(assfile, 'r', encoding='utf-8') as f:
         ass_str = f.readlines()
 
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
-            ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
                 subtitle_bottom=config.settings['subtitle_bottom'])
-            break
+        elif it.find('Dialogue: ')==0:
+            ass_str[i]=it.replace('  ','\\N')
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))

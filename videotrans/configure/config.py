@@ -264,7 +264,7 @@ def parse_init():
         "cuda_qp": False,
         "cuda_decode":False,
         
-        "videoslow_hard":False,
+        "videoslow_hard":True,
         
         "preset": "fast",
         "ffmpeg_cmd": "",

@@ -60,7 +60,7 @@ class FunasrRecogn(BaseRecogn):
             if self.inst and self.inst.status_text:
                 self.inst.status_text=msg
             res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
-                                 sentence_timestamp=True, batch_size_s=100)
+                                 sentence_timestamp=True, batch_size_s=100,disable_pbar=True)
             raw_subtitles = []
 
             for it in res[0]['sentence_info']:
@@ -138,7 +138,8 @@ class FunasrRecogn(BaseRecogn):
                 res = model.generate(
                     input=filename,
                     language=self.detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
-                    use_itn=True
+                    use_itn=True,
+                    disable_pbar=True
                 )
                 text = self.remove_unwanted_characters(rich_transcription_postprocess(res[0]["text"]))
                 srt={

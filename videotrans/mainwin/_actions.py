@@ -449,6 +449,7 @@ class WinAction(WinActionSub):
             return
 
         if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
+            self.main.startbtn.setDisabled(False)
             return QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
