@@ -189,7 +189,7 @@ apt-get install ffmpeg
 3. 终端中执行命令 `git clone https://github.com/jianchang512/pyvideotrans`
 4. 继续执行命令 `cd pyvideotrans`
 5. 继续执行 `python -m venv venv`
-6. 继续执行命令 `source ./venv/bin/activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
+6. 继续执行命令 `venv\Scripts\activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
 7. 执行 `pip install -r requirements.txt`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
 
     ```
