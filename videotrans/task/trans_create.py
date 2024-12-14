@@ -14,7 +14,7 @@ from pydub import AudioSegment
 
 from videotrans import translator
 from videotrans.configure import config
-from videotrans.recognition import run as run_recogn
+from videotrans.recognition import run as run_recogn,Faster_Whisper_XXL
 from videotrans.translator import run as run_trans, get_audio_code
 from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, COSYVOICE_TTS,F5_TTS,EDGE_TTS,AZURE_TTS,ELEVENLABS_TTS
 from videotrans.util import tools
@@ -264,10 +264,13 @@ class TransCreate(BaseTask):
                 self.hasend = True
                 self.precent = 100
                 dest_name+='.srt'
+                shutil.copy2(self.cfg['source_sub'],dest_name)
+                Path(self.cfg['source_sub']).unlink(missing=True)
             else:
                 dest_name+=f"-{self.cfg['source_language_code']}.srt"
-            shutil.copy2(self.cfg['source_sub'],dest_name)
+                shutil.copy2(self.cfg['source_sub'],dest_name)
         self.status_text = config.transobj['endtiquzimu']
+
 
     # 开始识别
     def recogn(self) -> None:
@@ -297,32 +300,65 @@ class TransCreate(BaseTask):
                 self.status_text='开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang=='zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient'
                 self.cfg['shibie_audio']=remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/remove_noise.wav")
             self.status_text = '语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing'
-            raw_subtitles = run_recogn(
-                # faster-whisper openai-whisper googlespeech
-                recogn_type=self.cfg['recogn_type'],
-                # 整体 预先 均等
-                split_type=self.cfg['split_type'],
-                uuid=self.uuid,
-                # 模型名
-                model_name=self.cfg['model_name'],
-                # 识别音频
-                audio_file=self.cfg['shibie_audio'],
-                detect_language=self.cfg['detect_language'],
-                cache_folder=self.cfg['cache_folder'],
-                is_cuda=self.cfg['cuda'],
-                subtitle_type=self.cfg.get('subtitle_type', 0),
-                inst=self)
-            if self._exit():
-                return
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception(
-                    self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}',
-                                                                                             self.cfg[
-                                                                                                 'source_language']))
-            self._save_srt_target(raw_subtitles, self.cfg['source_sub'])
+            
+            if self.cfg['recogn_type']==Faster_Whisper_XXL:
+                import subprocess,shutil
+                cmd=[
+                    config.settings.get('Faster_Whisper_XXL',''),
+                    self.cfg['shibie_audio'],
+                    "-f","srt"
+                ]
+                if self.cfg['detect_language']!='auto':
+                    cmd.extend(['-l',self.cfg['detect_language'][:2]])
+                cmd.extend(['--model',self.cfg['model_name'],'--output_dir',self.cfg['target_dir']])
+                txt_file=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+'/pyvideotrans.txt'
+                if Path(txt_file).exists():
+                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
+                
+                while 1:
+                    if not config.copying:
+                        break
+                    time.sleep(1)
+                
+                subprocess.run(cmd)
+                outsrt_file=self.cfg['target_dir']+'/'+Path(self.cfg['shibie_audio']).stem+".srt"
+                if outsrt_file!=self.cfg['source_sub']:
+                    shutil.copy2(outsrt_file,self.cfg['source_sub'])
+                    Path(outsrt_file).unlink(missing_ok=True)
+                self._signal(text=Path(self.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
+            else:
+                raw_subtitles = run_recogn(
+                    # faster-whisper openai-whisper googlespeech
+                    recogn_type=self.cfg['recogn_type'],
+                    # 整体 预先 均等
+                    split_type=self.cfg['split_type'],
+                    uuid=self.uuid,
+                    # 模型名
+                    model_name=self.cfg['model_name'],
+                    # 识别音频
+                    audio_file=self.cfg['shibie_audio'],
+                    detect_language=self.cfg['detect_language'],
+                    cache_folder=self.cfg['cache_folder'],
+                    is_cuda=self.cfg['cuda'],
+                    subtitle_type=self.cfg.get('subtitle_type', 0),
+                    target_code=self.cfg['target_language_code'] if self.shoud_trans else None,
+                    inst=self)
+                if self._exit():
+                    return
+                if not raw_subtitles or len(raw_subtitles) < 1:
+                    raise Exception(
+                        self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}',  self.cfg['source_language']))
+                if isinstance(raw_subtitles,tuple):
+                    self._save_srt_target(raw_subtitles[0], self.cfg['source_sub'])
+                    self.source_srt_list = raw_subtitles[0]
+                    if len(raw_subtitles)==2:
+                        self._save_srt_target(raw_subtitles[1], self.cfg['target_sub'])
+                else:
+                    self._save_srt_target(raw_subtitles, self.cfg['source_sub'])
+                    self.source_srt_list = raw_subtitles
             self._recogn_succeed()
 
-            self.source_srt_list = raw_subtitles
+            
         except Exception as e:
             msg = f'{str(e)}{str(e.args)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
@@ -345,6 +381,7 @@ class TransCreate(BaseTask):
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
         if self._srt_vail(self.cfg['target_sub']):
+            print(f'已存在，不需要翻译==')
             # 判断已存在的字幕文件中是否存在有效字幕纪录
             # 通知前端替换字幕
             self._signal(
@@ -374,6 +411,8 @@ class TransCreate(BaseTask):
                 if self.cfg.get('copysrt_rawvideo'):
                     p=Path(self.cfg['name'])
                     shutil.copy2(self.cfg['target_sub'],f'{p.parent.as_posix()}/{p.stem}.srt')
+                Path(self.cfg['source_sub']).unlink(missing_ok=True)
+                Path(self.cfg['target_sub']).unlink(missing_ok=True)
                 self.hasend = True
                 self.precent = 100
         except Exception as e:

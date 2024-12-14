@@ -72,9 +72,24 @@ class WinAction(WinActionSub):
         except Exception as e:
             QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
 
+    def show_xxl_select(self):
+        import sys
+        if sys.platform != 'win32':
+            QMessageBox.critical(self.main, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            return False
+        if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
+            from PySide6.QtWidgets import QFileDialog
+            exe,_=QFileDialog.getOpenFileName(self.main, '选择 faster-whisper-xxl.exe' if config.defaulelang=='zh' else "Select faster-whisper-xxl.exe",  'C:/', f'Files(*.exe)')
+            if exe:
+                config.settings['Faster_Whisper_XXL']=Path(exe).as_posix()
+                return True
+            return False
+        return True
     # 语音识别方式改变时
     def recogn_type_change(self):
         recogn_type = self.main.recogn_type.currentIndex()
+        if recogn_type==recognition.Faster_Whisper_XXL and not self.show_xxl_select():
+            return
 
         # 判断不是 faster，禁用分割模式、隐藏vad参数和均等分割设置
         if recogn_type != recognition.FASTER_WHISPER:
@@ -88,7 +103,7 @@ class WinAction(WinActionSub):
             tools.hide_show_element(self.main.equal_split_layout,
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, 
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
                                recognition.Deepgram,recognition.FUNASR_CN]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
@@ -100,7 +115,7 @@ class WinAction(WinActionSub):
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
-            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
+            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER,recognition.Faster_Whisper_XXL]:
                 self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
@@ -320,16 +335,18 @@ class WinAction(WinActionSub):
         return recognition.is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
     def check_model_name(self):
+        recogn_type=self.main.recogn_type.currentIndex()
         res = recognition.check_model_name(
-            recogn_type=self.main.recogn_type.currentIndex(),
+            recogn_type=recogn_type,
             name=self.main.model_name.currentText(),
             source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
             source_language_currentText=self.main.source_language.currentText()
         )
+        print(f'{res=}')
         if res == 'download':
             from videotrans.winform import fn_downmodel
             return fn_downmodel.openwin(model_name=self.main.model_name.currentText(),
-                                        recogn_type=self.main.recogn_type.currentIndex())
+                                        recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
         if res is not True:
             return QMessageBox.critical(self.main, config.transobj['anerror'], res)
         return True
@@ -382,6 +399,9 @@ class WinAction(WinActionSub):
         # 语音识别行
         # 识别模式，从faster--openai--googlespeech ...
         self.cfg['recogn_type'] = self.main.recogn_type.currentIndex()
+        if self.cfg['recogn_type']==recognition.Faster_Whisper_XXL and not self.show_xxl_select():
+            self.main.startbtn.setDisabled(False)
+            return
         self.cfg['model_name'] = self.main.model_name.currentText()
         self.cfg['split_type'] = 'all' if self.main.split_type.currentIndex() < 1 else 'avg'
         # 字幕嵌入类型
@@ -481,6 +501,7 @@ class WinAction(WinActionSub):
         self.delete_process()
         # 设为开始
         self.update_status('ing')
+        Path(config.TEMP_DIR+'/stop_porcess.txt').unlink(missing_ok=True)
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
             config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
@@ -587,6 +608,7 @@ class WinAction(WinActionSub):
         self.is_batch = True
         from videotrans.task._mult_video import MultVideo
         MultVideo(parent=self.main, cfg=self.cfg, obj_list=self.obj_list).start()
+        
 
     # 启动时禁用相关模式按钮，停止时重新启用
     def _disabled_button(self, disabled=True):
@@ -659,6 +681,8 @@ class WinAction(WinActionSub):
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
             return
+        with open(config.TEMP_DIR+'/stop_porcess.txt','w',encoding='utf-8') as f:
+            f.write('stop')
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
         self.main.startbtn.setText(config.transobj[type])

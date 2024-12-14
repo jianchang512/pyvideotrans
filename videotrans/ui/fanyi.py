@@ -46,6 +46,11 @@ class Ui_fanyisrt(object):
         self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send full subtitles')
         self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        
+        self.refine3=QtWidgets.QCheckBox()
+        self.refine3.setText('三步反思法翻译' if config.defaulelang=='zh' else 'Three Steps to Reflection Translation')
+        self.refine3.setToolTip('当使用AI翻译渠道，并选中以完整srt字幕格式发送时，可启用三步反思翻译法' if config.defaulelang=='zh' else 'When using the AI translation channel and checking the box to send in full srt subtitle format, the three-step reflective translation method can be enabled')
+        self.refine3.setChecked(config.settings.get('refine3'))
 
         self.fanyi_model_list = QtWidgets.QComboBox()
         self.fanyi_model_list.setMinimumSize(QtCore.QSize(100, 30))
@@ -56,6 +61,7 @@ class Ui_fanyisrt(object):
 
         self.horizontalLayout_18.addWidget(self.fanyi_translate_type)
         self.horizontalLayout_18.addWidget(self.aisendsrt)
+        self.horizontalLayout_18.addWidget(self.refine3)
         self.horizontalLayout_18.addWidget(self.fanyi_model_list)
 
         self.label_source = QtWidgets.QLabel()

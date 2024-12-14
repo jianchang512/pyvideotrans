@@ -1019,9 +1019,9 @@ def srt_str_to_listdict(srt_string):
 
             def parse_time(time_groups):
                 h, m, s, ms = time_groups
-                ms = ms.replace(',', '.') if ms else ".000"
+                ms = ms.replace(',', '').replace('.','') if ms else "0"
                 try:
-                    return int(h) * 3600 + int(m) * 60 + int(s) + float(ms)
+                    return int(h) * 3600000 + int(m) * 60000 + int(s)*1000 + int(ms)
                 except (ValueError, TypeError):
                     return None
 
@@ -1057,8 +1057,8 @@ def srt_str_to_listdict(srt_string):
 
             it={
                 "line": len(srt_list)+1,  #字幕索引，转换为整数
-                "start_time": int(start_time*1000), 
-                "end_time":int(end_time*1000),  #起始和结束时间
+                "start_time": int(start_time), 
+                "end_time":int(end_time),  #起始和结束时间
                 "text": re.sub(r'</?[a-zA-Z]+>','',text.replace("\n","  ").replace("\r",'').strip()), #字幕文本
             }
             it['startraw']=ms_to_time_string(ms=it['start_time'])

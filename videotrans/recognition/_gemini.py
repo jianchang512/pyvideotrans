@@ -1,6 +1,6 @@
 # zh_recogn 识别
 import socket
-import time,os
+import time,os,re
 from typing import Union, List, Dict
 
 from pydub import AudioSegment
@@ -12,6 +12,7 @@ import requests
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
+from videotrans.translator import LANGNAME_DICT
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from google.api_core.exceptions import ServerError, TooManyRequests, RetryError, DeadlineExceeded, GatewayTimeout
@@ -42,6 +43,9 @@ class GeminiRecogn(BaseRecogn):
         self.raws = []
         pro = self._set_proxy(type='set')
         genai.configure(api_key=config.params['gemini_key'])
+        self.target_code=kwargs.get('target_code',None)
+        if self.target_code:
+            self.target_code=LANGNAME_DICT.get(self.target_code)
 
 
  
@@ -64,6 +68,12 @@ class GeminiRecogn(BaseRecogn):
             self.audio_file = self.cache_folder + '/gemini-tmp.mp3'
             mime='audio/mpeg'
         retry=0
+        prompt= config.params['gemini_srtprompt']
+        if self.target_code:
+            if config.defaulelang=='zh':
+                prompt=prompt.replace('</SOURCE_SRT>','</SOURCE_SRT>\n<TRANSLATE_SRT>{转录的SRT字幕内容翻译为'+self.target_code+'后的内容}</TRANSLATE_SRT>')
+            else:
+                prompt=prompt.replace('</SOURCE_SRT>','</SOURCE_SRT>\n<TRANSLATE_SRT>{Transcribed SRT subtitle content after translation into '+self.target_code+'}</TRANSLATE_SRT>')
         while 1:
             retry+=1
             try:
@@ -85,11 +95,11 @@ class GeminiRecogn(BaseRecogn):
                     history=[
                         {
                             "role": "user",
-                            "parts": [config.params['gemini_srtprompt']],
+                            "parts": [prompt],
                         }
                     ]
                 )
-                config.logger.info(f'发送音频到Gemini:prompt={config.params["gemini_srtprompt"]},{self.audio_file=}')
+                config.logger.info(f'发送音频到Gemini:prompt={prompt},{self.audio_file=}')
                 response = chat_session.send_message(files[0],request_options={"timeout":600})
             except TooManyRequests as e:
                 if retry>2:
@@ -122,7 +132,19 @@ class GeminiRecogn(BaseRecogn):
                     text=raw,
                     type='replace_subtitle'
                 )
-                return  tools.get_subtitle_from_srt(response.text.strip(), is_file=False)
+                source_srt=re.findall(r'<SOURCE_SRT>(.*?)</SOURCE_SRT>',raw,re.S|re.I)
+                if len(source_srt)<1 or not source_srt[0].strip():
+                    raise Exception('Gemini transcribe error')
+                if not self.target_code:                    
+                    return  tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False)
+
+                target_srt=re.findall(r'<TRANSLATE_SRT>(.*?)</TRANSLATE_SRT>',raw,re.S|re.I)
+                if len(target_srt)<1 or not target_srt[0].strip():
+                    return  tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False)
+                
+                return  (tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False),tools.get_subtitle_from_srt(target_srt[0].strip(), is_file=False))
+
+
     def _exec_by_segment(self):
         seg_list=self.cut_audio()
         srt_str_list=[]

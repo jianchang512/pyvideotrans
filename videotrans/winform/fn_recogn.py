@@ -116,7 +116,7 @@ def openwin():
             source_language_currentText=winobj.shibie_language.currentText()
         )
         if res == 'download':
-            return fn_downmodel.openwin(model_name=model, recogn_type=recogn_type)
+            return fn_downmodel.openwin(model_name=model, recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
         if res is not True:
             return QMessageBox.critical(winobj, config.transobj['anerror'], res)
         return True
@@ -127,6 +127,8 @@ def openwin():
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
+        if recogn_type==recognition.Faster_Whisper_XXL and not show_xxl_select():
+            return
 
 
 
@@ -218,9 +220,25 @@ def openwin():
         return True
 
 
+    def show_xxl_select():
+        import sys
+        if sys.platform != 'win32':
+            QMessageBox.critical(winobj, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            return False
+        if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
+            from PySide6.QtWidgets import QFileDialog
+            exe,_=QFileDialog.getOpenFileName(winobj, '选择 faster-whisper-xxl.exe' if config.defaulelang=='zh' else "Select faster-whisper-xxl.exe",  'C:/', f'Files(*.exe)')
+            if exe:
+                config.settings['Faster_Whisper_XXL']=Path(exe).as_posix()
+                return True
+            return False
+        return True
+        
     # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
+        if recogn_type==recognition.Faster_Whisper_XXL and not show_xxl_select():
+            return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
             winobj.shibie_split_type.setDisabled(True)
@@ -232,14 +250,14 @@ def openwin():
             # faster
             tools.hide_show_element(winobj.equal_split_layout, True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN]:  # 可选模型，whisper funasr deepram
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
         else:
             winobj.rephrase.setDisabled(False)
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
-            if recogn_type in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER] :
+            if recogn_type in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER] :
                 winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type==recognition.Deepgram:
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
@@ -349,13 +367,14 @@ def openwin():
         if config.params.get('stt_model_name') in curr:
             winobj.shibie_model.setCurrentText(config.params.get('stt_model_name'))
 
-        if default_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+        if default_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)
 
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_split_type.currentIndexChanged.connect(shibie_split_type_change)
+        winobj.shibie_model.currentTextChanged.connect(lambda:check_model_name(winobj.shibie_recogn_type.currentIndex(),winobj.shibie_model.currentText()))
 
         winobj.show()
     except Exception as e:

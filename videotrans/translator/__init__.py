@@ -55,6 +55,36 @@ TRANSLASTE_NAME_LIST = [
 # 百度翻译 https://fanyi.baidu.com/
 # deepl  https://deepl.com/
 # microsoft https://api-edge.cognitive.microsofttranslator.com/translate?from=&to
+LANGNAME_DICT={
+    "zh":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
+    "zh-cn":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
+    "zh-tw":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
+    "en":"English language" if config.defaulelang != 'zh' else '英语',
+    "fr":"French language" if config.defaulelang != 'zh' else '法语',
+    "de":"German language" if config.defaulelang != 'zh' else '德语',
+    "ja":"Japanese language" if config.defaulelang != 'zh' else '日语',
+    "ko":"Korean language" if config.defaulelang != 'zh' else '韩语',
+    "ru":"Russian language" if config.defaulelang != 'zh' else '俄罗斯语',
+    "es":"Spanish language" if config.defaulelang != 'zh' else '西班牙语',
+    "th":"Thai language" if config.defaulelang != 'zh' else '泰国语',
+    "it":"Italian language" if config.defaulelang != 'zh' else '意大利语',
+    "pt":"Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
+    "vi":"Vietnamese language" if config.defaulelang != 'zh' else '越南语',
+    "ar":"Arabic language" if config.defaulelang != 'zh' else '阿拉伯语',
+    "tr":"Turkish language" if config.defaulelang != 'zh' else '土耳其语',
+    "hi":"Hindi language" if config.defaulelang != 'zh' else '印度语',
+    "hu":"Hungarian language" if config.defaulelang != 'zh' else '匈牙利语',
+    "uk":"Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语',
+    "id":"Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语',
+    "ms":"Malay language" if config.defaulelang != 'zh' else '马来西亚语',
+    "kk":"Kazakh language" if config.defaulelang != 'zh' else '哈萨克语',
+    "cs":"Czech language" if config.defaulelang != 'zh' else '捷克语',
+    "pl":"Polish language" if config.defaulelang != 'zh' else '波兰语',
+    "nl":"Dutch" if config.defaulelang != 'zh' else '荷兰语',
+    "sv":"Swedish" if config.defaulelang != 'zh' else '瑞典语',
+    "he":"Hebrew" if config.defaulelang != 'zh' else '希伯来语',
+    "bn":"Bengali" if config.defaulelang != 'zh' else '孟加拉语',
+}
 LANG_CODE = {
     "zh-cn": [
         "zh-cn",  # google通道

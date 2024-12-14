@@ -13,6 +13,8 @@ class Claude(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.is_srt and self.aisendsrt:
+            self.trans_thread=500
         self.api_url = self._get_url(config.params['claude_api'])
         if not config.params['claude_key']:
             raise Exception('必须在翻译设置 - Claude API 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
@@ -70,7 +72,7 @@ class Claude(BaseTrans):
                 model=config.params['claude_model'],
                 max_tokens=2000,
                 temperature=0.2,
-                system="您是一位精通多种语言的高技能翻译专家。您的任务是识别我提供的文本的语言，并将其准确翻译成指定的目标语言，同时保持原文的含义、语气和细微差别，同时尽可能的缩写译文，请在翻译结果中保持正确的语法、拼写和标点符号" if config.defaulelang == 'zh' else 'You are a highly skilled translation specialist who is fluent in several languages. Your task is to recognize the language of the text I provide and to translate it accurately into the specified target language while maintaining the meaning, tone and nuances of the original text, as well as abbreviating the translation as much as possible, please maintain correct grammar, spelling and punctuation in the translation results',
+                system="您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。" if config.defaulelang == 'zh' else 'You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure.',
                 messages=message
             )
         except anthropic.APIConnectionError as e:
@@ -87,15 +89,18 @@ class Claude(BaseTrans):
 
 
         config.logger.info(f'[claude ai]返回响应:{response=}')
-
+        result=''
         if response.content:
             result = response.content[0].text.strip()
         else:
             config.logger.error(f'[claude]请求失败:{response=}')
             raise Exception(f"no content:{response=}")
+        
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
+        if match:
+            return match.group(1)
+        raise Exception('No content')
 
-        result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        return result
 
     def _item_task_refine3(self, data: Union[List[str], str]) -> str:
         prompt=self._refine3_prompt()
@@ -126,7 +131,7 @@ class Claude(BaseTrans):
                 model=config.params['claude_model'],
                 max_tokens=2000,
                 temperature=0.2,
-                system= "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。',
+                system= "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。',
                 messages=message
             )
         except anthropic.APIConnectionError as e:
@@ -150,7 +155,6 @@ class Claude(BaseTrans):
             config.logger.error(f'[claude]请求失败:{response=}')
             raise Exception(f"no content:{response=}")
 
-        result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
         if match:
             return match.group(1)

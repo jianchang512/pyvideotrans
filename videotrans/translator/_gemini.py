@@ -36,6 +36,8 @@ class Gemini(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.is_srt and self.aisendsrt:
+            self.trans_thread=500
         self._set_proxy(type='set')
         self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["gemini_model"]
@@ -46,12 +48,7 @@ class Gemini(BaseTrans):
             return self._item_task_refine3(data)
         response = None
         try:
-            if '{text}' in self.prompt:
-                message = self.prompt.replace('{text}',
-                                              "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
-            else:
-                message = self.prompt.replace('[TEXT]',
-                                              "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+            message = self.prompt.replace('[TEXT]',"\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
 
             genai.configure(api_key=config.params['gemini_key'])
             model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
@@ -61,11 +58,14 @@ class Gemini(BaseTrans):
             )
             config.logger.info(f'[Gemini]请求发送:{message=}')
 
-            result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
+            result = response.text      
             config.logger.info(f'[Gemini]返回:{result=}')
             if not result:
                 raise Exception("result is empty")
-            return re.sub(r'\n{2,}', "\n", result)
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.text,re.S)
+            if match:
+                return match.group(1)
+            raise Exception("result is empty")
         except TooManyRequests as e:
             raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:

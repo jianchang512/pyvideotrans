@@ -19,6 +19,7 @@ OPENAI_API = 6
 CUSTOM_API = 7
 GOOGLE_SPEECH = 8
 GEMINI_SPEECH = 9
+Faster_Whisper_XXL = 10
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -31,6 +32,7 @@ RECOGN_NAME_LIST = [
     "自定义识别API" if config.defaulelang == 'zh' else "Custom API",
     "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
     "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
+    "Faster-Whisper-XXL.exe"
 ]
 
 
@@ -50,7 +52,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None)
 
 # 判断 openai whisper和 faster whisper 模型是否存在
 def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=False,source_language_currentText=''):
-    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
+    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER,Faster_Whisper_XXL]:
         return True
     # 含 / 的需要下载
     if name.find('/') > 0:
@@ -68,15 +70,35 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
         if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
             return 'download'
         return True
-    file = f'{config.ROOT_DIR}/models/models--Systran--faster-whisper-{name}/snapshots'
+    model_path=f'models--Systran--faster-whisper-{name}'
     if name=='large-v3-turbo':
-        file = f'{config.ROOT_DIR}/models/models--mobiuslabsgmbh--faster-whisper-{name}/snapshots'
+        model_path = f'models--mobiuslabsgmbh--faster-whisper-{name}'
     elif name.startswith('distil'):
-        file = f'{config.ROOT_DIR}/models/models--Systran--faster-{name}/snapshots'
+        model_path = f'models--Systran--faster-{name}'
+    
+    file=f'{config.ROOT_DIR}/models/{model_path}'
+    print(file)
+    if recogn_type==Faster_Whisper_XXL:
+        PATH_DIR=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+f'/.cache/hub/{model_path}'
+        print(PATH_DIR)
+        if Path(file).exists() or Path(PATH_DIR).exists():
+            if Path(file).exists() and not Path(PATH_DIR).exists():
+                import threading
+                threading.Thread(target=move_model_toxxl,args=(file,PATH_DIR)).start()
+            return True
+        
+    
     if not Path(file).exists():
         return 'download'
     return True
 
+
+
+def move_model_toxxl(src,dest):
+    import shutil
+    config.copying=True
+    shutil.copytree(src,dest,dirs_exist_ok=True)
+    config.copying=False
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
@@ -128,6 +150,7 @@ def run(*,
         uuid=None,
         recogn_type: int = 0,
         is_cuda=None,
+        target_code=None,
         subtitle_type=0
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -142,7 +165,8 @@ def run(*,
         "uuid": uuid,
         "inst": inst,
         "is_cuda": is_cuda,
-        "subtitle_type":subtitle_type
+        "subtitle_type":subtitle_type,
+        "target_code":target_code
     }
     if recogn_type == OPENAI_WHISPER:
         from ._openai import OpenaiWhisperRecogn

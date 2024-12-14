@@ -163,6 +163,7 @@ def openwin():
 
         config.box_trans = 'ing'
         config.settings['aisendsrt']=winobj.aisendsrt.isChecked()
+        config.settings['refine3']=winobj.refine3.isChecked()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -372,6 +373,7 @@ def openwin():
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.exportsrt.clicked.connect(export_srt)
+
 
         winobj.show()
     except Exception as e:

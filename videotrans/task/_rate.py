@@ -83,9 +83,11 @@ def process_audio(item):
 
 
 
-def process_video(item,codenum,crf,preset,video_hard):
+def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
     #print(f'{item=}')
     try:
+        if stop_file and Path(stop_file).exists():
+            return
         tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
         if item['pts']=='':
             return True,None
@@ -324,6 +326,8 @@ class SpeedRate:
         with concurrent.futures.ProcessPoolExecutor(max_workers=min(2,total_files)  ) as executor:
             futures = [executor.submit(process_audio, item.copy()) for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                if config.exit_soft:
+                    return
                 filename, success, error_message = future.result()
                 progress = (i + 1) / total_files * 100
                 tools.set_process(text=f"{config.transobj['dubbing speed up']}  {i + 1}/{total_files}",uuid=self.uuid)
@@ -479,8 +483,10 @@ class SpeedRate:
         config.logger.info(should_speed)
         worker_nums=1#min(1,total_files)
         with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
-            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow'),config.settings.get('videoslow_hard',False)) for item in should_speed]
+            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                if config.exit_soft or config.current_status!='ing':
+                    return
                 success,error = future.result()
                 print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
                 tools.set_process(text=f"{config.transobj['videodown..']} {i+1}/{total_files}", uuid=self.uuid)
