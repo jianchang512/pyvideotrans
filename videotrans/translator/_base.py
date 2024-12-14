@@ -276,108 +276,76 @@ class BaseTrans(BaseCon):
 
     def _refine3_prompt(self):
         zh_prompt="""
-        # 三步反思法翻译srt字幕
-
-您是一位技术娴熟的翻译人员，专门负责将 SRT 格式的字幕从其他语言精准翻译成{lang}语言的 SRT 格式字幕。请仔细按以下要求完成翻译：
+        # 角色
+您是一名技术娴熟的翻译员，专注于将 SRT 格式的字幕从其他语言精确翻译成{lang}语言的 SRT 格式字幕。
 
 ## 输入
-提供的内容为合法的 SRT 字幕格式。请确保在翻译中严格保持 SRT 格式正确，不添加或省略任何内容。
+接收<INPUT>标签内的 SRT 字幕格式内容，确保翻译后严格保持 SRT 格式，不增删任何内容。
 
 ## 翻译流程
-请按照以下三步流程执行翻译任务：
+### 步骤1：初步翻译
+- 将字幕内容翻译成{lang}语言，忠实保留原意，确保格式完全符合 SRT 标准。
+- 不增加或删减信息，不添加解释或说明。
 
-1. **初步翻译**：
-   - 将字幕内容翻译成{lang}语言，忠实保留原意，并确保格式完全保持 SRT 标准。
-   - 不增加或删减任何信息，不添加解释或说明。
+### 步骤2：翻译改进建议
+- 比对原文与译文，提出改进建议以提升翻译准确性与流畅性，包括：
+  - **准确性**：纠正误译、遗漏或多余信息。
+  - **流畅性**：确保符合{lang}的语法、拼写和标点规则，避免重复。
+  - **简洁性**：在保留原意的前提下，优化译文简洁度。
+  - **格式正确性**：确保翻译后 SRT 格式有效，字幕条数一致。
 
-2. **翻译改进建议**：
-   - 仔细比对原文和译文，提出具体改进建议，提升翻译准确性与流畅性。建议内容包括：
-     - **准确性**：纠正可能的误译、遗漏或添加多余信息。
-     - **流畅性**：确保符合{lang}的语法、拼写和标点规则，避免不必要的重复。
-     - **简洁性**：在保持原意的前提下，优化译文的简洁度，避免冗长。
-     - **格式正确性**：确保翻译后 SRT 字幕格式有效，字幕条数与原文一致。
-
-3. **润色与完善**：
-   - 根据初步翻译和改进建议，进一步优化和润色译文，确保翻译忠实、简洁短小、口语化。
-   - 不要添加解释或附加说明，确保最终字幕符合 SRT 格式要求，且条数与原文一致。
+### 步骤3：润色与完善
+- 根据初步翻译和改进建议，优化和润色译文，确保翻译忠实、简洁、口语化。
+- 不添加解释或附加说明，确保最终字幕符合 SRT 格式要求，条数与原文一致。
 
 ## 输出格式
-
-请使用以下 XML 标签结构，分别输出每个步骤的结果：
-
+使用以下 XML 标签结构输出润色后的最终翻译结果：
 ```xml
-<step1_initial_translation>
-[插入初步翻译结果]
-</step1_initial_translation>
-
-<step2_reflection>
-[插入针对改进的具体建议，每条建议应对应一个翻译改进方面]
-</step2_reflection>
-
 <step3_refined_translation>
 [插入润色后的最终翻译结果]
 </step3_refined_translation>
 ```
 
 ## 注意事项
-- 始终确保最终翻译保留原文含义，并严格符合 SRT 格式。
+- 确保最终翻译保留原文含义，并严格符合 SRT 格式。
 - 输出的字幕数量须与原始字幕一致。
-
-以下<INPUT>标签内为需翻译的 SRT 字幕内容：
-
-<INPUT></INPUT>
         
+<INPUT></INPUT>        
         """
         en_prompt="""        
-# Three-step reflection method for translating SRT subtitles
+# Role
+You are a skilled translator specializing in accurately translating SRT format subtitles from various languages into {lang} language SRT format subtitles.
 
-You are a skilled translator specializing in translating SRT subtitles from other languages into {lang} SRT subtitles. Please carefully complete the translation according to the following requirements:
+## Skills
+### Skill 1: Initial Translation
+- Translate the subtitle content into {lang}, faithfully preserving the original meaning while strictly maintaining the SRT format.
+- Do not add or omit any information, and refrain from adding explanations or notes.
 
-## Input
+### Skill 2: Translation Improvement Suggestions
+- Carefully compare the original and translated texts, providing specific suggestions to enhance translation accuracy and fluency. Suggestions should include:
+  - **Accuracy**: Correct potential mistranslations, omissions, or unnecessary additions.
+  - **Fluency**: Ensure compliance with {lang} grammar, spelling, and punctuation rules, avoiding unnecessary repetition.
+  - **Conciseness**: Optimize the translation's conciseness while preserving the original meaning, avoiding verbosity.
+  - **Format Correctness**: Ensure the translated SRT subtitle format is valid and the number of subtitles matches the original.
 
-The provided content is in a legal SRT subtitle format. Please ensure that the SRT format is strictly maintained throughout the translation process, with no content added or omitted. 
-
-## Translation Process
-
-Please follow the following three-step process to perform the translation task:
-
-1. **Preliminary Translation**:
-   - Translate the subtitle content into {lang}, faithfully retaining the original meaning and ensuring the format fully adheres to the SRT standard.
-   - Do not add or delete any information, nor include explanations or instructions.
-
-2. **Translation Improvement Suggestions**:
-   - Carefully compare the original text and the translated text, providing specific improvement suggestions to enhance the accuracy and fluency of the translation. These suggestions should focus on:
-     - **Accuracy**: Correct potential mistranslations, omissions, or the addition of redundant information.
-     - **Fluency**: Ensure the grammar, spelling, and punctuation rules of {lang} are met, avoiding unnecessary repetition.
-     - **Conciseness**: Optimize the conciseness of the translation, avoiding verbosity while preserving the original meaning.
-     - **Format Correctness**: Ensure the SRT subtitle format remains valid after translation, with the number of subtitles consistent with the original text.
-
-3. **Polishing and Perfection**:
-   - Based on the preliminary translation and improvement suggestions, further optimize and polish the translation to ensure it is faithful, concise, and fluent.
-   - Do not add explanations or additional instructions. Ensure the final subtitles meet the SRT format requirements and that the number of subtitles is consistent with the original text.
+### Skill 3: Polishing and Refinement
+- Based on the initial translation and improvement suggestions, further optimize and polish the translation to ensure it is faithful, concise, and conversational.
+- Do not add explanations or additional notes, ensuring the final subtitles meet SRT format requirements and match the original in number.
 
 ## Output Format
-
-Please use the following XML tag structure to output the results of each step separately:
+- Use the following XML tag structure to output the refined final translation:
 
 ```xml
-<step1_initial_translation>
-[Insert initial translation results]
-</step1_initial_translation>
-
-<step2_reflection>
-[Insert specific suggestions for improvement, each suggestion corresponding to one aspect of translation improvement]
-</step2_reflection>
-
 <step3_refined_translation>
-[Insert final translation after polishing]
+[Insert the refined final translation]
 </step3_refined_translation>
 ```
 
-## Notes
+## Constraints
+- Always ensure the final translation retains the original meaning and strictly adheres to the SRT format.
+- The number of output subtitles must match the original subtitles.
 
-- Always ensure the final translation retains the original meaning and strictly conforms to the SRT format.
-- The number of subtitles output must be the same as the original subtitles.
+## input 
 
 The following `<INPUT>` tags contain the SRT subtitles to be translated:
 

@@ -13,6 +13,8 @@ class AI302(BaseTrans):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if self.is_srt and self.aisendsrt:
+            self.trans_thread=500
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='ai302',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params['ai302_model']
@@ -25,7 +27,7 @@ class AI302(BaseTrans):
             "model": config.params['ai302_model'],
             "messages": [
                 {'role': 'system',
-                 'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results" if config.defaulelang != 'zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+                 'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
                 {'role': 'user',
                  'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,list) else data)},
             ]
@@ -40,9 +42,12 @@ class AI302(BaseTrans):
         if response.status_code != 200:
             raise Exception(f'status_code={response.status_code} {response.reason}')
         res = response.json()
+        result=""        
         if res['choices']:
             result = res['choices'][0]['message']['content']
-            return re.sub(r'\n{2,}', "\n", result)
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
+        if match:
+            return match.group(1)
         raise Exception(f"No choices:{res=}")
 
 
@@ -54,7 +59,7 @@ class AI302(BaseTrans):
             "model": config.params['ai302_model'],
             "messages": [
                 {'role': 'system',
-                 'content': "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。'},
+                 'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
                 {'role': 'user',
                  'content': prompt},
             ]

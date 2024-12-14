@@ -17,6 +17,7 @@ from videotrans.util import tools
 from videotrans.mainwin._actions import WinAction
 from videotrans import VERSION, recognition
 from videotrans  import tts
+from pathlib import Path
 
 
 
@@ -118,8 +119,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except Exception:
             config.params['recogn_type'] = 0
-        if config.params['recogn_type']>9:
-            config.params['recogn_type']=9
+        if config.params['recogn_type']>10:
+            config.params['recogn_type']=10
         # 设置当前识别类型
         self.recogn_type.setCurrentIndex(config.params['recogn_type'])
 
@@ -137,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params['model_name'] in curr:
             self.model_name.setCurrentText(config.params['model_name'])
 
-        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -360,13 +361,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
         self.rightbottom.clicked.connect(self.win_action.about)
-
+        Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
 
 
     def closeEvent(self, event):
         config.exit_soft = True
         config.current_status='stop'
-
+        try:
+            with open(config.TEMP_DIR+'/stop_process.txt','w',encoding='utf-8') as f:
+                f.write('stop')
+        except:
+            pass
         sets=QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())
         self.hide()
@@ -380,13 +385,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception:
             pass
         from videotrans.util import tools
-        tools._unlink_tmp()
         time.sleep(3)
         print('等待所有进程退出...')
         from videotrans.util import tools
         try:
             tools.kill_ffmpeg_processes()
-            tools._unlink_tmp()
         except Exception:
             pass
         time.sleep(3)

@@ -74,9 +74,12 @@ class Ui_geminiform(object):
         hrecogn.addStretch()
         
         
-        
         self.gemini_srtprompt=QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_srtprompt.setObjectName("gemini_srtprompt")
+        
+        
+        label_cut=QtWidgets.QLabel(geminiform)
+        label_cut.setText('音频切片时提示词' if config.defaulelang=='zh' else 'Cue words during audio slicing')
         self.gemini_srtprompt_cut=QtWidgets.QPlainTextEdit(geminiform)
         self.gemini_srtprompt_cut.setObjectName("gemini_srtprompt_cut")
 
@@ -84,6 +87,7 @@ class Ui_geminiform(object):
         v1.addWidget(self.gemini_template)
         v1.addLayout(hrecogn)
         v1.addWidget(self.gemini_srtprompt)
+        v1.addWidget(label_cut)
         v1.addWidget(self.gemini_srtprompt_cut)
 
         h3=QtWidgets.QHBoxLayout()

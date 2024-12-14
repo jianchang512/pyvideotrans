@@ -37,10 +37,9 @@ class LocalLLM(BaseTrans):
                        http_client=httpx.Client(proxies=self.proxies))
         message = [
             {'role': 'system',
-             'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results" if config.defaulelang != 'zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+             'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
             {'role': 'user',
-             'content': self.prompt.replace('[TEXT]',
-                                            "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)},
+             'content': self.prompt.replace('[TEXT]',"\n".join([i.strip() for i in data]) if isinstance(data, list) else data)},
         ]
         config.logger.info(f"\n[localllm]发送请求数据:{message=}")
         try:
@@ -62,5 +61,8 @@ class LocalLLM(BaseTrans):
         else:
             raise Exception(f'[localllm]请求失败:{response=}')
 
-        result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        return re.sub(r'\n{2,}', "\n", result)
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
+        if match:
+            return match.group(1)
+        raise Exception('No content')
+

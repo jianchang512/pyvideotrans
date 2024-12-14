@@ -15,6 +15,8 @@ class ChatGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.is_srt and self.aisendsrt:
+            self.trans_thread=500
         self.api_url = self._get_url(config.params['chatgpt_api'])
         if not config.params['chatgpt_key']:
             raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
@@ -62,7 +64,7 @@ class ChatGPT(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a professional, helpful translation engine that translates only the content in <source> and returns only the translation results" if config.defaulelang != 'zh' else '您是一个有帮助的翻译引擎，只翻译<source>中的内容，并只返回翻译结果'},
+                'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
             {
                 'role': 'user',
                 'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,
@@ -81,15 +83,18 @@ class ChatGPT(BaseTrans):
         except APIConnectionError:
             raise requests.ConnectionError('Network connection failed')
         config.logger.info(f'[chatGPT]响应:{response=}')
-
+        result=""
         if response.choices:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[chatGPT]请求失败:{response=}')
             raise Exception(f"no choices:{response=}")
+        
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
+        if match:
+            return match.group(1)
+        raise Exception('No content')
 
-        result = result.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-        return result
 
     def _item_task_refine3(self, data: Union[List[str], str]) -> str:
         prompt=self._refine3_prompt()
@@ -99,7 +104,7 @@ class ChatGPT(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content':  "You are an SRT subtitle translation engine that can translate SRT subtitles strictly according to instructions." if config.defaulelang != 'zh' else '您是一个SRT字幕翻译引擎，能严格遵照指令翻译SRT字幕。'},
+                'content':  "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
             {
                 'role': 'user',
                 'content': prompt},

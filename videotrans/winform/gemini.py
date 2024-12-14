@@ -44,7 +44,7 @@ def openwin():
         config.params["gemini_template"] = template
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
-            f.flush()
+
 
         task = TestTask(parent=winobj)
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -57,7 +57,7 @@ def openwin():
         template = winobj.gemini_template.toPlainText()
         gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
         gemini_srtprompt_cut = winobj.gemini_srtprompt_cut.toPlainText()
-        os.environ['GOOGLE_API_KEY'] = key
+
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
@@ -66,6 +66,9 @@ def openwin():
         config.params["gemini_cut_audio"] = winobj.gemini_cut_audio.isChecked()
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
+        gemini_recogn_txt= 'gemini_recogn.txt' if config.defaulelang=='zh' else 'gemini_recogn-en.txt'    
+        with Path(config.ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').open('w', encoding='utf-8') as f:
+            f.write(gemini_srtprompt)    
         config.getset_params(config.params)
         winobj.close()
 

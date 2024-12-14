@@ -101,7 +101,8 @@ class Ui_recogn(object):
         self.out_format.addItems([
             "srt",
             "ass",
-            "vtt"
+            "vtt",
+            "txt"
         ])
 
 

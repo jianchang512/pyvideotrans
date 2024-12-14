@@ -17,7 +17,7 @@ from videotrans.util import tools
 class BaseRecogn(BaseCon):
 
     def __init__(self, detect_language=None, audio_file=None, cache_folder=None,
-                 model_name=None, inst=None, uuid=None, is_cuda=None,subtitle_type=0):
+                 model_name=None, inst=None, uuid=None, is_cuda=None,target_code=None,subtitle_type=0):
         super().__init__()
         # 需要判断当前是主界面任务还是单独任务，用于确定使用哪个字幕编辑区
         self.detect_language = detect_language
@@ -27,9 +27,9 @@ class BaseRecogn(BaseCon):
         self.inst = inst
         self.uuid = uuid
         self.is_cuda = is_cuda
+        self.subtitle_type=subtitle_type
         self.has_done = False
         self.error = ''
-        self.subtitle_type=subtitle_type
         self.device="cuda" if  torch.cuda.is_available() else 'cpu'
 
 
