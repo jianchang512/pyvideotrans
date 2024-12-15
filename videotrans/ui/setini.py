@@ -117,7 +117,8 @@ class Ui_setini(object):
 
             },
             "trans": {
-                "trans_thread": "同时翻译的字幕行数",
+                "trans_thread": "传统翻译每次发送字幕行数",
+                "aitrans_thread": "AI翻译每次发送字幕行数",
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
                 "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages",
@@ -232,7 +233,8 @@ class Ui_setini(object):
 
             "voice_silence": "Google识别api静音片段/ms",
             "interval_split": "均等分割时片段时长/s",
-            "trans_thread": "同时翻译的字幕数",
+            "trans_thread": "传统翻译每次发送字幕行数",
+            "aitrans_thread": "AI翻译每次发送字幕行数",
             "retries": "翻译出错重试数",
             "dubbing_thread": "同时配音字幕数",
             "countdown_sec": "暂停倒计时/s",
@@ -324,6 +326,7 @@ class Ui_setini(object):
                 },
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
+                    "aitrans_thread": "Number of subtitles AI translated simultaneously",
                     "retries": "Number of retries when translation fails",
                     "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
                     "google_trans_newadd": "Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages",
@@ -450,6 +453,7 @@ class Ui_setini(object):
                 "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",
                 "trans_thread": "Number of Subtitles Translated Simultaneously",
+                "aitrans_thread": "Number of Subtitles AI Translated Simultaneously",
                 "retries": "Number of Retries on Translation Failure",
                 "dubbing_thread": "Number of Subtitles Dubbed Simultaneously",
                 "countdown_sec": "Countdown Seconds on Pause",

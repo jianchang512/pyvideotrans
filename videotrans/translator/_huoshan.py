@@ -14,8 +14,7 @@ class HuoShan(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.is_srt and self.aisendsrt:
-            self.trans_thread=500
+        self.trans_thread=int(config.settings.get('aitrans_thread',500))
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["zijiehuoshan_model"]

@@ -42,11 +42,10 @@ class GeminiRecogn(BaseRecogn):
         super().__init__(*args, **kwargs)
         self.raws = []
         pro = self._set_proxy(type='set')
-        genai.configure(api_key=config.params['gemini_key'])
         self.target_code=kwargs.get('target_code',None)
         if self.target_code:
             self.target_code=LANGNAME_DICT.get(self.target_code)
-
+        self.api_keys=config.params.get('gemini_key','').strip().split(',')
 
  
 
@@ -54,6 +53,10 @@ class GeminiRecogn(BaseRecogn):
         if self._exit():
             return
         pro = self._set_proxy(type='set')
+        print(f'{pro=}')
+        api_key=self.api_keys.pop(0)
+        self.api_keys.append(api_key)
+        genai.configure(api_key=api_key)
 
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
@@ -62,11 +65,10 @@ class GeminiRecogn(BaseRecogn):
         response = None
         # 尺寸大于190MB，转为 mp3
         mime='audio/wav'
-        if os.path.getsize(self.audio_file) > 31457280:
-            tools.runffmpeg(
+        tools.runffmpeg(
                 ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/gemini-tmp.mp3'])
-            self.audio_file = self.cache_folder + '/gemini-tmp.mp3'
-            mime='audio/mpeg'
+        self.audio_file = self.cache_folder + '/gemini-tmp.mp3'
+        mime='audio/mpeg'
         retry=0
         prompt= config.params['gemini_srtprompt']
         if self.target_code:
@@ -89,8 +91,8 @@ class GeminiRecogn(BaseRecogn):
                   safety_settings=safetySettings
                 )
                 files = [
-                      genai.upload_file(self.audio_file, mime_type=mime),
-                    ]
+                          genai.upload_file(self.audio_file, mime_type=mime),
+                ]
                 chat_session = model.start_chat(
                     history=[
                         {
@@ -100,7 +102,7 @@ class GeminiRecogn(BaseRecogn):
                     ]
                 )
                 config.logger.info(f'发送音频到Gemini:prompt={prompt},{self.audio_file=}')
-                response = chat_session.send_message(files[0],request_options={"timeout":600})
+                response = chat_session.send_message(files[0],request_options={"timeout":6000})
             except TooManyRequests as e:
                 if retry>2:
                     raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
@@ -109,10 +111,10 @@ class GeminiRecogn(BaseRecogn):
                 time.sleep(30)
                 continue
             except ServerError as e:
-                error=str(e) if config.defaulelang !='zh' else '连接Gemini服务超时，请尝试更换代理'
+                error=str(e) if config.defaulelang !='zh' else '连接Gemini服务超时，请尝试更换代理或切换模型'
                 raise requests.ConnectionError(error)
             except (RetryError,socket.timeout) as e:
-                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理或切换模型'
                 raise requests.ConnectionError(error)
             except Exception as e:
                 error = str(e)
@@ -154,12 +156,15 @@ class GeminiRecogn(BaseRecogn):
                   "top_k": 40,
                   "response_mime_type": "text/plain",
         }
-        model = genai.GenerativeModel(
-          model_name=config.params['gemini_model'],
-          safety_settings=safetySettings
-        )
         prompt=config.params.get('gemini_srtprompt_cut','Please transcribe the audio that was sent to you into text, then return the transcribed text without any explanations, hints, instructions or any other superfluous information attached to the returned text.')
         for f in seg_list:
+            api_key=self.api_keys.pop(0)
+            self.api_keys.append(api_key)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel(
+              model_name=config.params['gemini_model'],
+              safety_settings=safetySettings
+            )
             retry=0
             startraw=tools.ms_to_time_string(ms=f['start_time'])
             endraw=tools.ms_to_time_string(ms=f['end_time'])

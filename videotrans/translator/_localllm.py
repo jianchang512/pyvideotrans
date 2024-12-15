@@ -14,6 +14,7 @@ class LocalLLM(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.trans_thread=int(config.settings.get('aitrans_thread',500))
         self.api_url = config.params['localllm_api']
         self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()

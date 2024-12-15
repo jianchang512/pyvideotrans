@@ -47,9 +47,7 @@ class CloneVoice(BaseTTS):
                     return
                 # 克隆声音
                 audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
-                if len(audio_chunk)<4000:
-                    audio_chunk=audio_chunk*2
-                    audio_chunk.export(data_item['ref_wav'],format='wav')
+
                 with open(data_item['ref_wav'], 'rb') as f:
                     chunk=f.read()
                 files = {"audio": chunk}

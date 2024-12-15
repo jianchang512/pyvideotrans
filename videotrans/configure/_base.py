@@ -28,11 +28,11 @@ class BaseCon:
             return
 
         if type == 'set':
-            raw_proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy') or os.environ.get('bak_proxy')
+            raw_proxy = os.environ.get('https_proxy') or os.environ.get('http_proxy')
             if raw_proxy:
                 return raw_proxy
             if not raw_proxy:
-                proxy = tools.set_proxy()
+                proxy = tools.set_proxy() or os.environ.get('bak_proxy')
                 if proxy:
                     self.shound_del = True
                     os.environ['http_proxy'] = proxy

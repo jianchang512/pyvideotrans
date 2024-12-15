@@ -54,10 +54,7 @@ class F5TTS(BaseTTS):
                     return
                 audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
                 data['ref_text']=data_item.get('ref_text').strip()
-                if len(audio_chunk)<4000:
-                    audio_chunk=audio_chunk*2
-                    audio_chunk.export(data_item['ref_wav'],format='wav')
-                    data['ref_text']+=f". {data['ref_text']}"
+
 
                 with open(data_item['ref_wav'],'rb') as f:
                     chunk=f.read()

@@ -36,12 +36,12 @@ class Gemini(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.is_srt and self.aisendsrt:
-            self.trans_thread=500
+        self.trans_thread=int(config.settings.get('aitrans_thread',500))
         self._set_proxy(type='set')
         self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["gemini_model"]
         self.prompt=self._replace_prompt()
+        self.api_keys=config.params.get('gemini_key','').strip().split(',')
         
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
@@ -49,8 +49,9 @@ class Gemini(BaseTrans):
         response = None
         try:
             message = self.prompt.replace('[TEXT]',"\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
-
-            genai.configure(api_key=config.params['gemini_key'])
+            api_key=self.api_keys.pop(0)
+            self.api_keys.append(api_key)
+            genai.configure(api_key=api_key)
             model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
             response = model.generate_content(
                 message,
@@ -69,7 +70,7 @@ class Gemini(BaseTrans):
         except TooManyRequests as e:
             raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:
-            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理或切换模型'
             raise requests.ConnectionError(error)
         except Exception as e:
             error = str(e)

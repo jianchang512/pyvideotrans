@@ -15,8 +15,7 @@ class ChatGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.is_srt and self.aisendsrt:
-            self.trans_thread=500
+        self.trans_thread=int(config.settings.get('aitrans_thread',500))
         self.api_url = self._get_url(config.params['chatgpt_api'])
         if not config.params['chatgpt_key']:
             raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')

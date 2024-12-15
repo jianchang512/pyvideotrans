@@ -546,10 +546,11 @@ class WinAction(WinActionSub):
     def click_translate_type(self):
         from videotrans.component.set_threads import SetThreadTransDubb
         dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
-                                    sec=config.settings.get('translation_wait', 0))
+                                    sec=config.settings.get('translation_wait', 0),ai_nums=config.settings.get('aitrans_thread', 500))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait = dialog.get_values()
+            num, wait,ainums = dialog.get_values()
             config.settings['trans_thread'] = num
+            config.settings['aitrans_thread'] = ainums
             config.settings['translation_wait'] = wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
