@@ -14,8 +14,7 @@ class AzureGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.is_srt and self.aisendsrt:
-            self.trans_thread=500
+        self.trans_thread=int(config.settings.get('aitrans_thread',500))
         self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         self.model_name=config.params["azure_model"]

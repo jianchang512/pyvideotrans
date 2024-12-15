@@ -53,7 +53,7 @@ class BaseTrans(BaseCon):
         # 如果 text_list 不是字符串则是字幕格式
         self.is_srt = False if isinstance(text_list, str) else True
         # 非AI翻译时强制设为False，是AI翻译时根据配置确定
-        self.aisendsrt = True if config.settings.get('aisendsrt', False) and self.trans_thread > 1 else False
+        self.aisendsrt = config.settings.get('aisendsrt', False)
         self.refine3=True if self.aisendsrt and not self.is_test and config.settings.get('refine3',False) else False
         # 整理待翻译的文字为 List[str]
         self.split_source_text = []
@@ -75,12 +75,10 @@ class BaseTrans(BaseCon):
         self._signal(text="")
         if self.is_srt:
             source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in
-                                      range(0, len(self.text_list), self.trans_thread)]
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in  range(0, len(self.text_list), self.trans_thread)]
         else:
             source_text = self.text_list.strip().split("\n")
-            self.split_source_text = [source_text[i:i + self.trans_thread] for i in
-                                      range(0, len(source_text), self.trans_thread)]
+            self.split_source_text = [source_text[i:i + self.trans_thread] for i in  range(0, len(source_text), self.trans_thread)]
 
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
