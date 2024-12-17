@@ -46,7 +46,7 @@ class TranslateSrt(BaseTask):
         self.out_format=int(cfg.get('out_format',0))
         # 生成目标字幕文件
         self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
-            'noextname'] + '-translated.srt'
+            'noextname'] + '.srt'
         self.cfg['source_sub'] = self.cfg['name']
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
         self.rename=cfg.get('rename',False)

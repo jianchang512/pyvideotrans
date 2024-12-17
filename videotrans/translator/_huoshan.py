@@ -18,7 +18,7 @@ class HuoShan(BaseTrans):
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["zijiehuoshan_model"]
-        self.prompt=self._replace_prompt()
+
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
             return self._item_task_refine3(data)

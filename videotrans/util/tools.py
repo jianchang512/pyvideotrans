@@ -480,10 +480,9 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                     remove_preset=1
                 elif config.video_codec.find('_nvenc')>0:
                     remove_preset=2
-            elif it == '-crf' and config.settings['cuda_qp'] and re.search(r'\sh(264|evc)_nvenc\s'," ".join(cmd),re.I):
+            elif it == '-crf' and  config.video_codec.find('_nvenc')>0:
                 arg[i] = '-qp'
-                if arg[i]=='copy':
-                    arg[i+1]='0'
+                
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
         # 因显卡兼容性，出错率较高
         # 启用硬件加速
@@ -492,10 +491,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                 cmd.append('-hwaccel')
                 cmd.append('videotoolbox')            
         elif config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
-            arg.insert(i,'h264_cuvid' if config.video_codec=='h264_nvenc' else 'hevc_cuvid')
-            arg.insert(i,'-c:v')
-            arg.insert(i,'cuda')
-            arg.insert(i,'-hwaccel')
+            #arg.insert(insert_index,'h264_cuvid' if config.video_codec=='h264_nvenc' else 'hevc_cuvid')
+            #arg.insert(insert_index,'-c:v')
+            arg.insert(insert_index,'cuda')
+            arg.insert(insert_index,'-hwaccel')
         
         #移除预设，防止出错 -preset
         if  '-preset' in arg:
@@ -682,17 +681,15 @@ def get_codec_name(file_path):
 def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
     cmd = [
         "-y",
-        "-threads",
-        f'{os.cpu_count()}',
         "-i",
         Path(source_mp4).as_posix(),
         "-an",
         "-c:v",
-        lib,
-        "-crf",
-        "0",
-        f'{novoice_mp4}'
+        lib
     ]
+    if lib !='copy':
+        cmd+=[ "-crf", f'{config.settings["crf"]}' ]
+    cmd+=[f'{novoice_mp4}']
     return runffmpeg(cmd, noextname=noextname)
 
 
@@ -873,7 +870,7 @@ def concat_multi_mp4(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
     os.chdir(os.path.dirname(concat_txt))
     runffmpeg(
-        ['-y',"-threads",f'{os.cpu_count()}', '-f', 'concat', '-i', concat_txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
+        ['-y', '-f', 'concat', '-i', concat_txt, '-c:v', f"libx{video_codec}", '-an', '-crf',
          f'{config.settings["crf"]}', '-preset', config.settings['preset'], out])
     os.chdir(config.ROOT_DIR)
     return True
@@ -885,7 +882,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    runffmpeg(['-y',"-threads",f'{os.cpu_count()}', '-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
+    runffmpeg(['-y','-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
     os.chdir(config.TEMP_DIR)
     return True
 

@@ -304,7 +304,7 @@ def parse_init():
         "interval_split": 10,
         "bgm_split_time": 300,
         "trans_thread": 20,
-        "aitrans_thread": 500,
+        "aitrans_thread": 300,
         "retries": 2,
         "translation_wait": 0,
         "dubbing_wait": 0,

@@ -97,10 +97,10 @@ def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
         cmd = [
             '-y',  #覆盖输出文件
             '-i', item['out'],
-            '-filter:v', f'setpts={round((item["pts"])/current_duration,2)}*PTS',
+            '-filter:v', f'setpts={round((item["pts"])/current_duration,2)+0.1}*PTS',
             '-c:v', f'libx{codenum}', 
-            '-crf','1',
-            '-preset','slow',
+            '-crf',crf,
+            '-preset',preset,
             item['out']+'-pts.mp4'
         ]
         # 使用 concat demuxer 将帧重新编码成视频片段

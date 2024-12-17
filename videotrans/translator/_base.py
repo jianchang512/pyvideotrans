@@ -263,14 +263,7 @@ class BaseTrans(BaseCon):
         return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
 
-    def _replace_prompt(self):
-        if self.is_srt and self.aisendsrt and self.source_code and self.target_code and self.source_code in config.explames and self.target_code in config.explames:
-            replace_str='**示例:**\n' if config.defaulelang=='zh' else '**Example:**\n'
-            replace_str+=config.explames[self.source_code]
-            replace_str+='\n\n译文:\n' if config.defaulelang=='zh' else '**Translation:**\n'
-            replace_str+=config.explames[self.target_code]
-            self.prompt=self.prompt.replace('<source>[TEXT]',replace_str+'\n\n<source>[TEXT]')
-        return self.prompt
+
 
     def _refine3_prompt(self):
         zh_prompt="""

@@ -24,7 +24,7 @@ class ChatGPT(BaseTrans):
         self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         self.model_name=config.params["chatgpt_model"]
-        self.prompt=self._replace_prompt()
+
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
