@@ -186,7 +186,9 @@ class Ui_setini(object):
                 "initial_prompt_cs": "原始语言为捷克语时发送给whisper模型的提示词",
                 "initial_prompt_pl": "原始语言为波兰语时发送给whisper模型的提示词",
                 "initial_prompt_nl": "原始语言为荷兰语时发送给whisper模型的提示词",
-                "initial_prompt_sv": "原始语言为瑞典语时发送给whisper模型的提示词"
+                "initial_prompt_sv": "原始语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_he": "原始语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_bn": "原始语言为瑞典语时发送给whisper模型的提示词"
             }
         }
         # 中文左侧label
@@ -285,6 +287,8 @@ class Ui_setini(object):
             "initial_prompt_cs": "whisper模型捷克语提示词",
             "initial_prompt_pl": "whisper模型波兰语提示词",
             "initial_prompt_nl": "whisper模型荷兰语提示词",
+            "initial_prompt_bn": "whisper模型孟加拉语提示词",
+            "initial_prompt_he": "whisper模型希伯来语提示词",
             "initial_prompt_sv": "whisper模型瑞典语提示词"
         }
         # 中文分区
@@ -393,7 +397,9 @@ class Ui_setini(object):
                     "initial_prompt_cs": "Prompts sent to the whisper model when the original language is cs.",
                     "initial_prompt_pl": "Prompts sent to the whisper model when the original language is pl.",
                     "initial_prompt_nl": "Prompts sent to the whisper model when the original language is nl.",
-                    "initial_prompt_sv": "Prompts sent to the whisper model when the original language is sv."
+                    "initial_prompt_sv": "Prompts sent to the whisper model when the original language is sv.",
+                    "initial_prompt_he": "Prompts sent to the whisper model when the original language is he.",
+                    "initial_prompt_bn": "Prompts sent to the whisper model when the original language is bn."
                 },
             }
 
@@ -503,7 +509,9 @@ class Ui_setini(object):
                 "initial_prompt_cs": "whisper prompt when cs",
                 "initial_prompt_pl": "whisper prompt when pl",
                 "initial_prompt_nl": "whisper prompt when nl",
-                "initial_prompt_sv": "whisper prompt when sv"
+                "initial_prompt_sv": "whisper prompt when sv",
+                "initial_prompt_he": "whisper prompt when he",
+                "initial_prompt_bn": "whisper prompt when bn"
             }
         self.alertnotice = {}
         # 界面语言
