@@ -58,13 +58,14 @@ class SignThread(QThread):
                         del config.uuid_logs_queue[uuid]
                 except:
                     pass
-
+SOURCE_DIR=""
 
 # 字幕批量翻译
 def openwin():
+    global SOURCE_DIR
     RESULT_DIR = config.HOME_DIR + "/translate"
     Path(RESULT_DIR).mkdir(exist_ok=True)
-    SOURCE_DIR=None
+    SOURCE_DIR=RESULT_DIR
 
     def feed(d):
         if winobj.has_done or config.box_trans!='ing':
@@ -134,7 +135,7 @@ def openwin():
 
     def fanyi_start_fun():
         global SOURCE_DIR
-        SOURCE_DIR=""
+        
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         
         winobj.has_done = False

@@ -21,7 +21,7 @@ class LocalLLM(BaseTrans):
         if not self.api_url:
             raise Exception('Input your API URL')
         self.model_name=config.params["localllm_model"]
-        self.prompt=self._replace_prompt()
+
         
     def _check_proxy(self):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):

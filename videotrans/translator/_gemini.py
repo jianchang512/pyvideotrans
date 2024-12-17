@@ -40,7 +40,7 @@ class Gemini(BaseTrans):
         self._set_proxy(type='set')
         self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["gemini_model"]
-        self.prompt=self._replace_prompt()
+
         self.api_keys=config.params.get('gemini_key','').strip().split(',')
         
     def _item_task(self, data: Union[List[str], str]) -> str:

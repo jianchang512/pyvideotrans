@@ -17,7 +17,6 @@ class AI302(BaseTrans):
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='ai302',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params['ai302_model']
-        self.prompt=self._replace_prompt()
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
