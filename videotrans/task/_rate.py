@@ -89,27 +89,29 @@ def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
         if stop_file and Path(stop_file).exists():
             return
         tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
-        if item['pts']=='':
-            return True,None
+        if item['pts']==0:
+            return True,None,0,item.get('idx',-1)
         current_duration=tools.get_video_duration(item['out'])
         if current_duration<=0:
-            return False,"durtion is 0"
+            return False,"durtion is 0",0,item.get('idx',-1)
         cmd = [
             '-y',  #覆盖输出文件
             '-i', item['out'],
-            '-filter:v', f'setpts={round((item["pts"])/current_duration,2)+0.1}*PTS',
+            '-filter:v', f'setpts={round(0.1+(item["pts"]/current_duration),2)}*PTS',
             '-c:v', f'libx{codenum}', 
-            '-crf',crf,
+            '-crf',f'{crf}',
             '-preset',preset,
             item['out']+'-pts.mp4'
         ]
         # 使用 concat demuxer 将帧重新编码成视频片段
         tools.runffmpeg(cmd,force_cpu=not video_hard)
         shutil.copy2(item['out']+'-pts.mp4',item['out'])
-        return True,None
+        end_time=tools.get_video_duration(item['out'])
+        return True,None,end_time-current_duration,item.get('idx',-1)
     except Exception as e:
         print(e)
-        return False,str(e)
+        return False,str(e),0,item.get('idx',-1)
+
 
 class SpeedRate:
 
@@ -364,7 +366,7 @@ class SpeedRate:
             it['video_extend'] = it['dubb_time'] - able_time
             print(f"{it['video_extend']=}")
             self.queue_tts[i] = it
-            sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+            sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
             # 如果i==0即第一个视频，前面若是还有片段，需要截取
             if i == 0:
                 # 如果前面有大于 0 的片段，需截取
@@ -373,16 +375,11 @@ class SpeedRate:
                     # 下一片段起始时间
                     st_time = it['start_time_source']
                     try:
-                        #tools.cut_from_video(ss='00:00:00.000',
-                        #                     to=tools.ms_to_time_string(ms=it['start_time_source']),
-                        #                     source=self.novoice_mp4,
-                        #                     out=before_dst)
-                        #concat_txt_arr.append(before_dst)
                         sp_speed['ss']='00:00:00.000'
                         sp_speed['to']=tools.ms_to_time_string(ms=it['start_time_source'])
                         sp_speed['out']=before_dst
                         should_speed.append(sp_speed)
-                        sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                        sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
                     except Exception:
                         pass
                 else:
@@ -399,17 +396,11 @@ class SpeedRate:
                 sp_speed['ss']='00:00:00.000' if st_time == 0 else tools.ms_to_time_string(ms=st_time)
                 sp_speed['to']=tools.ms_to_time_string(ms=it['end_time_source'])
                 sp_speed['out']=before_dst
+                sp_speed['idx']=i
                 try:
-                    #tools.cut_from_video(
-                    #    ss='00:00:00.000' if st_time == 0 else tools.ms_to_time_string(ms=st_time),
-                    #    to=tools.ms_to_time_string(ms=it['end_time_source']),
-                    #    source=self.novoice_mp4,
-                    #    pts=pts,
-                    #    out=before_dst
-                    #)
                     concat_txt_arr.append(before_dst)
                     should_speed.append(sp_speed)
-                    sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                    sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
                 except Exception:
                     pass
             else:
@@ -422,15 +413,9 @@ class SpeedRate:
                     sp_speed['to']=tools.ms_to_time_string(ms=it['start_time_source'])
                     sp_speed['out']=before_dst
                     try:
-                        #tools.cut_from_video(
-                        #    ss=tools.ms_to_time_string(ms=self.queue_tts[i - 1]['end_time_source']),
-                        #    to=tools.ms_to_time_string(ms=it['start_time_source']),
-                        #    source=self.novoice_mp4,
-                        #    out=before_dst
-                        #)
                         concat_txt_arr.append(before_dst)
                         should_speed.append(sp_speed)
-                        sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
+                        sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
                     except Exception:
                         pass
                 else:
@@ -440,22 +425,17 @@ class SpeedRate:
                 duration = it['end_time_source'] - st_time
                 if it['video_extend'] > 0 and duration>0:
                     sp_speed['pts'] = it['dubb_time']
-                #tools.set_process(text=f"{config.transobj['videodown..']} {pts=} {jindu}", uuid=self.uuid)
+                    sp_speed['idx'] = i
+
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
 
                 sp_speed['out']=before_dst
                 sp_speed['ss']=tools.ms_to_time_string(ms=st_time)
                 sp_speed['to']=tools.ms_to_time_string(ms=it['end_time_source'])
                 try:
-                    #tools.cut_from_video(ss=tools.ms_to_time_string(ms=st_time),
-                    #                     to=tools.ms_to_time_string(ms=it['end_time_source']),
-                    #                     source=self.novoice_mp4,
-                    #                     pts=pts,
-                    #                     out=before_dst)
                     concat_txt_arr.append(before_dst)
                     should_speed.append(sp_speed)
-                    sp_speed={"rawmp4":self.novoice_mp4,'pts':''}
-
+                    sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
                 except Exception:
                     pass
                 # 是最后一个，并且未到视频末尾
@@ -466,9 +446,6 @@ class SpeedRate:
                     sp_speed['ss']=tools.ms_to_time_string(ms=it['end_time_source'])
                     sp_speed['to']=''
                     try:
-                        #tools.cut_from_video(ss=tools.ms_to_time_string(ms=it['end_time_source']),
-                        #                     source=self.novoice_mp4,
-                        #                     out=before_dst)
                         concat_txt_arr.append(before_dst)
                         should_speed.append(sp_speed)
                     except Exception:
@@ -487,12 +464,15 @@ class SpeedRate:
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 if config.exit_soft or config.current_status!='ing':
                     return
-                success,error = future.result()
+                success,error,extend_time,idx = future.result()
                 print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
                 tools.set_process(text=f"{config.transobj['videodown..']} {i+1}/{total_files}", uuid=self.uuid)
                 if success is False or success is None:
                     config.logger.error(f'[错误信息] {error}')
                     print(f"错误信息 {error}")
+                elif extend_time>0 and idx>-1:
+                   self.queue_tts[idx]['video_extend']=extend_time
+                   print(f'视频延长了 {extend_time} 毫秒')
 
         # 需要调整 原字幕时长，延长视频相当于延长了原字幕时长
         offset = 0

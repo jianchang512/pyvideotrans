@@ -339,6 +339,8 @@ def parse_init():
         "initial_prompt_pl": "",
         "initial_prompt_nl": "",
         "initial_prompt_sv": "",
+        "initial_prompt_he": "",
+        "initial_prompt_bn": "",
         "whisper_threads": 4,
         "whisper_worker": 1,
         "beam_size": 5,
