@@ -55,8 +55,7 @@ def openwin():
             task.start()
         except Exception as e:
             QMessageBox.critical(winobj, "Error", str(e))
-        else:
-            QMessageBox.information(winobj, "Success", "OK")
+
 
     from videotrans.component import ElevenlabsForm
     winobj = config.child_forms.get('elevenlabsw')

@@ -491,8 +491,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                 cmd.append('-hwaccel')
                 cmd.append('videotoolbox')            
         elif config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
-            #arg.insert(insert_index,'h264_cuvid' if config.video_codec=='h264_nvenc' else 'hevc_cuvid')
-            #arg.insert(insert_index,'-c:v')
             arg.insert(insert_index,'cuda')
             arg.insert(insert_index,'-hwaccel')
         
@@ -1265,19 +1263,12 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     if to != '':
         cmd1.append("-to")
         cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-
+    cmd1+=['-an']
     if pts:
-        cmd1.append("-vf")
-        cmd1.append(f"setpts={pts}*PTS")
-    cmd = cmd1 + ["-c:v",
-                  f"libx{video_codec}",
-                  '-an',
-                  '-crf', 
-                  f'{config.settings.get("crf",1)}',
-                  '-preset', 
-                  config.settings.get('preset','slow'),
-                  f'{out}'
-    ]
+        cmd1+=["-vf",f"setpts={pts}*PTS"]
+    
+    cmd1+=["-c:v",f"libx{video_codec}",'-crf', f'{config.settings.get("crf",1)}', '-preset',  config.settings.get('preset','slow')]
+    cmd = cmd1 + [f'{out}']
     return runffmpeg(cmd)
 
 

@@ -10,8 +10,7 @@
 6. 如果遇到无法翻译的内容，直接返回原文本，不提供任何错误信息或解释。
 7. 由数字、空格、各种符号组成的内容不要翻译，原样返回。
 
-## 翻译结果请包含在XML标签<TRANSLATE_TEXT>中返回。
-
 <SOURCE_TEXT>[TEXT]</SOURCE_TEXT>
 
-<TRANSLATE_TEXT>[这里是翻译结果]</TRANSLATE_TEXT>
+译文:
+

@@ -22,12 +22,12 @@ class AzureGPT(BaseTrans):
         
     def _check_proxy(self):
         try:
-            c=httpx.Client(proxies=None)
+            c=httpx.Client(proxy=None)
             c.get(config.params["azure_api"])
         except Exception as e:
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"https://": pro, "http://": pro}        
+                self.proxies = pro
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
@@ -36,7 +36,7 @@ class AzureGPT(BaseTrans):
             api_key=config.params["azure_key"],
             api_version=config.params['azure_version'],
             azure_endpoint=config.params["azure_api"],
-            http_client=httpx.Client(proxies=self.proxies)
+            http_client=httpx.Client(proxy=self.proxies)
         )
         message = [
             {'role': 'system',
@@ -75,7 +75,7 @@ class AzureGPT(BaseTrans):
             api_key=config.params["azure_key"],
             api_version=config.params['azure_version'],
             azure_endpoint=config.params["azure_api"],
-            http_client=httpx.Client(proxies=self.proxies)
+            http_client=httpx.Client(proxy=self.proxies)
         )
         message = [
             {'role': 'system',

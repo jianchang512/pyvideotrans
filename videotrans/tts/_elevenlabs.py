@@ -21,7 +21,7 @@ class ElevenLabsC(BaseTTS):
         self.copydata = copy.deepcopy(self.queue_tts)
         pro = self._set_proxy(type='set')
         if pro:
-            self.proxies = {"https://": pro, "http://": pro}
+            self.proxies = pro
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
@@ -48,7 +48,7 @@ class ElevenLabsC(BaseTTS):
 
                 client = ElevenLabs(
                     api_key=config.params['elevenlabstts_key'],
-                    httpx_client=httpx.Client(proxies=self.proxies) if self.proxies else None
+                    httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
                 )
 
                 response = client.text_to_speech.convert(
@@ -93,10 +93,10 @@ class ElevenLabsClone():
         self.target_language = target_language
         pro = self._set_proxy(type='set')
         if pro:
-            self.proxies = {"https://": pro, "http://": pro}
+            self.proxies =  pro
         self.client = ElevenLabs(
             api_key=config.params['elevenlabstts_key'],
-            httpx_client=httpx.Client(proxies=self.proxies) if pro else None
+            httpx_client=httpx.Client(proxy=self.proxies) if pro else None
         )
 
     def _set_proxy(self, type='set'):
