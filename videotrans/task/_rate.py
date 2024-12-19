@@ -84,12 +84,13 @@ def process_audio(item):
 
 
 def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
-    #print(f'{item=}')
+
     try:
         if stop_file and Path(stop_file).exists():
             return
         tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
         if item['pts']==0:
+            print(f"该片段只截取不延长:{item['out']}")
             return True,None,0,item.get('idx',-1)
         current_duration=tools.get_video_duration(item['out'])
         if current_duration<=0:
@@ -107,6 +108,7 @@ def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
         tools.runffmpeg(cmd,force_cpu=not video_hard)
         shutil.copy2(item['out']+'-pts.mp4',item['out'])
         end_time=tools.get_video_duration(item['out'])
+        print(f"该片段延长:{item['out']}")
         return True,None,end_time-current_duration,item.get('idx',-1)
     except Exception as e:
         print(e)
@@ -315,11 +317,7 @@ class SpeedRate:
             if audio_extend<=0:
                 continue
             should_speed.append({"filename":it['filename'],'target_duration_ms':audio_extend})
-            # # 调整音频
-            #tools.precise_speed_up_audio(file_path=it['filename'],
-            #                             out=it['filename'],
-            #                             target_duration_ms=audio_extend,
-            #                             max_rate=100)
+
         
         total_files = len(should_speed)
         if total_files<1:
@@ -345,6 +343,7 @@ class SpeedRate:
             if tools.vail_file(it['filename']) and it['filename'] in results:
                 it['dubb_time'] = int(results.get(it['filename']))
             self.queue_tts[i] = it
+
 
     # 视频慢速 在配音加速调整后，根据字幕实际开始结束时间，裁剪视频，慢速播放实现对齐
     def _ajust_video(self):
@@ -379,6 +378,7 @@ class SpeedRate:
                         sp_speed['to']=tools.ms_to_time_string(ms=it['start_time_source'])
                         sp_speed['out']=before_dst
                         should_speed.append(sp_speed)
+                        concat_txt_arr.append(before_dst)
                         sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
                     except Exception:
                         pass
@@ -460,7 +460,7 @@ class SpeedRate:
         config.logger.info(should_speed)
         worker_nums=1#min(1,total_files)
         with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
-            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',1),config.settings.get('preset','slow'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
+            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',10),config.settings.get('preset','fast'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 if config.exit_soft or config.current_status!='ing':
                     return
@@ -486,13 +486,14 @@ class SpeedRate:
 
         # 将所有视频片段连接起来
         new_arr = []
+        config.logger.info(f'所有待连接视频片段:{concat_txt_arr=}')
         for it in concat_txt_arr:
-            if tools.vail_file(it):
+            if Path(it).exists():
                 new_arr.append(it)
         if len(new_arr) > 0:
             tools.set_process(text=f"连接视频片段..." if config.defaulelang == 'zh' else 'concat multi mp4 ...',
                               uuid=self.uuid)
-            config.logger.info(f'视频片段:{concat_txt_arr=}')
+            config.logger.info(f'实际需要连接的视频片段:{concat_txt_arr=}')
             concat_txt = self.cache_folder + f'/{time.time()}.txt'
             tools.create_concat_txt(concat_txt_arr, concat_txt=concat_txt)
             tools.concat_multi_mp4(out=self.novoice_mp4, concat_txt=concat_txt)

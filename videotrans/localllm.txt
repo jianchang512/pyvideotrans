@@ -21,6 +21,4 @@
 
 <SOURCE_TEXT>[TEXT]</SOURCE_TEXT>
 
-输出格式:
-
-<TRANSLATE_TEXT>[翻译结果在此输出]</TRANSLATE_TEXT>
+译文:

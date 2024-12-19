@@ -674,7 +674,9 @@ class TransCreate(BaseTask):
                 "text": it['text'],
                 "ref_text": source_subs[i]['text'] if source_subs and i<len(source_subs) else '',
                 "role": voice_role,
+                "start_time_source": source_subs[i]['start_time'],
                 "start_time": it['start_time'],
+                "end_time_source": source_subs[i]['end_time'],
                 "end_time": it['end_time'],
                 "rate": rate,
                 "startraw": it['startraw'],
@@ -701,7 +703,8 @@ class TransCreate(BaseTask):
                         out_file=tmp_dict['ref_wav']
                     )
             queue_tts.append(tmp_dict)
-        self.queue_tts = queue_tts
+
+        self.queue_tts = copy.deepcopy(queue_tts)
         Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True, exist_ok=True)
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
@@ -1004,8 +1007,6 @@ class TransCreate(BaseTask):
                     # 需要配音+硬字幕
                     tools.runffmpeg([
                         "-y",
-                        "-threads",
-                        f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -1029,8 +1030,6 @@ class TransCreate(BaseTask):
                     self._signal(text=config.transobj['peiyin-ruanzimu'])
                     tools.runffmpeg([
                         "-y",
-                        "-threads",
-                        f'{os.cpu_count()}',
                         "-progress",
                         protxt,
                         "-i",
@@ -1054,8 +1053,6 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlypeiyin'])
                 tools.runffmpeg([
                     "-y",
-                    "-threads",
-                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",
@@ -1073,8 +1070,6 @@ class TransCreate(BaseTask):
                 self._signal(text=config.transobj['onlyyingzimu'])
                 cmd = [
                     "-y",
-                    "-threads",
-                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",
@@ -1105,8 +1100,6 @@ class TransCreate(BaseTask):
                 # 原视频
                 cmd = [
                     "-y",
-                    "-threads",
-                    f'{os.cpu_count()}',
                     "-progress",
                     protxt,
                     "-i",

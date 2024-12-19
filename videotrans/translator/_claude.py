@@ -3,7 +3,7 @@ import re
 from typing import Union, List
 
 import anthropic
-
+import httpx
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
@@ -30,7 +30,7 @@ class Claude(BaseTrans):
 
         pro = self._set_proxy(type='set')
         if pro:
-            self.proxies = {"https://": pro, "http://": pro}
+            self.proxies =  pro
 
     def _get_url(self, url=""):
         if not url:
@@ -64,7 +64,7 @@ class Claude(BaseTrans):
         client = anthropic.Anthropic(
             base_url=self._get_url(),
             api_key=config.params['claude_key'],
-            proxies=self.proxies
+            http_client=httpx.Client(proxy=self.proxies)
         )
         try:
             response = client.messages.create(

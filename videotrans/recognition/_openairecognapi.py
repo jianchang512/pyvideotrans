@@ -30,9 +30,9 @@ class OpenaiAPIRecogn(BaseRecogn):
         if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"http://": pro, "https://": pro}
+                self.proxies = pro
         else:
-            self.proxies = {"http://": "", "https://": ""}
+            self.proxies = None
 
         try:
             # 大于20M 从wav转为mp3
@@ -66,7 +66,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 raise Exception(f'No file {self.audio_file}')
             # 发送请求
             raws=[]
-            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxies=self.proxies))
+            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies))
             with open(self.audio_file, 'rb') as file:
                 transcript = client.audio.transcriptions.create(
                     file=(self.audio_file, file.read()),

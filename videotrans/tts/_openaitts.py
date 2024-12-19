@@ -22,15 +22,14 @@ class OPENAITTS(BaseTTS):
         if not re.search('localhost', self.api_url) and not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"https://": pro, "http://": pro}
-                self.pro = {"https": pro, "http": pro}
+                self.proxies =  pro 
+
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         if not config.params['openaitts_key']:
             raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
-        if self.api_url:
-            te=requests.get(self.api_url,proxies=self.pro)
+
         while len(self.copydata) > 0:
             if self._exit():
                 return
@@ -50,7 +49,7 @@ class OPENAITTS(BaseTTS):
                 speed += rate
             try:
                 client = OpenAI(api_key=config.params['openaitts_key'], base_url=self.api_url,
-                                http_client=httpx.Client(proxies=self.proxies))
+                                http_client=httpx.Client(proxy=self.proxies))
                 response = client.audio.speech.create(
                     model=config.params['openaitts_model'],
                     voice=role,

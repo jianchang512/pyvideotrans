@@ -23,7 +23,7 @@ class DeepgramRecogn(BaseRecogn):
         self.raws = []
         self.zimu_len=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh','ja','ko'] else config.settings.get('other_len')
         self.join_flag='' if self.detect_language[:2] in ['zh','ja','ko'] else ' '
-        self.proxy=self._set_proxy()
+        self.proxies=self._set_proxy(type='set')
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -37,8 +37,8 @@ class DeepgramRecogn(BaseRecogn):
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
         try:
-            if self.proxy:
-                httpx.HTTPTransport(proxy=self.proxy)
+            if self.proxies:
+                httpx.HTTPTransport(proxy=self.proxies)
             # STEP 1 Create a Deepgram client using the API key
             deepgram = DeepgramClient(config.params.get('deepgram_apikey'))
             payload: FileSource = {

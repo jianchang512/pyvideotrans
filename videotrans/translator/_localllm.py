@@ -27,15 +27,16 @@ class LocalLLM(BaseTrans):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
             return
         try:
-            c=httpx.Client(proxies=None)
+            c=httpx.Client(proxy=None)
             c.get(self.api_url)
         except Exception as e:
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = {"https://": pro, "http://": pro}
+                self.proxies =  pro
+                
     def _item_task(self, data: Union[List[str], str]) -> str:
         model = OpenAI(api_key=config.params['localllm_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxies=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxies))
         message = [
             {'role': 'system',
              'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
@@ -56,14 +57,9 @@ class LocalLLM(BaseTrans):
             raise Exception(f'{response=}')
 
         if response.choices:
-            result = response.choices[0].message.content.strip()
-        elif response.data and response.data['choices']:
-            result = response.data['choices'][0]['message']['content'].strip()
-        else:
-            raise Exception(f'[localllm]请求失败:{response=}')
-
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
-        if match:
-            return match.group(1)
-        raise Exception('No content')
+            return response.choices[0].message.content.strip()
+        if response.data and response.data['choices']:
+            return response.data['choices'][0]['message']['content'].strip()
+        
+        raise Exception(f'[localllm]请求失败:{response=}')
 

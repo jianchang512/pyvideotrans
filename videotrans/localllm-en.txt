@@ -22,6 +22,4 @@ You are a translation bot specializing in translating text from the source langu
 
 <SOURCE_TEXT>[TEXT]</SOURCE_TEXT>
 
-Output format:
-
-<TRANSLATE_TEXT>[Translated text here]</TRANSLATE_TEXT>
+Translation results:

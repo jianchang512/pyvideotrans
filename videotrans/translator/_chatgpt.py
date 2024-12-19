@@ -30,13 +30,9 @@ class ChatGPT(BaseTrans):
         if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
             self.proxies=None
             return
-        try:
-            c=httpx.Client(proxies=None)
-            c.get(self.api_url)
-        except Exception as e:
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = {"https://": pro, "http://": pro}
+        pro = self._set_proxy(type='set')
+        if pro:
+            self.proxies = pro
 
     def _get_url(self, url=""):
         if not url:
@@ -72,7 +68,7 @@ class ChatGPT(BaseTrans):
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxies=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxies))
         try:
             response = model.chat.completions.create(
                 model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
@@ -111,7 +107,7 @@ class ChatGPT(BaseTrans):
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxies=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxies))
         try:
             response = model.chat.completions.create(
                 model=config.params['chatgpt_model'],
