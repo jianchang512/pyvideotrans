@@ -386,7 +386,7 @@ def parse_init():
             elif value.lower() == 'false':
                 _settings[key] = False
             else:
-                _settings[key] = value.lower() if value else ""
+                _settings[key] = value if value else ""
         if _settings['model_list'].find('large-v3-turbo') == -1:
             _settings['model_list']=_settings['model_list'].replace(',large-v3,',',large-v3,large-v3-turbo,')
         if _settings['gemini_model'].find('gemini') == -1:
