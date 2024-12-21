@@ -122,7 +122,9 @@ class Gemini(BaseTrans):
 
         response = None
         try:
-            genai.configure(api_key=config.params['gemini_key'])
+            api_key=self.api_keys.pop(0)
+            self.api_keys.append(api_key)
+            genai.configure(api_key=api_key)
             model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
             response = model.generate_content(
                 prompt,
