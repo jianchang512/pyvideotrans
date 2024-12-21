@@ -702,6 +702,8 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
         "-vn",
         "-ac",
         "1",
+        "-b:a",
+        "192k",
         "-c:a",
         "aac",
         targe_audio
@@ -778,7 +780,7 @@ def backandvocal(backwav, peiyinm4a):
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', '-c:a', 'aac', tmpwav])
+               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a","192k", '-c:a', 'aac', tmpwav])
     shutil.copy2(tmpwav, peiyinm4a)
     # 转为 m4a
 
@@ -793,6 +795,8 @@ def wav2m4a(wavfile, m4afile, extra=None):
         "aac",
         "-ar",
         "48000",
+        "-b:a",
+        "192k",
         Path(m4afile).as_posix()
     ]
     if extra:
@@ -808,6 +812,8 @@ def wav2mp3(wavfile, mp3file, extra=None):
         Path(wavfile).as_posix(),
         "-ar",
         "48000",
+        "-b:a",
+        "192k",
         Path(mp3file).as_posix()
     ]
     if extra:
@@ -838,7 +844,7 @@ def m4a2wav(m4afile, wavfile):
         "-ar",
         "16000",
         "-b:a",
-        "128k",
+        "192k",
         "-c:a",
         "pcm_s16le",
         Path(wavfile).as_posix()

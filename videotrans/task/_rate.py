@@ -212,9 +212,9 @@ class SpeedRate:
                 if it is None:
                     continue
                 # 每3分钟后，在第一个与前一条字幕存在空白大于50ms处，将视频向左移动该空白，防止随着时间延迟配音越来越后移
-                if i>0 and it['start_time']-last_time>=180000 and (it['start_time']-self.queue_tts[i-1]['start_time']>50):
-                    left_move+=min(it['start_time']-self.queue_tts[i-1]['start_time'],500)
-                    last_time=it['start_time']
+                #if i>0 and it['start_time']-last_time>=180000 and (it['start_time']-self.queue_tts[i-1]['start_time']>50):
+                #    left_move+=min(it['start_time']-self.queue_tts[i-1]['start_time'],500)
+                #    last_time=it['start_time']
                 it['start_time']-=left_move
                 it['end_time']-=left_move
                 self.queue_tts[i] = it
@@ -301,7 +301,7 @@ class SpeedRate:
             audio_extend=0
 
             # 仅当开启视频慢速，shound_speed大于1.5，diff大于1s，才考虑视频慢速
-            if self.shoud_videorate and int(float(config.settings.get('video_rate',0))) > 1 and diff > 500 and shound_speed > 1.2:
+            if self.shoud_videorate and int(float(config.settings.get('video_rate',0))) > 1 and diff >= 1000 and shound_speed > 1.2:
                 # 开启了视频慢速，音频加速一半
                 # 音频加速一半后实际时长应该变为
                 audio_extend = it['dubb_time'] - int(diff / 2)
@@ -369,7 +369,7 @@ class SpeedRate:
             # 如果i==0即第一个视频，前面若是还有片段，需要截取
             if i == 0:
                 # 如果前面有大于 0 的片段，需截取
-                if it['start_time_source'] > 0:
+                if it['start_time_source'] >= 500:
                     before_dst = self.cache_folder + f'/{i}-before.mp4'
                     # 下一片段起始时间
                     st_time = it['start_time_source']
@@ -406,7 +406,7 @@ class SpeedRate:
             else:
                 # 距离前面一个的时长
                 diff = it['start_time_source'] - self.queue_tts[i - 1]['end_time_source']
-                if diff > 0:
+                if diff >= 500:
                     before_dst = self.cache_folder + f'/{i}-before.mp4'
                     st_time = it['start_time_source']
                     sp_speed['ss']=tools.ms_to_time_string(ms=self.queue_tts[i - 1]['end_time_source'])
@@ -458,7 +458,7 @@ class SpeedRate:
 
 
         config.logger.info(should_speed)
-        worker_nums=1#min(1,total_files)
+        worker_nums=1
         with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
             futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',10),config.settings.get('preset','fast'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
@@ -723,6 +723,8 @@ class SpeedRate:
                     Path(wavfile).as_posix(),
                     "-ar",
                     "48000",
+                    "-b:a",
+                    "192k",
                     self.target_audio
                 ]
                 tools.runffmpeg(cmd)

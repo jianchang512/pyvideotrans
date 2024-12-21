@@ -29,7 +29,7 @@ def openwin():
 
 
     def feed(d):
-        if d.startswith("ok:"):
+        if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok",d[3:])
         else:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)

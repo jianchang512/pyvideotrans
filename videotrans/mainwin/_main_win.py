@@ -1,7 +1,7 @@
 import platform
 
 import threading
-import time
+import time,os
 
 
 from PySide6.QtCore import Qt, QTimer, QSettings
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No']+rolelist)
         elif config.params['tts_type'] == tts.OPENAI_TTS:
-            rolelist = config.openaiTTS_rolelist
+            rolelist = config.params.get('openaitts_role','')
             self.voice_role.addItems(rolelist)
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
@@ -384,14 +384,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.INFO_WIN['win'].close()
         except Exception:
             pass
-        from videotrans.util import tools
         time.sleep(3)
-        print('等待所有进程退出...')
         from videotrans.util import tools
+        print('等待所有进程退出...')
         try:
             tools.kill_ffmpeg_processes()
         except Exception:
             pass
         time.sleep(3)
+        os.chdir(config.ROOT_DIR)
         tools._unlink_tmp()
         event.accept()

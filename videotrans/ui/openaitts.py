@@ -69,9 +69,16 @@ class Ui_openaittsform(object):
             '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
         v1.addWidget(self.label_allmodels)
         self.edit_allmodels = QtWidgets.QPlainTextEdit(openaittsform)
-        self.edit_allmodels.setMinimumHeight(100)
+        self.edit_allmodels.setMinimumHeight(40)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
+        
+        
+        v1.addWidget(QtWidgets.QLabel('角色列表' if config.defaulelang == 'zh' else 'Role list'))
+        self.edit_roles = QtWidgets.QPlainTextEdit(openaittsform)
+        self.edit_roles.setMinimumHeight(40)
+        self.edit_roles.setObjectName("edit_roles")
+        v1.addWidget(self.edit_roles)
 
 
         h4=QtWidgets.QHBoxLayout()
