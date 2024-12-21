@@ -227,8 +227,6 @@ AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 video_codec = None
 
 #######################################
-# openai角色
-openaiTTS_rolelist = "alloy,echo,fable,onyx,nova,shimmer"
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
@@ -688,7 +686,7 @@ Output format:
         "openaitts_api": "",
         "openaitts_key": "",
         "openaitts_model": "tts-1",
-        "openaitts_role": openaiTTS_rolelist,
+        "openaitts_role": "alloy,echo,fable,onyx,nova,shimmer",
 
         "openairecognapi_url": "",
         "openairecognapi_key": "",
@@ -713,7 +711,7 @@ Output format:
 
         "ai302tts_key": "",
         "ai302tts_model": "",
-        "ai302tts_role": openaiTTS_rolelist,
+        "ai302tts_role": "alloy,echo,fable,onyx,nova,shimmer",
 
         "azure_speech_region": "",
         "azure_speech_key": "",

@@ -1017,6 +1017,8 @@ class TransCreate(BaseTask):
                         f"libx{self.video_codec_num}",
                         "-c:a",
                         "aac",
+                        "-b:a",
+                        "192k",
                         "-vf",
                         f"subtitles={subtitles_file}",
                         '-crf',
@@ -1046,6 +1048,8 @@ class TransCreate(BaseTask):
                         "mov_text",
                         "-metadata:s:s:0",
                         f"language={subtitle_langcode}",
+                        "-b:a",
+                        "192k",
                         Path(self.cfg['targetdir_mp4']).as_posix()
                     ])
             elif self.cfg['voice_role'] != 'No':
@@ -1063,6 +1067,8 @@ class TransCreate(BaseTask):
                     "copy",
                     "-c:a",
                     "aac",
+                    "-b:a",
+                    "192k",
                     Path(self.cfg['targetdir_mp4']).as_posix()
                 ])
             # 硬字幕无配音  原始 wav 合并
@@ -1085,6 +1091,8 @@ class TransCreate(BaseTask):
                     cmd.append('-c:a')
                     cmd.append('aac')
                 cmd += [
+                    "-b:a",
+                    "192k",
                     "-vf",
                     f"subtitles={subtitles_file}",
                     '-crf',

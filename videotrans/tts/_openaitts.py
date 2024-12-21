@@ -29,56 +29,50 @@ class OPENAITTS(BaseTTS):
     def _exec(self):
         if not config.params['openaitts_key']:
             raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
+        self._local_mul_thread()
+    def _item_task(self, data_item: dict = None):
+        if tools.vail_file(data_item['filename']):
+            return
+        text = data_item['text'].strip()
+        role = data_item['role']
+        if not text:
+            return
+            
+        speed = 1.0
+        if self.rate:
+            rate = float(self.rate.replace('%', '')) / 100
+            speed += rate
+        try:
+            client = OpenAI(api_key=config.params.get('openaitts_key',''), base_url=self.api_url,
+                            http_client=httpx.Client(proxy=self.proxies))
+            with client.audio.speech.with_streaming_response.create(
+                model=config.params['openaitts_model'],
+                voice=role,
+                input=text,
+                speed=speed
+            ) as response:
+                with open(data_item['filename'], 'wb') as f:
+                    for chunk in response.iter_bytes():
+                        f.write(chunk)
 
-        while len(self.copydata) > 0:
-            if self._exit():
-                return
-            try:
-                data_item = self.copydata.pop(0)
-                if tools.vail_file(data_item['filename']):
-                    continue
-            except:
-                return
-            text = data_item['text'].strip()
-            role = data_item['role']
-            if not text:
-                continue
-            speed = 1.0
-            if self.rate:
-                rate = float(self.rate.replace('%', '')) / 100
-                speed += rate
-            try:
-                client = OpenAI(api_key=config.params['openaitts_key'], base_url=self.api_url,
-                                http_client=httpx.Client(proxy=self.proxies))
-                response = client.audio.speech.create(
-                    model=config.params['openaitts_model'],
-                    voice=role,
-                    input=text,
-                    speed=speed
-                )
-                response.stream_to_file(data_item['filename'])
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-            except RateLimitError:
-                self._signal(
-                    text='超过频率限制，等待60s后重试' if config.defaulelang == 'zh' else 'Frequency limit exceeded, wait 60s and retry')
-                time.sleep(60)
-                self.copydata.append(data_item)
-            except APIConnectionError as e:
-                config.logger.exception(e, exc_info=True)
-                error = str(e)
-                self._signal(
-                    text='无法连接到OpenAI服务，请尝试使用或更换代理' if config.defaulelang == 'zh' else 'Cannot connect to OpenAI service, please try using or changing proxy')
-                self.error = error
-            except Exception as e:
-                config.logger.exception(e, exc_info=True)
-                error = str(e)
-                self.error = error
-            finally:
-                time.sleep(self.wait_sec)
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        except RateLimitError:
+            self.error='超过频率限制' if config.defaulelang == 'zh' else 'Frequency limit exceeded'
+            return
+        except APIConnectionError as e:
+            config.logger.exception(e, exc_info=True)
+            
+            self.error='无法连接到OpenAI服务，请尝试使用或更换代理' if config.defaulelang == 'zh' else 'Cannot connect to OpenAI service, please try using or changing proxy'
+
+        except Exception as e:
+            config.logger.exception(e, exc_info=True)
+            error = str(e)
+            self.error = error
+
 
     def _get_url(self, url=""):
         if not url:

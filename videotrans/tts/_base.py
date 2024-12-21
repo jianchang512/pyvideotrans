@@ -194,7 +194,7 @@ class BaseTTS(BaseCon):
                     wav_file.write(wav_bytes)
 
                 tools.runffmpeg([
-                    "-y", "-i", output_path + f'.{base64data_ext}', output_path
+                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a","192k",output_path
                 ])
                 return
         # 将base64编码的字符串解码为字节

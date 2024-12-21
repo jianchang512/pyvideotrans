@@ -30,7 +30,7 @@ class TestAI302(QThread):
 
 def openwin():
     def feed(d):
-        if not d.startswith("ok:"):
+        if not d.startswith("ok"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])

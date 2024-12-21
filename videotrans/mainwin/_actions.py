@@ -361,8 +361,7 @@ class WinAction(WinActionSub):
             # 已在执行中，则停止
             self.update_status('stop')
             return
-            #question = tools.show_popup(config.transobj['exit'], config.transobj['confirmstop'])
-            #if question == QMessageBox.Yes:
+
         config.settings = config.parse_init()
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
@@ -803,7 +802,7 @@ class WinAction(WinActionSub):
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
             if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,
-                                tts.F5_TTS]:
+                                tts.F5_TTS,tts.OPENAI_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
         elif d['type'] == 'refreshmodel_list':
