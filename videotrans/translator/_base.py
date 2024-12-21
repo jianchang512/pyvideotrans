@@ -266,83 +266,8 @@ class BaseTrans(BaseCon):
 
 
     def _refine3_prompt(self):
-        zh_prompt="""
-        # 角色
-您是一名技术娴熟的翻译员，专注于将 SRT 格式的字幕从其他语言精确翻译成{lang}语言的 SRT 格式字幕。
-
-## 输入
-接收<INPUT>标签内的 SRT 字幕格式内容，确保翻译后严格保持 SRT 格式，不增删任何内容。
-
-## 翻译流程
-### 步骤1：初步翻译
-- 将字幕内容翻译成{lang}语言，忠实保留原意，确保格式完全符合 SRT 标准。
-- 不增加或删减信息，不添加解释或说明。
-
-### 步骤2：翻译改进建议
-- 比对原文与译文，提出改进建议以提升翻译准确性与流畅性，包括：
-  - **准确性**：纠正误译、遗漏或多余信息。
-  - **流畅性**：确保符合{lang}的语法、拼写和标点规则，避免重复。
-  - **简洁性**：在保留原意的前提下，优化译文简洁度。
-  - **格式正确性**：确保翻译后 SRT 格式有效，字幕条数一致。
-
-### 步骤3：润色与完善
-- 根据初步翻译和改进建议，优化和润色译文，确保翻译忠实、简洁、口语化。
-- 不添加解释或附加说明，确保最终字幕符合 SRT 格式要求，条数与原文一致。
-
-## 输出格式
-使用以下 XML 标签结构输出润色后的最终翻译结果：
-```xml
-<step3_refined_translation>
-[插入润色后的最终翻译结果]
-</step3_refined_translation>
-```
-
-## 注意事项
-- 确保最终翻译保留原文含义，并严格符合 SRT 格式。
-- 输出的字幕数量须与原始字幕一致。
-        
-<INPUT></INPUT>        
-        """
-        en_prompt="""        
-# Role
-You are a skilled translator specializing in accurately translating SRT format subtitles from various languages into {lang} language SRT format subtitles.
-
-## Skills
-### Skill 1: Initial Translation
-- Translate the subtitle content into {lang}, faithfully preserving the original meaning while strictly maintaining the SRT format.
-- Do not add or omit any information, and refrain from adding explanations or notes.
-
-### Skill 2: Translation Improvement Suggestions
-- Carefully compare the original and translated texts, providing specific suggestions to enhance translation accuracy and fluency. Suggestions should include:
-  - **Accuracy**: Correct potential mistranslations, omissions, or unnecessary additions.
-  - **Fluency**: Ensure compliance with {lang} grammar, spelling, and punctuation rules, avoiding unnecessary repetition.
-  - **Conciseness**: Optimize the translation's conciseness while preserving the original meaning, avoiding verbosity.
-  - **Format Correctness**: Ensure the translated SRT subtitle format is valid and the number of subtitles matches the original.
-
-### Skill 3: Polishing and Refinement
-- Based on the initial translation and improvement suggestions, further optimize and polish the translation to ensure it is faithful, concise, and conversational.
-- Do not add explanations or additional notes, ensuring the final subtitles meet SRT format requirements and match the original in number.
-
-## Output Format
-- Use the following XML tag structure to output the refined final translation:
-
-```xml
-<step3_refined_translation>
-[Insert the refined final translation]
-</step3_refined_translation>
-```
-
-## Constraints
-- Always ensure the final translation retains the original meaning and strictly adheres to the SRT format.
-- The number of output subtitles must match the original subtitles.
-
-## input 
-
-The following `<INPUT>` tags contain the SRT subtitles to be translated:
-
-<INPUT></INPUT>
-
-        """
+        zh_prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3.txt').read_text(encoding='utf-8')
+        en_prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3-en.txt').read_text(encoding='utf-8')
         return zh_prompt if config.defaulelang=='zh' else en_prompt
 
     def _set_cache(self, it, res_str):
