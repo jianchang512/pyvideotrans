@@ -52,7 +52,7 @@ class HuoShan(BaseTrans):
             match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
             if match:
                 return match.group(1)
-            raise Exception('No content')
+            raise Exception('未获取到翻译结果，请尝试使用更智能的大模型或取消"发送完整字幕"选项' if config.defaulelang=='zh' else 'Translation not available, try using a smarter big model or uncheck the “Send full subtitles” option.')
         except Exception as e:
             raise Exception(f'字节火山翻译失败:{e}')
 

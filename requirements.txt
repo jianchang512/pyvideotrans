@@ -43,7 +43,6 @@ deepgram-sdk
 deepgram-captions
 funasr
 modelscope
-edge-tts
 anthropic
 addict
 datasets==3.0

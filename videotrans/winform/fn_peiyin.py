@@ -1,4 +1,4 @@
-import copy
+import copy,re
 import json
 import json
 import os
@@ -159,6 +159,7 @@ def openwin():
 
     # tab-4 语音合成
     def hecheng_start_fun():
+        nonlocal RESULT_DIR
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
@@ -191,9 +192,16 @@ def openwin():
         if len(winobj.hecheng_files) < 1 and not txt:
             return QMessageBox.critical(winobj, config.transobj['anerror'],
                                         '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
+        if len(winobj.hecheng_files)>0 and winobj.save_to_srt.isChecked():
+            RESULT_DIR=Path(winobj.hecheng_files[0]).parent.as_posix()
         if txt:
-            newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}.srt"
-            tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(txt), is_file=False), newsrtfile)
+            newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}."
+            if tts_type==tts.EDGE_TTS and not re.match(r'^1\s*[\r\n]+\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?',txt.strip()):
+                newsrtfile+='txt'
+                Path(newsrtfile).write_text(txt.strip(),encoding='utf-8')
+            else:
+                newsrtfile+='srt'
+                tools.save_srt(tools.get_subtitle_from_srt(tools.process_text_to_srt_str(txt), is_file=False), newsrtfile)
             winobj.hecheng_files.append(newsrtfile)
 
         config.box_tts = 'ing'
@@ -228,6 +236,7 @@ def openwin():
         config.params["dubb_role"]=winobj.hecheng_role.currentIndex()
         config.params["dubb_out_format"]=winobj.out_format.currentIndex()
         config.params["dubb_voice_autorate"]=winobj.voice_autorate.isChecked()
+        config.params["dubb_save_to_srt"]=winobj.save_to_srt.isChecked()
         config.params["dubb_hecheng_rate"]=int(winobj.hecheng_rate.value())
         config.params["dubb_pitch_rate"]=int(winobj.pitch_rate.value())
         config.params["dubb_volume_rate"]=int(winobj.volume_rate.value())
@@ -357,18 +366,6 @@ def openwin():
         namestr = []
         for (i, it) in enumerate(fnames):
             it = it.replace('\\', '/').replace('file:///', '')
-            if it.endswith('.txt'):
-                shutil.copy2(it, f'{it}.srt')
-                # 使用 "r+" 模式打开文件：读取和写入
-                with open(f'{it}.srt', 'r+', encoding='utf-8') as file:
-                    # 读取原始文件内容
-                    original_content = file.readlines()
-                    # 将文件指针移动到文件开始位置
-                    file.seek(0)
-                    # 将新行内容与原始内容合并，并写入文件
-                    file.writelines(["1\n", "00:00:00,000 --> 00:05:00,000\n"] + original_content)
-
-                it += '.srt'
             fnames[i] = it
             namestr.append(os.path.basename(it))
 
@@ -398,6 +395,7 @@ def openwin():
         config.child_forms['peiyinform'] = winobj
 
         winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate',False))
+        winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt',False))
         winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))
         winobj.pitch_rate.setValue(config.params.get('dubb_pitch_rate', 0))
         winobj.volume_rate.setValue(config.params.get('dubb_volume_rate', 0))

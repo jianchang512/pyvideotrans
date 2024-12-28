@@ -540,15 +540,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
                     arg_copy[i] = default_codec
             return runffmpeg(arg_copy, noextname=noextname,force_cpu=True)
         if noextname:
-            config.queue_novice[noextname] = "error"
-
-        if platform.system() == 'Windows' and len(" ".join(cmd))>255:
-            if len(config.ROOT_DIR)>150:
-                raise Exception('本软件路径可能太深，请尝试缩短软件路径，例如移动到 E:/pyvideo 目录下')
-            else:
-                raise Exception('视频文件名或视频路径可能太深，请尝试使用短小的英文或数字重命名并缩短视频路径，例如视频重名为 1.mp4 并移动到 E:/video 目录')
-        elif file_name and re.search(r'["\'\`\s\[\]\{\}:\*\^\%\$\#\+\=\<\>\|]', file_name[2:]):
-            raise Exception('请检查视频名字或路径中是否存在特殊符号，请重命名为英文或数字名称并移动到仅由英文和数字组成的路径中重试' if config.defaulelang=='zh' else 'Please check if there are any special characters in the video name or path. Rename the video to English or numeric names and move it to a path consisting only of English and numeric characters and try again')
+            config.queue_novice[noextname] = "error"        
         raise
     except Exception as e:
         if noextname:
@@ -886,7 +878,12 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    runffmpeg(['-y','-f', 'concat', '-i', concat_txt, '-c:a', 'aac', out])
+    cmd=['-y','-f', 'concat', '-i', concat_txt,"-b:a","192k"]
+    if out.endswith('.m4a'):
+        cmd+=[ '-c:a', 'aac']
+    elif out.endswith('.wav'):
+        cmd+=[ '-c:a', 'pcm_s16le']
+    runffmpeg(cmd+[out])
     os.chdir(config.TEMP_DIR)
     return True
 
@@ -1550,9 +1547,9 @@ def open_url(url=None, title: str = None):
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
         'discord': "https://discord.gg/7ZWbwKGMcx",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
-        'dll': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
-        'gtrans': "https://pyvideotrans.com/15.html",
+        'dll': "https://pyvideotrans.com/jianhua",
+        'gtrans': "https://pyvideotrans.com/aiocr",
         'cuda': "https://pyvideotrans.com/gpu.html",
         'website': "https://pyvideotrans.com",
         'help': "https://pyvideotrans.com",

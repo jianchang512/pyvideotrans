@@ -1,8 +1,10 @@
 import asyncio
 import threading
 import time
+from pathlib import Path
 
-import edge_tts
+
+
 from aiohttp import ClientError, WSServerHandshakeError
 
 from videotrans.configure import config
@@ -21,53 +23,60 @@ class EdgeTTS(BaseTTS):
         if pro:
             self.proxies= pro
 
-    def _dubb(self,it):
-        async def _async_dubb(it):
-            communicate_task = edge_tts.Communicate(
-                text=it["text"], voice=it['role'], rate=self.rate, volume=self.volume,
-                proxy=self.proxies,
-                pitch=self.pitch)
-            await communicate_task.save(it['filename'])
-        try:
-            asyncio.run(_async_dubb(it))
-        except (ClientError,WSServerHandshakeError) as e:
-            self.error = e.message if hasattr(e, 'message') else str(e)
-        except Exception as e:
-            self.error=str(e)
-        else:
-            self.error=''
 
-    def _item_task(self, data_item=None):
-        split_queue = [self.queue_tts[i:i + self.dub_nums] for i in range(0, self.len, self.dub_nums)]
-        for items in split_queue:
-            tasks = []
-
-            for it in items:
-                if self._exit():
+    async def _task_queue(self):
+        
+        task_end=False
+        
+        def process():
+            if task_end:
+                return
+            length=len(self.queue_tts)
+            while 1:
+                if task_end or self._exit():
                     return
-                if it['text'].strip() and not tools.vail_file(it['filename']):
-                    tasks.append(threading.Thread(target=self._dubb,args=(it,)))
-            if len(tasks) < 1:
-                self.has_done+=len(items)
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
+                had=0
+                for it in self.queue_tts:
+                    if Path(it['filename']).is_file():
+                        had+=1
+                print(f'{had}/{length}')
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.05
-                continue
-            for t in tasks:
-                t.start()
-            for t in tasks:
-                t.join()
-            if str(self.error)=='Invalid response status':
-                raise IPLimitExceeded(msg='EdgeTTS:403',name=self.__class__.__name__)
-            self.has_done += len(items)
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.05
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} [{self.has_done}/{self.len}]')
-            time.sleep(self.wait_sec)
-
-
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} [{had}/{length}]')
+                time.sleep(0.5)
+        
+        
+        try:
+            if len(self.queue_tts)==1:
+                from videotrans.edge_tts import Communicate
+                communicate = Communicate(
+                    self.queue_tts[0]['text'],
+                    voice=self.queue_tts[0]['role'],
+                    rate=self.rate, 
+                    volume=self.volume,
+                    proxy=self.proxies,
+                    pitch=self.pitch)
+                await communicate.save(self.queue_tts[0]['filename'])
+            else:
+                from videotrans.edge_tts.communicate_list import Communicate
+                # 创建 Communicate 对象
+                communicate = Communicate(text_list=self.queue_tts,rate=self.rate, volume=self.volume,
+                        proxy=self.proxies,
+                        pitch=self.pitch,max_retries=5, retry_delay = 2) # 设置最大重试次数为 5，重试延迟为2
+                # 异步合成并保存
+                threading.Thread(target=process).start()
+                await communicate.stream()
+        except Exception as e:
+            config.logger.exception(e, exc_info=True)
+            print(f"异步合成出错: {e}")
+            raise
+        finally:
+            task_end=True
+        print('配音完毕')
+    
     def _exec(self) -> None:
         # 防止出错，重试一次
         if self._exit():
             return
-        self._item_task()
+        asyncio.run(self._task_queue())
+        

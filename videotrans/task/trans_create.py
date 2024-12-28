@@ -265,7 +265,7 @@ class TransCreate(BaseTask):
                 self.precent = 100
                 dest_name+='.srt'
                 shutil.copy2(self.cfg['source_sub'],dest_name)
-                Path(self.cfg['source_sub']).unlink(missing=True)
+                Path(self.cfg['source_sub']).unlink(missing_ok=True)
             else:
                 dest_name+=f"-{self.cfg['source_language_code']}.srt"
                 shutil.copy2(self.cfg['source_sub'],dest_name)
@@ -586,8 +586,7 @@ class TransCreate(BaseTask):
             shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
-            print(f'eee{e}')
-            # pass
+
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self) -> None:

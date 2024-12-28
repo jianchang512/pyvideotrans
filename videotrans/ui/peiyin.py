@@ -171,6 +171,9 @@ class Ui_peiyin(object):
             "mp3",
             "m4a"
         ])
+        
+        self.save_to_srt=QtWidgets.QCheckBox()
+        
 
         self.edge_volume_layout.addWidget(self.volume_label)
         self.edge_volume_layout.addWidget(self.volume_rate)
@@ -178,6 +181,7 @@ class Ui_peiyin(object):
         self.edge_volume_layout.addWidget(self.pitch_rate)
         self.edge_volume_layout.addWidget(self.out_format_label)
         self.edge_volume_layout.addWidget(self.out_format)
+        self.edge_volume_layout.addWidget(self.save_to_srt)
 
         self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
 
@@ -233,5 +237,7 @@ class Ui_peiyin(object):
         self.label_12.setText(box_lang.get("Speed change"))
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
+        self.save_to_srt.setText("Save to original location" if config.defaulelang != 'zh' else '保存到原位置')
+        self.save_to_srt.setToolTip("If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))
