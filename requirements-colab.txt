@@ -28,7 +28,6 @@ elevenlabs
 srt
 deepgram-sdk
 deepgram-captions
-edge-tts
 addict
 datasets==3.0
 simplejson

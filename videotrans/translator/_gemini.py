@@ -66,7 +66,7 @@ class Gemini(BaseTrans):
             match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.text,re.S)
             if match:
                 return match.group(1)
-            raise Exception("result is empty")
+            raise Exception('未获取到翻译结果，请尝试使用更智能的大模型或取消"发送完整字幕"选项' if config.defaulelang=='zh' else 'Translation not available, try using a smarter big model or uncheck the “Send full subtitles” option.')
         except TooManyRequests as e:
             raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:

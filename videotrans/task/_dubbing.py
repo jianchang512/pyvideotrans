@@ -9,7 +9,7 @@ from videotrans.configure import config
 
 from videotrans.task._base import BaseTask
 from videotrans.task._rate import SpeedRate
-from videotrans.tts import run
+from videotrans import tts
 from videotrans.util import tools
 
 """
@@ -50,8 +50,7 @@ class DubbingSrt(BaseTask):
         # 字幕文件
         self.cfg['target_sub'] = self.cfg['name']
         # 配音文件
-        self.cfg['target_wav'] = self.cfg[
-                                               'target_dir'] + f'/{self.cfg["noextname"]}.{self.cfg["out_ext"]}'
+        self.cfg['target_wav'] = self.cfg['target_dir'] + f'/{self.cfg["noextname"]}.{self.cfg["out_ext"]}'
 
         Path(self.cfg["cache_folder"]).mkdir(parents=True, exist_ok=True)
         self._signal(text='字幕配音处理中' if config.defaulelang == 'zh' else ' Dubbing from subtitles ')
@@ -81,10 +80,6 @@ class DubbingSrt(BaseTask):
         queue_tts = []
         # 获取字幕
         try:
-            subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
-        except Exception as e:
-            raise
-        try:
             rate = int(str(self.cfg['voice_rate']).replace('%', ''))
         except:
             rate=0
@@ -92,6 +87,33 @@ class DubbingSrt(BaseTask):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
+        
+        if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
+            from videotrans.edge_tts import Communicate
+            import asyncio
+            pro=self._set_proxy(type='set')
+            async def _async_dubb():
+                communicate_task = Communicate(
+                    text=Path(self.cfg['target_sub']).read_text(encoding='utf-8'), 
+                    voice=self.cfg['voice_role'], 
+                    rate=rate, 
+                    volume=self.cfg['volume'],
+                    proxy=pro if pro else None,
+                    pitch=self.cfg['pitch']
+                )
+                tmp_name=self.cfg['target_wav'] if self.cfg["target_wav"].endswith('.mp3') else f"{self.cfg['cache_folder']}/{self.cfg['noextname']}-edgetts-txt-{time.time()}.mp3"
+                await communicate_task.save(tmp_name)
+                
+                if not self.cfg["target_wav"].endswith('.mp3'):
+                    tools.runffmpeg(['-y','-i',tmp_name,'-b:a','192k',self.cfg['target_wav']])
+                
+            asyncio.run(_async_dubb())
+            return
+
+        try:
+            subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
+        except Exception as e:
+            raise
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
@@ -110,13 +132,15 @@ class DubbingSrt(BaseTask):
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise Exception(f'Queue tts length is 0')
         # 具体配音操作
-        run(
+        tts.run(
             queue_tts=copy.deepcopy(self.queue_tts),
             language=self.cfg['target_language_code'],
             uuid=self.uuid
         )
 
     def align(self) -> None:
+        if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
+            return
         if self.cfg['voice_autorate']:
             self._signal(text='声画变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage')
         try:
@@ -133,7 +157,7 @@ class DubbingSrt(BaseTask):
                 cache_folder=self.cfg['cache_folder']
             )
             volume=self.cfg['volume'].strip()
-            print(f'{volume=}')
+
             if volume !='+0%':
                 try:
                     volume=1+float(volume)/100

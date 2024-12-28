@@ -642,7 +642,7 @@ class SpeedRate:
             try:
                 merged_audio += AudioSegment.from_file(self.queue_tts[0]['filename'],format="mp4" if the_ext == 'm4a' else the_ext)
             except CouldntDecodeError:
-                merged_audio+=AudioSegment.silent(duration=self.queue_tts[0]['end_time_source']-self.queue_tts[0]['start_time_source'])
+                merged_audio+=AudioSegment.silent(duration=3000)
         else:
             # start is not 0
             if self.queue_tts[0]['start_time_source'] > 0:
