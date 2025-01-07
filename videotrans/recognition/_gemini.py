@@ -48,107 +48,11 @@ class GeminiRecogn(BaseRecogn):
         self.api_keys=config.params.get('gemini_key','').strip().split(',')
 
  
-
-    def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
-        pro = self._set_proxy(type='set')
-        print(f'{pro=}')
-        api_key=self.api_keys.pop(0)
-        self.api_keys.append(api_key)
-        genai.configure(api_key=api_key)
-
-        self._signal(
-            text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
-        if config.params.get('gemini_cut_audio'):
-            return self._exec_by_segment()
-        response = None
-        # 尺寸大于190MB，转为 mp3
-        mime='audio/wav'
-        tools.runffmpeg(
-                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/gemini-tmp.mp3'])
-        self.audio_file = self.cache_folder + '/gemini-tmp.mp3'
-        mime='audio/mpeg'
-        retry=0
-        prompt= config.params['gemini_srtprompt']
-        if self.target_code:
-            if config.defaulelang=='zh':
-                prompt=prompt.replace('</SOURCE_SRT>','</SOURCE_SRT>\n<TRANSLATE_SRT>{转录的SRT字幕内容翻译为'+self.target_code+'后的内容}</TRANSLATE_SRT>')
-            else:
-                prompt=prompt.replace('</SOURCE_SRT>','</SOURCE_SRT>\n<TRANSLATE_SRT>{Transcribed SRT subtitle content after translation into '+self.target_code+'}</TRANSLATE_SRT>')
-        while 1:
-            retry+=1
-            try:
-                # Create the model
-                generation_config = {
-                  "temperature": 1,
-                  "top_p": 0.95,
-                  "top_k": 40,
-                  "response_mime_type": "text/plain",
-                }
-                model = genai.GenerativeModel(
-                  model_name=config.params['gemini_model'],
-                  safety_settings=safetySettings
-                )
-                files = [
-                          genai.upload_file(self.audio_file, mime_type=mime),
-                ]
-                chat_session = model.start_chat(
-                    history=[
-                        {
-                            "role": "user",
-                            "parts": [prompt],
-                        }
-                    ]
-                )
-                config.logger.info(f'发送音频到Gemini:prompt={prompt},{self.audio_file=}')
-                response = chat_session.send_message(files[0],request_options={"timeout":6000})
-            except TooManyRequests as e:
-                if retry>2:
-                    raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
-                err=f'429 请求太快，暂停30s [{retry}]' if config.defaulelang=='zh' else f'429 Request too fast, pause for 30s [{retry}]'
-                self._signal(text=err)
-                time.sleep(30)
-                continue
-            except ServerError as e:
-                error=str(e) if config.defaulelang !='zh' else '连接Gemini服务超时，请尝试更换代理或切换模型'
-                raise requests.ConnectionError(error)
-            except (RetryError,socket.timeout) as e:
-                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理或切换模型'
-                raise requests.ConnectionError(error)
-            except Exception as e:
-                error = str(e)
-                config.logger.exception(f'[Gemini]请求失败:{error=}', exc_info=True)
-                if response and response.prompt_feedback.block_reason:
-                    raise Exception(self._get_error(response.prompt_feedback.block_reason, "forbid"))
-
-                if error.find('User location is not supported') > -1 or error.find('time out') > -1:
-                    raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-
-                if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
-                    raise Exception(self._get_error(response.candidates[0].finish_reason))
-                raise
-            else:
-                raw=response.text.strip()
-                self._signal(
-                    text=raw,
-                    type='replace_subtitle'
-                )
-                source_srt=re.findall(r'<SOURCE_SRT>(.*?)</SOURCE_SRT>',raw,re.S|re.I)
-                if len(source_srt)<1 or not source_srt[0].strip():
-                    raise Exception('Gemini transcribe error')
-                if not self.target_code:                    
-                    return  tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False)
-
-                target_srt=re.findall(r'<TRANSLATE_SRT>(.*?)</TRANSLATE_SRT>',raw,re.S|re.I)
-                if len(target_srt)<1 or not target_srt[0].strip():
-                    return  tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False)
-                
-                return  (tools.get_subtitle_from_srt(source_srt[0].strip(), is_file=False),tools.get_subtitle_from_srt(target_srt[0].strip(), is_file=False))
-
-
-    def _exec_by_segment(self):
+ 
+    def _exec(self):
         seg_list=self.cut_audio()
+        nums=30
+        seg_list=[seg_list[i:i + nums] for i in  range(0, len(seg_list), nums)]
         srt_str_list=[]
         generation_config = {
                   "temperature": 1,
@@ -156,8 +60,9 @@ class GeminiRecogn(BaseRecogn):
                   "top_k": 40,
                   "response_mime_type": "text/plain",
         }
-        prompt=config.params.get('gemini_srtprompt_cut','Please transcribe the audio that was sent to you into text, then return the transcribed text without any explanations, hints, instructions or any other superfluous information attached to the returned text.')
-        for f in seg_list:
+        prompt= config.params['gemini_srtprompt']
+
+        for seg_group in seg_list:
             api_key=self.api_keys.pop(0)
             self.api_keys.append(api_key)
             genai.configure(api_key=api_key)
@@ -165,73 +70,68 @@ class GeminiRecogn(BaseRecogn):
               model_name=config.params['gemini_model'],
               safety_settings=safetySettings
             )
-            retry=0
-            startraw=tools.ms_to_time_string(ms=f['start_time'])
-            endraw=tools.ms_to_time_string(ms=f['end_time'])
-            while 1:
-                retry+=1                    
-                try:
-                    files = [
-                          genai.upload_file(f['file'], mime_type='audio/wav'),
-                    ]
-                    chat_session = model.start_chat(
-                        history=[
-                            {
-                                "role": "user",
-                                "parts": [prompt],
-                            }
-                        ]
+            retry=0          
+
+
+            try:
+                files=[]
+                for f in seg_group:
+                    files.append(
+                        {
+                            "mime_type": "audio/wav",
+                            "data": Path(f['file']).read_bytes()
+                        }
+                          #genai.upload_file(f['file'], mime_type='audio/wav'),
                     )
-                    config.logger.info(f'发送音频到Gemini:prompt={prompt},{f["file"]=}')
-                    response = chat_session.send_message(files[0],request_options={"timeout":600})
-                except TooManyRequests as e:
-                    if retry>=2:
-                        srt_str_list.append({
+                chat_session = model.start_chat(
+                    history=[
+                        {
+                            "role": "user",
+                            "parts": files,
+                        }
+                    ]
+                )
+                config.logger.info(f'发送音频到Gemini:prompt={prompt}')
+                response = chat_session.send_message(prompt,request_options={"timeout":600})
+            except TooManyRequests as e:               
+                
+                err=f'429 请求太快或超出Gemini每日限制 [{retry}]' if config.defaulelang=='zh' else f'429 Request too more or out of limit'
+                raise Exception(err)
+            
+            except (RetryError,socket.timeout,ServerError) as e:
+                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+                raise requests.ConnectionError(error)
+            except Exception as e:
+                error = str(e)
+                config.logger.exception(f'[Gemini]请求失败:{error=}', exc_info=True)
+                if error.find('User location is not supported') > -1 or error.find('time out') > -1:
+                    raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
+                raise
+            else:
+                config.logger.info(f'gemini返回结果:{response.text=}')
+                m=re.findall(r'<audio_text>(.*?)<\/audio_text>',response.text.strip(),re.I)
+                if len(m)<1:
+                    raise Exception("No recognition result")
+                str_s=[]
+                for i,f in enumerate(seg_group):
+                    if i < len(m):
+                        startraw=tools.ms_to_time_string(ms=f['start_time'])
+                        endraw=tools.ms_to_time_string(ms=f['end_time'])
+                        srt={
                             "line":len(srt_str_list)+1,
                             "start_time":f['start_time'],
                             "end_time":f['end_time'],
                             "startraw":startraw,
                             "endraw":endraw,
-                            "text":f'Error:{str(e)[:90]}'
-                        })
-                        break
-                    err=f'429 请求太快，暂停30s [{retry}]' if config.defaulelang=='zh' else f'429 Request too fast, pause for 30s [{retry}]'
-                    self._signal(text=err)
-                    time.sleep(30)
-                    continue
-                
-                except (RetryError,socket.timeout,ServerError) as e:
-                    error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-                    raise requests.ConnectionError(error)
-                except Exception as e:
-                    error = str(e)
-                    config.logger.exception(f'[Gemini]请求失败:{error=}', exc_info=True)
-                    if error.find('User location is not supported') > -1 or error.find('time out') > -1:
-                        raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-                    srt_str_list.append({
-                        "line":len(srt_str_list)+1,
-                        "start_time":f['start_time'],
-                        "end_time":f['end_time'],
-                        "startraw":startraw,
-                        "endraw":endraw,
-                        "text":'Error:'+error[:90]
-                    })
-                    break
-                else:
-                    srt={
-                        "line":len(srt_str_list)+1,
-                        "start_time":f['start_time'],
-                        "end_time":f['end_time'],
-                        "startraw":startraw,
-                        "endraw":endraw,
-                        "text":response.text.strip()
-                    }
-                    srt_str_list.append(srt)
-                    self._signal(
-                        text=f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}\n\n',
-                        type='subtitle'
-                    )
-                    break
+                            "text":m[i]
+                        }
+                        srt_str_list.append(srt)
+                        str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
+                self._signal(
+                    text=('\n\n'.join(str_s))+"\n\n",
+                    type='subtitle'
+                )
+
         return srt_str_list
     def _get_error(self, num=5, type='error'):
         REASON_CN = {

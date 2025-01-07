@@ -87,7 +87,6 @@ def speech_to_text(model_name='large-v2',language="auto",prompt=None,audio_file=
             condition_on_previous_text=False,
             vad_filter=True,
             vad_parameters=dict(
-                onset=0.5,
                 min_speech_duration_ms=500,
                 max_speech_duration_s= float('inf'),
                 min_silence_duration_ms=250,

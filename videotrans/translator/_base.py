@@ -219,10 +219,13 @@ class BaseTrans(BaseCon):
                         time.sleep(self.wait_sec)
 
                 try:
+                    for j,srt in enumerate(it):
+                        srt['text']=srt['text'].strip().replace("\n"," ")
+                        it[j]=srt
                     srt_str = "\n\n".join(
                         [f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
                     result = self._get_cache(srt_str)
-                    if not result:
+                    if not result:                        
                         result = tools.cleartext(self._item_task(srt_str))
                         if not result.strip():
                             raise Exception('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
@@ -260,7 +263,15 @@ class BaseTrans(BaseCon):
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')
-        return tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
+        raws_list=tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
+        #if not self.refine3:
+        #    return raws_list
+        config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
+        for i,it in enumerate(raws_list):
+            it['text']=(it['text'].strip().split("\n"))[-1]
+            raws_list[i]=it
+        return raws_list
+        
 
 
 
