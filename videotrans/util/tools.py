@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 import copy
 import datetime
-import hashlib
-import json
-import os
-import platform
-import random
-import re
-import shutil
-import subprocess
-import sys
-import textwrap
 import time
 from datetime import timedelta
+import os
+import re
+import sys
+import textwrap
+import json
+import random
+import shutil
+import hashlib
+import platform
+import subprocess
 from pathlib import Path
 
 import requests
@@ -1051,13 +1051,14 @@ def srt_str_to_listdict(srt_string):
                 else:
                     i += 1
 
-            text = '\n'.join(text_lines).strip()
-
+            text = ('\n'.join(text_lines)).strip()
+            text=re.sub(r'</?[a-zA-Z]+>','',text.replace("\r",'').strip())
+            text=re.sub(r'\n{2,}','\n',text)
             it={
                 "line": len(srt_list)+1,  #字幕索引，转换为整数
                 "start_time": int(start_time), 
                 "end_time":int(end_time),  #起始和结束时间
-                "text": re.sub(r'</?[a-zA-Z]+>','',text.replace("\n","  ").replace("\r",'').strip()), #字幕文本
+                "text": text, #字幕文本
             }
             it['startraw']=ms_to_time_string(ms=it['start_time'])
             it['endraw']=ms_to_time_string(ms=it['end_time'])
@@ -1071,24 +1072,7 @@ def srt_str_to_listdict(srt_string):
 
     return srt_list
 
-# 合法的srt字符串转为 dict list
-def srt_str_to_listdict0(content):
-    import srt
-    line=0
-    result=[]
-    for sub in srt.parse(content):
-        line+=1
-        it={
-            "start_time":toms(sub.start),
-            "end_time":toms(sub.end),
-            "line":line,
-            "text":re.sub(r'</?[a-zA-Z]+>','',sub.content.replace("\n","  ").replace("\r",'').strip())
-        }
-        it['startraw']=ms_to_time_string(ms=it['start_time'])
-        it['endraw']=ms_to_time_string(ms=it['end_time'])
-        it["time"]=f"{it['startraw']} --> {it['endraw']}"
-        result.append(it)
-    return result
+
 
 # 将字符串或者字幕文件内容，格式化为有效字幕数组对象
 # 格式化为有效的srt格式
@@ -1137,36 +1121,6 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     return result
 
 
-# 将srt字幕转为 ass字幕
-def srt2ass(srt_file, ass_file, maxlen=40):
-    srt_list = get_subtitle_from_srt(srt_file)
-    text = ""
-    for i, it in enumerate(srt_list):
-        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip()
-        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-    tmp_srt = config.TEMP_DIR + f"/{time.time()}.srt"
-    with open(tmp_srt, 'w', encoding='utf-8', errors='ignore') as f:
-        f.write(text)
-
-    runffmpeg(['-y', '-i', tmp_srt, ass_file])
-    with open(ass_file, 'r', encoding='utf-8') as f:
-        ass_str = f.readlines()
-
-    for i, it in enumerate(ass_str):
-        if it.find('Style: ') == 0:
-            ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
-                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
-                fontcolor=config.settings['fontcolor'],
-                fontbordercolor=config.settings['fontbordercolor'],
-                fontbackcolor=config.settings['fontbordercolor'],
-                subtitle_bottom=config.settings['subtitle_bottom'])
-            break
-
-    with open(ass_file, 'w', encoding='utf-8') as f:
-        f.write("".join(ass_str))
-
-
 # 将字幕字典列表写入srt文件
 def save_srt(srt_list, srt_file):
     txt = get_srt_from_list(srt_list)
@@ -1208,6 +1162,37 @@ def get_srt_from_list(srt_list):
         txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
     return txt
 
+
+
+
+# 将srt字幕转为 ass字幕
+def srt2ass(srt_file, ass_file, maxlen=40):
+    srt_list = get_subtitle_from_srt(srt_file)
+    text = ""
+    for i, it in enumerate(srt_list):
+        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip()
+        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+    tmp_srt = config.TEMP_DIR + f"/{time.time()}.srt"
+    with open(tmp_srt, 'w', encoding='utf-8', errors='ignore') as f:
+        f.write(text)
+
+    runffmpeg(['-y', '-i', tmp_srt, ass_file])
+    with open(ass_file, 'r', encoding='utf-8') as f:
+        ass_str = f.readlines()
+
+    for i, it in enumerate(ass_str):
+        if it.find('Style: ') == 0:
+            ass_str[
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
+                fontcolor=config.settings['fontcolor'],
+                fontbordercolor=config.settings['fontbordercolor'],
+                fontbackcolor=config.settings['fontbordercolor'],
+                subtitle_bottom=config.settings['subtitle_bottom'])
+            break
+
+    with open(ass_file, 'w', encoding='utf-8') as f:
+        f.write("".join(ass_str))
 
 
 

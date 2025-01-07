@@ -38,11 +38,12 @@ class AzureGPT(BaseTrans):
             azure_endpoint=config.params["azure_api"],
             http_client=httpx.Client(proxy=self.proxies)
         )
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {'role': 'system',
              'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
             {'role': 'user',
-             'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)},
+             'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},
         ]
 
         config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
@@ -64,7 +65,8 @@ class AzureGPT(BaseTrans):
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
         if match:
             return match.group(1)
-        raise Exception('No content')
+        return result.strip()
+
 
     def _item_task_refine3(self, data: Union[List[str], str]) -> str:
         prompt=self._refine3_prompt()
@@ -102,4 +104,5 @@ class AzureGPT(BaseTrans):
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
         if match:
             return match.group(1)
-        raise Exception(f"error:{response=}")
+        return result.strip()
+    

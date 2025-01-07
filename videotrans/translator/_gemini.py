@@ -48,7 +48,8 @@ class Gemini(BaseTrans):
             return self._item_task_refine3(data)
         response = None
         try:
-            message = self.prompt.replace('[TEXT]',"\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+            text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
+            message = self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
             api_key=self.api_keys.pop(0)
             self.api_keys.append(api_key)
             genai.configure(api_key=api_key)
@@ -66,7 +67,7 @@ class Gemini(BaseTrans):
             match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.text,re.S)
             if match:
                 return match.group(1)
-            raise Exception('未获取到翻译结果，请尝试使用更智能的大模型或取消"发送完整字幕"选项' if config.defaulelang=='zh' else 'Translation not available, try using a smarter big model or uncheck the “Send full subtitles” option.')
+            return response.text.strip()
         except TooManyRequests as e:
             raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:
@@ -83,11 +84,6 @@ class Gemini(BaseTrans):
 
             if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
                 raise Exception(self._get_error(response.candidates[0].finish_reason))
-
-            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and \
-                    response.candidates[0].content and response.candidates[0].content.parts:
-                result = response.text.replace('##', '').strip().replace('&#39;', '"').replace('&quot;', "'")
-                return re.sub(r'\n{2,}', "\n", result)
             raise
 
     def _get_error(self, num=5, type='error'):
@@ -136,7 +132,7 @@ class Gemini(BaseTrans):
             match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text,re.S)
             if match:
                 return match.group(1)
-            raise Exception("result is empty")
+            return response.text.strip()
         except TooManyRequests as e:
             raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
         except (ServerError,RetryError,socket.timeout) as e:
@@ -153,10 +149,4 @@ class Gemini(BaseTrans):
 
             if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
                 raise Exception(self._get_error(response.candidates[0].finish_reason))
-
-            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason == 1 and response.candidates[0].content and response.candidates[0].content.parts:
-                match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text, re.S)
-                if match:
-                    return match.group(1)
-
             raise

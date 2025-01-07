@@ -56,14 +56,13 @@ def openwin():
         model = winobj.model.currentText()
         template = winobj.gemini_template.toPlainText()
         gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
-        gemini_srtprompt_cut = winobj.gemini_srtprompt_cut.toPlainText()
+
 
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
         config.params["gemini_srtprompt"] = gemini_srtprompt
-        config.params["gemini_srtprompt_cut"] = gemini_srtprompt_cut
-        config.params["gemini_cut_audio"] = winobj.gemini_cut_audio.isChecked()
+
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
         gemini_recogn_txt= 'gemini_recogn.txt' if config.defaulelang=='zh' else 'gemini_recogn-en.txt'    
@@ -98,10 +97,6 @@ def openwin():
             winobj.gemini_template.setPlainText(config.params["gemini_template"])
         if config.params["gemini_srtprompt"]:
             winobj.gemini_srtprompt.setPlainText(config.params["gemini_srtprompt"])
-        if config.params["gemini_srtprompt_cut"]:
-            winobj.gemini_srtprompt_cut.setPlainText(config.params["gemini_srtprompt_cut"])
-        if config.params["gemini_cut_audio"]:
-            winobj.gemini_cut_audio.setChecked(True)
 
     from videotrans.component import GeminiForm
     winobj = config.child_forms.get('geminiw')

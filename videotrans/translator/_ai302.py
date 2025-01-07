@@ -21,13 +21,14 @@ class AI302(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
             return self._item_task_refine3(data)
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         payload = {
             "model": config.params['ai302_model'],
             "messages": [
                 {'role': 'system',
                  'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
                 {'role': 'user',
-                 'content': self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data,list) else data)},
+                 'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},
             ]
         }
         response = requests.post('https://api.302.ai/v1/chat/completions', headers={
@@ -46,7 +47,7 @@ class AI302(BaseTrans):
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
         if match:
             return match.group(1)
-        rraise Exception('未获取到翻译结果，请尝试使用更智能的大模型或取消"发送完整字幕"选项' if config.defaulelang=='zh' else 'Translation not available, try using a smarter big model or uncheck the “Send full subtitles” option.')
+        return result.strip()
 
 
     def _item_task_refine3(self, data: Union[List[str], str]) -> str:
@@ -77,4 +78,5 @@ class AI302(BaseTrans):
             match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
             if match:
                 return match.group(1)
-        raise Exception(f"No choices:{res=}")
+            return result.strip()
+        raise Exception(f'{res}')

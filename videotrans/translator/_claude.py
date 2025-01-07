@@ -47,13 +47,14 @@ class Claude(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self.refine3:
             return self._item_task_refine3(data)
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {
                 'role': 'user',
                 'content':[
                     {
                         "type":"text",
-                        "text":self.prompt.replace('[TEXT]', "\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+                        "text":self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
                      }
                 ]
             }
@@ -98,7 +99,7 @@ class Claude(BaseTrans):
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
         if match:
             return match.group(1)
-        raise Exception('未获取到翻译结果，请尝试使用更智能的大模型或取消"发送完整字幕"选项' if config.defaulelang=='zh' else 'Translation not available, try using a smarter big model or uncheck the “Send full subtitles” option.')
+        return result.strip()
 
 
     def _item_task_refine3(self, data: Union[List[str], str]) -> str:
@@ -157,4 +158,4 @@ class Claude(BaseTrans):
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
         if match:
             return match.group(1)
-        raise Exception(f"Error:{result=}")
+        return result.strip()
