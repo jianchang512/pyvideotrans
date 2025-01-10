@@ -144,6 +144,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.label_3)
         self.horizontalLayout_5.addWidget(self.target_language)
 
+        
+        self.glossary = QtWidgets.QPushButton(self.layoutWidget)
+        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
+        self.glossary.setObjectName("glossary")
+        self.glossary.setText("glossary" if config.defaulelang!='zh' else '术语表')
+        self.glossary.setStyleSheet("""background-color:transparent""")
+        self.glossary.setCursor(Qt.PointingHandCursor)
+        self.glossary.setToolTip('点击设置和修改术语表' if config.defaulelang=='zh' else 'Click to set up and modify the glossary')
+        
         self.label = QtWidgets.QPushButton(self.layoutWidget)
         self.label.setMinimumSize(QtCore.QSize(0, 30))
         self.label.setObjectName("label")
@@ -153,6 +162,10 @@ class Ui_MainWindow(object):
         self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
 
+
+
+
+        self.horizontalLayout_5.addWidget(self.glossary)
         self.horizontalLayout_5.addWidget(self.label)
         self.horizontalLayout_5.addWidget(self.proxy)
 
@@ -737,10 +750,7 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setChecked(True)
         self.action_biaozhun.setObjectName("action_biaozhun")
 
-        self.action_xinshoujandan = QtGui.QAction(MainWindow)
-        self.action_xinshoujandan.setCheckable(True)
-        self.action_xinshoujandan.setChecked(False)
-        self.action_xinshoujandan.setObjectName("action_xinshoujandan")
+
 
         self.action_yuyinshibie = QtGui.QAction(MainWindow)
 
@@ -925,7 +935,6 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menu.menuAction())
         self.menuBar.addAction(self.menu_H.menuAction())
 
-        self.toolBar.addAction(self.action_xinshoujandan)
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)
 
@@ -933,12 +942,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
         self.toolBar.addAction(self.action_yingyinhebing)
-        if config.defaulelang=='zh':
-            self.toolBar.addAction(self.actionvideoandaudio)
-            self.toolBar.addAction(self.actionvideoandsrt)
-            self.toolBar.addAction(self.actionsubtitlescover)
-            self.toolBar.addAction(self.actionformatcover)
-            self.toolBar.addAction(self.action_subtitleediter)
+
         # 200ms后渲染文字
         QTimer.singleShot(50, self.retranslateUi)
 
@@ -1050,9 +1054,7 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setToolTip(
             '批量进行视频翻译，并可按照需求自定义所有配置选项' if config.defaulelang == 'zh' else 'Batch video translation with all configuration options customizable on demand')
 
-        self.action_xinshoujandan.setText(config.uilanglist.get("action_xinshoujandan"))
-        self.action_xinshoujandan.setToolTip(
-            '按照默认设置，一键将视频从一种语言翻译为另一种语言并嵌入字幕和配音' if config.defaulelang == 'zh' else 'Translate videos from one language to another and embed subtitles and voiceovers in one click.')
+
 
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
