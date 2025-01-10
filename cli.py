@@ -1,5 +1,7 @@
-# 废弃，请使用 api.py
+# 已废弃，请使用 api.py
 # Please use api.py
+# 当前文件仅可用于 Google Colab，若以其他方式使用，请修改 `/content` 等相关路径
+
 import argparse
 import os
 import re
