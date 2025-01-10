@@ -744,7 +744,8 @@ class WinActionSub:
                     checked_boxes.extend(get_checked_boxes(child))
             return checked_boxes
 
-        def save(role):
+        def save():
+            role = select_role.currentText()
             # 初始化一个列表，用于存放所有选中 checkbox 的名字
             checked_checkbox_names = get_checked_boxes(box)
             default_role = self.cfg.get('voice_role', 'No')
@@ -803,13 +804,18 @@ class WinActionSub:
 
         select_role = QtWidgets.QComboBox()
         select_role.addItems(self.main.current_rolelist)
-
         select_role.setFixedHeight(35)
-        select_role.currentTextChanged.connect(save)
+
+        apply_role_btn=QtWidgets.QPushButton()
+        apply_role_btn.setMinimumSize(80, 30)
+        apply_role_btn.setText('应用' if config.defaulelang=='zh' else 'Apply')
+        apply_role_btn.clicked.connect(save)
+        
         if self.cfg.get('voice_role', '-') in ['-', 'No','clone']:
             select_role.setDisabled(True)
+            apply_role_btn.setDisabled(True)
         label_role = QtWidgets.QLabel()
-        label_role.setText('单独设置角色' if config.defaulelang == 'zh' else 'Select Role')
+        label_role.setText('设置角色' if config.defaulelang == 'zh' else 'Select Role')
         
         
         source_text=QtWidgets.QLineEdit()
@@ -840,6 +846,7 @@ class WinActionSub:
         self.scroll_area_after = QtWidgets.QHBoxLayout()
         self.scroll_area_after.addWidget(label_role)
         self.scroll_area_after.addWidget(select_role)
+        self.scroll_area_after.addWidget(apply_role_btn)
 
         self.scroll_area = QtWidgets.QScrollArea()
         self.scroll_area.setWidget(box)
