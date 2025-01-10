@@ -144,7 +144,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model_name.setDisabled(False)
 
         self.moshis = {
-            "biaozhun_jd": self.action_xinshoujandan,
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
@@ -264,6 +263,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hfaster_help.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/vad'))
         self.split_label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/splitmode'))
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/align'))
+        self.glossary.clicked.connect(lambda:tools.show_glossary_editor(self))
 
 
     def _start_subform(self):
@@ -281,7 +281,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
         from videotrans import winform
 
-        self.action_xinshoujandan.triggered.connect(self.win_action.set_xinshoujandann)
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 

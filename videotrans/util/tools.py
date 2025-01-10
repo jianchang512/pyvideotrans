@@ -1813,7 +1813,15 @@ def format_video(name, target_dir=None):
 # 获取 prompt提示词
 def get_prompt(ainame,is_srt=True):
     prompt_file=get_prompt_file(ainame=ainame,is_srt=is_srt)
-    return Path(prompt_file).read_text(encoding='utf-8')
+    content=Path(prompt_file).read_text(encoding='utf-8')
+    glossary=''
+    if Path(config.ROOT_DIR+'/videotrans/glossary.txt').exists():
+        glossary=Path(config.ROOT_DIR+'/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+    if glossary:
+        glossary="\n".join(["|"+it.replace("=",'|')+"|" for it in glossary.split('\n')])
+        glossary_prompt="""## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n""" if config.defaulelang=='zh' else  """## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
+        content=content.replace('<INPUT></INPUT>',f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
+    return content
 
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame,is_srt=True):
@@ -1945,3 +1953,85 @@ def check_local_api(api):
         msg_box.exec()
         return False
     return True
+
+def format_milliseconds(milliseconds):
+    """
+    将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
+
+    Args:
+        milliseconds (int): 毫秒数。
+
+    Returns:
+        str: 格式化后的字符串，格式为 HH:mm:ss.zz。
+    """
+    if not isinstance(milliseconds, int):
+        raise TypeError("毫秒数必须是整数")
+    if milliseconds < 0:
+         raise ValueError("毫秒数必须是非负整数")
+    
+    seconds = milliseconds / 1000
+    
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    milliseconds_part = int((seconds * 1000) % 1000)//10  # 保留两位
+
+    # 格式化为两位数字字符串
+    formatted_hours = f"{int(hours):02}"
+    formatted_minutes = f"{int(minutes):02}"
+    formatted_seconds = f"{int(seconds):02}"
+    formatted_milliseconds = f"{milliseconds_part:02}"
+
+    print(f"{milliseconds=},{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}")
+
+    return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
+
+def show_glossary_editor(parent):
+    from PySide6.QtWidgets import (QApplication, QWidget, QPushButton,
+                                QVBoxLayout, QTextEdit, QDialog,
+                                QHBoxLayout, QDialogButtonBox)
+    from PySide6.QtCore import Qt
+    """
+    弹出一个窗口，包含一个文本框和保存按钮，并处理文本的读取和保存。
+
+    Args:
+        parent: 父窗口 (QWidget)
+    """
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("在此填写术语对照表，格式： 术语=翻译" if config.defaulelang=='zh' else '')
+    dialog.setMinimumSize(600, 400)
+
+    layout = QVBoxLayout(dialog)
+
+    text_edit = QTextEdit()
+    text_edit.setPlaceholderText("请按照 术语=翻译 的格式，一行一组来填写，例如\n\n国家弹道导弹防御系统=NBMD\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang=='zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
+    layout.addWidget(text_edit)
+
+    button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+    layout.addWidget(button_box)
+
+    #读取文件内容，并设置为文本框默认值
+    file_path = config.ROOT_DIR+"/videotrans/glossary.txt"
+    try:
+        if os.path.exists(file_path):
+           with open(file_path, "r", encoding="utf-8") as f:
+               content = f.read()
+               text_edit.setText(content)
+    except Exception as e:
+        print(f"读取文件失败: {e}")
+
+    def save_text():
+        """
+        点击保存按钮，将文本框内容写回文件。
+        """
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+              f.write(text_edit.toPlainText()) # toPlainText 获取纯文本
+            dialog.accept()
+        except Exception as e:
+            print(f"写入文件失败: {e}")
+
+
+    button_box.accepted.connect(save_text)
+    button_box.rejected.connect(dialog.reject)
+    dialog.setWindowModality(Qt.WindowModality.ApplicationModal) # 设置模态窗口
+    dialog.exec() # 显示模态窗口

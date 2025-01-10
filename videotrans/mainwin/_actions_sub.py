@@ -96,93 +96,6 @@ class WinActionSub:
             res = False
         self.cfg['cuda'] = res
 
-    # 简单新手模式
-    def set_xinshoujandann(self):
-
-        self.main.splitter.setSizes([self.main.width, 0])
-        self.main.action_xinshoujandan.setChecked(True)
-        self.main.app_mode = 'biaozhun_jd'
-        self.main.show_tips.setText(config.transobj['xinshoumoshitips'])
-        self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_biaozhun.setChecked(False)
-        self.main.action_tiquzimu.setChecked(False)
-
-        # 仅保存视频行
-        self.main.only_video.setChecked(False)
-        self.main.only_video.hide()
-        self.main.copysrt_rawvideo.hide()
-
-        # 翻译
-        self.main.translate_type.setCurrentIndex(1)
-        self.main.label_9.hide()
-        self.main.translate_type.hide()
-        self.main.label_2.show()
-        self.main.source_language.show()
-        self.main.label_3.show()
-        self.main.target_language.show()
-        self.main.label.hide()
-        self.main.proxy.hide()
-
-        # 配音角色
-        self.main.tts_text.show()
-        self.main.tts_type.setCurrentIndex(0)
-        self.main.tts_type.setDisabled(True)
-        self.main.tts_type.show()
-        self.main.label_4.show()
-        self.main.voice_role.show()
-        self.main.listen_btn.show()
-        self.main.volume_rate.setDisabled(True)
-        self.main.volume_rate.show()
-        self.main.volume_label.show()
-        self.main.pitch_label.show()
-        self.main.pitch_rate.setDisabled(True)
-        self.main.pitch_rate.show()
-
-
-        # 语音识别行
-        self.main.split_type.setCurrentIndex(0)
-        self.main.model_name.setCurrentIndex(0)
-        self.main.reglabel.hide()
-        self.main.recogn_type.setCurrentIndex(0)
-        self.main.recogn_type.hide()
-        self.main.model_name_help.hide()
-        self.main.model_name.hide()
-        self.main.split_label.hide()
-        self.main.split_type.hide()
-        self.main.subtitle_type.setCurrentIndex(1)
-        self.main.subtitle_type.hide()
-        self.main.rephrase.setChecked(False)
-        self.main.rephrase.hide()
-        self.main.remove_noise.setChecked(False)
-        self.main.remove_noise.hide()
-
-
-
-
-        # 字幕对齐行
-        self.main.align_btn.hide()
-        self.main.label_6.hide()
-        self.main.voice_rate.hide()
-        self.main.append_video.setChecked(True)
-        self.main.append_video.hide()
-        self.main.voice_autorate.setChecked(True)
-        self.main.voice_autorate.hide()
-        self.main.video_autorate.setChecked(True)
-        self.main.video_autorate.hide()
-        self.main.is_separate.setChecked(False)
-        self.main.is_separate.hide()
-        self.main.enable_cuda.setChecked(False)
-        self.main.enable_cuda.hide()
-        self.main.label_cjklinenums.hide()
-        self.main.cjklinenums.hide()
-        self.main.label_othlinenums.hide()
-        self.main.othlinenums.hide()
-        # 添加背景行
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
-        self.main.is_loop_bgm.hide()
-        self.main.bgmvolume_label.hide()
-        self.main.bgmvolume.hide()
 
 
     # 启用标准模式
@@ -192,7 +105,6 @@ class WinActionSub:
         self.main.app_mode = 'biaozhun'
         self.main.show_tips.setText("自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕" if config.defaulelang=='zh' else 'Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.')
         self.main.startbtn.setText(config.transobj['kaishichuli'])
-        self.main.action_xinshoujandan.setChecked(False)
         self.main.action_tiquzimu.setChecked(False)
 
         # 仅保存视频行
@@ -274,7 +186,6 @@ class WinActionSub:
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
-        self.main.action_xinshoujandan.setChecked(False)
         self.main.action_biaozhun.setChecked(False)
 
         # 仅保存视频行

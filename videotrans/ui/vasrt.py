@@ -3,8 +3,9 @@
 from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import (QMetaObject)
-from PySide6.QtWidgets import (QHBoxLayout)
+from PySide6.QtCore import QMetaObject,Qt, QTime, QTimer, QSize, QEvent
+from PySide6.QtWidgets import QHBoxLayout,QFontDialog,QColorDialog, QTimeEdit
+from PySide6.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
 
 from videotrans.configure import config
 
@@ -106,7 +107,8 @@ class Ui_vasrt(object):
         self.audio_process = QtWidgets.QComboBox()
         self.audio_process.addItems([
             "截断" if config.defaulelang == 'zh' else "Truncate",
-            "自动加速" if config.defaulelang == 'zh' else "Auto Accelerate"
+            "音频加速" if config.defaulelang == 'zh' else "Auto Accelerate",
+            "视频末尾定格" if config.defaulelang == 'zh' else "Video copy",
         ])
 
 
@@ -150,6 +152,51 @@ class Ui_vasrt(object):
         self.v3.addLayout(self.h6)
         self.v3.addLayout(self.h7)
 
+
+        self.font_button = QtWidgets.QPushButton("选择字体" if config.defaulelang == 'zh' else 'Select Fonts')
+        self.font_button.setToolTip('点击选择字体' if config.defaulelang == 'zh' else 'Click it for select fonts')
+        self.font_button.clicked.connect(self.choose_font)
+        self.font_button.setCursor(Qt.PointingHandCursor)
+
+        self.color_button = QtWidgets.QPushButton("字体颜色" if config.defaulelang == 'zh' else 'Text Colors')
+        self.color_button.setCursor(Qt.PointingHandCursor)
+        self.color_button.clicked.connect(self.choose_color)
+
+        self.backgroundcolor_button = QtWidgets.QPushButton("背景色" if config.defaulelang == 'zh' else 'Backgroud Colors')
+        self.backgroundcolor_button.setCursor(Qt.PointingHandCursor)
+        self.backgroundcolor_button.clicked.connect(self.choose_backgroundcolor)
+        self.backgroundcolor_button.setToolTip(
+            '不同播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
+
+        self.bordercolor_button = QtWidgets.QPushButton("边框色" if config.defaulelang == 'zh' else 'Backgroud Colors')
+        self.bordercolor_button.setCursor(Qt.PointingHandCursor)
+        self.bordercolor_button.clicked.connect(self.choose_bordercolor)
+        self.bordercolor_button.setToolTip(
+            '不同播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
+
+        self.font_size_edit = QtWidgets.QLineEdit()
+        self.font_size_edit.setFixedWidth(80)
+        self.font_size_edit.setText('16')
+        self.font_size_edit.setPlaceholderText("字体大小" if config.defaulelang == 'zh' else 'Font Size')
+        self.font_size_edit.setToolTip("字体大小" if config.defaulelang == 'zh' else 'Font Size')
+
+        # 初始化字体和颜色
+        self.selected_font = QFont('Arial', 16)  # 默认字体
+        self.selected_color = QColor('#FFFFFFFF')  # 默认颜色
+        self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
+        self.selected_bordercolor = QColor('#00000000')  # 默认颜色
+
+        format_layout = QHBoxLayout()
+        format_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        format_layout.addWidget(self.font_button)
+        format_layout.addWidget(self.font_size_edit)
+        format_layout.addWidget(self.color_button)
+        format_layout.addWidget(self.backgroundcolor_button)
+        format_layout.addWidget(self.bordercolor_button)
+
+        self.v3.addLayout(format_layout)
+
         self.ysphb_startbtn = QtWidgets.QPushButton()
         self.ysphb_startbtn.setMinimumSize(QtCore.QSize(250, 40))
         self.ysphb_startbtn.setObjectName("ysphb_startbtn")
@@ -176,6 +223,63 @@ class Ui_vasrt(object):
 
         QMetaObject.connectSlotsByName(vasrt)
 
+    def qcolor_to_ass_color(self, color, type='fc'):    
+        # 获取颜色的 RGB 值
+        r = color.red()
+        g = color.green()
+        b = color.blue()
+        if type in ['bg', 'bd']:
+            return f"&H80{b:02X}{g:02X}{r:02X}"
+        # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
+        return f"&H{b:02X}{g:02X}{r:02X}"
+
+    def choose_font(self):
+
+        dialog = QFontDialog(self.selected_font, self)
+        if dialog.exec():
+            font = dialog.selectedFont()
+            font_name = font.family()
+            font_size = font.pointSize()
+            self.selected_font = font
+            self.font_size_edit.setText(str(font_size))
+            self.font_button.setText(font_name)
+            self._setfont()
+
+    def _setfont(self):
+        bgcolor = self.selected_backgroundcolor.name()
+        bgcolor = '' if bgcolor == '#000000' else f'background-color:{bgcolor}'
+        bdcolor = self.selected_bordercolor.name()
+        bdcolor = '' if bdcolor == '#000000' else f'border:1px solid {bdcolor}'
+        color = self.selected_color.name()
+        color = '' if color == '#000000' else f'color:{color}'
+        font = self.selected_font
+        self.font_button.setStyleSheet(
+            f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'normal' if font.italic() else 'italic'};{bgcolor};{color};{bdcolor}""")
+
+    def choose_color(self):
+        dialog = QColorDialog(self.selected_color, self)
+        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
+        color = dialog.getColor()
+
+        if color.isValid():
+            self.selected_color = color
+            self._setfont()
+
+    def choose_backgroundcolor(self):
+        dialog = QColorDialog(self.selected_backgroundcolor, self)
+        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
+        color = dialog.getColor()
+        if color.isValid():
+            self.selected_backgroundcolor = color
+            self._setfont()
+    def choose_bordercolor(self):
+        dialog = QColorDialog(self.selected_bordercolor, self)
+        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
+        color = dialog.getColor()
+        if color.isValid():
+            self.selected_bordercolor = color
+            self._setfont()
+
     def remainraw(self, t):
         if Path(t).is_file():
             self.ysphb_replace.setDisabled(False)
@@ -187,6 +291,12 @@ class Ui_vasrt(object):
     def update_language(self, state):
         self.languagelabel.setStyleSheet(f"""color:#f1f1f1""" if state else 'color:#777777')
         self.language.setDisabled(False if state else True)
+
+        self.font_button.setDisabled(True if state else False)
+        self.font_size_edit.setDisabled(True if state else False)
+        self.color_button.setDisabled(True if state else False)
+        self.backgroundcolor_button.setDisabled(True if state else False)
+        self.bordercolor_button.setDisabled(True if state else False)
 
     def retranslateUi(self, vasrt):
         vasrt.setWindowTitle("视频、音频、字幕三者合并" if config.defaulelang == 'zh' else 'Video, audio, and subtitle merging')

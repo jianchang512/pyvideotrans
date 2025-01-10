@@ -277,9 +277,21 @@ class BaseTrans(BaseCon):
 
 
     def _refine3_prompt(self):
-        zh_prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3.txt').read_text(encoding='utf-8')
-        en_prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3-en.txt').read_text(encoding='utf-8')
-        return zh_prompt if config.defaulelang=='zh' else en_prompt
+        glossary=''
+        if Path(config.ROOT_DIR+'/videotrans/glossary.txt').exists():
+            glossary=Path(config.ROOT_DIR+'/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+        if config.defaulelang=='zh':
+            prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3.txt').read_text(encoding='utf-8')
+            glossary_prompt="""## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n"""
+        else:
+            prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3-en.txt').read_text(encoding='utf-8')
+            glossary_prompt="""## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
+        
+        if glossary:
+            glossary="\n".join(["|"+it.replace("=",'|')+"|" for it in glossary.split('\n')])
+            prompt=prompt.replace('<INPUT></INPUT>',f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
+        
+        return prompt
 
     def _set_cache(self, it, res_str):
         if not res_str.strip():

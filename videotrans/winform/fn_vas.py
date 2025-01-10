@@ -105,6 +105,24 @@ def openwin():
                             '[aout]',
                             '-ac',
                             '2', tmp_mp4])
+                        self.audio=tmp_mp4
+                        audio_time = int(tools.get_audio_time(self.audio) * 1000)
+                    if self.audio_process==2 and audio_time>video_time:
+                        sec=(audio_time-video_time)/1000
+                        tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.mp4"
+                        cmd = [
+                            '-y',
+                            '-i',
+                            self.video,
+                            '-vf',
+                            f'tpad=stop_mode=clone:stop_duration={sec}',
+                            "-an",
+                            '-c:v',
+                            'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
+                            tmp_mp4
+                        ]
+                        tools.runffmpeg(cmd)
+                        self.video=tmp_mp4
 
                     # 视频和音频混合
                     # 如果存在字幕则生成中间结果end_mp4
@@ -115,7 +133,7 @@ def openwin():
                         '-i',
                         os.path.normpath(self.video),
                         '-i',
-                        os.path.normpath(tmp_mp4 if tmp_mp4 else self.audio),
+                        os.path.normpath(self.audio),
                         '-c:v',
                         'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
                         "-c:a",
@@ -144,22 +162,24 @@ def openwin():
                     ]
                     if not self.is_soft or not self.language:
                         # 硬字幕
-                        sub_list = tools.get_subtitle_from_srt(self.srt, is_file=True)
-                        text = ""
-                        for i, it in enumerate(sub_list):
-                            it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
-                            text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                        srtfile = config.TEMP_HOME + f"/vasrt{time.time()}.srt"
-                        with Path(srtfile).open('w', encoding='utf-8') as f:
-                            f.write(text)
-                            f.flush()
-                        assfile = tools.set_ass_font(srtfile)
+                        # sub_list = tools.get_subtitle_from_srt(self.srt, is_file=True)
+                        # text = ""
+                        # for i, it in enumerate(sub_list):
+                        #     it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
+                        #     text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                        # srtfile = config.TEMP_HOME + f"/vasrt{time.time()}.srt"
+                        # with Path(srtfile).open('w', encoding='utf-8') as f:
+                        #     f.write(text)
+                        #     f.flush()
+                        # assfile = tools.set_ass_font(srtfile)
+                        assfile=config.TEMP_HOME + f"/vasrt{time.time()}.ass"
+                        save_ass(self.srt,assfile)
                         os.chdir(config.TEMP_HOME)
                         cmd += [
                             '-c:v',
                             'libx264',
                             '-vf',
-                            f"subtitles={os.path.basename(assfile)}",
+                            f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
                             '-crf',
                             f'{config.settings["crf"]}',
                             '-preset',
@@ -187,6 +207,41 @@ def openwin():
                 self.post(type='error', text=str(e))
             else:
                 self.post(type='ok', text=self.file)
+
+
+    def save_ass(file_path,ass_file):
+        with open(ass_file, 'w', encoding='utf-8') as file:
+            # 写入 ASS 文件的头部信息
+            stem = Path(file_path).stem
+            file.write("[Script Info]\n")
+            file.write(f"Title: {stem}\n")
+            file.write(f"Original Script: {stem}\n")
+            file.write("ScriptType: v4.00+\n")
+            file.write("PlayResX: 384\nPlayResY: 288\n")
+            file.write("ScaledBorderAndShadow: yes\n")
+            file.write("YCbCr Matrix: None\n")
+            file.write("\n[V4+ Styles]\n")
+            file.write(
+                f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
+            left, right, vbottom = 10, 10, 10
+
+
+            bgcolor = winobj.qcolor_to_ass_color(winobj.selected_backgroundcolor, type='bg')
+            bdcolor = winobj.qcolor_to_ass_color(winobj.selected_bordercolor, type='bd')
+            fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
+
+            file.write(
+                f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,1,1,0,2,{left},{right},{vbottom},1\n')
+            file.write("\n[Events]\n")
+            # 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'
+            file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
+            srt_list=tools.get_subtitle_from_srt(file_path,is_file=True)
+            for it in srt_list:
+                start_str=tools.format_milliseconds(it['start_time'])
+                end_str=tools.format_milliseconds(it['end_time'])
+                text=it['text'].replace("\n","\\N")
+                file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
+        return True
 
     def feed(d):
         if winobj.has_done:

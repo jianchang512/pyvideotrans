@@ -42,15 +42,6 @@ class Ui_fanyisrt(object):
         self.fanyi_translate_type.setMinimumSize(QtCore.QSize(100, 30))
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
 
-        self.aisendsrt=QtWidgets.QCheckBox()
-        self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send full subtitles')
-        self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
-        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-        
-        self.refine3=QtWidgets.QCheckBox()
-        self.refine3.setText('三步反思法翻译' if config.defaulelang=='zh' else 'Three Steps to Reflection Translation')
-        self.refine3.setToolTip('当使用AI翻译渠道，并选中以完整srt字幕格式发送时，可启用三步反思翻译法' if config.defaulelang=='zh' else 'When using the AI translation channel and checking the box to send in full srt subtitle format, the three-step reflective translation method can be enabled')
-        self.refine3.setChecked(config.settings.get('refine3'))
 
         self.fanyi_model_list = QtWidgets.QComboBox()
         self.fanyi_model_list.setMinimumSize(QtCore.QSize(100, 30))
@@ -60,8 +51,6 @@ class Ui_fanyisrt(object):
 
 
         self.horizontalLayout_18.addWidget(self.fanyi_translate_type)
-        self.horizontalLayout_18.addWidget(self.aisendsrt)
-        self.horizontalLayout_18.addWidget(self.refine3)
         self.horizontalLayout_18.addWidget(self.fanyi_model_list)
 
         self.label_source = QtWidgets.QLabel()
@@ -92,6 +81,15 @@ class Ui_fanyisrt(object):
         self.fanyi_target.setObjectName("fanyi_target")
         self.horizontalLayout_18.addWidget(self.fanyi_target)
 
+
+        self.glossary = QtWidgets.QPushButton()
+        self.glossary.setMinimumSize(QtCore.QSize(100, 25))
+        self.glossary.setObjectName("glossary")
+        self.glossary.setText("glossary" if config.defaulelang!='zh' else '术语表')
+        self.glossary.setToolTip('点击设置和修改术语表' if config.defaulelang=='zh' else 'Click to set up and modify the glossary')
+        ##self.glossary.setStyleSheet("""background-color:transparent""")
+        self.glossary.setCursor(Qt.PointingHandCursor)
+
         self.out_format = QtWidgets.QComboBox()
 
         self.out_format.addItems([
@@ -106,6 +104,34 @@ class Ui_fanyisrt(object):
         label_out.setText('输出' if config.defaulelang == 'zh' else 'Output')
         self.horizontalLayout_18.addWidget(label_out)
         self.horizontalLayout_18.addWidget(self.out_format)
+        self.horizontalLayout_18.addWidget(self.glossary)
+        self.horizontalLayout_18.addStretch()
+
+        
+
+
+
+        self.verticalLayout_13.addLayout(self.horizontalLayout_18)
+
+
+
+        
+
+        self.aisendsrt=QtWidgets.QCheckBox()
+        self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send full subtitles')
+        self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
+        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        
+        self.refine3=QtWidgets.QCheckBox()
+        self.refine3.setText('三步反思法翻译' if config.defaulelang=='zh' else 'Three Steps to Reflection Translation')
+        self.refine3.setToolTip('当使用AI翻译渠道，并选中以完整srt字幕格式发送时，可启用三步反思翻译法' if config.defaulelang=='zh' else 'When using the AI translation channel and checking the box to send in full srt subtitle format, the three-step reflective translation method can be enabled')
+        self.refine3.setChecked(config.settings.get('refine3'))
+
+
+        self.fanyi_proxy = QtWidgets.QLineEdit()
+        self.fanyi_proxy.setMinimumSize(QtCore.QSize(0, 30))
+        self.fanyi_proxy.setObjectName("fanyi_proxy")
+
 
         self.label_614 = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -115,14 +141,13 @@ class Ui_fanyisrt(object):
         self.label_614.setSizePolicy(sizePolicy)
         self.label_614.setMinimumSize(QtCore.QSize(0, 30))
         self.label_614.setObjectName("label_614")
-        self.horizontalLayout_18.addWidget(self.label_614)
 
-        self.fanyi_proxy = QtWidgets.QLineEdit()
-        self.fanyi_proxy.setMinimumSize(QtCore.QSize(0, 30))
-        self.fanyi_proxy.setObjectName("fanyi_proxy")
-        self.horizontalLayout_18.addWidget(self.fanyi_proxy)
-
-        self.verticalLayout_13.addLayout(self.horizontalLayout_18)
+        self.horizontalLayout_new = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_new.addWidget(self.aisendsrt)
+        self.horizontalLayout_new.addWidget(self.refine3)
+        self.horizontalLayout_new.addWidget(self.label_614)
+        self.horizontalLayout_new.addWidget(self.fanyi_proxy)
+        self.verticalLayout_13.addLayout(self.horizontalLayout_new)
 
         self.loglabel = QtWidgets.QPushButton()
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')

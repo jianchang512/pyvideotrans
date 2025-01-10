@@ -734,8 +734,6 @@ class TransCreate(BaseTask):
             default_codec = f"libx{config.settings['video_codec']}"
             cmd = [
                 '-y',
-                "-threads",
-                f'{os.cpu_count()}',
                 '-i',
                 self.cfg['novoice_mp4'],
                 '-vf',

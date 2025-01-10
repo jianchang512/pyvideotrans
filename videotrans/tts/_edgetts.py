@@ -68,6 +68,8 @@ class EdgeTTS(BaseTTS):
                 await communicate.stream()
         except Exception as e:
             config.logger.exception(e, exc_info=True)
+            if str(e).find('Invalid response status'):
+                raise Exception('可能被edge限流，请尝试使用或切换代理节点')
             print(f"异步合成出错: {e}")
             raise
         finally:

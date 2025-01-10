@@ -374,6 +374,7 @@ def openwin():
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.exportsrt.clicked.connect(export_srt)
+        winobj.glossary.clicked.connect(lambda:tools.show_glossary_editor(winobj))
 
 
         winobj.show()

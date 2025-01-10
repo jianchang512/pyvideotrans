@@ -725,12 +725,12 @@ class Ui_subtitleEditor(QWidget):
             bgcolor = self.qcolor_to_ass_color(self.selected_backgroundcolor, type='bg')
             bdcolor = self.qcolor_to_ass_color(self.selected_bordercolor, type='bd')
             fontcolor = self.qcolor_to_ass_color(self.selected_color, type='fc')
-            self.qcolor_to_ass_color(self.selected_color)
+
             file.write(
                 f'Style: Default,{self.selected_font.family()},{self.font_size_edit.text() if self.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(self.selected_font.bold())},{int(self.selected_font.italic())},0,0,100,100,0,0,1,1,0,2,{left},{right},{vbottom},1\n')
             file.write("\n[Events]\n")
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
-            self.selected_font.bold()
+
             index = 1
 
             for i in range(self.content_layout.count()):
