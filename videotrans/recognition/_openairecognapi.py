@@ -85,9 +85,6 @@ class OpenaiAPIRecogn(BaseRecogn):
                         "time":tools.ms_to_time_string(ms=it['start']*1000)+' --> '+tools.ms_to_time_string(ms=it['end']*1000),
                     })
             return raws
-        except json.decoder.JSONDecodeError as e:
-            msg=re.sub(r'</?\w+[^>]*?>','',transcript.text,re.I|re.S)            
-            raise Exception(msg)
         except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError) as e:
             api_url_msg = f' 当前Api: {self.api_url}' if self.api_url else ''
             proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'

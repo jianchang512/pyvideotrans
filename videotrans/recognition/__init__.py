@@ -20,6 +20,7 @@ CUSTOM_API = 7
 GOOGLE_SPEECH = 8
 GEMINI_SPEECH = 9
 Faster_Whisper_XXL = 10
+AI_302 = 11
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -32,7 +33,8 @@ RECOGN_NAME_LIST = [
     "自定义识别API" if config.defaulelang == 'zh' else "Custom API",
     "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
     "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
-    "Faster-Whisper-XXL.exe"
+    "Faster-Whisper-XXL.exe",
+    "302.AI"
 ]
 
 
@@ -103,7 +105,7 @@ def move_model_toxxl(src,dest):
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win
+    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win,ai302
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -135,6 +137,11 @@ def is_input_api(recogn_type: int = None,return_str=False):
         if return_str:
             return "Please configure the API Key information of the Gemini channel first."
         gemini_win.openwin()
+        return False
+    if recogn_type == AI_302 and not config.params['ai302_key']:
+        if return_str:
+            return "Please configure the API Key information of the Gemini channel first."
+        ai302.openwin()
         return False
     return True
 
@@ -197,6 +204,9 @@ def run(*,
     if recogn_type==GEMINI_SPEECH:
         from ._gemini import GeminiRecogn
         return GeminiRecogn(**kwargs).run()
+    if recogn_type==AI_302:
+        from ._ai302 import AI302Recogn
+        return AI302Recogn(**kwargs).run()
     if split_type == 'avg':
         from ._average import FasterAvg
         return FasterAvg(**kwargs).run()
