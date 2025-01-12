@@ -304,7 +304,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionott_address.triggered.connect(winform.ott.openwin)
         self.actionclone_address.triggered.connect(winform.clone.openwin)
         self.actionchattts_address.triggered.connect(winform.chattts.openwin)
-        self.actionai302tts_address.triggered.connect(winform.ai302tts.openwin)
         self.actiontts_api.triggered.connect(winform.ttsapi.openwin)
         self.actionrecognapi.triggered.connect(winform.recognapi.openwin)
         self.actionsttapi.triggered.connect(winform.sttapi.openwin)

@@ -140,11 +140,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS]:
-            return True
-        if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'azure':
-            return True
-        if type == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
+        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS,tts.AI302_TTS]:
             return True
         return False
 
@@ -179,10 +175,6 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif self.change_by_lang(type):
             self.set_voice_role(self.main.target_language.currentText())
-        elif type == tts.AI302_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = config.params['ai302tts_role'].split(',')
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params["clone_voicelist"]
@@ -250,12 +242,12 @@ class WinAction(WinActionSub):
         tts_type = self.main.tts_type.currentIndex()
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == tts.AI302_TTS and config.params['ai302tts_model'] == 'doubao':
-            show_rolelist = tools.get_302ai_doubao()
+        elif tts_type == tts.AI302_TTS:
+            show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
         else:
-            # AzureTTS或 302.ai选择doubao模型
+            # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
 
         if not show_rolelist:

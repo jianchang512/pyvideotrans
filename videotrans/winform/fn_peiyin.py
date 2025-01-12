@@ -149,11 +149,7 @@ def openwin():
         threading.Thread(target=tts.run, kwargs={'language':lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
-        if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS]:
-            return True
-        if type == AI302_TTS and config.params['ai302tts_model'] == 'azure':
-            return True
-        if type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
+        if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS,AI302_TTS]:
             return True
         return False
 
@@ -288,9 +284,6 @@ def openwin():
             winobj.hecheng_role.addItems(rolelist)
         elif change_by_lang(type):
             hecheng_language_fun(winobj.hecheng_language.currentText())
-        elif type == AI302_TTS:
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.params['ai302tts_role'].split(","))
         elif type == CLONE_VOICE_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
@@ -333,12 +326,12 @@ def openwin():
 
         if tts_type == EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == AI302_TTS and config.params['ai302tts_model'] == 'doubao':
-            show_rolelist = tools.get_302ai_doubao()
+        elif tts_type == AI302_TTS:
+            show_rolelist = tools.get_302ai()
         elif tts_type==VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
         else:
-            # AzureTTS或 302.ai选择doubao模型
+            # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
         if not show_rolelist:
             winobj.hecheng_language.setCurrentText('-')

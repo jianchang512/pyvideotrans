@@ -5,7 +5,6 @@ from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
 from videotrans.ui.ai302 import Ui_ai302form
-from videotrans.ui.ai302tts import Ui_ai302ttsform
 from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.azuretts import Ui_azurettsform
@@ -202,11 +201,6 @@ class AI302Form(QDialog, Ui_ai302form):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class AI302TTSForm(QDialog, Ui_ai302ttsform):  # <===
-    def __init__(self, parent=None):
-        super(AI302TTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class SetINIForm(QtWidgets.QWidget, Ui_setini):  # <===

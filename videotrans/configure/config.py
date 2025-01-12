@@ -253,7 +253,6 @@ def parse_init():
         "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,"
                         "yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,"
                         "llama3-70b-8192,qwen2-72b-instruct",
-        "ai302tts_models": "tts-1,tts-1-hd,azure,doubao",
         "homedir": _defaulthomedir,
         "lang": "",
         "is_queue":False,
@@ -390,7 +389,6 @@ def parse_init():
         if _settings['gemini_model'].find('gemini') == -1:
             _settings["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
         default.update(_settings)
-        default["ai302tts_models"] = "tts-1,tts-1-hd,azure,doubao"
         if not default['homedir']:
             default['homedir'] = _defaulthomedir
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)

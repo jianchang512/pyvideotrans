@@ -38,6 +38,7 @@ google.txt
 videotrans/translator/freechatgpt.py
 videotrans/cfg.json
 videotrans/params.json
+videotrans/glossary.txt
 /tmp/
 runtime
 f5-tts
