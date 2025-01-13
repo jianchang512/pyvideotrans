@@ -1958,7 +1958,7 @@ def show_glossary_editor(parent):
     layout = QVBoxLayout(dialog)
 
     text_edit = QTextEdit()
-    text_edit.setPlaceholderText("请按照 术语=翻译 的格式，一行一组来填写，例如\n\n国家弹道导弹防御系统=NBMD\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang=='zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
+    text_edit.setPlaceholderText("请按照 术语=翻译 的格式，一行一组来填写，例如\n\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang=='zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
     layout.addWidget(text_edit)
 
     button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
