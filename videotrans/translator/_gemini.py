@@ -53,13 +53,14 @@ class Gemini(BaseTrans):
             message = self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
             api_key=self.api_keys.pop(0)
             self.api_keys.append(api_key)
+            config.logger.info(f'[Gemini]请求发送:{api_key=},{config.params["gemini_model"]=}')
             genai.configure(api_key=api_key)
+            
             model = genai.GenerativeModel(model_name=config.params['gemini_model'],generation_config={"max_output_tokens": 8192},system_instruction="You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。')
             response = model.generate_content(
                 message,
                 safety_settings=safetySettings
             )
-            config.logger.info(f'[Gemini]请求发送:{message=}')
 
             result = response.text      
             config.logger.info(f'[Gemini]返回:{result=}')
@@ -75,7 +76,7 @@ class Gemini(BaseTrans):
             error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理或切换模型'
             raise requests.ConnectionError(error)
         except google.api_core.exceptions.PermissionDenied:
-            raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You don't have permission for the requested resource')
+            raise Exception('您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
         except google.api_core.exceptions.ResourceExhausted:                
             raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
         except google.auth.exceptions.DefaultCredentialsError:                
@@ -164,15 +165,25 @@ class Gemini(BaseTrans):
         except (ServerError,RetryError,socket.timeout) as e:
             error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
             raise requests.ConnectionError(error)
+        except google.api_core.exceptions.PermissionDenied:
+            raise Exception('您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
+        except google.api_core.exceptions.ResourceExhausted:                
+            raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
+        except google.auth.exceptions.DefaultCredentialsError:                
+            raise Exception(f'验证失败，可能 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Authentication fails. Please double-check your API key and try again')
+        except google.api_core.exceptions.InvalidArgument:                
+            raise Exception(f'文件过大或 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Invalid argument. One example is the file is too large and exceeds the payload size limit. Another is providing an invalid API key')
+        except google.api_core.exceptions.RetryError:
+            raise Exception('无法连接到Gemini，请尝试使用或更换代理' if config.defaulelang=='zh' else 'Can be caused when using a proxy that does not support gRPC.')
+        except genai.types.BlockedPromptException as e:
+            raise Exception(self._get_error(e.args[0].finish_reason))
+        except genai.types.StopCandidateException as e:
+            if int(e.args[0].finish_reason>1):
+                raise Exception(self._get_error(e.args[0].finish_reason))
+        
         except Exception as e:
             error = str(e)
             config.logger.error(f'[Gemini]请求失败:{error=}')
-            if response and response.prompt_feedback.block_reason:
-                raise Exception(self._get_error(response.prompt_feedback.block_reason, "forbid"))
-
-            if error.find('User location is not supported') > -1 or error.find('time out') > -1:
+            if error.find('User location is not supported') > -1:
                 raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-
-            if response and len(response.candidates) > 0 and response.candidates[0].finish_reason not in [0, 1]:
-                raise Exception(self._get_error(response.candidates[0].finish_reason))
             raise

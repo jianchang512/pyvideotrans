@@ -107,7 +107,7 @@ class GeminiRecogn(BaseRecogn):
                 error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
                 raise requests.ConnectionError(error)
             except google.api_core.exceptions.PermissionDenied:
-                raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You don't have permission for the requested resource')
+                raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
             except google.api_core.exceptions.ResourceExhausted:                
                 raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
             except google.auth.exceptions.DefaultCredentialsError:                
