@@ -27,6 +27,8 @@ CLAUDE_INDEX = 15
 LIBRE_INDEX = 16
 AI302_INDEX = 17
 ALI_INDEX = 18
+GLM4FLASH_INDEX = 19
+QWEN257B_INDEX = 20
 # 翻译通道名字列表，显示在界面
 TRANSLASTE_NAME_LIST = [
     "Google(免费)" if config.defaulelang == 'zh' else 'Google',
@@ -47,7 +49,9 @@ TRANSLASTE_NAME_LIST = [
     "Claude AI",
     "LibreTranslate(本地)" if config.defaulelang == 'zh' else 'LibreTranslate',
     "302.AI",
-    "阿里机器翻译" if config.defaulelang == 'zh' else 'Alibaba Machine Translation'
+    "阿里机器翻译" if config.defaulelang == 'zh' else 'Alibaba Machine Translation',
+    "GLM-4-flash(免费)",
+    "Qwen2.5-7b(免费)"
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
@@ -441,7 +445,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif translate_type == TENCENT_INDEX:
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
-                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX,CLAUDE_INDEX]:
+                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX,CLAUDE_INDEX,GLM4FLASH_INDEX,QWEN257B_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif translate_type in [OTT_INDEX,LIBRE_INDEX]:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
@@ -467,6 +471,18 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             return "Please configure the api and key information of the OpenAI ChatGPT channel first."
         from videotrans.winform import chatgpt
         chatgpt.openwin()
+        return False
+    if translate_type == GLM4FLASH_INDEX and not config.params['zhipu_key']:
+        if return_str:
+            return "请在菜单-GLM-4-flash/Qwen2.5-7b中填写智谱AI的api key"
+        from videotrans.winform import freeai
+        freeai.openwin()
+        return False
+    if translate_type == QWEN257B_INDEX and not config.params['guiji_key']:
+        if return_str:
+            return "请在菜单-GLM-4-flash/Qwen2.5-7b中填写硅基流动的api key"
+        from videotrans.winform import freeai
+        freeai.openwin()
         return False
     if translate_type == AI302_INDEX and not config.params['ai302_key']:
         if return_str:
@@ -694,6 +710,14 @@ def run(*, translate_type=None,
     if translate_type == CHATGPT_INDEX:
         from videotrans.translator._chatgpt import ChatGPT
         return ChatGPT(**kwargs).run()
+    if translate_type == GLM4FLASH_INDEX:
+        from videotrans.translator._freeai import FreeAIGLM
+        return FreeAIGLM(**kwargs).run()
+
+    if translate_type == QWEN257B_INDEX:
+        from videotrans.translator._freeai import FreeAIQWEN
+        return FreeAIQWEN(**kwargs).run()
+
 
     if translate_type == AZUREGPT_INDEX:
         from videotrans.translator._azure import AzureGPT

@@ -4,7 +4,7 @@ import threading
 import time,os
 
 
-from PySide6.QtCore import Qt, QTimer, QSettings
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar
 
@@ -317,6 +317,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
         self.actiontts_f5tts.triggered.connect(winform.f5tts.openwin)
         self.actiontts_volcengine.triggered.connect(winform.volcenginetts.openwin)
+        self.actionfreeai_key.triggered.connect(winform.freeai.openwin)
 
 
         self.actionyoutube.triggered.connect(winform.fn_youtube.openwin)
@@ -358,9 +359,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
+        self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
         Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
 
+    def checkbox_state_changed(self, state):
+        """复选框状态发生变化时触发的函数"""
+        print(f'{state=},{Qt.CheckState.Checked=}')
+        if state:
+            print("Checkbox is checked")
+            config.settings['aisendsrt']=True
+        else:
+            print("Checkbox is unchecked")
+            config.settings['aisendsrt']=False
+
+
+    def changeEvent(self, event):
+
+        super().changeEvent(event)  # 确保父类的事件处理被调用
+        if event.type() == QEvent.Type.ActivationChange:
+            if self.isActiveWindow():  # 只有在窗口被激活时才执行
+                # print("Window activated")
+                self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
     def closeEvent(self, event):
         config.exit_soft = True

@@ -125,8 +125,7 @@ FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
-else:
-    os.environ['PATH'] = ROOT_DIR + f':{ROOT_DIR}/ffmpeg:' + os.environ['PATH']
+
 
 
 os.environ['QT_API'] = 'pyside6'
@@ -219,7 +218,7 @@ DEEPGRAM_MODEL=[
 
 
 # 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov","mts"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov","mts","webm","ogg","ts"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 
@@ -752,6 +751,10 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
         "localllm_template": "",
+
+        "zhipu_key":"",
+        "guiji_key":"",
+        "free_template":"",
 
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],

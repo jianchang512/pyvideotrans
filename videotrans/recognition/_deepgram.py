@@ -66,9 +66,8 @@ class DeepgramRecogn(BaseRecogn):
             # res=response.to_json()
             raws=[]
             if config.settings.get('rephrase'):
-                result=json.loads(res.to_json())
                 words=[]
-                for seg in result['results']['utterances']:
+                for seg in res['results']['utterances']:
                     for it in seg['words']:
                         words.append({
                             "start":it['start'],

@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
         self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # self.splitter.setMaximumWidth(700)
+
         self.splitter.setMinimumWidth(500)
 
         self.layoutWidget = QtWidgets.QWidget(self.splitter)
@@ -162,10 +162,16 @@ class Ui_MainWindow(object):
         self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
 
+        self.aisendsrt=QtWidgets.QCheckBox()
+        self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send srt')
+        self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
+        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+
 
 
 
         self.horizontalLayout_5.addWidget(self.glossary)
+        self.horizontalLayout_5.addWidget(self.aisendsrt)
         self.horizontalLayout_5.addWidget(self.label)
         self.horizontalLayout_5.addWidget(self.proxy)
 
@@ -656,8 +662,12 @@ class Ui_MainWindow(object):
         self.actionbaidu_key.setObjectName("actionbaidu_key")
         self.actionali_key = QtGui.QAction(MainWindow)
         self.actionali_key.setObjectName("actionali_key")
+
         self.actionchatgpt_key = QtGui.QAction(MainWindow)
         self.actionchatgpt_key.setObjectName("actionchatgpt_key")
+        self.actionfreeai_key = QtGui.QAction(MainWindow)
+        self.actionfreeai_key.setObjectName("actionfreeai_key")
+
         self.actionclaude_key = QtGui.QAction(MainWindow)
         self.actionclaude_key.setObjectName("actionclaude_key")
         self.actionlibretranslate_key = QtGui.QAction(MainWindow)
@@ -815,6 +825,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actionai302_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionchatgpt_key)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionfreeai_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclaude_key)
         self.menu_Key.addSeparator()
@@ -1005,6 +1017,7 @@ class Ui_MainWindow(object):
         self.actionbaidu_key.setText("百度翻译" if config.defaulelang == 'zh' else "Baidu Key")
         self.actionali_key.setText("阿里机器翻译" if config.defaulelang == 'zh' else "Alibaba Translation")
         self.actionchatgpt_key.setText("OpenAI ChatGPT API")
+        self.actionfreeai_key.setText("GLM-4-flash/Qwen2.5-7b")
         self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
