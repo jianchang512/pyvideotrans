@@ -173,7 +173,6 @@ def openwin():
         uuid_list = [obj['uuid'] for obj in video_list]
         if winobj.save_source.isChecked():
             SOURCE_DIR=Path(video_list[0]['name']).parent.as_posix()
-            print(f'{SOURCE_DIR=}')
         for it in video_list:
             trk = TranslateSrt({
                 "out_format":winobj.out_format.currentIndex(),
@@ -235,6 +234,8 @@ def openwin():
         winobj.fanyi_target.addItems(language_namelist)
         if current_target and current_target != '-' and current_target in language_namelist:
             winobj.fanyi_target.setCurrentText(current_target)
+        winobj.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        winobj.refine3.setChecked(config.settings.get('refine3'))
 
 
 
@@ -325,11 +326,20 @@ def openwin():
         with open(path_to_file, "w", encoding='utf-8') as file:
             file.write(srt_string)
 
+
+    def checkbox_state_changed(state):
+        """复选框状态发生变化时触发的函数"""
+        if state:
+            config.settings['aisendsrt']=True
+        else:
+            config.settings['aisendsrt']=False
+
     from videotrans.component import Fanyisrt
     try:
         winobj = config.child_forms.get('fanyiform')
 
         if winobj is not None:
+            print("show")
             winobj.show()
             update_target_language()
             winobj.raise_()
@@ -375,6 +385,7 @@ def openwin():
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.exportsrt.clicked.connect(export_srt)
         winobj.glossary.clicked.connect(lambda:tools.show_glossary_editor(winobj))
+        winobj.aisendsrt.toggled.connect(checkbox_state_changed)
 
 
         winobj.show()

@@ -18,24 +18,13 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from google.api_core.exceptions import ServerError, TooManyRequests, RetryError, DeadlineExceeded, GatewayTimeout
 
-safetySettings = [
-    {
-        "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
-        "threshold": HarmBlockThreshold.BLOCK_NONE,
-    },
-    {
-        "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        "threshold": HarmBlockThreshold.BLOCK_NONE,
-    },
-    {
-        "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        "threshold": HarmBlockThreshold.BLOCK_NONE,
-    },
-    {
-        "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        "threshold": HarmBlockThreshold.BLOCK_NONE,
-    },
-]
+safetySettings = {
+    'HATE': 'BLOCK_NONE',
+    'HARASSMENT': 'BLOCK_NONE',
+    'SEXUAL' : 'BLOCK_NONE',
+    'DANGEROUS' : 'BLOCK_NONE'
+}
+
 
 class GeminiRecogn(BaseRecogn):
 
@@ -79,6 +68,7 @@ class GeminiRecogn(BaseRecogn):
 
 
             try:
+                response=None
                 files=[]
                 for f in seg_group:
                     files.append(
@@ -98,36 +88,6 @@ class GeminiRecogn(BaseRecogn):
                 )
                 config.logger.info(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
                 response = chat_session.send_message(prompt,request_options={"timeout":600})
-            except TooManyRequests as e:               
-                
-                err=f'429 请求太快或超出Gemini每日限制 [{retry}]' if config.defaulelang=='zh' else f'429 Request too more or out of limit'
-                raise Exception(err)
-            
-            except (RetryError,socket.timeout,ServerError) as e:
-                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-                raise requests.ConnectionError(error)
-            except google.api_core.exceptions.PermissionDenied:
-                raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
-            except google.api_core.exceptions.ResourceExhausted:                
-                raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
-            except google.auth.exceptions.DefaultCredentialsError:                
-                raise Exception(f'验证失败，可能 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Authentication fails. Please double-check your API key and try again')
-            except google.api_core.exceptions.InvalidArgument:                
-                raise Exception(f'文件过大或 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Invalid argument. One example is the file is too large and exceeds the payload size limit. Another is providing an invalid API key')
-            except google.api_core.exceptions.RetryError:
-                raise Exception('无法连接到Gemini，请尝试使用或更换代理' if config.defaulelang=='zh' else 'Can be caused when using a proxy that does not support gRPC.')
-            except genai.types.BlockedPromptException as e:
-                raise Exception(self._get_error(e.args[0].finish_reason))
-            except genai.types.StopCandidateException as e:
-                if int(e.args[0].finish_reason>1):
-                    raise Exception(self._get_error(e.args[0].finish_reason))
-            except Exception as e:
-                error = str(e)
-                config.logger.error(f'[Gemini]请求失败:{error=}')
-                if error.find('User location is not supported') > -1:
-                    raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-                raise 
-            else:
                 config.logger.info(f'gemini返回结果:{response.text=}')
                 m=re.findall(r'<audio_text>(.*?)<\/audio_text>',response.text.strip(),re.I)
                 if len(m)<1:
@@ -151,19 +111,50 @@ class GeminiRecogn(BaseRecogn):
                     text=('\n\n'.join(str_s))+"\n\n",
                     type='subtitle'
                 )
+            except TooManyRequests as e:               
+                
+                err=f'429 请求太快或超出Gemini每日限制 [{retry}]' if config.defaulelang=='zh' else f'429 Request too more or out of limit'
+                raise Exception(err)
+            
+            except (RetryError,socket.timeout,ServerError) as e:
+                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
+                raise requests.ConnectionError(error)
+            except google.api_core.exceptions.PermissionDenied:
+                raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
+            except google.api_core.exceptions.ResourceExhausted:                
+                raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
+            except google.auth.exceptions.DefaultCredentialsError:                
+                raise Exception(f'验证失败，可能 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Authentication fails. Please double-check your API key and try again')
+            except google.api_core.exceptions.InvalidArgument as e:                
+                raise Exception(f'文件过大或 Gemini API Key 不正确 {e}' if config.defaulelang =='zh' else f'Invalid argument. One example is the file is too large and exceeds the payload size limit. Another is providing an invalid API key {e}')
+            except google.api_core.exceptions.RetryError:
+                raise Exception('无法连接到Gemini，请尝试使用或更换代理' if config.defaulelang=='zh' else 'Can be caused when using a proxy that does not support gRPC.')
+            except genai.types.BlockedPromptException as e:
+                raise Exception(self._get_error(e.args[0].finish_reason))
+            except genai.types.StopCandidateException as e:
+                config.logger.exception(e, exc_info=True)
+                if int(e.args[0].finish_reason>1):
+                    raise Exception(self._get_error(e.args[0].finish_reason))
+            except Exception as e:
+                error = str(e)
+                config.logger.error(f'[Gemini]请求失败:{error=}')
+                if error.find('User location is not supported') > -1:
+                    raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
+                raise 
+
         if len(srt_str_list)<1:
             raise Exception('No result')
         return srt_str_list
     def _get_error(self, num=5, type='error'):
         REASON_CN = {
             2: "已达到请求中指定的最大令牌数量",
-            3: "由于安全原因，候选响应内容被标记",
-            4:"候选响应内容因背诵原因被标记",
-            5:"原因不明",
-            6:"候选回应内容因使用不支持的语言而被标记",
-            7:"由于内容包含禁用术语，令牌生成停止",
-            8:"令牌生成因可能包含违禁内容而停止",
-            9: "令牌生成停止，因为内容可能包含敏感的个人身份信息",
+            3: "Gemini安全限制:候选响应内容被标记",
+            4:"Gemini安全限制:候选响应内容因背诵原因被标记",
+            5:"Gemini安全限制:原因不明",
+            6:"Gemini安全限制:候选回应内容因使用不支持的语言而被标记",
+            7:"Gemini安全限制:由于内容包含禁用术语，令牌生成停止",
+            8:"Gemini安全限制:令牌生成因可能包含违禁内容而停止",
+            9: "Gemini安全限制:令牌生成停止，因为内容可能包含敏感的个人身份信息",
             10: "模型生成的函数调用无效",
         }
         REASON_EN = {
@@ -178,11 +169,11 @@ class GeminiRecogn(BaseRecogn):
             10:"The function call generated by the model is invalid",
         }
         forbid_cn = {
-            0: "被Gemini禁止翻译:出于安全考虑",
-            1: "被Gemini禁止翻译:出于安全考虑，提示已被屏蔽",
-            2: "提示因未知原因被屏蔽了",
-            3: "提示因术语屏蔽名单中包含的字词而被屏蔽",
-            4: "系统屏蔽了此提示，因为其中包含禁止的内容。",
+            0: "Gemini安全限制::安全考虑",
+            1: "Gemini安全限制::出于安全考虑，提示已被屏蔽",
+            2: "Gemini安全限制:提示因未知原因被屏蔽了",
+            3: "Gemini安全限制:提示因术语屏蔽名单中包含的字词而被屏蔽",
+            4: "Gemini安全限制:系统屏蔽了此提示，因为其中包含禁止的内容。",
         }
         forbid_en = {
             0: "Prompt was blocked by gemini",

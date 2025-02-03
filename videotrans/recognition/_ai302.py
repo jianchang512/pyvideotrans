@@ -41,7 +41,7 @@ class AI302Recogn(BaseRecogn):
             response = requests.post(url,
                                      files={"file":open(self.audio_file, 'rb')},
                                      data={
-                                         "model":'whisper-1',
+                                         "model":'whisper-3',
                                          'response_format':'verbose_json',
                                          'prompt':prompt,
                                          'language':langcode},
