@@ -16,8 +16,7 @@ class FreeAI(BaseTrans):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.trans_thread=int(config.settings.get('aitrans_thread',500))
-        if not config.params['chatgpt_key']:
-            raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
+       
         
         # 是srt则获取srt的提示词
         self.prompt = tools.get_prompt(ainame='freeai',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
