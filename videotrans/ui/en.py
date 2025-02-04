@@ -701,6 +701,8 @@ class Ui_MainWindow(object):
 
         self.actionclone_address = QtGui.QAction(MainWindow)
         self.actionclone_address.setObjectName("actionclone_address")
+        self.actionkokoro_address = QtGui.QAction(MainWindow)
+        self.actionkokoro_address.setObjectName("actionkokoro_address")
         self.actionchattts_address = QtGui.QAction(MainWindow)
         self.actionchattts_address.setObjectName("actionchattts_address")
 
@@ -851,6 +853,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
 
         self.menu_TTS.addAction(self.actionclone_address)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionkokoro_address)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionchattts_address)
         self.menu_TTS.addSeparator()
@@ -1035,6 +1039,7 @@ class Ui_MainWindow(object):
         self.actiondeepLX_address.setText("DeepLX Api")
         self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang == 'zh' else "OTT Api")
         self.actionclone_address.setText("clone-voice" if config.defaulelang == 'zh' else "Clone-Voice TTS")
+        self.actionkokoro_address.setText("Kokoro TTS")
         self.actionchattts_address.setText("ChatTTS")
         self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")

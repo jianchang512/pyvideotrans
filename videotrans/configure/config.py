@@ -778,6 +778,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_model": "tts-1",
         "openaitts_role": "alloy,echo,fable,onyx,nova,shimmer",
 
+        "kokoro_api":"",
+
         "openairecognapi_url": "",
         "openairecognapi_key": "",
         "openairecognapi_prompt": "",

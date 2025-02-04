@@ -140,7 +140,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS,tts.AI302_TTS]:
+        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS,tts.AI302_TTS,tts.KOKORO_TTS]:
             return True
         return False
 
@@ -242,6 +242,8 @@ class WinAction(WinActionSub):
         tts_type = self.main.tts_type.currentIndex()
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
+        elif tts_type == tts.KOKORO_TTS:
+            show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:

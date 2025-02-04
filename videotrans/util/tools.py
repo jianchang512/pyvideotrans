@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 import copy
 import datetime
-import time
-from datetime import timedelta
+import hashlib
+import json
 import os
+import platform
+import random
 import re
+import shutil
+import subprocess
 import sys
 import textwrap
-import json
-import random
-import shutil
-import hashlib
-import platform
-import subprocess
+import time
+from datetime import timedelta
 from pathlib import Path
 
 import requests
 
 from videotrans.configure import config
+
+
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
 
 # 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
@@ -75,7 +77,8 @@ def get_fishtts_role():
             continue
         rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
     return rolelist
-    
+
+
 def get_f5tts_role():
     if not config.params['f5tts_role'].strip():
         return
@@ -95,7 +98,7 @@ def pygameaudio(filepath):
 
 
 # 获取 elenevlabs 的角色列表
-def get_elevenlabs_role(force=False,raise_exception=False):
+def get_elevenlabs_role(force=False, raise_exception=False):
     jsonfile = os.path.join(config.ROOT_DIR, 'elevenlabs.json')
     namelist = ["clone"]
     if vail_file(jsonfile):
@@ -108,7 +111,7 @@ def get_elevenlabs_role(force=False,raise_exception=False):
         return namelist
     try:
         from elevenlabs import ElevenLabs
-        client=ElevenLabs(api_key=config.params["elevenlabstts_key"])
+        client = ElevenLabs(api_key=config.params["elevenlabstts_key"])
         voiceslist = client.voices.get_all()
         result = {}
         for it in voiceslist.voices:
@@ -123,6 +126,7 @@ def get_elevenlabs_role(force=False,raise_exception=False):
         if raise_exception:
             raise
     return []
+
 
 def set_proxy(set_val=''):
     if set_val == 'del':
@@ -175,182 +179,180 @@ def set_proxy(set_val=''):
 
 def get_302ai(role_name=None):
     from videotrans import tts
-    role_dict=get_azure_rolelist()
+    role_dict = get_azure_rolelist()
     role_dict['zh'].extend(list(tts.DOUBAO_302AI.keys()))
     return role_dict
 
 
-
 # 字节火山语音合成角色
-def get_volcenginetts_rolelist(role_name=None,langcode="zh"):
-    zh={
-"灿灿2.0":"BV700_V2_streaming",
-"炀炀":"BV705_streaming",
-"擎苍2.0":"BV701_V2_streaming",
-"通用女声 2.0":"BV001_V2_streaming",
-"灿灿":"BV700_streaming",
-"超自然音色-梓梓2.0":"BV406_V2_streaming",
-"超自然音色-梓梓":"BV406_streaming",
-"超自然音色-燃燃2.0":"BV407_V2_streaming",
-"超自然音色-燃燃":"BV407_streaming",
-"通用女声":"BV001_streaming",
-"通用男声":"BV002_streaming",
-"擎苍":"BV701_streaming",
-"阳光青年":"BV123_streaming",
-"通用赘婿":"BV119_streaming",
-"古风少御":"BV115_streaming",
-"霸气青叔":"BV107_streaming",
-"质朴青年":"BV100_streaming",
-"温柔淑女":"BV104_streaming",
-"开朗青年":"BV004_streaming",
-"甜宠少御":"BV113_streaming",
-"儒雅青年":"BV102_streaming",
-"甜美小源":"BV405_streaming",
-"亲切女声":"BV007_streaming",
-"知性女声":"BV009_streaming",
-"诚诚":"BV419_streaming",
-"童童":"BV415_streaming",
-"亲切男声":"BV008_streaming",
-"译制片男声":"BV408_streaming",
-"懒小羊":"BV426_streaming",
-"清新文艺女声":"BV428_streaming",
-"鸡汤女声":"BV403_streaming",
-"智慧老者":"BV158_streaming",
-"慈爱姥姥":"BV157_streaming",
-"说唱小哥":"BR001_streaming",
-"活力解说男":"BV410_streaming",
-"影视解说小帅":"BV411_streaming",
-"解说小帅多情感":"BV437_streaming",
-"影视解说小美":"BV412_streaming",
-"纨绔青年":"BV159_streaming",
-"直播一姐":"BV418_streaming",
-"反卷青年":"BV120_streaming",
-"沉稳解说男":"BV142_streaming",
-"潇洒青年":"BV143_streaming",
-"阳光男声":"BV056_streaming",
-"活泼女声":"BV005_streaming",
-"小萝莉":"BV064_streaming",
-"奶气萌娃":"BV051_streaming",
-"动漫海绵":"BV063_streaming",
-"动漫海星":"BV417_streaming",
-"动漫小新":"BV050_streaming",
-"天才童声":"BV061_streaming",
-"促销男声":"BV401_streaming",
-"促销女声":"BV402_streaming",
-"磁性男声":"BV006_streaming",
-"新闻女声":"BV011_streaming",
-"新闻男声":"BV012_streaming",
-"知性姐姐":"BV034_streaming",
-"温柔小哥":"BV033_streaming",
+def get_volcenginetts_rolelist(role_name=None, langcode="zh"):
+    zh = {
+        "灿灿2.0": "BV700_V2_streaming",
+        "炀炀": "BV705_streaming",
+        "擎苍2.0": "BV701_V2_streaming",
+        "通用女声 2.0": "BV001_V2_streaming",
+        "灿灿": "BV700_streaming",
+        "超自然音色-梓梓2.0": "BV406_V2_streaming",
+        "超自然音色-梓梓": "BV406_streaming",
+        "超自然音色-燃燃2.0": "BV407_V2_streaming",
+        "超自然音色-燃燃": "BV407_streaming",
+        "通用女声": "BV001_streaming",
+        "通用男声": "BV002_streaming",
+        "擎苍": "BV701_streaming",
+        "阳光青年": "BV123_streaming",
+        "通用赘婿": "BV119_streaming",
+        "古风少御": "BV115_streaming",
+        "霸气青叔": "BV107_streaming",
+        "质朴青年": "BV100_streaming",
+        "温柔淑女": "BV104_streaming",
+        "开朗青年": "BV004_streaming",
+        "甜宠少御": "BV113_streaming",
+        "儒雅青年": "BV102_streaming",
+        "甜美小源": "BV405_streaming",
+        "亲切女声": "BV007_streaming",
+        "知性女声": "BV009_streaming",
+        "诚诚": "BV419_streaming",
+        "童童": "BV415_streaming",
+        "亲切男声": "BV008_streaming",
+        "译制片男声": "BV408_streaming",
+        "懒小羊": "BV426_streaming",
+        "清新文艺女声": "BV428_streaming",
+        "鸡汤女声": "BV403_streaming",
+        "智慧老者": "BV158_streaming",
+        "慈爱姥姥": "BV157_streaming",
+        "说唱小哥": "BR001_streaming",
+        "活力解说男": "BV410_streaming",
+        "影视解说小帅": "BV411_streaming",
+        "解说小帅多情感": "BV437_streaming",
+        "影视解说小美": "BV412_streaming",
+        "纨绔青年": "BV159_streaming",
+        "直播一姐": "BV418_streaming",
+        "反卷青年": "BV120_streaming",
+        "沉稳解说男": "BV142_streaming",
+        "潇洒青年": "BV143_streaming",
+        "阳光男声": "BV056_streaming",
+        "活泼女声": "BV005_streaming",
+        "小萝莉": "BV064_streaming",
+        "奶气萌娃": "BV051_streaming",
+        "动漫海绵": "BV063_streaming",
+        "动漫海星": "BV417_streaming",
+        "动漫小新": "BV050_streaming",
+        "天才童声": "BV061_streaming",
+        "促销男声": "BV401_streaming",
+        "促销女声": "BV402_streaming",
+        "磁性男声": "BV006_streaming",
+        "新闻女声": "BV011_streaming",
+        "新闻男声": "BV012_streaming",
+        "知性姐姐": "BV034_streaming",
+        "温柔小哥": "BV033_streaming",
 
+        "东北老铁": "BV021_streaming",
+        "东北丫头": "BV020_streaming",
+        "东北灿灿": "BV704_streaming",
 
-"东北老铁":"BV021_streaming",
-"东北丫头":"BV020_streaming",
-"东北灿灿":"BV704_streaming",
+        "西安佟掌柜": "BV210_streaming",
 
-"西安佟掌柜":"BV210_streaming",
+        "上海阿姐": "BV217_streaming",
 
-"上海阿姐":"BV217_streaming",
+        "广西表哥": "BV213_streaming",
+        "广西灿灿": "BV704_streaming",
 
-"广西表哥":"BV213_streaming",
-"广西灿灿":"BV704_streaming",
+        "甜美台妹": "BV025_streaming",
+        "台普男声": "BV227_streaming",
+        "台湾灿灿": "BV704_streaming",
 
-"甜美台妹":"BV025_streaming",
-"台普男声":"BV227_streaming",
-"台湾灿灿":"BV704_streaming",
+        "港剧男神": "BV026_streaming",
+        "广东女仔": "BV424_streaming",
+        "粤语灿灿": "BV704_streaming",
 
-"港剧男神":"BV026_streaming",
-"广东女仔":"BV424_streaming",
-"粤语灿灿":"BV704_streaming",
+        "相声演员": "BV212_streaming",
 
-"相声演员":"BV212_streaming",
+        "重庆小伙": "BV019_streaming",
+        "四川甜妹儿": "BV221_streaming",
+        "重庆幺妹儿": "BV423_streaming",
+        "成都灿灿": "BV704_streaming",
 
-"重庆小伙":"BV019_streaming",
-"四川甜妹儿":"BV221_streaming",
-"重庆幺妹儿":"BV423_streaming",
-"成都灿灿":"BV704_streaming",
-
-"郑州乡村企业家":"BV214_streaming",
-"湖南妹坨":"BV226_streaming",
-"长沙靓女":"BV216_streaming"
+        "郑州乡村企业家": "BV214_streaming",
+        "湖南妹坨": "BV226_streaming",
+        "长沙靓女": "BV216_streaming"
     }
-    en={
-    "慵懒女声-Ava":"BV511_streaming",
-    "议论女声-Alicia":"BV505_streaming",
-    "情感女声-Lawrence":"BV138_streaming",
-    "美式女声-Amelia":"BV027_streaming",
-    "讲述女声-Amanda":"BV502_streaming",
-    "活力女声-Ariana":"BV503_streaming",
-    "活力男声-Jackson":"BV504_streaming",
-    "天才少女":"BV421_streaming",
-    "Stefan":"BV702_streaming",
-    "天真萌娃-Lily":"BV506_streaming",
-    "亲切女声-Anna":"BV040_streaming",
-    "澳洲男声-Henry":"BV516_streaming"
+    en = {
+        "慵懒女声-Ava": "BV511_streaming",
+        "议论女声-Alicia": "BV505_streaming",
+        "情感女声-Lawrence": "BV138_streaming",
+        "美式女声-Amelia": "BV027_streaming",
+        "讲述女声-Amanda": "BV502_streaming",
+        "活力女声-Ariana": "BV503_streaming",
+        "活力男声-Jackson": "BV504_streaming",
+        "天才少女": "BV421_streaming",
+        "Stefan": "BV702_streaming",
+        "天真萌娃-Lily": "BV506_streaming",
+        "亲切女声-Anna": "BV040_streaming",
+        "澳洲男声-Henry": "BV516_streaming"
     }
-    ja={
-    "元气少女":"BV520_streaming",
-    "萌系少女":"BV521_streaming",
-    "天才少女":"BV421_streaming",
-    "气质女声":"BV522_streaming",
-    "Stefan":"BV702_streaming",
-    "灿灿":"BV700_streaming",
-    "日语男声":"BV524_streaming",
+    ja = {
+        "元气少女": "BV520_streaming",
+        "萌系少女": "BV521_streaming",
+        "天才少女": "BV421_streaming",
+        "气质女声": "BV522_streaming",
+        "Stefan": "BV702_streaming",
+        "灿灿": "BV700_streaming",
+        "日语男声": "BV524_streaming",
     }
-    pt={
-    "活力男声Carlos":"BV531_streaming",
-    "活力女声":"BV530_streaming",
-    "天才少女":"BV421_streaming",
-    "Stefan":"BV702_streaming",
-    "灿灿":"BV700_streaming",
+    pt = {
+        "活力男声Carlos": "BV531_streaming",
+        "活力女声": "BV530_streaming",
+        "天才少女": "BV421_streaming",
+        "Stefan": "BV702_streaming",
+        "灿灿": "BV700_streaming",
     }
-    es={
-        "气质御姐":"BV065_streaming",
-        "天才少女":"BV421_streaming",
-        "Stefan":"BV702_streaming",
-        "灿灿":"BV700_streaming",
+    es = {
+        "气质御姐": "BV065_streaming",
+        "天才少女": "BV421_streaming",
+        "Stefan": "BV702_streaming",
+        "灿灿": "BV700_streaming",
     }
-    th={
-        "天才少女":"BV421_streaming"
+    th = {
+        "天才少女": "BV421_streaming"
     }
-    vi={
-        "天才少女":"BV421_streaming"
+    vi = {
+        "天才少女": "BV421_streaming"
     }
-    id={
-"天才少女":"BV421_streaming",
-"Stefan":"BV702_streaming",
-"灿灿":"BV700_streaming",
+    id = {
+        "天才少女": "BV421_streaming",
+        "Stefan": "BV702_streaming",
+        "灿灿": "BV700_streaming",
     }
-    if role_name and langcode[:2]=='zh':
-        return zh.get(role_name,zh[list(zh.keys())[0]])
-    if role_name and langcode[:2]=='en':
-        return en.get(role_name,en[list(en.keys())[0]])
-    if role_name and langcode[:2]=='ja':
-        return ja.get(role_name,ja[list(ja.keys())[0]])
-    if role_name and langcode[:2]=='pt':
-        return pt.get(role_name,pt[list(pt.keys())[0]])
-    if role_name and langcode[:2]=='es':
-        return es.get(role_name,es[list(es.keys())[0]])
-    if role_name and langcode[:2]=='th':
-        return th.get(role_name,th[list(th.keys())[0]])
-    if role_name and langcode[:2]=='vi':
-        return vi.get(role_name,vi[list(vi.keys())[0]])
-    if role_name and langcode[:2]=='id':
-        return id.get(role_name,id[list(id.keys())[0]])
+    if role_name and langcode[:2] == 'zh':
+        return zh.get(role_name, zh[list(zh.keys())[0]])
+    if role_name and langcode[:2] == 'en':
+        return en.get(role_name, en[list(en.keys())[0]])
+    if role_name and langcode[:2] == 'ja':
+        return ja.get(role_name, ja[list(ja.keys())[0]])
+    if role_name and langcode[:2] == 'pt':
+        return pt.get(role_name, pt[list(pt.keys())[0]])
+    if role_name and langcode[:2] == 'es':
+        return es.get(role_name, es[list(es.keys())[0]])
+    if role_name and langcode[:2] == 'th':
+        return th.get(role_name, th[list(th.keys())[0]])
+    if role_name and langcode[:2] == 'vi':
+        return vi.get(role_name, vi[list(vi.keys())[0]])
+    if role_name and langcode[:2] == 'id':
+        return id.get(role_name, id[list(id.keys())[0]])
     if role_name:
         raise
 
-
     return {
-        "zh":list(zh.keys()),
-        "ja":list(ja.keys()),
-        "en":list(en.keys()),
-        "pt":list(pt.keys()),
-        "es":list(es.keys()),
-        "th":list(th.keys()),
-        "id":list(id.keys()),
-        "vi":list(vi.keys())
+        "zh": list(zh.keys()),
+        "ja": list(ja.keys()),
+        "en": list(en.keys()),
+        "pt": list(pt.keys()),
+        "es": list(es.keys()),
+        "th": list(th.keys()),
+        "id": list(id.keys()),
+        "vi": list(vi.keys())
     }
+
 
 #  get role by edge tts
 def get_edge_rolelist():
@@ -378,7 +380,7 @@ def get_edge_rolelist():
                 voice_list[prefix] = ["No", name]
             else:
                 voice_list[prefix].append(name)
-        with open(config.ROOT_DIR + "/voice_list.json", "w",encoding='utf-8') as f:
+        with open(config.ROOT_DIR + "/voice_list.json", "w", encoding='utf-8') as f:
             f.write(json.dumps(voice_list))
         config.edgeTTS_rolelist = voice_list
         return voice_list
@@ -399,15 +401,61 @@ def get_azure_rolelist():
     return voice_list
 
 
+def get_kokoro_rolelist():
+    voice_list = {
+        "en": [
+            "No",
+            "af_alloy",
+            "af_aoede",
+            "af_bella",
+            "af_jessica",
+            "af_kore",
+            "af_nicole",
+            "af_nova",
+            "af_river",
+            "af_sarah",
+            "af_sky",
+            "am_adam",
+            "am_echo",
+            "am_eric",
+            "am_fenrir",
+            "am_liam",
+            "am_michael",
+            "am_onyx",
+            "am_puck",
+            "am_santa",
+            "bf_alice",
+            "bf_emma",
+            "bf_isabella",
+            "bf_lily",
+            "bm_daniel",
+            "bm_fable",
+            "bm_george",
+            "bm_lewis"
+        ],
+        "zh": ["No","zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia",
+               "zm_yunyang"],
+        "ja": ["No","jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo"],
+        "fr": ["No","ff_siwis"],
+        "it": ["No","if_sara", "im_nicola"],
+        "hi": ["No","hf_alpha", "hf_beta", "hm_omega", "hm_psi"],
+        "es": ["No","ef_dora", "em_alex", "em_santa"],
+        "pt": ["No","pf_dora", "pm_alex", "pm_santa"]
+    }
+
+    return voice_list
+
+
 def get_preset(encoder):
-    if encoder in ['ultrafast','superfast','veryfast','faster','fast']:
+    if encoder in ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast']:
         return 'hp'
     return 'hq'
 
+
 # 执行 ffmpeg
-def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
+def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     arg_copy = copy.deepcopy(arg)
-    file_name=""
+    file_name = ""
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
     # 默认视频编码 libx264 / libx265
@@ -418,48 +466,47 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
         if not config.video_codec:
             config.video_codec = get_video_codec()
         # 判断第一个输入是不是mp4，是则尝试cuda解码
-        has_mp4=False
+        has_mp4 = False
         # 插入解码位置
-        insert_index=-1
+        insert_index = -1
         # 不支持预设的硬件，例如 _qsv _videotoolbox 需要移除预设
         # 0 不做操作，1=移除预设，2=使用新的预设替代
-        remove_preset=0
+        remove_preset = 0
         for i, it in enumerate(arg):
-            if insert_index==-1 and arg[i]=='-i':
-                insert_index=i
-                has_mp4=True if arg[i+1][-3:] in ['mp4','txt'] else False
-                
-            if i > 0 and arg[i - 1] == '-c:v' and arg[i] !='copy':
+            if insert_index == -1 and arg[i] == '-i':
+                insert_index = i
+                has_mp4 = True if arg[i + 1][-3:] in ['mp4', 'txt'] else False
+
+            if i > 0 and arg[i - 1] == '-c:v' and arg[i] != 'copy':
                 arg[i] = config.video_codec
-                if config.video_codec.find('_qsv')>0 or config.video_codec.find('_videotoolbox')>0:
-                    remove_preset=1
-                elif config.video_codec.find('_nvenc')>0:
-                    remove_preset=2
-            elif it == '-crf' and  config.video_codec.find('_nvenc')>0:
+                if config.video_codec.find('_qsv') > 0 or config.video_codec.find('_videotoolbox') > 0:
+                    remove_preset = 1
+                elif config.video_codec.find('_nvenc') > 0:
+                    remove_preset = 2
+            elif it == '-crf' and config.video_codec.find('_nvenc') > 0:
                 arg[i] = '-qp'
-                
+
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
         # 因显卡兼容性，出错率较高
         # 启用硬件加速
-        if platform.system() =='Darwin':
-            if config.video_codec.find('_videotoolbox')>0:
+        if platform.system() == 'Darwin':
+            if config.video_codec.find('_videotoolbox') > 0:
                 cmd.append('-hwaccel')
-                cmd.append('videotoolbox')            
-        elif config.settings.get('cuda_decode',False) and insert_index>-1 and has_mp4 and arg[-1][-3:]=='mp4' and config.video_codec in ['h264_nvenc','hevc_nvenc']:
-            arg.insert(insert_index,'cuda')
-            arg.insert(insert_index,'-hwaccel')
-        
-        #移除预设，防止出错 -preset
-        if  '-preset' in arg:
-            pos=arg.index('-preset')        
-            if remove_preset==1:
-                arg.pop(pos)
-                arg.pop(pos)
-            elif remove_preset==2:
-                arg[pos+1]=get_preset(arg[pos+1])
-            
+                cmd.append('videotoolbox')
+        elif config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][
+                                                                                             -3:] == 'mp4' and config.video_codec in [
+            'h264_nvenc', 'hevc_nvenc']:
+            arg.insert(insert_index, 'cuda')
+            arg.insert(insert_index, '-hwaccel')
 
-        
+        # 移除预设，防止出错 -preset
+        if '-preset' in arg:
+            pos = arg.index('-preset')
+            if remove_preset == 1:
+                arg.pop(pos)
+                arg.pop(pos)
+            elif remove_preset == 2:
+                arg[pos + 1] = get_preset(arg[pos + 1])
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -483,7 +530,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
             config.queue_novice[noextname] = "end"
         return True
     except subprocess.CalledProcessError as e:
-        config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}',exc_info=True)
+        config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}', exc_info=True)
         # 处理视频时如果出错，尝试回退
         if not force_cpu and cmd[-1].endswith('.mp4'):
             # 存在视频的copy操作时，尝试回退使用重新编码
@@ -491,11 +538,11 @@ def runffmpeg(arg, *, noextname=None, uuid=None,force_cpu=False):
             set_process(text=config.transobj['huituicpu'], uuid=uuid)
             config.logger.error(f'执行出错，退回到CPU执行')
             for i, it in enumerate(arg_copy):
-                if i > 0 and arg_copy[i - 1] == '-c:v' and arg_copy[i] not in ['copy','libx264','libx265']:
+                if i > 0 and arg_copy[i - 1] == '-c:v' and arg_copy[i] not in ['copy', 'libx264', 'libx265']:
                     arg_copy[i] = default_codec
-            return runffmpeg(arg_copy, noextname=noextname,force_cpu=True)
+            return runffmpeg(arg_copy, noextname=noextname, force_cpu=True)
         if noextname:
-            config.queue_novice[noextname] = "error"        
+            config.queue_novice[noextname] = "error"
         raise
     except Exception as e:
         if noextname:
@@ -540,7 +587,9 @@ def hide_show_element(wrap_layout, show_status):
                     item.widget().show()
             elif item.layout():
                 hide_recursive(item.layout(), show_status)
+
     hide_recursive(wrap_layout, show_status)
+
 
 # 获取视频信息
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
@@ -559,7 +608,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "time": 0,
         "streams_len": 0,
         "streams_audio": 0,
-        "color":"yuv420p"
+        "color": "yuv420p"
     }
     if "streams" not in out or len(out["streams"]) < 1:
         raise Exception(f'ffprobe error:streams is 0')
@@ -632,9 +681,9 @@ def split_novoice_byraw(source_mp4, novoice_mp4, noextname, lib="copy"):
         "-c:v",
         lib
     ]
-    if lib !='copy':
-        cmd+=[ "-crf", f'{config.settings["crf"]}' ]
-    cmd+=[f'{novoice_mp4}']
+    if lib != 'copy':
+        cmd += ["-crf", f'{config.settings["crf"]}']
+    cmd += [f'{novoice_mp4}']
     return runffmpeg(cmd, noextname=noextname)
 
 
@@ -721,13 +770,14 @@ def backandvocal(backwav, peiyinm4a):
     import tempfile
     backwav = Path(backwav).as_posix()
     peiyinm4a = Path(peiyinm4a).as_posix()
-    tmpdir=tempfile.gettempdir()
+    tmpdir = tempfile.gettempdir()
     tmpwav = Path(tmpdir + f'/{time.time()}-1.m4a').as_posix()
     tmpm4a = Path(tmpdir + f'/{time.time()}.m4a').as_posix()
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a","192k", '-c:a', 'aac', tmpwav])
+               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "192k", '-c:a', 'aac',
+               tmpwav])
     shutil.copy2(tmpwav, peiyinm4a)
     # 转为 m4a
 
@@ -808,7 +858,7 @@ def create_concat_txt(filelist, concat_txt=None):
         txt.append(f"file '{os.path.basename(it)}'")
     if len(txt) < 1:
         raise Exception(f'file list no vail')
-    with Path(concat_txt).open('w',encoding='utf-8') as f:
+    with Path(concat_txt).open('w', encoding='utf-8') as f:
         f.write("\n".join(txt))
         f.flush()
     return concat_txt
@@ -833,12 +883,12 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    cmd=['-y','-f', 'concat', '-i', concat_txt,"-b:a","192k"]
+    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "192k"]
     if out.endswith('.m4a'):
-        cmd+=[ '-c:a', 'aac']
+        cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
-        cmd+=[ '-c:a', 'pcm_s16le']
-    runffmpeg(cmd+[out])
+        cmd += ['-c:a', 'pcm_s16le']
+    runffmpeg(cmd + [out])
     os.chdir(config.TEMP_DIR)
     return True
 
@@ -896,6 +946,8 @@ def show_popup(title, text, parent=None):
 print(ms_to_time_string(ms=12030))
 -> 00:00:12,030
 '''
+
+
 def ms_to_time_string(*, ms=0, seconds=None):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
@@ -909,25 +961,26 @@ def ms_to_time_string(*, ms=0, seconds=None):
     time_string = f"{hours}:{minutes}:{seconds},{milliseconds}"
     return format_time(time_string, ',')
 
+
 # 将不规范的 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
 # eg  001:01:2,4500  01:54,14 等做处理
 def format_time(s_time="", separate=','):
     if not s_time.strip():
         return f'00:00:00{separate}000'
-    hou, min, sec,ms = 0, 0, 0,0
+    hou, min, sec, ms = 0, 0, 0, 0
 
     tmp = s_time.strip().split(':')
     if len(tmp) >= 3:
-        hou,min,sec = tmp[-3].strip(),tmp[-2].strip(),tmp[-1].strip()
+        hou, min, sec = tmp[-3].strip(), tmp[-2].strip(), tmp[-1].strip()
     elif len(tmp) == 2:
-        min,sec = tmp[0].strip(),tmp[1].strip()
+        min, sec = tmp[0].strip(), tmp[1].strip()
     elif len(tmp) == 1:
         sec = tmp[0].strip()
-    
+
     if re.search(r',|\.', str(sec)):
         t = re.split(r',|\.', str(sec))
         sec = t[0].strip()
-        ms=t[1].strip()
+        ms = t[1].strip()
     else:
         ms = 0
     hou = f'{int(hou):02}'[-2:]
@@ -936,25 +989,26 @@ def format_time(s_time="", separate=','):
     ms = f'{int(ms):03}'[-3:]
     return f"{hou}:{min}:{sec}{separate}{ms}"
 
+
 # 将 datetime.timedelta 对象的秒和微妙转为毫秒整数值
 def toms(td):
     return (td.seconds * 1000) + int(td.microseconds / 1000)
 
+
 # 将 时:分:秒,毫秒 转为毫秒整数值
 def get_ms_from_hmsm(time_str):
-    h,m,sec2ms=0,0,'00,000'
-    tmp0= time_str.split(":")
-    if len(tmp0)==3:
-        h,m,sec2ms=tmp0[0],tmp0[1],tmp0[2]
-    elif len(tmp0)==2:
-        m,sec2ms=tmp0[0],tmp0[1]
-        
-    tmp=sec2ms.split(',')
-    ms=tmp[1] if len(tmp)==2 else 0
-    sec=tmp[0]
-    
-    return int(int(h) * 3600000 + int(m) * 60000 +int(sec)*1000 + int(ms))
+    h, m, sec2ms = 0, 0, '00,000'
+    tmp0 = time_str.split(":")
+    if len(tmp0) == 3:
+        h, m, sec2ms = tmp0[0], tmp0[1], tmp0[2]
+    elif len(tmp0) == 2:
+        m, sec2ms = tmp0[0], tmp0[1]
 
+    tmp = sec2ms.split(',')
+    ms = tmp[1] if len(tmp) == 2 else 0
+    sec = tmp[0]
+
+    return int(int(h) * 3600000 + int(m) * 60000 + int(sec) * 1000 + int(ms))
 
 
 def srt_str_to_listdict(srt_string):
@@ -972,9 +1026,9 @@ def srt_str_to_listdict(srt_string):
 
             def parse_time(time_groups):
                 h, m, s, ms = time_groups
-                ms = ms.replace(',', '').replace('.','') if ms else "0"
+                ms = ms.replace(',', '').replace('.', '') if ms else "0"
                 try:
-                    return int(h) * 3600000 + int(m) * 60000 + int(s)*1000 + int(ms)
+                    return int(h) * 3600000 + int(m) * 60000 + int(s) * 1000 + int(ms)
                 except (ValueError, TypeError):
                     return None
 
@@ -989,10 +1043,10 @@ def srt_str_to_listdict(srt_string):
             text_lines = []
             while i < len(lines):
                 current_line = lines[i].strip()
-                next_line = lines[i+1].strip() if i + 1 < len(lines) else "" # 获取下一行，如果没有则为空字符串
+                next_line = lines[i + 1].strip() if i + 1 < len(lines) else ""  # 获取下一行，如果没有则为空字符串
 
-                if re.match(time_pattern, next_line): #判断下一行是否为时间行
-                    if re.fullmatch(r'\d+', current_line): #如果当前行为纯数字，则跳过
+                if re.match(time_pattern, next_line):  # 判断下一行是否为时间行
+                    if re.fullmatch(r'\d+', current_line):  # 如果当前行为纯数字，则跳过
                         i += 1
                         break
                     else:
@@ -1007,59 +1061,55 @@ def srt_str_to_listdict(srt_string):
                     i += 1
 
             text = ('\n'.join(text_lines)).strip()
-            text=re.sub(r'</?[a-zA-Z]+>','',text.replace("\r",'').strip())
-            text=re.sub(r'\n{2,}','\n',text)
-            it={
-                "line": len(srt_list)+1,  #字幕索引，转换为整数
-                "start_time": int(start_time), 
-                "end_time":int(end_time),  #起始和结束时间
-                "text": text, #字幕文本
+            text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
+            text = re.sub(r'\n{2,}', '\n', text)
+            it = {
+                "line": len(srt_list) + 1,  # 字幕索引，转换为整数
+                "start_time": int(start_time),
+                "end_time": int(end_time),  # 起始和结束时间
+                "text": text,  # 字幕文本
             }
-            it['startraw']=ms_to_time_string(ms=it['start_time'])
-            it['endraw']=ms_to_time_string(ms=it['end_time'])
-            it["time"]=f"{it['startraw']} --> {it['endraw']}"
+            it['startraw'] = ms_to_time_string(ms=it['start_time'])
+            it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            it["time"] = f"{it['startraw']} --> {it['endraw']}"
             srt_list.append(it)
 
 
         else:
-            i += 1 # 跳过非时间行
-      
+            i += 1  # 跳过非时间行
 
     return srt_list
-
 
 
 # 将字符串或者字幕文件内容，格式化为有效字幕数组对象
 # 格式化为有效的srt格式
 def format_srt(content):
-    result=[]
+    result = []
     try:
-        result=srt_str_to_listdict(content)
+        result = srt_str_to_listdict(content)
     except Exception:
-        result=srt_str_to_listdict(process_text_to_srt_str(content))        
+        result = srt_str_to_listdict(process_text_to_srt_str(content))
     return result
-    
-
 
 
 # 将srt文件或合法srt字符串转为字典对象
 def get_subtitle_from_srt(srtfile, *, is_file=True):
     def _readfile(file):
-        content=""
+        content = ""
         try:
-            with open(file,'r',encoding='utf-8') as f:
-                content=f.read().strip()
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
         except Exception as e:
             try:
-                with open(file,'r', encoding='gbk') as f:
+                with open(file, 'r', encoding='gbk') as f:
                     content = f.read().strip()
             except Exception as e:
-                config.logger.exception(e,exc_info=True)
+                config.logger.exception(e, exc_info=True)
         return content
 
-    content=''
+    content = ''
     if is_file:
-        content=_readfile(srtfile)
+        content = _readfile(srtfile)
     else:
         content = srtfile.strip()
 
@@ -1079,14 +1129,16 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 # 将字幕字典列表写入srt文件
 def save_srt(srt_list, srt_file):
     txt = get_srt_from_list(srt_list)
-    with open(srt_file,"w", encoding="utf-8") as f:
+    with open(srt_file, "w", encoding="utf-8") as f:
         f.write(txt)
     return True
 
+
 def get_current_time_as_yymmddhhmmss(format='hms'):
-  """将当前时间转换为 YYMMDDHHmmss 格式的字符串。"""
-  now = datetime.datetime.now()
-  return now.strftime("%y%m%d%H%M%S" if format!='hms' else "%H%M%S")
+    """将当前时间转换为 YYMMDDHHmmss 格式的字符串。"""
+    now = datetime.datetime.now()
+    return now.strftime("%y%m%d%H%M%S" if format != 'hms' else "%H%M%S")
+
 
 # 从 字幕 对象中获取 srt 字幕串
 def get_srt_from_list(srt_list):
@@ -1118,8 +1170,6 @@ def get_srt_from_list(srt_list):
     return txt
 
 
-
-
 # 将srt字幕转为 ass字幕
 def srt2ass(srt_file, ass_file, maxlen=40):
     srt_list = get_subtitle_from_srt(srt_file)
@@ -1148,7 +1198,6 @@ def srt2ass(srt_file, ass_file, maxlen=40):
 
     with open(ass_file, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
-
 
 
 # 判断 novoice.mp4是否创建好
@@ -1197,20 +1246,21 @@ def match_target_amplitude(sound, target_dBFS):
 def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
-        "-y",        
+        "-y",
         '-i',
         source,
         '-ss',
         format_time(ss, '.')
-        ]
+    ]
     if to != '':
         cmd1.append("-to")
         cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-    cmd1+=['-an']
+    cmd1 += ['-an']
     if pts:
-        cmd1+=["-vf",f"setpts={pts}*PTS"]
-    
-    cmd1+=["-c:v",f"libx{video_codec}",'-crf', f'{config.settings.get("crf",1)}', '-preset',  config.settings.get('preset','slow')]
+        cmd1 += ["-vf", f"setpts={pts}*PTS"]
+
+    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset',
+             config.settings.get('preset', 'slow')]
     cmd = cmd1 + [f'{out}']
     return runffmpeg(cmd)
 
@@ -1278,7 +1328,7 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False):
 
 
 def send_notification(title, message):
-    if config.exec_mode=='api':
+    if config.exec_mode == 'api':
         return
     from plyer import notification
     try:
@@ -1325,6 +1375,7 @@ def kill_ffmpeg_processes():
     except:
         pass
 
+
 def remove_silence_from_chunk(audio, silence_threshold=-50.0, chunk_size=10, is_start=True):
     from pydub.silence import detect_nonsilent
     """
@@ -1355,7 +1406,6 @@ def remove_silence_from_chunk(audio, silence_threshold=-50.0, chunk_size=10, is_
     if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
         trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
     return trimmed_audio
-
 
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
@@ -1423,19 +1473,18 @@ def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_siz
     from pydub.silence import detect_nonsilent
     # Load the audio file
     format = input_file_path.split('.')[-1].lower()
-    length=0
+    length = 0
     if format in ['wav', 'mp3', 'm4a']:
         audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
-        length=len(audio)
+        length = len(audio)
     else:
         # 转为mp3
         try:
             runffmpeg(['-y', '-i', input_file_path, input_file_path + ".mp3"])
             audio = AudioSegment.from_file(input_file_path + ".mp3", format="mp3")
-            length=len(audio)
+            length = len(audio)
         except Exception:
-            return input_file_path,length
-
+            return input_file_path, length
 
     # Detect non-silent chunks
     nonsilent_chunks = detect_nonsilent(
@@ -1449,23 +1498,22 @@ def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_siz
         start_index, end_index = nonsilent_chunks[-1]
     else:
         # If the whole audio is silent, just return it as is
-        return input_file_path,length
+        return input_file_path, length
 
     # Remove the silence from the end by slicing the audio segment
     trimmed_audio = audio[:end_index]
     if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
         trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
-    length=len(trimmed_audio)
+    length = len(trimmed_audio)
     if format in ['wav', 'mp3', 'm4a']:
         trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
-        return input_file_path,length
+        return input_file_path, length
     try:
         trimmed_audio.export(input_file_path + ".mp3", format="mp3")
         runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
     except Exception:
         pass
-    return input_file_path,length
-
+    return input_file_path, length
 
 
 def remove_qsettings_data():
@@ -1565,7 +1613,7 @@ def get_video_codec():
         ],
             check=True,
             creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    except Exception as e:          
+    except Exception as e:
         codec = f"libx{video_codec}"
     return codec
 
@@ -1576,19 +1624,20 @@ def set_ass_font(srtfile=None):
         return os.path.basename(srtfile)
     runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
     assfile = f'{srtfile}.ass'
-    #import shutil
-    #shutil.copy2(assfile,assfile+"-test2.ass")
+    # import shutil
+    # shutil.copy2(assfile,assfile+"-test2.ass")
     with open(assfile, 'r', encoding='utf-8') as f:
         ass_str = f.readlines()
 
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
-            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+            ass_str[
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
                 subtitle_bottom=config.settings['subtitle_bottom'])
-        elif it.find('Dialogue: ')==0:
-            ass_str[i]=it.replace('  ','\\N')
+        elif it.find('Dialogue: ') == 0:
+            ass_str[i] = it.replace('  ', '\\N')
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
@@ -1596,19 +1645,17 @@ def set_ass_font(srtfile=None):
 
 
 # 删除翻译结果的特殊字符
-def cleartext(text: str,remove_start_end=True):
-    res_text=text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
+def cleartext(text: str, remove_start_end=True):
+    res_text = text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
     # 删掉连续的多个标点符号，只保留一个
-    res_text=re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text)
+    res_text = re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text)
     if not res_text or not remove_start_end:
         return res_text
-    if res_text[-1] in ['，',',']:
-        res_text=res_text[:-1]
-    if res_text and res_text[0] in ['，',',']:
-        res_text=res_text[1:]
+    if res_text[-1] in ['，', ',']:
+        res_text = res_text[:-1]
+    if res_text and res_text[0] in ['，', ',']:
+        res_text = res_text[1:]
     return res_text
-
-
 
 
 # 如果仅相差一行，直接拆分最后一行内容为两行
@@ -1742,22 +1789,22 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
-    rule=r'[\[\]\*\?\"\|\'\:]'
-    if re.search(rule,raw_noextname) or re.search(r'[\s\.]$',raw_noextname):
+    rule = r'[\[\]\*\?\"\|\'\:]'
+    if re.search(rule, raw_noextname) or re.search(r'[\s\.]$', raw_noextname):
         # 规范化名字
-        raw_noextname=re.sub(rule,f'',raw_noextname)
-        raw_noextname=re.sub(r'[\.\s]$', f'',raw_noextname)
-        raw_noextname=raw_noextname.strip()
-        
-        if Path(f'{config.TEMP_DIR}/{raw_noextname}{ext}').exists():
-            raw_noextname+=f'{chr(random.randint(97,122))}'
+        raw_noextname = re.sub(rule, f'', raw_noextname)
+        raw_noextname = re.sub(r'[\.\s]$', f'', raw_noextname)
+        raw_noextname = raw_noextname.strip()
 
-        new_name=f'{config.TEMP_DIR}/{raw_noextname}{ext}'
-        shutil.copy2(name,new_name)
-        obj['name']=new_name
-        obj['noextname']=raw_noextname
-        obj['basename']=f'{raw_noextname}{ext}'
-        obj['shound_del_name']=new_name
+        if Path(f'{config.TEMP_DIR}/{raw_noextname}{ext}').exists():
+            raw_noextname += f'{chr(random.randint(97, 122))}'
+
+        new_name = f'{config.TEMP_DIR}/{raw_noextname}{ext}'
+        shutil.copy2(name, new_name)
+        obj['name'] = new_name
+        obj['noextname'] = raw_noextname
+        obj['basename'] = f'{raw_noextname}{ext}'
+        obj['shound_del_name'] = new_name
 
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()
@@ -1765,35 +1812,38 @@ def format_video(name, target_dir=None):
     obj['uuid'] = get_md5(f'{name}-{time.time()}')[:10]
     return obj
 
+
 # 获取 prompt提示词
-def get_prompt(ainame,is_srt=True):
-    prompt_file=get_prompt_file(ainame=ainame,is_srt=is_srt)
-    content=Path(prompt_file).read_text(encoding='utf-8')
-    glossary=''
-    if Path(config.ROOT_DIR+'/videotrans/glossary.txt').exists():
-        glossary=Path(config.ROOT_DIR+'/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+def get_prompt(ainame, is_srt=True):
+    prompt_file = get_prompt_file(ainame=ainame, is_srt=is_srt)
+    content = Path(prompt_file).read_text(encoding='utf-8')
+    glossary = ''
+    if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
+        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
     if glossary:
-        glossary="\n".join(["|"+it.replace("=",'|')+"|" for it in glossary.split('\n')])
-        glossary_prompt="""## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n""" if config.defaulelang=='zh' else  """## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
-        content=content.replace('<INPUT></INPUT>',f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
+        glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
+        glossary_prompt = """## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n""" if config.defaulelang == 'zh' else """## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
+        content = content.replace('<INPUT></INPUT>', f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
     return content
 
+
 # 获取当前需要操作的prompt txt文件
-def get_prompt_file(ainame,is_srt=True):
+def get_prompt_file(ainame, is_srt=True):
     prompt_path = f'{config.ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}{"" if config.defaulelang == "zh" else "-en"}.txt'
-    if is_srt and config.settings.get('aisendsrt',False):
+    if is_srt and config.settings.get('aisendsrt', False):
         prompt_path += 'prompts/srt/'
     return f'{prompt_path}{prompt_name}'
-    
+
+
 # 将普通文本转为合法的srt字符串
-def process_text_to_srt_str(input_text:str):
+def process_text_to_srt_str(input_text: str):
     if is_srt_string(input_text):
-       return input_text
-       
+        return input_text
+
     # 将文本按换行符切割成列表
-    text_lines = [line.strip() for line in input_text.replace("\r","").splitlines() if line.strip()]
-      
+    text_lines = [line.strip() for line in input_text.replace("\r", "").splitlines() if line.strip()]
+
     # 分割大于50个字符的行
     text_str_list = []
     for line in text_lines:
@@ -1816,7 +1866,7 @@ def process_text_to_srt_str(input_text:str):
         # 创建字幕字典对象
         srt = f"{i}\n{start_time} --> {end_time}\n{text}"
         dict_list.append(srt)
-    
+
     return "\n\n".join(dict_list)
 
 
@@ -1825,89 +1875,92 @@ def is_srt_string(input_text):
     input_text = input_text.strip()
     if not input_text:
         return False
-    
+
     # 将文本按换行符切割成列表
-    text_lines = input_text.replace("\r","").splitlines()
-    if len(text_lines)<3:
+    text_lines = input_text.replace("\r", "").splitlines()
+    if len(text_lines) < 3:
         return False
-               
+
     # 正则表达式：第一行应为1到2个纯数字
     first_line_pattern = r'^\d{1,2}$'
-    
+
     # 正则表达式：第二行符合时间格式
     second_line_pattern = r'^\s*?\d{1,2}:\d{1,2}:\d{1,2}(\W\d+)?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(\W\d+)?\s*$'
-    
+
     # 如果前两行符合条件，返回原字符串
-    if not re.match(first_line_pattern, text_lines[0].strip()) or not re.match(second_line_pattern, text_lines[1].strip()):
+    if not re.match(first_line_pattern, text_lines[0].strip()) or not re.match(second_line_pattern,
+                                                                               text_lines[1].strip()):
         return False
     return True
 
+
 def clean_srt(srt):
     # 替换特殊符号
-    srt=re.sub(r'&gt;','>',srt)
+    srt = re.sub(r'&gt;', '>', srt)
     # ：: 换成 :
-    srt=re.sub(r'([：:])\s*',':',srt)
+    srt = re.sub(r'([：:])\s*', ':', srt)
     # ,， 换成 ,
-    srt=re.sub(r'([,，])\s*',',',srt)
-    srt=re.sub(r'([`’\'\"])\s*','',srt)
-    
+    srt = re.sub(r'([,，])\s*', ',', srt)
+    srt = re.sub(r'([`’\'\"])\s*', '', srt)
+
     # 秒和毫秒间的.换成,
-    srt=re.sub(r'(:\d+)\.\s*?(\d+)',r'\1,\2',srt)
+    srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt)
     # 时间行前后加空格
-    time_line=r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
-    srt=re.sub(time_line,r"\n\1 --> \2\n",srt)
+    time_line = r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
+    srt = re.sub(time_line, r"\n\1 --> \2\n", srt)
     # twenty one\n00:01:18,560 --> 00:01:22,000\n
-    srt=re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',"\n"+r'1\n\1\n',srt)
+    srt = re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
+                 "\n" + r'1\n\1\n', srt)
     # 去除多余的空行
-    srt="\n".join([it.strip() for it in srt.splitlines() if it.strip()])
+    srt = "\n".join([it.strip() for it in srt.splitlines() if it.strip()])
 
     # 删掉以空格或换行连接的多个时间行
-    time_line2=r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
-    srt=re.sub(time_line2,r'\n\1 --> \2\n',srt)
-    srt_list=[it.strip() for it in srt.splitlines() if it.strip()]
+    time_line2 = r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
+    srt = re.sub(time_line2, r'\n\1 --> \2\n', srt)
+    srt_list = [it.strip() for it in srt.splitlines() if it.strip()]
 
-    remove_list=[]
+    remove_list = []
     for it in srt_list:
-        if len(remove_list)>0 and str(it)==str(remove_list[-1]):
-            if re.match(r'^\d{1,4}$',it):
+        if len(remove_list) > 0 and str(it) == str(remove_list[-1]):
+            if re.match(r'^\d{1,4}$', it):
                 continue
             if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
                 continue
         remove_list.append(it)
 
-    srt="\n".join(remove_list)
-    
+    srt = "\n".join(remove_list)
 
     # 行号前添加换行符
-    srt=re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)',r"\n\n\1\n\2",srt)
+    srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
     print(srt)
     return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
 
 
 def check_local_api(api):
-    from PySide6 import QtWidgets,QtGui
+    from PySide6 import QtWidgets, QtGui
     # 创建消息框
     msg_box = QtWidgets.QMessageBox()
     msg_box.setIcon(QtWidgets.QMessageBox.Critical)
     msg_box.setText("API url error:")
     msg_box.setWindowTitle(config.transobj['anerror'])
-    
 
     # 设置窗口图标
     icon = QtGui.QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico")  # 替换为你的图标路径
     msg_box.setWindowIcon(icon)
 
     # 显示消息框
-    
+
     if not api:
         msg_box.setInformativeText('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
         msg_box.exec()
         return False
-    if api.find('0.0.0.0:')>-1:
-        msg_box.setInformativeText('请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
+    if api.find('0.0.0.0:') > -1:
+        msg_box.setInformativeText(
+            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
         msg_box.exec()
         return False
     return True
+
 
 def format_milliseconds(milliseconds):
     """
@@ -1922,13 +1975,13 @@ def format_milliseconds(milliseconds):
     if not isinstance(milliseconds, int):
         raise TypeError("毫秒数必须是整数")
     if milliseconds < 0:
-         raise ValueError("毫秒数必须是非负整数")
-    
+        raise ValueError("毫秒数必须是非负整数")
+
     seconds = milliseconds / 1000
-    
+
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
-    milliseconds_part = int((seconds * 1000) % 1000)//10  # 保留两位
+    milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
 
     # 格式化为两位数字字符串
     formatted_hours = f"{int(hours):02}"
@@ -1940,10 +1993,10 @@ def format_milliseconds(milliseconds):
 
     return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
+
 def show_glossary_editor(parent):
-    from PySide6.QtWidgets import (QApplication, QWidget, QPushButton,
-                                QVBoxLayout, QTextEdit, QDialog,
-                                QHBoxLayout, QDialogButtonBox)
+    from PySide6.QtWidgets import (QVBoxLayout, QTextEdit, QDialog,
+                                   QDialogButtonBox)
     from PySide6.QtCore import Qt
     """
     弹出一个窗口，包含一个文本框和保存按钮，并处理文本的读取和保存。
@@ -1952,25 +2005,26 @@ def show_glossary_editor(parent):
         parent: 父窗口 (QWidget)
     """
     dialog = QDialog(parent)
-    dialog.setWindowTitle("在此填写术语对照表，格式： 术语=翻译" if config.defaulelang=='zh' else '')
+    dialog.setWindowTitle("在此填写术语对照表，格式： 术语=翻译" if config.defaulelang == 'zh' else '')
     dialog.setMinimumSize(600, 400)
 
     layout = QVBoxLayout(dialog)
 
     text_edit = QTextEdit()
-    text_edit.setPlaceholderText("请按照 术语=翻译 的格式，一行一组来填写，例如\n\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang=='zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
+    text_edit.setPlaceholderText(
+        "请按照 术语=翻译 的格式，一行一组来填写，例如\n\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang == 'zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
     layout.addWidget(text_edit)
 
     button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
     layout.addWidget(button_box)
 
-    #读取文件内容，并设置为文本框默认值
-    file_path = config.ROOT_DIR+"/videotrans/glossary.txt"
+    # 读取文件内容，并设置为文本框默认值
+    file_path = config.ROOT_DIR + "/videotrans/glossary.txt"
     try:
         if os.path.exists(file_path):
-           with open(file_path, "r", encoding="utf-8") as f:
-               content = f.read()
-               text_edit.setText(content)
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                text_edit.setText(content)
     except Exception as e:
         print(f"读取文件失败: {e}")
 
@@ -1980,13 +2034,12 @@ def show_glossary_editor(parent):
         """
         try:
             with open(file_path, "w", encoding="utf-8") as f:
-              f.write(text_edit.toPlainText()) # toPlainText 获取纯文本
+                f.write(text_edit.toPlainText())  # toPlainText 获取纯文本
             dialog.accept()
         except Exception as e:
             print(f"写入文件失败: {e}")
 
-
     button_box.accepted.connect(save_text)
     button_box.rejected.connect(dialog.reject)
-    dialog.setWindowModality(Qt.WindowModality.ApplicationModal) # 设置模态窗口
-    dialog.exec() # 显示模态窗口
+    dialog.setWindowModality(Qt.WindowModality.ApplicationModal)  # 设置模态窗口
+    dialog.exec()  # 显示模态窗口
