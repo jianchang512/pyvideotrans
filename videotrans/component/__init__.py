@@ -4,7 +4,7 @@ from videotrans.component.set_form import BaiduForm, ChatgptForm, DeepLForm, Dee
     HebingsrtForm, DoubaoForm, FishTTSForm, CosyVoiceForm, AI302Form,  SetINIForm, WatermarkForm, \
     GetaudioForm, HunliuForm, VASForm, Fanyisrt, Recognform, Peiyinform, Videoandaudioform, Videoandsrtform, \
     OpenAITTSForm, RecognAPIForm, OpenaiRecognAPIForm, DownloadModelForm, FormatcoverForm, SubtitlescoverForm, \
-    SubtitleEditer,SttAPIForm,VolcEngineTTSForm,F5TTSForm,DeepgramForm,ClaudeForm,LibreForm,AliForm,FreeAIForm
+    SubtitleEditer,SttAPIForm,VolcEngineTTSForm,F5TTSForm,DeepgramForm,ClaudeForm,LibreForm,AliForm,FreeAIForm,KokoroForm
 
 __all__ = [
     "BaiduForm",
@@ -58,5 +58,6 @@ __all__ = [
     "ClaudeForm",
     "LibreForm",
     "AliForm",
-    "FreeAIForm"
+    "FreeAIForm",
+    "KokoroForm"
 ]

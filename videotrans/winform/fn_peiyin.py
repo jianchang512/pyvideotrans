@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
 from videotrans.util import tools
 
 
@@ -149,7 +149,7 @@ def openwin():
         threading.Thread(target=tts.run, kwargs={'language':lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
-        if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS,AI302_TTS]:
+        if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS,AI302_TTS,KOKORO_TTS]:
             return True
         return False
 
@@ -326,6 +326,8 @@ def openwin():
 
         if tts_type == EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
+        elif tts_type == KOKORO_TTS:
+            show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == AI302_TTS:
             show_rolelist = tools.get_302ai()
         elif tts_type==VOLCENGINE_TTS:

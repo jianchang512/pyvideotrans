@@ -31,6 +31,7 @@ from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
 from videotrans.ui.hunliu import Ui_hunliu
 from videotrans.ui.info import Ui_infoform
+from videotrans.ui.kokoro import Ui_kokoroform
 from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
@@ -270,6 +271,12 @@ class OttForm(QDialog, Ui_ottform):  # <===
 class CloneForm(QDialog, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super(CloneForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class KokoroForm(QDialog, Ui_kokoroform):  # <===
+    def __init__(self, parent=None):
+        super(KokoroForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
