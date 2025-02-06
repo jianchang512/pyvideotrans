@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 
 
-
+import aiohttp
 from aiohttp import ClientError, WSServerHandshakeError
 
 from videotrans.configure import config
@@ -19,7 +19,7 @@ class EdgeTTS(BaseTTS):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        pro = self._set_proxy(type='set')
+        pro = self._set_proxy(type='set')        
         if pro:
             self.proxies= pro
 
@@ -66,6 +66,9 @@ class EdgeTTS(BaseTTS):
                 # 异步合成并保存
                 threading.Thread(target=process).start()
                 await communicate.stream()
+        except aiohttp.client_exceptions.ClientHttpProxyError as e:
+            config.logger.exception(e, exc_info=True)
+            raise Exception(f'代理错误，请检查 {e}')
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             if str(e).find('Invalid response status'):
@@ -80,5 +83,8 @@ class EdgeTTS(BaseTTS):
         # 防止出错，重试一次
         if self._exit():
             return
+        if Path(config.ROOT_DIR+'/edgetts.txt').is_file():
+            self.proxies='http://'+Path(config.ROOT_DIR+'/edgetts.txt').read_text(encoding='utf-8').strip()
+            print(f'{self.proxies=}')
         asyncio.run(self._task_queue())
         
