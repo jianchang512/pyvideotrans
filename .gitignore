@@ -3,6 +3,7 @@
 .git
 .github
 .idea
+edgetts.txt
 tmp
 images
 models/*.pt
