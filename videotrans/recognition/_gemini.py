@@ -60,7 +60,7 @@ class GeminiRecogn(BaseRecogn):
             self.api_keys.append(api_key)
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(
-              model_name=config.params['gemini_model'],
+              model_name='gemini-2.0-flash',
               generation_config=generation_config,
               safety_settings=safetySettings,
             )
@@ -219,7 +219,6 @@ class GeminiRecogn(BaseRecogn):
         speech_chunks=get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),vad_options=VadOptions(**vad_p))
         speech_chunks=convert_to_milliseconds(speech_chunks)
         
-        print(speech_chunks)
         # 在config.TEMP_DIR下创建一个以当前时间戳为名的文件夹，用于保存切割后的音频片段
         dir_name = f"{config.TEMP_DIR}/{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)

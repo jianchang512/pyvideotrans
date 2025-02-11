@@ -88,6 +88,7 @@ LANGNAME_DICT={
     "sv":"Swedish" if config.defaulelang != 'zh' else '瑞典语',
     "he":"Hebrew" if config.defaulelang != 'zh' else '希伯来语',
     "bn":"Bengali" if config.defaulelang != 'zh' else '孟加拉语',
+    "fil":"Filipino" if config.defaulelang != 'zh' else '菲律宾语',
 }
 LANG_CODE = {
     "zh-cn": [
@@ -100,6 +101,17 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',  # AI翻译
         "zh" #阿里
+    ],
+    "fil":[
+        "tl",  # google通道
+        "fil",  # 字幕嵌入语言
+        "fil",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "fil",  # 微软翻译
+        "Filipino" if config.defaulelang != 'zh' else '菲律宾语',  # AI翻译
+        "fil" #阿里
     ],
 
     "zh-tw": [

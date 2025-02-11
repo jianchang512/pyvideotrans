@@ -141,8 +141,7 @@ def openwin():
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
-        source_code = translator.get_code(show_text=winobj.fanyi_source.currentText())
-        target_code = translator.get_code(show_text=target_language)
+        source_code,target_code = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),show_target=target_language,translate_type=translate_type)
         if target_language == '-':
             return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj["fanyimoshi1"])
         proxy = winobj.fanyi_proxy.text()

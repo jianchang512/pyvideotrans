@@ -19,9 +19,10 @@ def openwin():
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, videourls=None):
+        def __init__(self, *, parent=None, videourls=None,export_video):
             super().__init__(parent=parent)
             self.videourls = videourls
+            self.export_video=export_video
 
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
@@ -43,6 +44,16 @@ def openwin():
                         "pcm_s16le",
                         RESULT_DIR + f"/{Path(v).stem}.wav"
                     ])
+                    if self.export_video:
+                        tools.runffmpeg([
+                            "-y",
+                            "-i",
+                            os.path.normpath(v),
+                            "-an",
+                            "-c:v",
+                            "copy",
+                            RESULT_DIR + f"/{Path(v).stem}-novoice.mp4"
+                        ])
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
             except Exception as e:
@@ -95,7 +106,7 @@ def openwin():
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
-        task = CompThread(parent=winobj, videourls=winobj.videourls)
+        task = CompThread(parent=winobj, videourls=winobj.videourls,export_video=winobj.getvideo.isChecked())
         task.uito.connect(feed)
         task.start()
 
