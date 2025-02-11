@@ -337,6 +337,7 @@ def parse_init():
         "initial_prompt_sv": "",
         "initial_prompt_he": "",
         "initial_prompt_bn": "",
+        "initial_prompt_fil": "",
         "whisper_threads": 4,
         "whisper_worker": 1,
         "beam_size": 5,
@@ -350,7 +351,7 @@ def parse_init():
         "subtitle_bottom": 10,
         "cjk_len": 20,
         "other_len": 60,
-        "gemini_model": "gemini-1.5-pro,gemini-pro,gemini-1.5-flash,gemini-2.0-flash-exp",
+        "gemini_model": "gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-pro-exp-02-05,gemini-1.5-flash,gemini-1.5-pro",
         "zh_hant_s": True,
         "azure_lines": 150,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
@@ -652,6 +653,7 @@ The second line is the translation result text.
         
         "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
         "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
+        "listen_text_fil": "Hello, kaibigan ko",
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
@@ -893,4 +895,4 @@ if Path(ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').exists():
 
 
 
-ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs']
+ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs','tl']

@@ -30,7 +30,7 @@ class Ui_localllmform(object):
 
         self.label_0 = QtWidgets.QLabel()
         self.label_0.setText(
-            '兼容OpenAI ChatGPT接口的大模型可在此使用，例如 moonshot/deepseek/bigmodel/ollama本地部署' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
+            '兼容OpenAI接口的本地大模型在此使用，例如ollama，api地址通常以 /v1 结尾' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
 
         v1.addWidget(self.label_0)
 
