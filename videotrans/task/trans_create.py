@@ -714,6 +714,14 @@ class TransCreate(BaseTask):
             uuid=self.uuid,
             inst=self
         )
+        if config.settings.get('save_segment_audio',False):
+            outname=self.cfg['target_dir']+'/segment_audio'
+            Path(outname).mkdir(parents=True, exist_ok=True)
+            for it in self.queue_tts:
+                text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
+                name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
+                shutil.copy2(it['filename'],name)
+
 
     def _novoicemp4_add_time(self, duration_ms):
         if duration_ms < 1000 or self._exit():

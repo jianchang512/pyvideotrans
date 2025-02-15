@@ -129,6 +129,7 @@ class Ui_setini(object):
             "dubbing": {
                 "dubbing_thread": "同时配音的字幕条数",
                 "dubbing_wait": "每次配音后暂停时间/秒,用于限制请求频率",
+                "save_segment_audio":"保留每条字幕的配音文件",
                 "azure_lines": "azureTTS一次配音行数",
                 "chattts_voice": "chatTTS 音色值"
             },
@@ -201,6 +202,7 @@ class Ui_setini(object):
             "is_queue": "视频翻译排队处理(默认交叉)",
             "videoslow_hard":"视频慢速时尝试硬件加速(速度快易出错)",
             "lang": "界面语言",
+            "save_segment_audio":"保留每条字幕的配音文件",
             "crf": "视频转码损失控制",
             "cuda_decode":"使用cuda解码视频",
             "cuda_qp": "NVIDIA使用qp代替crf",
@@ -342,6 +344,7 @@ class Ui_setini(object):
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
                     "dubbing_wait": "Pause time in seconds after each dubbing, used to limit request frequency",
+                    "save_segment_audio":"Save the dubbing file of each subtitle",
                     "azure_lines": "Number of lines dubbed at once by azureTTS",
                     "chattts_voice": "chatTTS voice tone"
                 },
@@ -424,6 +427,7 @@ class Ui_setini(object):
                 "ai302_models": "302.ai Translation Models",
                 "ai302tts_models": "302.ai TTS Models",
                 "openairecognapi_model": "OpenAI Speech",
+                "save_segment_audio":"Save the dubbing file of each subtitle",
                 "lang": "Software Interface Language",
                 "aisendsrt":"Sending full subtitle content when ai translation",
                 "crf": "Video Transcoding Loss Control",

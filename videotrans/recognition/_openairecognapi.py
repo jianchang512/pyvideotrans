@@ -8,6 +8,7 @@ import httpx
 import requests
 import json
 
+from pydub import AudioSegment
 
 from videotrans.configure import config
 
@@ -33,7 +34,8 @@ class OpenaiAPIRecogn(BaseRecogn):
                 self.proxies = pro
         else:
             self.proxies = None
-
+        if not re.search(r'api\.openai\.com/v1', self.api_url):
+            return self._thrid_api()
         try:
             # 大于20M 从wav转为mp3
             if Path(self.audio_file).stat().st_size > 20971520:
@@ -93,6 +95,84 @@ class OpenaiAPIRecogn(BaseRecogn):
             raise Exception(msg)
         except Exception:
             raise
+
+    def _thrid_api(self):
+        try:
+            # 发送请求
+            raws=self.cut_audio()
+            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies,timeout=7200))
+            for i,it in enumerate(raws):
+                with open(it['file'], 'rb') as file:
+                    transcript = client.audio.transcriptions.create(
+                        file=(it['file'], file.read()),
+                        model=config.params["openairecognapi_model"],
+                        prompt=config.params['openairecognapi_prompt'],
+                        timeout=7200,
+                        response_format="json"
+                    )
+                    if not hasattr(transcript, 'text'):
+                        continue
+                    raws[i]['text']=transcript.text
+            return raws
+        except APIConnectionError as e:
+            api_url_msg = f' 当前Api: {self.api_url}' if self.api_url else ''
+            proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
+            proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
+            msg = f'网络连接错误{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else str(e)
+            raise Exception(msg)
+        except Exception:
+            raise
+    def cut_audio(self):
+
+        sampling_rate=16000
+        from faster_whisper.audio import decode_audio
+        from faster_whisper.vad import (
+            VadOptions,
+            get_speech_timestamps
+        )
+
+        def convert_to_milliseconds(timestamps):
+            milliseconds_timestamps = []
+            for timestamp in timestamps:
+                milliseconds_timestamps.append(
+                    {
+                        "start": int(round(timestamp["start"] / sampling_rate * 1000)),
+                        "end": int(round(timestamp["end"] / sampling_rate * 1000)),
+                    }
+                )
+
+            return milliseconds_timestamps
+        vad_p={
+            "threshold":  float(config.params.get('gemini_onset',0.5)),
+            "neg_threshold": float(config.params.get('gemini_offset',0.35)),
+            "min_speech_duration_ms":  0,
+            "max_speech_duration_s":  float("inf"),
+            "min_silence_duration_ms": int(config.params.get('gemini_min_silence_duration_ms',250)),
+            "speech_pad_ms": int(config.params.get('gemini_speech_pad_ms',200))
+        }
+        speech_chunks=get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),vad_options=VadOptions(**vad_p))
+        speech_chunks=convert_to_milliseconds(speech_chunks)
+
+        # 在config.TEMP_DIR下创建一个以当前时间戳为名的文件夹，用于保存切割后的音频片段
+        dir_name = f"{config.TEMP_DIR}/{time.time()}"
+        Path(dir_name).mkdir(parents=True, exist_ok=True)
+        print(f"Saving segments to {dir_name}")
+        data=[]
+        audio = AudioSegment.from_file(self.audio_file,format=self.audio_file[-3:])
+        for it in speech_chunks:
+            start_ms, end_ms=it['start'],it['end']
+            chunk = audio[start_ms:end_ms]
+            file_name=f"{dir_name}/{start_ms}_{end_ms}.wav"
+            chunk.export(file_name, format="wav")
+            data.append({
+                "start_time":start_ms,
+                "end_time":end_ms,
+                "file":file_name,
+                "text":"",
+                "time":tools.ms_to_time_string(ms=start_ms)+' --> '+tools.ms_to_time_string(ms=end_ms)
+            })
+
+        return data
 
     def _get_url(self, url=""):
         baseurl = "https://api.openai.com/v1"

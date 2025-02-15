@@ -44,11 +44,12 @@ class OPENAITTS(BaseTTS):
             speed += rate
         try:
             client = OpenAI(api_key=config.params.get('openaitts_key',''), base_url=self.api_url,
-                            http_client=httpx.Client(proxy=self.proxies))
+                            http_client=httpx.Client(proxy=self.proxies,timeout=7200))
             with client.audio.speech.with_streaming_response.create(
                 model=config.params['openaitts_model'],
                 voice=role,
                 input=text,
+                timeout=7200,
                 speed=speed
             ) as response:
                 with open(data_item['filename'], 'wb') as f:

@@ -134,7 +134,7 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
 
-    # 用于除  openai elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
+    # 用于除  elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
     def _local_mul_thread(self) -> None:
         if self._exit():
             return

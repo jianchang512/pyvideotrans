@@ -1026,7 +1026,7 @@ class Ui_MainWindow(object):
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionopenairecognapi_key.setText(
-            "OpenAI语音识别API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
+            "OpenAI语音识别及兼容API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
         self.actionai302_key.setText("302.AI API Key" if config.defaulelang == 'zh' else "302.AI API KEY")
         self.actionlocalllm_key.setText("兼容AI及本地大模型" if config.defaulelang == 'zh' else "Local LLM  API")
         self.actionzijiehuoshan_key.setText("字节火山大模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
