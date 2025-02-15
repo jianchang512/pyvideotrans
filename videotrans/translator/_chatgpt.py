@@ -68,15 +68,16 @@ class ChatGPT(BaseTrans):
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxies,timeout=7200))
         try:
             response = model.chat.completions.create(
-                model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params[
-                    'chatgpt_model'],
+                model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params['chatgpt_model'],
+                timeout=7200,
+                max_tokens=4096,
                 messages=message
             )
-        except APIConnectionError:
-            raise requests.ConnectionError('Network connection failed')
+        except APIConnectionError as e:
+            raise
         config.logger.info(f'[chatGPT]响应:{response=}')
         result=""
         if response.choices:
@@ -85,7 +86,7 @@ class ChatGPT(BaseTrans):
             config.logger.error(f'[chatGPT]请求失败:{response=}')
             raise Exception(f"no choices:{response=}")
         
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I),re.S|re.I)
         if match:
             return match.group(1)
         return result.strip()
@@ -107,14 +108,17 @@ class ChatGPT(BaseTrans):
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxies,timeout=7200))
         try:
             response = model.chat.completions.create(
                 model=config.params['chatgpt_model'],
+                timeout=7200,
+                max_tokens=4096,
                 messages=message
             )
-        except APIConnectionError:
-            raise requests.ConnectionError('Network connection failed')
+        except APIConnectionError as e:
+            config.logger.error(f'[chatGPT]:{e=}')
+            raise
         config.logger.info(f'[chatGPT]响应:{response=}')
 
         if response.choices:
@@ -123,7 +127,7 @@ class ChatGPT(BaseTrans):
             config.logger.error(f'[chatGPT]请求失败:{response=}')
             raise Exception(f"no choices:{response=}")
 
-        match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result, re.S)
+        match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
         if match:
             return match.group(1)
         return result.strip()

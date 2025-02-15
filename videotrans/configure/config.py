@@ -305,6 +305,7 @@ def parse_init():
         "translation_wait": 0,
         "dubbing_wait": 0,
         "dubbing_thread": 5,
+        "save_segment_audio":False,
         "countdown_sec": 120,
         "backaudio_volume": 0.8,
         "separate_sec": 600,
@@ -357,7 +358,7 @@ def parse_init():
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy":"",
-        "refine3":False      
+        "refine3":False
         
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        

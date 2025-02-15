@@ -1,5 +1,7 @@
 import copy
 import json
+import re
+import shutil
 import time
 from pathlib import Path
 from typing import Dict
@@ -137,6 +139,13 @@ class DubbingSrt(BaseTask):
             language=self.cfg['target_language_code'],
             uuid=self.uuid
         )
+        if config.settings.get('save_segment_audio',False):
+            outname=self.cfg['target_dir']+'/segment_audio'
+            Path(outname).mkdir(parents=True, exist_ok=True)
+            for it in self.queue_tts:
+                text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
+                name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
+                shutil.copy2(it['filename'],name)
 
     def align(self) -> None:
         if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
