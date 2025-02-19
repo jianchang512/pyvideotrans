@@ -520,7 +520,10 @@ class WinActionSub:
             return QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
         from videotrans import tts
-        text = config.params[f'listen_text_{lang}']
+        text = config.params.get(f'listen_text_{lang}')
+        if not text:
+            return QMessageBox.critical(self.main, config.transobj['anerror'],
+                                        '该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen')
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
             return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])

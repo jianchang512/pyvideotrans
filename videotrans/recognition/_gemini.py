@@ -41,7 +41,7 @@ class GeminiRecogn(BaseRecogn):
  
     def _exec(self):
         seg_list=self.cut_audio()
-        nums=30
+        nums=10
         seg_list=[seg_list[i:i + nums] for i in  range(0, len(seg_list), nums)]
         if len(seg_list)<1:
             raise Exception(f'VAD error')

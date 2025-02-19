@@ -1062,12 +1062,16 @@ def srt_str_to_listdict(srt_string):
 
             text = ('\n'.join(text_lines)).strip()
             text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
-            text = re.sub(r'\n{2,}', '\n', text)
+            text = re.sub(r'\n{2,}', '\n', text).strip()
+            if text[0] in ['-','[']:
+                text=text[1:]
+            if len(text)>0 and text[-1] in ['-',']']:
+                text=text[:-1]
             it = {
                 "line": len(srt_list) + 1,  # 字幕索引，转换为整数
                 "start_time": int(start_time),
                 "end_time": int(end_time),  # 起始和结束时间
-                "text": text,  # 字幕文本
+                "text": text if text else "",  # 字幕文本
             }
             it['startraw'] = ms_to_time_string(ms=it['start_time'])
             it['endraw'] = ms_to_time_string(ms=it['end_time'])
@@ -1166,6 +1170,8 @@ def get_srt_from_list(srt_list):
             # 存在单独开始和结束  时:分:秒,毫秒 字符串
             startraw = it['startraw']
             endraw = it['endraw']
+
+        
         txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
     return txt
 
