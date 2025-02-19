@@ -1020,7 +1020,7 @@ class Ui_MainWindow(object):
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译" if config.defaulelang == 'zh' else "Baidu Key")
         self.actionali_key.setText("阿里机器翻译" if config.defaulelang == 'zh' else "Alibaba Translation")
-        self.actionchatgpt_key.setText("OpenAI ChatGPT API")
+        self.actionchatgpt_key.setText("OpenAI API")
         self.actionfreeai_key.setText("GLM-4-flash/Qwen2.5-7b")
         self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")

@@ -58,9 +58,9 @@ class LocalLLM(BaseTrans):
             raise Exception(f'{response=}')
 
         if response.choices:
-            return response.choices[0].message.content.strip()
+            return re.sub(r'<think>.*?</think>','',response.choices[0].message.content.strip(),re.I)
         if response.data and response.data['choices']:
-            return response.data['choices'][0]['message']['content'].strip()
+            return re.sub(r'<think>.*?</think>','',response.data['choices'][0]['message']['content'].strip(),re.I)
         
         raise Exception(f'[localllm]请求失败:{response=}')
 

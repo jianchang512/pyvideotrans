@@ -77,7 +77,7 @@ class Ui_peiyin(object):
         self.hecheng_language.setSizePolicy(sizePolicy)
         self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_language.setObjectName("hecheng_language")
-        self.hecheng_language.addItems(['-'] + config.langnamelist)
+        #self.hecheng_language.addItems(['-'] + config.langnamelist)
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
