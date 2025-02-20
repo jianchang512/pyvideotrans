@@ -122,9 +122,10 @@ class TransCreate(BaseTask):
         # 临时文件夹
         if 'cache_folder' not in self.cfg or not self.cfg['cache_folder']:
             self.cfg['cache_folder'] = f"{config.TEMP_DIR}/{self.uuid}"
-        if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
-            self.cfg['target_dir'] = Path(self.cfg['target_dir']).as_posix()
+        #if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
+        #    self.cfg['target_dir'] = Path(self.cfg['target_dir']).as_posix()
         # 创建文件夹
+        self.cfg['target_dir']=re.sub(r'/{2,}','/',self.cfg['target_dir'])
         Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
         Path(self.cfg['cache_folder']).mkdir(parents=True, exist_ok=True)
         # 存放分离后的无声音mp4

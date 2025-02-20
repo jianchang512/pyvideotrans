@@ -268,10 +268,12 @@ class BaseTrans(BaseCon):
         #    return raws_list
         config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
         for i,it in enumerate(raws_list):
-            it['text']=(it['text'].strip().split("\n"))[-1]
-            if it['text'][0] in ['-','[']:
+            it['text']=it['text'].strip().split("\n")
+            if it['text']:
+                it['text']=it['text'][-1]
+            if it['text'] and it['text'][0] in ['-','[']:
                 it['text']=it['text'][1:]
-            if len(it['text'])>0 and it['text'][-1] in ['-',']']:
+            if it['text'] and len(it['text'])>0 and it['text'][-1] in ['-',']']:
                 it['text']=it['text'][:-1]
             raws_list[i]=it
         return raws_list
