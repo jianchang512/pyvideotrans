@@ -1063,9 +1063,9 @@ def srt_str_to_listdict(srt_string):
             text = ('\n'.join(text_lines)).strip()
             text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
             text = re.sub(r'\n{2,}', '\n', text).strip()
-            if text[0] in ['-','[']:
+            if text and text[0] in ['-','[']:
                 text=text[1:]
-            if len(text)>0 and text[-1] in ['-',']']:
+            if text and len(text)>0 and text[-1] in ['-',']']:
                 text=text[:-1]
             it = {
                 "line": len(srt_list) + 1,  # 字幕索引，转换为整数
