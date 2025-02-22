@@ -40,7 +40,11 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
-        config.params['recognapi_url'] = url
+
+        key = winobj.recognapiform_key.text().strip()
+        config.params["recognapi_url"] = url
+        config.params["recognapi_key"] = key
+        config.getset_params(config.params)
         
         
         task = Test(parent=winobj)

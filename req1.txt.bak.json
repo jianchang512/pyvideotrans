@@ -1,0 +1,237 @@
+[
+  {
+    'words': [
+      {
+        'word': '第三类',
+        'start': 0.08011,
+        'end': 0.46061,
+        'confidence': 0.65
+      },
+      {
+        'word': '接触',
+        'start': 0.52069,
+        'end': 0.78104,
+        'confidenc
+        e
+        ': 0.88}, {'
+        word
+        ': '
+        还有
+        ', '
+        start
+        ': 0.98131, '
+        end
+        ': 1.16155, '
+        confidence
+        ': 0.95}, {'
+        word
+        ': '
+        多远
+        ', '
+        start
+        ': 1.2016, '
+        end
+        ': 1.52203, '
+        confidence
+        ':
+        0.93
+      },
+      {
+        'word': '啊？',
+        'start': 1.54206,
+        'end': 1.66222,
+        'confidence': 0.22
+      },
+      {
+        'word': '微博',
+        'start': 2.1028,
+        'end': 2.34312,
+        'confidence': 0.99
+      },
+      {
+        'word': '正式',
+        'start': 2.42323,
+        'end': 2.6235,
+        'confidence': 0.92
+      },
+      {
+        'word': '展开',
+        'start': 2.68358,
+        'end': 2.96395,
+        'confidence': 0.89
+      },
+      {
+        'word': '拍摄',
+        'start': 3.00401,
+        'end': 3.2243,
+        'confidence': 0.93
+      },
+      {
+        'word': '任务',
+        'start': 3.28438,
+        'end': 3.50467,
+        'confidence': 0.92
+      },
+      {
+        'wor
+        d
+        ': '
+        已经
+        ', '
+        start
+        ': 3.66489, '
+        end
+        ': 3.90521, '
+        confidence
+        ': 0.72}, {'
+        word
+        ': '
+        届满
+        ', '
+        start
+        ': 3.94526, '
+        end
+        ': 4.20561, '
+        confidence
+        ': 0.95}, {'
+        word
+        ':
+        '周年。',
+        'start': 4.24566,
+        'end': 4.58611,
+        'confidence': 0.97
+      }
+    ],
+    'language': 'zh',
+    'start': 0.08011,
+    'end': 4.58611,
+    'channel': 0,
+    'sentence': '
+    第三类
+    接触
+    还有
+    多远
+    啊
+    ？
+    微博
+    正式
+    展开
+    拍摄
+    任务
+    已经
+    届满
+    周年
+    。
+    ', '
+    confidence
+    ': 0.84}, {'
+    words
+    ': [{'
+    word
+    ': '
+    最近
+    ', '
+    start
+    ': 4.98665, '
+    end
+    ': 5.
+    26702,
+    'confidence': 1
+  },
+  {
+    'word': '也',
+    'start': 5.28705,
+    'end': 5.40721,
+    'confidence': 1
+  },
+  {
+    'word': '传',
+    'start': 5.44726,
+    'end': 5.58745,
+    'confi
+    dence
+    ': 0.89}, {'
+    word
+    ': '
+    回来
+    ', '
+    start
+    ': 5.6275, '
+    end
+    ': 5.8478, '
+    confidence
+    ': 0.66}, {'
+    word
+    ': '
+    许多
+    ', '
+    start
+    ': 5.96796, '
+    end
+    ': 6.16822, '
+    confidence
+    ': 0.96}, {'
+    word
+    ': '
+    过去
+    ', '
+    start
+    ': 6.24833, '
+    end
+    ': 6.46862, '
+    confidence
+    ': 0.96}, {'
+    word
+    ': '
+    难以
+    ', '
+    start
+    ': 6.54873, '
+    end
+    ': 6.78905, '
+    confidence
+    ':
+    0.99
+  },
+  {
+    'word': '拍摄',
+    'start': 6.86916,
+    'end': 7.18959,
+    'confidence': 0.95
+  },
+  {
+    'word': '到',
+    'start': 7.24967,
+    'end': 7.36983,
+    'confidence': 1
+  },
+  {
+    'word': '的',
+    'start': 7.36983,
+    'end': 7.46996,
+    'confidence': 0.99
+  },
+  {
+    'word': '照片。',
+    'start': 7.48999,
+    'end': 7.87049,
+    'confidence': 0.98
+  }
+], 'la
+nguage': 'zh', 'start': 4.98665, 'end': 7.87049, 'channel': 0, 'sentence': '最近 也 传 回来 许多 过去 难以 拍摄 到 的 照片。', 'confidence': 0.94},
+{'words': [
+{'word': '6', 'start': 8.35113, 'end': 8.49132, 'confidence': 0.31}, {'word': '月初', 'start': 8.51135, 'end': 8.75167, 'confidence': 0
+.95
+}, {
+'word': '天文学家', 'start': 9.05207, 'end': 9.57276, 'confidence': 0.88}, {'word': '在', 'start': 9.73298, 'end': 9.87316, 'confidence': 1}, {'word': '自然', 'start': 9.9733, 'end': 10.29372, 'confidence': 1}, {'word': '期刊', 'start': 10.35381, 'end': 10.65421, 'confidence': 1}, {'wor
+d': '上', 'start': 10.69426, 'end': 10.85447, 'confidence': 0.97}, {'word': '发表', 'start': 11.09479, 'end': 11.45527, 'confidence': 0.83}, {'word
+': '了', 'start': 11.4753, 'end': 11.59546, 'confidence': 0.54}, {'word': '这张', 'start': 11.67557, 'end': 12.03605, 'confidence': 0.94}, {'word':
+'照片。', 'start': 12.0761, 'end': 12.43658, 'confidence': 0.94}
+], 'language': 'zh', 'start': 8.35113, 'end': 12.43658, 'channel': 0, 'sentence': '6 月初 天文学家 在 自然 期刊 上 发表 了 这张 照片。', 'confidence': 0.85}, {'words': [
+{'word': '在', 'start': 12.95728, 'end': 13.09746, 'confiden
+ce': 1}, {'word': '蓝色', 'start': 13.15754, 'end': 13.45794, 'confidence': 0.66}, {'word': '核心', 'start': 13.55808, 'end': 13.81842, 'confidence
+': 1}, {'word': '外', 'start': 13.8785, 'end': 14.03872, 'confidence': 0.99}, {'word': '环绕着', 'start': 14.31909, 'end': 14.75968, 'confidence':
+0.8
+}, {'word': '一圈。', 'start': 14.87984, 'end': 15, 'confidence': 0.49}
+], 'language': 'zh', 'start': 12.95728, 'end': 15, 'channel': 0, 'sentenc
+e': '在 蓝色 核心 外 环绕着 一圈。', 'confidence': 0.82}]
