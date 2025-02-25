@@ -130,7 +130,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 # 判断是否填写了相关配音渠道所需要的信息
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(tts_type: int = None,return_str=False):
-    if tts_type == OPENAI_TTS and not config.params["chatgpt_key"]:
+    if tts_type == OPENAI_TTS and not config.params["openaitts_key"]:
         if return_str:
             return "Please configure the api and key information of the OpenAI API channel first."
         from videotrans.winform import openaitts as openaitts_win

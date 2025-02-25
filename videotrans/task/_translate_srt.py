@@ -7,7 +7,7 @@ from videotrans.configure import config
 from videotrans.task._base import BaseTask
 from videotrans.translator import run
 from videotrans.util import tools
-
+import shutil
 """
 仅字幕翻译
 """
@@ -48,6 +48,8 @@ class TranslateSrt(BaseTask):
         self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
             'noextname'] + '.srt'
         self.cfg['source_sub'] = self.cfg['name']
+        if self.cfg['name']==self.cfg['target_sub']:
+            shutil.copy2(self.cfg['source_sub'],f"{self.cfg['source_sub']}-Raw-Subtitle.srt")
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
         self.rename=cfg.get('rename',False)
 
