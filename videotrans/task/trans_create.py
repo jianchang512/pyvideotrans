@@ -501,7 +501,10 @@ class TransCreate(BaseTask):
             )
             self.queue_tts = rate_inst.run()
             # 慢速处理后，更新新视频总时长，用于音视频对齐
-            self.video_time = tools.get_video_duration(self.cfg['novoice_mp4'])
+            try:
+                self.video_time = tools.get_video_duration(self.cfg['novoice_mp4'])
+            except:
+                pass
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(self.queue_tts):

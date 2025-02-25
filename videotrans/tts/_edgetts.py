@@ -11,7 +11,7 @@ from videotrans.configure import config
 from videotrans.configure._except import IPLimitExceeded
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
+from edge_tts import Communicate
 
 # asyncio 异步并发
 
@@ -47,16 +47,16 @@ class EdgeTTS(BaseTTS):
         
         
         try:
-            if len(self.queue_tts)==1:
-                from videotrans.edge_tts import Communicate
+            for it in self.queue_tts:
                 communicate = Communicate(
-                    self.queue_tts[0]['text'],
-                    voice=self.queue_tts[0]['role'],
+                    it['text'],
+                    voice=it['role'],
                     rate=self.rate, 
                     volume=self.volume,
                     proxy=self.proxies,
                     pitch=self.pitch)
-                await communicate.save(self.queue_tts[0]['filename'])
+                await communicate.save(it['filename'])
+            """
             else:
                 from videotrans.edge_tts.communicate_list import Communicate
                 # 创建 Communicate 对象
@@ -66,6 +66,7 @@ class EdgeTTS(BaseTTS):
                 # 异步合成并保存
                 threading.Thread(target=process).start()
                 await communicate.stream()
+            """
         except aiohttp.client_exceptions.ClientHttpProxyError as e:
             config.logger.exception(e, exc_info=True)
             raise Exception(f'代理错误，请检查 {e}')
