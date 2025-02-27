@@ -40,13 +40,21 @@ def openwin():
     def test():
         key = winobj.localllm_key.text()
         url = winobj.localllm_api.text().strip()
+        max_token = winobj.localllm_max_token.text().strip()
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.localllm_model.currentText()
         template = winobj.localllm_template.toPlainText()
+        
+        temperature = winobj.localllm_temperature.text().strip()
+        top_p = winobj.localllm_top_p.text().strip()
 
+        config.params["localllm_temperature"] = temperature
+        config.params["localllm_top_p"] = top_p
+
+        config.params["localllm_max_token"] = max_token
         config.params["localllm_key"] = key
         config.params["localllm_api"] = url
         config.params["localllm_model"] = model
@@ -66,9 +74,16 @@ def openwin():
             url = 'http://' + url
         model = winobj.localllm_model.currentText()
         template = winobj.localllm_template.toPlainText()
+        max_token = winobj.localllm_max_token.text().strip()
+        
+        temperature = winobj.localllm_temperature.text().strip()
+        top_p = winobj.localllm_top_p.text().strip()
+        config.params["localllm_temperature"] = temperature
+        config.params["localllm_top_p"] = top_p
 
         config.params["localllm_key"] = key
         config.params["localllm_api"] = url
+        config.params["localllm_max_token"] = max_token
 
         config.params["localllm_model"] = model
         config.params["localllm_template"] = template
@@ -104,7 +119,13 @@ def openwin():
             winobj.localllm_model.setCurrentText(config.params["localllm_model"])
         if config.params["localllm_template"]:
             winobj.localllm_template.setPlainText(config.params["localllm_template"])
-
+        if config.params["localllm_max_token"]:
+            winobj.localllm_max_token.setText(str(config.params["localllm_max_token"]))
+        if config.params["localllm_temperature"]:
+            winobj.localllm_temperature.setText(str(config.params["localllm_temperature"]))
+        if config.params["localllm_top_p"]:
+            winobj.localllm_top_p.setText(str(config.params["localllm_top_p"]))
+            
     from videotrans.component import LocalLLMForm
     winobj = config.child_forms.get('llmw')
     config.params["localllm_template"]=tools.get_prompt('localllm')

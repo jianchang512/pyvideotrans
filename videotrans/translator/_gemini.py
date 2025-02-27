@@ -25,7 +25,7 @@ class Gemini(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self._set_proxy(type='set')
         self.prompt = tools.get_prompt(ainame='gemini',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["gemini_model"]
@@ -147,6 +147,8 @@ class Gemini(BaseTrans):
 
             config.logger.info(f'[Gemini]返回:{response.text=}')
             match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text,re.S)
+            if not match:
+                match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',response.text,re.S|re.I), re.S|re.I)
             if match:
                 return match.group(1)
             return response.text.strip()

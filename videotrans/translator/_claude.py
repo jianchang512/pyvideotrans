@@ -13,7 +13,7 @@ class Claude(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self.api_url = self._get_url(config.params['claude_api'])
         if not config.params['claude_key']:
             raise Exception('必须在翻译设置 - Claude API 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
@@ -156,6 +156,8 @@ class Claude(BaseTrans):
             raise Exception(f"no content:{response=}")
 
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
+        if not match:
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
         if match:
             return match.group(1)
         return result.strip()

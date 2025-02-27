@@ -38,8 +38,8 @@ class Ui_infoform(object):
 
 Email: jianchang512@gmail.com
 文档站/下载: pyvideotrans.com
-微信群: 加微信号(pyvideotranscom)邀请入群
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
+
 """ if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
 All code is open source and can be reviewed.
 As for the maintenance issue, it is all about giving love to the open source, so idle time will spend more time on this, and sometimes just a period of time. 
@@ -57,9 +57,10 @@ Documents: pyvideotrans.com"""
 
         self.link = QtWidgets.QPushButton(infoform)
         self.link.setText(
-            " 感谢所有捐助者，本项目的每一点改善都离不开您的帮助，点击查看捐赠名单 " if config.defaulelang == 'zh' else " Thank all donators, Click to view the list of donators ")
+            " 感谢所有捐助者，本项目的每一点改善都离不开您的帮助 " if config.defaulelang == 'zh' else " Thank all donators, Click to view the list of donators ")
         # 设置高度35px，最大宽度300
         self.link.setFixedHeight(35)
+        self.link.setStyleSheet("""background-color:transparent""")
         self.link.setCursor(Qt.PointingHandCursor)
         self.link.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/about.html'))
 
@@ -72,8 +73,6 @@ Documents: pyvideotrans.com"""
         self.v1.addWidget(label)
 
         self.h1 = QtWidgets.QHBoxLayout()
-        self.bian = QtWidgets.QLabel()
-        self.bian.setFixedHeight(200)
         if config.defaulelang == 'zh':
             self.wxpay = QtWidgets.QLabel()
             self.alipay = QtWidgets.QLabel()
@@ -83,26 +82,20 @@ Documents: pyvideotrans.com"""
             self.mp.setFixedHeight(200)
             self.h1.addWidget(self.wxpay)
             self.h1.addWidget(self.alipay)
-            self.h1.addWidget(self.bian)
             self.h1.addWidget(self.mp)
             self.v1.addLayout(self.h1)
             wxpaystask = DownloadImg(parent=self,
                                      urls={"name": "wxpay", "link": "https://pyvideotrans.com/images/wxpay.jpg"})
             alipaytask = DownloadImg(parent=self,
                                      urls={"name": "alipay", "link": "https://pyvideotrans.com/images/alipay.png"})
-            biantask = DownloadImg(parent=self,
-                                   urls={"name": "bian", "link": "https://pyvideotrans.com/images/biancn.jpg"})
             mptask = DownloadImg(parent=self, urls={"name": "mp", "link": "https://pyvideotrans.com/images/mp.jpg"})
             wxpaystask.finished.connect(lambda: self.showimg("wxpay"))
             wxpaystask.start()
             alipaytask.finished.connect(lambda: self.showimg("alipay"))
             alipaytask.start()
-            biantask.finished.connect(lambda: self.showimg("bian"))
-            biantask.start()
             mptask.finished.connect(lambda: self.showimg("mp"))
             mptask.start()
         else:
-            self.h1.addWidget(self.bian)
             self.v1.addLayout(self.h1)
             link2 = QtWidgets.QPushButton(infoform)
             # 点击链接到 https://ko-fi.com/jianchang512
@@ -112,10 +105,6 @@ Documents: pyvideotrans.com"""
             link2.setCursor(Qt.PointingHandCursor)
             link2.clicked.connect(lambda: tools.open_url('https://ko-fi.com/jianchang512'))
             self.v1.addWidget(link2)
-            biantask = DownloadImg(parent=self,
-                                   urls={"name": "bian", "link": "https://pyvideotrans.com/images/bianen.jpg"})
-            biantask.finished.connect(lambda: self.showimg("bian"))
-            biantask.start()
 
         lawbtn = QtWidgets.QPushButton()
         lawbtn.setFixedHeight(35)
@@ -138,8 +127,6 @@ Documents: pyvideotrans.com"""
             self.wxpay.setPixmap(pixmap)
         elif name == 'alipay':
             self.alipay.setPixmap(pixmap)
-        elif name == 'bian':
-            self.bian.setPixmap(pixmap)
         elif name == 'mp':
             self.mp.setPixmap(pixmap)
 
