@@ -3,7 +3,7 @@ import re
 from typing import Union, List
 
 import httpx,requests
-from openai import OpenAI, APIConnectionError
+from openai import OpenAI, APIConnectionError, APIError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
@@ -14,7 +14,7 @@ class LocalLLM(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self.api_url = config.params['localllm_api']
         self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
@@ -48,19 +48,26 @@ class LocalLLM(BaseTrans):
         try:
             response = model.chat.completions.create(
                 model=config.params['localllm_model'],
+                max_tokens= int(config.params.get('localllm_max_token')) if config.params.get('localllm_max_token') else 4096,
+                temperature=float(config.params.get('localllm_temperature',0.7)),
+                top_p=float(config.params.get('localllm_top_p',1.0)),
                 messages=message
             )
-        except APIConnectionError:
-            raise requests.ConnectionError('connection error')
+        except APIError as e:
+            config.logger.exception(e,exc_info=True)
+            raise
+        except Exception as e:
+            config.logger.exception(e,exc_info=True)
+            raise
         config.logger.info(f'[localllm]响应:{response=}')
 
         if isinstance(response, str):
             raise Exception(f'{response=}')
 
         if response.choices:
-            return re.sub(r'<think>.*?</think>','',response.choices[0].message.content.strip(),re.I)
-        if response.data and response.data['choices']:
-            return re.sub(r'<think>.*?</think>','',response.data['choices'][0]['message']['content'].strip(),re.I)
-        
+            result=re.sub(r'<think>.*?</think>','',response.choices[0].message.content.strip(),re.I)
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S|re.I)
+            if match:
+                return match.group(1)
         raise Exception(f'[localllm]请求失败:{response=}')
 

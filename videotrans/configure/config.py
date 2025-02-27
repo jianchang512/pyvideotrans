@@ -698,8 +698,11 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
 
         "chatgpt_api": "",
         "chatgpt_key": "",
+        "chatgpt_max_token": "4096",
         "chatgpt_model": _chatgpt_model_list[0],
         "chatgpt_template": "",
+        "chatgpt_temperature": "0.7",
+        "chatgpt_top_p": "1.0",
 
         "claude_api": "",
         "claude_key": "",
@@ -762,6 +765,9 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
         "localllm_template": "",
+        "localllm_max_token": "4096",
+        "localllm_temperature": "0.7",
+        "localllm_top_p": "1.0",
 
         "zhipu_key":"",
         "guiji_key":"",
@@ -787,7 +793,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_api": "",
         "openaitts_key": "",
         "openaitts_model": "tts-1",
-        "openaitts_role": "alloy,echo,fable,onyx,nova,shimmer",
+        "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer",
 
         "kokoro_api":"",
 

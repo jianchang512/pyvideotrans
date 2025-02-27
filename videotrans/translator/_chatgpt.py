@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union, List
 
 import httpx,requests
-from openai import OpenAI, APIConnectionError
+from openai import OpenAI, APIConnectionError, APIError
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
@@ -15,7 +15,7 @@ class ChatGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self.api_url = self._get_url(config.params['chatgpt_api'])
         if not config.params['chatgpt_key']:
             raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
@@ -73,10 +73,16 @@ class ChatGPT(BaseTrans):
             response = model.chat.completions.create(
                 model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params['chatgpt_model'],
                 timeout=7200,
-                max_tokens=4096,
+                max_tokens= int(config.params.get('chatgpt_max_token')) if config.params.get('chatgpt_max_token') else 4096,
+                temperature=float(config.params.get('chatgpt_temperature',0.7)),
+                top_p=float(config.params.get('chatgpt_top_p',1.0)),
                 messages=message
             )
-        except APIConnectionError as e:
+        except APIError as e:
+            config.logger.exception(e,exc_info=True)
+            raise
+        except Exception as e:
+            config.logger.exception(e,exc_info=True)
             raise
         config.logger.info(f'[chatGPT]响应:{response=}')
         result=""
@@ -128,6 +134,8 @@ class ChatGPT(BaseTrans):
             raise Exception(f"no choices:{response=}")
 
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
+        if not match:
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
         if match:
             return match.group(1)
         return result.strip()

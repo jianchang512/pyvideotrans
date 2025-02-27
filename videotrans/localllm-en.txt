@@ -1,4 +1,3 @@
-Translate the text within the <INPUT> tags to {lang}, keep line breaks, and directly output the translation without adding any explanations or prompts.
-<INPUT></INPUT>
+Translate the text within the `<INPUT>` tag to {lang}, preserving line breaks, and enclose the translation in `<TRANSLATE_TEXT>` tags.
 
-Translation Result:
+<INPUT></INPUT>

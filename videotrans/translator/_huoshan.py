@@ -14,7 +14,7 @@ class HuoShan(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self.proxies = {"http": "", "https": ""}
         self.prompt = tools.get_prompt(ainame='zijie',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self.model_name=config.params["zijiehuoshan_model"]
@@ -91,6 +91,8 @@ class HuoShan(BaseTrans):
                 raise Exception(f'字节火山翻译失败:{resp.text=}')
             result = data['choices'][0]['message']['content'].strip()
             match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result, re.S)
+            if not match:
+                match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
             if match:
                 return match.group(1)
             return result.strip()

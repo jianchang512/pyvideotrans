@@ -54,7 +54,46 @@ class Ui_localllmform(object):
         self.localllm_key.setObjectName("localllm_key")
         h2.addWidget(self.label_2)
         h2.addWidget(self.localllm_key)
+
+        h_token = QtWidgets.QHBoxLayout()
+        label_token = QtWidgets.QLabel(localllmform)
+        label_token.setMinimumSize(QtCore.QSize(0, 35))
+        label_token.setSizeIncrement(QtCore.QSize(0, 35))
+        label_token.setObjectName("label_token")
+        label_token.setText("最大输出token" if config.defaulelang == 'zh' else "Maximum output token")
+        self.localllm_max_token = QtWidgets.QLineEdit(localllmform)
+        self.localllm_max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.localllm_max_token.setObjectName("localllm_max_token")
+        
+        
+        label_temp=QtWidgets.QLabel(localllmform)
+        label_temp.setMinimumSize(QtCore.QSize(0, 35))
+        label_temp.setText("temperature")
+        
+        self.localllm_temperature=QtWidgets.QLineEdit(localllmform)
+        self.localllm_temperature.setObjectName("localllm_temperature")
+
+        
+        label_top_p=QtWidgets.QLabel(localllmform)
+        label_top_p.setMinimumSize(QtCore.QSize(0, 35))
+        label_top_p.setText("top_p")
+        
+        self.localllm_top_p=QtWidgets.QLineEdit(localllmform)
+        self.localllm_top_p.setObjectName("localllm_top_p")
+        
+        
+
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.localllm_max_token)
+        
+        h_token.addWidget(label_temp)
+        h_token.addWidget(self.localllm_temperature)
+
+        h_token.addWidget(label_top_p)
+        h_token.addWidget(self.localllm_top_p)
+
         v1.addLayout(h2)
+        v1.addLayout(h_token)
 
         self.label_3 = QtWidgets.QLabel(localllmform)
         self.label_3.setObjectName("label_3")
@@ -107,7 +146,7 @@ class Ui_localllmform(object):
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle("Local LLM API" if config.defaulelang != 'zh' else '兼容AI及本地大模型')
+        localllmform.setWindowTitle("本地大模型(兼容OpenAI)" if config.defaulelang == 'zh' else "Local LLM API")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.localllm_template.setPlaceholderText("prompt")
         self.label_4.setText(

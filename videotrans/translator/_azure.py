@@ -14,7 +14,7 @@ class AzureGPT(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',500))
+        self.trans_thread=int(config.settings.get('aitrans_thread',50))
         self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         self.model_name=config.params["azure_model"]
@@ -102,6 +102,8 @@ class AzureGPT(BaseTrans):
             config.logger.error(f'[AzureGPT]请求失败:{response=}')
             raise Exception(f"no choices:{response=}")
         match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', result,re.S)
+        if not match:
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I), re.S|re.I)
         if match:
             return match.group(1)
         return result.strip()
