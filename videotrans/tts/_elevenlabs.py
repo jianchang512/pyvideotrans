@@ -5,7 +5,8 @@ import re
 import time
 
 import httpx
-from elevenlabs import ElevenLabs
+from elevenlabs import ElevenLabs,VoiceSettings
+
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
@@ -26,6 +27,10 @@ class ElevenLabsC(BaseTTS):
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         prev_text = None
+        speed=1.0
+        if self.rate and self.rate !='+0%':
+            speed+=float(self.rate.replace('%',''))
+
         while len(self.copydata) > 0:
             if self._exit():
                 return
@@ -54,10 +59,18 @@ class ElevenLabsC(BaseTTS):
                 response = client.text_to_speech.convert(
                     text=text,
                     voice_id=jsondata[role]['voice_id'],
-                    model_id="eleven_multilingual_v2",
+                    model_id=config.params.get("elevenlabstts_models"),
                     previous_text=prev_text,
-                    next_text=self.copydata[0]['text'] if len(self.copydata) > 0 else None
-
+                    output_format="mp3_44100_128",
+                    next_text=self.copydata[0]['text'] if len(self.copydata) > 0 else None,
+                    apply_text_normalization='auto',
+                    voice_settings=VoiceSettings(
+                        speed=speed,
+                        stability=0,
+                        similarity_boost=0,
+                        style=0,
+                        use_speaker_boost=True
+                    )
                 )
                 with open(data_item['filename'], 'wb') as f:
                     for chunk in response:

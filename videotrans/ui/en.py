@@ -1106,7 +1106,7 @@ class Ui_MainWindow(object):
         self.actionazure_key.setText("AzureGPT 翻译 " if config.defaulelang == 'zh' else 'AzureOpenAI Translation')
         self.actionazure_tts.setText("AzureAI 配音" if config.defaulelang == 'zh' else 'AzureAI TTS')
         self.actiongemini_key.setText("Gemini Pro")
-        self.actionElevenlabs_key.setText("ElevenLabs.io TTS")
+        self.actionElevenlabs_key.setText("ElevenLabs.io")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
 
         self.actionwatermark.setText('批量视频添加水印' if config.defaulelang == 'zh' else 'Add watermark to video')

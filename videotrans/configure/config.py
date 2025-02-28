@@ -789,6 +789,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
 
         "elevenlabstts_role": [],
         "elevenlabstts_key": "",
+        "elevenlabstts_models": "eleven_flash_v2_5",
 
         "openaitts_api": "",
         "openaitts_key": "",

@@ -39,7 +39,9 @@ def openwin():
     
     def save():
         key = winobj.elevenlabstts_key.text()
+        model=winobj.elevenlabstts_models.currentText()
         config.params['elevenlabstts_key'] = key
+        config.params['elevenlabstts_models'] = model
         config.getset_params(config.params)
         winobj.close()
 
@@ -68,6 +70,8 @@ def openwin():
     config.child_forms['elevenlabsw'] = winobj
     if config.params['elevenlabstts_key']:
         winobj.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
+    if config.params['elevenlabstts_models']:
+        winobj.elevenlabstts_models.setCurrentText(config.params['elevenlabstts_models'])    
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()
