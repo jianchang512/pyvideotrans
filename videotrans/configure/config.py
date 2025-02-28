@@ -624,7 +624,7 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
 
         "only_video": False,
         "is_separate": False,
-        "remove_noise":True,
+        "remove_noise":False,
 
         "target_dir": "",
 
@@ -854,7 +854,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "stt_source_language":0,
         "stt_recogn_type":0,
         "stt_model_name":"",
-        "stt_remove_noise":True,
+        "stt_remove_noise":False,
 
         "deepgram_apikey":"",
         "deepgram_utt":200,

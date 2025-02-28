@@ -21,6 +21,7 @@ GOOGLE_SPEECH = 8
 GEMINI_SPEECH = 9
 Faster_Whisper_XXL = 10
 AI_302 = 11
+ElevenLabs = 12
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -34,12 +35,13 @@ RECOGN_NAME_LIST = [
     "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
     "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
     "Faster-Whisper-XXL.exe",
-    "302.AI"
+    "302.AI",
+    "ElevenLabs.io"
 ]
 
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None):
-    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER,GEMINI_SPEECH]:
+    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER,GEMINI_SPEECH,ElevenLabs]:
         return '仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.'
     if recogn_type == FUNASR_CN:
         if model_name=='paraformer-zh' and langcode[:2] !='zh':
@@ -143,8 +145,14 @@ def is_input_api(recogn_type: int = None,return_str=False):
             return "Please configure the API Key information of the Gemini channel first."
         ai302.openwin()
         return False
+    #ElevenLabs
+    if recogn_type == ElevenLabs and not config.params['elevenlabstts_key']:
+        if return_str:
+            return "Please configure the API Key information of the ElevenLabs channel first."
+        from videotrans.winform import elevenlabs as elevenlabs_win
+        elevenlabs_win.openwin()
+        return False
     return True
-
 
 # 统一入口
 def run(*,
@@ -207,6 +215,11 @@ def run(*,
     if recogn_type==AI_302:
         from ._ai302 import AI302Recogn
         return AI302Recogn(**kwargs).run()
+
+    if recogn_type==ElevenLabs:
+        from ._elevenlabs import ElevenLabsRecogn
+        return ElevenLabsRecogn(**kwargs).run()
+
     if split_type == 'avg':
         from ._average import FasterAvg
         return FasterAvg(**kwargs).run()

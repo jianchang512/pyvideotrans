@@ -29,6 +29,8 @@ __pycache__
 *.ui
 *.bak
 *.aac
+5.wav
+15.wav
 *副本.py
 pretrained_models
 elevenlabs.json
