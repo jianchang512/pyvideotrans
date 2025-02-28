@@ -119,8 +119,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except Exception:
             config.params['recogn_type'] = 0
-        if config.params['recogn_type']>10:
-            config.params['recogn_type']=10
+        #if config.params['recogn_type']>10:
+        #    config.params['recogn_type']=10
         # 设置当前识别类型
         self.recogn_type.setCurrentIndex(config.params['recogn_type'])
 
