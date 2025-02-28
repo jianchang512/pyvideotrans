@@ -23,30 +23,37 @@ class Ui_elevenlabsform(object):
 
         self.verticalLayout = QtWidgets.QVBoxLayout(elevenlabsform)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.formLayout_2 = QtWidgets.QFormLayout()
-        self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.formLayout_2.setObjectName("formLayout_2")
+        
+        
+        self.formLayout_2 = QtWidgets.QHBoxLayout(elevenlabsform)
+        self.formLayout_3 = QtWidgets.QHBoxLayout(elevenlabsform)
+        
+        
         self.label = QtWidgets.QLabel(elevenlabsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
-        self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
+
         self.elevenlabstts_key = QtWidgets.QLineEdit(elevenlabsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.elevenlabstts_key.sizePolicy().hasHeightForWidth())
-        self.elevenlabstts_key.setSizePolicy(sizePolicy)
         self.elevenlabstts_key.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_key.setObjectName("elevenlabstts_key")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.elevenlabstts_key)
+        
+        self.formLayout_2.addWidget(self.label)
+        self.formLayout_2.addWidget(self.elevenlabstts_key)
+        
+        self.label2 = QtWidgets.QLabel(elevenlabsform)
+        self.label2.setMinimumSize(QtCore.QSize(100, 35))
+        self.label2.setObjectName("label2")
+
+        self.elevenlabstts_models = QtWidgets.QComboBox(elevenlabsform)
+        self.elevenlabstts_models.setMinimumSize(QtCore.QSize(210, 35))
+        self.elevenlabstts_models.setObjectName("elevenlabstts_models")
+        self.elevenlabstts_models.addItems(['eleven_flash_v2_5','eleven_multilingual_v2'])
+        
+        self.formLayout_3.addWidget(self.label2)
+        self.formLayout_3.addWidget(self.elevenlabstts_models)
+        
         self.verticalLayout.addLayout(self.formLayout_2)
+        self.verticalLayout.addLayout(self.formLayout_3)
 
 
 
@@ -77,7 +84,8 @@ class Ui_elevenlabsform(object):
         QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
 
     def retranslateUi(self, elevenlabsform):
-        elevenlabsform.setWindowTitle("ElevenLabs")
+        elevenlabsform.setWindowTitle("ElevenLabs.io")
+        self.label2.setText("TTS model")
         self.label.setText("API_KEY")
         self.set.setText('保存' if config.defaulelang == 'zh' else "Save")
         self.test.setText('测试并获取角色' if config.defaulelang == 'zh' else "Test & get roles")

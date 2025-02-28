@@ -803,6 +803,8 @@ def wav2m4a(wavfile, m4afile, extra=None):
 
 # wav转为 mp3 cuda + h264_cuvid
 def wav2mp3(wavfile, mp3file, extra=None):
+    if not wavfile or not Path(wavfile).exists():
+        raise Exception(f'No Exists: {wavfile}')
     cmd = [
         "-y",
         "-i",
