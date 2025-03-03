@@ -91,7 +91,7 @@ class DubbingSrt(BaseTask):
             rate = f"{rate}%"
         
         if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
-            from videotrans.edge_tts import Communicate
+            from edge_tts import Communicate
             import asyncio
             pro=self._set_proxy(type='set')
             async def _async_dubb():
