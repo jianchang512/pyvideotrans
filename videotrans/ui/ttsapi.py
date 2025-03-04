@@ -13,22 +13,20 @@ class Ui_ttsapiform(object):
         if not ttsapiform.objectName():
             ttsapiform.setObjectName("ttsapiform")
         ttsapiform.setWindowModality(Qt.NonModal)
-        ttsapiform.resize(600, 500)
+        ttsapiform.resize(600, 600)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(ttsapiform.sizePolicy().hasHeightForWidth())
         ttsapiform.setSizePolicy(sizePolicy)
-        ttsapiform.setMaximumSize(QSize(600, 500))
+        ttsapiform.setMaximumSize(QSize(600, 600))
 
         v1=QtWidgets.QVBoxLayout(ttsapiform)
         self.label = QLabel()
         self.label.setObjectName("label")
-        self.label.setGeometry(QRect(10, 10, 101, 35))
         self.label.setMinimumSize(QSize(0, 35))
         self.api_url = QLineEdit(ttsapiform)
         self.api_url.setObjectName("api_url")
-        self.api_url.setGeometry(QRect(130, 10, 441, 35))
         self.api_url.setMinimumSize(QSize(0, 35))
 
         h1=QtWidgets.QHBoxLayout()
@@ -41,7 +39,7 @@ class Ui_ttsapiform(object):
         self.label_2.setObjectName("label_2")
         self.label_2.setMinimumSize(QSize(0, 35))
         self.label_2.setSizeIncrement(QSize(0, 35))
-        self.voice_role = QLineEdit(ttsapiform)
+        self.voice_role = QPlainTextEdit(ttsapiform)
         self.voice_role.setObjectName("voice_role")
         self.voice_role.setMinimumSize(QSize(0, 35))
         h2.addWidget(self.label_2)
@@ -49,19 +47,45 @@ class Ui_ttsapiform(object):
         v1.addLayout(h2)
 
         h3=QtWidgets.QHBoxLayout()
+        h4=QtWidgets.QHBoxLayout()
+        h5=QtWidgets.QHBoxLayout()
         self.label_3 = QLabel(ttsapiform)
         self.label_3.setObjectName("label_3")
         self.extra = QLineEdit(ttsapiform)
         self.extra.setObjectName("extra")
         self.extra.setMinimumSize(QSize(0, 35))
+
+
+        self.label_4 = QLabel(ttsapiform)
+        self.label_4.setObjectName("label_4")
+        self.label_4.setText("语言，默认auto" if config.defaulelang=='zh' else 'Language')
+        self.language_boost = QtWidgets.QComboBox(ttsapiform)
+        self.language_boost.setObjectName("language_boost")
+        self.language_boost.setMinimumSize(QSize(0, 35))
+        self.language_boost.addItems(['auto','Chinese', 'Chinese,Yue', 'English', 'Arabic', 'Russian', 'Spanish', 'French', 'Portuguese', 'German', 'Turkish', 'Dutch', 'Ukrainian', 'Vietnamese', 'Indonesian', 'Japanese', 'Italian', 'Korean'])
+        
+        label_5=QLabel(ttsapiform)
+        label_5.setText('情绪' if config.defaulelang=='zh' else 'Emotion')
+        self.emotion = QtWidgets.QComboBox(ttsapiform)
+        self.language_boost.setObjectName("emotion")
+        self.emotion.setMinimumSize(QSize(0, 35))
+        self.emotion.addItems(["happy", "sad", "angry", "fearful", "disgusted", "surprised", "neutral"])
+        
+        
+        
         h3.addWidget(self.label_3)
         h3.addWidget(self.extra)
+        h4.addWidget(self.label_4)
+        h4.addWidget(self.language_boost)
+        h5.addWidget(label_5)
+        h5.addWidget(self.emotion)
         v1.addLayout(h3)
+        v1.addLayout(h4)
+        v1.addLayout(h5)
 
 
         self.tips = QPlainTextEdit(ttsapiform)
         self.tips.setObjectName("tips")
-        self.tips.setGeometry(QRect(10, 180, 571, 151))
         self.tips.setReadOnly(True)
         v1.addWidget(self.tips)
 
@@ -113,9 +137,6 @@ extra:额外参数/字符串
     data:在合成成功时，返回mp3文件的完整url地址，用于在软件内下载。失败时为空
 }       
 
-----
-OpenVoice-v2第三方实现自定义api
-https://github.com/kungful/openvoice-api
      
 """
         else:
@@ -138,7 +159,7 @@ Expect data to be returned from the interface in json format:
 }            
 """
         ttsapiform.setWindowTitle("自定义TTS-API/无编码能力勿使用该功能" if config.defaulelang == 'zh' else "Customizing the TTS-API")
-        self.label_3.setText("额外参数" if config.defaulelang == 'zh' else "additional parameter")
+        self.label_3.setText("密钥SK" if config.defaulelang == 'zh' else "SK")
         self.tips.setPlainText(tips)
         self.tips.setPlaceholderText("")
         self.save.setText("保存" if config.defaulelang == 'zh' else "Save")

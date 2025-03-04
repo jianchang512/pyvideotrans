@@ -62,12 +62,15 @@ class AzureTTS(BaseTTS):
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 self.error = ''
-                tools.wav2mp3(filename, items[0]['filename'])
+                if tools.vail_file(filename):
+                    tools.wav2mp3(filename, items[0]['filename'])
+                else:
+                    self.error='TTS error'
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
             length = len(bookmarks)
             for i, it in enumerate(bookmarks):
-                if i >= length:
+                if i >= length or not tools.vail_file(filename):
                     continue
                 cmd = [
                     "-y",
@@ -129,7 +132,10 @@ class AzureTTS(BaseTTS):
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''
-            tools.wav2mp3(filename, data_item['filename'])
+            if tools.vail_file(filename):
+                tools.wav2mp3(filename, data_item['filename'])
+            else:
+                self.error="TTS error"
             self.has_done+=1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}')
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:

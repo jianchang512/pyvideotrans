@@ -818,6 +818,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "ttsapi_url": "",
         "ttsapi_voice_role": "",
         "ttsapi_extra": "pyvideotrans",
+        "ttsapi_language_boost": "auto",
+        "ttsapi_emotion": "happy",
 
         "ai302tts_key": "",
         "ai302tts_model": "",

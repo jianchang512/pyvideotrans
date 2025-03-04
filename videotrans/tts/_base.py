@@ -117,8 +117,8 @@ class BaseTTS(BaseCon):
                 err += 1
         # 错误量大于 1/3
         if err > int(len(self.queue_tts) / 3):
-            msg = f'{self.error if self.error else ""} {config.transobj["peiyindayu31"]}:{self.error if self.error is not True else ""}'
-            self._signal(text=msg, type="error")
+            msg = (self.error if self.error else '')+ config.transobj["peiyindayu31"]
+            self._signal(text= msg, type="error")
             raise Exception(msg)
         # 去除末尾静音
         if config.settings['remove_silence']:
@@ -154,6 +154,7 @@ class BaseTTS(BaseCon):
         if len(self.queue_tts)==1 or self.dub_nums==1:
             for k, item in enumerate(self.queue_tts):
                 if k>0:
+                    print(f'{self.wait_sec=}')
                     time.sleep(self.wait_sec)
                 if normalizer:
                     item['text']=normalizer(item['text'])
