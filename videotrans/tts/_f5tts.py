@@ -74,7 +74,7 @@ class F5TTS(BaseTTS):
                     return
             config.logger.info(f'f5TTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}",files=files,data=data, proxies=self.proxies, timeout=3600)
-            response.raise_for_status()  
+            response.raise_for_status()
             if not response.content:
                 self.error = f'{response.json()["error"]}, status_code={response.status_code} {response.reason} '
                 Path(data_item['filename']).unlink(missing_ok=True)
