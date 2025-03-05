@@ -38,7 +38,7 @@ class Ui_fishttsform(object):
 
         self.label_4 = QLabel(fishttsform)
         self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频#音频文字内容')
+        self.label_4.setText('参考音频路径名称#音频对应文字内容  一行一组')
         v1.addWidget(self.label_4)
 
         self.role = QPlainTextEdit(fishttsform)
@@ -91,19 +91,17 @@ class Ui_fishttsform(object):
 
     def retranslateUi(self, fishttsform):
         tips = """
-FishTTS 开源地址 https://github.com/fishaudio/fish-speech
+Fish-speech TTS 开源地址 https://github.com/fishaudio/fish-speech
 
 将以POST请求向填写的API地址发送application/json数据：
 
-FishTTS自带 tools/api.py，可接受请求
-
-text,reference_audio,reference_text
+FishTTS自带 tools/api_server.py，可接受请求
 
 本工具将向填写的API地址发送以下3个参数
 
 text:需要合成的文本/字符串
-reference_audio:参考音频路径，相对于fishtts根目录，或填写绝对路径
-reference_text:参考音频的文本
+references[0][audio]:参考音频路径，请放在本软件的根目录下，例如 1.wav或 wavs/1.wav
+references[0][text]:参考音频中的语音文本
 
 
 请求失败时返回json格式数据
@@ -111,11 +109,11 @@ reference_text:参考音频的文本
 请求成功时返回音频流
 """
 
-        fishttsform.setWindowTitle("FishTTS API")
+        fishttsform.setWindowTitle("Fish-speech API/fish-speech >=1.5.0")
         self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
         self.tips.setPlainText(tips)
         self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
-        self.api_url.setPlaceholderText("填写http开头的API地址,FishTTS默认 http://127.0.0.1:8000/v1/invoke")
-        self.label.setText("FishTTS API")
+        self.api_url.setPlaceholderText("填写http开头的API,Fish-speech 1.5.0默认 http://127.0.0.1:8080/v1/tts")
+        self.label.setText("Fish-speech API")
         self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
     # retranslateUi

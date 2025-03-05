@@ -113,8 +113,6 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return 'ChatTTS 仅支持中英语言配音' if config.defaulelang == 'zh' else 'ChatTTS only supports Chinese, English'
 
-    if tts_type == FISHTTS and langcode[:2] not in ['zh', 'ja', 'en']:
-        return 'FishTTS 仅支持中日英语言配音' if config.defaulelang == 'zh' else 'FishTTS only supports Chinese, English, Japanese'
 
 
     if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id']:

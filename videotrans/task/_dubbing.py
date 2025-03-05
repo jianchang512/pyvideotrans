@@ -140,7 +140,7 @@ class DubbingSrt(BaseTask):
             uuid=self.uuid
         )
         if config.settings.get('save_segment_audio',False):
-            outname=self.cfg['target_dir']+'/segment_audio'
+            outname=self.cfg['target_dir']+f'/segment_audio_{self.cfg["noextname"]}'
             print(f'{outname=}')
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:

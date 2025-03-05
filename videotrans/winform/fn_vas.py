@@ -123,7 +123,13 @@ def openwin():
                         ]
                         tools.runffmpeg(cmd)
                         self.video=tmp_mp4
-
+                    elif audio_time<video_time:
+                        from pydub import AudioSegment
+                        ext=self.audio.split('.')[-1]
+                        audio_data=AudioSegment.from_file(self.audio,format='mp4' if ext=='m4a' else ext)
+                        audio_data+=AudioSegment.silent(duration=video_time-audio_time)
+                        audio_data.export(self.audio, format='mp4' if ext=='m4a' else ext)
+                        
                     # 视频和音频混合
                     # 如果存在字幕则生成中间结果end_mp4
                     if self.srt:
@@ -161,17 +167,6 @@ def openwin():
                         os.path.normpath(self.video)
                     ]
                     if not self.is_soft or not self.language:
-                        # 硬字幕
-                        # sub_list = tools.get_subtitle_from_srt(self.srt, is_file=True)
-                        # text = ""
-                        # for i, it in enumerate(sub_list):
-                        #     it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
-                        #     text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                        # srtfile = config.TEMP_HOME + f"/vasrt{time.time()}.srt"
-                        # with Path(srtfile).open('w', encoding='utf-8') as f:
-                        #     f.write(text)
-                        #     f.flush()
-                        # assfile = tools.set_ass_font(srtfile)
                         assfile=config.TEMP_HOME + f"/vasrt{time.time()}.ass"
                         save_ass(self.srt,assfile)
                         os.chdir(config.TEMP_HOME)
