@@ -36,17 +36,18 @@ class FishTTS(BaseTTS):
             role = data_item['role']
             if not text:
                 return
-            data = {"text": text, }
-            if role:
-                roledict = tools.get_fishtts_role()
-                if role in roledict:
-                    data.update(roledict[role])
-
+            roledict = tools.get_fishtts_role()
+            if not role or not roledict.get(role):
+                raise Exception('必须在设置中填写参考音频路径名、参考音频对应的文字')
+            data = {"text": text, "references":[ {"audio":"","text": roledict[role]['reference_text']} ] }
+            
             # 克隆声音
-            if os.path.exists(f'{config.ROOT_DIR}/{data["reference_audio"]}'):
-                data['reference_audio'] = self._audio_to_base64(f'{config.ROOT_DIR}/{data["reference_audio"]}')
-            elif os.path.exists(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}'):
-                data['reference_audio'] = self._audio_to_base64(f'{config.ROOT_DIR}/fishwavs/{data["reference_audio"]}')
+            audio_path=f'{config.ROOT_DIR}/{roledict[role]["reference_audio"]}'
+            if os.path.exists(audio_path):
+                data['references'][0]['audio']=self._audio_to_base64(audio_path)
+            else:
+                raise Exception(f'参考音频不存在:{audio_path}\n请确保该音频存在')
+
             config.logger.info(f'fishTTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
             if response.status_code != 200:

@@ -354,7 +354,7 @@ def parse_init():
         "other_len": 60,
         "gemini_model": "gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-pro-exp-02-05,gemini-1.5-flash,gemini-1.5-pro",
         "zh_hant_s": True,
-        "azure_lines": 150,
+        "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy":"",
