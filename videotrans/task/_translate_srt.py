@@ -46,7 +46,7 @@ class TranslateSrt(BaseTask):
         self.out_format=int(cfg.get('out_format',0))
         # 生成目标字幕文件
         self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
-            'noextname'] + '.srt'
+            'noextname'] + f'.{self.cfg["target_code"]}.srt'
         self.cfg['source_sub'] = self.cfg['name']
         if self.cfg['name']==self.cfg['target_sub']:
             shutil.copy2(self.cfg['source_sub'],f"{self.cfg['source_sub']}-Raw-Subtitle.srt")

@@ -31,23 +31,19 @@ class EdgeTTS(BaseTTS):
         def process():
             if task_end:
                 return
-            length=len(self.queue_tts)
             while 1:
-                if task_end or self._exit():
-                    return
-                had=0
-                for it in self.queue_tts:
-                    if Path(it['filename']).is_file():
-                        had+=1
-                print(f'{had}/{length}')
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.05
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} [{had}/{length}]')
-                time.sleep(0.5)
+                
         
         
         try:
-            for it in self.queue_tts:
+            length=len(self.queue_tts)
+            for i,it in enumerate(self.queue_tts):
+                if task_end or self._exit():
+                    return
+                if self.inst and self.inst.precent < 80:
+                    self.inst.precent += 0.05
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} [{i+1}/{length}]')
+                time.sleep(self.wait_sec if self.wait_sec> else 0.1)
                 communicate = Communicate(
                     it['text'],
                     voice=it['role'],
@@ -56,17 +52,7 @@ class EdgeTTS(BaseTTS):
                     proxy=self.proxies,
                     pitch=self.pitch)
                 await communicate.save(it['filename'])
-            """
-            else:
-                from videotrans.edge_tts.communicate_list import Communicate
-                # 创建 Communicate 对象
-                communicate = Communicate(text_list=self.queue_tts,rate=self.rate, volume=self.volume,
-                        proxy=self.proxies,
-                        pitch=self.pitch,max_retries=5, retry_delay = 2) # 设置最大重试次数为 5，重试延迟为2
-                # 异步合成并保存
-                threading.Thread(target=process).start()
-                await communicate.stream()
-            """
+
         except aiohttp.client_exceptions.ClientHttpProxyError as e:
             config.logger.exception(e, exc_info=True)
             raise Exception(f'代理错误，请检查 {e}')

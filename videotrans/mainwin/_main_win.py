@@ -350,7 +350,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.win_action.open_url('discord'))
         self.action_models.triggered.connect(lambda: self.win_action.open_url('models'))
-        self.action_dll.triggered.connect(lambda: self.win_action.open_url('dll'))
+        #self.action_dll.triggered.connect(lambda: self.win_action.open_url('dll'))
         self.action_gtrans.triggered.connect(lambda: self.win_action.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.win_action.open_url('cuda'))
         self.action_online.triggered.connect(lambda: self.win_action.open_url('online'))
