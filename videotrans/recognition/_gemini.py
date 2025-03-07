@@ -209,12 +209,11 @@ class GeminiRecogn(BaseRecogn):
 
             return milliseconds_timestamps
         vad_p={
-            "threshold":  float(config.params.get('gemini_onset',0.5)),
-            "neg_threshold": float(config.params.get('gemini_offset',0.35)),
-            "min_speech_duration_ms":  0,
-            "max_speech_duration_s":  float("inf"),
-            "min_silence_duration_ms": int(config.params.get('gemini_min_silence_duration_ms',250)),
-            "speech_pad_ms": int(config.params.get('gemini_speech_pad_ms',200))
+            "threshold":float(config.settings['threshold']),
+            "min_speech_duration_ms":int(config.settings['min_speech_duration_ms']),
+            "max_speech_duration_s":float(config.settings['max_speech_duration_s']) if float(config.settings['max_speech_duration_s'])>0 else float('inf'),
+            "min_silence_duration_ms":int(config.settings['min_silence_duration_ms']),
+            "speech_pad_ms":int(config.settings['speech_pad_ms'])
         }
         speech_chunks=get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),vad_options=VadOptions(**vad_p))
         speech_chunks=convert_to_milliseconds(speech_chunks)

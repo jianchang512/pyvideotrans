@@ -286,13 +286,13 @@ def parse_init():
         "vad": True,
 
         "threshold":0.5,
-        "min_speech_duration_ms":250,
-        "max_speech_duration_s":0,
+        "min_speech_duration_ms":1000,
+        "max_speech_duration_s":15,
         "min_silence_duration_ms":250,
-        "speech_pad_ms":150,
+        "speech_pad_ms":200,
 
 
-        "overall_maxsecs":12,
+        "overall_maxsecs":15,
 
         "rephrase":False,
 
@@ -343,7 +343,7 @@ def parse_init():
         "whisper_worker": 1,
         "beam_size": 5,
         "best_of": 5,
-        "temperature": 0,
+        "temperature": 0.0,
         "condition_on_previous_text": False,
         "fontsize": 16,
         "fontname": "黑体",
@@ -718,10 +718,7 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "gemini_key": "",
         "gemini_model": "gemini-1.5-pro",
         "gemini_template": "",
-        "gemini_min_silence_duration_ms":200,
-        "gemini_speech_pad_ms":100, 
-        "gemini_onset":0.5,
-        "gemini_offset":0.35,
+
         "gemini_srtprompt":"""# 角色
 你是一名转录助手，能够高效地将音频文件转录为文本，确保准确性并保持音频文件的顺序。
 

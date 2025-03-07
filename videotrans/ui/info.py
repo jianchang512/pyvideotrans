@@ -85,10 +85,10 @@ Documents: pyvideotrans.com"""
             self.h1.addWidget(self.mp)
             self.v1.addLayout(self.h1)
             wxpaystask = DownloadImg(parent=self,
-                                     urls={"name": "wxpay", "link": "https://pyvideotrans.com/images/wxpay.jpg"})
+                                     urls={"name": "wxpay", "link": "https://pvtr2.pyvideotrans.com/images/wxpay.jpg"})
             alipaytask = DownloadImg(parent=self,
-                                     urls={"name": "alipay", "link": "https://pyvideotrans.com/images/alipay.png"})
-            mptask = DownloadImg(parent=self, urls={"name": "mp", "link": "https://pyvideotrans.com/images/mp.jpg"})
+                                     urls={"name": "alipay", "link": "https://pvtr2.pyvideotrans.com/images/alipay.png"})
+            mptask = DownloadImg(parent=self, urls={"name": "mp", "link": "https://pvtr2.pyvideotrans.com/images/mp.jpg"})
             wxpaystask.finished.connect(lambda: self.showimg("wxpay"))
             wxpaystask.start()
             alipaytask.finished.connect(lambda: self.showimg("alipay"))

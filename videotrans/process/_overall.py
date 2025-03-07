@@ -72,7 +72,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             beam_size=int(settings['beam_size']),
             best_of=int(settings['best_of']),
             condition_on_previous_text=bool(settings['condition_on_previous_text']),
-            temperature=0.0 if int(float(settings.get('temperature',0))) == 0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+            temperature=0.0 if float(settings.get('temperature',0)) == 0.0 else [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
             vad_filter=bool(settings['vad']),
             vad_parameters=dict(
                 threshold=float(settings['threshold']),
