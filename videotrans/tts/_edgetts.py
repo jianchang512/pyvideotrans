@@ -30,11 +30,7 @@ class EdgeTTS(BaseTTS):
         
         def process():
             if task_end:
-                return
-            while 1:
-                
-        
-        
+                return        
         try:
             length=len(self.queue_tts)
             for i,it in enumerate(self.queue_tts):
@@ -43,7 +39,7 @@ class EdgeTTS(BaseTTS):
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.05
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} [{i+1}/{length}]')
-                time.sleep(self.wait_sec if self.wait_sec> else 0.1)
+                time.sleep(self.wait_sec if self.wait_sec>0 else 0.1)
                 communicate = Communicate(
                     it['text'],
                     voice=it['role'],
