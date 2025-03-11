@@ -102,7 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No']+rolelist)
         elif config.params['tts_type'] == tts.OPENAI_TTS:
             rolelist = config.params.get('openaitts_role','')
-            self.voice_role.addItems(rolelist)
+            self.voice_role.addItems(['No']+rolelist.split(','))
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
 
