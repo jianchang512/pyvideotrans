@@ -837,8 +837,9 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "fishtts_role": "",
         
         "f5tts_url": "",
-        "f5tts_model": "",
+        "f5tts_model": "F5-TTS_v1",
         "f5tts_role": "",
+        "f5tts_is_whisper":False,
 
         "doubao_appid": "",
         "doubao_access": "",

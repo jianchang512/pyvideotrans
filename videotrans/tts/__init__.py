@@ -119,8 +119,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
     if tts_type == KOKORO_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','it','hi','fr']:
         return 'kokoro tts 仅支持中、日、英、葡萄牙、西班牙、意大利、印度、法语配音' if config.defaulelang == 'zh' else 'Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr'
-    if tts_type == F5_TTS and  langcode[:2] not in ['zh', 'en']:
-        return 'F5-TTS语音合成 仅支持中、英语言配音' if config.defaulelang == 'zh' else 'F5-TTS only supports Chinese, English'
+    if tts_type == F5_TTS and  langcode[:2] not in ['zh', 'en','fr','ru','ja','it','hi','fi','es']:
+        return 'F5-TTS语音合成 仅支持中、英、日、法、日、俄、意大利、印地、西班牙、芬兰语言配音' if config.defaulelang == 'zh' else 'F5-TTS only supports  zh, en, fr, ru, ja,it,hi,fi,es'
 
     return True
 
@@ -200,11 +200,11 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  volcenginetts as volcengine_win
         volcengine_win.openwin()
         return False
-    if tts_type == F5_TTS and (not config.params['f5tts_url'] or not config.params['f5tts_model']):
+    if tts_type == F5_TTS and not config.params['f5tts_url']:
         if return_str:
             return "Please configure the api and key information of the VolcEngine F5-TTS channel first."
         from videotrans.winform import  f5tts as f5tts_win
-        f5_win.openwin()
+        f5tts_win.openwin()
         return False
     return True
 

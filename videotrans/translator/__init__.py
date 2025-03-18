@@ -53,7 +53,8 @@ TRANSLASTE_NAME_LIST = [
     "GLM-4-flash(免费)",
     "Qwen2.5-7b(免费)"
 ]
-# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2  https://www.loc.gov/standards/iso639-2/php/code_list.php
+# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2%E4%BB%A3%E7%A0%81%E5%88%97%E8%A1%A8
+#  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
 # google翻译 https://translate.google.com/
 # 百度翻译 https://fanyi.baidu.com/
@@ -112,6 +113,17 @@ LANG_CODE = {
         "fil",  # 微软翻译
         "Filipino" if config.defaulelang != 'zh' else '菲律宾语',  # AI翻译
         "fil" #阿里
+    ],
+    "fi":[
+        "fi",  # google通道
+        "fin",  # 字幕嵌入语言
+        "fin",  # 百度通道
+        "fi",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "fi",  # 微软翻译
+        "Finnish" if config.defaulelang != 'zh' else '芬兰语',  # AI翻译
+        "fi" #阿里
     ],
 
     "zh-tw": [
