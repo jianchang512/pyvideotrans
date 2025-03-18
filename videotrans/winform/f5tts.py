@@ -33,8 +33,9 @@ def openwin():
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
-        else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        
+        #else:
+        #    QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         winobj.test.setText('测试api')
 
     def test():
@@ -43,7 +44,6 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
-        model = winobj.model.currentText()
         role = winobj.role.toPlainText().strip()
         if not role:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写参考音频才可测试')
@@ -51,9 +51,11 @@ def openwin():
         role_test=getrole()
         if not role_test:
             return
+        is_whisper=winobj.is_whisper.isChecked()
+        config.params["f5tts_is_whisper"]=is_whisper
         config.params["f5tts_url"] = url
-        config.params["f5tts_model"] = model
         config.params["f5tts_role"] = role
+        config.getset_params(config.params)
         
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
@@ -94,12 +96,11 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         role = winobj.role.toPlainText().strip()
-        model = winobj.model.currentText()
+        is_whisper=winobj.is_whisper.isChecked()
 
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
-        config.params["f5tts_model"] = model
-
+        config.params["f5tts_is_whisper"]=is_whisper
         config.getset_params(config.params)
         tools.set_process(text='f5tts', type="refreshtts")
         winobj.close()
@@ -118,8 +119,8 @@ def openwin():
         winobj.api_url.setText(config.params["f5tts_url"])
     if config.params["f5tts_role"]:
         winobj.role.setPlainText(config.params["f5tts_role"])
-    if config.params["f5tts_model"]:
-        winobj.model.setCurrentText(config.params["f5tts_model"])
+    if config.params["f5tts_is_whisper"]:
+        winobj.is_whisper.setChecked(bool(config.params.get("f5tts_is_whisper")))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

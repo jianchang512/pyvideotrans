@@ -34,17 +34,6 @@ class Ui_f5ttsform(object):
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
 
-        h3=QtWidgets.QHBoxLayout()
-        model_label = QtWidgets.QLabel()
-        model_label.setObjectName("model_label")
-        model_label.setText('Model')
-        self.model = QtWidgets.QComboBox()
-        self.model.setMinimumSize(QtCore.QSize(0, 35))
-        self.model.setObjectName("model")
-        self.model.addItems(['f5-tts','e2-tts'])
-        h3.addWidget(model_label)
-        h3.addWidget(self.model)
-        v1.addLayout(h3)
 
 
         self.label_4 = QLabel(f5ttsform)
@@ -92,7 +81,12 @@ class Ui_f5ttsform(object):
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/f5tts'))
-
+        
+        self.is_whisper=QtWidgets.QCheckBox()
+        self.is_whisper.setText("重新识别?")
+        self.is_whisper.setToolTip("如果选中，则F5-TTS会对参考音频再次使用whisper-v3识别，较慢")
+        
+        h2.addWidget(self.is_whisper)
         h2.addWidget(self.save)
         h2.addWidget(self.test)
         h2.addWidget(help_btn)
@@ -106,25 +100,9 @@ class Ui_f5ttsform(object):
 
     def retranslateUi(self, f5ttsform):
         tips = """
-将以POST请求向填写的API地址发送formdata数据：
-
-api.py，可接受请求
-
-model,ref_text,gen_text,audio二进制音频数据
-
-请求失败时返回json格式数据
-      
-请求成功时返回音频流
+从本软件 v3.66 版本起，只支持使用官方的webui，不再支持三方整合包和api
 """ if config.defaulelang=='zh' else """
-Send POST requests to the API address filled in with formdata data:
-
-api.py, which accepts requests
-
-model, ref_text, gen_text, audio binary audio data
-
-Returns json data when request fails
-
-Returns audio stream when request succeeds
+Starting from version 3.66 of this software, only the official webui is supported, and third-party integration packages and APIs are no longer supported.
 """
 
         f5ttsform.setWindowTitle("F5-TTS API")

@@ -115,8 +115,8 @@ class BaseTTS(BaseCon):
         for it in self.queue_tts:
             if it['text'].strip() and not tools.vail_file(it['filename']):
                 err += 1
-        # 错误量大于 1/3
-        if err > int(len(self.queue_tts) / 3):
+        # 错误量大于 1/2
+        if err > int(len(self.queue_tts) / 2):
             msg = (self.error if self.error else '')+ config.transobj["peiyindayu31"]
             self._signal(text= msg, type="error")
             raise Exception(msg)
