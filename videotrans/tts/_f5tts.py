@@ -66,7 +66,7 @@ class F5TTS(BaseTTS):
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
                 return
-            client = Client(self.api_url,httpx_kwargs={"timeout":7200},
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},
                     ssl_verify=False)
             result = client.predict(
                     ref_audio_input=handle_file(data['ref_wav']),

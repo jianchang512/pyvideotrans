@@ -35,8 +35,16 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                # 将objectName作为key，text作为value添加到字典中
-                line_edit_dict[name] = line_edit.currentText()
+                if name=='subtitle_position':
+                    line_edit_dict[name] = 2
+                    if line_edit.currentText()=='center':
+                        line_edit_dict[name] = 5
+                    elif line_edit.currentText()=='top':
+                        line_edit_dict[name] = 8
+                        
+                else:
+                    # 将objectName作为key，text作为value添加到字典中
+                    line_edit_dict[name] = line_edit.currentText()
 
         line_edit_dict['homedir']=winobj.homedir_btn.text()
         try:
