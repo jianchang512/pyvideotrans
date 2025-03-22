@@ -113,7 +113,7 @@ class Ui_setini(object):
                 "fontname": "硬字幕时字体名字",
                 "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
                 "fontbordercolor": "设置字体边框颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
-                "subtitle_bottom": "字幕默认位于视频底部，此处可设置大于0的数值，代表字幕上移多少距离，注意最大不可大于(视频高度-20),也就是要保留至少20的高度用于显示字幕，否则字幕将不可见",
+                "subtitle_position": "字幕所处位置，默认底部",
 
             },
             "trans": {
@@ -256,7 +256,7 @@ class Ui_setini(object):
             "fontname": "硬字幕字体名字",
             "fontcolor": "硬字幕文字颜色",
             "fontbordercolor": "硬字幕文字边框颜色",
-            "subtitle_bottom": "硬字幕上移距离",
+            "subtitle_position": "硬字幕位置",
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
@@ -330,7 +330,7 @@ class Ui_setini(object):
                     "fontname": "Font name for hard subtitles",
                     "fontcolor": "Set the font color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
                     "fontbordercolor": "Set the font border color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
-                    "subtitle_bottom": "Subtitles are by default located at the bottom of the video, here you can set a value greater than 0, representing how much the subtitles should move up, note that the maximum value should not exceed (video height - 20), at least 20 height must be reserved for subtitles, otherwise the subtitles will not be visible",
+                    "subtitle_position": "Subtitles top/bottom/center",
                 },
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
@@ -483,7 +483,7 @@ class Ui_setini(object):
                 "fontname": "Hard Subtitle Font Name",
                 "fontcolor": "Font Color",
                 "fontbordercolor": "Font Border Color",
-                "subtitle_bottom": "Subtitle Vertical Offset",
+                "subtitle_position": "Subtitle position",
                 "zh_hant_s": "Traditional to Simplified Chinese Conversion",
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",
@@ -570,6 +570,20 @@ class Ui_setini(object):
                     tmp1.addItems(presets)
                     if val in presets:
                         tmp1.setCurrentText(val)
+                    tmp1.setObjectName(key)
+                    tmp.addWidget(tmp1)
+                    box.layout().addLayout(tmp)
+                    continue
+                if key=='subtitle_position':
+                    pos = ['bottom','top','center']
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(pos)
+                    cur_text= 'bottom' 
+                    if int(val)==5:
+                        cur_text='center'
+                    elif int(val)==8:
+                        cur_text='top'
+                    tmp1.setCurrentText(cur_text)
                     tmp1.setObjectName(key)
                     tmp.addWidget(tmp1)
                     box.layout().addLayout(tmp)

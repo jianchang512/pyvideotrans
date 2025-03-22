@@ -861,8 +861,7 @@ class TransCreate(BaseTask):
         process_end_subtitle = self.cfg['cache_folder'] + f'/end.srt'
         # 硬字幕时单行字符数
         maxlen = int(
-            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                   "ko"] else
+            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else
             config.settings['other_len'])
         target_sub_list = tools.get_subtitle_from_srt(self.cfg['target_sub'])
 
@@ -873,8 +872,7 @@ class TransCreate(BaseTask):
         # 双硬 双软字幕组装
         if self.cfg['subtitle_type'] in [3, 4]:
             maxlen_source = int(
-                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                       "ko"] else
+                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else
                 config.settings['other_len'])
             source_sub_list = tools.get_subtitle_from_srt(self.cfg['source_sub'])
             source_length = len(source_sub_list)
@@ -882,8 +880,7 @@ class TransCreate(BaseTask):
             srt_string = ""
             for i, it in enumerate(target_sub_list):
                 # 硬字幕换行，软字幕无需处理
-                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg[
-                                                                                                 'subtitle_type'] == 3 else \
+                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg['subtitle_type'] == 3 else \
                     it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
@@ -1239,11 +1236,8 @@ class TransCreate(BaseTask):
         ====
 
         Github: https://github.com/jianchang512/pyvideotrans
-        Docs: https://pyvideotrans.com
+        Docs: https://pvt9.com
 
                         """)
-            # Path(self.cfg['target_dir'] + f'/end.srt').unlink(missing_ok=True)
-            # Path(self.cfg['target_dir'] + f'/end.srt.ass').unlink(missing_ok=True)
-            # Path(self.cfg['target_dir'] + f'/shuang.srt.ass').unlink(missing_ok=True)
         except:
             pass

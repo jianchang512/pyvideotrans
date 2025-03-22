@@ -445,11 +445,19 @@ def get_kokoro_rolelist():
 
     return voice_list
 
-
+# cuda preset 预设
 def get_preset(encoder):
     if encoder in ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast']:
         return 'hp'
     return 'hq'
+
+# amf 编码预设
+
+# qsv 编码预设
+
+# vaapi预设
+
+
 
 
 # 执行 ffmpeg
@@ -469,9 +477,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         has_mp4 = False
         # 插入解码位置
         insert_index = -1
-        # 不支持预设的硬件，例如 _qsv _videotoolbox 需要移除预设
-        # 0 不做操作，1=移除预设，2=使用新的预设替代
-        remove_preset = 0
         for i, it in enumerate(arg):
             if insert_index == -1 and arg[i] == '-i':
                 insert_index = i
@@ -479,34 +484,40 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
             if i > 0 and arg[i - 1] == '-c:v' and arg[i] != 'copy':
                 arg[i] = config.video_codec
-                if config.video_codec.find('_qsv') > 0 or config.video_codec.find('_videotoolbox') > 0:
-                    remove_preset = 1
-                elif config.video_codec.find('_nvenc') > 0:
-                    remove_preset = 2
-            elif it == '-crf' and config.video_codec.find('_nvenc') > 0:
-                arg[i] = '-qp'
+            elif it=='-preset' and config.video_codec[-3:]=='amf':
+                # intel win
+                arg[i+1]='quality'
+            elif it=='-preset' and config.video_codec[-3:]=='qsv': 
+                #amd win
+                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+            elif it=='-preset' and config.video_codec[-3:]=='api': 
+                #linux intel amd
+                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+            elif it=='-preset' and config.video_codec[-3:]=='enc':
+                # cuda
+                arg[i+1]='hp' if 'fast' in arg[i+1]  else 'hq'
+
 
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
         # 因显卡兼容性，出错率较高
         # 启用硬件加速
-        if platform.system() == 'Darwin':
-            if config.video_codec.find('_videotoolbox') > 0:
+        if config.video_codec.find('_videotoolbox') > 0:
+            # 移除 preset 防止出错
+            if '-preset' in arg:
+                pos = arg.index('-preset')
+                arg.pop(pos)
+                arg.pop(pos)
+            if config.settings.get('cuda_decode', False):
                 cmd.append('-hwaccel')
                 cmd.append('videotoolbox')
-        elif config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][
-                                                                                             -3:] == 'mp4' and config.video_codec in [
-            'h264_nvenc', 'hevc_nvenc']:
+        elif config.video_codec[-3:] == 'enc' and config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][-3:] == 'mp4':
             arg.insert(insert_index, 'cuda')
             arg.insert(insert_index, '-hwaccel')
 
-        # 移除预设，防止出错 -preset
-        if '-preset' in arg:
-            pos = arg.index('-preset')
-            if remove_preset == 1:
-                arg.pop(pos)
-                arg.pop(pos)
-            elif remove_preset == 2:
-                arg[pos + 1] = get_preset(arg[pos + 1])
+        # 硬件加速时删掉 crf qp 等，避免某些硬件下出错
+        if "-crf" in arg and config.video_codec[-3:] in ['enc','qsv','amf','api','box']:
+            crf_index=arg.index("-crf")
+            arg=arg[:crf_index]+arg[crf_index+2:]
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -1052,7 +1063,8 @@ def srt_str_to_listdict(srt_string):
                         i += 1
                         break
                     else:
-                        text_lines.append(current_line)
+                        if current_line:
+                            text_lines.append(current_line)
                         i += 1
                         break
 
@@ -1196,12 +1208,12 @@ def srt2ass(srt_file, ass_file, maxlen=40):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'],
                 fontbordercolor=config.settings['fontbordercolor'],
                 fontbackcolor=config.settings['fontbordercolor'],
-                subtitle_bottom=config.settings['subtitle_bottom'])
+                subtitle_position=int(config.settings.get('subtitle_position',2)))
             break
 
     with open(ass_file, 'w', encoding='utf-8') as f:
@@ -1593,36 +1605,53 @@ def get_video_codec():
         return f'libx{video_codec}'
     mp4_target = config.TEMP_DIR + "/test.mp4"
     codec = f"libx{video_codec}"
+    
+    Path(config.TEMP_DIR).mkdir(exist_ok=True)
+    def testencode(encoder):
+        try:
+            subprocess.run([
+                "ffmpeg",
+                "-y",
+                "-hide_banner",
+                "-ignore_unknown",
+                "-i",
+                mp4_test,
+                "-c:v",
+                f'{hhead}_{encoder}',
+                mp4_target
+            ],
+                check=True,
+                creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+        except:
+            return False
+        else:
+            return f'{hhead}_{encoder}'
+    
+    if plat == 'Darwin':
+        test_res=testencode('videotoolbox')
+        return codec if test_res is False else test_res
+    
     if plat in ['Windows', 'Linux']:
         import torch
         if torch.cuda.is_available():
-            codec = f'{hhead}_nvenc'
-        elif plat == 'Windows':
-            codec = f'{hhead}_qsv'
-        elif plat == 'Linux':
-            codec = f'{hhead}_vaapi'
-    elif plat == 'Darwin':
-        codec = f'{hhead}_videotoolbox'
-    else:
-        return f"libx{video_codec}"
+            test_res=testencode('nvenc')
+            if test_res is not False:
+                return test_res
+        
+        if plat == 'Linux':
+            test_res=testencode('vaapi')
+            if test_res is not False:
+                return test_res
+            test_res=testencode('amf')
+            return codec if test_res is False else test_res
 
-    try:
-        Path(config.TEMP_DIR).mkdir(exist_ok=True)
-        subprocess.run([
-            "ffmpeg",
-            "-y",
-            "-hide_banner",
-            "-ignore_unknown",
-            "-i",
-            mp4_test,
-            "-c:v",
-            codec,
-            mp4_target
-        ],
-            check=True,
-            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-    except Exception as e:
-        codec = f"libx{video_codec}"
+        if plat == 'Windows':
+            test_res=testencode('qsv')
+            if test_res is not False:
+                return test_res
+            test_res=testencode('amf')
+            return codec if test_res is False  else test_res
+
     return codec
 
 
@@ -1640,10 +1669,11 @@ def set_ass_font(srtfile=None):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
-                subtitle_bottom=config.settings['subtitle_bottom'])
+                subtitle_position=int(config.settings.get('subtitle_position',2))
+                )
         elif it.find('Dialogue: ') == 0:
             ass_str[i] = it.replace('  ', '\\N')
 

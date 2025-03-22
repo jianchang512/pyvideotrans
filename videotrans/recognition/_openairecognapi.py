@@ -34,7 +34,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 self.proxies = pro
         else:
             self.proxies = None
-        if not re.search(r'api\.openai\.com/v1', self.api_url):
+        if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params["openairecognapi_model"].find('gpt-4o-'>-1):
             return self._thrid_api()
         try:
             # 大于20M 从wav转为mp3

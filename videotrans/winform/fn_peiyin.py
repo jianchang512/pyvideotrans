@@ -260,6 +260,8 @@ def openwin():
             winobj.loglabel.setText(d['text'][:150])
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.loglabel.setCursor(Qt.PointingHandCursor)
+            if len(winobj.hecheng_files)>0:
+                winobj.hecheng_plaintext.clear()
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])

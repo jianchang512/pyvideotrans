@@ -6,7 +6,7 @@ from PySide6.QtCore import QThread, Signal
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
-
+import time
 # set chatgpt
 def openwin():
     class TestOpenaitts(QThread):
@@ -21,7 +21,7 @@ def openwin():
             try:
                 tts.run(
                     queue_tts=[{"text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testopenaitts", "tts_type": tts.OPENAI_TTS}],
+                                "filename": config.TEMP_HOME + f"/testopenaitts-{time.time()}.mp3", "tts_type": tts.OPENAI_TTS}],
                     language="zh-CN",
                     play=True,
                     is_test=True
@@ -31,9 +31,7 @@ def openwin():
                 self.uito.emit(str(e))
 
     def feed(d):
-        if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
-        else:
+        if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
@@ -47,11 +45,14 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.openaitts_model.currentText()
+        intru = winobj.openaitts_instructions.text()
+        config.params["openaitts_instructions"] = intru
         
         
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
+        config.getset_params(config.params)
 
         task = TestOpenaitts(parent=winobj, text="你好啊我的朋友",role=winobj.edit_roles.toPlainText().strip().split(',')[0])
         winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -69,6 +70,8 @@ def openwin():
             url = 'http://' + url
         
         model = winobj.openaitts_model.currentText()
+        intru = winobj.openaitts_instructions.text()
+        config.params["openaitts_instructions"] = intru
 
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = url
@@ -104,6 +107,8 @@ def openwin():
 
         if config.params["openaitts_key"]:
             winobj.openaitts_key.setText(config.params["openaitts_key"])
+        if config.params["openaitts_instructions"]:
+            winobj.openaitts_instructions.setText(config.params.get("openaitts_instructions",''))
         if config.params["openaitts_api"]:
             winobj.openaitts_api.setText(config.params["openaitts_api"])
         if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
