@@ -1027,6 +1027,8 @@ class TransCreate(BaseTask):
                         "192k",
                         "-vf",
                         f"subtitles={subtitles_file}",
+                        "-movflags",
+                        "+faststart",
                         '-crf',
                         f'{config.settings["crf"]}',
                         '-preset',
@@ -1056,6 +1058,8 @@ class TransCreate(BaseTask):
                         f"language={subtitle_langcode}",
                         "-b:a",
                         "192k",
+                        "-movflags",
+                        "+faststart",
                         Path(self.cfg['targetdir_mp4']).as_posix()
                     ])
             elif self.cfg['voice_role'] != 'No':
@@ -1075,6 +1079,8 @@ class TransCreate(BaseTask):
                     "aac",
                     "-b:a",
                     "192k",
+                    "-movflags",
+                    "+faststart",
                     Path(self.cfg['targetdir_mp4']).as_posix()
                 ])
             # 硬字幕无配音  原始 wav 合并
@@ -1101,6 +1107,8 @@ class TransCreate(BaseTask):
                     "192k",
                     "-vf",
                     f"subtitles={subtitles_file}",
+                    "-movflags",
+                    "+faststart",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
@@ -1138,6 +1146,8 @@ class TransCreate(BaseTask):
                     "mov_text",
                     "-metadata:s:s:0",
                     f"language={subtitle_langcode}",
+                    "-movflags",
+                    "+faststart",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',

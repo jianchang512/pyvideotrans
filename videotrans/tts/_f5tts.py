@@ -48,11 +48,12 @@ class F5TTS(BaseTTS):
             speed=1+float(self.rate.replace('%',''))/100
         except:
             pass
+        
         try:
             text = data_item['text'].strip()
             role = data_item['role']
-            data = {'speed':speed,'ref_text':'','ref_wav':''}
-            data['gen_text']=text
+            data = {'ref_text':'','ref_wav':''}
+
             if role=='clone':
                 data['ref_wav']=data_item['ref_wav']
                 if not config.params.get('f5tts_is_whisper'):
@@ -66,20 +67,19 @@ class F5TTS(BaseTTS):
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
                 return
-            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},
-                    ssl_verify=False)
+            if data['ref_text'] and len(data['ref_text'])<10:
+                speed=0.5
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
             result = client.predict(
                     ref_audio_input=handle_file(data['ref_wav']),
                     ref_text_input=data['ref_text'],
                     gen_text_input=text,
                     remove_silence=True,
                     
-                    #cross_fade_duration_slider=0.15,
-                    #nfe_slider=32,
                     speed_slider=speed,
                     api_name="/basic_tts"
             )
-            print(result)
+
             config.logger.info(f'result={result}')
             if self.v1_local:
                 tools.wav2mp3(result[0], data_item['filename'])
