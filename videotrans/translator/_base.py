@@ -320,5 +320,4 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
-        return tools.get_md5(
-            f'{self.__class__.__name__}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
+        return tools.get_md5(f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.refine3}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

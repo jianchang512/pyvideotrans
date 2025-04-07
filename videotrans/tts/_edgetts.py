@@ -6,6 +6,7 @@ from pathlib import Path
 
 import aiohttp
 from aiohttp import ClientError, WSServerHandshakeError
+from edge_tts.exceptions import NoAudioReceived
 
 from videotrans.configure import config
 from videotrans.configure._except import IPLimitExceeded
@@ -48,7 +49,9 @@ class EdgeTTS(BaseTTS):
                     proxy=self.proxies,
                     pitch=self.pitch)
                 await communicate.save(it['filename'])
-
+        except NoAudioReceived as e:
+            config.logger.exception(e, exc_info=True)
+            raise Exception(f'请检查字幕文本和所选语言是否一致')
         except aiohttp.client_exceptions.ClientHttpProxyError as e:
             config.logger.exception(e, exc_info=True)
             raise Exception(f'代理错误，请检查 {e}')

@@ -106,6 +106,50 @@ class BaseTask(BaseCon):
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True
 
+
+    def _check_target_sub(self,source_srt_list,target_srt_list):
+        import re,copy
+
+        if len(source_srt_list)==1 or len(target_srt_list)==1:
+            target_srt_list[0]['line']=1
+            return target_srt_list[:1]
+        source_len=len(source_srt_list)
+        target_len=len(target_srt_list)
+        config.logger.info(f'{source_srt_list=}')
+        config.logger.info(f'{target_srt_list=}')
+        for i,it in enumerate(source_srt_list):
+            tmp=copy.deepcopy(it)
+            if i>target_len-1:
+                # 超出目标字幕长度
+                tmp['text']='  '
+                print(f'#1 {i=}')
+            elif re.sub(r'\D','',it['time']) == re.sub(r'\D','',target_srt_list[i]['time']):
+                # 正常时间码相等
+                tmp['text']=target_srt_list[i]['text']
+                print(f'#2 {i=}')
+            elif i==0 and source_srt_list[1]['time']==target_srt_list[1]['time']:
+                # 下一行时间码相同
+                tmp['text']=target_srt_list[i]['text']
+                print(f'#3 {i=}')
+            elif i==source_len-1 and source_srt_list[i-1]['time']==target_srt_list[i-1]['time']:
+                # 上一行时间码相同
+                tmp['text']=target_srt_list[i]['text']
+                print(f'#4 {i=}')
+            elif i>0 and i<source_len-1 and target_len>i+1 and  source_srt_list[i-1]['time']==target_srt_list[i-1]['time'] and source_srt_list[i+1]['time']==target_srt_list[i+1]['time']:
+                # 上下两行时间码相同
+                tmp['text']=target_srt_list[i]['text']
+                print(f'#5 {i=}')
+            else:
+                print(f'#6 {i=}')
+                # 其他情况清空目标字幕文字
+                tmp['text']='  '
+            if i > len(target_srt_list)-1:
+                target_srt_list.append(tmp)
+            else:
+                target_srt_list[i]=tmp
+        config.logger.info(f'chulihou,{target_srt_list=}')
+        return target_srt_list
+
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):
         if config.exit_soft or config.current_status != 'ing':

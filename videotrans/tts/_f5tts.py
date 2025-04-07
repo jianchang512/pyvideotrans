@@ -70,6 +70,9 @@ class F5TTS(BaseTTS):
             if data['ref_text'] and len(data['ref_text'])<10:
                 speed=0.5
             client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+            api_name="basic_tts"
+            if Path(config.ROOT_DIR+f"/f5-tts-api.txt").exists():
+                api_name=Path(config.ROOT_DIR+f"/f5-tts-api.txt").read_text(encoding='utf-8').strip()
             result = client.predict(
                     ref_audio_input=handle_file(data['ref_wav']),
                     ref_text_input=data['ref_text'],
@@ -77,14 +80,15 @@ class F5TTS(BaseTTS):
                     remove_silence=True,
                     
                     speed_slider=speed,
-                    api_name="/basic_tts"
+                    api_name=f'/{api_name if api_name else "basic_tts"}'
             )
 
             config.logger.info(f'result={result}')
+            wav_file=result[0] if isinstance(result,(list, tuple)) else result
             if self.v1_local:
-                tools.wav2mp3(result[0], data_item['filename'])
+                tools.wav2mp3(wav_file, data_item['filename'])
             else:
-                resp=requests.get(self.api_url+f'/gradio_api/file='+Path(result[0]).as_posix())
+                resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
                 resp.raise_for_status()
                 with open(data_item['filename'] + ".wav", 'wb') as f:
                     f.write(resp.content)
