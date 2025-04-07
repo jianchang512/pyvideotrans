@@ -75,7 +75,7 @@ class WinAction(WinActionSub):
     def show_xxl_select(self):
         import sys
         if sys.platform != 'win32':
-            QMessageBox.critical(self.main, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            QMessageBox.critical(self.main, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
             from PySide6.QtWidgets import QFileDialog

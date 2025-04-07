@@ -403,7 +403,8 @@ class TransCreate(BaseTask):
                 target_code=self.cfg['target_language_code']
             )
             #
-            self._check_target_sub(rawsrt, target_srt)
+
+            self._save_srt_target(self._check_target_sub(rawsrt, target_srt), self.cfg['target_sub'])
 
             # 仅提取，该名字删原
             if self.cfg['app_mode'] == 'tiqu':
@@ -423,19 +424,6 @@ class TransCreate(BaseTask):
             raise
         self.status_text = config.transobj['endtrans']
 
-    def _check_target_sub(self, source_srt_list, target_srt_list):
-        for i, it in enumerate(source_srt_list):
-            if i>=len(target_srt_list) or target_srt_list[i]['time'] != it['time']:
-                # 在 target_srt_list 的 索引 i 位置插入一个dict
-                tmp = copy.deepcopy(it)
-                tmp['text'] = '  '
-                if i>=len(target_srt_list):
-                    target_srt_list.append(tmp)
-                else:
-                    target_srt_list.insert(i, tmp)
-            else:
-                target_srt_list[i]['line'] = it['line']
-        self._save_srt_target(target_srt_list, self.cfg['target_sub'])
 
     def dubbing(self) -> None:
         if self._exit():
@@ -1199,7 +1187,7 @@ class TransCreate(BaseTask):
                     if self.precent + 0.1 < 99:
                         self.precent += 0.1
                     else:
-                        self._signal(text=config.transobj['hebing'] + f' -> {precent * 100}%')
+                        self._signal(text=config.transobj['kaishihebing'] + f' -> {precent * 100}%')
                     time.sleep(1)
 
     # 创建说明txt

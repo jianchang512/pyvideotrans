@@ -1053,7 +1053,7 @@ class Ui_MainWindow(object):
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
-        self.action_blog.setText("更新地址" if config.defaulelang == 'zh' else 'Upgrade URL')
+        self.action_blog.setText("博客" if config.defaulelang == 'zh' else 'My Blog')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_gtrans.setText('下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
         self.action_cuda.setText('CUDA & cuDNN')

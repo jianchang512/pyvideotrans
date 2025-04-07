@@ -37,7 +37,7 @@ class Ui_infoform(object):
 当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎小额捐助。
 
 Email: jianchang512@gmail.com
-文档站/下载: pyvideotrans.com
+文档站/下载: pvt9.com
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
 
 """ if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
@@ -46,7 +46,7 @@ As for the maintenance issue, it is all about giving love to the open source, so
 Of course, if you think this project is useful to you and want it to be stable and continue to maintain, you are welcome to donate a small amount.
 
 Email: jianchang512@gmail.com
-Documents: pyvideotrans.com"""
+Documents: pvt9.com"""
                                 )
         # text1的边框合为0
         self.text1.setFrameStyle(QtWidgets.QFrame.NoFrame)
@@ -62,7 +62,7 @@ Documents: pyvideotrans.com"""
         self.link.setFixedHeight(35)
         self.link.setStyleSheet("""background-color:transparent""")
         self.link.setCursor(Qt.PointingHandCursor)
-        self.link.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/about.html'))
+        self.link.clicked.connect(lambda: tools.open_url('https://pvt9.com/about.html'))
 
         label = QtWidgets.QLabel(infoform)
         label.setText("你可以扫描下方二维码捐助或者点击上方按钮打开网页扫码捐助 " if config.defaulelang == 'zh' else "You can scan the QR code or click the above button to donate via the web ")
@@ -112,7 +112,7 @@ Documents: pyvideotrans.com"""
         lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
         lawbtn.setCursor(Qt.PointingHandCursor)
         lawbtn.setText("软件使用协议/免责声明" if config.defaulelang == 'zh' else "Software License Agreement")
-        lawbtn.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/law.html'))
+        lawbtn.clicked.connect(lambda: tools.open_url('https://pvt9.com/law.html'))
         self.v1.addWidget(lawbtn)
         self.v1.addStretch()
         infoform.setWindowTitle(

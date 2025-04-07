@@ -458,6 +458,66 @@ def get_preset(encoder):
 # vaapi预设
 
 
+def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
+    """
+    Tries to extract a concise, relevant error message from stderr,
+    often focusing on the last few lines or lines with error keywords.
+
+    Args:
+        stderr_text: The full stderr output string.
+        max_lines: How many lines from the end to primarily consider.
+        max_length: Max length of the returned string snippet.
+
+    Returns:
+        A concise string representing the likely error.
+    """
+    if not stderr_text:
+        return "Unknown error (empty stderr)"
+
+    lines = stderr_text.strip().splitlines()
+    if not lines:
+        return "Unknown error (empty stderr lines)"
+
+    # Look for lines with common error keywords in the last few lines
+    error_keywords = ["error", "invalid", "fail", "could not", "no such",
+                      "denied", "unsupported", "unable", "can't open", "conversion failed"]
+
+    relevant_lines_indices = range(max(0, len(lines) - max_lines), len(lines))
+
+    found_error_lines = []
+    for i in reversed(relevant_lines_indices):
+        line = lines[i].strip()
+        if not line: # Skip empty lines
+             continue
+
+        # Check if the line contains any of the keywords (case-insensitive)
+        if any(keyword in line.lower() for keyword in error_keywords):
+            # Prepend the previous line if it exists and isn't empty, might add context
+            context_line = ""
+            if i > 0 and lines[i-1].strip():
+                 context_line = lines[i-1].strip() + "\n" # Add newline for clarity
+
+            found_error_lines.append(context_line + line)
+            # Often, the first keyword line found (reading backwards) is the most specific
+            break
+
+    if found_error_lines:
+        # Take the first one found (which was likely the last 'errorry' line in the output)
+        concise_error = found_error_lines[0]
+    else:
+        # Fallback: take the last non-empty line if no keywords found
+        last_non_empty_line = ""
+        for line in reversed(lines):
+            stripped_line = line.strip()
+            if stripped_line:
+                last_non_empty_line = stripped_line
+                break
+        concise_error = last_non_empty_line or "Unknown error (no specific error line found)"
+
+    # Limit the total length
+    if len(concise_error) > max_length:
+        return concise_error[:max_length] + "..."
+    return concise_error
 
 
 # 执行 ffmpeg
@@ -534,12 +594,28 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,
                        encoding="utf-8",
+                       errors='replace',
                        check=True,
                        text=True,
                        creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if noextname:
             config.queue_novice[noextname] = "end"
         return True
+    except FileNotFoundError as e:
+        # Specific error: The command executable itself was not found.
+        # This often means the program isn't installed or not in the system's PATH.
+        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. "
+                            f"Ensure it's installed and in the PATH. {force_cpu=}. Error: {e}")
+        raise
+        # Depending on requirements, you might not want to raise here, just return False.
+        # raise # Or re-raise if the caller needs to handle it specifically
+
+    except PermissionError as e:
+        # Specific error: Permission denied to execute the command.
+        # The user running the script doesn't have execute permissions for cmd[0].
+        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. "
+                            f"{force_cpu=}. Error: {e}")
+        raise # Or re-raise
     except subprocess.CalledProcessError as e:
         config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}', exc_info=True)
         # 处理视频时如果出错，尝试回退
@@ -554,7 +630,13 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             return runffmpeg(arg_copy, noextname=noextname, force_cpu=True)
         if noextname:
             config.queue_novice[noextname] = "error"
-        raise
+        raise Exception(extract_concise_error(e.stderr))
+    except OSError as e:
+        # Catch other OS-level errors during process creation/execution that aren't
+        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
+        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. "
+                            f"{force_cpu=}. Error: {e}", exc_info=True)
+        raise # Or re-raise
     except Exception as e:
         if noextname:
             config.queue_novice[noextname] = "error"
@@ -571,18 +653,36 @@ def runffprobe(cmd):
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
+                           errors='replace',
                            text=True,
                            check=True,
                            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if p.stdout:
             return p.stdout.strip()
         config.logger.error(str(p) + str(p.stderr))
-        raise Exception(str(p.stderr))
+        raise Exception(extract_concise_error(str(p.stderr)))
+    except FileNotFoundError as e:
+        # Specific error: The command executable itself was not found.
+        # This often means the program isn't installed or not in the system's PATH.
+        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. ")
+        raise
+        # Depending on requirements, you might not want to raise here, just return False.
+        # raise # Or re-raise if the caller needs to handle it specifically
+
+    except PermissionError as e:
+        # Specific error: Permission denied to execute the command.
+        # The user running the script doesn't have execute permissions for cmd[0].
+        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. ")
+        raise # Or re-raise
     except subprocess.CalledProcessError as e:
         config.logger.exception(e)
-        msg = f'ffprobe error {cmd=} :{str(e)}{str(e.stdout)},{str(e.stderr)}'
-        msg = msg.replace('\n', ' ')
+        msg = extract_concise_error(e.stderr)
         raise Exception(msg)
+    except OSError as e:
+        # Catch other OS-level errors during process creation/execution that aren't
+        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
+        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. ", exc_info=True)
+        raise # Or re-raise
     except Exception as e:
         raise
 
@@ -710,7 +810,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
         "-ac",
         "1",
         "-b:a",
-        "192k",
+        "128k",
         "-c:a",
         "aac",
         targe_audio
@@ -787,7 +887,7 @@ def backandvocal(backwav, peiyinm4a):
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "192k", '-c:a', 'aac',
+               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'aac',
                tmpwav])
     shutil.copy2(tmpwav, peiyinm4a)
     # 转为 m4a
@@ -804,7 +904,7 @@ def wav2m4a(wavfile, m4afile, extra=None):
         "-ar",
         "48000",
         "-b:a",
-        "192k",
+        "128k",
         Path(m4afile).as_posix()
     ]
     if extra:
@@ -823,7 +923,7 @@ def wav2mp3(wavfile, mp3file, extra=None):
         "-ar",
         "48000",
         "-b:a",
-        "192k",
+        "128k",
         Path(mp3file).as_posix()
     ]
     if extra:
@@ -854,7 +954,7 @@ def m4a2wav(m4afile, wavfile):
         "-ar",
         "16000",
         "-b:a",
-        "192k",
+        "128k",
         "-c:a",
         "pcm_s16le",
         Path(wavfile).as_posix()
@@ -896,7 +996,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "192k"]
+    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
@@ -1010,6 +1110,7 @@ def toms(td):
 
 # 将 时:分:秒,毫秒 转为毫秒整数值
 def get_ms_from_hmsm(time_str):
+    time_str=time_str.replace('.',',')
     h, m, sec2ms = 0, 0, '00,000'
     tmp0 = time_str.split(":")
     if len(tmp0) == 3:
@@ -1027,15 +1128,17 @@ def get_ms_from_hmsm(time_str):
 def srt_str_to_listdict(srt_string):
     """解析 SRT 字幕字符串，更精确地处理数字行和时间行之间的关系"""
     srt_list = []
-    time_pattern = r'\s?(\d+):(\d+):(\d+)([,.]\d+)?\s*?-->\s*?(\d+):(\d+):(\d+)([,.]\d+)?\n?'
+    time_pattern = r'\s?(\d+):(\d+):(\d+)([,.]\d+)?\s*?-{1,2}>\s*?(\d+):(\d+):(\d+)([,.]\d+)?\n?'
     lines = srt_string.splitlines()
     i = 0
+
     while i < len(lines):
         time_match = re.match(time_pattern, lines[i].strip())
         if time_match:
             # 解析时间戳
             start_time_groups = time_match.groups()[0:4]
             end_time_groups = time_match.groups()[4:8]
+            print(f'当前时间行{i=},{start_time_groups}-->{end_time_groups}')
 
             def parse_time(time_groups):
                 h, m, s, ms = time_groups
@@ -1105,7 +1208,8 @@ def format_srt(content):
     result = []
     try:
         result = srt_str_to_listdict(content)
-    except Exception:
+    except Exception as e:
+        config.logger.error(e)
         result = srt_str_to_listdict(process_text_to_srt_str(content))
     return result
 
@@ -1133,8 +1237,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
     if len(content) < 1:
         raise Exception(f"srt is empty:{srtfile=},{content=}")
+    result = format_srt(copy.copy(content))
 
-    result = format_srt(content)
 
     # txt 文件转为一条字幕
     if len(result) < 1:
@@ -1266,21 +1370,20 @@ def match_target_amplitude(sound, target_dBFS):
 def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
-        "-y",
-        '-i',
-        source,
+        "-y",        
         '-ss',
         format_time(ss, '.')
     ]
-    if to != '':
-        cmd1.append("-to")
-        cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-    cmd1 += ['-an']
+    if to != '':        
+        cmd1.append("-t")
+        cmd1.append(str(round(get_ms_from_hmsm(to)/1000,3)))  # 如果开始结束时间相同，则强制持续时间1s)
+        
+    
+    cmd1 += ['-i',source,'-an']
     if pts:
         cmd1 += ["-vf", f"setpts={pts}*PTS"]
 
-    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset',
-             config.settings.get('preset', 'slow')]
+    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset', config.settings.get('preset', 'slow')]
     cmd = cmd1 + [f'{out}']
     return runffmpeg(cmd)
 
@@ -1549,20 +1652,20 @@ def open_url(url=None, title: str = None):
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://pyvideotrans.com/downpackage",
+        'blog': "https://pyvideo.com",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
         'discord': "https://discord.gg/7ZWbwKGMcx",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
-        'dll': "https://pyvideotrans.com/jianhua",
-        'gtrans': "https://pyvideotrans.com/aiocr",
-        'cuda': "https://pyvideotrans.com/gpu.html",
-        'website': "https://pyvideotrans.com",
-        'help': "https://pyvideotrans.com",
-        'xinshou': "https://pyvideotrans.com/getstart",
-        "about": "https://pyvideotrans.com/about",
+
+        'gtrans': "https://pvt9.com/aiocr",
+        'cuda': "https://pvt9.com/gpu.html",
+        'website': "https://pvt9.com",
+        'help': "https://pvt9.com",
+        'xinshou': "https://pvt9.com/getstart",
+        "about": "https://pvt9.com/about",
         'download': "https://github.com/jianchang512/pyvideotrans/releases",
         'openvoice': "https://github.com/kungful/openvoice-api"
     }
@@ -1970,7 +2073,6 @@ def clean_srt(srt):
 
     # 行号前添加换行符
     srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
-    print(srt)
     return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
 
 
@@ -2027,7 +2129,6 @@ def format_milliseconds(milliseconds):
     formatted_seconds = f"{int(seconds):02}"
     formatted_milliseconds = f"{milliseconds_part:02}"
 
-    print(f"{milliseconds=},{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}")
 
     return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
@@ -2081,3 +2182,63 @@ def show_glossary_editor(parent):
     button_box.rejected.connect(dialog.reject)
     dialog.setWindowModality(Qt.WindowModality.ApplicationModal)  # 设置模态窗口
     dialog.exec()  # 显示模态窗口
+
+
+def is_writable(directory_path: str):
+    import uuid
+    import stat # 虽然主要用EAFP，但保留os模块用于路径操作
+
+    """
+    跨平台检查一个目录是否对当前用户可写。
+
+    采用 EAFP (Easier to Ask Forgiveness than Permission) 方法：
+    尝试在目录中创建并删除一个临时文件来判断实际的写权限。
+
+    Args:
+        directory_path: 要检查的目录路径。
+
+    Returns:
+        如果目录存在且可写，则返回 True；否则返回 False。
+    """
+    # 1. 首先检查路径是否存在且确实是一个目录
+    if not os.path.isdir(directory_path):
+        # 如果路径不存在，或者存在但不是一个目录，则它不是一个可写的目录
+        return False
+
+    # 2. 尝试在目录中创建一个唯一的临时文件 (EAFP)
+    # 生成一个非常不可能冲突的临时文件名
+    # 使用点开头通常使其在类Unix系统上隐藏
+    temp_filename = f".permission_test_{uuid.uuid4()}.tmp"
+    temp_file_path = os.path.join(directory_path, temp_filename)
+
+    write_successful = False
+    try:
+        # 尝试以写模式('w')打开（并创建）文件
+        # 'with' 语句确保文件句柄在使用后会被关闭
+        with open(temp_file_path, 'w') as f:
+            # 实际上不需要写入任何内容，只要能成功打开即可证明有写权限
+            pass
+        # 如果代码执行到这里，说明文件创建成功
+        write_successful = True
+
+    except OSError as e:
+        # 捕获所有与OS相关的错误，最常见的是 PermissionError，
+        # 但也可能包括其他问题（如磁盘满、无效路径字符等），这些都意味着无法写入。
+        # print(f"Debug: Caught OSError trying to write to {temp_file_path}: {e}") # 可选的调试输出
+        write_successful = False
+
+    finally:
+        # 3. 清理：无论成功与否，都尝试删除创建的临时文件（如果它存在）
+        # 检查文件是否确实被创建了（可能在open之前就失败了）
+        if os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except OSError as e:
+                # 在某些边缘情况下，即使创建成功，删除也可能失败
+                # (例如，权限在创建和删除之间被更改了)。
+                # 我们不应让清理失败影响函数的主要结果（是否可写）。
+                # 可以选择记录这个警告。
+                # print(f"Warning: Could not remove temp file {temp_file_path}: {e}")
+                pass
+
+    return write_successful

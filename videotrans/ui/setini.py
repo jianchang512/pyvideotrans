@@ -190,6 +190,7 @@ class Ui_setini(object):
                 "initial_prompt_sv": "原始语言为瑞典语时发送给whisper模型的提示词",
                 "initial_prompt_he": "原始语言为瑞典语时发送给whisper模型的提示词",
                 "initial_prompt_bn": "原始语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_fa": "原始语言为波斯语时发送给whisper模型的提示词",
                 "initial_prompt_fil": "原始语言为菲律宾语时发送给whisper模型的提示词"
             }
         }
@@ -293,6 +294,7 @@ class Ui_setini(object):
             "initial_prompt_bn": "whisper模型孟加拉语提示词",
             "initial_prompt_he": "whisper模型希伯来语提示词",
             "initial_prompt_sv": "whisper模型瑞典语提示词",
+            "initial_prompt_fa": "whisper模型波斯语提示词",
             "initial_prompt_fil": "whisper模型菲律宾语提示词"
         }
         # 中文分区
@@ -405,6 +407,7 @@ class Ui_setini(object):
                     "initial_prompt_sv": "Prompts sent to the whisper model when the original language is sv.",
                     "initial_prompt_he": "Prompts sent to the whisper model when the original language is he.",
                     "initial_prompt_bn": "Prompts sent to the whisper model when the original language is bn.",
+                    "initial_prompt_fa": "Prompts sent to the whisper model when the original language is fa.",
                     "initial_prompt_fil": "Prompts sent to the whisper model when the original language is fil."
                 },
             }
@@ -519,6 +522,7 @@ class Ui_setini(object):
                 "initial_prompt_sv": "whisper prompt when sv",
                 "initial_prompt_he": "whisper prompt when he",
                 "initial_prompt_bn": "whisper prompt when bn",
+                "initial_prompt_fa": "whisper prompt when fa",
                 "initial_prompt_fil": "whisper prompt when fil"
             }
         self.alertnotice = {}
