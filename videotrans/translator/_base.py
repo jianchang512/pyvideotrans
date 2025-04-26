@@ -82,6 +82,15 @@ class BaseTrans(BaseCon):
 
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
+            """
+            return_raw_list=self.runsrt()
+            if len(return_raw_list)!=len(self.text_list) and self.trans_thread>1:
+                self.trans_thread=1
+                source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
+                self.split_source_text = [source_text[i:i + self.trans_thread] for i in  range(0, len(self.text_list), self.trans_thread)]
+                return_raw_list=self.runsrt()
+            return return_raw_list
+            """
 
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
@@ -124,6 +133,7 @@ class BaseTrans(BaseCon):
                     sep_len = len(sep_res)
 
                     # 如果返回数量和原始语言数量不一致，则重新切割
+                    '''
                     if sep_len + 1 < raw_len:
                         sep_res = []
                         for it_n in it:
@@ -136,6 +146,7 @@ class BaseTrans(BaseCon):
                                 text=t + "\n",
                                 type='subtitle')
                             sep_res.append(t)
+                    '''
 
                     for x, result_item in enumerate(sep_res):
                         if x < len(it):
@@ -264,6 +275,10 @@ class BaseTrans(BaseCon):
         if self.shound_del:
             self._set_proxy(type='del')
         raws_list=tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
+        ## new 
+        
+            
+        
         #if not self.refine3:
         #    return raws_list
         config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
