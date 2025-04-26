@@ -838,7 +838,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "fishtts_role": "",
         
         "f5tts_url": "",
-        "f5tts_model": "F5-TTS_v1",
+        "f5tts_model": "",
+        "f5tts_ttstype": "F5-TTS",
         "f5tts_role": "",
         "f5tts_is_whisper":False,
 
@@ -913,3 +914,5 @@ if Path(ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').exists():
 
 
 ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs','tl']
+
+codec_cache={}

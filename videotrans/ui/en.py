@@ -1049,7 +1049,7 @@ class Ui_MainWindow(object):
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
-        self.actiontts_f5tts.setText("F5-TTS")
+        self.actiontts_f5tts.setText("F5/SparK/index/Dia TTS")
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")

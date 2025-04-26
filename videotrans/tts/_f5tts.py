@@ -23,17 +23,12 @@ class F5TTS(BaseTTS):
         self.api_url = 'http://' + api_url.replace('http://', '')
         self.v1_local=True
         
-        if self.api_url.find(':5010')>0:
-            self._version='v0'
-            if not self.api_url.endswith('/api'):
-                self.api_url+='/api'
-        else:
-            self._version='v1'
-            sepflag=self.api_url.find('/',9)
-            if sepflag>-1:
-                self.api_url=self.api_url[:sepflag]
-            if not re.search(r'127.0.0.1|localhost',self.api_url):
-                self.v1_local=False
+   
+        sepflag=self.api_url.find('/',9)
+        if sepflag>-1:
+            self.api_url=self.api_url[:sepflag]
+        if not re.search(r'127.0.0.1|localhost',self.api_url):
+            self.v1_local=False
         self.proxies={"http": "", "https": ""}
     
 
@@ -70,9 +65,7 @@ class F5TTS(BaseTTS):
             if data['ref_text'] and len(data['ref_text'])<10:
                 speed=0.5
             client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
-            api_name="basic_tts"
-            if Path(config.ROOT_DIR+f"/f5-tts-api.txt").exists():
-                api_name=Path(config.ROOT_DIR+f"/f5-tts-api.txt").read_text(encoding='utf-8').strip()
+
             result = client.predict(
                     ref_audio_input=handle_file(data['ref_wav']),
                     ref_text_input=data['ref_text'],
@@ -80,7 +73,7 @@ class F5TTS(BaseTTS):
                     remove_silence=True,
                     
                     speed_slider=speed,
-                    api_name=f'/{api_name if api_name else "basic_tts"}'
+                    api_name='/basic_tts'
             )
 
             config.logger.info(f'result={result}')
@@ -109,6 +102,190 @@ class F5TTS(BaseTTS):
                 self._signal(text=self.error)
             else:
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')            
+    
+    def _item_task_spark(self, data_item: Union[Dict, List, None]):
+        from gradio_client import Client, handle_file
+        speed=1.0
+        try:
+            speed=1+float(self.rate.replace('%',''))/100
+        except:
+            pass
+        
+        try:
+            text = data_item['text'].strip()
+            role = data_item['role']
+            data = {'ref_text':'','ref_wav':''}
+
+            if role=='clone':
+                data['ref_wav']=data_item['ref_wav']
+                data['ref_text']=data_item.get('ref_text').strip()
+            else:
+                roledict = tools.get_f5tts_role()
+                if role in roledict:
+                    data['ref_wav']=config.ROOT_DIR+f"/f5-tts/{role}"
+            
+            if not Path(data['ref_wav']).exists():
+                self.error = f'{role} 角色不存在'
+                return
+            if data['ref_text'] and len(data['ref_text'])<10:
+                speed=0.5
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+
+            result = client.predict(
+                    text=text,
+                    prompt_text=data['ref_text'],
+                    prompt_wav_upload=handle_file(data['ref_wav']),
+                    prompt_wav_record=None,
+                    api_name='/voice_clone'
+            )
+
+            config.logger.info(f'result={result}')
+            wav_file=result[0] if isinstance(result,(list, tuple)) else result
+            if self.v1_local:
+                tools.wav2mp3(wav_file, data_item['filename'])
+            else:
+                resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
+                resp.raise_for_status()
+                with open(data_item['filename'] + ".wav", 'wb') as f:
+                    f.write(resp.content)
+                time.sleep(1)
+                if not os.path.exists(data_item['filename'] + ".wav"):
+                    self.error = f'Spark-TTS合成声音失败-2:{text=}'
+                    return
+                tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+        except Exception as e:
+            self.error = str(e)
+            config.logger.exception(e, exc_info=True)
+        finally:
+            if self.error:
+                self._signal(text=self.error)
+            else:
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')            
+    def _item_task_index(self, data_item: Union[Dict, List, None]):
+        from gradio_client import Client, handle_file
+        speed=1.0
+        try:
+            speed=1+float(self.rate.replace('%',''))/100
+        except:
+            pass
+        
+        try:
+            text = data_item['text'].strip()
+            role = data_item['role']
+            data = {'ref_wav':''}
+
+            if role=='clone':
+                data['ref_wav']=data_item['ref_wav']
+            else:
+                roledict = tools.get_f5tts_role()
+                if role in roledict:
+                    data['ref_wav']=config.ROOT_DIR+f"/f5-tts/{role}"
+            
+            if not Path(data['ref_wav']).exists():
+                self.error = f'{role} 角色不存在'
+                return
+            if data['ref_text'] and len(data['ref_text'])<10:
+                speed=0.5
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+
+            result = client.predict(
+                    prompt=handle_file(data['ref_wav']),
+                    text=text,
+                    api_name='/gen_single'
+            )
+
+            config.logger.info(f'result={result}')
+            wav_file=result[0] if isinstance(result,(list, tuple)) else result
+            if self.v1_local:
+                tools.wav2mp3(wav_file, data_item['filename'])
+            else:
+                resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
+                resp.raise_for_status()
+                with open(data_item['filename'] + ".wav", 'wb') as f:
+                    f.write(resp.content)
+                time.sleep(1)
+                if not os.path.exists(data_item['filename'] + ".wav"):
+                    self.error = f'index-TTS合成声音失败-2:{text=}'
+                    return
+                tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+        except Exception as e:
+            self.error = str(e)
+            config.logger.exception(e, exc_info=True)
+        finally:
+            if self.error:
+                self._signal(text=self.error)
+            else:
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')      
+
+    def _item_task_dia(self, data_item: Union[Dict, List, None]):
+        from gradio_client import Client, handle_file
+        speed=1.0
+        try:
+            speed=1+float(self.rate.replace('%',''))/100
+        except:
+            pass
+        
+        try:
+            text = data_item['text'].strip()
+            role = data_item['role']
+            data = {'ref_wav':''}
+
+            if role=='clone':
+                data['ref_wav']=data_item['ref_wav']
+            else:
+                roledict = tools.get_f5tts_role()
+                if role in roledict:
+                    data['ref_wav']=config.ROOT_DIR+f"/f5-tts/{role}"
+            
+            if not Path(data['ref_wav']).exists():
+                self.error = f'{role} 角色不存在'
+                return
+            if data['ref_text'] and len(data['ref_text'])<10:
+                speed=0.5
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+
+            result = client.predict(
+                    text_input=text,
+                    audio_prompt_input=handle_file(data['ref_wav']),
+                    api_name='/generate_audio'
+            )
+
+            config.logger.info(f'result={result}')
+            wav_file=result[0] if isinstance(result,(list, tuple)) else result
+            if self.v1_local:
+                tools.wav2mp3(wav_file, data_item['filename'])
+            else:
+                resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
+                resp.raise_for_status()
+                with open(data_item['filename'] + ".wav", 'wb') as f:
+                    f.write(resp.content)
+                time.sleep(1)
+                if not os.path.exists(data_item['filename'] + ".wav"):
+                    self.error = f'Dia-TTS合成声音失败-2:{text=}'
+                    return
+                tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+        except Exception as e:
+            self.error = str(e)
+            config.logger.exception(e, exc_info=True)
+        finally:
+            if self.error:
+                self._signal(text=self.error)
+            else:
+                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')                      
+
+
 
     def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit():
@@ -118,72 +295,13 @@ class F5TTS(BaseTTS):
         text = data_item['text'].strip()
         if not text:
             return
-        if self._version == 'v1':
-            return self._item_task_v1(data_item)
-        speed=1.0
-        try:
-            speed=1+float(self.rate.replace('%',''))/100
-        except:
-            pass
-        try:
-            
-            role = data_item['role']
-            data = {"model":'f5-tts','speed':speed}
-            data['gen_text']=text
-            if role=='clone':
-                if not Path(data_item['ref_wav']).exists():
-                    self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang=='zh' else 'No reference audio exists and cannot use clone function'
-                    return
-                audio_chunk=AudioSegment.from_wav(data_item['ref_wav'])
-                data['ref_text']=data_item.get('ref_text').strip()
+        ttstype=config.params.get('f5tts_ttstype')
+        # Spark-TTS','Index-TTS Dia-TTS
+        if ttstype=='Spark-TTS':
+            return self._item_task_spart(data_item)
+        if ttstype=='Index-TTS':
+            return self._item_task_index(data_item)
+        if ttstype=='Dia-TTS':
+            return self._item_task_dia(data_item)
+        return self._item_task_v1(data_item)
 
-
-                with open(data_item['ref_wav'],'rb') as f:
-                    chunk=f.read()
-                files={"audio":chunk}
-                if not data['ref_text']:
-                    Path(data_item['filename']).unlink(missing_ok=True)
-                    return
-            else:
-                roledict = tools.get_f5tts_role()
-                if role in roledict:
-                    data['ref_text']=roledict[role]['ref_text']
-                    with open(config.ROOT_DIR+f"/f5-tts/{role}",'rb') as f:
-                        chunk=f.read()
-                    files={"audio":chunk}
-                else:
-                    self.error = f'{role} 角色不存在'
-                    return
-            config.logger.info(f'f5TTS-post:{data=},{self.proxies=}')
-            response = requests.post(f"{self.api_url}",files=files,data=data, proxies=self.proxies, timeout=3600)
-            response.raise_for_status()
-            if not response.content:
-                self.error = f'{response.json()["error"]}, status_code={response.status_code} {response.reason} '
-                Path(data_item['filename']).unlink(missing_ok=True)
-                return
-
-            # 如果是WAV音频流，获取原始音频数据
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(response.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'F5-TTS合成声音失败-2:{text=}'
-                return
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
-            Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
-
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.error = ''
-            self.has_done += 1
-        except (requests.ConnectionError, requests.Timeout) as e:
-            self.error="连接失败，请检查是否启动了api服务" if config.defaulelang=='zh' else  'Connection failed, please check if the api service is started'
-        except Exception as e:
-            self.error = str(e)
-            config.logger.exception(e, exc_info=True)
-        finally:
-            if self.error:
-                self._signal(text=self.error)
-            else:
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-        return

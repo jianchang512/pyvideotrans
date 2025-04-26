@@ -659,7 +659,7 @@ def runffprobe(cmd):
                            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if p.stdout:
             return p.stdout.strip()
-        config.logger.error(str(p) + str(p.stderr))
+        config.logger.error(str(p.stderr))
         raise Exception(extract_concise_error(str(p.stderr)))
     except FileNotFoundError as e:
         # Specific error: The command executable itself was not found.
@@ -1697,8 +1697,10 @@ def vail_file(file=None):
     return True
 
 
+
+
 # 获取最终视频应该输出的编码格式
-def get_video_codec():
+def get_video_codecold():
     plat = platform.system()
     # 264 / 265
     video_codec = int(config.settings['video_codec'])
@@ -1757,7 +1759,222 @@ def get_video_codec():
 
     return codec
 
+def get_video_codec(force_test: bool = False) -> str:
+    """
+    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
 
+    根据平台优先选择硬件编码器。如果硬件测试失败，则回退到软件编码
+    (libx264/libx265)。缓存结果。
+
+    依赖 'config' 模块获取设置和路径。假设 'ffmpeg' 在系统 PATH 中，
+    测试输入文件存在，并且 TEMP_DIR 可写。
+    将所有逻辑保留在此单一函数内。移除了预检查。
+
+    Args:
+        force_test (bool): 如果为 True，则忽略缓存并重新运行测试。默认为 False。
+
+    Returns:
+        str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
+    """
+    _codec_cache = config.codec_cache # 使用 config 中的缓存
+
+    plat = platform.system()
+    try:
+        video_codec_pref = int(config.settings['video_codec'])
+    except (ValueError, KeyError, TypeError):
+        config.logger.warning("配置中 'video_codec' 无效或缺失。将默认使用 H.264 (264)。")
+        video_codec_pref = 264
+
+    # --- 缓存检查 ---
+    cache_key = (plat, video_codec_pref)
+    if not force_test and cache_key in _codec_cache:
+        config.logger.info(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
+        return _codec_cache[cache_key]
+
+    # --- 确定编解码器基础信息 ---
+    if video_codec_pref == 265:
+        h_prefix = 'hevc'
+        default_codec = 'libx265'
+    else:
+        if video_codec_pref != 264:
+             config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
+        h_prefix = 'h264'
+        default_codec = 'libx264'
+
+    selected_codec = default_codec # 初始化为回退选项
+
+    # --- 定义路径 (假设有效) ---
+    try:
+        # 内部使用 Path 对象，传递给子进程时转为字符串
+        test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
+        temp_dir = Path(config.TEMP_DIR)
+    except Exception as e:
+        # 捕获配置本身格式错误导致的路径构建潜在错误
+        config.logger.error(f"从配置构建路径时出错: {e}。将回退到 {default_codec}。")
+        _codec_cache[cache_key] = default_codec
+        return default_codec
+
+    # --- 内部测试函数 (增强版) ---
+    def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
+        """ 测试指定编码器。成功返回 True，失败返回 False。 """
+        timestamp = int(time.time() * 1000)
+        output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
+
+        command = [
+            "ffmpeg",
+            "-y",
+            "-hide_banner",
+            "-loglevel", "error",
+            "-t", "1", # 编码 1 秒以加速测试
+            "-i", str(test_input_file), # 假设此文件存在
+            "-c:v", encoder_to_test,
+            "-f", "mp4",
+            str(output_file) # 假设 temp_dir 可写
+        ]
+
+        creationflags = 0
+        if sys.platform == 'win32':
+            creationflags = subprocess.CREATE_NO_WINDOW
+
+        config.logger.info(f"正在尝试测试编码器: {encoder_to_test}...")
+        success = False
+        try:
+            # 直接尝试执行命令。缺少 ffmpeg、输入文件丢失、
+            # 临时目录不可写或编码器无效等错误会在此处引发异常。
+            process = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding='utf-8', # 尝试指定编码以更好地处理stderr
+                errors='ignore', # 忽略解码错误
+                creationflags=creationflags,
+                timeout=timeout
+            )
+            config.logger.info(f"成功: 编码器 '{encoder_to_test}' 测试通过。")
+            success = True
+        except FileNotFoundError:
+            # 会捕获 'ffmpeg' 命令本身在 PATH 中未找到的情况
+            config.logger.error(f"失败: 测试 {encoder_to_test} 时在 PATH 中未找到 'ffmpeg' 命令。")
+            # 如果 ffmpeg 缺失，尝试其他编码器意义不大。
+            # 当前逻辑仅标记此测试失败并可能尝试其他，
+            # 但若 ffmpeg 完全缺失则可能不是期望行为。
+            # 目前，仅记录日志并为此测试返回 False。
+        except subprocess.CalledProcessError as e:
+            # 捕获 ffmpeg 以非零状态退出的情况 (例如，无效编码器、输入文件丢失、其他 ffmpeg 错误)
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。返回码: {e.returncode}")
+            config.logger.warning(f"FFmpeg 命令: {' '.join(command)}")
+            if e.stderr:
+                # 记录 ffmpeg 的错误信息，这对于调试至关重要
+                config.logger.warning(f"FFmpeg 标准错误输出(stderr):\n{e.stderr.strip()}")
+            else:
+                config.logger.warning("FFmpeg 标准错误输出(stderr): (空)")
+        except PermissionError:
+            # 可能在 TEMP_DIR 不可写时发生
+             config.logger.error(f"失败: 写入临时文件 {output_file} 时权限被拒绝。请检查 {temp_dir} 的权限。")
+        except subprocess.TimeoutExpired:
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
+        except Exception as e:
+            # 捕获任何其他意外错误 (例如，路径字符串问题、操作系统错误)
+            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True) # 记录 traceback
+            config.logger.error(f"FFmpeg 命令: {' '.join(command)}")
+        finally:
+            # 无论成功与否，都清理测试文件
+            if output_file.exists():
+                try:
+                    output_file.unlink(missing_ok=True)
+                except OSError as e:
+                    config.logger.warning(f"无法删除临时测试文件 {output_file}: {e}")
+            return success # 仅当子进程无异常运行时返回 True
+
+    # --- 特定平台的编码器测试逻辑 ---
+    config.logger.info(f"平台: {plat}。正在检测最佳的 '{h_prefix}' 编码器。")
+    try:
+        if plat == 'Darwin':
+            encoder_name = f"{h_prefix}_videotoolbox"
+            if test_encoder_internal(encoder_name):
+                selected_codec = encoder_name
+
+        elif plat in ['Windows', 'Linux']:
+            nvenc_selected = False
+            # 首先尝试 NVIDIA
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    config.logger.info("PyTorch 报告 CUDA 可用。正在测试 nvenc...")
+                    encoder_name = f"{h_prefix}_nvenc"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                        nvenc_selected = True
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                else:
+                    config.logger.info("PyTorch 报告 CUDA 不可用。基于 torch 跳过 nvenc 测试。")
+            except ImportError:
+                config.logger.info("未找到 torch 模块。正在尝试直接测试 nvenc。")
+                # 如果 torch 未安装或未检测到 CUDA，则直接测试 nvenc
+
+            # 如果 torch 未导入、报告无 CUDA 或上述 nvenc 测试失败
+            if not nvenc_selected:
+                 # 仅当尚未选择编码器时，才尝试直接测试 nvenc
+                 if selected_codec == default_codec:
+                    config.logger.info("正在尝试直接进行 nvenc 测试 (如果尚未选择)。")
+                    encoder_name = f"{h_prefix}_nvenc"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                        nvenc_selected = True # 标记为已选择
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+
+            # 如果 nvenc 未被选中，则继续尝试平台特定的替代方案
+            if not nvenc_selected: # 检查 nvenc 是否成功被选择
+                if plat == 'Linux':
+                    config.logger.info("正在测试 vaapi...")
+                    encoder_name = f"{h_prefix}_vaapi"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                        # 如果 VAAPI 失败，尝试 AMF
+                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
+                           config.logger.info("正在测试 amf...")
+                           encoder_name = f"{h_prefix}_amf"
+                           if test_encoder_internal(encoder_name):
+                               selected_codec = encoder_name
+                           else:
+                               config.logger.info(f"{encoder_name} 测试失败或不可用。")
+
+                elif plat == 'Windows':
+                    config.logger.info("正在测试 qsv...")
+                    encoder_name = f"{h_prefix}_qsv"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                        # 如果 QSV 失败，尝试 AMF
+                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
+                            config.logger.info("正在测试 amf...")
+                            encoder_name = f"{h_prefix}_amf"
+                            if test_encoder_internal(encoder_name):
+                                selected_codec = encoder_name
+                            else:
+                                config.logger.info(f"{encoder_name} 测试失败或不可用。")
+        else:
+             config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
+
+    except Exception as e:
+        config.logger.error(f"在平台特定测试期间发生意外错误: {e}", exc_info=True)
+        config.logger.warning(f"因错误，将回退到软件编码器: {default_codec}")
+        selected_codec = default_codec
+
+    # --- 最终结果 ---
+    if selected_codec == default_codec:
+        config.logger.info(f"未找到或未选择合适的硬件编码器。将使用软件编码器: {selected_codec}")
+    else:
+        config.logger.info(f"已选择硬件编码器: {selected_codec}")
+
+    _codec_cache[cache_key] = selected_codec # 缓存结果
+    return selected_codec
 # 设置ass字体格式
 def set_ass_font(srtfile=None):
     if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
