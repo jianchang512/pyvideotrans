@@ -73,13 +73,12 @@ class FasterAvg(BaseRecogn):
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                with Path(self.pidfile).open('w', encoding='utf-8') as f:
+                with open(self.pidfile,'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
-                    f.flush()
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error = str(err['msg'])
+                    self.error = 'err[msg]='+str(err['msg'])
                 elif len(list(raws))<1:
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
                 else:
@@ -90,12 +89,14 @@ class FasterAvg(BaseRecogn):
                 except:
                     pass
         except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
-            raise
+            config.logger.exception(e, exc_info=True)
+            self.error=str(e)
         except Exception as e:
-            raise Exception(f"{e}")
+            self.error='_avagel'+str(e)
         finally:
             config.model_process = None
             self.has_done = True
+            Path(self.pidfile).unlink(missing_ok=True)
 
         if self.error:
             raise Exception(self.error)

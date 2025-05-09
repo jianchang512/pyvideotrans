@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Union, List, Dict
 
-import torch
+import torch,json
 import whisper
 import zhconv
 from pydub import AudioSegment
@@ -89,6 +89,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     for idx, word in enumerate(new_seg):
                         new_seg[idx]['start']=word['start']+start_time/1000
                         new_seg[idx]['end']=word['end']+start_time/1000
+                        del new_seg[idx]['probability']
                     alllist.append({"words":new_seg,"text":text})
                     self._signal(text=f"{config.transobj['yuyinshibiejindu']} {nums}" )
                     self._signal(
@@ -103,6 +104,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         words_list = []
                         for it in list(alllist):
                             words_list += it['words']
+
                         self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
                         self.raws = self.re_segment_sentences(words_list,self.detect_language[:2])
                     except:

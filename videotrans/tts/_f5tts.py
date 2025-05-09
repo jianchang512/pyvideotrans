@@ -118,7 +118,7 @@ class F5TTS(BaseTTS):
 
             if role=='clone':
                 data['ref_wav']=data_item['ref_wav']
-                data['ref_text']=data_item.get('ref_text').strip()
+                data['ref_text']=data_item.get('ref_text','')
             else:
                 roledict = tools.get_f5tts_role()
                 if role in roledict:
@@ -127,8 +127,7 @@ class F5TTS(BaseTTS):
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
                 return
-            if data['ref_text'] and len(data['ref_text'])<10:
-                speed=0.5
+
             client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
 
             result = client.predict(
@@ -188,8 +187,7 @@ class F5TTS(BaseTTS):
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
                 return
-            if data['ref_text'] and len(data['ref_text'])<10:
-                speed=0.5
+
             client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
 
             result = client.predict(
@@ -248,8 +246,7 @@ class F5TTS(BaseTTS):
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
                 return
-            if data['ref_text'] and len(data['ref_text'])<10:
-                speed=0.5
+
             client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
 
             result = client.predict(
@@ -298,7 +295,7 @@ class F5TTS(BaseTTS):
         ttstype=config.params.get('f5tts_ttstype')
         # Spark-TTS','Index-TTS Dia-TTS
         if ttstype=='Spark-TTS':
-            return self._item_task_spart(data_item)
+            return self._item_task_spark(data_item)
         if ttstype=='Index-TTS':
             return self._item_task_index(data_item)
         if ttstype=='Dia-TTS':
