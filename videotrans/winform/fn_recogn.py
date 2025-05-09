@@ -151,6 +151,9 @@ def openwin():
         if is_input_api(recogn_type=recogn_type) is not True:
             return
 
+        if winobj.rephrase.isChecked() and not config.params.get('chatgpt_key'):
+            return QMessageBox.critical(winobj, "Error",config.transobj['llmduanju'])
+
         winobj.shibie_startbtn.setText(config.transobj["running"])
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()

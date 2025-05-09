@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Union, List
 
-import httpx,requests
+import httpx,requests,json
 from openai import OpenAI, APIConnectionError, APIError
 
 from videotrans.configure import config
@@ -24,6 +24,58 @@ class ChatGPT(BaseTrans):
         self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
         self.model_name=config.params["chatgpt_model"]
+
+    def llm_segment(self,words):
+        prompts=Path(config.ROOT_DIR+'/videotrans/recharge-llm.txt').read_text(encoding='utf-8')
+        prompts=prompts.replace('<INPUT></INPUT>','<INPUT>'+json.dumps(words,ensure_ascii=False)+'</INPUT>')
+        
+
+        message = [
+            {
+                'role': 'user',
+                'content': prompts
+            }
+        ]
+        config.logger.info(f'{prompts=}')
+        model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
+                       http_client=httpx.Client(proxy=self.proxies,timeout=7200))
+        try:
+            response = model.chat.completions.create(
+                model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params['chatgpt_model'],
+                timeout=7200,
+                max_tokens= max(int(config.params.get('chatgpt_max_token')) if config.params.get('chatgpt_max_token') else 4096,4096),
+                messages=message
+            )
+        except APIError as e:
+            config.logger.exception(e,exc_info=True)
+            raise
+        except Exception as e:
+            config.logger.exception(e,exc_info=True)
+            raise
+
+
+        if not hasattr(response,'choices'):
+            config.logger.error(f'[chatGPT]重新断句失败:{response=}')
+            raise Exception(f"no choices:{response=}")
+        
+        result = response.choices[0].message.content.strip()
+        match = re.search(r'<DICT_LIST>(.*?)</DICT_LIST>',result, re.S|re.I)
+        if not match:
+            config.logger.error(f'[chatGPT]重新断句失败:{result=}')
+            raise Exception(f"ChatGPT 重新断句失败")
+        llm_result=match.group(1).replace("\n","").strip()
+        config.logger.info(f'LLM断句结果:{llm_result}')
+        sub_list=json.loads( re.sub(r'\,\]$',']', llm_result))
+        new_sublist=[]
+        for i,s in enumerate(sub_list):
+            tmp={}
+            tmp['startraw']=tools.ms_to_time_string(ms=s["start"]*1000)
+            tmp['endraw']=tools.ms_to_time_string(ms=s["end"]*1000)
+            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+            tmp['text']=s['text'].strip()
+            tmp['line']=i+1
+            new_sublist.append(tmp)
+        return new_sublist
 
         
     def _check_proxy(self):

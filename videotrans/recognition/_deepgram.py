@@ -65,20 +65,23 @@ class DeepgramRecogn(BaseRecogn):
             # STEP 4: Print the response
             # res=response.to_json()
             raws=[]
+            rephrase_ok=True
             if config.settings.get('rephrase'):
-                words=[]
-                for seg in res['results']['utterances']:
-                    for it in seg['words']:
-                        words.append({
-                            "start":it['start'],
-                            "end":it['end'],
-                            "word":it['word']
-                        })
-                self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
-                raws=self.re_segment_sentences(words,self.detect_language[:2])
+                try:
+                    words=[]
+                    for seg in res['results']['utterances']:
+                        for it in seg['words']:
+                            words.append({
+                                "start":it['start'],
+                                "end":it['end'],
+                                "word":it['word']
+                            })
+                    self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
+                    raws=self.re_segment_sentences(words,self.detect_language[:2])
+                except:
+                    rephrase_ok=False
 
-            else:
-                # take the "response" result from transcribe_url() and pass into DeepgramConverter
+            if not config.settings.get('rephrase') or not rephrase_ok:
                 transcription = DeepgramConverter(res)
                 srt_str = srt(transcription, line_length= config.settings.get('cjk_len') if self.detect_language[:2] in ['zh','ja','ko'] else config.settings.get('other_len'))
                 raws=tools.get_subtitle_from_srt(srt_str, is_file=False)
