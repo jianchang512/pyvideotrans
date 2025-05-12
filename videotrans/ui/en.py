@@ -313,7 +313,7 @@ class Ui_MainWindow(object):
 
         self.rephrase=QtWidgets.QCheckBox()
         self.rephrase.setText('LLM重新断句' if config.defaulelang=='zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，一次性发送所有字幕，不分批次，太长字幕可能失败，失败后将使用原始分段' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
+        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
         self.remove_noise=QtWidgets.QCheckBox()
         self.remove_noise.setText('降噪' if config.defaulelang=='zh' else 'Noise reduction')
         self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
