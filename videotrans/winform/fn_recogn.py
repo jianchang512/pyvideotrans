@@ -93,7 +93,7 @@ def openwin():
             winobj.shibie_startbtn.setDisabled(False)
             winobj.shibie_startbtn.setText(config.box_lang["Start"])
         elif d['type'] == 'logs' and d['text']:
-            winobj.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text']+' ... ')
         elif d['type'] in ['jindu', 'succeed']:
             winobj.shibie_startbtn.setText(d['text'])
         elif d['type'] in ['end']:
@@ -152,7 +152,10 @@ def openwin():
             return
 
         if winobj.rephrase.isChecked() and not config.params.get('chatgpt_key'):
-            return QMessageBox.critical(winobj, "Error",config.transobj['llmduanju'])
+            QMessageBox.critical(winobj, "Error",config.transobj['llmduanju'])
+            from videotrans.winform import chatgpt
+            chatgpt.openwin()
+            return
 
         winobj.shibie_startbtn.setText(config.transobj["running"])
         winobj.label_shibie10.setText('')

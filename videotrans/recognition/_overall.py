@@ -27,10 +27,10 @@ class FasterAll(BaseRecogn):
     # 获取新进程的结果
     def _get_signal_from_process(self, q: multiprocessing.Queue):
         while not self.has_done:
-            if self._exit() and self.pidfile:
-                Path(self.pidfile).unlink(missing_ok=True)
-                return
             try:
+                if self._exit() and self.pidfile and Path(self.pidfile).exists():
+                    Path(self.pidfile).unlink(missing_ok=True)
+                    return
                 if not q.empty():
                     data = q.get_nowait()
                     if self.inst and self.inst.precent < 50:

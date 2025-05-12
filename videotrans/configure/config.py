@@ -351,6 +351,7 @@ def parse_init():
         "subtitle_position":2,
         "cjk_len": 20,
         "other_len": 60,
+        "llm_chunk_size": 3000,
         "gemini_model": "gemini-2.5-pro-preview-03-25,gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-flash-thinking-exp-01-21,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b",
         "zh_hant_s": True,
         "azure_lines": 100,

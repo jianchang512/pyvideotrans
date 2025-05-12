@@ -95,7 +95,8 @@ class Ui_setini(object):
                 "countdown_sec": "当单个视频翻译时，暂停时倒计时秒数",
                 "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
                 "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
-                "is_queue":"视频翻译任务默认交叉并发执行，以提高速度，选中该项则排队挨个翻译,速度会降低"
+                "is_queue":"视频翻译任务默认交叉并发执行，以提高速度，选中该项则排队挨个翻译,速度会降低",
+                "llm_chunk_size":"LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败"
             },
 
             "video": {
@@ -197,6 +198,7 @@ class Ui_setini(object):
         # 中文左侧label
         self.titles = {
             "ai302_models": "302.ai翻译模型列表",
+            "llm_chunk_size":"LLM重新断句每批次发送字或单词数",
             "ai302tts_models": "302.aiTTS模型列表",
             "openairecognapi_model": "OpenAI语音识别模型",
             "homedir": "设置家目录",
@@ -315,7 +317,8 @@ class Ui_setini(object):
                     "countdown_sec": "Countdown seconds when pausing during single video translation",
                     "is_queue":"Video translation tasks are cross-executed concurrently by default to increase speed, checking this item queues the translations one by one.",
                     "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
-                    "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory"
+                    "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory",
+                    "llm_chunk_size":"When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit"
                 },
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
@@ -415,7 +418,6 @@ class Ui_setini(object):
             self.heads = {
                 "common": "General Settings",
                 "model": "AI Model List",
-
                 "video": "Video Output",
                 "whisper": "faster-whisper/openai-whisper speech to text",
                 "justify": "Subtitle  Alignment",
@@ -426,6 +428,7 @@ class Ui_setini(object):
 
             self.titles = {
                 "homedir": "Set Home directory",
+                "llm_chunk_size":"LLM re-segmentation sends each batch of words",
                 "is_queue":"Video Translation Task Queuing Translation",
                 "ai302_models": "302.ai Translation Models",
                 "ai302tts_models": "302.ai TTS Models",
