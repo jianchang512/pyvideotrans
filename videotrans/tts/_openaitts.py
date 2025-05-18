@@ -31,7 +31,7 @@ class OPENAITTS(BaseTTS):
             raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
         self._local_mul_thread()
     def _item_task(self, data_item: dict = None):
-        if tools.vail_file(data_item['filename']):
+        if not self.is_test and tools.vail_file(data_item['filename']):
             return
         text = data_item['text'].strip()
         role = data_item['role']
@@ -50,7 +50,8 @@ class OPENAITTS(BaseTTS):
                 voice=role,
                 input=text,
                 timeout=7200,
-                speed=speed
+                speed=speed,
+                instructions=config.params.get('openaitts_instructions','')
             ) as response:
                 with open(data_item['filename'], 'wb') as f:
                     for chunk in response.iter_bytes():

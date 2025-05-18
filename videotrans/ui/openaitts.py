@@ -60,7 +60,19 @@ class Ui_openaittsform(object):
         self.openaitts_model.setObjectName("openaitts_model")
         h3.addWidget(self.label_3)
         h3.addWidget(self.openaitts_model)
+
+        hintru=QtWidgets.QHBoxLayout()
+        label_intru = QtWidgets.QLabel(openaittsform)
+        label_intru.setObjectName("label_intru")
+        label_intru.setText('声音效果提示词(gpt-4o-mini-tts)' if config.defaulelang=='zh' else 'voice with instructions(gpt-4o-mini-tts)')
+        self.openaitts_instructions = QtWidgets.QLineEdit(openaittsform)
+        self.openaitts_instructions.setMinimumSize(QtCore.QSize(0, 35))
+        self.openaitts_instructions.setObjectName("openaitts_instructions")
+        hintru.addWidget(label_intru)
+        hintru.addWidget(self.openaitts_instructions)
+        
         v1.addLayout(h3)
+        v1.addLayout(hintru)
 
         self.label_allmodels = QtWidgets.QLabel(openaittsform)
 
