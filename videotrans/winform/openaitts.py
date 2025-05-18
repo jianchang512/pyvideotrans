@@ -47,11 +47,13 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.openaitts_model.currentText()
-        
-        
+        intru = winobj.openaitts_instructions.text()
+        config.params["openaitts_instructions"] = intru
+
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
+        config.getset_params(config.params)
 
         task = TestOpenaitts(parent=winobj, text="你好啊我的朋友",role=winobj.edit_roles.toPlainText().strip().split(',')[0])
         winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -69,6 +71,8 @@ def openwin():
             url = 'http://' + url
         
         model = winobj.openaitts_model.currentText()
+        intru = winobj.openaitts_instructions.text()
+        config.params["openaitts_instructions"] = intru
 
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = url
@@ -104,6 +108,8 @@ def openwin():
 
         if config.params["openaitts_key"]:
             winobj.openaitts_key.setText(config.params["openaitts_key"])
+        if config.params["openaitts_instructions"]:
+            winobj.openaitts_instructions.setText(config.params.get("openaitts_instructions",''))
         if config.params["openaitts_api"]:
             winobj.openaitts_api.setText(config.params["openaitts_api"])
         if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
