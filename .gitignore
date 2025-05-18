@@ -45,3 +45,17 @@ videotrans/glossary.txt
 /tmp/
 runtime
 f5-tts
+
+# Arquivos do sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Diretórios específicos do projeto
+videotrans/core/
+videotrans/planner/
+videotrans/util/segments.py
