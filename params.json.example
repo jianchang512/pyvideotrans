@@ -149,8 +149,9 @@
   "back_audio": "",
   "clear_cache": false,
   "copysrt_rawvideo": false,
-  "gcloud_credential_json": "",
+  "gcloud_credential_json": "/path/to/your/credentials.json",
   "gcloud_language_code": "pt-BR",
   "gcloud_voice_name": "pt-BR-Standard-A",
-  "gcloud_audio_encoding": "MP3"
+  "gcloud_audio_encoding": "MP3",
+  "gcloud_ssml_gender": "SSML_VOICE_GENDER_UNSPECIFIED"
 } 
