@@ -71,6 +71,7 @@ class Ui_openaittsform(object):
         hintru.addWidget(label_intru)
         hintru.addWidget(self.openaitts_instructions)
         
+
         v1.addLayout(h3)
         v1.addLayout(hintru)
 

@@ -249,16 +249,14 @@ def parse_init():
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
         
     default = {
-        "ai302_models": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo-preview,ernie-4.0-8k,qwen-max,glm-4,moonshot-v1-8k,"
-                        "yi-large,deepseek-chat,doubao-pro-128k,generalv3.5,gemini-1.5-pro,baichuan2-53b,sensechat-5,"
-                        "llama3-70b-8192,qwen2-72b-instruct",
+        "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
         "homedir": _defaulthomedir,
         "lang": "",
         "is_queue":False,
         
         "Faster_Whisper_XXL":"",
 
-        "crf": 23,
+        "crf": 25,
         "cuda_qp": False,
         "cuda_decode":False,
         
@@ -272,6 +270,7 @@ def parse_init():
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5-preview-2025-02-27,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
         "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
+
         "azure_model": "gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
         "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
         "zijiehuoshan_model": "",
@@ -338,6 +337,7 @@ def parse_init():
         "initial_prompt_he": "",
         "initial_prompt_bn": "",
         "initial_prompt_fil": "",
+        "initial_prompt_fa": "",
         "whisper_threads": 4,
         "whisper_worker": 1,
         "beam_size": 5,
@@ -348,10 +348,12 @@ def parse_init():
         "fontname": "黑体",
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
-        "subtitle_bottom": 10,
+        "subtitle_position":2,
         "cjk_len": 20,
         "other_len": 60,
         "gemini_model": "gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-pro-exp-02-05,gemini-1.5-flash,gemini-1.5-pro",
+        "llm_chunk_size": 3000,
+
         "zh_hant_s": True,
         "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
@@ -387,7 +389,7 @@ def parse_init():
         if _settings['model_list'].find('large-v3-turbo') == -1:
             _settings['model_list']=_settings['model_list'].replace(',large-v3,',',large-v3,large-v3-turbo,')
         if _settings['gemini_model'].find('gemini') == -1:
-            _settings["gemini_model"] = "gemini-pro,gemini-1.5-pro,gemini-1.5-flash"
+            _settings["gemini_model"] = "gemini-2.5-pro-preview-03-25,gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-flash-thinking-exp-01-21,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
         default.update(_settings)
         if not default['homedir']:
             default['homedir'] = _defaulthomedir
@@ -662,6 +664,7 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
         "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
         "listen_text_fil": "Hello, kaibigan ko",
+        "listen_text_fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
@@ -715,7 +718,7 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "azure_template": "",
 
         "gemini_key": "",
-        "gemini_model": "gemini-1.5-pro",
+        "gemini_model": "gemini-2.0-flash",
         "gemini_template": "",
 
         "gemini_srtprompt":"""# 角色
@@ -837,7 +840,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "fishtts_role": "",
         
         "f5tts_url": "",
-        "f5tts_model": "F5-TTS_v1",
+        "f5tts_model": "",
+        "f5tts_ttstype": "F5-TTS",
         "f5tts_role": "",
         "f5tts_is_whisper":False,
 
@@ -912,3 +916,5 @@ if Path(ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').exists():
 
 
 ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs','tl']
+
+codec_cache={}

@@ -445,11 +445,79 @@ def get_kokoro_rolelist():
 
     return voice_list
 
-
+# cuda preset 预设
 def get_preset(encoder):
     if encoder in ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast']:
         return 'hp'
     return 'hq'
+
+# amf 编码预设
+
+# qsv 编码预设
+
+# vaapi预设
+
+
+def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
+    """
+    Tries to extract a concise, relevant error message from stderr,
+    often focusing on the last few lines or lines with error keywords.
+
+    Args:
+        stderr_text: The full stderr output string.
+        max_lines: How many lines from the end to primarily consider.
+        max_length: Max length of the returned string snippet.
+
+    Returns:
+        A concise string representing the likely error.
+    """
+    if not stderr_text:
+        return "Unknown error (empty stderr)"
+
+    lines = stderr_text.strip().splitlines()
+    if not lines:
+        return "Unknown error (empty stderr lines)"
+
+    # Look for lines with common error keywords in the last few lines
+    error_keywords = ["error", "invalid", "fail", "could not", "no such",
+                      "denied", "unsupported", "unable", "can't open", "conversion failed"]
+
+    relevant_lines_indices = range(max(0, len(lines) - max_lines), len(lines))
+
+    found_error_lines = []
+    for i in reversed(relevant_lines_indices):
+        line = lines[i].strip()
+        if not line: # Skip empty lines
+             continue
+
+        # Check if the line contains any of the keywords (case-insensitive)
+        if any(keyword in line.lower() for keyword in error_keywords):
+            # Prepend the previous line if it exists and isn't empty, might add context
+            context_line = ""
+            if i > 0 and lines[i-1].strip():
+                 context_line = lines[i-1].strip() + "\n" # Add newline for clarity
+
+            found_error_lines.append(context_line + line)
+            # Often, the first keyword line found (reading backwards) is the most specific
+            break
+
+    if found_error_lines:
+        # Take the first one found (which was likely the last 'errorry' line in the output)
+        concise_error = found_error_lines[0]
+    else:
+        # Fallback: take the last non-empty line if no keywords found
+        last_non_empty_line = ""
+        for line in reversed(lines):
+            stripped_line = line.strip()
+            if stripped_line:
+                last_non_empty_line = stripped_line
+                break
+        concise_error = last_non_empty_line or "Unknown error (no specific error line found)"
+
+    # Limit the total length
+    if len(concise_error) > max_length:
+        return concise_error[:max_length] + "..."
+    return concise_error
 
 
 # 执行 ffmpeg
@@ -469,9 +537,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         has_mp4 = False
         # 插入解码位置
         insert_index = -1
-        # 不支持预设的硬件，例如 _qsv _videotoolbox 需要移除预设
-        # 0 不做操作，1=移除预设，2=使用新的预设替代
-        remove_preset = 0
         for i, it in enumerate(arg):
             if insert_index == -1 and arg[i] == '-i':
                 insert_index = i
@@ -479,34 +544,40 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
             if i > 0 and arg[i - 1] == '-c:v' and arg[i] != 'copy':
                 arg[i] = config.video_codec
-                if config.video_codec.find('_qsv') > 0 or config.video_codec.find('_videotoolbox') > 0:
-                    remove_preset = 1
-                elif config.video_codec.find('_nvenc') > 0:
-                    remove_preset = 2
-            elif it == '-crf' and config.video_codec.find('_nvenc') > 0:
-                arg[i] = '-qp'
+            elif it=='-preset' and config.video_codec[-3:]=='amf':
+                # intel win
+                arg[i+1]='quality'
+            elif it=='-preset' and config.video_codec[-3:]=='qsv': 
+                #amd win
+                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+            elif it=='-preset' and config.video_codec[-3:]=='api': 
+                #linux intel amd
+                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+            elif it=='-preset' and config.video_codec[-3:]=='enc':
+                # cuda
+                arg[i+1]='hp' if 'fast' in arg[i+1]  else 'hq'
+
 
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
         # 因显卡兼容性，出错率较高
         # 启用硬件加速
-        if platform.system() == 'Darwin':
-            if config.video_codec.find('_videotoolbox') > 0:
+        if config.video_codec.find('_videotoolbox') > 0:
+            # 移除 preset 防止出错
+            if '-preset' in arg:
+                pos = arg.index('-preset')
+                arg.pop(pos)
+                arg.pop(pos)
+            if config.settings.get('cuda_decode', False):
                 cmd.append('-hwaccel')
                 cmd.append('videotoolbox')
-        elif config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][
-                                                                                             -3:] == 'mp4' and config.video_codec in [
-            'h264_nvenc', 'hevc_nvenc']:
+        elif config.video_codec[-3:] == 'enc' and config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][-3:] == 'mp4':
             arg.insert(insert_index, 'cuda')
             arg.insert(insert_index, '-hwaccel')
 
-        # 移除预设，防止出错 -preset
-        if '-preset' in arg:
-            pos = arg.index('-preset')
-            if remove_preset == 1:
-                arg.pop(pos)
-                arg.pop(pos)
-            elif remove_preset == 2:
-                arg[pos + 1] = get_preset(arg[pos + 1])
+        # 硬件加速时删掉 crf qp 等，避免某些硬件下出错
+        if "-crf" in arg and config.video_codec[-3:] in ['enc','qsv','amf','api','box']:
+            crf_index=arg.index("-crf")
+            arg=arg[:crf_index]+arg[crf_index+2:]
 
     cmd += arg
     if Path(cmd[-1]).is_file():
@@ -523,12 +594,28 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,
                        encoding="utf-8",
+                       errors='replace',
                        check=True,
                        text=True,
                        creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if noextname:
             config.queue_novice[noextname] = "end"
         return True
+    except FileNotFoundError as e:
+        # Specific error: The command executable itself was not found.
+        # This often means the program isn't installed or not in the system's PATH.
+        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. "
+                            f"Ensure it's installed and in the PATH. {force_cpu=}. Error: {e}")
+        raise
+        # Depending on requirements, you might not want to raise here, just return False.
+        # raise # Or re-raise if the caller needs to handle it specifically
+
+    except PermissionError as e:
+        # Specific error: Permission denied to execute the command.
+        # The user running the script doesn't have execute permissions for cmd[0].
+        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. "
+                            f"{force_cpu=}. Error: {e}")
+        raise # Or re-raise
     except subprocess.CalledProcessError as e:
         config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}', exc_info=True)
         # 处理视频时如果出错，尝试回退
@@ -543,7 +630,13 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             return runffmpeg(arg_copy, noextname=noextname, force_cpu=True)
         if noextname:
             config.queue_novice[noextname] = "error"
-        raise
+        raise Exception(extract_concise_error(e.stderr))
+    except OSError as e:
+        # Catch other OS-level errors during process creation/execution that aren't
+        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
+        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. "
+                            f"{force_cpu=}. Error: {e}", exc_info=True)
+        raise # Or re-raise
     except Exception as e:
         if noextname:
             config.queue_novice[noextname] = "error"
@@ -560,18 +653,36 @@ def runffprobe(cmd):
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            encoding="utf-8",
+                           errors='replace',
                            text=True,
                            check=True,
                            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
         if p.stdout:
             return p.stdout.strip()
-        config.logger.error(str(p) + str(p.stderr))
-        raise Exception(str(p.stderr))
+        config.logger.error(str(p.stderr))
+        raise Exception(extract_concise_error(str(p.stderr)))
+    except FileNotFoundError as e:
+        # Specific error: The command executable itself was not found.
+        # This often means the program isn't installed or not in the system's PATH.
+        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. ")
+        raise
+        # Depending on requirements, you might not want to raise here, just return False.
+        # raise # Or re-raise if the caller needs to handle it specifically
+
+    except PermissionError as e:
+        # Specific error: Permission denied to execute the command.
+        # The user running the script doesn't have execute permissions for cmd[0].
+        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. ")
+        raise # Or re-raise
     except subprocess.CalledProcessError as e:
         config.logger.exception(e)
-        msg = f'ffprobe error {cmd=} :{str(e)}{str(e.stdout)},{str(e.stderr)}'
-        msg = msg.replace('\n', ' ')
+        msg = extract_concise_error(e.stderr)
         raise Exception(msg)
+    except OSError as e:
+        # Catch other OS-level errors during process creation/execution that aren't
+        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
+        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. ", exc_info=True)
+        raise # Or re-raise
     except Exception as e:
         raise
 
@@ -699,7 +810,7 @@ def split_audio_byraw(source_mp4, targe_audio, is_separate=False, uuid=None):
         "-ac",
         "1",
         "-b:a",
-        "192k",
+        "128k",
         "-c:a",
         "aac",
         targe_audio
@@ -776,7 +887,7 @@ def backandvocal(backwav, peiyinm4a):
     # 背景转为m4a文件,音量降低为0.8
     wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
     runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "192k", '-c:a', 'aac',
+               "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'aac',
                tmpwav])
     shutil.copy2(tmpwav, peiyinm4a)
     # 转为 m4a
@@ -793,7 +904,7 @@ def wav2m4a(wavfile, m4afile, extra=None):
         "-ar",
         "48000",
         "-b:a",
-        "192k",
+        "128k",
         Path(m4afile).as_posix()
     ]
     if extra:
@@ -812,7 +923,7 @@ def wav2mp3(wavfile, mp3file, extra=None):
         "-ar",
         "48000",
         "-b:a",
-        "192k",
+        "128k",
         Path(mp3file).as_posix()
     ]
     if extra:
@@ -843,7 +954,7 @@ def m4a2wav(m4afile, wavfile):
         "-ar",
         "16000",
         "-b:a",
-        "192k",
+        "128k",
         "-c:a",
         "pcm_s16le",
         Path(wavfile).as_posix()
@@ -885,7 +996,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "192k"]
+    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
@@ -999,6 +1110,7 @@ def toms(td):
 
 # 将 时:分:秒,毫秒 转为毫秒整数值
 def get_ms_from_hmsm(time_str):
+    time_str=time_str.replace('.',',')
     h, m, sec2ms = 0, 0, '00,000'
     tmp0 = time_str.split(":")
     if len(tmp0) == 3:
@@ -1016,15 +1128,17 @@ def get_ms_from_hmsm(time_str):
 def srt_str_to_listdict(srt_string):
     """解析 SRT 字幕字符串，更精确地处理数字行和时间行之间的关系"""
     srt_list = []
-    time_pattern = r'\s?(\d+):(\d+):(\d+)([,.]\d+)?\s*?-->\s*?(\d+):(\d+):(\d+)([,.]\d+)?\n?'
+    time_pattern = r'\s?(\d+):(\d+):(\d+)([,.]\d+)?\s*?-{1,2}>\s*?(\d+):(\d+):(\d+)([,.]\d+)?\n?'
     lines = srt_string.splitlines()
     i = 0
+
     while i < len(lines):
         time_match = re.match(time_pattern, lines[i].strip())
         if time_match:
             # 解析时间戳
             start_time_groups = time_match.groups()[0:4]
             end_time_groups = time_match.groups()[4:8]
+            print(f'当前时间行{i=},{start_time_groups}-->{end_time_groups}')
 
             def parse_time(time_groups):
                 h, m, s, ms = time_groups
@@ -1052,7 +1166,8 @@ def srt_str_to_listdict(srt_string):
                         i += 1
                         break
                     else:
-                        text_lines.append(current_line)
+                        if current_line:
+                            text_lines.append(current_line)
                         i += 1
                         break
 
@@ -1093,7 +1208,8 @@ def format_srt(content):
     result = []
     try:
         result = srt_str_to_listdict(content)
-    except Exception:
+    except Exception as e:
+        config.logger.error(e)
         result = srt_str_to_listdict(process_text_to_srt_str(content))
     return result
 
@@ -1121,8 +1237,8 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
     if len(content) < 1:
         raise Exception(f"srt is empty:{srtfile=},{content=}")
+    result = format_srt(copy.copy(content))
 
-    result = format_srt(content)
 
     # txt 文件转为一条字幕
     if len(result) < 1:
@@ -1196,12 +1312,12 @@ def srt2ass(srt_file, ass_file, maxlen=40):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'],
                 fontbordercolor=config.settings['fontbordercolor'],
                 fontbackcolor=config.settings['fontbordercolor'],
-                subtitle_bottom=config.settings['subtitle_bottom'])
+                subtitle_position=int(config.settings.get('subtitle_position',2)))
             break
 
     with open(ass_file, 'w', encoding='utf-8') as f:
@@ -1254,21 +1370,20 @@ def match_target_amplitude(sound, target_dBFS):
 def cut_from_video(*, ss="", to="", source="", pts="", out=""):
     video_codec = config.settings['video_codec']
     cmd1 = [
-        "-y",
-        '-i',
-        source,
+        "-y",        
         '-ss',
         format_time(ss, '.')
     ]
-    if to != '':
-        cmd1.append("-to")
-        cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-    cmd1 += ['-an']
+    if to != '':        
+        cmd1.append("-t")
+        cmd1.append(str(round(get_ms_from_hmsm(to)/1000,3)))  # 如果开始结束时间相同，则强制持续时间1s)
+        
+    
+    cmd1 += ['-i',source,'-an']
     if pts:
         cmd1 += ["-vf", f"setpts={pts}*PTS"]
 
-    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset',
-             config.settings.get('preset', 'slow')]
+    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset', config.settings.get('preset', 'slow')]
     cmd = cmd1 + [f'{out}']
     return runffmpeg(cmd)
 
@@ -1537,20 +1652,20 @@ def open_url(url=None, title: str = None):
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://pyvideotrans.com/downpackage",
+        'blog': "https://pyvideo.com",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
         'discord': "https://discord.gg/7ZWbwKGMcx",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
-        'dll': "https://pyvideotrans.com/jianhua",
-        'gtrans': "https://pyvideotrans.com/aiocr",
-        'cuda': "https://pyvideotrans.com/gpu.html",
-        'website': "https://pyvideotrans.com",
-        'help': "https://pyvideotrans.com",
-        'xinshou': "https://pyvideotrans.com/getstart",
-        "about": "https://pyvideotrans.com/about",
+
+        'gtrans': "https://pvt9.com/aiocr",
+        'cuda': "https://pvt9.com/gpu.html",
+        'website': "https://pvt9.com",
+        'help': "https://pvt9.com",
+        'xinshou': "https://pvt9.com/getstart",
+        "about": "https://pvt9.com/about",
         'download': "https://github.com/jianchang512/pyvideotrans/releases",
         'openvoice': "https://github.com/kungful/openvoice-api"
     }
@@ -1582,8 +1697,10 @@ def vail_file(file=None):
     return True
 
 
+
+
 # 获取最终视频应该输出的编码格式
-def get_video_codec():
+def get_video_codecold():
     plat = platform.system()
     # 264 / 265
     video_codec = int(config.settings['video_codec'])
@@ -1593,39 +1710,271 @@ def get_video_codec():
         return f'libx{video_codec}'
     mp4_target = config.TEMP_DIR + "/test.mp4"
     codec = f"libx{video_codec}"
+    
+    Path(config.TEMP_DIR).mkdir(exist_ok=True)
+    def testencode(encoder):
+        try:
+            subprocess.run([
+                "ffmpeg",
+                "-y",
+                "-hide_banner",
+                "-ignore_unknown",
+                "-i",
+                mp4_test,
+                "-c:v",
+                f'{hhead}_{encoder}',
+                mp4_target
+            ],
+                check=True,
+                creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+        except:
+            return False
+        else:
+            return f'{hhead}_{encoder}'
+    
+    if plat == 'Darwin':
+        test_res=testencode('videotoolbox')
+        return codec if test_res is False else test_res
+    
     if plat in ['Windows', 'Linux']:
         import torch
         if torch.cuda.is_available():
-            codec = f'{hhead}_nvenc'
-        elif plat == 'Windows':
-            codec = f'{hhead}_qsv'
-        elif plat == 'Linux':
-            codec = f'{hhead}_vaapi'
-    elif plat == 'Darwin':
-        codec = f'{hhead}_videotoolbox'
-    else:
-        return f"libx{video_codec}"
+            test_res=testencode('nvenc')
+            if test_res is not False:
+                return test_res
+        
+        if plat == 'Linux':
+            test_res=testencode('vaapi')
+            if test_res is not False:
+                return test_res
+            test_res=testencode('amf')
+            return codec if test_res is False else test_res
 
+        if plat == 'Windows':
+            test_res=testencode('qsv')
+            if test_res is not False:
+                return test_res
+            test_res=testencode('amf')
+            return codec if test_res is False  else test_res
+
+    return codec
+
+def get_video_codec(force_test: bool = False) -> str:
+    """
+    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
+
+    根据平台优先选择硬件编码器。如果硬件测试失败，则回退到软件编码
+    (libx264/libx265)。缓存结果。
+
+    依赖 'config' 模块获取设置和路径。假设 'ffmpeg' 在系统 PATH 中，
+    测试输入文件存在，并且 TEMP_DIR 可写。
+    将所有逻辑保留在此单一函数内。移除了预检查。
+
+    Args:
+        force_test (bool): 如果为 True，则忽略缓存并重新运行测试。默认为 False。
+
+    Returns:
+        str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
+    """
+    _codec_cache = config.codec_cache # 使用 config 中的缓存
+
+    plat = platform.system()
     try:
-        Path(config.TEMP_DIR).mkdir(exist_ok=True)
-        subprocess.run([
+        video_codec_pref = int(config.settings['video_codec'])
+    except (ValueError, KeyError, TypeError):
+        config.logger.warning("配置中 'video_codec' 无效或缺失。将默认使用 H.264 (264)。")
+        video_codec_pref = 264
+
+    # --- 缓存检查 ---
+    cache_key = (plat, video_codec_pref)
+    if not force_test and cache_key in _codec_cache:
+        config.logger.info(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
+        return _codec_cache[cache_key]
+
+    # --- 确定编解码器基础信息 ---
+    if video_codec_pref == 265:
+        h_prefix = 'hevc'
+        default_codec = 'libx265'
+    else:
+        if video_codec_pref != 264:
+             config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
+        h_prefix = 'h264'
+        default_codec = 'libx264'
+
+    selected_codec = default_codec # 初始化为回退选项
+
+    # --- 定义路径 (假设有效) ---
+    try:
+        # 内部使用 Path 对象，传递给子进程时转为字符串
+        test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
+        temp_dir = Path(config.TEMP_DIR)
+    except Exception as e:
+        # 捕获配置本身格式错误导致的路径构建潜在错误
+        config.logger.error(f"从配置构建路径时出错: {e}。将回退到 {default_codec}。")
+        _codec_cache[cache_key] = default_codec
+        return default_codec
+
+    # --- 内部测试函数 (增强版) ---
+    def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
+        """ 测试指定编码器。成功返回 True，失败返回 False。 """
+        timestamp = int(time.time() * 1000)
+        output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
+
+        command = [
             "ffmpeg",
             "-y",
             "-hide_banner",
-            "-ignore_unknown",
-            "-i",
-            mp4_test,
-            "-c:v",
-            codec,
-            mp4_target
-        ],
-            check=True,
-            creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
+            "-loglevel", "error",
+            "-t", "1", # 编码 1 秒以加速测试
+            "-i", str(test_input_file), # 假设此文件存在
+            "-c:v", encoder_to_test,
+            "-f", "mp4",
+            str(output_file) # 假设 temp_dir 可写
+        ]
+
+        creationflags = 0
+        if sys.platform == 'win32':
+            creationflags = subprocess.CREATE_NO_WINDOW
+
+        config.logger.info(f"正在尝试测试编码器: {encoder_to_test}...")
+        success = False
+        try:
+            # 直接尝试执行命令。缺少 ffmpeg、输入文件丢失、
+            # 临时目录不可写或编码器无效等错误会在此处引发异常。
+            process = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding='utf-8', # 尝试指定编码以更好地处理stderr
+                errors='ignore', # 忽略解码错误
+                creationflags=creationflags,
+                timeout=timeout
+            )
+            config.logger.info(f"成功: 编码器 '{encoder_to_test}' 测试通过。")
+            success = True
+        except FileNotFoundError:
+            # 会捕获 'ffmpeg' 命令本身在 PATH 中未找到的情况
+            config.logger.error(f"失败: 测试 {encoder_to_test} 时在 PATH 中未找到 'ffmpeg' 命令。")
+            # 如果 ffmpeg 缺失，尝试其他编码器意义不大。
+            # 当前逻辑仅标记此测试失败并可能尝试其他，
+            # 但若 ffmpeg 完全缺失则可能不是期望行为。
+            # 目前，仅记录日志并为此测试返回 False。
+        except subprocess.CalledProcessError as e:
+            # 捕获 ffmpeg 以非零状态退出的情况 (例如，无效编码器、输入文件丢失、其他 ffmpeg 错误)
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。返回码: {e.returncode}")
+            config.logger.warning(f"FFmpeg 命令: {' '.join(command)}")
+            if e.stderr:
+                # 记录 ffmpeg 的错误信息，这对于调试至关重要
+                config.logger.warning(f"FFmpeg 标准错误输出(stderr):\n{e.stderr.strip()}")
+            else:
+                config.logger.warning("FFmpeg 标准错误输出(stderr): (空)")
+        except PermissionError:
+            # 可能在 TEMP_DIR 不可写时发生
+             config.logger.error(f"失败: 写入临时文件 {output_file} 时权限被拒绝。请检查 {temp_dir} 的权限。")
+        except subprocess.TimeoutExpired:
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
+        except Exception as e:
+            # 捕获任何其他意外错误 (例如，路径字符串问题、操作系统错误)
+            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True) # 记录 traceback
+            config.logger.error(f"FFmpeg 命令: {' '.join(command)}")
+        finally:
+            # 无论成功与否，都清理测试文件
+            if output_file.exists():
+                try:
+                    output_file.unlink(missing_ok=True)
+                except OSError as e:
+                    config.logger.warning(f"无法删除临时测试文件 {output_file}: {e}")
+            return success # 仅当子进程无异常运行时返回 True
+
+    # --- 特定平台的编码器测试逻辑 ---
+    config.logger.info(f"平台: {plat}。正在检测最佳的 '{h_prefix}' 编码器。")
+    try:
+        if plat == 'Darwin':
+            encoder_name = f"{h_prefix}_videotoolbox"
+            if test_encoder_internal(encoder_name):
+                selected_codec = encoder_name
+
+        elif plat in ['Windows', 'Linux']:
+            nvenc_selected = False
+            # 首先尝试 NVIDIA
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    config.logger.info("PyTorch 报告 CUDA 可用。正在测试 nvenc...")
+                    encoder_name = f"{h_prefix}_nvenc"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                        nvenc_selected = True
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                else:
+                    config.logger.info("PyTorch 报告 CUDA 不可用。基于 torch 跳过 nvenc 测试。")
+            except ImportError:
+                config.logger.info("未找到 torch 模块。正在尝试直接测试 nvenc。")
+                # 如果 torch 未安装或未检测到 CUDA，则直接测试 nvenc
+
+            # 如果 torch 未导入、报告无 CUDA 或上述 nvenc 测试失败
+            if not nvenc_selected:
+                 # 仅当尚未选择编码器时，才尝试直接测试 nvenc
+                 if selected_codec == default_codec:
+                    config.logger.info("正在尝试直接进行 nvenc 测试 (如果尚未选择)。")
+                    encoder_name = f"{h_prefix}_nvenc"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                        nvenc_selected = True # 标记为已选择
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+
+            # 如果 nvenc 未被选中，则继续尝试平台特定的替代方案
+            if not nvenc_selected: # 检查 nvenc 是否成功被选择
+                if plat == 'Linux':
+                    config.logger.info("正在测试 vaapi...")
+                    encoder_name = f"{h_prefix}_vaapi"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                        # 如果 VAAPI 失败，尝试 AMF
+                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
+                           config.logger.info("正在测试 amf...")
+                           encoder_name = f"{h_prefix}_amf"
+                           if test_encoder_internal(encoder_name):
+                               selected_codec = encoder_name
+                           else:
+                               config.logger.info(f"{encoder_name} 测试失败或不可用。")
+
+                elif plat == 'Windows':
+                    config.logger.info("正在测试 qsv...")
+                    encoder_name = f"{h_prefix}_qsv"
+                    if test_encoder_internal(encoder_name):
+                        selected_codec = encoder_name
+                    else:
+                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
+                        # 如果 QSV 失败，尝试 AMF
+                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
+                            config.logger.info("正在测试 amf...")
+                            encoder_name = f"{h_prefix}_amf"
+                            if test_encoder_internal(encoder_name):
+                                selected_codec = encoder_name
+                            else:
+                                config.logger.info(f"{encoder_name} 测试失败或不可用。")
+        else:
+             config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
+
     except Exception as e:
-        codec = f"libx{video_codec}"
-    return codec
+        config.logger.error(f"在平台特定测试期间发生意外错误: {e}", exc_info=True)
+        config.logger.warning(f"因错误，将回退到软件编码器: {default_codec}")
+        selected_codec = default_codec
 
+    # --- 最终结果 ---
+    if selected_codec == default_codec:
+        config.logger.info(f"未找到或未选择合适的硬件编码器。将使用软件编码器: {selected_codec}")
+    else:
+        config.logger.info(f"已选择硬件编码器: {selected_codec}")
 
+    _codec_cache[cache_key] = selected_codec # 缓存结果
+    return selected_codec
 # 设置ass字体格式
 def set_ass_font(srtfile=None):
     if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
@@ -1640,10 +1989,11 @@ def set_ass_font(srtfile=None):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
-                subtitle_bottom=config.settings['subtitle_bottom'])
+                subtitle_position=int(config.settings.get('subtitle_position',2))
+                )
         elif it.find('Dialogue: ') == 0:
             ass_str[i] = it.replace('  ', '\\N')
 
@@ -1940,7 +2290,6 @@ def clean_srt(srt):
 
     # 行号前添加换行符
     srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
-    print(srt)
     return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
 
 
@@ -1997,7 +2346,6 @@ def format_milliseconds(milliseconds):
     formatted_seconds = f"{int(seconds):02}"
     formatted_milliseconds = f"{milliseconds_part:02}"
 
-    print(f"{milliseconds=},{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}")
 
     return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
@@ -2051,3 +2399,63 @@ def show_glossary_editor(parent):
     button_box.rejected.connect(dialog.reject)
     dialog.setWindowModality(Qt.WindowModality.ApplicationModal)  # 设置模态窗口
     dialog.exec()  # 显示模态窗口
+
+
+def is_writable(directory_path: str):
+    import uuid
+    import stat # 虽然主要用EAFP，但保留os模块用于路径操作
+
+    """
+    跨平台检查一个目录是否对当前用户可写。
+
+    采用 EAFP (Easier to Ask Forgiveness than Permission) 方法：
+    尝试在目录中创建并删除一个临时文件来判断实际的写权限。
+
+    Args:
+        directory_path: 要检查的目录路径。
+
+    Returns:
+        如果目录存在且可写，则返回 True；否则返回 False。
+    """
+    # 1. 首先检查路径是否存在且确实是一个目录
+    if not os.path.isdir(directory_path):
+        # 如果路径不存在，或者存在但不是一个目录，则它不是一个可写的目录
+        return False
+
+    # 2. 尝试在目录中创建一个唯一的临时文件 (EAFP)
+    # 生成一个非常不可能冲突的临时文件名
+    # 使用点开头通常使其在类Unix系统上隐藏
+    temp_filename = f".permission_test_{uuid.uuid4()}.tmp"
+    temp_file_path = os.path.join(directory_path, temp_filename)
+
+    write_successful = False
+    try:
+        # 尝试以写模式('w')打开（并创建）文件
+        # 'with' 语句确保文件句柄在使用后会被关闭
+        with open(temp_file_path, 'w') as f:
+            # 实际上不需要写入任何内容，只要能成功打开即可证明有写权限
+            pass
+        # 如果代码执行到这里，说明文件创建成功
+        write_successful = True
+
+    except OSError as e:
+        # 捕获所有与OS相关的错误，最常见的是 PermissionError，
+        # 但也可能包括其他问题（如磁盘满、无效路径字符等），这些都意味着无法写入。
+        # print(f"Debug: Caught OSError trying to write to {temp_file_path}: {e}") # 可选的调试输出
+        write_successful = False
+
+    finally:
+        # 3. 清理：无论成功与否，都尝试删除创建的临时文件（如果它存在）
+        # 检查文件是否确实被创建了（可能在open之前就失败了）
+        if os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except OSError as e:
+                # 在某些边缘情况下，即使创建成功，删除也可能失败
+                # (例如，权限在创建和删除之间被更改了)。
+                # 我们不应让清理失败影响函数的主要结果（是否可写）。
+                # 可以选择记录这个警告。
+                # print(f"Warning: Could not remove temp file {temp_file_path}: {e}")
+                pass
+
+    return write_successful

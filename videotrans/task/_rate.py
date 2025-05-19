@@ -326,6 +326,7 @@ class SpeedRate:
         if total_files<1:
             return
         results = []
+        """
         with concurrent.futures.ProcessPoolExecutor(max_workers=min(2,total_files)  ) as executor:
             futures = [executor.submit(process_audio, item.copy()) for item in should_speed]
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
@@ -339,7 +340,19 @@ class SpeedRate:
                     print(f"错误信息: {error_message}")
                 else:
                     results.append({filename:success})
-
+        """
+        # 3.22 修改
+        for i,item in enumerate(should_speed):
+            if config.exit_soft:
+                return
+            filename, success, error_message=process_audio(item.copy())
+            progress = (i + 1) / total_files * 100
+            tools.set_process(text=f"{config.transobj['dubbing speed up']}  {i + 1}/{total_files}",uuid=self.uuid)
+            print(f"进度: {progress:.2f}%, 状态: {'成功' if success else '失败'}")
+            if success is False or success is None:
+                print(f"错误信息: {error_message}")
+            else:
+                results.append({filename:success})
         for i, it in enumerate(self.queue_tts):
             # 获取实际加速完毕后的真实配音时长，因为精确度原因，未必和上述计算出的一致
             # 如果视频需要变化，更新视频时长需要变化的长度
@@ -461,6 +474,7 @@ class SpeedRate:
 
 
         config.logger.info(should_speed)
+        """
         worker_nums=1
         with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
             futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',10),config.settings.get('preset','fast'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
@@ -476,7 +490,28 @@ class SpeedRate:
                 elif extend_time>0 and idx>-1:
                    self.queue_tts[idx]['video_extend']=extend_time
                    print(f'视频延长了 {extend_time} 毫秒')
-
+        """
+        # 0322 修改
+        for i,item in enumerate(should_speed):
+            if config.exit_soft or config.current_status!='ing':
+                return
+            success,error,extend_time,idx=process_video(
+                item.copy(),
+                config.settings.get('video_codec',264),
+                config.settings.get('crf',10),
+                config.settings.get('preset','fast'),
+                config.settings.get('videoslow_hard',False),
+                stop_file=config.TEMP_DIR+'/stop_porcess.txt'
+            )
+            print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
+            tools.set_process(text=f"{config.transobj['videodown..']} {i+1}/{total_files}", uuid=self.uuid)
+            if success is False or success is None:
+                config.logger.error(f'[错误信息] {error}')
+                print(f"错误信息 {error}")
+            elif extend_time>0 and idx>-1:
+               self.queue_tts[idx]['video_extend']=extend_time
+               print(f'视频延长了 {extend_time} 毫秒')
+        
         # 需要调整 原字幕时长，延长视频相当于延长了原字幕时长
         offset = 0
         for i, it in enumerate(self.queue_tts):

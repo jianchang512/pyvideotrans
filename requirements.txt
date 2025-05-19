@@ -48,6 +48,7 @@ anthropic
 addict
 datasets==3.0
 simplejson
+gradio_client
 sortedcontainers
 alibabacloud_alimt20181012==1.1.0
 samplerate;sys_platform == 'win32'

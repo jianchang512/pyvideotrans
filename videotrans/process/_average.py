@@ -77,7 +77,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q
     try:
         last_detect=detect_language
         for i, duration in enumerate(nonsilent_data):
-            if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
                 return
             start_time, end_time, buffered = duration
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"

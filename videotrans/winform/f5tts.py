@@ -34,8 +34,6 @@ def openwin():
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         
-        #else:
-        #    QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         winobj.test.setText('测试api')
 
     def test():
@@ -55,6 +53,7 @@ def openwin():
         config.params["f5tts_is_whisper"]=is_whisper
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
+        config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
         config.getset_params(config.params)
         
         task = TestTTS(parent=winobj,
@@ -101,6 +100,8 @@ def openwin():
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
         config.params["f5tts_is_whisper"]=is_whisper
+        config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
+        print(winobj.ttstype.currentText())
         config.getset_params(config.params)
         tools.set_process(text='f5tts', type="refreshtts")
         winobj.close()
@@ -121,6 +122,8 @@ def openwin():
         winobj.role.setPlainText(config.params["f5tts_role"])
     if config.params["f5tts_is_whisper"]:
         winobj.is_whisper.setChecked(bool(config.params.get("f5tts_is_whisper")))
+    if config.params["f5tts_ttstype"]:
+        winobj.ttstype.setCurrentText(config.params["f5tts_ttstype"])
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

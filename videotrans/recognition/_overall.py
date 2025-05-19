@@ -27,10 +27,10 @@ class FasterAll(BaseRecogn):
     # 获取新进程的结果
     def _get_signal_from_process(self, q: multiprocessing.Queue):
         while not self.has_done:
-            if self._exit():
-                Path(self.pidfile).unlink(missing_ok=True)
-                return
             try:
+                if self._exit() and self.pidfile and Path(self.pidfile).exists():
+                    Path(self.pidfile).unlink(missing_ok=True)
+                    return
                 if not q.empty():
                     data = q.get_nowait()
                     if self.inst and self.inst.precent < 50:
@@ -58,7 +58,7 @@ class FasterAll(BaseRecogn):
 
     def _exec(self):
         while 1:
-            if self._exit():
+            if self._exit() and self.pidfile:
                 Path(self.pidfile).unlink(missing_ok=True)
                 return
             if config.model_process is not None:
@@ -96,12 +96,13 @@ class FasterAll(BaseRecogn):
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                with Path(self.pidfile).open('w', encoding='utf-8') as f:
+                config.logger.info(f'开始创建 pid:{self.pidfile=}')
+                with open(self.pidfile,'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error = str(err['msg'])
+                    self.error = 'err[msg]='+str(err['msg'])
                 elif len(list(raws))<1:
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
                 else:
@@ -127,12 +128,14 @@ class FasterAll(BaseRecogn):
                 except:
                     pass
         except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
+            config.logger.exception(f'lookup:{e}', exc_info=True)
             self.error=str(e)
         except Exception as e:
-            self.error=f"{e}"
+            self.error=f"_overall:{e}"
         finally:
             config.model_process = None
             self.has_done = True
+            Path(self.pidfile).unlink(missing_ok=True)
 
         if self.error:
             raise Exception(self.error)
