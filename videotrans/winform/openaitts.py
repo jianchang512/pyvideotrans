@@ -47,8 +47,7 @@ def openwin():
         model = winobj.openaitts_model.currentText()
         intru = winobj.openaitts_instructions.text()
         config.params["openaitts_instructions"] = intru
-        
-        
+
         config.params["openaitts_key"] = key
         config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model

@@ -2,6 +2,7 @@ import json
 import re
 import threading
 from pathlib import Path
+import os
 
 from PySide6.QtCore import Qt
 
@@ -13,6 +14,118 @@ from videotrans import translator, recognition, tts
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.util import tools
+
+# Import lazy do TextToSpeechClient
+TextToSpeechClient = None
+try:
+    from google.cloud.texttospeech import TextToSpeechClient
+except ImportError:
+    try:
+        from google.cloud import texttospeech
+        TextToSpeechClient = texttospeech.TextToSpeechClient
+    except ImportError:
+        pass
+
+def _list_gcloud_voices_for(lang_code: str, cred_path: str):
+    """Lista as vozes do Google Cloud TTS disponíveis para um idioma específico."""
+    if not cred_path:
+        config.logger.error("Caminho das credenciais do Google Cloud TTS não configurado")
+        return []
+        
+    if not TextToSpeechClient:
+        config.logger.error("Pacote google-cloud-texttospeech não encontrado. Execute: pip install google-cloud-texttospeech")
+        return []
+        
+    if not os.path.isfile(cred_path):
+        config.logger.error(f"Arquivo de credenciais não encontrado: {cred_path}")
+        return []
+
+    # Mapeamento de nomes de idiomas para códigos do Google Cloud TTS
+    GOOGLE_TTS_LANG_MAP = {
+        "Portuguese": "pt-BR",  # Mapeamento especial para "Portuguese"
+        "English": "en-US",
+        "Spanish": "es-ES",
+        "French": "fr-FR",
+        "German": "de-DE",
+        "Italian": "it-IT",
+        "Japanese": "ja-JP",
+        "Korean": "ko-KR",
+        "Chinese": "zh-CN",
+        "Traditional Chinese": "zh-TW",
+        "Russian": "ru-RU",
+        "Hindi": "hi-IN",
+        "Arabic": "ar-XA",
+        "Turkish": "tr-TR",
+        "Thai": "th-TH",
+        "Vietnamese": "vi-VN",
+        "Indonesian": "id-ID"
+    }
+        
+    # Se o código de idioma for um nome (ex: "Portuguese"), converte para o código do Google Cloud TTS
+    google_lang_code = GOOGLE_TTS_LANG_MAP.get(lang_code, lang_code)
+    
+    # Se ainda não estiver no formato do Google Cloud TTS (ex: "pt"), tenta converter
+    if '-' not in google_lang_code:
+        # Mapeamento de códigos base para códigos completos do Google Cloud TTS
+        BASE_TO_GOOGLE = {
+            "pt": "pt-BR",
+            "en": "en-US",
+            "es": "es-ES",
+            "fr": "fr-FR",
+            "de": "de-DE",
+            "it": "it-IT",
+            "ja": "ja-JP",
+            "ko": "ko-KR",
+            "zh": "zh-CN",
+            "zh-tw": "zh-TW",
+            "ru": "ru-RU",
+            "hi": "hi-IN",
+            "ar": "ar-XA",
+            "tr": "tr-TR",
+            "th": "th-TH",
+            "vi": "vi-VN",
+            "id": "id-ID"
+        }
+        lang_base = google_lang_code.split('-')[0].lower()
+        google_lang_code = BASE_TO_GOOGLE.get(lang_base, google_lang_code)
+
+    config.logger.info(f"Usando código de idioma do Google Cloud TTS: {google_lang_code} (original: {lang_code})")
+
+    try:
+        config.logger.info(f"Tentando listar vozes do Google Cloud TTS para idioma {google_lang_code}")
+        client = TextToSpeechClient.from_service_account_file(cred_path)
+        
+        # Tenta listar todas as vozes
+        try:
+            all_voices = client.list_voices().voices
+            config.logger.info(f"Total de vozes encontradas: {len(all_voices)}")
+        except Exception as e:
+            config.logger.error(f"Erro ao listar vozes: {str(e)}")
+            if "PERMISSION_DENIED" in str(e):
+                config.logger.error("Credenciais sem permissão para acessar a API do Google Cloud TTS")
+            return []
+
+        # Filtra vozes pelo idioma
+        voices = sorted([
+            v.name for v in all_voices
+            if any(google_lang_code.lower() in lc.lower() for lc in v.language_codes)
+        ])
+        
+        config.logger.info(f"Vozes encontradas para {google_lang_code}: {len(voices)}")
+        if voices:
+            config.logger.info(f"Primeiras vozes: {voices[:3]}")
+        else:
+            config.logger.warning(f"Nenhuma voz encontrada para o idioma {google_lang_code}")
+            
+        return voices
+        
+    except Exception as e:
+        config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
+        if "invalid_grant" in str(e).lower():
+            config.logger.error("Credenciais inválidas ou expiradas")
+        elif "not found" in str(e).lower():
+            config.logger.error("Arquivo de credenciais não encontrado ou inválido")
+        return []
 
 class WinAction(WinActionSub):
     def __init__(self, main=None):
@@ -163,6 +276,54 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.GOOGLECLOUD_TTS:
+            # Para Google Cloud TTS, vamos usar o idioma atual para listar as vozes
+            lang = self.main.target_language.currentText()
+            cred = config.params.get("gcloud_credential_json", "").strip()
+            
+            if not cred:
+                QMessageBox.warning(
+                    self.main,
+                    "Configuração Necessária",
+                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
+                    "Configurações > Google Cloud TTS > Credenciais"
+                )
+                self.main.voice_role.clear()
+                self.main.current_rolelist = ['No']
+                self.main.voice_role.addItems(['No'])
+                return
+                
+            try:
+                roles = _list_gcloud_voices_for(lang, cred)
+                self.main.voice_role.clear()
+                self.main.current_rolelist = roles
+                
+                if not roles:
+                    QMessageBox.warning(
+                        self.main,
+                        "Nenhuma Voz Encontrada",
+                        f"Não foi possível encontrar vozes para o idioma {lang}.\n\n"
+                        "Verifique:\n"
+                        "1. Se o arquivo de credenciais está correto\n"
+                        "2. Se as credenciais têm permissão para acessar a API\n"
+                        "3. Se o idioma selecionado é suportado\n\n"
+                        "Consulte os logs para mais detalhes."
+                    )
+                    self.main.voice_role.addItems(['No'])
+                else:
+                    self.main.voice_role.addItems(['No'] + roles)
+                    
+            except Exception as e:
+                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
+                QMessageBox.critical(
+                    self.main,
+                    "Erro",
+                    f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
+                    "Verifique os logs para mais detalhes."
+                )
+                self.main.voice_role.clear()
+                self.main.current_rolelist = ['No']
+                self.main.voice_role.addItems(['No'])
         elif type == tts.OPENAI_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
@@ -238,8 +399,36 @@ class WinAction(WinActionSub):
         if t == '-':
             self.main.voice_role.addItems(['No'])
             return
+
         show_rolelist = None
         tts_type = self.main.tts_type.currentIndex()
+        
+        # Caso especial para Google Cloud TTS
+        if tts_type == tts.GOOGLECLOUD_TTS:
+            cred = config.params.get("gcloud_credential_json", "").strip()
+            if not cred:
+                QMessageBox.warning(
+                    self.main,
+                    "Configuração Necessária",
+                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
+                    "Configurações > Google Cloud TTS > Credenciais"
+                )
+                self.main.voice_role.clear()
+                self.main.current_rolelist = ['No']
+                self.main.voice_role.addItems(['No'])
+                return
+                
+            try:
+                roles = _list_gcloud_voices_for(code, cred)
+                self.main.voice_role.clear()
+                self.main.current_rolelist = roles
+                self.main.voice_role.addItems(['No'] + roles)
+                return
+            except Exception as e:
+                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
+                self.main.voice_role.addItems(['No'])
+                return
+
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
         elif tts_type == tts.KOKORO_TTS:
@@ -831,3 +1020,94 @@ class WinAction(WinActionSub):
         with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
             f.write(txt)
         return True
+
+    def target_lang_change(self, t):
+        if not t or t == '-':
+            self.main.voice_role.clear()
+            self.main.voice_role.addItems(['No'])
+            return
+
+        tts_type = self.main.tts_type.currentIndex()
+        code = translator.get_code(show_text=t)
+        if not code:
+            self.main.voice_role.clear()
+            self.main.voice_role.addItems(['No'])
+            return
+
+        # Caso especial para Google Cloud TTS
+        if tts_type == tts.GOOGLECLOUD_TTS:
+            cred = config.params.get("gcloud_credential_json", "").strip()
+            if not cred:
+                QMessageBox.warning(
+                    self.main,
+                    "Configuração Necessária",
+                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
+                    "Configurações > Google Cloud TTS > Credenciais"
+                )
+                self.main.voice_role.clear()
+                self.main.current_rolelist = ['No']
+                self.main.voice_role.addItems(['No'])
+                return
+                
+            try:
+                roles = _list_gcloud_voices_for(code, cred)
+                self.main.voice_role.clear()
+                self.main.current_rolelist = roles
+                
+                if not roles:
+                    QMessageBox.warning(
+                        self.main,
+                        "Nenhuma Voz Encontrada",
+                        f"Não foi possível encontrar vozes para o idioma {t}.\n\n"
+                        "Verifique:\n"
+                        "1. Se o arquivo de credenciais está correto\n"
+                        "2. Se as credenciais têm permissão para acessar a API\n"
+                        "3. Se o idioma selecionado é suportado\n\n"
+                        "Consulte os logs para mais detalhes."
+                    )
+                    self.main.voice_role.addItems(['No'])
+                else:
+                    self.main.voice_role.addItems(['No'] + roles)
+                    
+            except Exception as e:
+                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
+                QMessageBox.critical(
+                    self.main,
+                    "Erro",
+                    f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
+                    "Verifique os logs para mais detalhes."
+                )
+                self.main.voice_role.clear()
+                self.main.current_rolelist = ['No']
+                self.main.voice_role.addItems(['No'])
+            return
+
+        if tts_type == tts.EDGE_TTS:
+            show_rolelist = tools.get_edge_rolelist()
+        elif tts_type == tts.KOKORO_TTS:
+            show_rolelist = tools.get_kokoro_rolelist()
+        elif tts_type == tts.AI302_TTS:
+            show_rolelist = tools.get_302ai()
+        elif tts_type == tts.VOLCENGINE_TTS:
+            show_rolelist = tools.get_volcenginetts_rolelist()
+        else:
+            # AzureTTS
+            show_rolelist = tools.get_azure_rolelist()
+
+        if not show_rolelist:
+            self.main.target_language.setCurrentText('-')
+            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+            return
+        try:
+            vt = code.split('-')[0]
+            if vt not in show_rolelist:
+                self.main.voice_role.addItems(['No'])
+                return
+            if len(show_rolelist[vt]) < 2:
+                self.main.target_language.setCurrentText('-')
+                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+                return
+            self.main.current_rolelist = show_rolelist[vt]
+            self.main.voice_role.addItems(show_rolelist[vt])
+        except:
+            self.main.voice_role.addItems(['No'])
