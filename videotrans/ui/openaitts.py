@@ -60,7 +60,7 @@ class Ui_openaittsform(object):
         self.openaitts_model.setObjectName("openaitts_model")
         h3.addWidget(self.label_3)
         h3.addWidget(self.openaitts_model)
-        
+
         hintru=QtWidgets.QHBoxLayout()
         label_intru = QtWidgets.QLabel(openaittsform)
         label_intru.setObjectName("label_intru")
@@ -71,7 +71,7 @@ class Ui_openaittsform(object):
         hintru.addWidget(label_intru)
         hintru.addWidget(self.openaitts_instructions)
         
-        
+
         v1.addLayout(h3)
         v1.addLayout(hintru)
 

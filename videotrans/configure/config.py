@@ -15,7 +15,7 @@ MAINWIN=None
 # 获取程序执行目录
 def _get_executable_path():
     if getattr(sys, 'frozen', False):
-        # 如果程序是被“冻结”打包的，使用这个路径
+        # 如果程序是被"冻结"打包的，使用这个路径
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
@@ -167,7 +167,7 @@ child_forms = {}
 # info form
 INFO_WIN={"data":{},"win":None}
 
-# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, “ing”=需等待，end=成功完成，error=出错了
+# 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, "ing"=需等待，end=成功完成，error=出错了
 queue_novice = {}
 
 #################################################
@@ -264,12 +264,13 @@ def parse_init():
         
         "preset": "fast",
         "ffmpeg_cmd": "",
-        "aisendsrt":False,
+        "aisendsrt": False,
         "video_codec": 264,
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5-preview-2025-02-27,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
-        "claude_model":"claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
+        "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
+
         "azure_model": "gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
         "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
         "zijiehuoshan_model": "",
@@ -282,7 +283,6 @@ def parse_init():
         "remove_white_ms": 0,
         "force_edit_srt": True,
         "vad": True,
-
         "threshold":0.5,
         "min_speech_duration_ms":1000,
         "max_speech_duration_s":15,
@@ -351,8 +351,9 @@ def parse_init():
         "subtitle_position":2,
         "cjk_len": 20,
         "other_len": 60,
+        "gemini_model": "gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-pro-exp-02-05,gemini-1.5-flash,gemini-1.5-pro",
         "llm_chunk_size": 3000,
-        "gemini_model": "gemini-2.5-pro-preview-03-25,gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-flash-thinking-exp-01-21,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b",
+
         "zh_hant_s": True,
         "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
@@ -795,7 +796,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_instructions": "",
         "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer",
 
-        "kokoro_api":"",
+        "kokoro_api": "",
 
         "openairecognapi_url": "",
         "openairecognapi_key": "",

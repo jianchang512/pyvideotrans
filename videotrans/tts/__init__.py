@@ -18,6 +18,7 @@ TTS_API = 11
 VOLCENGINE_TTS = 12
 F5_TTS = 13
 KOKORO_TTS = 14
+GOOGLECLOUD_TTS = 15
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
@@ -35,6 +36,7 @@ TTS_NAME_LIST = [
     "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
     "F5-TTS(本地)" if config.defaulelang=='zh' else 'F5-TTS',
     "kokoro-TTS(本地)" if config.defaulelang=='zh' else 'kokoro-TTS',
+    "Google Cloud TTS",
 ]
 
 DOUBAO_302AI={
@@ -113,7 +115,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return 'ChatTTS 仅支持中英语言配音' if config.defaulelang == 'zh' else 'ChatTTS only supports Chinese, English'
 
-
+    if tts_type == GOOGLECLOUD_TTS and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'hi', 'ar', 'tr', 'th', 'vi', 'id']:
+        return 'Google Cloud TTS 仅支持中、英、日、韩、法、德、西、意、葡、俄、印、阿、土、泰、越、印尼语言配音' if config.defaulelang == 'zh' else 'Google Cloud TTS only supports Chinese, English, Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian, Hindi, Arabic, Turkish, Thai, Vietnamese, Indonesian'
 
     if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id']:
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
@@ -206,6 +209,12 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  f5tts as f5tts_win
         f5tts_win.openwin()
         return False
+    if tts_type == GOOGLECLOUD_TTS and not config.params['gcloud_credential_json']:
+        if return_str:
+            return "Please configure the Google Cloud credentials first."
+        from videotrans.winform import googlecloud as googlecloud_win
+        googlecloud_win.openwin()
+        return False
     return True
 
 
@@ -269,3 +278,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == F5_TTS:
         from videotrans.tts._f5tts import F5TTS
         F5TTS(**kwargs).run()
+    elif tts_type == GOOGLECLOUD_TTS:
+        from videotrans.tts._googlecloud import GoogleCloudTTS
+        GoogleCloudTTS(**kwargs).run()
