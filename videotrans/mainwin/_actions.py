@@ -671,7 +671,14 @@ class WinAction(WinActionSub):
             if err:
                 self.main.startbtn.setDisabled(False)
                 return QMessageBox.critical(self.main, config.transobj['anerror'],err)
-            
+           
+        if self.main.rephrase.isChecked() and not config.params.get('chatgpt_key'):
+            self.main.startbtn.setDisabled(False)
+            QMessageBox.critical(self.main, "Error",config.transobj['llmduanju'])
+            from videotrans.winform import chatgpt
+            chatgpt.openwin()
+            return
+           
         config.line_roles = {}
 
         if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:

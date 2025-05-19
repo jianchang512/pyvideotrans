@@ -403,7 +403,8 @@ class TransCreate(BaseTask):
                 target_code=self.cfg['target_language_code']
             )
             #
-            self._check_target_sub(rawsrt, target_srt)
+
+            self._save_srt_target(self._check_target_sub(rawsrt, target_srt), self.cfg['target_sub'])
 
             # 仅提取，该名字删原
             if self.cfg['app_mode'] == 'tiqu':
@@ -423,19 +424,6 @@ class TransCreate(BaseTask):
             raise
         self.status_text = config.transobj['endtrans']
 
-    def _check_target_sub(self, source_srt_list, target_srt_list):
-        for i, it in enumerate(source_srt_list):
-            if i>=len(target_srt_list) or target_srt_list[i]['time'] != it['time']:
-                # 在 target_srt_list 的 索引 i 位置插入一个dict
-                tmp = copy.deepcopy(it)
-                tmp['text'] = '  '
-                if i>=len(target_srt_list):
-                    target_srt_list.append(tmp)
-                else:
-                    target_srt_list.insert(i, tmp)
-            else:
-                target_srt_list[i]['line'] = it['line']
-        self._save_srt_target(target_srt_list, self.cfg['target_sub'])
 
     def dubbing(self) -> None:
         if self._exit():
@@ -861,8 +849,7 @@ class TransCreate(BaseTask):
         process_end_subtitle = self.cfg['cache_folder'] + f'/end.srt'
         # 硬字幕时单行字符数
         maxlen = int(
-            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                   "ko"] else
+            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else
             config.settings['other_len'])
         target_sub_list = tools.get_subtitle_from_srt(self.cfg['target_sub'])
 
@@ -873,8 +860,7 @@ class TransCreate(BaseTask):
         # 双硬 双软字幕组装
         if self.cfg['subtitle_type'] in [3, 4]:
             maxlen_source = int(
-                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp",
-                                                                                       "ko"] else
+                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else
                 config.settings['other_len'])
             source_sub_list = tools.get_subtitle_from_srt(self.cfg['source_sub'])
             source_length = len(source_sub_list)
@@ -882,8 +868,7 @@ class TransCreate(BaseTask):
             srt_string = ""
             for i, it in enumerate(target_sub_list):
                 # 硬字幕换行，软字幕无需处理
-                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg[
-                                                                                                 'subtitle_type'] == 3 else \
+                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg['subtitle_type'] == 3 else \
                     it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
@@ -1030,6 +1015,8 @@ class TransCreate(BaseTask):
                         "192k",
                         "-vf",
                         f"subtitles={subtitles_file}",
+                        "-movflags",
+                        "+faststart",
                         '-crf',
                         f'{config.settings["crf"]}',
                         '-preset',
@@ -1059,6 +1046,8 @@ class TransCreate(BaseTask):
                         f"language={subtitle_langcode}",
                         "-b:a",
                         "192k",
+                        "-movflags",
+                        "+faststart",
                         Path(self.cfg['targetdir_mp4']).as_posix()
                     ])
             elif self.cfg['voice_role'] != 'No':
@@ -1078,6 +1067,8 @@ class TransCreate(BaseTask):
                     "aac",
                     "-b:a",
                     "192k",
+                    "-movflags",
+                    "+faststart",
                     Path(self.cfg['targetdir_mp4']).as_posix()
                 ])
             # 硬字幕无配音  原始 wav 合并
@@ -1104,6 +1095,8 @@ class TransCreate(BaseTask):
                     "192k",
                     "-vf",
                     f"subtitles={subtitles_file}",
+                    "-movflags",
+                    "+faststart",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
@@ -1141,6 +1134,8 @@ class TransCreate(BaseTask):
                     "mov_text",
                     "-metadata:s:s:0",
                     f"language={subtitle_langcode}",
+                    "-movflags",
+                    "+faststart",
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
@@ -1192,7 +1187,7 @@ class TransCreate(BaseTask):
                     if self.precent + 0.1 < 99:
                         self.precent += 0.1
                     else:
-                        self._signal(text=config.transobj['hebing'] + f' -> {precent * 100}%')
+                        self._signal(text=config.transobj['kaishihebing'] + f' -> {precent * 100}%')
                     time.sleep(1)
 
     # 创建说明txt
@@ -1239,11 +1234,8 @@ class TransCreate(BaseTask):
         ====
 
         Github: https://github.com/jianchang512/pyvideotrans
-        Docs: https://pyvideotrans.com
+        Docs: https://pvt9.com
 
                         """)
-            # Path(self.cfg['target_dir'] + f'/end.srt').unlink(missing_ok=True)
-            # Path(self.cfg['target_dir'] + f'/end.srt.ass').unlink(missing_ok=True)
-            # Path(self.cfg['target_dir'] + f'/shuang.srt.ass').unlink(missing_ok=True)
         except:
             pass

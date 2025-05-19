@@ -6,7 +6,7 @@ from PySide6.QtCore import QThread, Signal
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
-
+import time
 # set chatgpt
 def openwin():
     class TestOpenaitts(QThread):
@@ -21,7 +21,7 @@ def openwin():
             try:
                 tts.run(
                     queue_tts=[{"text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testopenaitts", "tts_type": tts.OPENAI_TTS}],
+                                "filename": config.TEMP_HOME + f"/testopenaitts-{time.time()}.mp3", "tts_type": tts.OPENAI_TTS}],
                     language="zh-CN",
                     play=True,
                     is_test=True
@@ -31,9 +31,7 @@ def openwin():
                 self.uito.emit(str(e))
 
     def feed(d):
-        if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
-        else:
+        if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 

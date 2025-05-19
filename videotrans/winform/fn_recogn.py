@@ -93,7 +93,7 @@ def openwin():
             winobj.shibie_startbtn.setDisabled(False)
             winobj.shibie_startbtn.setText(config.box_lang["Start"])
         elif d['type'] == 'logs' and d['text']:
-            winobj.loglabel.setText(d['text'])
+            winobj.loglabel.setText(d['text']+' ... ')
         elif d['type'] in ['jindu', 'succeed']:
             winobj.shibie_startbtn.setText(d['text'])
         elif d['type'] in ['end']:
@@ -149,6 +149,12 @@ def openwin():
             return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
         if is_input_api(recogn_type=recogn_type) is not True:
+            return
+
+        if winobj.rephrase.isChecked() and not config.params.get('chatgpt_key'):
+            QMessageBox.critical(winobj, "Error",config.transobj['llmduanju'])
+            from videotrans.winform import chatgpt
+            chatgpt.openwin()
             return
 
         winobj.shibie_startbtn.setText(config.transobj["running"])

@@ -1,5 +1,6 @@
 {
   "translate_language": {
+	  "llmduanju":"If you choose the large model segmentation, you must set the available model information in the translation settings--OpenAI API", 
 	"Succeed":"Succeed",   
     "haspaused": "Paused",
     "shutdownerror": "computer shutdown error",
@@ -426,6 +427,7 @@
 	"bn":"Bengali",
 	"fil":"Filipino",
 	"fi":"Finnish",
+	"fa":"Persian",
     "auto": "Detection"
   }
 }

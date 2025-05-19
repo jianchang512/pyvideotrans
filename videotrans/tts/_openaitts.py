@@ -64,7 +64,7 @@ class OPENAITTS(BaseTTS):
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
         except RateLimitError:
             self.error='超过频率限制' if config.defaulelang == 'zh' else 'Frequency limit exceeded'
-            return
+
         except APIConnectionError as e:
             config.logger.exception(e, exc_info=True)
             

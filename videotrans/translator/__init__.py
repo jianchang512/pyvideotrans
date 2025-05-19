@@ -59,7 +59,8 @@ TRANSLASTE_NAME_LIST = [
 # google翻译 https://translate.google.com/
 # 百度翻译 https://fanyi.baidu.com/
 # deepl  https://deepl.com/
-# microsoft https://api-edge.cognitive.microsofttranslator.com/translate?from=&to
+# microsoft https://www.bing.com/translator?mkt=zh-CN
+# 阿里 https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
 LANGNAME_DICT={
     "zh":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
     "zh-cn":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
@@ -89,6 +90,7 @@ LANGNAME_DICT={
     "sv":"Swedish" if config.defaulelang != 'zh' else '瑞典语',
     "he":"Hebrew" if config.defaulelang != 'zh' else '希伯来语',
     "bn":"Bengali" if config.defaulelang != 'zh' else '孟加拉语',
+    "fa":"Persian" if config.defaulelang != 'zh' else '波斯语',
     "fil":"Filipino" if config.defaulelang != 'zh' else '菲律宾语',
 }
 LANG_CODE = {
@@ -103,6 +105,7 @@ LANG_CODE = {
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',  # AI翻译
         "zh" #阿里
     ],
+
     "fil":[
         "tl",  # google通道
         "fil",  # 字幕嵌入语言
@@ -411,6 +414,17 @@ LANG_CODE = {
         "bn",  # 微软翻译
         "Bengali" if config.defaulelang != 'zh' else '孟加拉语',  # AI翻译,
         "bn"
+    ],
+    "fa": [
+        "fa",  # google通道
+        "per",  # 字幕嵌入语言
+        "per",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "fa",  # 微软翻译
+        "Persian" if config.defaulelang != 'zh' else '波斯语',  # AI翻译
+        "fa" #阿里
     ],
     "auto":[
         "auto",

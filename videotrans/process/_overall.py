@@ -90,7 +90,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
         nums=0
         for segment in segments:
             nums+=1
-            if not Path(TEMP_DIR + f'/{os.getpid()}.lock'):
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
                 return
             new_seg=[]
             for idx, word in enumerate(segment.words):
@@ -105,7 +105,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
         if detect_language=='auto':
             err['msg']+='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
     except BaseException as e:
-        err['msg'] = str(e)
+        err['msg'] = '_process:'+str(e)
     finally:
         try:
             if torch.cuda.is_available():

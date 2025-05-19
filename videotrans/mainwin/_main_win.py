@@ -58,7 +58,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
 
         
-        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
+        self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pvt9.com "
         self.setWindowTitle(self.rawtitle)
 
         self.win_action = WinAction(self)
@@ -259,10 +259,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_9.clicked.connect(self.win_action.click_translate_type)
         self.tts_text.clicked.connect(self.win_action.click_tts_type)
         from videotrans.util import tools
-        self.label.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/proxy'))
-        self.hfaster_help.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/vad'))
-        self.split_label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/splitmode'))
-        self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/align'))
+        self.label.clicked.connect(lambda :tools.open_url(url='https://pvt9.com/proxy'))
+        self.hfaster_help.clicked.connect(lambda :tools.open_url(url='https://pvt9.com/vad'))
+        self.split_label.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/splitmode'))
+        self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
         self.glossary.clicked.connect(lambda:tools.show_glossary_editor(self))
 
 
@@ -350,18 +350,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.win_action.open_url('discord'))
         self.action_models.triggered.connect(lambda: self.win_action.open_url('models'))
-        #self.action_dll.triggered.connect(lambda: self.win_action.open_url('dll'))
+
         self.action_gtrans.triggered.connect(lambda: self.win_action.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.win_action.open_url('cuda'))
         self.action_online.triggered.connect(lambda: self.win_action.open_url('online'))
         self.action_website.triggered.connect(lambda: self.win_action.open_url('website'))
         self.action_blog.triggered.connect(lambda: self.win_action.open_url('blog'))
-        self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
+        self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
 
     def checkbox_state_changed(self, state):

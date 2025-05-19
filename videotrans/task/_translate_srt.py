@@ -103,19 +103,6 @@ class TranslateSrt(BaseTask):
             self._signal(text=f"{msg}", type='error')
             raise
 
-    def _check_target_sub(self,source_srt_list,target_srt_list):
-        for i,it in enumerate(source_srt_list):
-            if i>=len(target_srt_list) or target_srt_list[i]['time']!=it['time']:
-                # 在 target_srt_list 的 索引 i 位置插入一个dict
-                tmp=copy.deepcopy(it)
-                tmp['text']='  '
-                if i>=len(target_srt_list):
-                    target_srt_list.append(tmp)                
-                else:
-                    target_srt_list.insert(i,tmp)
-            else:
-                target_srt_list[i]['line']=it['line']
-        return target_srt_list
 
 
     def task_done(self):
