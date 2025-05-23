@@ -795,7 +795,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_key": "",
         "openaitts_model": "tts-1",
         "openaitts_instructions": "",
-        "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer",
+        "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
 
         "kokoro_api": "",
 
@@ -824,7 +824,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
 
         "ai302tts_key": "",
         "ai302tts_model": "",
-        "ai302tts_role": "alloy,echo,fable,onyx,nova,shimmer",
+        "ai302tts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
 
         "azure_speech_region": "",
         "azure_speech_key": "",
