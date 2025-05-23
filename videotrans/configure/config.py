@@ -205,6 +205,7 @@ exec_mode="gui"
 # funasr模型
 FUNASR_MODEL=['paraformer-zh','SenseVoiceSmall']
 DEEPGRAM_MODEL=[
+            "nova-3",
             "whisper-large",
             "whisper-medium",
             "whisper-small",
