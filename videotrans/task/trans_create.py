@@ -660,7 +660,7 @@ class TransCreate(BaseTask):
             voice_role = self.cfg['voice_role']
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
-
+            filename_md5=tools.get_md5(f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
             tmp_dict = {
                 "text": it['text'],
                 "ref_text": source_subs[i]['text'] if source_subs and i<len(source_subs) else '',
@@ -675,7 +675,7 @@ class TransCreate(BaseTask):
                 "volume": self.cfg['volume'],
                 "pitch": self.cfg['pitch'],
                 "tts_type": self.cfg['tts_type'],
-                "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{len(it['text'])}-{i}.mp3"
+                "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.mp3"
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆

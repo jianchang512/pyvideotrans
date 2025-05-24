@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API,GEMINI_TTS, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
 from videotrans.util import tools
 
 
@@ -472,6 +472,9 @@ def openwin():
         elif type == OPENAI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['openaitts_role'].split(","))
+        elif type == GEMINI_TTS:
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(config.params['gemini_ttsrole'].split(","))
         elif type == ELEVENLABS_TTS:
             winobj.hecheng_role.clear()
             rolelist=copy.deepcopy(config.params['elevenlabstts_role'])

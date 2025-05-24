@@ -231,6 +231,8 @@ video_codec = None
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
 
+DEFAULT_GEMINI_MODEL="gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+
 line_roles={}
 
 # 语言
@@ -269,10 +271,9 @@ def parse_init():
         "video_codec": 264,
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
-        "chatgpt_model": "gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5-preview-2025-02-27,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
+        "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
         "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
-
-        "azure_model": "gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
+        "azure_model": "gpt-4.1,gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
         "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
@@ -352,7 +353,7 @@ def parse_init():
         "subtitle_position":2,
         "cjk_len": 20,
         "other_len": 60,
-        "gemini_model": "gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-pro-exp-02-05,gemini-1.5-flash,gemini-1.5-pro",
+        "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 3000,
 
         "zh_hant_s": True,
@@ -390,7 +391,7 @@ def parse_init():
         if _settings['model_list'].find('large-v3-turbo') == -1:
             _settings['model_list']=_settings['model_list'].replace(',large-v3,',',large-v3,large-v3-turbo,')
         if _settings['gemini_model'].find('gemini') == -1:
-            _settings["gemini_model"] = "gemini-2.5-pro-preview-03-25,gemini-2.0-flash,gemini-2.0-flash-exp,gemini-2.0-flash-lite,gemini-2.0-flash-thinking-exp-01-21,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+            _settings["gemini_model"] = DEFAULT_GEMINI_MODEL
         default.update(_settings)
         if not default['homedir']:
             default['homedir'] = _defaulthomedir
@@ -693,6 +694,12 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "tencent_SecretKey": "",
         "tencent_termlist": "",
         
+        "gcloud_credential_json":"",
+        "gcloud_language_code":"",
+        "gcloud_voice_name":"",
+        "gcloud_audio_encoding":"",
+        "gcloud_ssml_gender":"",
+        
         "ali_id":"",
         "ali_key":"",
     
@@ -721,6 +728,9 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "gemini_key": "",
         "gemini_model": "gemini-2.0-flash",
         "gemini_template": "",
+        "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
+        "gemini_ttsstyle":"",
+        "gemini_ttsmodel":"gemini-2.5-flash-preview-tts",
 
         "gemini_srtprompt":"""# 角色
 你是一名转录助手，能够高效地将音频文件转录为文本，确保准确性并保持音频文件的顺序。

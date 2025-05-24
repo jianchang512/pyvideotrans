@@ -122,12 +122,13 @@ class DubbingSrt(BaseTask):
                 continue
             voice_role = self.cfg['voice_role']
             # 要保存到的文件
+            filename_md5=tools.get_md5(f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
             tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
                        "end_time": it['end_time'], "rate": rate, "startraw": it['startraw'], "endraw": it['endraw'],
                        "volume": self.cfg['volume'],
                        "pitch": self.cfg['pitch'],
                        "tts_type": int(self.cfg['tts_type']),
-                       "filename": config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{len(it['text'])}-{i}.mp3"}
+                       "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.mp3"}
             queue_tts.append(tmp_dict)
         Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts
