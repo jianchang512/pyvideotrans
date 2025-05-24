@@ -42,10 +42,14 @@ def openwin():
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
+        
+        ttsmodel=winobj.ttsmodel.currentText()
+        config.params["gemini_ttsmodel"]=ttsmodel
+        
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
 
-
+        config.getset_params(config.params)
         task = TestTask(parent=winobj)
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         task.uito.connect(feed)
@@ -56,12 +60,18 @@ def openwin():
         model = winobj.model.currentText()
         template = winobj.gemini_template.toPlainText()
         gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
+        
 
 
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
         config.params["gemini_srtprompt"] = gemini_srtprompt
+        
+        ttsmodel=winobj.ttsmodel.currentText()
+        config.params["gemini_ttsmodel"]=ttsmodel
+        
+        
 
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
@@ -93,6 +103,10 @@ def openwin():
             winobj.gemini_key.setText(config.params["gemini_key"])
         if config.params["gemini_model"]:
             winobj.model.setCurrentText(config.params["gemini_model"])
+        
+        if config.params["gemini_ttsmodel"]:
+            winobj.ttsmodel.setCurrentText(config.params["gemini_ttsmodel"])
+            
         if config.params["gemini_template"]:
             winobj.gemini_template.setPlainText(config.params["gemini_template"])
         if config.params["gemini_srtprompt"]:

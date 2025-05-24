@@ -19,6 +19,7 @@ VOLCENGINE_TTS = 12
 F5_TTS = 13
 KOKORO_TTS = 14
 GOOGLECLOUD_TTS = 15
+GEMINI_TTS = 16
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
@@ -37,6 +38,7 @@ TTS_NAME_LIST = [
     "F5-TTS(本地)" if config.defaulelang=='zh' else 'F5-TTS',
     "kokoro-TTS(本地)" if config.defaulelang=='zh' else 'kokoro-TTS',
     "Google Cloud TTS",
+    "Gemini TTS"
 ]
 
 DOUBAO_302AI={
@@ -122,8 +124,6 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
     if tts_type == KOKORO_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','it','hi','fr']:
         return 'kokoro tts 仅支持中、日、英、葡萄牙、西班牙、意大利、印度、法语配音' if config.defaulelang == 'zh' else 'Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr'
-    if tts_type == F5_TTS and  langcode[:2] not in ['zh', 'en','fr','ru','ja','it','hi','fi','es']:
-        return 'F5-TTS语音合成 仅支持中、英、日、法、日、俄、意大利、印地、西班牙、芬兰语言配音' if config.defaulelang == 'zh' else 'F5-TTS only supports  zh, en, fr, ru, ja,it,hi,fi,es'
 
     return True
 
@@ -197,6 +197,12 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  azuretts as azuretts_win
         azuretts_win.openwin()
         return False
+    if tts_type == GEMINI_TTS and not config.params['gemini_key']:
+        if return_str:
+            return "Please configure the Gemini key information."
+        from videotrans.winform import  gemini as gemini_win
+        gemini_win.openwin()
+        return False
     if tts_type == VOLCENGINE_TTS and (not config.params['volcenginetts_appid'] or not config.params['volcenginetts_access'] or not config.params['volcenginetts_cluster']):
         if return_str:
             return "Please configure the api and key information of the VolcEngine TTS channel first."
@@ -209,7 +215,7 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import  f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == GOOGLECLOUD_TTS and not config.params['gcloud_credential_json']:
+    if tts_type == GOOGLECLOUD_TTS and not config.params.get('gcloud_credential_json'):
         if return_str:
             return "Please configure the Google Cloud credentials first."
         from videotrans.winform import googlecloud as googlecloud_win
@@ -281,3 +287,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == GOOGLECLOUD_TTS:
         from videotrans.tts._googlecloud import GoogleCloudTTS
         GoogleCloudTTS(**kwargs).run()
+    elif tts_type == GEMINI_TTS:
+        from videotrans.tts._geminitts import GEMINITTS
+        GEMINITTS(**kwargs).run()

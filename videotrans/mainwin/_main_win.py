@@ -103,6 +103,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.OPENAI_TTS:
             rolelist = config.params.get('openaitts_role','')
             self.voice_role.addItems(['No']+rolelist.split(','))
+        elif config.params['tts_type'] == tts.GEMINI_TTS:
+            rolelist = config.params.get('gemini_ttsrole','')
+            self.voice_role.addItems(['No']+rolelist.split(','))
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
 
@@ -119,8 +122,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except Exception:
             config.params['recogn_type'] = 0
-        #if config.params['recogn_type']>10:
-        #    config.params['recogn_type']=10
+
         # 设置当前识别类型
         self.recogn_type.setCurrentIndex(config.params['recogn_type'])
 

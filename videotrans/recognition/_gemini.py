@@ -60,7 +60,7 @@ class GeminiRecogn(BaseRecogn):
             self.api_keys.append(api_key)
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(
-              model_name='gemini-2.0-flash',
+              model_name=config.params.get('gemini_model'),
               generation_config=generation_config,
               safety_settings=safetySettings,
             )

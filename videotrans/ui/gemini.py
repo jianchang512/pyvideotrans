@@ -44,6 +44,9 @@ class Ui_geminiform(object):
         h2.addWidget(self.label_3)
         h2.addWidget(self.model)
         v1.addLayout(h2)
+        
+        
+        
 
         self.label_allmodels = QtWidgets.QLabel(geminiform)
         self.label_allmodels.setObjectName("label_allmodels")
@@ -80,6 +83,22 @@ class Ui_geminiform(object):
 
 
         v1.addWidget(self.gemini_srtprompt)
+        
+        
+        h2ttsmodel=QtWidgets.QHBoxLayout()
+        self.label_ttsmodel = QtWidgets.QLabel(geminiform)
+        self.label_ttsmodel.setObjectName("label_ttsmodel")
+        self.label_ttsmodel.setText('TTS model')
+        
+        self.ttsmodel = QtWidgets.QComboBox(geminiform)
+        self.ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
+        self.ttsmodel.setObjectName("ttsmodel")
+        self.ttsmodel.addItems(["gemini-2.5-flash-preview-tts","gemini-2.5-pro-preview-tts"])
+        h2ttsmodel.addWidget(self.label_ttsmodel)
+        h2ttsmodel.addWidget(self.ttsmodel)
+        v1.addLayout(h2ttsmodel)
+        
+        
 
 
         h3=QtWidgets.QHBoxLayout()

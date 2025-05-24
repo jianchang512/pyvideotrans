@@ -98,10 +98,11 @@ def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
         current_duration=tools.get_video_duration(item['out'])
         if current_duration<=0:
             return False,"durtion is 0",0,item.get('idx',-1)
+        pts=min(config.settings.get('video_rate',20),max(round(0.1+(item["pts"]/current_duration),2),1))
         cmd = [
             '-y',  #覆盖输出文件
             '-i', item['out'],
-            '-filter:v', f'setpts={round(0.1+(item["pts"]/current_duration),2)}*PTS',
+            '-filter:v', f'setpts={pts}*PTS',
             '-c:v', f'libx{codenum}', 
             '-crf',f'{crf}',
             '-preset',preset,
@@ -474,23 +475,7 @@ class SpeedRate:
 
 
         config.logger.info(should_speed)
-        """
-        worker_nums=1
-        with concurrent.futures.ProcessPoolExecutor(max_workers=worker_nums  ) as executor:
-            futures = [executor.submit(process_video, item.copy(),config.settings.get('video_codec',264),config.settings.get('crf',10),config.settings.get('preset','fast'),config.settings.get('videoslow_hard',False),stop_file=config.TEMP_DIR+'/stop_porcess.txt') for item in should_speed]
-            for i, future in enumerate(concurrent.futures.as_completed(futures)):
-                if config.exit_soft or config.current_status!='ing':
-                    return
-                success,error,extend_time,idx = future.result()
-                print(f"sp进度: {i+1}/{total_files}, 状态: {'成功' if success else '失败'}")
-                tools.set_process(text=f"{config.transobj['videodown..']} {i+1}/{total_files}", uuid=self.uuid)
-                if success is False or success is None:
-                    config.logger.error(f'[错误信息] {error}')
-                    print(f"错误信息 {error}")
-                elif extend_time>0 and idx>-1:
-                   self.queue_tts[idx]['video_extend']=extend_time
-                   print(f'视频延长了 {extend_time} 毫秒')
-        """
+      
         # 0322 修改
         for i,item in enumerate(should_speed):
             if config.exit_soft or config.current_status!='ing':

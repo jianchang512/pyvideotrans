@@ -198,6 +198,8 @@ class F5TTS(BaseTTS):
 
             config.logger.info(f'result={result}')
             wav_file=result[0] if isinstance(result,(list, tuple)) else result
+            if isinstance(wav_file,dict) and "value" in wav_file:
+                wav_file=wav_file['value']
             if self.v1_local:
                 tools.wav2mp3(wav_file, data_item['filename'])
             else:
