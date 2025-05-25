@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QFormLayout, QLineEdit, QComboBox, QPushButton,
-    QFileDialog, QMessageBox, QHBoxLayout
+    QFileDialog, QMessageBox, QHBoxLayout, QCheckBox
 )
 from videotrans.configure import config
 from videotrans.tts._googlecloud import GoogleCloudTTS
@@ -54,6 +54,12 @@ class GoogleCloudSettingsForm(QWidget):
         self.enc_cb.setCurrentText(config.params.get("gcloud_audio_encoding", "MP3"))
         layout.addRow("Audio Encoding:", self.enc_cb)
 
+        # Checkbox for local cache
+        self.local_cache_checkbox = QCheckBox("Load voices from local cache")
+        initial_cache_pref = config.params.get("gcloud_use_local_cache", False)
+        self.local_cache_checkbox.setChecked(bool(initial_cache_pref))
+        layout.addRow(self.local_cache_checkbox)
+
         # 5) Buttons Save / Test
         btn_save = QPushButton("Save")
         btn_save.clicked.connect(self.save)
@@ -65,9 +71,17 @@ class GoogleCloudSettingsForm(QWidget):
         layout.addRow(btn_box)
 
         # --- Signals
-        self.lang_cb.currentTextChanged.connect(self.populate_voices)
-        # popula voices logo na abertura
-        self.populate_voices(self.lang_cb.currentText())
+        self.local_cache_checkbox.stateChanged.connect(self.on_local_cache_toggle)
+        self.lang_cb.currentTextChanged.connect(
+            lambda lang_code_text: self.populate_voices(lang_code_text, use_local_cache=self.local_cache_checkbox.isChecked())
+        )
+        # popula voices logo na abertura, respecting checkbox state
+        self.populate_voices(self.lang_cb.currentText(), use_local_cache=self.local_cache_checkbox.isChecked())
+
+    def on_local_cache_toggle(self):
+        use_local = self.local_cache_checkbox.isChecked()
+        current_lang = self.lang_cb.currentText()
+        self.populate_voices(current_lang, use_local_cache=use_local)
 
     def _available_languages(self):
         # use a mesma lista de idiomas que o dropdown principal
@@ -102,33 +116,53 @@ class GoogleCloudSettingsForm(QWidget):
                     return False
         return True
 
-    def populate_voices(self, lang_code):
-        if not self._check_tts_client():
-            return
+    def populate_voices(self, lang_code, use_local_cache=False):
+        self.voice_cb.clear()
+        voices_to_display = []
 
-        try:
-            client = TextToSpeechClient.from_service_account_file(
-                self.cred_le.text().strip()
-            )
-            all_voices = client.list_voices().voices
-            filtered = sorted([
-                v.name for v in all_voices
-                if any(lang_code.lower() in lc.lower() for lc in v.language_codes)
-            ])
-            self.voice_cb.clear()
-            self.voice_cb.addItems(filtered)
-            # seleciona o que estava salvo ou o primeiro disponível
-            saved = config.params.get("gcloud_voice_name", "")
-            if saved in filtered:
-                self.voice_cb.setCurrentText(saved)
-            elif filtered:
-                self.voice_cb.setCurrentText(filtered[0])
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Erro ao Listar Vozes",
-                f"Falha ao buscar vozes do Google Cloud TTS:\n{str(e)}"
-            )
+        if use_local_cache:
+            try:
+                # Call as a static method
+                local_voice_data = GoogleCloudTTS.get_local_voices(language_code=lang_code)
+                voices_to_display = sorted([v_data.get("name") for v_data in local_voice_data if v_data.get("name")])
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Erro ao Listar Vozes Locais",
+                    f"Falha ao buscar vozes do arquivo local:\n{str(e)}"
+                )
+        else: # API logic
+            if not self.cred_le.text().strip():
+                QMessageBox.warning(self, "Credenciais Ausentes", "O caminho para o arquivo JSON de credenciais do Google Cloud não foi configurado.")
+                # Do not attempt API call if creds are missing
+            elif not self._check_tts_client(): # Checks if google-cloud-texttospeech is installed
+                pass # _check_tts_client already shows a message
+            else:
+                try:
+                    client = TextToSpeechClient.from_service_account_file(
+                        self.cred_le.text().strip()
+                    )
+                    all_voices_api = client.list_voices().voices # Get all voices
+                    filtered_api_voices = [
+                        v.name for v in all_voices_api
+                        if any(lang_code.lower() in lc.lower() for lc in v.language_codes)
+                    ]
+                    voices_to_display = sorted(filtered_api_voices)
+                except Exception as e:
+                    QMessageBox.critical(
+                        self,
+                        "Erro ao Listar Vozes (API)",
+                        f"Falha ao buscar vozes do Google Cloud TTS (API):\n{str(e)}"
+                    )
+        
+        self.voice_cb.addItems(voices_to_display)
+        if voices_to_display:
+            saved_voice = config.params.get("gcloud_voice_name", "")
+            if saved_voice in voices_to_display:
+                self.voice_cb.setCurrentText(saved_voice)
+            # else: # Removed to avoid selecting the first if saved_voice is not found
+            #    self.voice_cb.setCurrentText(voices_to_display[0])
+            # Keep current selection or previously saved if valid, otherwise it will be blank or first by default.
 
     def save(self):
         if not self._check_tts_client():
@@ -139,7 +173,8 @@ class GoogleCloudSettingsForm(QWidget):
             "gcloud_credential_json": self.cred_le.text().strip(),
             "gcloud_language_code":   self.lang_cb.currentText(),
             "gcloud_voice_name":      self.voice_cb.currentText(),
-            "gcloud_audio_encoding":  self.enc_cb.currentText()
+            "gcloud_audio_encoding":  self.enc_cb.currentText(),
+            "gcloud_use_local_cache": self.local_cache_checkbox.isChecked()
         })
         # Salva todas as configurações
         config.getset_params(config.params)

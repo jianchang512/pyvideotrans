@@ -1,4 +1,5 @@
 import os
+import json
 from videotrans.tts._base import BaseTTS
 from videotrans.configure import config
 from videotrans.util import tools
@@ -22,6 +23,7 @@ class GoogleCloudTTS(BaseTTS):
     """
     TTS usando Google Cloud Text-to-Speech.
     """
+    LOCAL_VOICES_FILE = os.path.join(config.ROOT_DIR, "videotrans", "data", "google_cloud_tts_voices.json")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -154,4 +156,28 @@ class GoogleCloudTTS(BaseTTS):
             self.error = str(e)
             config.logger.error(f"Erro ao sintetizar voz com Google Cloud TTS: {str(e)}")
             self._signal(text=f"Erro: {self.error}")
-            raise 
+            raise
+
+    @staticmethod
+    def get_local_voices(language_code: str = None) -> list:
+        """
+        Loads voices from the local JSON file.
+        Optionally filters by language_code.
+        """
+        if not os.path.exists(GoogleCloudTTS.LOCAL_VOICES_FILE):
+            config.logger.warning(f"Local voices file not found: {GoogleCloudTTS.LOCAL_VOICES_FILE}")
+            return []
+        try:
+            with open(GoogleCloudTTS.LOCAL_VOICES_FILE, 'r', encoding='utf-8') as f:
+                voices = json.load(f)
+        except Exception as e:
+            config.logger.error(f"Error loading local voices file: {e}")
+            return []
+
+        if language_code:
+            filtered_voices = [
+                voice for voice in voices
+                if language_code.lower() in [lc.lower() for lc in voice.get("language_codes", [])]
+            ]
+            return filtered_voices
+        return voices
