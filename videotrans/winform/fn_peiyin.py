@@ -14,7 +14,8 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, GOOGLECLOUD_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
+from videotrans.tts._googlecloud import GoogleCloudTTS
 from videotrans.util import tools
 
 
@@ -467,6 +468,26 @@ def openwin():
         elif type == CHATTTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(config.ChatTTS_voicelist))
+        elif type == tts.GOOGLECLOUD_TTS: # ADD THIS BLOCK
+            winobj.hecheng_role.clear()
+            language_display_name = winobj.hecheng_language.currentText()
+            language_code = translator.get_code(show_text=language_display_name)
+            if not language_code or language_code == '-':
+                error_msg = config.box_lang.get("Pleaseselectlanguagefirst", "Please select language first")
+                winobj.hecheng_role.addItem(error_msg)
+            else:
+                try:
+                    voices_data = GoogleCloudTTS.get_local_voices(language_code=language_code)
+                    role_names = sorted([voice.get("name") for voice in voices_data if voice.get("name")])
+                    if role_names:
+                        winobj.hecheng_role.addItems(role_names)
+                    else:
+                        error_msg = config.box_lang.get("Norolesavailableforthislanguage", "No roles for this language")
+                        winobj.hecheng_role.addItem(error_msg)
+                except Exception as e:
+                    config.logger.error(f"fn_peiyin tts_type_change: Error populating Google Cloud TTS roles: {e}")
+                    error_msg = config.box_lang.get("Errorloadingroles", "Error loading roles")
+                    winobj.hecheng_role.addItem(error_msg)
         elif type == OPENAI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['openaitts_role'].split(","))
@@ -504,8 +525,33 @@ def openwin():
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
-        tts_type = winobj.tts_type.currentIndex()
-        if tts_type==EDGE_TTS:
+        tts_type = winobj.tts_type.currentIndex() # Existing line
+
+        # ADD THESE LINES
+        if tts_type == tts.GOOGLECLOUD_TTS:
+            winobj.hecheng_role.clear()
+            # 't' is language_display_name
+            language_code = translator.get_code(show_text=t)
+            if not language_code or language_code == '-':
+                error_msg = config.box_lang.get("Pleaseselectlanguagefirst", "Please select language first")
+                winobj.hecheng_role.addItem(error_msg)
+            else:
+                try:
+                    voices_data = GoogleCloudTTS.get_local_voices(language_code=language_code)
+                    role_names = sorted([voice.get("name") for voice in voices_data if voice.get("name")])
+                    if role_names:
+                        winobj.hecheng_role.addItems(role_names)
+                    else:
+                        error_msg = config.box_lang.get("Norolesavailableforthislanguage", "No roles for this language")
+                        winobj.hecheng_role.addItem(error_msg)
+                except Exception as e:
+                    config.logger.error(f"fn_peiyin hecheng_language_fun: Error populating Google Cloud TTS roles: {e}")
+                    error_msg = config.box_lang.get("Errorloadingroles", "Error loading roles")
+                    winobj.hecheng_role.addItem(error_msg)
+            return 
+        # END OF ADDED LINES
+
+        if tts_type==EDGE_TTS: # Existing line
             code_list=[key for key, value in langname_dict.items() if value == t]
             if not code_list:
                 code='-'
