@@ -237,6 +237,39 @@ if config.defaulelang !='zh':
 
 # 合成配音
 def openwin():
+    # ADDED DICTIONARY AND HELPER FUNCTION DEFINITIONS START HERE
+    FN_PEIYIN_BASE_TO_GOOGLE_FULL_CODE = {
+        "pt": "pt-BR", "en": "en-US", "es": "es-ES", "fr": "fr-FR",
+        "de": "de-DE", "it": "it-IT", "ja": "ja-JP", "ko": "ko-KR",
+        "zh": "zh-CN",
+        "ru": "ru-RU", "hi": "hi-IN", "ar": "ar-XA", "tr": "tr-TR",
+        "th": "th-TH", "vi": "vi-VN", "id": "id-ID",
+        "fil": "fil-PH"
+    }
+
+    def _get_google_formatted_lang_code(language_display_name):
+        # 1. Get initial code from display name
+        lang_code = translator.get_code(show_text=language_display_name)
+
+        if not lang_code or lang_code == '-':
+            return None
+
+        # 2. Handle specific full codes like "zh-cn", "zh-tw"
+        if lang_code.lower() == "zh-cn":
+            return "zh-CN"
+        if lang_code.lower() == "zh-tw":
+            return "zh-TW"
+
+        # 3. For other codes, map base to full Google code
+        base_code = lang_code.split('-')[0].lower()
+        formatted_code = FN_PEIYIN_BASE_TO_GOOGLE_FULL_CODE.get(base_code, lang_code)
+
+        parts = formatted_code.split('-')
+        if len(parts) == 2:
+            return f"{parts[0].lower()}-{parts[1].upper()}"
+        return parts[0].lower()
+    # ADDED DICTIONARY AND HELPER FUNCTION DEFINITIONS END HERE
+
     RESULT_DIR = config.HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -468,10 +501,10 @@ def openwin():
         elif type == CHATTTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(config.ChatTTS_voicelist))
-        elif type == tts.GOOGLECLOUD_TTS: # ADD THIS BLOCK
+        elif type == tts.GOOGLECLOUD_TTS: 
             winobj.hecheng_role.clear()
             language_display_name = winobj.hecheng_language.currentText()
-            language_code = translator.get_code(show_text=language_display_name)
+            language_code = _get_google_formatted_lang_code(language_display_name) # USE HELPER
             if not language_code or language_code == '-':
                 error_msg = config.box_lang.get("Pleaseselectlanguagefirst", "Please select language first")
                 winobj.hecheng_role.addItem(error_msg)
@@ -531,7 +564,7 @@ def openwin():
         if tts_type == tts.GOOGLECLOUD_TTS:
             winobj.hecheng_role.clear()
             # 't' is language_display_name
-            language_code = translator.get_code(show_text=t)
+            language_code = _get_google_formatted_lang_code(t) # USE HELPER
             if not language_code or language_code == '-':
                 error_msg = config.box_lang.get("Pleaseselectlanguagefirst", "Please select language first")
                 winobj.hecheng_role.addItem(error_msg)
