@@ -91,26 +91,42 @@ def process_video(item,codenum,crf,preset,video_hard,stop_file=None):
     try:
         if stop_file and Path(stop_file).exists():
             return
-        tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
-        if item['pts']==0:
+        
+        if item['pts']==0 or 'duration' not in item:
             print(f"该片段只截取不延长:{item['out']}")
+            tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
             return True,None,0,item.get('idx',-1)
-        current_duration=tools.get_video_duration(item['out'])
-        if current_duration<=0:
-            return False,"durtion is 0",0,item.get('idx',-1)
+        
+        current_duration=item['duration']
         pts=min(config.settings.get('video_rate',20),max(round(0.1+(item["pts"]/current_duration),2),1))
+        config.logger.info(f" {current_duration=},{item['pts']=},【 {pts=}】,{item['rawmp4']}")
+        if pts<=1:
+            print(f"[2]该片段只截取不延长:{item['out']}")
+            tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],out=item['out'])
+            return True,None,0,item.get('idx',-1)
+        
+        
+        tools.cut_from_video(ss=item['ss'],to=item['to'],source=item['rawmp4'],pts=pts,out=item['out'])
+        
+        """
         cmd = [
             '-y',  #覆盖输出文件
             '-i', item['out'],
             '-filter:v', f'setpts={pts}*PTS',
-            '-c:v', f'libx{codenum}', 
+            '-c:v', f'libx{codenum}']
+        if int(crf)<10:
+            cmd+=[
             '-crf',f'{crf}',
-            '-preset',preset,
+            '-preset',preset
+            ]
+        cmd+=[
             item['out']+'-pts.mp4'
         ]
         # 使用 concat demuxer 将帧重新编码成视频片段
         tools.runffmpeg(cmd,force_cpu=not video_hard)
         shutil.copy2(item['out']+'-pts.mp4',item['out'])
+        """
+        
         end_time=tools.get_video_duration(item['out'])
         print(f"该片段延长:{item['out']}")
         return True,None,end_time-current_duration,item.get('idx',-1)
@@ -380,7 +396,7 @@ class SpeedRate:
             able_time = it['end_time_source'] - it['start_time_source']
             # 视频需要和配音对齐，video_extend是需要增加的时长
             it['video_extend'] = it['dubb_time'] - able_time
-            print(f"{it['video_extend']=}")
+
             self.queue_tts[i] = it
             sp_speed={"rawmp4":self.novoice_mp4,'pts':0}
             # 如果i==0即第一个视频，前面若是还有片段，需要截取
@@ -407,6 +423,7 @@ class SpeedRate:
                 duration = it['end_time_source'] - st_time
                 # 是否需要延长视频
                 if it['video_extend'] > 0 and duration>0:
+                    sp_speed['duration']=duration
                     sp_speed['pts']=it['dubb_time']
                 
                 before_dst = self.cache_folder + f'/{i}-current.mp4'
@@ -438,9 +455,11 @@ class SpeedRate:
                 else:
                     st_time = self.queue_tts[i - 1]['end_time_source']
 
-                # 是否需要延长视频
+
                 duration = it['end_time_source'] - st_time
+                # 是否需要延长视频                
                 if it['video_extend'] > 0 and duration>0:
+                    sp_speed['duration']=duration
                     sp_speed['pts'] = it['dubb_time']
                     sp_speed['idx'] = i
 
@@ -483,7 +502,7 @@ class SpeedRate:
             success,error,extend_time,idx=process_video(
                 item.copy(),
                 config.settings.get('video_codec',264),
-                config.settings.get('crf',10),
+                config.settings.get('crf',25),
                 config.settings.get('preset','fast'),
                 config.settings.get('videoslow_hard',False),
                 stop_file=config.TEMP_DIR+'/stop_porcess.txt'
