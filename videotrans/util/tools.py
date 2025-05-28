@@ -1374,16 +1374,20 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
         '-ss',
         format_time(ss, '.')
     ]
-    if to != '':        
-        cmd1.append("-t")
-        cmd1.append(str(round(get_ms_from_hmsm(to)/1000,3)))  # 如果开始结束时间相同，则强制持续时间1s)
+    if to != '':
+        cmd1.append("-to")
+        cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
         
     
     cmd1 += ['-i',source,'-an']
     if pts:
         cmd1 += ["-vf", f"setpts={pts}*PTS"]
 
-    cmd1 += ["-c:v", f"libx{video_codec}", '-crf', f'{config.settings.get("crf", 1)}', '-preset', config.settings.get('preset', 'slow')]
+    cmd1 += ["-c:v", f"libx{video_codec}"]
+    crf=config.settings.get("crf", 1)
+    preset=config.settings.get('preset','fast')
+    if int(crf)<10 or preset!='fast':
+        cmd1+=['-crf', f'{crf}', '-preset', preset]
     cmd = cmd1 + [f'{out}']
     return runffmpeg(cmd)
 
@@ -1652,7 +1656,7 @@ def open_url(url=None, title: str = None):
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://pyvideo.com",
+        'blog': "https://bbs.pyvideotrans.com",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
