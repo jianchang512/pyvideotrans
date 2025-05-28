@@ -118,51 +118,80 @@ class GoogleCloudSettingsForm(QWidget):
 
     def populate_voices(self, lang_code, use_local_cache=False):
         self.voice_cb.clear()
-        voices_to_display = []
+        voice_names_to_display = []
+        
+        # lang_code here is the one from the language dropdown in the settings form, e.g. "en-US"
+        # It should be already correctly formatted for Google Cloud.
 
         if use_local_cache:
             try:
-                # Call as a static method
-                local_voice_data = GoogleCloudTTS.get_local_voices(language_code=lang_code)
-                voices_to_display = sorted([v_data.get("name") for v_data in local_voice_data if v_data.get("name")])
+                # Only read from local cache
+                voice_data_list = GoogleCloudTTS.get_local_voices(language_code=lang_code)
+                voice_names_to_display = sorted([v_data.get("name") for v_data in voice_data_list if v_data.get("name")])
+                if not voice_names_to_display:
+                    # Add a message to indicate cache for this language is empty or language not found in cache
+                     self.voice_cb.addItem(config.box_lang.get("local_cache_empty_for_lang", "Local cache empty for this language"))
+
             except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Erro ao Listar Vozes Locais",
-                    f"Falha ao buscar vozes do arquivo local:\n{str(e)}"
+                QMessageBox.critical(self, "Erro ao Listar Vozes Locais", f"Falha ao buscar vozes do arquivo local:\n{str(e)}")
+                # self.voice_cb.addItem("Error loading local voices") # Already handled by adding to voice_names_to_display
+        else: # use_local_cache is False, so try to fetch from API and update cache
+            cred = self.cred_le.text().strip()
+            if not cred:
+                QMessageBox.warning(self, "Credenciais Ausentes", 
+                                    "Caminho para JSON de credenciais não configurado. Não é possível atualizar do API.")
+                # Optionally, load from local cache as a fallback even if use_local_cache is False
+                # voice_data_list = GoogleCloudTTS.get_local_voices(language_code=lang_code)
+                # voice_names_to_display = sorted([v_data.get("name") for v_data in voice_data_list if v_data.get("name")])
+                # if not voice_names_to_display:
+                #    self.voice_cb.addItem(config.box_lang.get("local_cache_empty_for_lang_cred_missing", "Cache empty, creds missing for API"))
+
+                # For now, let's stick to just warning and showing an empty list if API call isn't attempted.
+                # Or, more consistently, let get_and_cache_voices handle it.
+                # If cred is empty, get_and_cache_voices will try to use existing cache.
+                pass # Let get_and_cache_voices handle this. It won't fetch API without creds.
+
+            # Check google-cloud-texttospeech package installation
+            if not self._check_tts_client(): # self._check_tts_client shows its own QMessageBox
+                # If client is not available, we can't fetch from API.
+                # We might still want to show what's in the cache.
+                # voice_data_list = GoogleCloudTTS.get_local_voices(language_code=lang_code) # Fallback to local
+                # voice_names_to_display = sorted([v_data.get("name") for v_data in voice_data_list if v_data.get("name")])
+                # if not voice_names_to_display:
+                #    self.voice_cb.addItem(config.box_lang.get("local_cache_empty_g_client_missing", "Cache empty, G-Client missing"))
+                # For now, if client check fails, do nothing further here.
+                # Let get_and_cache_voices attempt and log.
+                 pass
+
+
+            try:
+                # Attempt to fetch from API (and update cache), then filter.
+                # force_api_fetch=True ensures it tries API if creds are valid.
+                # If creds are invalid/missing, it will use existing cache.
+                voice_data_list = GoogleCloudTTS.get_and_cache_voices(
+                    credential_path=cred,
+                    language_code_filter=lang_code,
+                    force_api_fetch=True 
                 )
-        else: # API logic
-            if not self.cred_le.text().strip():
-                QMessageBox.warning(self, "Credenciais Ausentes", "O caminho para o arquivo JSON de credenciais do Google Cloud não foi configurado.")
-                # Do not attempt API call if creds are missing
-            elif not self._check_tts_client(): # Checks if google-cloud-texttospeech is installed
-                pass # _check_tts_client already shows a message
-            else:
-                try:
-                    client = TextToSpeechClient.from_service_account_file(
-                        self.cred_le.text().strip()
-                    )
-                    all_voices_api = client.list_voices().voices # Get all voices
-                    filtered_api_voices = [
-                        v.name for v in all_voices_api
-                        if any(lang_code.lower() in lc.lower() for lc in v.language_codes)
-                    ]
-                    voices_to_display = sorted(filtered_api_voices)
-                except Exception as e:
-                    QMessageBox.critical(
-                        self,
-                        "Erro ao Listar Vozes (API)",
-                        f"Falha ao buscar vozes do Google Cloud TTS (API):\n{str(e)}"
-                    )
-        
-        self.voice_cb.addItems(voices_to_display)
-        if voices_to_display:
+                voice_names_to_display = sorted([v_data.get("name") for v_data in voice_data_list if v_data.get("name")])
+                if not voice_names_to_display:
+                    # This message appears if API fetch failed AND cache was empty for this language.
+                    self.voice_cb.addItem(config.box_lang.get("no_voices_api_or_cache", "No voices found (API/Cache)"))
+
+            except Exception as e:
+                QMessageBox.critical(self, "Erro ao Listar Vozes (API/Cache)", f"Falha ao buscar vozes (API/Cache):\n{str(e)}")
+                # self.voice_cb.addItem("Error loading voices (API/Cache)")
+
+        # Common logic to populate combobox
+        if voice_names_to_display:
+            self.voice_cb.addItems(voice_names_to_display)
             saved_voice = config.params.get("gcloud_voice_name", "")
-            if saved_voice in voices_to_display:
+            if saved_voice in voice_names_to_display:
                 self.voice_cb.setCurrentText(saved_voice)
-            # else: # Removed to avoid selecting the first if saved_voice is not found
-            #    self.voice_cb.setCurrentText(voices_to_display[0])
-            # Keep current selection or previously saved if valid, otherwise it will be blank or first by default.
+            # else: # Avoid selecting the first item by default if saved_voice is not found
+            #    self.voice_cb.setCurrentText(voice_names_to_display[0]) 
+        elif not self.voice_cb.count(): # If after all attempts, combobox is still empty
+            self.voice_cb.addItem(config.box_lang.get("no_voices_available_generic", "No voices available"))
 
     def save(self):
         if not self._check_tts_client():
