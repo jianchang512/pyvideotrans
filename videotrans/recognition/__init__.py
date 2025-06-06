@@ -71,8 +71,8 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
         if name.startswith('distil'):
             return 'distil 开头的模型只可用于 faster-whisper本地模式' if config.defaulelang=='zh' else 'distil-* only use when faster-whisper'
         # 不存在，需下载
-        if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
-            return 'download'
+        #if not Path(config.ROOT_DIR + f"/models/{name}.pt").exists():
+        #    return 'download'
         return True
     model_path=f'models--Systran--faster-whisper-{name}'
     if name=='large-v3-turbo':
@@ -92,8 +92,8 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
             return True
         
     
-    if not Path(file).exists():
-        return 'download'
+    #if not Path(file).exists():
+    #    return 'download'
     return True
 
 
