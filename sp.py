@@ -23,6 +23,8 @@ from videotrans import VERSION
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
+
 
 class StartWindow(QtWidgets.QWidget):
     def __init__(self):

@@ -2,7 +2,7 @@ import json
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QMessageBox, QLineEdit, QPushButton, QCheckBox, QComboBox
+from PySide6.QtWidgets import QMessageBox, QLineEdit,QPlainTextEdit, QPushButton, QCheckBox, QComboBox
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -21,10 +21,16 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                if name=='model_list' and line_edit.text() != line_edit_dict[name]:
-                    shoud_model_list_sign=True
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.text()
+        for line_edit in winobj.findChildren(QPlainTextEdit):
+            # 检查QLineEdit是否有objectName
+            if hasattr(line_edit, 'objectName') and line_edit.objectName():
+                name = line_edit.objectName()
+                if name=='model_list' and line_edit.toPlainText() != line_edit_dict[name]:
+                    shoud_model_list_sign=True
+                # 将objectName作为key，text作为value添加到字典中
+                line_edit_dict[name] = line_edit.toPlainText()
         for line_edit in winobj.findChildren(QCheckBox):
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():

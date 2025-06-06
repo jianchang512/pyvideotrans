@@ -24,16 +24,10 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
 
     try:
         # 不存在 / ，是普通本地已有模型，直接本地加载，否则在线下载
-        local_file_only = True if model_name.find('/') == -1 else False
-        if not local_file_only:
-            if not os.path.isdir(down_root + '/models--' + model_name.replace('/', '--')):
-                msg = '下载模型中，用时可能较久' if defaulelang == 'zh' else 'Download model from huggingface'
-                print(f'{proxy=}')
-                if proxy:
-                    os.environ['https_proxy'] = proxy
-            else:
-                msg = '加载或下载模型中，用时可能较久' if defaulelang == 'zh' else 'Load model from local or download model from huggingface'
-            write_log({"text": msg, "type": "logs"})
+        local_file_only = False #True if model_name.find('/') == -1 else False
+      
+        msg = f'[{model_name}]若不存在将从 hf-mirror.com 下载到 models 目录内' if defaulelang == 'zh' else f'If [{model_name}] not exists, download model from huggingface'
+        write_log({"text": msg, "type": "logs"})
         if model_name.startswith('distil-'):
             com_type = "default"
         elif is_cuda:

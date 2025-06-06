@@ -1455,7 +1455,7 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False):
 
 
 def send_notification(title, message):
-    if config.exec_mode == 'api':
+    if config.exec_mode == 'api' or config.exit_soft:
         return
     from plyer import notification
     try:

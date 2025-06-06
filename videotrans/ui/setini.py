@@ -543,16 +543,16 @@ class Ui_setini(object):
         helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
         for headkey, item in self.notices.items():
             label_title = QtWidgets.QLabel()
-            label_title.setText("↓" + self.heads[headkey])
-            label_title.setStyleSheet("""color:#999999""")
+            label_title.setText('['+ self.heads[headkey]+"↓]")
+            label_title.setStyleSheet("""color:#148CD2;font-size:18px;""")
             label_title.setObjectName(f"label_{headkey}")
             box.layout().addWidget(label_title)
             for key, tips_str in item.items():
                 self.alertnotice[key] = tips_str
                 tmp = QtWidgets.QHBoxLayout()
                 tmp_0 = QtWidgets.QPushButton()
-                tmp_0.setStyleSheet("""background-color:transparent;text-align:right""")
-                tmp_0.setFixedWidth(350)
+                tmp_0.setStyleSheet("""background-color:transparent;""")
+                #tmp_0.setFixedWidth(350)
                 tmp_0.setText(self.titles[key])
                 tmp_0.setObjectName(f'btn_{key}')
                 tmp_0.setToolTip(helptext)
@@ -562,13 +562,14 @@ class Ui_setini(object):
                 val=str(config.settings.get(key,"")).lower()
                 # 是 cuda_com_type
                 if key=='cuda_com_type':
-                    cuda_types=['float32','float16','int8','int16','int8_float16','int8_float32']
+                    cuda_types=['auto','float32','float16','int8','int16','int8_float16','int8_float32','bfloat16','int8_bfloat16']
                     tmp1=QtWidgets.QComboBox()
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
                     if val in cuda_types:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
                 if key=='preset':
@@ -579,6 +580,7 @@ class Ui_setini(object):
                         tmp1.setCurrentText(val)
                     tmp1.setObjectName(key)
                     tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
                 if key=='subtitle_position':
@@ -593,6 +595,7 @@ class Ui_setini(object):
                     tmp1.setCurrentText(cur_text)
                     tmp1.setObjectName(key)
                     tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
 
@@ -607,12 +610,23 @@ class Ui_setini(object):
                     self.homedir_btn.clicked.connect(self.get_target)
                     self.homedir_btn.setObjectName(key)
                     tmp.addWidget(self.homedir_btn)
+                    tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
                 # 是checkbox
                 if  val in ['true','false']:
                     tmp_1=QtWidgets.QCheckBox()
                     tmp_1.setChecked(True if val=='true' else False)
+                    tmp_1.setToolTip(tips_str)
+                    tmp_1.setObjectName(key)
+                    tmp.addWidget(tmp_1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
+                # 是 model_list faster-whisper
+                if  key == 'model_list':
+                    tmp_1=QtWidgets.QPlainTextEdit()
+                    tmp_1.setPlainText(val)
                     tmp_1.setToolTip(tips_str)
                     tmp_1.setObjectName(key)
                     tmp.addWidget(tmp_1)
@@ -663,7 +677,7 @@ class Ui_setini(object):
                 box.layout().addLayout(tmp)
 
 
-        box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
+        #box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         scroll_area.setWidget(box)
         self.layout.addWidget(scroll_area)
 

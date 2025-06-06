@@ -16,6 +16,7 @@ MAINWIN=None
 def _get_executable_path():
     if getattr(sys, 'frozen', False):
         # 如果程序是被"冻结"打包的，使用这个路径
+        os.environ['TQDM_DISABLE'] = '1'
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
@@ -133,6 +134,17 @@ os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
+
+
+# 语言
+try:
+    defaulelang = locale.getdefaultlocale()[0][:2].lower()
+except Exception:
+    defaulelang = "zh"
+
+if defaulelang=='zh':
+    os.environ['HF_ENDPOINT']='https://hf-mirror.com'
+
 ####################################
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
@@ -235,11 +247,7 @@ DEFAULT_GEMINI_MODEL="gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05
 
 line_roles={}
 
-# 语言
-try:
-    defaulelang = locale.getdefaultlocale()[0][:2].lower()
-except Exception:
-    defaulelang = "zh"
+
 
 
 # 设置默认高级参数值
@@ -310,7 +318,7 @@ def parse_init():
         "backaudio_volume": 0.8,
         "separate_sec": 600,
         "loop_backaudio": True,
-        "cuda_com_type": "float32",  # int8 int8_float16 int8_float32
+        "cuda_com_type": "auto",  # int8 int8_float16 int8_float32
         "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
         "initial_prompt_zh-tw": "在每行末尾添加標點符號，在每個句子末尾添加標點符號。",
         "initial_prompt_en": "Add punctuation at the end of each line, and punctuation at the end of each sentence.",
@@ -340,7 +348,7 @@ def parse_init():
         "initial_prompt_bn": "",
         "initial_prompt_fil": "",
         "initial_prompt_fa": "",
-        "whisper_threads": 4,
+        "whisper_threads": 0,
         "whisper_worker": 1,
         "beam_size": 5,
         "best_of": 5,
@@ -670,7 +678,7 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
-        "model_name": "medium" if Path(ROOT_DIR+"/models/models--Systran--faster-whisper-medium/snapshots").is_dir() else "tiny",  # 模型名
+        "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
 
         "voice_autorate": False,
