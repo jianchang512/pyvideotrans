@@ -14,6 +14,7 @@ License: GPL-V3
 import multiprocessing
 import sys, os
 import time
+import argparse # 新增导入
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
@@ -24,6 +25,14 @@ from videotrans import VERSION
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
+
+# 新增：解析命令行参数
+parser = argparse.ArgumentParser()
+parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
+cli_args, unknown = parser.parse_known_args() # 使用 parse_known_args 以避免与 PySide6 参数冲突
+
+if cli_args.lang:
+    os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
 
 
 class StartWindow(QtWidgets.QWidget):
