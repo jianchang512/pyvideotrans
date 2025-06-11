@@ -83,41 +83,134 @@ class GoogleCloudTTS(BaseTTS):
             # prepara request
             synthesis_input = texttospeech.SynthesisInput(text=text)
             
-            # tenta inferir gênero se precisar
-            gender = getattr(
-                SsmlVoiceGender,
-                config.params.get("gcloud_ssml_gender", "SSML_VOICE_GENDER_UNSPECIFIED"),
-                None
-            )
-            
-            # pega a voz (role) que veio do pipeline, ou usa o default do config
-            voice_name = data_item.get("role", self.voice_name)
-            if not voice_name or voice_name == "No":
-                config.logger.warning("Nenhuma voz selecionada, usando voz padrão")
-                voice_name = self.voice_name
+# New voice and language selection logic:
 
-            # Determine language_code dynamically
-            target_language_code = self.language_code
-            all_voices = GoogleCloudTTS.get_local_voices()
-            voice_found = False
-            if all_voices:
-                for voice in all_voices:
-                    if voice.get('name') == voice_name:
-                        voice_found = True
-                        if voice.get('language_codes') and len(voice['language_codes']) > 0:
-                            target_language_code = voice['language_codes'][0]
-                        else:
-                            config.logger.warning(f"Warning: Voice {voice_name} found but has no language codes. Falling back to default language code {self.language_code}.")
-                        break
+# 1. Determine target language code for the current task item
+raw_target_lang = config.params.get("target_language", "en") # e.g., "pt-br", "en", "zh-cn"
+config.logger.debug(f"Raw target language from config.params: {raw_target_lang}")
 
-            if not voice_found:
-                config.logger.warning(f"Warning: Voice {voice_name} not found in local cache. Falling back to default language code {self.language_code}.")
+lang_normalization_map = {
+    "en": "en-US", "english": "en-US",
+    "pt": "pt-BR", "pt-br": "pt-BR", "portuguese": "pt-BR", "português": "pt-BR",
+    "zh-cn": "zh-CN", "chinese simplified": "zh-CN", "中文简体": "zh-CN",
+    "es": "es-ES", "spanish": "es-ES",
+    "fr": "fr-FR", "french": "fr-FR",
+    "de": "de-DE", "german": "de-DE",
+    "ja": "ja-JP", "japanese": "ja-JP",
+    "ko": "ko-KR", "korean": "ko-KR",
+    "ru": "ru-RU", "russian": "ru-RU",
+    "it": "it-IT", "italian": "it-IT",
+    # Add other mappings if config.params.target_language can store other variants
+}
+# Normalize using the map first, then pass through if not in map (already specific)
+task_target_language_code = lang_normalization_map.get(raw_target_lang.lower(), raw_target_lang)
 
-            voice_params = texttospeech.VoiceSelectionParams(
-                language_code=target_language_code,  # o idioma (ex: pt-BR)
-                name=voice_name,
-                ssml_gender=gender,
-            )
+# Further ensure region code for common base languages if Google TTS expects it
+if '-' not in task_target_language_code:
+    temp_lower_code = task_target_language_code.lower()
+    if temp_lower_code == 'en': task_target_language_code = 'en-US'
+    elif temp_lower_code == 'es': task_target_language_code = 'es-ES'
+    elif temp_lower_code == 'fr': task_target_language_code = 'fr-FR'
+    elif temp_lower_code == 'pt': task_target_language_code = 'pt-BR'
+    elif temp_lower_code == 'de': task_target_language_code = 'de-DE'
+    elif temp_lower_code == 'ja': task_target_language_code = 'ja-JP'
+    elif temp_lower_code == 'ko': task_target_language_code = 'ko-KR'
+    elif temp_lower_code == 'ru': task_target_language_code = 'ru-RU'
+    elif temp_lower_code == 'it': task_target_language_code = 'it-IT'
+
+config.logger.info(f"Task target language for Google TTS normalized to: {task_target_language_code} (from raw: {raw_target_lang})")
+
+# 2. Get requested voice name
+# self.voice_name is gcloud_voice_name from params.json, used as a fallback if role is not set in item
+# Ensure self.voice_name itself is not "No" or empty if it's to be a fallback.
+default_voice_from_params = self.voice_name if self.voice_name and self.voice_name.strip().lower() != "no" else ""
+requested_voice_name = data_item.get("role", default_voice_from_params)
+
+if not requested_voice_name or requested_voice_name.strip().lower() == "no":
+    config.logger.info(f"No specific voice role provided by task item or default params. Will select based on language: {task_target_language_code}.")
+    requested_voice_name = "" # Explicitly empty to trigger default voice selection for the language
+
+# Initialize final parameters with defaults based on task target language
+final_voice_name = requested_voice_name
+final_language_code = task_target_language_code
+
+# 3. Try to use/validate with local voice cache
+all_voices = GoogleCloudTTS.get_local_voices()
+voice_found_in_cache = False
+
+if all_voices:
+    if requested_voice_name: # Specific voice role requested
+        for voice_detail in all_voices:
+            if voice_detail.get('name') == requested_voice_name:
+                voice_found_in_cache = True
+                cached_lang_codes = voice_detail.get('language_codes', [])
+                if cached_lang_codes:
+                    if task_target_language_code in cached_lang_codes:
+                        final_language_code = task_target_language_code
+                        config.logger.info(f"Using cached voice '{final_voice_name}' confirmed for language '{final_language_code}'.")
+                    else:
+                        final_language_code = cached_lang_codes[0]
+                        config.logger.warning(f"Voice '{requested_voice_name}' found in cache (supports {cached_lang_codes}), but not for task target language '{task_target_language_code}'. Using voice's first available language: '{final_language_code}'.")
+                else: # Voice in cache, but no language codes listed for it.
+                    final_language_code = task_target_language_code
+                    config.logger.warning(f"Voice '{requested_voice_name}' found in cache but has no specific language codes listed. Attempting with task language '{final_language_code}'.")
+                break
+        if not voice_found_in_cache:
+            config.logger.info(f"Requested voice '{requested_voice_name}' not found in local cache. Attempting to use it with language '{task_target_language_code}' directly with API.")
+            # final_voice_name and final_language_code are already set
+    else: # No specific voice role requested, try to find a default for the language
+        best_cached_voice_for_lang = ""
+        # Try to find a "Standard" voice first
+        for voice_detail in all_voices:
+            if task_target_language_code in voice_detail.get('language_codes', []):
+                if "Standard" in voice_detail.get('name', ''): # Prefer standard voices
+                    best_cached_voice_for_lang = voice_detail.get('name')
+                    break
+        # If no "Standard" voice, take the first available voice for the language
+        if not best_cached_voice_for_lang:
+            for voice_detail in all_voices:
+                if task_target_language_code in voice_detail.get('language_codes', []):
+                    best_cached_voice_for_lang = voice_detail.get('name')
+                    break
+
+        if best_cached_voice_for_lang:
+            final_voice_name = best_cached_voice_for_lang
+            # final_language_code is already task_target_language_code
+            config.logger.info(f"No specific voice requested. Selected cached voice '{final_voice_name}' for language '{final_language_code}'.")
+        else:
+            config.logger.warning(f"No specific voice requested and no suitable voice found in local cache for language '{task_target_language_code}'. API will attempt to select a default voice if name is empty.")
+            final_voice_name = "" # Let API pick
+
+# Safety net: If language code somehow became empty, use the old global default from self.language_code.
+if not final_language_code:
+    config.logger.error(f"Critical: Language code could not be determined. Falling back to system default TTS language: '{self.language_code}'.")
+    final_language_code = self.language_code # self.language_code is gcloud_language_code (e.g. en-US from params)
+    # If voice also became empty, and there's a system default voice, consider using it.
+    if not final_voice_name and default_voice_from_params:
+         final_voice_name = default_voice_from_params
+         config.logger.error(f"Also using system default TTS voice: '{final_voice_name}'.")
+elif not final_voice_name and default_voice_from_params and requested_voice_name == "":
+    # If no specific voice was requested and we didn't find one in cache for the language,
+    # but a global default voice is set in params, should we use it?
+    # For now, if requested_voice_name is intentionally empty (to let API pick for language), don't override with global default.
+    # Only use default_voice_from_params if requested_voice_name was initially derived from it.
+    pass
+
+
+# Determine SSML gender (existing logic)
+gender = getattr(
+    SsmlVoiceGender,
+    config.params.get("gcloud_ssml_gender", "SSML_VOICE_GENDER_UNSPECIFIED"),
+    SsmlVoiceGender.SSML_VOICE_GENDER_UNSPECIFIED # Ensure a valid fallback
+)
+
+# Construct VoiceSelectionParams with the determined final_voice_name and final_language_code
+voice_params = texttospeech.VoiceSelectionParams(
+    language_code=final_language_code,
+    name=final_voice_name, # This can be empty if we want Google to pick a default for the language
+    ssml_gender=gender,
+)
+config.logger.info(f"Final Google TTS Request Params: LanguageCode='{final_language_code}', VoiceName='{final_voice_name if final_voice_name else 'API Default'}', Gender='{gender.name}'")
             
             # Extrai e normaliza o speaking_rate
             rate_str = data_item.get("rate", "+0%")
