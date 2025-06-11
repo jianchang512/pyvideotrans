@@ -95,9 +95,26 @@ class GoogleCloudTTS(BaseTTS):
             if not voice_name or voice_name == "No":
                 config.logger.warning("Nenhuma voz selecionada, usando voz padrão")
                 voice_name = self.voice_name
-                
+
+            # Determine language_code dynamically
+            target_language_code = self.language_code
+            all_voices = GoogleCloudTTS.get_local_voices()
+            voice_found = False
+            if all_voices:
+                for voice in all_voices:
+                    if voice.get('name') == voice_name:
+                        voice_found = True
+                        if voice.get('language_codes') and len(voice['language_codes']) > 0:
+                            target_language_code = voice['language_codes'][0]
+                        else:
+                            config.logger.warning(f"Warning: Voice {voice_name} found but has no language codes. Falling back to default language code {self.language_code}.")
+                        break
+
+            if not voice_found:
+                config.logger.warning(f"Warning: Voice {voice_name} not found in local cache. Falling back to default language code {self.language_code}.")
+
             voice_params = texttospeech.VoiceSelectionParams(
-                language_code=self.language_code,  # o idioma (ex: pt-BR)
+                language_code=target_language_code,  # o idioma (ex: pt-BR)
                 name=voice_name,
                 ssml_gender=gender,
             )
