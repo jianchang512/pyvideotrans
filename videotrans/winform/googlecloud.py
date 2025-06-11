@@ -44,9 +44,15 @@ class GoogleCloudSettingsForm(QWidget):
         self.lang_cb.setCurrentText(config.params.get("gcloud_language_code", "en-US"))
         layout.addRow("Language:", self.lang_cb)
 
-        # 3) Voice ComboBox (vazio por enquanto)
+        # 3) Voice ComboBox and Refresh Button
+        voice_hbox = QHBoxLayout()
         self.voice_cb = QComboBox()
-        layout.addRow("Voice:", self.voice_cb)
+        voice_hbox.addWidget(self.voice_cb)
+
+        self.refresh_voices_btn = QPushButton("Refresh Voices")
+        self.refresh_voices_btn.setMinimumSize(self.cred_le.minimumSizeHint().width() // 4, self.cred_le.minimumSizeHint().height()) # Adjust size as needed
+        voice_hbox.addWidget(self.refresh_voices_btn)
+        layout.addRow("Voice:", voice_hbox)
 
         # 4) Audio Encoding ComboBox
         self.enc_cb = QComboBox()
@@ -64,7 +70,7 @@ class GoogleCloudSettingsForm(QWidget):
         btn_save = QPushButton("Save")
         btn_save.clicked.connect(self.save)
         btn_test = QPushButton("Test")
-        btn_test.clicked.connect(self.test)
+        btn_test.clicked.connect(self.test) # Connects to the updated test method
         btn_box = QHBoxLayout()
         btn_box.addWidget(btn_save)
         btn_box.addWidget(btn_test)
@@ -75,8 +81,24 @@ class GoogleCloudSettingsForm(QWidget):
         self.lang_cb.currentTextChanged.connect(
             lambda lang_code_text: self.populate_voices(lang_code_text, use_local_cache=self.local_cache_checkbox.isChecked())
         )
+        self.refresh_voices_btn.clicked.connect(self.handle_refresh_voices) # Connect new button
+
         # popula voices logo na abertura, respecting checkbox state
         self.populate_voices(self.lang_cb.currentText(), use_local_cache=self.local_cache_checkbox.isChecked())
+
+    def handle_refresh_voices(self):
+        """Handles the click of the 'Refresh Voices' button."""
+        current_lang_code = self.lang_cb.currentText()
+        use_cache = self.local_cache_checkbox.isChecked()
+        # Add some user feedback that refresh is happening, e.g., disable button
+        self.refresh_voices_btn.setEnabled(False)
+        self.refresh_voices_btn.setText("Refreshing...")
+        try:
+            self.populate_voices(lang_code=current_lang_code, use_local_cache=use_cache)
+        finally:
+            # Re-enable button and restore text even if populate_voices fails
+            self.refresh_voices_btn.setEnabled(True)
+            self.refresh_voices_btn.setText("Refresh Voices")
 
     def on_local_cache_toggle(self):
         use_local = self.local_cache_checkbox.isChecked()
@@ -119,6 +141,8 @@ class GoogleCloudSettingsForm(QWidget):
     def populate_voices(self, lang_code, use_local_cache=False):
         self.voice_cb.clear()
         voice_names_to_display = []
+        # Get current credential path from UI for potential API calls
+        current_ui_cred_path = self.cred_le.text().strip()
         
         # lang_code here is the one from the language dropdown in the settings form, e.g. "en-US"
         # It should be already correctly formatted for Google Cloud.
@@ -136,10 +160,10 @@ class GoogleCloudSettingsForm(QWidget):
                 QMessageBox.critical(self, "Erro ao Listar Vozes Locais", f"Falha ao buscar vozes do arquivo local:\n{str(e)}")
                 # self.voice_cb.addItem("Error loading local voices") # Already handled by adding to voice_names_to_display
         else: # use_local_cache is False, so try to fetch from API and update cache
-            cred = self.cred_le.text().strip()
-            if not cred:
+            # Use current_ui_cred_path from UI for API calls
+            if not current_ui_cred_path:
                 QMessageBox.warning(self, "Credenciais Ausentes", 
-                                    "Caminho para JSON de credenciais não configurado. Não é possível atualizar do API.")
+                                    "Caminho para JSON de credenciais não configurado. Não é possível atualizar da API.")
                 # Optionally, load from local cache as a fallback even if use_local_cache is False
                 # voice_data_list = GoogleCloudTTS.get_local_voices(language_code=lang_code)
                 # voice_names_to_display = sorted([v_data.get("name") for v_data in voice_data_list if v_data.get("name")])
@@ -169,7 +193,7 @@ class GoogleCloudSettingsForm(QWidget):
                 # force_api_fetch=True ensures it tries API if creds are valid.
                 # If creds are invalid/missing, it will use existing cache.
                 voice_data_list = GoogleCloudTTS.get_and_cache_voices(
-                    credential_path=cred,
+                    credential_path=current_ui_cred_path, # Pass credential path from UI
                     language_code_filter=lang_code,
                     force_api_fetch=True 
                 )
@@ -202,7 +226,7 @@ class GoogleCloudSettingsForm(QWidget):
             "gcloud_credential_json": self.cred_le.text().strip(),
             "gcloud_language_code":   self.lang_cb.currentText(),
             "gcloud_voice_name":      self.voice_cb.currentText(),
-            "gcloud_audio_encoding":  self.enc_cb.currentText(),
+            "gcloud_audio_encoding":  self.enc_cb.currentText(), # self.enc_cb is the correct name
             "gcloud_use_local_cache": self.local_cache_checkbox.isChecked()
         })
         # Salva todas as configurações
@@ -214,18 +238,72 @@ class GoogleCloudSettingsForm(QWidget):
         if not self._check_tts_client():
             return
 
+        # Read current values from UI for testing
+        current_cred_path = self.cred_le.text().strip()
+        current_lang_code = self.lang_cb.currentText()
+        current_voice_name = self.voice_cb.currentText()
+        current_audio_encoding = self.enc_cb.currentText() # self.enc_cb is the correct name
+
+        # Basic validation for voice name to avoid issues if it's a placeholder
+        if not current_voice_name or \
+           any(placeholder in current_voice_name.lower() for placeholder in ["no voices available", "cache empty", "error loading", "select voice"]):
+            QMessageBox.warning(self, "Voz Inválida",
+                                "Por favor, selecione uma voz válida ou aguarde o carregamento da lista de vozes antes de testar.")
+            return
+
+        if not current_cred_path:
+             QMessageBox.warning(self, "Credenciais Ausentes",
+                                    "Por favor, forneça o caminho para o arquivo JSON de credenciais para o teste.")
+             return
+
+
+        # Temporarily update config.params for the duration of this test
+        original_params_backup = {
+            "gcloud_credential_json": config.params.get("gcloud_credential_json"),
+            "gcloud_language_code": config.params.get("gcloud_language_code"),
+            "gcloud_voice_name": config.params.get("gcloud_voice_name"),
+            "gcloud_audio_encoding": config.params.get("gcloud_audio_encoding")
+        }
+
+        config.params['gcloud_credential_json'] = current_cred_path
+        config.params['gcloud_language_code'] = current_lang_code
+        config.params['gcloud_voice_name'] = current_voice_name
+        config.params['gcloud_audio_encoding'] = current_audio_encoding
+
         try:
-            tts = GoogleCloudTTS()
-            # cria um arquivo temporário simples
-            tmp = "test_gcloud.mp3"
-            tts._item_task({"filename": tmp, "text": "This is a test."})
-            QMessageBox.information(self, "Teste OK", f"Áudio gerado com sucesso: {tmp}")
+            # GoogleCloudTTS() will now use the updated config.params for this instance
+            tts_instance = GoogleCloudTTS()
+
+            # Define a temporary file path for the test audio
+            # Ensure TEMP_HOME is defined in config and accessible
+            if not hasattr(config, 'TEMP_HOME') or not config.TEMP_HOME:
+                # Fallback if TEMP_HOME is not set, though it should be
+                import tempfile
+                temp_dir = tempfile.gettempdir()
+                tmp_audio_file = os.path.join(temp_dir, "test_gcloud.mp3")
+            else:
+                tmp_audio_file = os.path.join(config.TEMP_HOME, "test_gcloud.mp3")
+
+            # The _item_task uses settings loaded during GoogleCloudTTS.__init__
+            tts_instance._item_task({
+                "filename": tmp_audio_file,
+                "text": "This is a test using Google Cloud Text-to-Speech."
+                # Role and language for the actual synthesis are taken from
+                # tts_instance.voice_name and tts_instance.language_code,
+                # which were set from config.params in __init__.
+            })
+            QMessageBox.information(self, "Teste OK", f"Áudio gerado com sucesso: {tmp_audio_file}")
         except Exception as e:
+            # Log the full error for debugging if possible
+            config.logger.error(f"Google Cloud TTS test error: {e}", exc_info=True)
             QMessageBox.critical(
                 self,
                 "Erro no Teste",
                 f"Falha ao testar síntese de voz:\n{str(e)}"
             )
+        finally:
+            # Restore original params to avoid side effects
+            config.params.update(original_params_backup)
 
 
 def openwin():
