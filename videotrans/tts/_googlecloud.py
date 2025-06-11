@@ -1,4 +1,5 @@
 import os
+import json
 from videotrans.tts._base import BaseTTS
 from videotrans.configure import config
 from videotrans.util import tools
@@ -22,6 +23,7 @@ class GoogleCloudTTS(BaseTTS):
     """
     TTS usando Google Cloud Text-to-Speech.
     """
+    LOCAL_VOICES_FILE = os.path.join(config.ROOT_DIR, "videotrans", "data", "google_cloud_tts_voices.json")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -154,4 +156,105 @@ class GoogleCloudTTS(BaseTTS):
             self.error = str(e)
             config.logger.error(f"Erro ao sintetizar voz com Google Cloud TTS: {str(e)}")
             self._signal(text=f"Erro: {self.error}")
-            raise 
+            raise
+
+    @staticmethod
+    def get_local_voices(language_code: str = None) -> list:
+        if not os.path.exists(GoogleCloudTTS.LOCAL_VOICES_FILE):
+            # config.logger.warning(f"Local voices file not found: {GoogleCloudTTS.LOCAL_VOICES_FILE}") # Less noisy
+            return []
+        try:
+            with open(GoogleCloudTTS.LOCAL_VOICES_FILE, 'r', encoding='utf-8') as f:
+                voices = json.load(f)
+        except Exception as e:
+            config.logger.error(f"Error loading local voices file: {e}")
+            return []
+
+        if language_code:
+            # Ensure language_code format matches what's in language_codes list (e.g. "en-US")
+            filtered_voices = [
+                voice for voice in voices
+                if any(lc.lower() == language_code.lower() for lc in voice.get("language_codes", []))
+            ]
+            return filtered_voices
+        return voices
+
+    @staticmethod
+    def _save_voices_to_local_cache(voices_data_list: list):
+        try:
+            # Ensure parent directory exists
+            parent_dir = os.path.dirname(GoogleCloudTTS.LOCAL_VOICES_FILE)
+            if not os.path.exists(parent_dir):
+                os.makedirs(parent_dir, exist_ok=True)
+
+            with open(GoogleCloudTTS.LOCAL_VOICES_FILE, 'w', encoding='utf-8') as f:
+                json.dump(voices_data_list, f, ensure_ascii=False, indent=2)
+            config.logger.info(f"Saved {len(voices_data_list)} voices to local cache: {GoogleCloudTTS.LOCAL_VOICES_FILE}")
+        except Exception as e:
+            config.logger.error(f"Error saving voices to local cache: {e}")
+
+    @staticmethod
+    def _fetch_voices_from_api(credential_path: str) -> list:
+        global TextToSpeechClient # TextToSpeechClient is defined at module level with try-except
+        if TextToSpeechClient is None:
+            try: 
+                from google.cloud.texttospeech import TextToSpeechClient as TTSClientImport
+                TextToSpeechClient = TTSClientImport
+                if TextToSpeechClient is None: 
+                     raise ImportError("TextToSpeechClient is still None after import attempt.")
+            except ImportError:
+                config.logger.error("google-cloud-texttospeech client not available for _fetch_voices_from_api.")
+                return []
+
+        if not credential_path or not os.path.isfile(credential_path):
+            config.logger.error(f"Credential file not found or path not set for API fetch: {credential_path}")
+            return []
+
+        fetched_voices_data = []
+        try:
+            client = TextToSpeechClient.from_service_account_file(credential_path)
+            api_voices_result = client.list_voices().voices
+            
+            # texttospeech module is imported as 'texttospeech' at the top of the file
+            for voice in api_voices_result:
+                fetched_voices_data.append({
+                    "name": voice.name,
+                    "language_codes": [lc for lc in voice.language_codes],
+                    "ssml_gender": texttospeech.SsmlVoiceGender.Name(voice.ssml_gender),
+                    "natural_sample_rate_hertz": voice.natural_sample_rate_hertz
+                })
+            config.logger.info(f"Fetched {len(fetched_voices_data)} voices from API.")
+        except Exception as e:
+            config.logger.error(f"Error fetching voices from Google Cloud API: {e}")
+            if "PERMISSION_DENIED" in str(e):
+                config.logger.error("API permission denied. Check credentials.")
+            elif "invalid_grant" in str(e).lower():
+                config.logger.error("Invalid or expired API credentials.")
+            return [] 
+        return fetched_voices_data
+
+    @staticmethod
+    def get_and_cache_voices(credential_path: str, language_code_filter: str = None, force_api_fetch: bool = False) -> list:
+        cached_voices = GoogleCloudTTS.get_local_voices() 
+
+        if force_api_fetch or not cached_voices:
+            if credential_path and os.path.isfile(credential_path):
+                config.logger.info(f"Cache is empty or refresh forced. Fetching from API for Google Cloud TTS.")
+                api_voices = GoogleCloudTTS._fetch_voices_from_api(credential_path)
+                if api_voices: 
+                    GoogleCloudTTS._save_voices_to_local_cache(api_voices)
+                    cached_voices = api_voices 
+                elif not cached_voices: 
+                    config.logger.warning("API fetch failed and local cache is empty for Google Cloud TTS.")
+                    return [] 
+            elif not cached_voices:
+                config.logger.warning("Local cache empty and no credential path provided for API fetch (Google Cloud TTS).")
+                return [] 
+
+        if language_code_filter:
+            final_filtered_voices = [
+                voice for voice in cached_voices
+                if any(lc.lower() == language_code_filter.lower() for lc in voice.get("language_codes", []))
+            ]
+            return final_filtered_voices
+        return cached_voices

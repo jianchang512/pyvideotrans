@@ -289,6 +289,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionazure_key.triggered.connect(winform.azure.openwin)
         self.actionazure_tts.triggered.connect(winform.azuretts.openwin)
+        self.actiongooglecloud_tts.triggered.connect(winform.googlecloud.openwin)
         self.actiongemini_key.triggered.connect(winform.gemini.openwin)
         self.actiontencent_key.triggered.connect(winform.tencent.openwin)
         self.actionchatgpt_key.triggered.connect(winform.chatgpt.openwin)

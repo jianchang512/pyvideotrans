@@ -688,6 +688,9 @@ class Ui_MainWindow(object):
         self.actionazure_tts = QtGui.QAction(MainWindow)
         self.actionazure_tts.setObjectName("actionazure_tts")
 
+        self.actiongooglecloud_tts = QtGui.QAction(MainWindow)
+        self.actiongooglecloud_tts.setObjectName("actiongooglecloud_tts")
+
         self.action_ffmpeg = QtGui.QAction(MainWindow)
         self.action_ffmpeg.setObjectName("action_ffmpeg")
         self.action_git = QtGui.QAction(MainWindow)
@@ -871,6 +874,8 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actionElevenlabs_key)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionazure_tts)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiongooglecloud_tts)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionopenaitts_key)
         self.menu_TTS.addSeparator()
@@ -1104,6 +1109,7 @@ class Ui_MainWindow(object):
 
         self.actionazure_key.setText("AzureGPT 翻译 " if config.defaulelang == 'zh' else 'AzureOpenAI Translation')
         self.actionazure_tts.setText("AzureAI 配音" if config.defaulelang == 'zh' else 'AzureAI TTS')
+        self.actiongooglecloud_tts.setText("Google Cloud TTS") # Assuming this should be set, like others.
         self.actiongemini_key.setText("Gemini Pro")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
         self.actionyoutube.setText(config.uilanglist.get("Download from Youtube"))
