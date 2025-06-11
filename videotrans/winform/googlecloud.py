@@ -210,27 +210,62 @@ class GoogleCloudSettingsForm(QWidget):
                 QMessageBox.critical(self, "Erro ao Listar Vozes (API/Cache)", f"Falha ao buscar vozes (API/Cache):\n{str(e)}")
                 # self.voice_cb.addItem("Error loading voices (API/Cache)")
 
-        # Common logic to populate combobox
+        # Store the globally saved/previously selected voice name
+        previously_selected_voice = config.params.get("gcloud_voice_name", "")
+
         if voice_names_to_display:
             self.voice_cb.addItems(voice_names_to_display)
-            saved_voice = config.params.get("gcloud_voice_name", "")
-            if saved_voice in voice_names_to_display:
-                self.voice_cb.setCurrentText(saved_voice)
-            # else: # Avoid selecting the first item by default if saved_voice is not found
-            #    self.voice_cb.setCurrentText(voice_names_to_display[0]) 
-        elif not self.voice_cb.count(): # If after all attempts, combobox is still empty
-            self.voice_cb.addItem(config.box_lang.get("no_voices_available_generic", "No voices available"))
+
+            if previously_selected_voice and previously_selected_voice in voice_names_to_display:
+                self.voice_cb.setCurrentText(previously_selected_voice)
+            elif voice_names_to_display: # If previous not found, but list is not empty, select first
+                self.voice_cb.setCurrentIndex(0)
+            # If voice_names_to_display is empty, and previously_selected_voice was not in it (e.g. list is empty)
+            # then the combobox will be empty, and we add a placeholder below.
+
+        if not self.voice_cb.count(): # If after all attempts, combobox is still empty (no items added)
+            self.voice_cb.addItem(config.box_lang.get("no_voices_available_for_lang", "No voices for this language"))
+            # Clear gcloud_voice_name in config if no voices are available for the selected language?
+            # This could be aggressive. For now, just UI update.
+            # If config.params['gcloud_language_code'] == lang_code: # only clear if it's for the current language
+            #    config.params['gcloud_voice_name'] = ""
+
 
     def save(self):
         if not self._check_tts_client():
             return
 
+        current_lang_code = self.lang_cb.currentText()
+        current_voice_name = self.voice_cb.currentText()
+        placeholder_text_for_empty_voices = config.box_lang.get("no_voices_available_for_lang", "No voices for this language")
+
+        # Validation for save: only if a voice is selected, ensure it's valid for the language.
+        # Saving with no voice selected (i.e., current_voice_name is the placeholder or empty) is allowed,
+        # which will effectively clear/empty gcloud_voice_name.
+        if current_voice_name and current_voice_name != placeholder_text_for_empty_voices:
+            # A voice is selected, so validate it against the current language
+            available_voices_for_lang = GoogleCloudTTS.get_local_voices(language_code=current_lang_code)
+            available_voice_names = [v['name'] for v in available_voices_for_lang]
+            if current_voice_name not in available_voice_names:
+                QMessageBox.warning(self, "Erro de Validação",
+                                    f"A voz selecionada '{current_voice_name}' não é válida para o idioma '{current_lang_code}'.\n"
+                                    "Por favor, atualize a lista de vozes ou selecione uma voz/idioma diferente antes de salvar.")
+                return
+
+        # If validation passes or no voice is selected (placeholder is showing), proceed to save.
+        # If placeholder is showing, current_voice_name will be that placeholder string.
+        # We should save an empty string if that's the case, or if voice_cb is genuinely empty.
+        voice_to_save = current_voice_name
+        if current_voice_name == placeholder_text_for_empty_voices or self.voice_cb.count() == 0:
+            voice_to_save = ""
+
+
         # Atualiza apenas as configurações do Google Cloud TTS
         config.params.update({
             "gcloud_credential_json": self.cred_le.text().strip(),
-            "gcloud_language_code":   self.lang_cb.currentText(),
-            "gcloud_voice_name":      self.voice_cb.currentText(),
-            "gcloud_audio_encoding":  self.enc_cb.currentText(), # self.enc_cb is the correct name
+            "gcloud_language_code":   current_lang_code, # Use variable already fetched
+            "gcloud_voice_name":      voice_to_save,
+            "gcloud_audio_encoding":  self.enc_cb.currentText(),
             "gcloud_use_local_cache": self.local_cache_checkbox.isChecked()
         })
         # Salva todas as configurações
@@ -246,13 +281,14 @@ class GoogleCloudSettingsForm(QWidget):
         current_cred_path = self.cred_le.text().strip()
         current_lang_code = self.lang_cb.currentText()
         current_voice_name = self.voice_cb.currentText()
-        current_audio_encoding = self.enc_cb.currentText() # self.enc_cb is the correct name
+        current_audio_encoding = self.enc_cb.currentText()
 
-        # Basic validation for voice name to avoid issues if it's a placeholder
-        if not current_voice_name or \
-           any(placeholder in current_voice_name.lower() for placeholder in ["no voices available", "cache empty", "error loading", "select voice"]):
-            QMessageBox.warning(self, "Voz Inválida",
-                                "Por favor, selecione uma voz válida ou aguarde o carregamento da lista de vozes antes de testar.")
+        placeholder_text_for_empty_voices = config.box_lang.get("no_voices_available_for_lang", "No voices for this language")
+
+        # Validation for test: A valid voice must be selected.
+        if not current_voice_name or current_voice_name == placeholder_text_for_empty_voices or self.voice_cb.count() == 0:
+            QMessageBox.warning(self, "Erro de Validação",
+                                "Por favor, selecione uma voz válida antes de testar.")
             return
 
         if not current_cred_path:
@@ -260,6 +296,14 @@ class GoogleCloudSettingsForm(QWidget):
                                     "Por favor, forneça o caminho para o arquivo JSON de credenciais para o teste.")
              return
 
+        # Further validation: selected voice must be valid for the selected language
+        available_voices_for_lang = GoogleCloudTTS.get_local_voices(language_code=current_lang_code)
+        available_voice_names = [v['name'] for v in available_voices_for_lang]
+        if current_voice_name not in available_voice_names:
+            QMessageBox.warning(self, "Erro de Validação",
+                                f"A voz selecionada '{current_voice_name}' não é válida para o idioma '{current_lang_code}'.\n"
+                                "Por favor, atualize a lista de vozes ou selecione uma voz/idioma diferente.")
+            return
 
         # Temporarily update config.params for the duration of this test
         original_params_backup = {
