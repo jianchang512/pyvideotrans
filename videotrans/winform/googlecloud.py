@@ -84,9 +84,13 @@ class GoogleCloudSettingsForm(QWidget):
         self.populate_voices(current_lang, use_local_cache=use_local)
 
     def _available_languages(self):
-        # use a mesma lista de idiomas que o dropdown principal
-        # ou extraia de config.params / hardcode: ["en-US","pt-BR",...]
-        return ["en-US", "pt-BR", "es-ES", "fr-FR", "..."]
+        """Return the list of language codes available for Google Cloud TTS."""
+        # Keep this list in sync with videotrans/ui/googlecloud.py
+        return [
+            "pt-BR", "en-US", "en-GB", "es-ES", "fr-FR", "de-DE",
+            "it-IT", "ja-JP", "ko-KR", "zh-CN", "ru-RU", "hi-IN",
+            "ar-XA", "tr-TR", "th-TH", "vi-VN", "id-ID",
+        ]
 
     def on_browse(self):
         path, _ = QFileDialog.getOpenFileName(
