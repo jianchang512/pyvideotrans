@@ -3,12 +3,22 @@
 from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import QMetaObject,Qt, QTime, QTimer, QSize, QEvent
-from PySide6.QtWidgets import QHBoxLayout,QFontDialog,QColorDialog, QTimeEdit
-from PySide6.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
+from PySide6.QtCore import QMetaObject
+from PySide6.QtCore import Qt
+from PySide6.QtCore import QTime
+from PySide6.QtCore import QTimer
+from PySide6.QtCore import QSize
+from PySide6.QtCore import QEvent
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QFontDialog
+from PySide6.QtWidgets import QColorDialog
+from PySide6.QtWidgets import QTimeEdit
+from PySide6.QtGui import QFont
+from PySide6.QtGui import QColor
+from PySide6.QtGui import QDragEnterEvent
+from PySide6.QtGui import QDropEvent
 
 from videotrans.configure import config
-
 
 class Ui_vasrt(object):
     def setupUi(self, vasrt):
@@ -168,7 +178,7 @@ class Ui_vasrt(object):
         self.backgroundcolor_button.setToolTip(
             '不同播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
 
-        self.bordercolor_button = QtWidgets.QPushButton("边框色" if config.defaulelang == 'zh' else 'Backgroud Colors')
+        self.bordercolor_button = QtWidgets.QPushButton("边框色" if config.defaulelang == 'zh' else 'Border Colors')
         self.bordercolor_button.setCursor(Qt.PointingHandCursor)
         self.bordercolor_button.clicked.connect(self.choose_bordercolor)
         self.bordercolor_button.setToolTip(
@@ -181,8 +191,8 @@ class Ui_vasrt(object):
         self.font_size_edit.setToolTip("字体大小" if config.defaulelang == 'zh' else 'Font Size')
 
         # 初始化字体和颜色
-        self.selected_font = QFont('Arial', 16)  # 默认字体
-        self.selected_color = QColor('#FFFFFFFF')  # 默认颜色
+        self.selected_font = QFont('HONOR Sans CN', 16)  # 默认字体
+        self.selected_color =  QColor('#FFFFFFFF')  # 默认颜色
         self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
         self.selected_bordercolor = QColor('#00000000')  # 默认颜色
 
@@ -224,14 +234,21 @@ class Ui_vasrt(object):
         QMetaObject.connectSlotsByName(vasrt)
 
     def qcolor_to_ass_color(self, color, type='fc'):    
-        # 获取颜色的 RGB 值
+        # 获取颜色的 RGBA 值
         r = color.red()
         g = color.green()
         b = color.blue()
-        if type in ['bg', 'bd']:
-            return f"&H80{b:02X}{g:02X}{r:02X}"
-        # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
-        return f"&H{b:02X}{g:02X}{r:02X}"
+        a = color.alpha()
+        # ASS alpha is inverted (00 is opaque, FF is transparent)
+        # if type in ['bg', 'bd']:
+        #     # Background and border colors use &HAABBGGRR format, where AA is alpha (00 is opaque)
+        #     ass_alpha = a
+        #     # Background and border colors use &HBBGGRR format, where BB is alpha
+        #     return f"&H{ass_alpha:02X}{b:02X}{g:02X}{r:02X}"
+        # Font colors use &HAABBGGRR format, where AA is alpha (00 is opaque, FF is transparent)
+        # Invert the alpha value for font colors
+        ass_alpha = a
+        return f"&H{ass_alpha:02X}{b:02X}{g:02X}{r:02X}"
 
     def choose_font(self):
 
@@ -246,36 +263,60 @@ class Ui_vasrt(object):
             self._setfont()
 
     def _setfont(self):
-        bgcolor = self.selected_backgroundcolor.name()
-        bgcolor = '' if bgcolor == '#000000' else f'background-color:{bgcolor}'
-        bdcolor = self.selected_bordercolor.name()
-        bdcolor = '' if bdcolor == '#000000' else f'border:1px solid {bdcolor}'
-        color = self.selected_color.name()
-        color = '' if color == '#000000' else f'color:{color}'
+        bgcolor_name = self.selected_backgroundcolor.name()
+        bgcolor = '' if self.selected_backgroundcolor.alpha() == 255 else f'background-color:{bgcolor_name}'
+        bdcolor_name = self.selected_bordercolor.name()
+        bdcolor = '' if self.selected_bordercolor.alpha() == 255 else f'border:1px solid {bdcolor_name}'
+        # color_name = self.selected_color.name()
+        def blend_colors(selected_color: QColor, bgcolor_name: str) -> str:
+            bg_color = QColor(bgcolor_name)
+            # Invert alpha: 0 = solid color, 255 = transparent
+            inv_alpha = 1.0 - (selected_color.alpha() / 255.0)
+
+            r = int(selected_color.red() * inv_alpha + bg_color.red() * (1 - inv_alpha))
+            g = int(selected_color.green() * inv_alpha + bg_color.green() * (1 - inv_alpha))
+            b = int(selected_color.blue() * inv_alpha + bg_color.blue() * (1 - inv_alpha))
+            # For CSS alpha: 0 (transparent) when selected_color.alpha()==255, 1 (opaque) when ==0
+            css_alpha = inv_alpha
+
+            return f'rgba({r}, {g}, {b}, {css_alpha:.2f})'
+        # color = f'color:{bgcolor_name}' if self.selected_color.alpha()  == 255 else f'color:{color_name}'
+        color_name = blend_colors(self.selected_color, bgcolor_name)
+        color = f'color:{color_name}'
+
         font = self.selected_font
-        self.font_button.setStyleSheet(
-            f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'normal' if font.italic() else 'italic'};{bgcolor};{color};{bdcolor}""")
+        button_style = f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'italic' if font.italic() else 'normal'};{bgcolor};{color};{bdcolor}"""
+        self.font_button.setStyleSheet(button_style)
 
     def choose_color(self):
-        dialog = QColorDialog(self.selected_color, self)
+        color = self.selected_color
+        color.setAlpha(0)  # Set default alpha to 0 (fully opaque)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
-
+        dialog.exec()  # or dialog.open()
+        color = dialog.currentColor()
         if color.isValid():
             self.selected_color = color
             self._setfont()
 
     def choose_backgroundcolor(self):
-        dialog = QColorDialog(self.selected_backgroundcolor, self)
+        color = self.selected_backgroundcolor
+        color.setAlpha(0)  # Set default alpha to 0 (fully opaque)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
+        dialog.exec()  # or dialog.open() to show non-model dialog to enable alpha setting
+        color = dialog.currentColor()
         if color.isValid():
             self.selected_backgroundcolor = color
             self._setfont()
+            
     def choose_bordercolor(self):
-        dialog = QColorDialog(self.selected_bordercolor, self)
+        color = self.selected_bordercolor
+        color.setAlpha(255)  # Set default alpha to 255 (fully transparent)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
+        dialog.exec()  # or dialog.open()
+        color = dialog.currentColor()
         if color.isValid():
             self.selected_bordercolor = color
             self._setfont()

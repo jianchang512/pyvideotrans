@@ -69,7 +69,7 @@ def openwin():
                 tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
                 if percent + tmp1 < 99.9:
                     percent += tmp1
-                self.post(type='jd', text=f'{percent}%')
+                self.post(type='jd', text=f'{percent:.2f}%')
                 time.sleep(1)
 
         def run(self):
@@ -225,8 +225,8 @@ def openwin():
             bdcolor = winobj.qcolor_to_ass_color(winobj.selected_bordercolor, type='bd')
             fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
 
-            file.write(
-                f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,1,1,0,2,{left},{right},{vbottom},1\n')
+            ass_style = f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,4,1,0,2,{left},{right},{vbottom},1\n'
+            file.write(ass_style)
             file.write("\n[Events]\n")
             # 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")

@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: sp.py",
+            "type": "python",
+            "request": "launch",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "program": "${workspaceFolder}/sp.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

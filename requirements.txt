@@ -18,17 +18,19 @@ openai-whisper
 Pillow
 pydub
 pygame
-PySide6
+# Pin PySide6 and shiboken6 to a stable version to avoid ImportError issues
+PySide6==6.6.1
 pytz
 PyYAML
 requests
-shiboken6
+shiboken6==6.6.1
 soundfile
 SpeechRecognition
 tencentcloud-sdk-python-common
 tencentcloud-sdk-python-tmt
-torch
-torchaudio
+# torch is not available on PyPI with CUDA support.
+# To install torch with CUDA 12.1, run:
+# uv pip install torch==2.3.1+cu121 --index-url https://download.pytorch.org/whl/cu121
 zhconv
 azure-cognitiveservices-speech
 pydantic
