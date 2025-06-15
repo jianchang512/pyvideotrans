@@ -35,7 +35,7 @@ class FasterAll(BaseRecogn):
                     data = q.get_nowait()
                     if self.inst and self.inst.precent < 50:
                         self.inst.precent += 0.1
-                        
+
                     if data:
                         if self.inst and self.inst.status_text and data['type']=='log':
                             self.inst.status_text=data['text']
@@ -60,6 +60,12 @@ class FasterAll(BaseRecogn):
             self.raws.append(tmp)
 
     def _exec(self):
+        # 修复CUDA fork问题：强制使用spawn方法
+        try:
+            multiprocessing.set_start_method('spawn', force=True)
+        except RuntimeError:
+            pass
+
         while 1:
             if self._exit() and self.pidfile:
                 Path(self.pidfile).unlink(missing_ok=True)
@@ -74,18 +80,19 @@ class FasterAll(BaseRecogn):
                 continue
             break
 
+        ctx = multiprocessing.get_context('spawn')
         # 创建队列用于在进程间传递结果
-        result_queue = multiprocessing.Queue()
+        result_queue = ctx.Queue()
         try:
             self.has_done = False
             threading.Thread(target=self._get_signal_from_process, args=(result_queue,)).start()
             self.error=''
-            with multiprocessing.Manager() as manager:
+            with ctx.Manager() as manager:
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
                 detect=manager.dict({"langcode":self.detect_language})
                 # 创建并启动新进程
-                process = multiprocessing.Process(target=run, args=(raws, err,detect), kwargs={
+                process = ctx.Process(target=run, args=(raws, err,detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
@@ -113,7 +120,7 @@ class FasterAll(BaseRecogn):
                     if self.detect_language=='auto' and self.inst and  hasattr(self.inst,'set_source_language'):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language=detect['langcode']
-                        
+
                     if not config.settings['rephrase']:
                         self.get_srtlist(raws)
                     else:
