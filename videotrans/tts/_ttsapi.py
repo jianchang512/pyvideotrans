@@ -82,12 +82,12 @@ class TTSAPI(BaseTTS):
                     url_ext=Path(urlparse(url).path.rpartition('/')[-1]).suffix.lower()
                 except Exception:
                     url_ext='.mp3'
-                else:
-                    if url_ext!='.mp3':
-                        tmp_filename+=f'{url_ext}'
+                
+                if url_ext!='.mp3':
+                    tmp_filename+=f'{url_ext}'
                 with open(tmp_filename, 'wb') as f:
                     f.write(res.content)
-                if url_ext!='.mp3':
+                if tmp_filename != data_item['filename']:
                     tools.runffmpeg([
                         "-y","-i",tmp_filename,data_item['filename']
                     ])

@@ -182,9 +182,16 @@ class Ui_vasrt(object):
 
         # 初始化字体和颜色
         self.selected_font = QFont('Arial', 16)  # 默认字体
-        self.selected_color = QColor('#FFFFFFFF')  # 默认颜色
+        self.selected_color = QColor('#00FFFFFF')  # 默认颜色
         self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
         self.selected_bordercolor = QColor('#00000000')  # 默认颜色
+        
+        
+        self.ysphb_borderstyle = QtWidgets.QCheckBox()
+        self.ysphb_borderstyle.setObjectName("ysphb_borderstyle")
+        self.ysphb_borderstyle.setChecked(False)
+        self.ysphb_borderstyle.setToolTip('若选中则文字背后有纯色背景块，不选中则文字周围有描边和阴影'if config.defaulelang == 'zh' else 'If selected, there will be a solid color background behind the text. If not selected, there will be a stroke and shadow around the text.')
+        self.ysphb_borderstyle.setText('背景风格' if config.defaulelang == 'zh' else  'Background Style')
 
         format_layout = QHBoxLayout()
         format_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -194,6 +201,7 @@ class Ui_vasrt(object):
         format_layout.addWidget(self.color_button)
         format_layout.addWidget(self.backgroundcolor_button)
         format_layout.addWidget(self.bordercolor_button)
+        format_layout.addWidget(self.ysphb_borderstyle)
 
         self.v3.addLayout(format_layout)
 
@@ -231,7 +239,9 @@ class Ui_vasrt(object):
         if type in ['bg', 'bd']:
             return f"&H80{b:02X}{g:02X}{r:02X}"
         # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
-        return f"&H{b:02X}{g:02X}{r:02X}"
+        a = color.alpha()
+        return f"&H{a:02X}{b:02X}{g:02X}{r:02X}"
+        #return f"&H{b:02X}{g:02X}{r:02X}"
 
     def choose_font(self):
 
@@ -246,39 +256,74 @@ class Ui_vasrt(object):
             self._setfont()
 
     def _setfont(self):
-        bgcolor = self.selected_backgroundcolor.name()
-        bgcolor = '' if bgcolor == '#000000' else f'background-color:{bgcolor}'
-        bdcolor = self.selected_bordercolor.name()
-        bdcolor = '' if bdcolor == '#000000' else f'border:1px solid {bdcolor}'
-        color = self.selected_color.name()
-        color = '' if color == '#000000' else f'color:{color}'
+        bgcolor_name = self.selected_backgroundcolor.name()
+        bgcolor = '' if self.selected_backgroundcolor.alpha() == 255 else f'background-color:{bgcolor_name}'
+        bdcolor_name = self.selected_bordercolor.name()
+        bdcolor = '' if self.selected_bordercolor.alpha() == 255 else f'border:1px solid {bdcolor_name}'
+        # color_name = self.selected_color.name()
+        def blend_colors(selected_color: QColor, bgcolor_name: str) -> str:
+            bg_color = QColor(bgcolor_name)
+            # Invert alpha: 0 = solid color, 255 = transparent
+            inv_alpha = 1.0 - (selected_color.alpha() / 255.0)
+
+            r = int(selected_color.red() * inv_alpha + bg_color.red() * (1 - inv_alpha))
+            g = int(selected_color.green() * inv_alpha + bg_color.green() * (1 - inv_alpha))
+            b = int(selected_color.blue() * inv_alpha + bg_color.blue() * (1 - inv_alpha))
+            # For CSS alpha: 0 (transparent) when selected_color.alpha()==255, 1 (opaque) when ==0
+            css_alpha = inv_alpha
+
+            return f'rgba({r}, {g}, {b}, {css_alpha:.2f})'
+        # color = f'color:{bgcolor_name}' if self.selected_color.alpha()  == 255 else f'color:{color_name}'
+        color_name = blend_colors(self.selected_color, bgcolor_name)
+        color = f'color:{color_name}'
         font = self.selected_font
-        self.font_button.setStyleSheet(
-            f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'normal' if font.italic() else 'italic'};{bgcolor};{color};{bdcolor}""")
+        button_style = f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'italic' if font.italic() else 'normal'};{bgcolor};{color};{bdcolor}"""
+        self.font_button.setStyleSheet(button_style)
+
+
+
 
     def choose_color(self):
-        dialog = QColorDialog(self.selected_color, self)
+        color = self.selected_color
+        color.setAlpha(0)  # Set default alpha to 0 (fully opaque)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
-
+        dialog.exec()  # or dialog.open()
+        color = dialog.currentColor()
         if color.isValid():
             self.selected_color = color
             self._setfont()
 
+
     def choose_backgroundcolor(self):
-        dialog = QColorDialog(self.selected_backgroundcolor, self)
+        color = self.selected_backgroundcolor
+        color.setAlpha(0)  # Set default alpha to 0 (fully opaque)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
+
+        dialog.exec()  # or dialog.open() to show non-model dialog to enable alpha setting
+        color = dialog.currentColor()
+        print(f'{color=}')
         if color.isValid():
             self.selected_backgroundcolor = color
             self._setfont()
+
+
+
     def choose_bordercolor(self):
-        dialog = QColorDialog(self.selected_bordercolor, self)
+
+        color = self.selected_bordercolor
+        #color.setAlpha(255)  # Set default alpha to 255 (fully transparent)
+        dialog = QColorDialog(color, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
+
+        dialog.exec()  # or dialog.open()
+        color = dialog.currentColor()
         if color.isValid():
             self.selected_bordercolor = color
             self._setfont()
+
+
 
     def remainraw(self, t):
         if Path(t).is_file():
