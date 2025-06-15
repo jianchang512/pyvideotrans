@@ -223,6 +223,7 @@ def openwin():
 
             bgcolor = winobj.qcolor_to_ass_color(winobj.selected_backgroundcolor, type='bg')
             bdcolor = winobj.qcolor_to_ass_color(winobj.selected_bordercolor, type='bd')
+            # 不同字幕渲染器为差异兼容
             if winobj.ysphb_borderstyle.isChecked():
                 bdcolor=bgcolor
             fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
