@@ -137,10 +137,14 @@ os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 
 
 # 语言
-try:
-    defaulelang = locale.getdefaultlocale()[0][:2].lower()
-except Exception:
-    defaulelang = "zh"
+env_lang = os.environ.get('PYVIDEOTRANS_LANG') # 新增：读取环境变量
+if env_lang: # 新增：如果环境变量存在，则使用它
+    defaulelang = env_lang
+else: # 原有逻辑
+    try:
+        defaulelang = locale.getdefaultlocale()[0][:2].lower()
+    except Exception:
+        defaulelang = "zh"
 
 if defaulelang=='zh':
     os.environ['HF_ENDPOINT']='https://hf-mirror.com'
@@ -420,8 +424,14 @@ Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 copying=False
 
 # default language 如果 ini中设置了，则直接使用，否则自动判断
-if settings['lang']:
+# 首先检查环境变量，然后是 settings['lang']，最后是 locale
+env_lang_override = os.environ.get('PYVIDEOTRANS_LANG')
+if env_lang_override:
+    defaulelang = env_lang_override
+elif settings['lang']: # 保留从 settings 加载的逻辑，但环境变量优先
     defaulelang = settings['lang'].lower()
+# 注意：之前的 defaulelang 初始化已经考虑了 locale 和默认 "zh"
+
 
 # 语言代码文件是否存在##############################
 _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
