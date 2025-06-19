@@ -77,8 +77,6 @@ class FunasrRecogn(BaseRecogn):
                 raw_subtitles.append(tmp)
         except Exception as e:
             err=str(e)
-            if err.find('is not registered')>0:
-                raise Exception('可能网络连接出错，请关闭代理后重试')
             raise
         finally:         
             self._set_proxy(type='set')

@@ -204,7 +204,7 @@ def run(*,
         from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
     if recogn_type==FUNASR_CN:
-        from ._funasr import FunasrRecogn
+        from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
     if recogn_type==Deepgram:
         from ._deepgram import DeepgramRecogn

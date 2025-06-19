@@ -14,19 +14,55 @@ License: GPL-V3
 import multiprocessing
 import sys, os
 import time
-import argparse # 新增导入
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
-from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
-
-from videotrans import VERSION
-
+import argparse 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
 
-# 新增：解析命令行参数
+# 解决 modelscope GUI下下载失败问题 xxx is not registered
+def is_console_app():
+    # 在Windows上，当以`pythonw.exe`或`console=False`打包时，stdout/stderr为None
+    # 在macOS/Linux上，即使是GUI应用，通常也有有效的流，但重定向无害。
+    return sys.stdout is None or sys.stderr is None
+
+# 只有在以无控制台模式运行时才进行重定向
+if is_console_app():
+    try:
+        log_dir = os.path.join(os.getcwd(),"logs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")        
+        log_file = open(log_file_path, 'a', encoding='utf-8', buffering=1)
+        
+        # 重定向
+        sys.stdout = log_file
+        sys.stderr = log_file
+        
+        print(f"\n\n--- Application started at {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
+    except Exception as e:
+        pass
+
+# 全局异常处理函数
+def global_exception_hook(exctype, value, tb):
+    tb_str = "".join(traceback.format_exception(exctype, value, tb))
+    print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
+    
+    if QtWidgets.QApplication.instance():
+        error_box = QtWidgets.QMessageBox()
+        error_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+        error_box.setWindowTitle("Application Error")
+        error_box.setText("An unexpected error occurred. The application will now close.")
+        error_box.setDetailedText(tb_str) 
+        error_box.exec()
+    
+    sys.exit(1)
+
+from PySide6 import QtWidgets
+from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
+from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
+from videotrans import VERSION
+
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
 cli_args, unknown = parser.parse_known_args() # 使用 parse_known_args 以避免与 PySide6 参数冲突
@@ -42,7 +78,7 @@ class StartWindow(QtWidgets.QWidget):
         self.height = 700
         self.resize(560, 350)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-       
+
         self.label = QtWidgets.QLabel(self)
         self.pixmap = QPixmap("./videotrans/styles/logo.png")
         self.label.setPixmap(self.pixmap)
@@ -51,9 +87,9 @@ class StartWindow(QtWidgets.QWidget):
         self.label.setGeometry(self.rect()) #直接设置几何形状覆盖
 
         self.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
-        
-        
-        
+
+
+
         v1 = QtWidgets.QVBoxLayout()
         v1.addStretch(1)
         h1 = QtWidgets.QHBoxLayout()
@@ -66,14 +102,13 @@ class StartWindow(QtWidgets.QWidget):
         h1.addWidget(self.lab)
         h1.addStretch(0)
         self.setLayout(v1)
-        
+
         self.show()
         self.center()
         QTimer.singleShot(100, self.run)
 
     def run(self):
         # 创建并显示窗口B
-        print(time.time())
         import videotrans.ui.dark.darkstyle_rc
         with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
             app.setStyleSheet(f.read())
@@ -99,7 +134,6 @@ class StartWindow(QtWidgets.QWidget):
             else:
                 QtWidgets.QMessageBox.critical(startwin,"Error",msg)
 
-        print(time.time())
         QTimer.singleShot(500, lambda :self.close())
 
     def center(self):
