@@ -17,6 +17,7 @@ def _get_executable_path():
     if getattr(sys, 'frozen', False):
         # 如果程序是被"冻结"打包的，使用这个路径
         os.environ['TQDM_DISABLE'] = '1'
+        
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
@@ -25,6 +26,7 @@ SYS_TMP=Path(tempfile.gettempdir()).as_posix()
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
+
 
 _root_path = Path(ROOT_DIR)
 
