@@ -55,6 +55,8 @@ def global_exception_hook(exctype, value, tb):
         error_box.exec()
     
     sys.exit(1)
+    
+sys.excepthook=global_exception_hook
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize

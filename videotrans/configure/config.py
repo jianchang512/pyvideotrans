@@ -222,6 +222,9 @@ exec_mode="gui"
 
 # funasr模型
 FUNASR_MODEL=['paraformer-zh','SenseVoiceSmall']
+# 存储下载进度
+FUNASR_DOWNMSG=""
+
 DEEPGRAM_MODEL=[
             "nova-3",
             "whisper-large",
