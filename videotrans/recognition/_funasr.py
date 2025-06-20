@@ -1,5 +1,5 @@
 # stt项目识别接口
-import re,os
+import re,os,threading,time
 from pathlib import Path
 from typing import Union, List, Dict
 
@@ -31,17 +31,30 @@ class FunasrRecogn(BaseRecogn):
                                         r'a-zA-Z0-9\s.,!@#$%^&*()_+\-=\[\]{};\'"\\|<>/?，。！｛｝【】；‘’“”《》、（）￥]+')
         return re.sub(allowed_characters, '', text)
 
+    def _tosend(self,msg):
+        self._signal(text=msg)
+        if self.inst and self.inst.status_text:
+            self.inst.status_text=msg
+
     def _exec(self)->Union[List[Dict], None]:
         if self._exit():
             return
         self._set_proxy(type='del')
+
+        msg='检测模型是否存在，若不存在将从 modelscope.cn 下载，请耐心等待' if config.defaulelang=='zh' else 'The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient'
+        self._tosend(msg)
+        # \Lib\site-packages\modelscope\hub\snapshot_download.py _download_file_lists 中新增代码
+        config.FUNASR_DOWNMSG=msg
+        def _checkdown():
+            while 1:
+                time.sleep(1)
+                if not config.FUNASR_DOWNMSG:
+                    return
+                self._tosend(config.FUNASR_DOWNMSG)
+                
+        threading.Thread(target=_checkdown).start()
         if self.model_name=='SenseVoiceSmall':
             return self._exec1()
-        if not Path(config.ROOT_DIR+'/models/hub/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/model.pt').exists() or not Path(config.ROOT_DIR+'/models/hub/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch/model.pt').exists():
-            msg='需从 modelscope.cn 下载模型，下载可能较久，请耐心等待' if config.defaulelang=='zh' else 'The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient'
-            self._signal(text=msg)
-            if self.inst and self.inst.status_text:
-                self.inst.status_text=msg
         try:
             model = AutoModel(
                             model=self.model_name,model_revision="v2.0.4",
@@ -54,11 +67,9 @@ class FunasrRecogn(BaseRecogn):
                               disable_log=True,
                             device=self.device
                     )
-        
             msg=f"模型加载完毕，进入识别" if config.defaulelang == 'zh' else 'Model loading is complete, enter recognition'
-            self._signal(text=msg)
-            if self.inst and self.inst.status_text:
-                self.inst.status_text=msg
+            config.FUNASR_DOWNMSG=''
+            self._tosend(msg)
             res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
                                  sentence_timestamp=True, batch_size_s=100,disable_pbar=True)
             raw_subtitles = []
@@ -78,7 +89,8 @@ class FunasrRecogn(BaseRecogn):
         except Exception as e:
             err=str(e)
             raise
-        finally:         
+        finally: 
+            config.FUNASR_DOWNMSG=''
             self._set_proxy(type='set')
             try:
                 del model
@@ -88,17 +100,9 @@ class FunasrRecogn(BaseRecogn):
 
     def _exec1(self) -> Union[List[Dict], None]:
         if self._exit():
-            return
-        if not Path(config.ROOT_DIR+'/models/hub/iic/SenseVoiceSmall/model.pt').exists():
-            msg='需从 modelscope.cn 下载模型，下载可能较久，请耐心等待' if config.defaulelang=='zh' else 'The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient'
-            self._signal(text=msg)
-            if self.inst and self.inst.status_text:
-                self.inst.status_text=msg
-
+            return        
         try:
             from funasr.utils.postprocess_utils import rich_transcription_postprocess
-
-
             model = AutoModel(
                 model="iic/SenseVoiceSmall",
                 punc_model="ct-punc",
@@ -121,10 +125,10 @@ class FunasrRecogn(BaseRecogn):
                 disable_progress_bar=True,
                 disable_log=True,
                 device=self.device)
-            msg=f"模型已加载开始识别，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient'
-            self._signal(text=msg)
-            if self.inst and self.inst.status_text:
-                self.inst.status_text=msg
+            config.FUNASR_DOWNMSG=''    
+            msg=f"模型已加载开始识别，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient'            
+            
+            self._tosend(msg)
             segments = vm.generate(input=self.audio_file)
             audiodata = AudioSegment.from_file(self.audio_file)
 
@@ -158,10 +162,9 @@ class FunasrRecogn(BaseRecogn):
             return srts
         except Exception as e:
             err=str(e)
-            if err.find('is not registered')>0:
-                raise Exception('可能网络连接出错，请关闭代理后重试')
             raise
         finally:
+            config.FUNASR_DOWNMSG=''
             self._set_proxy(type='set')
             try:
                 if model:
