@@ -89,7 +89,7 @@ class GeminiRecogn(BaseRecogn):
                 config.logger.info(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
                 response = chat_session.send_message(prompt,request_options={"timeout":600})
                 config.logger.info(f'gemini返回结果:{response.text=}')
-                m=re.findall(r'<audio_text>(.*?)<\/audio_text>',response.text.strip(),re.I)
+                m=re.findall(r'<audio_text>(.*?)<\/audio_text>',response.text.strip(),re.I|re.S)
                 if len(m)<1:
                     continue
                 str_s=[]
@@ -103,7 +103,7 @@ class GeminiRecogn(BaseRecogn):
                             "end_time":f['end_time'],
                             "startraw":startraw,
                             "endraw":endraw,
-                            "text":m[i]
+                            "text":m[i].strip()
                         }
                         srt_str_list.append(srt)
                         str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
