@@ -73,7 +73,7 @@ class BaseTTS(BaseCon):
             self.volume = '+0%'
         if not re.match(r'^[+-]\d+(\.\d+)?Hz$', self.pitch, re.I):
             self.pitch = '+0Hz'
-
+        self.pitch=self.pitch.replace('%','')
     # 入口 调用子类 _exec() 然后创建线程池调用 _item_task 或直接在 _exec 中实现逻辑
     # 若捕获到异常，则直接抛出  出错时发送停止信号
     def run(self) -> None:
