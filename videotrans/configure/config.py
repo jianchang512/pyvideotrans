@@ -836,6 +836,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openairecognapi_key": "",
         "openairecognapi_prompt": "",
         "openairecognapi_model": "whisper-1",
+        
+        "parakeet_address":"",
 
         "clone_api": "",
         "clone_voicelist": ["clone"],
