@@ -288,6 +288,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionbaidu_key.triggered.connect(winform.baidu.openwin)
         self.actionali_key.triggered.connect(winform.ali.openwin)
+        self.actionparakeet_key.triggered.connect(winform.parakeet.openwin)
 
         self.actionazure_key.triggered.connect(winform.azure.openwin)
         self.actionazure_tts.triggered.connect(winform.azuretts.openwin)

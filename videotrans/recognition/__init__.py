@@ -22,6 +22,7 @@ GEMINI_SPEECH = 9
 Faster_Whisper_XXL = 10
 AI_302 = 11
 ElevenLabs = 12
+PARAKEET = 13
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -36,7 +37,8 @@ RECOGN_NAME_LIST = [
     "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
     "Faster-Whisper-XXL.exe",
     "302.AI",
-    "ElevenLabs.io"
+    "ElevenLabs.io",
+    "Nvidia Parakeet-tdt"
 ]
 
 
@@ -52,6 +54,8 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None)
 
     if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru"]:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
+    if recogn_type == PARAKEET and langcode[:2] !='en':
+        return 'parakeet 仅支持识别英语,即发音语言为英语' if config.defaulelang == 'zh' else 'Parakeet only support English  speech recognition'
     return True
 
 # 判断 openai whisper和 faster whisper 模型是否存在
@@ -81,10 +85,10 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
         model_path = f'models--Systran--faster-{name}'
     
     file=f'{config.ROOT_DIR}/models/{model_path}'
-    print(file)
+
     if recogn_type==Faster_Whisper_XXL:
         PATH_DIR=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+f'/.cache/hub/{model_path}'
-        print(PATH_DIR)
+
         if Path(file).exists() or Path(PATH_DIR).exists():
             if Path(file).exists() and not Path(PATH_DIR).exists():
                 import threading
@@ -92,8 +96,7 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
             return True
         
     
-    #if not Path(file).exists():
-    #    return 'download'
+    
     return True
 
 
@@ -107,13 +110,19 @@ def move_model_toxxl(src,dest):
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win,ai302
+    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win,ai302,parakeet as parakeet_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
         sttapi_win.openwin()
         return False
         
+    if recogn_type == PARAKEET and not config.params['parakeet_address']:
+        if return_str:
+            return "Please configure the url address."
+        parakeet_win.openwin()
+        return False
+    
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
         if return_str:
             return "Please configure the api and key information of the CUSTOM_API channel first."
@@ -212,6 +221,9 @@ def run(*,
     if recogn_type==GEMINI_SPEECH:
         from ._gemini import GeminiRecogn
         return GeminiRecogn(**kwargs).run()
+    if recogn_type==PARAKEET:
+        from ._parakeet import ParaketRecogn
+        return ParaketRecogn(**kwargs).run()
     if recogn_type==AI_302:
         from ._ai302 import AI302Recogn
         return AI302Recogn(**kwargs).run()

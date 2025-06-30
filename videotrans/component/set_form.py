@@ -14,6 +14,7 @@ from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.claude import Ui_claudeform
+from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
@@ -271,6 +272,11 @@ class OttForm(QDialog, Ui_ottform):  # <===
 class CloneForm(QDialog, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super(CloneForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class ParakeetForm(QDialog, Ui_parakeetform):  # <===
+    def __init__(self, parent=None):
+        super(ParakeetForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
