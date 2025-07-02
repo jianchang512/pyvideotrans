@@ -75,7 +75,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
 
                 result = self.model.transcribe(
                     chunk_filename,
-                    language=self.detect_language[:2] if self.detect_language!='auto' else None,
+                    language=self.detect_language.split('-')[0] if self.detect_language!='auto' else None,
                     word_timestamps=True,
                     initial_prompt=prompt if prompt else None,
                     condition_on_previous_text=config.settings['condition_on_previous_text']

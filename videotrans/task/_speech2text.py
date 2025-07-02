@@ -80,7 +80,7 @@ class SpeechToText(BaseTask):
                     "-f","srt"
                 ]
                 if self.cfg['detect_language']!='auto':
-                    cmd.extend(['-l',self.cfg['detect_language'][:2]])
+                    cmd.extend(['-l',self.cfg['detect_language'].split('-')[0]])
                 cmd.extend(['--model',self.cfg['model_name'],'--output_dir',self.cfg['target_dir']])
                 txt_file=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+'/pyvideotrans.txt'
                 if Path(txt_file).exists():

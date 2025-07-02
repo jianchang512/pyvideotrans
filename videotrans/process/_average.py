@@ -93,7 +93,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file, q
                                                                                                  0.6, 0.8,
                                                                                                  1.0],
                                            vad_filter=False,
-                                           language=detect_language[:2] if detect_language!='auto' else None,
+                                           language=detect_language.split('-')[0] if detect_language!='auto' else None,
                                            initial_prompt=prompt if prompt else None
                                            )
             if last_detect=='auto':

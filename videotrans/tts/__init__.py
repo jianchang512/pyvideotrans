@@ -109,18 +109,18 @@ DOUBAO_302AI={
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
-    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko','en']:
+    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko','en','yu']:
         return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
-    if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko']:
+    if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko','yu']:
         return 'CosyVoice仅支持中日韩语言配音' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean'
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return 'ChatTTS 仅支持中英语言配音' if config.defaulelang == 'zh' else 'ChatTTS only supports Chinese, English'
 
-    if tts_type == GOOGLECLOUD_TTS and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'hi', 'ar', 'tr', 'th', 'vi', 'id']:
+    if tts_type == GOOGLECLOUD_TTS and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'hi', 'ar', 'tr', 'th', 'vi', 'id','yu']:
         return 'Google Cloud TTS 仅支持中、英、日、韩、法、德、西、意、葡、俄、印、阿、土、泰、越、印尼语言配音' if config.defaulelang == 'zh' else 'Google Cloud TTS only supports Chinese, English, Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian, Hindi, Arabic, Turkish, Thai, Vietnamese, Indonesian'
 
-    if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id']:
+    if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id','yu']:
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
     if tts_type == KOKORO_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','it','hi','fr']:
         return 'kokoro tts 仅支持中、日、英、葡萄牙、西班牙、意大利、印度、法语配音' if config.defaulelang == 'zh' else 'Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr'
