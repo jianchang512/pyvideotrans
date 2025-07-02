@@ -92,6 +92,8 @@ LANGNAME_DICT={
     "bn":"Bengali" if config.defaulelang != 'zh' else '孟加拉语',
     "fa":"Persian" if config.defaulelang != 'zh' else '波斯语',
     "fil":"Filipino" if config.defaulelang != 'zh' else '菲律宾语',
+    "ur":"Urdu" if config.defaulelang != 'zh' else '乌尔都语',
+    "yue":"Cantonese" if config.defaulelang != 'zh' else '粤语',
 }
 LANG_CODE = {
     "zh-cn": [
@@ -104,6 +106,28 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',  # AI翻译
         "zh" #阿里
+    ],
+    "ur":[
+        "ur",  # google通道
+        "urd",  # 字幕嵌入语言
+        "ur",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "ur",  # 微软翻译
+        "Urdu" if config.defaulelang != 'zh' else '乌尔都语',  # AI翻译
+        "ur" #阿里
+    ],
+    "yue":[
+        "yue",  # google通道
+        "chi",  # 字幕嵌入语言
+        "yue",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "yue",  # 微软翻译
+        "Cantonese" if config.defaulelang != 'zh' else '粤语',  # AI翻译
+        "yue" #阿里
     ],
 
     "fil":[

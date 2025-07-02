@@ -17,7 +17,7 @@ class FasterAll(BaseRecogn):
         super().__init__(*args, **kwargs)
         self.raws = []
         self.pidfile = ""
-        if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:
+        if self.detect_language[:2].lower() in ['zh', 'ja', 'ko','yu']:
             self.flag.append(" ")
             self.maxlen = int(config.settings['cjk_len'])
         else:

@@ -26,6 +26,7 @@ class ChatGPT(BaseTrans):
         self.model_name=config.params["chatgpt_model"]
 
     def llm_segment(self,words_all,inst=None):
+        #config.logger.info(f'需要断句的list:{words_all=}')
         # 以2000个字或单词分成一批
         prompts_template=Path(config.ROOT_DIR+'/videotrans/recharge-llm.txt').read_text(encoding='utf-8')
         chunk_size=int(config.settings.get('llm_chunk_size',2000))

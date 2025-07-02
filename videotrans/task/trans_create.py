@@ -310,7 +310,7 @@ class TransCreate(BaseTask):
                     "-f","srt"
                 ]
                 if self.cfg['detect_language']!='auto':
-                    cmd.extend(['-l',self.cfg['detect_language'][:2]])
+                    cmd.extend(['-l',self.cfg['detect_language'].split('-')[0]])
                 cmd.extend(['--model',self.cfg['model_name'],'--output_dir',self.cfg['target_dir']])
                 txt_file=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+'/pyvideotrans.txt'
                 if Path(txt_file).exists():
@@ -438,7 +438,7 @@ class TransCreate(BaseTask):
         self.precent += 3
         try:
             if self.cfg['voice_role']=='clone' and self.cfg['tts_type']==ELEVENLABS_TTS:
-                if (self.cfg['source_language_code'] !='auto' and self.cfg['source_language_code'][:2] not in config.ELEVENLABS_CLONE) or (self.cfg['target_language_code'][:2] not in config.ELEVENLABS_CLONE):
+                if (self.cfg['source_language_code'] !='auto' and self.cfg['source_language_code'].split('-')[0] not in config.ELEVENLABS_CLONE) or (self.cfg['target_language_code'].split('-')[0] not in config.ELEVENLABS_CLONE):
                     self.hasend = True
                     raise Exception('ElevenLabs: Cloning of the selected language is not supported')
                 
@@ -849,7 +849,7 @@ class TransCreate(BaseTask):
         process_end_subtitle = self.cfg['cache_folder'] + f'/end.srt'
         # 硬字幕时单行字符数
         maxlen = int(
-            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp","ko"] else
+            config.settings['cjk_len'] if self.cfg['target_language_code'][:2] in ["zh", "ja", "jp","ko",'yu'] else
             config.settings['other_len'])
         target_sub_list = tools.get_subtitle_from_srt(self.cfg['target_sub'])
 
@@ -860,7 +860,7 @@ class TransCreate(BaseTask):
         # 双硬 双软字幕组装
         if self.cfg['subtitle_type'] in [3, 4]:
             maxlen_source = int(
-                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp","ko"] else
+                config.settings['cjk_len'] if self.cfg['source_language_code'][:2] in ["zh", "ja", "jp","ko",'yu'] else
                 config.settings['other_len'])
             source_sub_list = tools.get_subtitle_from_srt(self.cfg['source_sub'])
             source_length = len(source_sub_list)

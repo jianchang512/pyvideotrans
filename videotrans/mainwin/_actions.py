@@ -217,7 +217,7 @@ class WinAction(WinActionSub):
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
-                               recognition.Deepgram,recognition.FUNASR_CN]:
+                               recognition.Deepgram,recognition.FUNASR_CN,recognition.PARAKEET]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)

@@ -429,6 +429,8 @@
 	"fil":"Filipino",
 	"fi":"Finnish",
     "fa":"Persian",
+	"ur":"Urdu",
+	"yue":"Cantonese",
     "auto": "Detection"
   }
 }

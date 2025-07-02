@@ -256,7 +256,7 @@ def openwin():
             # faster
             tools.hide_show_element(winobj.equal_split_layout, True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN]:  # 可选模型，whisper funasr deepram
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN,recognition.PARAKEET]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
         else:

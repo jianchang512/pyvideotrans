@@ -76,7 +76,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
                 speech_pad_ms=int(settings['speech_pad_ms'])
             ),
             word_timestamps=True,
-            language=detect_language[:2] if detect_language!='auto' else None,
+            language=detect_language.split('-')[0] if detect_language!='auto' else None,
             initial_prompt=prompt if prompt else None
         )
         if detect_language=='auto' and info.language!=detect['langcode']:
