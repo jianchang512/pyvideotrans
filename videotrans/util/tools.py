@@ -36,6 +36,14 @@ def get_gptsovits_role():
         rolelist[tmp[0]] = {"refer_wav_path": tmp[0], "prompt_text": tmp[1], "prompt_language": tmp[2]}
     return rolelist
 
+def get_chatterbox_role():
+    rolelist = ['chatterbox','clone']
+    if not config.params['chatterbox_role'].strip():
+        return rolelist
+    for it in config.params['chatterbox_role'].strip().split("\n"):
+        rolelist.append(it.strip())
+    return rolelist
+
 
 def get_cosyvoice_role():
     rolelist = {

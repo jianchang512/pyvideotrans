@@ -85,6 +85,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
         elif config.params['tts_type'] == tts.TTS_API:
             self.voice_role.addItems(config.params['ttsapi_voice_role'].strip().split(','))
+        elif config.params['tts_type'] == tts.CHATTERBOX_TTS:
+            rolelist = tools.get_chatterbox_role()
+            self.voice_role.addItems(rolelist if rolelist else ['chatterbox'])
         elif config.params['tts_type'] == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
@@ -315,6 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondoubao_api.triggered.connect(winform.doubao.openwin)
         self.actiontrans_api.triggered.connect(winform.transapi.openwin)
         self.actiontts_gptsovits.triggered.connect(winform.gptsovits.openwin)
+        self.actiontts_chatterbox.triggered.connect(winform.chatterbox.openwin)
         self.actiontts_cosyvoice.triggered.connect(winform.cosyvoice.openwin)
         self.actionopenaitts_key.triggered.connect(winform.openaitts.openwin)
         self.actionopenairecognapi_key.triggered.connect(winform.openairecognapi.openwin)

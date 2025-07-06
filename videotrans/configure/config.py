@@ -864,6 +864,11 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "azure_speech_region": "",
         "azure_speech_key": "",
 
+        "chatterbox_url": "",
+        "chatterbox_role": "",
+        "chatterbox_cfg_weight": 0.5,
+        "chatterbox_exaggeration": 0.5,
+        
         "gptsovits_url": "",
         "gptsovits_role": "",
         "gptsovits_isv2": True,

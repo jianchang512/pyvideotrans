@@ -725,6 +725,10 @@ class Ui_MainWindow(object):
 
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
+        
+        self.actiontts_chatterbox = QtGui.QAction(MainWindow)
+        self.actiontts_chatterbox.setObjectName("actiontts_chatterbox")
+        
         self.actiontts_cosyvoice = QtGui.QAction(MainWindow)
         self.actiontts_cosyvoice.setObjectName("actiontts_cosyvoice")
         self.actiontts_fishtts = QtGui.QAction(MainWindow)
@@ -877,6 +881,8 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actionopenaitts_key)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_api)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_chatterbox)
         self.menu_TTS.addSeparator()
 
         self.menu_RECOGN.addAction(self.actiondoubao_api)
@@ -1051,6 +1057,7 @@ class Ui_MainWindow(object):
         self.actiondeepgram.setText("Deepgram.com语音识别" if config.defaulelang == 'zh' else "Deepgram Speech Recognition API")
         self.actiondoubao_api.setText("字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine subtitles")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
+        self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5/SparK/index/Dia TTS")

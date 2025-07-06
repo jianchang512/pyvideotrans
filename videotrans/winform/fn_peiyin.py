@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QMessageBox, QFileDialog
 from videotrans import translator, tts
 from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API,GEMINI_TTS, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
+from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS, GPTSOVITS_TTS,CHATTERBOX_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API,GEMINI_TTS, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
 from videotrans.util import tools
 
 
@@ -493,6 +493,11 @@ def openwin():
             rolelist = tools.get_gptsovits_role()
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
+        elif type == CHATTERBOX_TTS:
+            rolelist = tools.get_chatterbox_role()
+            rolelist.remove('clone')
+            winobj.hecheng_role.clear()
+            winobj.hecheng_role.addItems(rolelist if rolelist else ['chatterbox'])
         elif type == COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             del rolelist["clone"]

@@ -20,6 +20,7 @@ F5_TTS = 13
 KOKORO_TTS = 14
 GOOGLECLOUD_TTS = 15
 GEMINI_TTS = 16
+CHATTERBOX_TTS = 17
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
@@ -38,7 +39,8 @@ TTS_NAME_LIST = [
     "F5-TTS(本地)" if config.defaulelang=='zh' else 'F5-TTS',
     "kokoro-TTS(本地)" if config.defaulelang=='zh' else 'kokoro-TTS',
     "Google Cloud TTS",
-    "Gemini TTS"
+    "Gemini TTS",
+    "ChatterBox(仅英语)" if config.defaulelang=='zh' else 'ChatterBox(Eng)',
 ]
 
 DOUBAO_302AI={
@@ -173,6 +175,12 @@ def is_input_api(tts_type: int = None,return_str=False):
         from videotrans.winform import gptsovits as gptsovits_win
         gptsovits_win.openwin()
         return False
+    if tts_type == CHATTERBOX_TTS and not config.params['chatterbox_url']:
+        if return_str:
+            return "Please configure the api and key information of the ChatterBox channel first."
+        from videotrans.winform import chatterbox as chatterbox_win
+        chatterbox_win.openwin()
+        return False
     if tts_type == COSYVOICE_TTS and not config.params['cosyvoice_url']:
         if return_str:
             return "Please configure the api and key information of the CosyVoice channel first."
@@ -263,6 +271,9 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == GPTSOVITS_TTS:
         from videotrans.tts._gptsovits import GPTSoVITS
         GPTSoVITS(**kwargs).run()
+    elif tts_type == CHATTERBOX_TTS:
+        from videotrans.tts._chatterbox import ChatterBoxTTS
+        ChatterBoxTTS(**kwargs).run()
     elif tts_type == CLONE_VOICE_TTS:
         from videotrans.tts._clone import CloneVoice
         CloneVoice(**kwargs).run()
