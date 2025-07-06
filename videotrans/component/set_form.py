@@ -30,6 +30,7 @@ from videotrans.ui.freeai import Ui_freeaiform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
+from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.hunliu import Ui_hunliu
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.kokoro import Ui_kokoroform
@@ -181,6 +182,12 @@ class TransapiForm(QDialog, Ui_transapiform):  # <===
 class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
     def __init__(self, parent=None):
         super(GPTSoVITSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class ChatterboxForm(QDialog, Ui_chatterboxform):  # <===
+    def __init__(self, parent=None):
+        super(ChatterboxForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

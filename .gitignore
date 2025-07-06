@@ -11,6 +11,7 @@ models/models--Systran--faster-whisper-base
 models/models--Systran--faster-whisper-tiny
 dev
 venv
+chatterbox
 f5-tts
 apidata
 venv.bak

@@ -359,6 +359,11 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.CHATTERBOX_TTS:
+            rolelist = tools.get_chatterbox_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = rolelist if rolelist else ['chatterbox']
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.main.voice_role.clear()
@@ -996,7 +1001,7 @@ class WinAction(WinActionSub):
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
             if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,
-                                tts.F5_TTS,tts.OPENAI_TTS,tts.GEMINI_TTS]:
+                                tts.F5_TTS,tts.OPENAI_TTS,tts.GEMINI_TTS,tts.CHATTERBOX_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
         elif d['type'] == 'refreshmodel_list':

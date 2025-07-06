@@ -105,11 +105,7 @@ class BaseTTS(BaseCon):
 
         print('a2==')
         # 是否播放
-        if self.play:
-            if not tools.vail_file(self.queue_tts[0]['filename']):
-                err=f'配音出错:{self.error}' if config.defaulelang == 'zh' else f'Dubbing occur error:{self.error}'
-                self._signal(text=err,type="shitingerror",uuid=None)
-                raise Exception(err)
+        if self.play and tools.vail_file(self.queue_tts[0]['filename']):
             threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
             return
 
