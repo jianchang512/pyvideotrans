@@ -453,17 +453,7 @@ def get_kokoro_rolelist():
 
     return voice_list
 
-# cuda preset 预设
-def get_preset(encoder):
-    if encoder in ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast']:
-        return 'hp'
-    return 'hq'
 
-# amf 编码预设
-
-# qsv 编码预设
-
-# vaapi预设
 
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
@@ -528,8 +518,241 @@ def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
     return concise_error
 
 
-# 执行 ffmpeg
+def _get_preset_classification(preset: str) -> str:
+    """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
+    SOFTWARE_PRESET_CLASSIFICATION = {
+        'ultrafast': 'fast', 'superfast': 'fast', 'veryfast': 'fast',
+        'faster': 'fast', 'fast': 'fast',
+        'medium': 'medium',
+        'slow': 'slow', 'slower': 'slow', 'veryslow': 'slow',
+    }
+    return SOFTWARE_PRESET_CLASSIFICATION.get(preset, 'medium') # 默认为 medium
+
+def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> int | None:
+    """
+    将 CRF 值近似转换为不同硬件编码器的质量值。
+    这是一个经验性转换，并非精确等效。
+    """
+    try:
+        crf = int(crf_value)
+        # 经验范围：CRF 越低，质量越高。
+        # NVENC CQ/QP, QSV global_quality 范围 ~1-51，推荐 20-28，其值与CRF的体感接近。
+        if encoder_family in ['nvenc', 'qsv', 'vaapi']:
+            # 对于这些编码器，质量值与 CRF 值大致在同一数量级
+            # 简单地将值限制在合理范围内
+            return max(1, min(crf, 51))
+        # 其他编码器（如 AMF）的质量参数不同，后续再说
+        # videotoolbox 使用 -q:v 0-100，暂不转换
+    except (ValueError, TypeError):
+        return None
+    return None
+
+
+def _build_hw_command(args: list, hw_codec: str):
+    """
+    根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
+
+    此函数是纯粹的，它不修改输入列表，而是返回一个新的列表。
+    """
+    if not hw_codec or 'libx' in hw_codec:
+        return args, []
+
+    encoder_family = hw_codec.split('_')[-1]
+
+    # --- 参数映射表 ---
+    PRESET_MAP = {
+        'nvenc': {'fast': 'p1', 'medium': 'p4', 'slow': 'p7'}, # p1-p7: fastest to slowest
+        'qsv': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
+        'vaapi': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
+        'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
+    }
+    
+    # 定义硬件质量参数的名称
+    QUALITY_PARAM_MAP = {
+        'nvenc': '-cq',
+        'qsv': '-global_quality',
+        'vaapi': '-global_quality',
+    }
+
+    new_args = []
+    hw_decode_opts = []
+    
+    i = 0
+    main_input_file = ""
+    while i < len(args):
+        arg = args[i]
+
+        if arg == '-i' and not main_input_file and i + 1 < len(args):
+            main_input_file = args[i + 1]
+
+        # 1. 替换视频编码器
+        if arg == '-c:v' and i + 1 < len(args):
+            if args[i + 1] != 'copy':
+                new_args.extend(['-c:v', hw_codec])
+            else:
+                new_args.extend(['-c:v', 'copy'])
+            i += 2
+            continue
+
+        # 2. 调整 preset 参数 (使用分类)
+        if arg == '-preset' and i + 1 < len(args):
+            family_presets = PRESET_MAP.get(encoder_family)
+            if family_presets:
+                classification = _get_preset_classification(args[i + 1])
+                new_preset = family_presets.get(classification)
+                if new_preset:
+                    new_args.extend(['-preset', new_preset])
+            i += 2
+            continue
+            
+        # 3. 替换 -crf 参数
+        if arg == '-crf' and i + 1 < len(args):
+            hw_quality_param = QUALITY_PARAM_MAP.get(encoder_family)
+            if hw_quality_param:
+                crf_value = args[i+1]
+                hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
+                if hw_quality_value is not None:
+                    config.logger.info(f"将 -crf {crf_value} 替换为硬件参数 {hw_quality_param} {hw_quality_value}")
+                    new_args.extend([hw_quality_param, str(hw_quality_value)])
+                else:
+                    config.logger.warning(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。")
+            else:
+                 config.logger.warning(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。")
+            i += 2
+            continue
+
+        new_args.append(arg)
+        i += 1
+    
+    # --- 硬件解码逻辑 ---
+    output_file = new_args[-1] if new_args else ""
+    is_output_mp4 = isinstance(output_file, str) and output_file.lower().endswith('.mp4')
+    is_input_media = isinstance(main_input_file, str) and main_input_file.lower().endswith(('.mp4', '.mkv', '.mov', '.ts', '.txt'))
+    
+    # 无字幕嵌入时可尝试硬件解码
+    # 有字幕或 -vf 滤镜时不使用，容易出错且需要上传下载数据
+    if  "-c:s" not in new_args and "-vf" not in new_args  and   is_input_media and is_output_mp4 and config.settings.get('cuda_decode', False):
+        if encoder_family == 'nvenc':
+            hw_decode_opts = ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda']
+            config.logger.info("启用 CUDA 硬件解码。")
+        elif encoder_family == 'qsv':
+            hw_decode_opts = ['-hwaccel', 'qsv', '-hwaccel_output_format', 'qsv']
+            config.logger.info("启用 QSV 硬件解码。")
+        elif encoder_family == 'videotoolbox':
+            hw_decode_opts = ['-hwaccel', 'videotoolbox']
+            config.logger.info("启用 VideoToolbox 硬件解码。")
+    
+    return new_args, hw_decode_opts
+
+
+
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
+    """
+    执行 ffmpeg 命令，智能应用硬件加速并处理平台兼容性。
+
+    如果硬件加速失败，会自动回退到 CPU 编码重试。
+
+    Args:
+        arg (list): ffmpeg 参数列表。
+        noextname (str, optional): 用于任务队列跟踪的标识符。
+        uuid (str, optional): 用于进度更新的 UUID。
+        force_cpu (bool): 如果为 True，则强制使用 CPU 编码，不尝试硬件加速。
+    """
+    arg_copy = copy.deepcopy(arg)
+    
+    default_codec = f"libx{config.settings.get('video_codec', '264')}"
+    
+    final_args = arg
+    hw_decode_opts = []
+
+    if not force_cpu:
+        if not hasattr(config, 'video_codec') or not config.video_codec:
+            config.video_codec = get_video_codec() 
+            
+        if config.video_codec and 'libx' not in config.video_codec:
+            config.logger.info(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
+            final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
+        else:
+            config.logger.info("未找到或未选择硬件编码器，将使用软件编码。")
+    
+    
+    cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
+    if "-y" not in final_args:
+        cmd.append("-y")
+    cmd.extend(hw_decode_opts)
+    cmd.extend(final_args)
+
+    if cmd and Path(cmd[-1]).suffix:
+        try:
+            cmd[-1] = Path(cmd[-1]).as_posix()
+        except Exception:
+            pass
+
+    if config.settings.get('ffmpeg_cmd'):
+        custom_params = [p for p in config.settings['ffmpeg_cmd'].split(' ') if p]
+        cmd = cmd[:-1] + custom_params + cmd[-1:]
+
+    if noextname:
+        config.queue_novice[noextname] = 'ing'
+
+    try:
+        config.logger.info(f"执行 FFmpeg 命令 (force_cpu={force_cpu}): {' '.join(cmd)}")
+        
+        creationflags = 0
+        if sys.platform == 'win32':
+            creationflags = subprocess.CREATE_NO_WINDOW
+            
+        subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors='replace',
+            check=True,
+            text=True,
+            creationflags=creationflags
+        )
+        if noextname:
+            config.queue_novice[noextname] = "end"
+        return True
+
+    except FileNotFoundError:
+        config.logger.error(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
+        if noextname: config.queue_novice[noextname] = "error"
+        raise
+        
+    except subprocess.CalledProcessError as e:
+        error_message = e.stderr or "(无 stderr 输出)"
+        config.logger.error(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}")
+        
+        is_video_output = cmd[-1].lower().endswith('.mp4')
+        if not force_cpu and is_video_output:
+            config.logger.warning("硬件加速失败，将自动回退到 CPU 编码重试...")
+            if uuid: set_process(text=config.transobj['huituicpu'], uuid=uuid)
+            
+            fallback_args = []
+            i = 0
+            while i < len(arg_copy):
+                if arg_copy[i] == '-c:v' and i + 1 < len(arg_copy) and arg_copy[i+1] != 'copy':
+                    fallback_args.extend(['-c:v', default_codec])
+                    i += 2
+                else:
+                    fallback_args.append(arg_copy[i])
+                    i += 1
+
+            return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True)
+        
+        if noextname: config.queue_novice[noextname] = "error"
+        raise Exception(extract_concise_error(e.stderr))
+
+    except Exception as e:
+        if noextname: config.queue_novice[noextname] = "error"
+        config.logger.exception(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
+        raise
+
+
+# 执行 ffmpeg
+def runffmpeg0708(arg, *, noextname=None, uuid=None, force_cpu=False):
     arg_copy = copy.deepcopy(arg)
     file_name = ""
 
@@ -554,16 +777,16 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
                 arg[i] = config.video_codec
             elif it=='-preset' and config.video_codec[-3:]=='amf':
                 # intel win
-                arg[i+1]='quality'
+                arg[i+1]="quality"
             elif it=='-preset' and config.video_codec[-3:]=='qsv': 
                 #amd win
-                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+                arg[i+1]="fast" if 'fast' in arg[i+1]  else "slow"
             elif it=='-preset' and config.video_codec[-3:]=='api': 
                 #linux intel amd
-                arg[i+1]='fast' if 'fast' in arg[i+1]  else 'slow'
+                arg[i+1]="fast" if 'fast' in arg[i+1]  else "slow"
             elif it=='-preset' and config.video_codec[-3:]=='enc':
                 # cuda
-                arg[i+1]='hp' if 'fast' in arg[i+1]  else 'hq'
+                arg[i+1]="hp" if 'fast' in arg[i+1]  else "hq"
 
 
         # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
@@ -576,11 +799,11 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
                 arg.pop(pos)
                 arg.pop(pos)
             if config.settings.get('cuda_decode', False):
-                cmd.append('-hwaccel')
-                cmd.append('videotoolbox')
+                cmd.append("-hwaccel")
+                cmd.append("videotoolbox")
         elif config.video_codec[-3:] == 'enc' and config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][-3:] == 'mp4':
-            arg.insert(insert_index, 'cuda')
-            arg.insert(insert_index, '-hwaccel')
+            arg.insert(insert_index, "cuda")
+            arg.insert(insert_index, "-hwaccel")
 
         # 硬件加速时删掉 crf qp 等，避免某些硬件下出错
         if "-crf" in arg and config.video_codec[-3:] in ['enc','qsv','amf','api','box']:
@@ -653,7 +876,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
 
 # run ffprobe 获取视频元信息
-def runffprobe(cmd):
+def runffprobe0708(cmd):
     try:
         if Path(cmd[-1]).is_file():
             cmd[-1] = Path(cmd[-1]).as_posix()
@@ -711,7 +934,7 @@ def hide_show_element(wrap_layout, show_status):
 
 
 # 获取视频信息
-def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
+def get_video_info0708(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     mp4_file = Path(mp4_file).as_posix()
     out = runffprobe(
         ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
@@ -769,6 +992,176 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         return result['video_codec_name'], result['audio_codec_name']
     return result
 
+
+import subprocess
+import sys
+import json
+import logging
+from pathlib import Path
+
+# --- 假设的依赖项 (为了代码可独立运行) ---
+# 在您的项目中，这些可能来自 config 模块
+# import config
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+# 假设 ffprobe 在系统 PATH 中，或在这里指定路径
+# FFPROBE_BIN = config.FFPROBE_BIN
+FFPROBE_BIN = 'ffprobe' 
+
+
+
+class _FFprobeInternalError(Exception):
+    """用于内部错误传递的自定义异常。"""
+    pass
+
+def _run_ffprobe_internal(cmd: list[str]) -> str:
+    """
+    (内部函数) 执行 ffprobe 命令并返回其标准输出。
+    """
+    # 确保文件路径参数已转换为 POSIX 风格字符串，以获得更好的兼容性
+    if Path(cmd[-1]).is_file():
+        cmd[-1] = Path(cmd[-1]).as_posix()
+
+    command = [FFPROBE_BIN] + [str(arg) for arg in cmd]
+    creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+
+    try:
+        p = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors='replace',
+            check=True,
+            creationflags=creationflags
+        )
+        return p.stdout.strip()
+    except FileNotFoundError as e:
+        msg = f"Command not found: '{FFPROBE_BIN}'. Ensure FFmpeg is installed and in your PATH."
+        config.logger.error(msg)
+        raise _FFprobeInternalError(msg) from e
+    except subprocess.CalledProcessError as e:
+        concise_error = extract_concise_error(e.stderr)
+        config.logger.error(f"ffprobe command failed: {concise_error}")
+        raise _FFprobeInternalError(concise_error) from e
+    except (PermissionError, OSError) as e:
+        msg = f"OS error running ffprobe: {e}"
+        config.logger.error(msg, exc_info=True)
+        raise _FFprobeInternalError(msg) from e
+
+
+
+def runffprobe(cmd):
+    """
+    (兼容性接口) 运行 ffprobe。
+    """
+    try:
+        stdout_result = _run_ffprobe_internal(cmd)
+        if stdout_result:
+            return stdout_result
+        
+        # 如果 stdout 为空，但进程没有出错（不常见），则模拟旧的错误路径
+        #  _run_ffprobe_internal 中，如果 stderr 有内容且返回码非0，
+        # 会直接抛出异常，所以这段逻辑主要为了覆盖极端的边缘情况。
+        config.logger.error("ffprobe ran successfully but produced no output.")
+        raise Exception("ffprobe ran successfully but produced no output.")
+
+    except _FFprobeInternalError as e:
+        # 将内部异常转换为旧代码期望的通用 Exception
+        raise Exception(str(e))
+    except Exception as e:
+        # 捕获其他意料之外的错误并重新引发，保持行为一致
+        config.logger.error(f"An unexpected error occurred in runffprobe: {e}", exc_info=True)
+        raise
+
+def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
+    """
+    (兼容性接口) 获取视频信息。
+    """
+    if not Path(mp4_file).exists():
+        raise Exception(f'{mp4_file} is not exists')
+    try:
+        out_json = runffprobe(
+            ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file]
+        )
+        if not out_json:
+            raise Exception('ffprobe error: dont get video information')
+    except Exception as e:
+        # 确保抛出的异常与旧版本一致
+        raise Exception(f'ffprobe error: {e}') from e
+
+    # 解析 JSON 并填充结果字典
+    try:
+        out = json.loads(out_json)
+    except json.JSONDecodeError as e:
+        raise Exception('ffprobe error: failed to parse JSON output') from e
+        
+    result = {
+        "video_fps": 30,
+        "video_codec_name": "",
+        "audio_codec_name": "",
+        "width": 0,
+        "height": 0,
+        "time": 0,
+        "streams_len": 0,
+        "streams_audio": 0,
+        "color": "yuv420p"
+    }
+
+    if "streams" not in out or not out["streams"]:
+        raise Exception('ffprobe error: streams is 0')
+
+
+    if "format" in out and out['format'].get('duration'):
+        try:
+            # 保持返回整数毫秒的逻辑
+            result['time'] = int(float(out['format']['duration']) * 1000)
+        except (ValueError, TypeError):
+            config.logger.warning(f"Could not parse duration: {out['format'].get('duration')}")
+
+    result['streams_len'] = len(out['streams'])
+    
+    video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
+    audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
+    
+    result['streams_audio'] = len(audio_streams)
+    if audio_streams:
+        result['audio_codec_name'] = audio_streams[0].get('codec_name', "")
+
+    if video_stream:
+        result['video_codec_name'] = video_stream.get('codec_name', "")
+        result['width'] = int(video_stream.get('width', 0))
+        result['height'] = int(video_stream.get('height', 0))
+        result['color'] = video_stream.get('pix_fmt', 'yuv420p').lower()
+
+        # FPS 计算逻辑
+        def parse_fps(rate_str):
+            try:
+                num, den = map(int, rate_str.split('/'))
+                return num / den if den != 0 else 0
+            except (ValueError, ZeroDivisionError, AttributeError):
+                return 0
+
+        fps1 = parse_fps(video_stream.get('r_frame_rate'))
+        fps_avg = parse_fps(video_stream.get('avg_frame_rate'))
+        
+        # 优先使用 avg_frame_rate
+        final_fps = fps_avg if fps_avg != 0 else fps1
+        
+        # 保持旧的帧率范围限制
+        result['video_fps'] = final_fps if 1 <= final_fps <= 60 else 30
+
+    # 确保向后兼容
+    if video_time:
+        return result['time']
+    if video_fps:
+        return result['video_fps']
+    if video_scale:
+        return result['width'], result['height']
+    if get_codec:
+        return result['video_codec_name'], result['audio_codec_name']
+    
+    return result
 
 # 获取某个视频的时长 s
 def get_video_duration(file_path):
@@ -1709,69 +2102,148 @@ def vail_file(file=None):
     return True
 
 
-
-
-# 获取最终视频应该输出的编码格式
-def get_video_codecold():
-    plat = platform.system()
-    # 264 / 265
-    video_codec = int(config.settings['video_codec'])
-    hhead = 'hevc' if video_codec != 264 else 'h264'
-    mp4_test = config.ROOT_DIR + "/videotrans/styles/no-remove.mp4"
-    if not Path(mp4_test).is_file():
-        return f'libx{video_codec}'
-    mp4_target = config.TEMP_DIR + "/test.mp4"
-    codec = f"libx{video_codec}"
-    
-    Path(config.TEMP_DIR).mkdir(exist_ok=True)
-    def testencode(encoder):
-        try:
-            subprocess.run([
-                "ffmpeg",
-                "-y",
-                "-hide_banner",
-                "-ignore_unknown",
-                "-i",
-                mp4_test,
-                "-c:v",
-                f'{hhead}_{encoder}',
-                mp4_target
-            ],
-                check=True,
-                creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-        except:
-            return False
-        else:
-            return f'{hhead}_{encoder}'
-    
-    if plat == 'Darwin':
-        test_res=testencode('videotoolbox')
-        return codec if test_res is False else test_res
-    
-    if plat in ['Windows', 'Linux']:
-        import torch
-        if torch.cuda.is_available():
-            test_res=testencode('nvenc')
-            if test_res is not False:
-                return test_res
-        
-        if plat == 'Linux':
-            test_res=testencode('vaapi')
-            if test_res is not False:
-                return test_res
-            test_res=testencode('amf')
-            return codec if test_res is False else test_res
-
-        if plat == 'Windows':
-            test_res=testencode('qsv')
-            if test_res is not False:
-                return test_res
-            test_res=testencode('amf')
-            return codec if test_res is False  else test_res
-
-    return codec
+# 假设这些模块已导入
+import platform
+import subprocess
+import time
+import sys
+from pathlib import Path
+# 假设 config 模块存在且按预期工作
+# import config
 
 def get_video_codec(force_test: bool = False) -> str:
+    """
+    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器（优化版）。
+
+    根据平台优先选择硬件编码器。如果硬件测试失败，则回退到软件编码。
+    结果会被缓存。此版本通过数据驱动设计和提前检查来优化结构和效率。
+
+    依赖 'config' 模块获取设置和路径。假设 'ffmpeg' 在系统 PATH 中，
+    测试输入文件存在，并且 TEMP_DIR 可写。
+
+    Args:
+        force_test (bool): 如果为 True，则忽略缓存并重新运行测试。默认为 False。
+
+    Returns:
+        str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
+    """
+    _codec_cache = config.codec_cache  # 使用 config 中的缓存
+
+    plat = platform.system()
+    try:
+        video_codec_pref = int(config.settings.get('video_codec', 264))
+    except (ValueError, TypeError):
+        config.logger.warning("配置中 'video_codec' 无效。将默认使用 H.264 (264)。")
+        video_codec_pref = 264
+
+    cache_key = (plat, video_codec_pref)
+    if not force_test and cache_key in _codec_cache:
+        config.logger.info(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
+        return _codec_cache[cache_key]
+
+    h_prefix, default_codec = ('hevc', 'libx265') if video_codec_pref == 265 else ('h264', 'libx264')
+    if video_codec_pref not in [264, 265]:
+        config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
+
+    # --- 优化点 1: 数据驱动设计 ---
+    # 定义各平台硬件编码器的检测优先级
+    ENCODER_PRIORITY = {
+        'Darwin': ['videotoolbox'],
+        'Windows': ['nvenc', 'qsv', 'amf'],
+        'Linux': ['nvenc', 'vaapi', 'qsv']
+    }
+
+    # --- 定义路径和内部测试函数 (与原版基本相同，但做微小调整) ---
+    try:
+        test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
+        temp_dir = Path(config.TEMP_DIR)
+    except Exception as e:
+        config.logger.error(f"从配置构建路径时出错: {e}。将回退到 {default_codec}。")
+        _codec_cache[cache_key] = default_codec
+        return default_codec
+
+    def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
+        # 这个内部函数的设计已经很好了，几乎不需要修改
+        timestamp = int(time.time() * 1000)
+        output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
+        command = [
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-t", "1", "-i", str(test_input_file),
+            "-c:v", encoder_to_test, "-f", "mp4", str(output_file)
+        ]
+        creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+
+        config.logger.info(f"正在尝试测试编码器: {encoder_to_test}...")
+        success = False
+        try:
+            process = subprocess.run(
+                command, check=True, capture_output=True, text=True,
+                encoding='utf-8', errors='ignore', creationflags=creationflags, timeout=timeout
+            )
+            config.logger.info(f"成功: 编码器 '{encoder_to_test}' 测试通过。")
+            success = True
+        except FileNotFoundError:
+            config.logger.error("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
+            raise  # 重新抛出异常，让上层逻辑捕获并终止测试
+        except subprocess.CalledProcessError as e:
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。FFmpeg 返回码: {e.returncode}")
+            # 只在有 stderr 时记录，避免日志混乱
+            if e.stderr and e.stderr.strip():
+                config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
+        except PermissionError:
+            config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。")
+        except subprocess.TimeoutExpired:
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
+        except Exception as e:
+            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True)
+        finally:
+            if output_file.exists():
+                output_file.unlink(missing_ok=True)
+            return success
+
+    # --- 优化点 2: 统一的、数据驱动的测试流程 ---
+    selected_codec = default_codec # 初始化为回退选项
+    
+    encoders_to_test = ENCODER_PRIORITY.get(plat, [])
+    if not encoders_to_test:
+        config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
+    else:
+        config.logger.info(f"平台: {plat}。正在按优先级检测最佳的 '{h_prefix}' 编码器: {encoders_to_test}")
+        try:
+            for encoder_suffix in encoders_to_test:
+                # --- 优化点 3: 简化的 nvenc 预检查 ---
+                if encoder_suffix == 'nvenc':
+                    try:
+                        import torch
+                        if not torch.cuda.is_available():
+                            config.logger.info("PyTorch 报告 CUDA 不可用，跳过 nvenc 测试。")
+                            continue # 跳过当前循环，测试下一个编码器
+                    except ImportError:
+                        # torch 未安装是正常情况，继续尝试测试 nvenc
+                        config.logger.info("未找到 torch 模块，将直接尝试 nvenc 测试。")
+                
+                full_encoder_name = f"{h_prefix}_{encoder_suffix}"
+                if test_encoder_internal(full_encoder_name):
+                    selected_codec = full_encoder_name
+                    config.logger.info(f"已选择硬件编码器: {selected_codec}")
+                    break # 找到第一个可用的，立即停止测试
+            else: # for-else 循环正常结束 (没有 break)
+                config.logger.info(f"所有硬件加速器测试均失败。将使用软件编码器: {selected_codec}")
+
+        except FileNotFoundError:
+            # --- 优化点 2 的实现: 如果 ffmpeg 未找到，直接回退 ---
+            config.logger.error(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
+            selected_codec = default_codec # 确保回退
+        except Exception as e:
+            config.logger.error(f"在编码器测试期间发生意外错误: {e}", exc_info=True)
+            selected_codec = default_codec
+
+    # --- 最终结果 ---
+    _codec_cache[cache_key] = selected_codec
+    config.logger.info(f"最终确定的编码器: {selected_codec}")
+    return selected_codec
+
+def get_video_codec0708(force_test: bool = False) -> str:
     """
     通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
 
@@ -1883,7 +2355,7 @@ def get_video_codec(force_test: bool = False) -> str:
                 config.logger.warning("FFmpeg 标准错误输出(stderr): (空)")
         except PermissionError:
             # 可能在 TEMP_DIR 不可写时发生
-             config.logger.error(f"失败: 写入临时文件 {output_file} 时权限被拒绝。请检查 {temp_dir} 的权限。")
+            config.logger.error(f"失败: 写入临时文件 {output_file} 时权限被拒绝。请检查 {temp_dir} 的权限。")
         except subprocess.TimeoutExpired:
             config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
         except Exception as e:
@@ -1922,9 +2394,9 @@ def get_video_codec(force_test: bool = False) -> str:
                         config.logger.info(f"{encoder_name} 测试失败或不可用。")
                 else:
                     config.logger.info("PyTorch 报告 CUDA 不可用。基于 torch 跳过 nvenc 测试。")
-            except ImportError:
+            except Exception:
                 config.logger.info("未找到 torch 模块。正在尝试直接测试 nvenc。")
-                # 如果 torch 未安装或未检测到 CUDA，则直接测试 nvenc
+
 
             # 如果 torch 未导入、报告无 CUDA 或上述 nvenc 测试失败
             if not nvenc_selected:
@@ -1938,42 +2410,26 @@ def get_video_codec(force_test: bool = False) -> str:
                     else:
                         config.logger.info(f"{encoder_name} 测试失败或不可用。")
 
-            # 如果 nvenc 未被选中，则继续尝试平台特定的替代方案
-            if not nvenc_selected: # 检查 nvenc 是否成功被选择
-                if plat == 'Linux':
-                    config.logger.info("正在测试 vaapi...")
+
+            if not nvenc_selected:
+                config.logger.info("正在测试 qsv...")
+                encoder_name = f"{h_prefix}_qsv"
+                if test_encoder_internal(encoder_name):
+                    selected_codec = encoder_name
+                elif plat == 'Linux':
+                    config.logger.info("正在测试 Linux vaapi...")
                     encoder_name = f"{h_prefix}_vaapi"
                     if test_encoder_internal(encoder_name):
                         selected_codec = encoder_name
-                    else:
-                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
-                        # 如果 VAAPI 失败，尝试 AMF
-                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
-                           config.logger.info("正在测试 amf...")
-                           encoder_name = f"{h_prefix}_amf"
-                           if test_encoder_internal(encoder_name):
-                               selected_codec = encoder_name
-                           else:
-                               config.logger.info(f"{encoder_name} 测试失败或不可用。")
-
                 elif plat == 'Windows':
-                    config.logger.info("正在测试 qsv...")
-                    encoder_name = f"{h_prefix}_qsv"
+                    config.logger.info("正在测试 Windows amf...")
+                    encoder_name = f"{h_prefix}_amf"
                     if test_encoder_internal(encoder_name):
                         selected_codec = encoder_name
                     else:
                         config.logger.info(f"{encoder_name} 测试失败或不可用。")
-                        # 如果 QSV 失败，尝试 AMF
-                        if selected_codec == default_codec: # 再次检查，然后再尝试 AMF
-                            config.logger.info("正在测试 amf...")
-                            encoder_name = f"{h_prefix}_amf"
-                            if test_encoder_internal(encoder_name):
-                                selected_codec = encoder_name
-                            else:
-                                config.logger.info(f"{encoder_name} 测试失败或不可用。")
         else:
              config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
-
     except Exception as e:
         config.logger.error(f"在平台特定测试期间发生意外错误: {e}", exc_info=True)
         config.logger.warning(f"因错误，将回退到软件编码器: {default_codec}")

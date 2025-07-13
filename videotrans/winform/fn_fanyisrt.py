@@ -163,7 +163,7 @@ def openwin():
 
         config.box_trans = 'ing'
         config.settings['aisendsrt']=winobj.aisendsrt.isChecked()
-        config.settings['refine3']=winobj.refine3.isChecked()
+
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -234,7 +234,7 @@ def openwin():
         if current_target and current_target != '-' and current_target in language_namelist:
             winobj.fanyi_target.setCurrentText(current_target)
         winobj.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-        winobj.refine3.setChecked(config.settings.get('refine3'))
+
 
 
 
