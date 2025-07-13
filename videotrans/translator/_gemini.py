@@ -33,8 +33,6 @@ class Gemini(BaseTrans):
         self.api_keys=config.params.get('gemini_key','').strip().split(',')
         
     def _item_task(self, data: Union[List[str], str]) -> str:
-        if self.refine3:
-            return self._item_task_refine3(data)
         try:
             response = None
             text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
@@ -128,54 +126,3 @@ class Gemini(BaseTrans):
             return REASON_CN[num] if type == 'error' else forbid_cn[num]
         return REASON_EN[num] if type == 'error' else forbid_en[num]
 
-    def _item_task_refine3(self, data: Union[List[str], str]) -> str:
-        prompt=self._refine3_prompt()
-        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
-        prompt=prompt.replace('{lang}',self.target_language_name).replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')
-
-        response = None
-        try:
-            api_key=self.api_keys.pop(0)
-            self.api_keys.append(api_key)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(config.params['gemini_model'], safety_settings=safetySettings)
-            response = model.generate_content(
-                prompt,
-                safety_settings=safetySettings
-            )
-            config.logger.info(f'[Gemini]请求发送:{prompt=}')
-
-            config.logger.info(f'[Gemini]返回:{response.text=}')
-            match = re.search(r'<step3_refined_translation>(.*?)</step3_refined_translation>', response.text,re.S)
-            if not match:
-                match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',response.text,re.S|re.I), re.S|re.I)
-            if match:
-                return match.group(1)
-            return response.text.strip()
-        except TooManyRequests as e:
-            raise Exception('429超过请求次数，请尝试更换其他Gemini模型后重试' if config.defaulelang=='zh' else 'Too many requests, use other model retry')
-        except (ServerError,RetryError,socket.timeout) as e:
-            error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-            raise requests.ConnectionError(error)
-        except google.api_core.exceptions.PermissionDenied:
-            raise Exception('您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
-        except google.api_core.exceptions.ResourceExhausted:                
-            raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
-        except google.auth.exceptions.DefaultCredentialsError:                
-            raise Exception(f'验证失败，可能 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Authentication fails. Please double-check your API key and try again')
-        except google.api_core.exceptions.InvalidArgument:                
-            raise Exception(f'文件过大或 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Invalid argument. One example is the file is too large and exceeds the payload size limit. Another is providing an invalid API key')
-        except google.api_core.exceptions.RetryError:
-            raise Exception('无法连接到Gemini，请尝试使用或更换代理' if config.defaulelang=='zh' else 'Can be caused when using a proxy that does not support gRPC.')
-        except genai.types.BlockedPromptException as e:
-            raise Exception(self._get_error(e.args[0].finish_reason))
-        except genai.types.StopCandidateException as e:
-            if int(e.args[0].finish_reason>1):
-                raise Exception(self._get_error(e.args[0].finish_reason))
-        
-        except Exception as e:
-            error = str(e)
-            config.logger.error(f'[Gemini]请求失败:{error=}')
-            if error.find('User location is not supported') > -1:
-                raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-            raise

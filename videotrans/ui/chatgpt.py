@@ -32,7 +32,7 @@ class Ui_chatgptform(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setText(
-            'OpenAI ChatGPT及兼容的AI可在此使用' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+            'OpenAI及兼容的AI可在此使用(将作为LLM重新断句时的AI)' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here(For LLM re-segment)')
         v1.addWidget(self.label_0)
 
 

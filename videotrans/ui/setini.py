@@ -123,8 +123,7 @@ class Ui_setini(object):
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
                 "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages",
-                "aisendsrt":"是否在使用AI/Google翻译时发送完整字幕格式内容",
-                "refine3":"AI翻译并且启用上方选项时，使用三步反思翻译法"
+                "aisendsrt":"是否在使用AI/Google翻译时发送完整字幕格式内容"
 
             },
             "dubbing": {
@@ -228,7 +227,6 @@ class Ui_setini(object):
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
 
-            "refine3":"AI翻译并且启用上方选项时，使用三步反思翻译法",
 
             "threshold": "语音阈值",
             "max_speech_duration_s": "最大语音持续时间/秒",
@@ -343,8 +341,7 @@ class Ui_setini(object):
                     "retries": "Number of retries when translation fails",
                     "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
                     "google_trans_newadd": "Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages",
-                    "aisendsrt":"Sending full subtitle content when use ai translation",
-                    "refine3":"When AI translation is enabled and the above options are enabled, use reflective translation"
+                    "aisendsrt":"Sending full subtitle content when use ai translation"
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
@@ -467,7 +464,6 @@ class Ui_setini(object):
                 "overall_maxsecs": "Maximum Speech Duration",
                 "vad": "Enable VAD",
 
-                 "refine3":"When AI translation is enabled and the above options are enabled, use reflective translation",
 
                 "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",

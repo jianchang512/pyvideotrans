@@ -252,7 +252,7 @@ video_codec = None
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
 
-DEFAULT_GEMINI_MODEL="gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+DEFAULT_GEMINI_MODEL="gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 
 line_roles={}
 
@@ -371,14 +371,13 @@ def parse_init():
         "cjk_len": 20,
         "other_len": 60,
         "gemini_model": DEFAULT_GEMINI_MODEL,
-        "llm_chunk_size": 3000,
+        "llm_chunk_size": 500,
 
         "zh_hant_s": True,
         "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
-        "proxy":"",
-        "refine3":False
+        "proxy":""
         
     }
     if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        

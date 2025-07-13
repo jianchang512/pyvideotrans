@@ -54,7 +54,6 @@ class BaseTrans(BaseCon):
         self.is_srt = False if isinstance(text_list, str) else True
         # 非AI翻译时强制设为False，是AI翻译时根据配置确定
         self.aisendsrt = config.settings.get('aisendsrt', False)
-        self.refine3=True if self.aisendsrt and not self.is_test and config.settings.get('refine3',False) else False
         # 整理待翻译的文字为 List[str]
         self.split_source_text = []
         self.proxies = None
@@ -82,15 +81,7 @@ class BaseTrans(BaseCon):
 
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
-            """
-            return_raw_list=self.runsrt()
-            if len(return_raw_list)!=len(self.text_list) and self.trans_thread>1:
-                self.trans_thread=1
-                source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
-                self.split_source_text = [source_text[i:i + self.trans_thread] for i in  range(0, len(self.text_list), self.trans_thread)]
-                return_raw_list=self.runsrt()
-            return return_raw_list
-            """
+
 
         for i, it in enumerate(self.split_source_text):
             # 失败后重试 self.retry 次
@@ -297,23 +288,6 @@ class BaseTrans(BaseCon):
 
 
 
-    def _refine3_prompt(self):
-        glossary=''
-        if Path(config.ROOT_DIR+'/videotrans/glossary.txt').exists():
-            glossary=Path(config.ROOT_DIR+'/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
-        if config.defaulelang=='zh':
-            prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3.txt').read_text(encoding='utf-8')
-            glossary_prompt="""## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n"""
-        else:
-            prompt=Path(config.ROOT_DIR+'/videotrans/prompts/srt/fansi3-en.txt').read_text(encoding='utf-8')
-            glossary_prompt="""## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
-        
-        if glossary:
-            glossary="\n".join(["|"+it.replace("=",'|')+"|" for it in glossary.split('\n')])
-            prompt=prompt.replace('<INPUT></INPUT>',f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
-        
-        return prompt
-
     def _set_cache(self, it, res_str):
         if not res_str.strip():
             return
@@ -335,4 +309,4 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
-        return tools.get_md5(f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.refine3}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
+        return tools.get_md5(f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

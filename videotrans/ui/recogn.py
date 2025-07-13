@@ -164,7 +164,7 @@ class Ui_recogn(object):
 
         self.rephrase=QtWidgets.QCheckBox()
         self.rephrase.setText('LLM重新断句' if config.defaulelang=='zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip('选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
+        self.rephrase.setToolTip('选择faster/openai-whisper/Deepgram/parakeet渠道时将使用大模型重新断句，若失败将使用原始分段\n使用OpenAI渠道作为断句AI\n确保模型支持json结构化输出' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deepprogram/parakeet\nOpenAI for LLM re-segment')
 
         self.remove_noise=QtWidgets.QCheckBox()
         self.remove_noise.setText('降噪' if config.defaulelang=='zh' else 'Noise reduction')
