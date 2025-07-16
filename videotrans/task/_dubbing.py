@@ -44,6 +44,7 @@ class DubbingSrt(BaseTask):
     def __init__(self, cfg: Dict = None, obj: Dict = None):
         super().__init__(cfg, obj)
         self.shoud_dubbing = True
+        self.is_multi_role=cfg.get('is_multi_role',False)
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
             self.cfg['target_dir'] = config.HOME_DIR + f"/tts"
         # 存放目标文件夹
@@ -112,15 +113,31 @@ class DubbingSrt(BaseTask):
             asyncio.run(_async_dubb())
             return
 
-        try:
-            subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
-        except Exception as e:
-            raise
+        if self.cfg['target_sub'].endswith('.txt'):
+            text=Path(self.cfg['target_sub']).read_text(encoding='utf-8').strip()
+            text=re.sub(r"(\s*?\r?\n\s*?){2,}","\n",text)
+            text=re.sub(r"(\s*?\r?\n\s*?)","\n",text)
+            subs=[{
+                "line":1,
+                "start_time":0,
+                "end_time":1000,
+                "startraw":"00:00:00,000",
+                "endraw":"00:00:01,000",
+                "text":text
+            }]
+        else:
+            try:
+                subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
+            except Exception as e:
+                raise
+
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
                 continue
-            voice_role = self.cfg['voice_role']
+            spec_role=config.dubbing_role.get(int(it['line'])) if self.is_multi_role else  None
+            voice_role = spec_role if spec_role else self.cfg['voice_role']
+            
             # 要保存到的文件
             filename_md5=tools.get_md5(f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
             tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
@@ -142,7 +159,7 @@ class DubbingSrt(BaseTask):
         )
         if config.settings.get('save_segment_audio',False):
             outname=self.cfg['target_dir']+f'/segment_audio_{self.cfg["noextname"]}'
-            print(f'{outname=}')
+
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
                 text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
@@ -150,10 +167,13 @@ class DubbingSrt(BaseTask):
                 shutil.copy2(it['filename'],name)
 
     def align(self) -> None:
-        if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
+        if self.cfg['target_sub'].endswith('.txt'):
+            if self.cfg['tts_type'] !=tts.EDGE_TTS:
+                tools.runffmpeg(['-y','-i',self.queue_tts[0]['filename'],'-b:a','128k',self.cfg['target_wav']])        
             return
+            
         if self.cfg['voice_autorate']:
-            self._signal(text='声画变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage')
+            self._signal(text='变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage')
         try:
             target_path=Path(self.cfg['target_wav'])
             if target_path.is_file() and target_path.stat().st_size > 0:
@@ -199,7 +219,9 @@ class DubbingSrt(BaseTask):
         self.hasend = True
         self.precent = 100
         if Path(self.cfg['target_wav']).is_file():
-            tools.remove_silence_from_end(self.cfg['target_wav'],is_start=False)
+            if not self.cfg['target_sub'].endswith('.txt'): 
+                tools.remove_silence_from_end(self.cfg['target_wav'],is_start=False)
+            
             self._signal(text=f"{self.cfg['name']}", type='succeed')
             tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
         if 'shound_del_name' in self.cfg:

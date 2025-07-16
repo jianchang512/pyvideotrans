@@ -11,7 +11,7 @@ from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
 
-class FreeAI(BaseTrans):
+class DeepSeek(BaseTrans):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,7 +19,10 @@ class FreeAI(BaseTrans):
        
         
         # 是srt则获取srt的提示词
-        self.prompt = tools.get_prompt(ainame='freeai',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='deepseek',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.model_name=config.params.get('deepseek_model',"deepseek-chat")
+        self.api_url='https://api.deepseek.com/v1/'
+        self.api_key=config.params.get('deepseek_key','')
 
 
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -33,21 +36,22 @@ class FreeAI(BaseTrans):
                 'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},
         ]
 
-        config.logger.info(f"\n[freeai]发送请求数据:{message=}")
+        config.logger.info(f"\n[deepseek]发送请求数据:{message=}")
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
         try:
             response = model.chat.completions.create(
                 model=self.model_name,
-                messages=message
+                messages=message,
+                max_tokens=8092
             )
         except APIConnectionError:
             raise requests.ConnectionError('Network connection failed')
-        config.logger.info(f'[freeai]响应:{response=}')
+        config.logger.info(f'[deepseek]响应:{response=}')
         result=""
         if response.choices:
             result = response.choices[0].message.content.strip()
         else:
-            config.logger.error(f'[freeai]请求失败:{response=}')
+            config.logger.error(f'[deepseek]请求失败:{response=}')
             raise Exception(f"no choices:{response=}")
         
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
@@ -55,17 +59,3 @@ class FreeAI(BaseTrans):
             return match.group(1)
         return result.strip()
 
-
-class FreeAIGLM(FreeAI):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.model_name="glm-4-flash"
-        self.api_url='https://open.bigmodel.cn/api/paas/v4/'
-        self.api_key=config.params.get('zhipu_key','')
-
-class FreeAIQWEN(FreeAI):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.model_name="Qwen/Qwen2.5-7B-Instruct"
-        self.api_url="https://api.siliconflow.cn/v1"
-        self.api_key=config.params.get('guiji_key','')

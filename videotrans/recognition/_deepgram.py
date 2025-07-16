@@ -1,6 +1,6 @@
 # stt项目识别接口
 import json
-import os
+import os,re
 from typing import Union, List, Dict
 
 import requests
@@ -46,6 +46,7 @@ class DeepgramRecogn(BaseRecogn):
             }
 
             # STEP 2: Configure Deepgram options for audio analysis
+            diarize=config.params.get('paraformer_spk',False)
             options = PrerecordedOptions(
                 model=self.model_name,
                 # detect_language=True,
@@ -54,6 +55,7 @@ class DeepgramRecogn(BaseRecogn):
                 punctuate=True,
                 paragraphs=True,
                 utterances=True,
+                diarize=diarize,
 
                 utt_split=int(config.params.get('deepgram_utt',200))/1000,
             )
@@ -66,7 +68,7 @@ class DeepgramRecogn(BaseRecogn):
             # res=response.to_json()
             raws=[]
             rephrase_ok=True
-            if config.settings.get('rephrase'):
+            if not diarize and config.settings.get('rephrase'):
                 try:
                     words=[]
                     for seg in res['results']['utterances']:
@@ -80,8 +82,19 @@ class DeepgramRecogn(BaseRecogn):
                     raws=self.re_segment_sentences(words,self.detect_language[:2])
                 except:
                     rephrase_ok=False
-
-            if not config.settings.get('rephrase') or not rephrase_ok:
+            if diarize:
+                for it in res['results']['utterances']:
+                    tmp={
+                        "line":len(raws)+1,
+                        "start_time":int(it['start']*1000),
+                        "end_time":int(it['end']*1000),
+                        "text":f'[spk{it["speaker"]}]'+it['transcript']
+                    }
+                    if self.detect_language[:2] in ['zh','ja','ko']:
+                        tmp['text']=re.sub(r'\s| ','',tmp['text'])
+                    tmp['time']=tools.ms_to_time_string(ms=tmp['start_time'])+' --> '+tools.ms_to_time_string(ms=tmp['end_time'])
+                    raws.append(tmp)
+            elif not config.settings.get('rephrase') or not rephrase_ok:
                 transcription = DeepgramConverter(res)
                 srt_str = srt(transcription, line_length= config.settings.get('cjk_len') if self.detect_language[:2] in ['zh','ja','ko'] else config.settings.get('other_len'))
                 raws=tools.get_subtitle_from_srt(srt_str, is_file=False)

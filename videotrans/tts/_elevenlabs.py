@@ -37,12 +37,14 @@ class ElevenLabsC(BaseTTS):
             try:
                 data_item = self.copydata.pop(0)
                 if tools.vail_file(data_item['filename']):
+                    data_item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',data_item['text'].strip(),re.I)
                     prev_text = data_item['text']
                     continue
             except:
                 return
 
             text = data_item['text'].strip()
+            text =re.sub(r'\[?spk\-?\d{1,2}\]','',text.strip(),re.I)
             role = data_item['role']
             if not text:
                 prev_text = None

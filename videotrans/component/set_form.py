@@ -1,4 +1,4 @@
-import PySide6
+import PySide6,os
 from PySide6 import QtWidgets
 from PySide6.QtCore import QEvent
 from PySide6.QtGui import QIcon
@@ -26,7 +26,10 @@ from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.fanyi import Ui_fanyisrt
 from videotrans.ui.fishtts import Ui_fishttsform
 from videotrans.ui.formatcover import Ui_formatcover
-from videotrans.ui.freeai import Ui_freeaiform
+from videotrans.ui.zhipuai import Ui_zhipuaiform
+from videotrans.ui.deepseek import Ui_deepseekform
+from videotrans.ui.openrouter import Ui_openrouterform
+from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
@@ -60,6 +63,139 @@ from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.f5tts import Ui_f5ttsform
+from videotrans.ui.peiyinrole import Ui_peiyinrole
+from videotrans.util import tools
+
+# ==================== 字幕行自定义控件 ====================
+class SubtitleRowWidget(QtWidgets.QWidget):
+    """自定义的单条字幕行控件"""
+    def __init__(self, index, start_time, end_time, text, parent=None):
+        super().__init__(parent)
+        self.sub_index = index
+        self.start_time = start_time
+        self.end_time = end_time
+        self.text = text
+
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(5, 5, 5, 5)
+
+        self.index_label = QtWidgets.QLabel(f"{self.sub_index}")
+        self.checkbox = QtWidgets.QCheckBox()
+        self.checkbox.setFixedWidth(30)
+
+        self.role_label = QtWidgets.QLabel("[未分配角色]")
+        self.role_label.setFixedWidth(150)
+        self.role_label.setObjectName(f"role_label_{index}")
+
+        time_str = f"{start_time} --> {end_time}"
+        self.time_label = QtWidgets.QLabel(time_str)
+        self.time_label.setFixedWidth(200)
+
+        self.text_label = QtWidgets.QLabel(text)
+        self.text_label.setWordWrap(True)
+
+        self.layout.addWidget(self.index_label)
+        self.layout.addWidget(self.checkbox)
+        self.layout.addWidget(self.role_label)
+        self.layout.addWidget(self.time_label)
+        self.layout.addWidget(self.text_label)
+        self.layout.addStretch()
+
+
+
+class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
+    def __init__(self, parent=None):
+        super(Peiyinformrole, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+        # 新增的信号连接
+        self.clear_button.clicked.connect(self.clear_all_ui)
+        self.assign_role_button.clicked.connect(self.assign_role_to_selected)
+        
+        # 当 hecheng_role 的内容改变时，同步到 tmp_rolelist
+        self.hecheng_role.model().rowsInserted.connect(self.sync_roles_to_tmp_list)
+        self.hecheng_role.model().rowsRemoved.connect(self.sync_roles_to_tmp_list)
+
+    def sync_roles_to_tmp_list(self, parent=None, first=None, last=None):
+        """同步 hecheng_role 的角色列表到 tmp_rolelist"""
+        self.tmp_rolelist.clear()
+        roles = [self.hecheng_role.itemText(i) for i in range(self.hecheng_role.count())]
+        if roles:
+            self.tmp_rolelist.addItems(roles)
+
+    def clear_subtitle_area(self):
+        """清空字幕显示区域"""
+        while self.subtitle_layout.count():
+            child = self.subtitle_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        self.subtitles.clear()
+    
+    def clear_all_ui(self):
+        """点击清空按钮时执行"""
+        self.srt_path = None
+        self.subtitles.clear()
+        config.dubbing_role.clear()
+        
+        self.clear_subtitle_area()
+        self.hecheng_importbtn.setText("导入SRT文件..." if config.defaulelang == 'zh' else 'Import SRT file...')
+        self.loglabel.setText("")
+        print("UI and data cleared.")
+
+    def reset_assigned_roles(self):
+        """重置所有字幕行已分配的角色"""
+        config.dubbing_role.clear()
+        for i in range(self.subtitle_layout.count()):
+            widget = self.subtitle_layout.itemAt(i).widget()
+            if isinstance(widget, SubtitleRowWidget):
+                widget.role_label.setText("[未分配角色]")
+        print("Assigned roles have been reset.")
+
+    def parse_and_display_srt(self, srt_path):
+        """解析SRT文件并在UI上显示"""
+        self.clear_all_ui() # 导入新文件前先清空
+        self.srt_path = srt_path
+        
+    
+    
+        try:
+            subs = tools.get_subtitle_from_srt(srt_path)
+            self.subtitles = subs
+            for sub in subs:
+                row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'])
+                self.subtitle_layout.addWidget(row_widget)
+            
+            self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
+
+        except Exception as e:            
+            self.clear_all_ui()
+            raise
+
+    def assign_role_to_selected(self):
+        """为选中的行分配角色"""
+        selected_role = self.tmp_rolelist.currentText()
+        if not selected_role or selected_role in ['-', 'No']:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先在下拉列表中选择一个有效的角色。")
+            return
+
+        assigned_count = 0
+        for i in range(self.subtitle_layout.count()):
+            widget = self.subtitle_layout.itemAt(i).widget()
+            if isinstance(widget, SubtitleRowWidget) and widget.checkbox.isChecked():
+                # 更新UI
+                widget.role_label.setText(selected_role)
+                # 更新全局配置
+                config.dubbing_role[widget.sub_index] = selected_role
+                # 分配后取消勾选
+                widget.checkbox.setChecked(False)
+                assigned_count += 1
+        
+        if assigned_count > 0:
+            print(f"Assigned role '{selected_role}' to {assigned_count} lines.")
+            print(f"Current config.dubbing_role: {config.dubbing_role}")
+        else:
+            QtWidgets.QMessageBox.information(self, "提示", "没有选中任何字幕行。")
 
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -75,6 +211,11 @@ class SetLineRole(QDialog, Ui_setlinerole):  # <===
 class BaiduForm(QDialog, Ui_baiduform):  # <===
     def __init__(self, parent=None):
         super(BaiduForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class OpenrouterForm(QDialog, Ui_openrouterform):  # <===
+    def __init__(self, parent=None):
+        super(OpenrouterForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
@@ -344,9 +485,20 @@ class GeminiForm(QDialog, Ui_geminiform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class FreeAIForm(QDialog, Ui_freeaiform):  # <===
+class ZhipuAIForm(QDialog, Ui_zhipuaiform):  # <===
     def __init__(self, parent=None):
-        super(FreeAIForm, self).__init__(parent)
+        super(ZhipuAIForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class DeepseekForm(QDialog, Ui_deepseekform):  # <===
+    def __init__(self, parent=None):
+        super(DeepseekForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        
+class SiliconflowForm(QDialog, Ui_siliconflowform):  # <===
+    def __init__(self, parent=None):
+        super(SiliconflowForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

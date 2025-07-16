@@ -70,6 +70,12 @@ class Ui_recogn(object):
         self.shibie_model = QtWidgets.QComboBox()
         self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_model.setObjectName("shibie_model")
+        
+        self.show_spk = QtWidgets.QCheckBox()
+        self.show_spk.setObjectName('show_spk')
+        self.show_spk.setText("识别说话人?" if config.defaulelang == 'zh' else 'Speaker classification?')
+        self.show_spk.setChecked(config.params.get('paraformer_spk',False))
+        self.show_spk.setVisible(False)
 
         self.shibie_split_type = QtWidgets.QComboBox()
         self.shibie_split_type.addItems(
@@ -126,6 +132,7 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
         self.horizontalLayout.addWidget(label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
+        self.horizontalLayout.addWidget(self.show_spk)
         self.horizontalLayout.addWidget(split_label)
         self.horizontalLayout.addWidget(self.shibie_split_type)
         self.horizontalLayout.addLayout(self.equal_split_layout)

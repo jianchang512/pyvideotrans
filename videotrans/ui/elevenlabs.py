@@ -25,26 +25,26 @@ class Ui_elevenlabsform(object):
         self.verticalLayout.setObjectName("verticalLayout")
         
         
-        self.formLayout_2 = QtWidgets.QHBoxLayout(elevenlabsform)
-        self.formLayout_3 = QtWidgets.QHBoxLayout(elevenlabsform)
+        self.formLayout_2 = QtWidgets.QHBoxLayout()
+        self.formLayout_3 = QtWidgets.QHBoxLayout()
         
         
-        self.label = QtWidgets.QLabel(elevenlabsform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setObjectName("label")
 
-        self.elevenlabstts_key = QtWidgets.QLineEdit(elevenlabsform)
+        self.elevenlabstts_key = QtWidgets.QLineEdit()
         self.elevenlabstts_key.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_key.setObjectName("elevenlabstts_key")
         
         self.formLayout_2.addWidget(self.label)
         self.formLayout_2.addWidget(self.elevenlabstts_key)
         
-        self.label2 = QtWidgets.QLabel(elevenlabsform)
+        self.label2 = QtWidgets.QLabel()
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setObjectName("label2")
 
-        self.elevenlabstts_models = QtWidgets.QComboBox(elevenlabsform)
+        self.elevenlabstts_models = QtWidgets.QComboBox()
         self.elevenlabstts_models.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_models.setObjectName("elevenlabstts_models")
         self.elevenlabstts_models.addItems(['eleven_flash_v2_5','eleven_multilingual_v2'])
@@ -57,11 +57,11 @@ class Ui_elevenlabsform(object):
 
 
 
-        self.set = QtWidgets.QPushButton(elevenlabsform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(elevenlabsform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
@@ -81,7 +81,7 @@ class Ui_elevenlabsform(object):
         self.verticalLayout.addLayout(hv)
 
         self.retranslateUi(elevenlabsform)
-        QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
+        #QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
 
     def retranslateUi(self, elevenlabsform):
         elevenlabsform.setWindowTitle("ElevenLabs.io")

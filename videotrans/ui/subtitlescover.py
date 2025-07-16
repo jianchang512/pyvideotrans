@@ -13,7 +13,7 @@ class Ui_subtitlescover(object):
         self.has_done = False
         subtitlescover.setObjectName("subtitlescover")
         subtitlescover.setWindowModality(QtCore.Qt.NonModal)
-        subtitlescover.resize(500, 400)
+        subtitlescover.resize(800, 400)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -95,7 +95,7 @@ class Ui_subtitlescover(object):
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
 
     def retranslateUi(self, subtitlescover):
-        subtitlescover.setWindowTitle('字幕多格式转换' if config.defaulelang == 'zh' else 'Subtitle Conversion')
+        subtitlescover.setWindowTitle('将字幕在 SRT/ASS/VTT 格式间互相转换' if config.defaulelang == 'zh' else 'Convert subtitles between SRT/ASS/VTT formats')
 
         self.selectbtn.setText(
             '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')

@@ -62,6 +62,9 @@ class FunasrRecogn(BaseRecogn):
                               punc_model="ct-punc", punc_model_revision="v2.0.4",
                               local_dir=config.ROOT_DIR + "/models",
                               hub='ms',
+                              
+                              
+                              spk_model="cam++", spk_model_revision="v2.0.2",
                               disable_update=True,
                               disable_progress_bar=True,
                               disable_log=True,
@@ -77,7 +80,7 @@ class FunasrRecogn(BaseRecogn):
             for it in res[0]['sentence_info']:
                 tmp={
                     "line": len(raw_subtitles) + 1,
-                    "text": it['text'],
+                    "text": (f"[spk{it['spk']}]" if config.params.get('paraformer_spk',False) else '') +it['text'],
                     "start_time": it['start'],
                     "end_time": it['end'],
                     "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',

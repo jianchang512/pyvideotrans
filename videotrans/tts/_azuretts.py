@@ -1,4 +1,4 @@
-import time
+import time,re
 
 import azure.cognitiveservices.speech as speechsdk
 
@@ -32,9 +32,11 @@ class AzureTTS(BaseTTS):
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
         text_xml = ''
         if len(items) == 1:
+            item[0]['text'] =re.sub(r'\[?spk\-?\d{1,2}\]','',item[0]['text'].strip(),re.I)
             text_xml += f"<prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{items[0]['text']}</prosody>"
         else:
             for i, it in enumerate(items):
+                it['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',it['text'].strip(),re.I)
                 text_xml += f"<bookmark mark='mark{i}'/><prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{it['text']}</prosody>"
 
         ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
@@ -117,6 +119,7 @@ class AzureTTS(BaseTTS):
             raise
         audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True, filename=filename )
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+        data_item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',data_item['text'].strip())
         text_xml = f"<prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{data_item['text']}</prosody>"
         ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
                                 <voice name='{}'>

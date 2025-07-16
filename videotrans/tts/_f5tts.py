@@ -20,7 +20,7 @@ class F5TTS(BaseTTS):
         super().__init__(*args, **kwargs)
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['f5tts_url'].strip().rstrip('/').lower()
-        self.api_url = 'http://' + api_url.replace('http://', '')
+        self.api_url =  f'http://{api_url}' if not api_url.startswith('http') else api_url
         self.v1_local=True
         
    
@@ -29,8 +29,9 @@ class F5TTS(BaseTTS):
             self.api_url=self.api_url[:sepflag]
         if not re.search(r'127.0.0.1|localhost',self.api_url):
             self.v1_local=False
-        self.proxies={"http": "", "https": ""}
-    
+        elif re.search(r'^https:',self.api_url):
+            self._set_proxy(type='set')
+        
 
     
     def _exec(self):
@@ -64,7 +65,7 @@ class F5TTS(BaseTTS):
                 return
             if data['ref_text'] and len(data['ref_text'])<10:
                 speed=0.5
-            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200},  ssl_verify=False)
 
             result = client.predict(
                     ref_audio_input=handle_file(data['ref_wav']),
@@ -78,7 +79,7 @@ class F5TTS(BaseTTS):
 
             config.logger.info(f'result={result}')
             wav_file=result[0] if isinstance(result,(list, tuple)) else result
-            if self.v1_local:
+            if self.v1_local or (isinstance(wav_file,str) and Path(wav_file).is_file()):
                 tools.wav2mp3(wav_file, data_item['filename'])
             else:
                 resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
@@ -128,7 +129,7 @@ class F5TTS(BaseTTS):
                 self.error = f'{role} 角色不存在'
                 return
 
-            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200},  ssl_verify=False)
 
             result = client.predict(
                     text=text,
@@ -140,7 +141,7 @@ class F5TTS(BaseTTS):
 
             config.logger.info(f'result={result}')
             wav_file=result[0] if isinstance(result,(list, tuple)) else result
-            if self.v1_local:
+            if self.v1_local or (isinstance(wav_file,str) and Path(wav_file).is_file()):
                 tools.wav2mp3(wav_file, data_item['filename'])
             else:
                 resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
@@ -188,7 +189,7 @@ class F5TTS(BaseTTS):
                 self.error = f'{role} 角色不存在'
                 return
 
-            client = Client(self.api_url,httpx_kwargs={"timeout":7200,"proxy":None},  ssl_verify=False)
+            client = Client(self.api_url,httpx_kwargs={"timeout":7200},  ssl_verify=False)
 
             result = client.predict(
                     prompt=handle_file(data['ref_wav']),
@@ -200,7 +201,7 @@ class F5TTS(BaseTTS):
             wav_file=result[0] if isinstance(result,(list, tuple)) else result
             if isinstance(wav_file,dict) and "value" in wav_file:
                 wav_file=wav_file['value']
-            if self.v1_local:
+            if self.v1_local or ( isinstance(wav_file,str) and Path(wav_file).is_file()):
                 tools.wav2mp3(wav_file, data_item['filename'])
             else:
                 resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())
@@ -244,6 +245,7 @@ class F5TTS(BaseTTS):
                 roledict = tools.get_f5tts_role()
                 if role in roledict:
                     data['ref_wav']=config.ROOT_DIR+f"/f5-tts/{role}"
+                    data['ref_text']=roledict.get('ref_text','')
             
             if not Path(data['ref_wav']).exists():
                 self.error = f'{role} 角色不存在'
@@ -254,12 +256,13 @@ class F5TTS(BaseTTS):
             result = client.predict(
                     text_input=text,
                     audio_prompt_input=handle_file(data['ref_wav']),
+                    transcription_input=data.get('ref_text',''),
                     api_name='/generate_audio'
             )
 
             config.logger.info(f'result={result}')
             wav_file=result[0] if isinstance(result,(list, tuple)) else result
-            if self.v1_local:
+            if self.v1_local or (isinstance(wav_file,str) and Path(wav_file).is_file()):
                 tools.wav2mp3(wav_file, data_item['filename'])
             else:
                 resp=requests.get(self.api_url+f'/gradio_api/file='+Path(wav_file).as_posix())

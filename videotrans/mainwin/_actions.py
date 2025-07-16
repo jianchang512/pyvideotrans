@@ -237,6 +237,10 @@ class WinAction(WinActionSub):
         lang = translator.get_code(show_text=self.main.source_language.currentText())
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
+        if (self.main.model_name.currentText()=='paraformer-zh' and recogn_type== recognition.FUNASR_CN ) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
+            self.main.show_spk.setVisible(True)
+        else:
+            self.main.show_spk.setVisible(False)
         if is_allow_lang is not True:
             QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
             return
@@ -528,19 +532,27 @@ class WinAction(WinActionSub):
 
     def check_model_name(self):
         recogn_type=self.main.recogn_type.currentIndex()
+        model=self.main.model_name.currentText()
         res = recognition.check_model_name(
             recogn_type=recogn_type,
-            name=self.main.model_name.currentText(),
+            name=model,
             source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
             source_language_currentText=self.main.source_language.currentText()
         )
-        print(f'{res=}')
+
         if res == 'download':
             from videotrans.winform import fn_downmodel
             return fn_downmodel.openwin(model_name=self.main.model_name.currentText(),
                                         recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
         if res is not True:
             return QMessageBox.critical(self.main, config.transobj['anerror'], res)
+        
+   
+   
+        if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
+            self.main.show_spk.setVisible(True)
+        else:
+            self.main.show_spk.setVisible(False)
         return True
 
     # 检测开始状态并启动
@@ -694,6 +706,7 @@ class WinAction(WinActionSub):
             self.cfg['app_mode'] = self.main.app_mode
 
         self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
+        self.cfg["paraformer_spk"] = self.main.show_spk.isChecked()
         config.params.update(self.cfg)
         config.getset_params(config.params)
         self.delete_process()
