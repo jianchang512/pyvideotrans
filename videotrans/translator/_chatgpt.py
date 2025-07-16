@@ -25,7 +25,7 @@ class ChatGPT(BaseTrans):
         self._check_proxy()
         self.model_name=config.params["chatgpt_model"]
 
-    def llm_segment(self,words_all,inst=None):
+    def llm_segment(self,words_all,inst=None,ai_type='openai'):
         # 以2000个字或单词分成一批
         prompts_template=Path(config.ROOT_DIR+'/videotrans/recharge-llm.txt').read_text(encoding='utf-8')
         chunk_size=int(config.settings.get('llm_chunk_size',500))
@@ -44,8 +44,15 @@ class ChatGPT(BaseTrans):
             ]
             config.logger.info(f'需要断句的:{message=}')
             #config.logger.info(f'{prompts=}')
-            model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                           http_client=httpx.Client(proxy=self.proxies,timeout=7200))
+            api_key= config.params['chatgpt_key'] if ai_type=='openai' else config.params['deepseek_key']
+            model_name= config.params['chatgpt_model'] if ai_type=='openai' else config.params['deepseek_model']
+            api_url=self._get_url(config.params['chatgpt_api']) if ai_type=='openai' else 'https://api.deepseek.com/v1'
+            proxy=None
+            pro = self._set_proxy(type='set')
+            if pro:
+                proxy = pro
+            config.logger.info(f'LLM re-segments:{api_url=},{pro=}')
+            model = OpenAI(api_key=api_key, base_url=api_url, http_client=httpx.Client(proxy=proxy,timeout=7200))
             try:
                 msg=f'第{batch_num}批次 LLM断句，每批次 {chunk_size} 个字或单词' if config.defaulelang=='zh' else f'Start sending {batch_num} batches of LLM segments, {chunk_size} words per batch'
                 config.logger.info(msg)
@@ -53,9 +60,9 @@ class ChatGPT(BaseTrans):
                     inst.status_text=msg
                     self._signal(text=msg)
                 response = model.chat.completions.create(
-                    model=config.params['chatgpt_model'],
+                    model=model_name,
                     timeout=7200,
-                    max_tokens= max(int(config.params.get('chatgpt_max_token')) if config.params.get('chatgpt_max_token') else 4096,4096),
+                    max_tokens= 8092,
                     messages=message,
                     response_format= { "type":"json_object" }
                 )
@@ -79,12 +86,12 @@ class ChatGPT(BaseTrans):
                 raise
 
             if not hasattr(response,'choices'):
-                config.logger.error(f'[chatGPT]第{batch_num}批次重新断句失败:{response=}')
+                config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
                 raise Exception(f"no choices:{response=}")
             if response.choices[0].finish_reason=='length':
                 raise Exception(f"请增加最大输出token或降低LLM重新断句每批次字/单词数")
             if not response.choices[0].message.content:
-                config.logger.error(f'[chatGPT]第{batch_num}批次重新断句失败:{response=}')
+                config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
                 raise Exception(f"no choices:{response=}")
                 
             result = response.choices[0].message.content
@@ -121,7 +128,7 @@ class ChatGPT(BaseTrans):
 
         
     def _check_proxy(self):
-        if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
+        if self.api_url and (re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url)):
             self.proxies=None
             return
         pro = self._set_proxy(type='set')

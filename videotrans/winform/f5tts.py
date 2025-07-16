@@ -11,17 +11,18 @@ def openwin():
     class TestTTS(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, text=None, role=None):
+        def __init__(self, *, parent=None, text=None, role=None,tts_type='f5-tts'):
             super().__init__(parent=parent)
             self.text = text
             self.role = role
+            self.tts_type=tts_type
 
         def run(self):
             try:
                 config.box_tts='ing'
                 tts.run(
                     queue_tts=[{"text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testf5tts.wav", "tts_type": tts.F5_TTS}],
+                                "filename": config.TEMP_HOME + f"/test{self.tts_type}.wav", "tts_type": tts.F5_TTS}],
                     language="zh",
                     play=True,
                     is_test=True
@@ -33,8 +34,10 @@ def openwin():
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
-        
-        winobj.test.setText('测试api')
+        else:
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            
+        winobj.test.setText('Test')
 
     def test():
         url = winobj.api_url.text().strip()
@@ -42,6 +45,7 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
+        print(f'{url=}')
         role = winobj.role.toPlainText().strip()
         if not role:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写参考音频才可测试')
@@ -59,7 +63,9 @@ def openwin():
         task = TestTTS(parent=winobj,
                        text="你好啊我的朋友",
                        
-                       role=role_test)
+                       role=role_test,
+                       tts_type=winobj.ttstype.currentText()
+                       )
         winobj.test.setText('测试中请稍等...')
         task.uito.connect(feed)
         task.start()

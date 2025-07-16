@@ -41,7 +41,7 @@ class GeminiRecogn(BaseRecogn):
  
     def _exec(self):
         seg_list=self.cut_audio()
-        nums=10
+        nums=int(config.settings.get('gemini_recogn_chunk',100))
         seg_list=[seg_list[i:i + nums] for i in  range(0, len(seg_list), nums)]
         if len(seg_list)<1:
             raise Exception(f'VAD error')
@@ -97,13 +97,16 @@ class GeminiRecogn(BaseRecogn):
                     if i < len(m):
                         startraw=tools.ms_to_time_string(ms=f['start_time'])
                         endraw=tools.ms_to_time_string(ms=f['end_time'])
+                        text=m[i].strip()
+                        if not config.params.get('paraformer_spk',False):
+                            text=re.sub(r'\[?spk\-?\d{1,2}\]','',text,re.I)
                         srt={
                             "line":len(srt_str_list)+1,
                             "start_time":f['start_time'],
                             "end_time":f['end_time'],
                             "startraw":startraw,
                             "endraw":endraw,
-                            "text":m[i].strip()
+                            "text":text
                         }
                         srt_str_list.append(srt)
                         str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
@@ -143,7 +146,7 @@ class GeminiRecogn(BaseRecogn):
                 raise 
 
         if len(srt_str_list)<1:
-            raise Exception('No result')
+            raise Exception('No result:The return format may not meet the requirements')
         return srt_str_list
     def _get_error(self, num=5, type='error'):
         REASON_CN = {

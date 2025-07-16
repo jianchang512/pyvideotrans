@@ -137,6 +137,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['recogn_type']==recognition.FUNASR_CN:
             self.model_name.addItems(config.FUNASR_MODEL)
             curr=config.FUNASR_MODEL
+            
         else:
             self.model_name.addItems(config.WHISPER_MODEL_LIST)
             curr=config.WHISPER_MODEL_LIST
@@ -152,6 +153,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
+        if config.params['model_name']=='paraformer-zh' or config.params['recogn_type']==recognition.Deepgram or config.params['recogn_type']==recognition.GEMINI_SPEECH:
+            self.show_spk.setVisible(True)
 
 
 
@@ -288,10 +291,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
+        
+
 
         self.actionbaidu_key.triggered.connect(winform.baidu.openwin)
         self.actionali_key.triggered.connect(winform.ali.openwin)
+        
         self.actionparakeet_key.triggered.connect(winform.parakeet.openwin)
+        
+        self.actionsrtmultirole.triggered.connect(winform.fn_peiyinrole.openwin)
+        self.actionsubtitlescover.triggered.connect(winform.fn_subtitlescover.openwin)
 
         self.actionazure_key.triggered.connect(winform.azure.openwin)
         self.actionazure_tts.triggered.connect(winform.azuretts.openwin)
@@ -325,7 +334,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
         self.actiontts_f5tts.triggered.connect(winform.f5tts.openwin)
         self.actiontts_volcengine.triggered.connect(winform.volcenginetts.openwin)
-        self.actionfreeai_key.triggered.connect(winform.freeai.openwin)
+        self.actionzhipuai_key.triggered.connect(winform.zhipuai.openwin)
+        self.actiondeepseek_key.triggered.connect(winform.deepseek.openwin)
+        self.actionopenrouter_key.triggered.connect(winform.openrouter.openwin)
+        self.actionsiliconflow_key.triggered.connect(winform.siliconflow.openwin)
 
 
         self.actionyoutube.triggered.connect(winform.fn_youtube.openwin)
@@ -370,6 +382,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
+        
+
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""

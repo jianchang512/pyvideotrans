@@ -98,7 +98,7 @@ class BaseRecogn(BaseCon):
             ob=ChatGPT()
             if self.inst and self.inst.status_text:
                 self.inst.status_text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting..."
-            return ob.llm_segment(words,self.inst)
+            return ob.llm_segment(words,self.inst,config.settings.get('llm_ai_type','openai'))
         except json.decoder.JSONDecodeError as e:
             self.inst.status_text="使用LLM重新断句失败" if config.defaulelang=='zh' else "Re-segmenting Error"
             config.logger.error(f"使用ChatGPT重新断句失败[JSONDecodeError]，已恢复原样 {e}")

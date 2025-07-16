@@ -1581,7 +1581,7 @@ def srt_str_to_listdict(srt_string):
             text = ('\n'.join(text_lines)).strip()
             text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
             text = re.sub(r'\n{2,}', '\n', text).strip()
-            if text and text[0] in ['-','[']:
+            if text and text[0] in ['-']:
                 text=text[1:]
             if text and len(text)>0 and text[-1] in ['-',']']:
                 text=text[:-1]
@@ -1712,19 +1712,21 @@ def srt2ass(srt_file, ass_file, maxlen=40):
 
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
-            ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
+            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,{marginV},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'],
                 fontbordercolor=config.settings['fontbordercolor'],
                 fontbackcolor=config.settings['fontbordercolor'],
-                subtitle_position=int(config.settings.get('subtitle_position',2)))
+                subtitle_position=int(config.settings.get('subtitle_position',2)),
+                marginV=int(config.settings.get('marginV',10))
+                )
             break
 
     with open(ass_file, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
 
-
+    
+    
 # 判断 novoice.mp4是否创建好
 def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
@@ -2102,14 +2104,8 @@ def vail_file(file=None):
     return True
 
 
-# 假设这些模块已导入
-import platform
-import subprocess
-import time
-import sys
-from pathlib import Path
-# 假设 config 模块存在且按预期工作
-# import config
+
+
 
 def get_video_codec(force_test: bool = False) -> str:
     """
@@ -2449,24 +2445,25 @@ def set_ass_font(srtfile=None):
         return os.path.basename(srtfile)
     runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
     assfile = f'{srtfile}.ass'
-    # import shutil
-    # shutil.copy2(assfile,assfile+"-test2.ass")
+    
     with open(assfile, 'r', encoding='utf-8') as f:
         ass_str = f.readlines()
 
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,0,1'.format(
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,{marginV},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
-                subtitle_position=int(config.settings.get('subtitle_position',2))
+                subtitle_position=int(config.settings.get('subtitle_position',2)),
+                marginV=int(config.settings.get('marginV',10))
                 )
         elif it.find('Dialogue: ') == 0:
             ass_str[i] = it.replace('  ', '\\N')
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
+    shutil.copy(assfile,'c:/users/c1/videos/ceshi.ass')
     return assfile
 
 

@@ -119,6 +119,10 @@ def openwin():
             return fn_downmodel.openwin(model_name=model, recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
         if res is not True:
             return QMessageBox.critical(winobj, config.transobj['anerror'], res)
+        if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
+            winobj.show_spk.setVisible(True)
+        else:
+            winobj.show_spk.setVisible(False)
         return True
 
     def shibie_start_fun():
@@ -195,12 +199,13 @@ def openwin():
                 config.prepare_queue.append(trk)
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
-            th.start()
             config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
             config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
             config.params["stt_model_name"]=winobj.shibie_model.currentText()
             config.params["stt_remove_noise"]=winobj.remove_noise.isChecked()
+            config.params["paraformer_spk"]=winobj.show_spk.isChecked()
             config.getset_params(config.params)
+            th.start()
 
         except Exception as e:
             QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
@@ -273,6 +278,11 @@ def openwin():
             return
         if is_input_api(recogn_type=recogn_type) is not True:
             return
+        
+        if recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH or  (winobj.shibie_model.currentText()=='paraformer-zh' and recogn_type==recognition.FUNASR_CN):
+            winobj.show_spk.setVisible(True)
+        else:
+            winobj.show_spk.setVisible(False)
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=winobj.shibie_model.currentText())
         if is_allow_lang_res is not True:
@@ -371,7 +381,10 @@ def openwin():
             curr=config.WHISPER_MODEL_LIST
             winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
         if config.params.get('stt_model_name') in curr:
-            winobj.shibie_model.setCurrentText(config.params.get('stt_model_name'))
+            current_model=config.params.get('stt_model_name')            
+            winobj.shibie_model.setCurrentText(current_model)
+            if current_model=='paraformer-zh' or default_type == recognition.Deepgram or default_type==recognition.GEMINI_SPEECH:
+                winobj.show_spk.setVisible(True)
 
         if default_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
             winobj.shibie_model.setDisabled(True)

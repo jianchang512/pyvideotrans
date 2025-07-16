@@ -283,6 +283,12 @@ class Ui_MainWindow(object):
         self.model_name.setMinimumSize(QtCore.QSize(160, 30))
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
+        
+        self.show_spk = QtWidgets.QCheckBox()
+        self.show_spk.setObjectName('show_spk')
+        self.show_spk.setText("识别说话人?" if config.defaulelang == 'zh' else 'Speaker classification?')
+        self.show_spk.setChecked(config.params.get('paraformer_spk',False))
+        self.show_spk.setVisible(False)
 
         self.split_label=QtWidgets.QPushButton()
         self.split_label.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -322,6 +328,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.recogn_type)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
+        self.horizontalLayout_4.addWidget(self.show_spk)
         self.horizontalLayout_4.addWidget(self.split_label)
         self.horizontalLayout_4.addWidget(self.split_type)
         self.horizontalLayout_4.addLayout(self.equal_split_layout)
@@ -665,8 +672,14 @@ class Ui_MainWindow(object):
 
         self.actionchatgpt_key = QtGui.QAction(MainWindow)
         self.actionchatgpt_key.setObjectName("actionchatgpt_key")
-        self.actionfreeai_key = QtGui.QAction(MainWindow)
-        self.actionfreeai_key.setObjectName("actionfreeai_key")
+        self.actionzhipuai_key = QtGui.QAction(MainWindow)
+        self.actionzhipuai_key.setObjectName("actionzhipuai_key")
+        self.actionsiliconflow_key = QtGui.QAction(MainWindow)
+        self.actionsiliconflow_key.setObjectName("actionsiliconflow_key")
+        self.actiondeepseek_key = QtGui.QAction(MainWindow)
+        self.actiondeepseek_key.setObjectName("actiondeepseek_key")
+        self.actionopenrouter_key = QtGui.QAction(MainWindow)
+        self.actionopenrouter_key.setObjectName("actionopenrouter_key")
 
         self.actionclaude_key = QtGui.QAction(MainWindow)
         self.actionclaude_key.setObjectName("actionclaude_key")
@@ -820,6 +833,8 @@ class Ui_MainWindow(object):
         self.actionformatcover.setObjectName("formatcover")
         self.actionsubtitlescover = QtGui.QAction(MainWindow)
         self.actionsubtitlescover.setObjectName("subtitlescover")
+        self.actionsrtmultirole = QtGui.QAction(MainWindow)
+        self.actionsrtmultirole.setObjectName("actionsrtmultirole")
 
         self.action_yinshipinfenli = QtGui.QAction(MainWindow)
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
@@ -836,7 +851,13 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionlocalllm_key)
         self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionfreeai_key)
+        self.menu_Key.addAction(self.actionzhipuai_key)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionsiliconflow_key)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actiondeepseek_key)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionopenrouter_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionclaude_key)
         self.menu_Key.addSeparator()
@@ -909,6 +930,8 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.actionsubtitlescover)
         self.menu.addSeparator()
+        self.menu.addAction(self.actionsrtmultirole)
+        self.menu.addSeparator()
         self.menu.addAction(self.action_yinshipinfenli)
         self.menu.addSeparator()
         self.menu.addAction(self.action_hun)
@@ -962,7 +985,11 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_yuyinshibie)
         self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
+        self.toolBar.addAction(self.actionsrtmultirole)
+        self.toolBar.addAction(self.actionsubtitlescover)
+
         self.toolBar.addAction(self.action_yingyinhebing)
+
 
         # 200ms后渲染文字
         QTimer.singleShot(50, self.retranslateUi)
@@ -1030,7 +1057,10 @@ class Ui_MainWindow(object):
         self.actionbaidu_key.setText("百度翻译" if config.defaulelang == 'zh' else "Baidu Key")
         self.actionali_key.setText("阿里机器翻译" if config.defaulelang == 'zh' else "Alibaba Translation")
         self.actionchatgpt_key.setText("OpenAI API 及兼容AI" if  config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
-        self.actionfreeai_key.setText("GLM-4-flash/Qwen2.5-7b")
+        self.actionzhipuai_key.setText("智谱AI" if  config.defaulelang == 'zh' else 'Zhipu AI')
+        self.actionsiliconflow_key.setText('硅基流动' if  config.defaulelang == 'zh' else  "Siliconflow")
+        self.actiondeepseek_key.setText('DeepSeek')
+        self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
@@ -1060,7 +1090,7 @@ class Ui_MainWindow(object):
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
-        self.actiontts_f5tts.setText("F5/SparK/index/Dia TTS")
+        self.actiontts_f5tts.setText("F5/index/SparK/Dia TTS")
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
@@ -1135,6 +1165,9 @@ class Ui_MainWindow(object):
         self.actionformatcover.setToolTip(
             '批量将音频和视频转换格式' if config.defaulelang == 'zh' else 'Batch convert audio and video formats')
 
-        self.actionsubtitlescover.setText('字幕多格式转换' if config.defaulelang == 'zh' else 'Batch Subtitle Conversion')
+        self.actionsubtitlescover.setText('批转换字幕格式' if config.defaulelang == 'zh' else 'Conversion Subtitle Format')
         self.actionsubtitlescover.setToolTip(
             '批量将字幕文件进行格式转换(srt/ass/vtt)' if config.defaulelang == 'zh' else 'Batch convert subtitle formats (srt/ass/vtt)')
+
+        self.actionsrtmultirole.setText('字幕多角色配音' if config.defaulelang == 'zh' else 'Multi voice dubbing for SRT')
+        self.actionsrtmultirole.setToolTip('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')

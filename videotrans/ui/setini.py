@@ -96,7 +96,9 @@ class Ui_setini(object):
                 "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
                 "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
                 "is_queue":"视频翻译任务默认交叉并发执行，以提高速度，选中该项则排队挨个翻译,速度会降低",
-                "llm_chunk_size":"LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败"
+                "llm_chunk_size":"LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败",
+                "llm_ai_type":"LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
+                "gemini_recogn_chunk":"使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高"
             },
 
             "video": {
@@ -115,6 +117,7 @@ class Ui_setini(object):
                 "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
                 "fontbordercolor": "设置字体边框颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
                 "subtitle_position": "字幕所处位置，默认底部",
+                "marginV":"字幕距离底部距离"
 
             },
             "trans": {
@@ -196,6 +199,9 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
+            "llm_ai_type":"LLM重新断句时使用的AI渠道",
+            "marginV":"字幕距离底部距离",
+            "gemini_recogn_chunk":"Gemini语音识别时，单次发送音频切片数",
             "ai302_models": "302.ai翻译模型列表",
             "llm_chunk_size":"LLM重新断句每批次发送字或单词数",
             "ai302tts_models": "302.aiTTS模型列表",
@@ -316,7 +322,9 @@ class Ui_setini(object):
                     "is_queue":"Video translation tasks are cross-executed concurrently by default to increase speed, checking this item queues the translations one by one.",
                     "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
                     "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory",
-                    "llm_chunk_size":"When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit"
+                    "llm_chunk_size":"When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit",
+                    "llm_ai_type":"The AI channel used when LLM re-segmentation, currently supports openai or deepseek channels",
+                    "gemini_recogn_chunk":"When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase"
                 },
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
@@ -334,6 +342,7 @@ class Ui_setini(object):
                     "fontcolor": "Set the font color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
                     "fontbordercolor": "Set the font border color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
                     "subtitle_position": "Subtitles top/bottom/center",
+                    "marginV":"Distance between subtitles and bottom edge"
                 },
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
@@ -424,6 +433,9 @@ class Ui_setini(object):
             }
 
             self.titles = {
+                "llm_ai_type":"The AI channel used when LLM re-segmentation",
+                "marginV":"Distance between subtitles and bottom edge",
+                "gemini_recogn_chunk":"Gemini to recognize speech,number of audio slices sent",
                 "homedir": "Set Home directory",
                 "llm_chunk_size":"LLM re-segmentation sends each batch of words",
                 "is_queue":"Video Translation Task Queuing Translation",
@@ -563,6 +575,17 @@ class Ui_setini(object):
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
                     if val in cuda_types:
+                        tmp1.setCurrentText(val)
+                    tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
+                if key=='llm_ai_type':
+                    ai_types=['openai','deepseek']
+                    tmp1=QtWidgets.QComboBox()
+                    tmp1.addItems(ai_types)
+                    tmp1.setObjectName(key)
+                    if val in ai_types:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)

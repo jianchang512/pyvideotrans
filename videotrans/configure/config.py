@@ -232,9 +232,9 @@ DEEPGRAM_MODEL=[
             "whisper-small",
             "whisper-base",
             "whisper-tiny",
-            "nova-2-general",
-            "enhanced-2-general",
-            "base-2-general",
+            "nova-2",
+            "enhanced",
+            "base",
 
         ]
 
@@ -255,7 +255,7 @@ AzureTTS_rolelist = None
 DEFAULT_GEMINI_MODEL="gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 
 line_roles={}
-
+dubbing_role={}
 
 
 
@@ -286,12 +286,17 @@ def parse_init():
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "video_codec": 264,
+        
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
         "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
         "azure_model": "gpt-4.1,gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
         "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
+        "zhipuai_model":"glm-4-flash",
+        "deepseek_model":"deepseek-chat,deepseek-reasoner",
+        "openrouter_model":"moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
+        "guiji_model":"Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "audio_rate": 3,
@@ -307,6 +312,8 @@ def parse_init():
         "max_speech_duration_s":15,
         "min_silence_duration_ms":250,
         "speech_pad_ms":200,
+        
+        
 
 
         "overall_maxsecs":15,
@@ -368,10 +375,14 @@ def parse_init():
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
         "subtitle_position":2,
+        "marginV":10,
         "cjk_len": 20,
         "other_len": 60,
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
+        "llm_ai_type":"openai",
+
+        "gemini_recogn_chunk":100,
 
         "zh_hant_s": True,
         "azure_lines": 100,
@@ -467,6 +478,13 @@ _claude_model_list = [it.strip() for it in settings['claude_model'].split(',') i
 _azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 _localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
 _zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
+
+_zhipuai_model_list = [it.strip() for it in settings['zhipuai_model'].split(',') if it.strip()]
+_guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if it.strip()]
+
+_deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
+_openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
+
 if len(_chatgpt_model_list) < 1:
     _chatgpt_model_list = ['']
 if len(_claude_model_list) < 1:
@@ -644,6 +662,8 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
     default = {
         "last_opendir": HOME_DIR,
         "cuda": False,
+        
+        "paraformer_spk":False,
 
         "line_roles":{},
 
@@ -802,8 +822,21 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "localllm_top_p": "1.0",
 
         "zhipu_key":"",
+        "zhipu_model": _zhipuai_model_list[0],
+        "zhipu_template":"",
+        
+        
         "guiji_key":"",
-        "free_template":"",
+        "guiji_model": _guiji_model_list[0],
+        "guiji_template":"",
+        
+        "deepseek_key":"",
+        "deepseek_model": _deepseek_model_list[0],
+        "deepseek_template":"",
+        
+        "openrouter_key":"",
+        "openrouter_model": _openrouter_model_list[0],
+        "openrouter_template":"",
 
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],

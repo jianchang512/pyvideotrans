@@ -158,6 +158,7 @@ class BaseTTS(BaseCon):
                 if normalizer:
                     item['text']=normalizer(item['text'])
                     print(f'normalizer:{item["text"]}')
+                item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',item['text'].strip(),re.I)
                 self._item_task(item)
         else:
             with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
@@ -165,6 +166,7 @@ class BaseTTS(BaseCon):
                     if normalizer:
                         item['text']=normalizer(item['text'])
                         print(f'normalizer:{item["text"]}')
+                    item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',item['text'].strip(),re.I)
                     all_task.append(pool.submit(self._item_task, item))
                 _ = [i.result() for i in all_task]
 

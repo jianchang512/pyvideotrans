@@ -1,6 +1,6 @@
 import asyncio
 import threading
-import time
+import time,re
 from pathlib import Path
 
 
@@ -41,6 +41,7 @@ class EdgeTTS(BaseTTS):
                     self.inst.precent += 0.05
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} [{i+1}/{length}]')
                 time.sleep(self.wait_sec if self.wait_sec>0 else 0.1)
+                it['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',it['text'].strip(),re.I)
                 communicate = Communicate(
                     it['text'],
                     voice=it['role'],
@@ -57,8 +58,6 @@ class EdgeTTS(BaseTTS):
             raise Exception(f'代理错误，请检查 {e}')
         except Exception as e:
             config.logger.exception(e, exc_info=True)
-            if str(e).find('Invalid response status'):
-                raise Exception('可能被edge限流，请尝试使用或切换代理节点')
             print(f"异步合成出错: {e}")
             raise
         finally:
@@ -71,6 +70,5 @@ class EdgeTTS(BaseTTS):
             return
         if Path(config.ROOT_DIR+'/edgetts.txt').is_file():
             self.proxies='http://'+Path(config.ROOT_DIR+'/edgetts.txt').read_text(encoding='utf-8').strip()
-            print(f'{self.proxies=}')
         asyncio.run(self._task_queue())
         
