@@ -343,6 +343,7 @@ class WinAction(WinActionSub):
                 self.main.current_rolelist = tools.get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif self.change_by_lang(type):
+            print(f'{type=}')
             self.set_voice_role(self.main.target_language.currentText())
         elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
@@ -387,8 +388,10 @@ class WinAction(WinActionSub):
     # 目标语言改变时设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
+        print(f'{t=}')
         role = self.main.voice_role.currentText()
         code = translator.get_code(show_text=t)
+        print(f'{code=}')
         if code and code != '-':
             is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=self.main.tts_type.currentIndex())
             if is_allow_lang is not True:
@@ -459,7 +462,9 @@ class WinAction(WinActionSub):
             QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
             return
         try:
-            vt = code.split('-')[0]
+            vt = code.split('-')[0] if code !='yue' else "zh"
+            print(f'{vt=}')
+            
             if vt not in show_rolelist:
                 self.main.voice_role.addItems(['No'])
                 return

@@ -1211,7 +1211,7 @@ class TransCreate(BaseTask):
 
 
         如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎各位小额赞助，有了一定资金支持，我将能够持续投入更多时间和精力
-        捐助地址：https://github.com/jianchang512/pyvideotrans/issues/80
+        捐助地址：https://pvt9.com/about
 
         ====
 

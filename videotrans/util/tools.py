@@ -664,6 +664,20 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     
     final_args = arg
     hw_decode_opts = []
+    
+    # 如果 crf < 10 则直接强制使用软编码
+    if "-crf" in final_args and final_args[-1].endswith(".mp4"):
+        crf_index=final_args.index("-crf")
+        if int(final_args[crf_index+1])<=10:
+            force_cpu=True
+            if "-preset" in final_args:
+                preset_index=final_args.index("-preset")
+                final_args[preset_index+1]='ultrafast'
+            else:
+                final_args.insert(-1,"-preset")
+                final_args.insert(-1,"ultrafast")
+                
+                
 
     if not force_cpu:
         if not hasattr(config, 'video_codec') or not config.video_codec:
@@ -751,171 +765,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         raise
 
 
-# 执行 ffmpeg
-def runffmpeg0708(arg, *, noextname=None, uuid=None, force_cpu=False):
-    arg_copy = copy.deepcopy(arg)
-    file_name = ""
-
-    cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
-    # 默认视频编码 libx264 / libx265
-    default_codec = f"libx{config.settings['video_codec']}"
-
-    # 尝试cuda加速解码编码
-    if not force_cpu and default_codec in arg and config.video_codec != default_codec:
-        if not config.video_codec:
-            config.video_codec = get_video_codec()
-        # 判断第一个输入是不是mp4，是则尝试cuda解码
-        has_mp4 = False
-        # 插入解码位置
-        insert_index = -1
-        for i, it in enumerate(arg):
-            if insert_index == -1 and arg[i] == '-i':
-                insert_index = i
-                has_mp4 = True if arg[i + 1][-3:] in ['mp4', 'txt'] else False
-
-            if i > 0 and arg[i - 1] == '-c:v' and arg[i] != 'copy':
-                arg[i] = config.video_codec
-            elif it=='-preset' and config.video_codec[-3:]=='amf':
-                # intel win
-                arg[i+1]="quality"
-            elif it=='-preset' and config.video_codec[-3:]=='qsv': 
-                #amd win
-                arg[i+1]="fast" if 'fast' in arg[i+1]  else "slow"
-            elif it=='-preset' and config.video_codec[-3:]=='api': 
-                #linux intel amd
-                arg[i+1]="fast" if 'fast' in arg[i+1]  else "slow"
-            elif it=='-preset' and config.video_codec[-3:]=='enc':
-                # cuda
-                arg[i+1]="hp" if 'fast' in arg[i+1]  else "hq"
-
-
-        # 第一个 -i 输入是mp4或txt连接文件，并且最终输出是mp4，并且已支持cuda编码，则尝试使用cuda解码
-        # 因显卡兼容性，出错率较高
-        # 启用硬件加速
-        if config.video_codec.find('_videotoolbox') > 0:
-            # 移除 preset 防止出错
-            if '-preset' in arg:
-                pos = arg.index('-preset')
-                arg.pop(pos)
-                arg.pop(pos)
-            if config.settings.get('cuda_decode', False):
-                cmd.append("-hwaccel")
-                cmd.append("videotoolbox")
-        elif config.video_codec[-3:] == 'enc' and config.settings.get('cuda_decode', False) and insert_index > -1 and has_mp4 and arg[-1][-3:] == 'mp4':
-            arg.insert(insert_index, "cuda")
-            arg.insert(insert_index, "-hwaccel")
-
-        # 硬件加速时删掉 crf qp 等，避免某些硬件下出错
-        if "-crf" in arg and config.video_codec[-3:] in ['enc','qsv','amf','api','box']:
-            crf_index=arg.index("-crf")
-            arg=arg[:crf_index]+arg[crf_index+2:]
-
-    cmd += arg
-    if Path(cmd[-1]).is_file():
-        cmd[-1] = Path(cmd[-1]).as_posix()
-    # 插入自定义 ffmpeg 参数
-    if config.settings['ffmpeg_cmd']:
-        for it in config.settings['ffmpeg_cmd'].split(' '):
-            cmd.insert(-1, str(it))
-    if noextname:
-        config.queue_novice[noextname] = 'ing'
-    try:
-        config.logger.info(f'{force_cpu=},{cmd=}')
-        subprocess.run(cmd,
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE,
-                       encoding="utf-8",
-                       errors='replace',
-                       check=True,
-                       text=True,
-                       creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-        if noextname:
-            config.queue_novice[noextname] = "end"
-        return True
-    except FileNotFoundError as e:
-        # Specific error: The command executable itself was not found.
-        # This often means the program isn't installed or not in the system's PATH.
-        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. "
-                            f"Ensure it's installed and in the PATH. {force_cpu=}. Error: {e}")
-        raise
-        # Depending on requirements, you might not want to raise here, just return False.
-        # raise # Or re-raise if the caller needs to handle it specifically
-
-    except PermissionError as e:
-        # Specific error: Permission denied to execute the command.
-        # The user running the script doesn't have execute permissions for cmd[0].
-        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. "
-                            f"{force_cpu=}. Error: {e}")
-        raise # Or re-raise
-    except subprocess.CalledProcessError as e:
-        config.logger.exception(f'cmd执行出错抛出异常{force_cpu=}:{cmd=},{str(e.stderr)}', exc_info=True)
-        # 处理视频时如果出错，尝试回退
-        if not force_cpu and cmd[-1].endswith('.mp4'):
-            # 存在视频的copy操作时，尝试回退使用重新编码
-            # 切换为cpu
-            set_process(text=config.transobj['huituicpu'], uuid=uuid)
-            config.logger.error(f'执行出错，退回到CPU执行')
-            for i, it in enumerate(arg_copy):
-                if i > 0 and arg_copy[i - 1] == '-c:v' and arg_copy[i] not in ['copy', 'libx264', 'libx265']:
-                    arg_copy[i] = default_codec
-            return runffmpeg(arg_copy, noextname=noextname, force_cpu=True)
-        if noextname:
-            config.queue_novice[noextname] = "error"
-        raise Exception(extract_concise_error(e.stderr))
-    except OSError as e:
-        # Catch other OS-level errors during process creation/execution that aren't
-        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
-        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. "
-                            f"{force_cpu=}. Error: {e}", exc_info=True)
-        raise # Or re-raise
-    except Exception as e:
-        if noextname:
-            config.queue_novice[noextname] = "error"
-        config.logger.exception(e)
-        raise
-
-
-# run ffprobe 获取视频元信息
-def runffprobe0708(cmd):
-    try:
-        if Path(cmd[-1]).is_file():
-            cmd[-1] = Path(cmd[-1]).as_posix()
-        p = subprocess.run([config.FFPROBE_BIN] + cmd,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
-                           encoding="utf-8",
-                           errors='replace',
-                           text=True,
-                           check=True,
-                           creationflags=0 if sys.platform != 'win32' else subprocess.CREATE_NO_WINDOW)
-        if p.stdout:
-            return p.stdout.strip()
-        config.logger.error(str(p.stderr))
-        raise Exception(extract_concise_error(str(p.stderr)))
-    except FileNotFoundError as e:
-        # Specific error: The command executable itself was not found.
-        # This often means the program isn't installed or not in the system's PATH.
-        config.logger.error(f"Command not found: {cmd[0] if isinstance(cmd, list) else cmd}. ")
-        raise
-        # Depending on requirements, you might not want to raise here, just return False.
-        # raise # Or re-raise if the caller needs to handle it specifically
-
-    except PermissionError as e:
-        # Specific error: Permission denied to execute the command.
-        # The user running the script doesn't have execute permissions for cmd[0].
-        config.logger.error(f"Permission denied to execute command: {cmd[0] if isinstance(cmd, list) else cmd}. ")
-        raise # Or re-raise
-    except subprocess.CalledProcessError as e:
-        config.logger.exception(e)
-        msg = extract_concise_error(e.stderr)
-        raise Exception(msg)
-    except OSError as e:
-        # Catch other OS-level errors during process creation/execution that aren't
-        # FileNotFoundError or PermissionError (e.g., invalid argument format on some OS, resource issues).
-        config.logger.error(f"An OS error occurred while trying to run command: {cmd=}. ", exc_info=True)
-        raise # Or re-raise
-    except Exception as e:
-        raise
 
 
 def hide_show_element(wrap_layout, show_status):
@@ -993,23 +842,6 @@ def get_video_info0708(mp4_file, *, video_fps=False, video_scale=False, video_ti
     return result
 
 
-import subprocess
-import sys
-import json
-import logging
-from pathlib import Path
-
-# --- 假设的依赖项 (为了代码可独立运行) ---
-# 在您的项目中，这些可能来自 config 模块
-# import config
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-# 假设 ffprobe 在系统 PATH 中，或在这里指定路径
-# FFPROBE_BIN = config.FFPROBE_BIN
-FFPROBE_BIN = 'ffprobe' 
-
-
-
 class _FFprobeInternalError(Exception):
     """用于内部错误传递的自定义异常。"""
     pass
@@ -1022,7 +854,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
     if Path(cmd[-1]).is_file():
         cmd[-1] = Path(cmd[-1]).as_posix()
 
-    command = [FFPROBE_BIN] + [str(arg) for arg in cmd]
+    command = [config.FFPROBE_BIN] + [str(arg) for arg in cmd]
     creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
 
     try:
@@ -1068,7 +900,7 @@ def runffprobe(cmd):
 
     except _FFprobeInternalError as e:
         # 将内部异常转换为旧代码期望的通用 Exception
-        raise Exception(str(e))
+        raise
     except Exception as e:
         # 捕获其他意料之外的错误并重新引发，保持行为一致
         config.logger.error(f"An unexpected error occurred in runffprobe: {e}", exc_info=True)
@@ -1088,7 +920,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             raise Exception('ffprobe error: dont get video information')
     except Exception as e:
         # 确保抛出的异常与旧版本一致
-        raise Exception(f'ffprobe error: {e}') from e
+        raise Exception(f'ffprobe error: {e}. {mp4_file=}') from e
 
     # 解析 JSON 并填充结果字典
     try:
@@ -1163,7 +995,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     
     return result
 
-# 获取某个视频的时长 s
+# 获取某个视频的时长 ms
 def get_video_duration(file_path):
     return get_video_info(file_path, video_time=True)
 
@@ -1783,16 +1615,46 @@ def cut_from_video(*, ss="", to="", source="", pts="", out=""):
         
     
     cmd1 += ['-i',source,'-an']
-    if pts:
+    
+    if pts and float(pts)>1.01:
         cmd1 += ["-vf", f"setpts={pts}*PTS"]
+        config.logger.info(f'视频慢速{pts=}，为防止硬件编码时setpts滤镜出错，强制CPU软编码 ')
 
     cmd1 += ["-c:v", f"libx{video_codec}"]
-    crf=config.settings.get("crf", 1)
+    crf=int(config.settings.get("crf", 1))
     preset=config.settings.get('preset','fast')
-    if int(crf)<10 or preset!='fast':
-        cmd1+=['-crf', f'{crf}', '-preset', preset]
-    cmd = cmd1 + [f'{out}']
-    return runffmpeg(cmd)
+    
+    
+    # 不支持硬件编码，强制软编码，一步到位
+    if config.video_codec.startswith('libx'):
+        cmd1+=['-crf', f'{crf}', '-preset', preset,f'{out}']
+        return runffmpeg(cmd1,force_cpu=True)
+    
+    # 支持硬件编码，如果不存在 pts，则可直接使用硬件编码
+    if "-vf" not in cmd1:
+        cmd1+=['-crf', f'{crf}', '-preset', preset,f'{out}']
+        return runffmpeg(cmd1)
+    # 如果 pts存在，硬件加速应用 setpts滤镜容易出错，先使用软件应用滤镜操作生成中间视频，再使用硬件编码压缩该视频
+    # 如果要求的crf<10则直接软编码输出，无需中间文件
+    if crf<=10:
+        cmd1+=['-crf', f'{crf}', '-preset', 'ultrafast',f'{out}']
+        return runffmpeg(cmd1,force_cpu=True)
+    # 如果crf>10，则先生成crf=10的中间文件，再硬件压缩出需要的crf文件
+    cmd1+=['-crf', f'10', '-preset', 'ultrafast',f'{out}-crf10.mp4']
+    runffmpeg(cmd1,force_cpu=True)
+    # 开始硬件压缩
+    cmd_end=["-y","-i",f"{out}-crf10.mp4","-c:v", f"libx{video_codec}","-crf",f"{crf}",f"{out}"]
+    config.logger.info(f'当前{crf=},{pts=},软编码应用滤镜后的中间文件是{out}-crf10.mp4,需要执行的硬件压缩命令:{cmd_end=}')
+    runffmpeg(cmd_end)
+    # 删除庞大的中间文件,忽略错误
+    try:
+        Path(f"{out}-crf10.mp4").unlink()
+    except:
+        pass
+    return True
+    
+    
+    
 
 
 # 从音频中截取一个片段

@@ -24,13 +24,15 @@
 > 集合了最新最全的AI模型和品牌/按需付费零月费/管理和使用分离/所有AI能力均提供API/每周推出2-3个新应用
 
 
-# 主要用途和功能
+## 主要用途和功能
 
 【自动翻译视频并配音】将视频中的声音翻译为另一种语言的配音，并嵌入该语言字幕
 
 【语音识别/将音频视频转为字幕】可批量将音频、视频文件中的人类说话声，识别为文字并导出为srt字幕文件
 
 【语音合成/字幕配音】根据本地已有的srt字幕文件创建配音，支持单个或批量字幕
+
+【字幕多角色配音】导入本地已有的srt字幕，为每条字幕指定一个配音角色，创建多角色配音文件
 
 【翻译字幕文件】将一个或多个srt字幕文件翻译为其他语言的字幕文件
 
@@ -52,7 +54,7 @@
 
 【人声背景乐分离】
 
-【API调用】支持 语音合成、语言识别、字幕翻译、视频翻译接口调用
+【API调用<v3.0】支持 语音合成、语言识别、字幕翻译、视频翻译接口调用
 
 ----
 
@@ -60,7 +62,7 @@
 
 [![Open In Colab](https://img.shields.io/badge/Colab-F9AB00?style=for-the-badge&logo=googlecolab&color=525252)](https://colab.research.google.com/drive/1kPTeAMz3LnWRnGmabcz4AWW42hiehmfm?usp=sharing)
 
-# 预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
+## 预打包版本(仅win10/win11可用，MacOS/Linux系统使用源码部署)
 
 > 使用pyinstaller打包，未做免杀和签名，杀软可能报毒，请加入信任名单或使用源码部署
 
@@ -71,7 +73,8 @@
 4. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
 
 
-# MacOS源码部署
+
+## MacOS源码部署
 
 0. 打开终端窗口，分别执行如下命令
 	
@@ -125,7 +128,7 @@
 
 
 
-# Linux 源码部署
+## Linux 源码部署
 
 0. CentOS/RHEL系依次执行如下命令安装 python3.10
 
@@ -204,17 +207,17 @@ apt-get install ffmpeg
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu126`
 
-    `pip install nvidia-cublas-cu11 nvidia-cudnn-cu11`
+    `pip install nvidia-cublas-cu12 nvidia-cudnn-cu12`
 
-9. linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境,请自行搜索 "Linux CUDA 安装"
+9. linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA12+环境,请自行搜索 "Linux CUDA 安装"
 
 
 10. `python sp.py` 打开软件界面
 
 
-# Window10/11 源码部署
+## Window10/11 源码部署
 
 0. 打开 https://www.python.org/downloads/ 下载 windows3.10，下载后双击，一路next，注意要选中“Add to PATH”
 
@@ -240,18 +243,20 @@ apt-get install ffmpeg
 
     `pip uninstall -y torch torchaudio`
 
-    `pip install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118`
+    `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu126`
 
 
-9. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA11.8+环境，具体安装见 [CUDA加速支持](https://pyvideotrans.com/gpu.html)
+9. windows  如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA12+环境，具体安装见 [CUDA加速支持](https://pyvideotrans.com/gpu)
 
 10. 解压 ffmpeg.zip 到当前源码目录下，提示覆盖则覆盖，解压后确保源码下的ffmepg文件夹内能看到 ffmpeg.exe ffprobe.exe ytwin32.exe,
 
 11. `python sp.py` 打开软件界面
 
 
+## [使用 UV 部署：参考文档](https://pyvideotrans.com/blog/uv)
 
-#  源码部署问题说明
+
+##  源码部署问题说明
 
 1. 默认使用 ctranslate2的4.x版本，仅支持CUDA12.x版本，如果你的cuda低于12，并且无法升级cuda到12.x，请执行命令卸载ctranslate2然后重新安装
 
