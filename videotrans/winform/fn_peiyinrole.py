@@ -74,7 +74,7 @@ class SignThread(QThread):
 
 # ==================== 语言字典 (完整版) ====================
 langname_dict={
-    "zh-cn": "中文简", "zh-tw": "中文繁", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语", "ru": "俄语", "es": "西班牙语",
+    "zh-cn": "中文简", "zh-tw": "中文繁","yue":"粤语", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语", "ru": "俄语", "es": "西班牙语",
     "th": "泰国语", "it": "意大利语", "pt": "葡萄牙语", "vi": "越南语", "ar": "阿拉伯语", "tr": "土耳其语", "hi": "印度语", "hu": "匈牙利语",
     "uk": "乌克兰语", "id": "印度尼西亚", "ms": "马来语", "kk": "哈萨克语", "cs": "捷克语", "pl": "波兰语", "nl": "荷兰语", "sv": "瑞典语",
     "he": "希伯来语", "bn":"孟加拉语", "fil":"菲律宾语", "af": "南非荷兰语", "sq": "阿尔巴尼亚语", "am": "阿姆哈拉语", "az": "阿塞拜疆语",
@@ -87,7 +87,7 @@ langname_dict={
 }
 if config.defaulelang !='zh':
     langname_dict={
-        "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese", "en": "English", "fr": "French", "de": "German", "ja": "Japanese",
+        "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese","yue":"Cantonese", "en": "English", "fr": "French", "de": "German", "ja": "Japanese",
         "ko": "Korean", "ru": "Russian", "es": "Spanish", "th": "Thai", "it": "Italian", "pt": "Portuguese", "vi": "Vietnamese",
         "ar": "Arabic", "tr": "Turkish", "hi": "Hindi", "hu": "Hungarian", "uk": "Ukrainian", "id": "Indonesian", "ms": "Malay",
         "kk": "Kazakh", "cs": "Czech", "pl": "Polish", "nl": "Dutch", "sv": "Swedish", "he": "Hebrew", "bn":"Bengali", "fil":"Filipino",
@@ -397,7 +397,7 @@ def openwin():
             QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nojueselist'])
             return
         try:
-            vt = code.split('-')[0]
+            vt = code.split('-')[0] if code !='yue' else "zh"
             if vt not in show_rolelist:
                 winobj.hecheng_role.addItems(['No'])
                 return

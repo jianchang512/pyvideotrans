@@ -67,6 +67,7 @@ class SignThread(QThread):
 langname_dict={
     "zh-cn": "中文简",
     "zh-tw": "中文繁",
+    "yue":"粤语",
     "en": "英语",
     "fr": "法语",
     "de": "德语",
@@ -153,6 +154,7 @@ if config.defaulelang !='zh':
     
     "zh-cn": "Simplified Chinese",
     "zh-tw": "Traditional Chinese",
+    "yue":"Cantonese",
     "en": "English",
     "fr": "French",
     "de": "German",
@@ -560,7 +562,7 @@ def openwin():
             QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nojueselist'])
             return
         try:
-            vt = code.split('-')[0]
+            vt = code.split('-')[0] if code !='yue' else "zh"
             if vt not in show_rolelist:
                 winobj.hecheng_role.addItems(['No'])
                 return
