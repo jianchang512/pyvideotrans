@@ -1,19 +1,19 @@
-简体中文 | [English](docs/EN/README_EN.md) | [pt-BR](docs/pt-BR/README_pt-BR.md) | [Italian](docs/IT/README_IT.md) | [Spanish](docs/ES/README_ES.md) / [捐助](docs/about.md) / [Discord](https://discord.gg/y9gUweVCCJ) / 微信公众号：`pyvideotrans`
+简体中文 | [English](docs/EN/README_EN.md)  | [捐助](docs/about.md) | 微信公众号：`pyvideotrans`
 
 # 视频翻译配音工具
 
-这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。并支持API调用
+这是一个视频翻译配音工具，可将一种语言的视频翻译为指定语言的视频，自动生成和添加该语言的字幕和配音。并支持API调用(v3.0以下版本，以上久未更新)
 
 
-语音识别支持 `faster-whisper`和`openai-whisper`本地离线模型 及 `OpenAI SpeechToText API`  `GoogleSpeech` `阿里中文语音识别模型`和豆包模型，并支持自定义语音识别api.
+语音识别支持 `faster-whisper/openai-whisper/OpenAI API/Deepgram.com/Gemini/Parakeet/GoogleSpeech/阿里Funasr/字节火山等`，并支持自定义语音识别api.
 
-文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepL|DeepLX|字节火山|离线翻译OTT`
+文字翻译支持 `微软翻译|Google翻译|百度翻译|腾讯翻译|ChatGPT|AzureAI|Gemini|DeepSeek|claude|DeepL|DeepLX|字节火山|离线翻译OTT|自定义API等`
 
-文字合成语音支持 `Microsoft Edge tts` `Google tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` [clone-voice](https://github.com/jianchang512/clone-voice)  [ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)  [Fish TTS](https://github.com/fishaudio/fish-speech)  [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
+文字合成语音支持 `Edge tts` `Google tts` `Azure AI TTS` `Openai TTS` `Elevenlabs TTS` `自定义TTS服务器api` `GPT-SoVITS` `F5-TTS` `Index-tts` `ChatterBox` `Gemini-tts` [clone-voice](https://github.com/jianchang512/clone-voice)  [ChatTTS-ui](https://github.com/jianchang512/ChatTTS-ui)  [Fish TTS](https://github.com/fishaudio/fish-speech)  [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) 
 
 允许保留背景伴奏音乐等(基于uvr5)
 
-支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语、荷兰语、瑞典语/其他语言可选自动检测
+支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语、荷兰语、瑞典语、芬兰语、菲律宾语、孟加拉语、乌尔都语、希伯来语、粤语等，其他语言可选自动检测
 
 
 > **[赞助商]**
@@ -49,8 +49,6 @@
 【字幕编辑并导出多格式】支持导入srt、vtt、ass格式字幕，编辑后可设置字体样式、色彩等导出对应格式字幕
 
 【字幕格式转换】批量将字幕文件进行 srt/ass/vtt 格式互转
-
-【下载油管视频】可从youtube上下载视频
 
 【人声背景乐分离】
 
