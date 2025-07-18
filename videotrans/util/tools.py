@@ -2325,7 +2325,7 @@ def set_ass_font(srtfile=None):
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
-    shutil.copy(assfile,'c:/users/c1/videos/ceshi.ass')
+    #shutil.copy(assfile,'c:/users/c1/videos/ceshi.ass')
     return assfile
 
 

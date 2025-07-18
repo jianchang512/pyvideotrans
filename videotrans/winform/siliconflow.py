@@ -70,7 +70,7 @@ def openwin():
         winobj.guiji_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.guiji_model.setCurrentText(current_text)
-        config.settings['zhipuai_model'] = t
+        config.settings['guiji_model'] = t
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
