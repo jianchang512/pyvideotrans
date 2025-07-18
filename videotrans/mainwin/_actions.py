@@ -776,7 +776,7 @@ class WinAction(WinActionSub):
         dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
                                     sec=config.settings.get('dubbing_wait', 0))
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait = dialog.get_values()
+            num, wait, _ = dialog.get_values()
             config.settings['dubbing_thread'] = num
             config.settings['dubbing_wait'] = wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
