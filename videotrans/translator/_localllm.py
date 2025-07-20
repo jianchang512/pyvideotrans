@@ -63,11 +63,14 @@ class LocalLLM(BaseTrans):
 
         if isinstance(response, str):
             raise Exception(f'{response=}')
-
-        if response.choices:
-            result=re.sub(r'<think>.*?</think>','',response.choices[0].message.content.strip(),re.I)
-            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S|re.I)
+        
+        if hasattr(response,'choices') and response.choices:
+            result = response.choices[0].message.content.strip()
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>','',result,re.S|re.I),re.S|re.I)
             if match:
                 return match.group(1)
+            return result.strip()
+
+      
         raise Exception(f'[localllm]请求失败:{response=}')
 

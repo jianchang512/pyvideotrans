@@ -140,8 +140,15 @@ class DubbingSrt(BaseTask):
             
             # 要保存到的文件
             filename_md5=tools.get_md5(f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
-            tmp_dict= {"text": it['text'], "role": voice_role, "start_time": it['start_time'],
-                       "end_time": it['end_time'], "rate": rate, "startraw": it['startraw'], "endraw": it['endraw'],
+            tmp_dict= {
+                        "line":it['line'],
+                        "text": it['text'],
+                       "role": voice_role,
+                       "start_time": it['start_time'],
+                       "end_time": it['end_time'],
+                       "rate": rate,
+                       "startraw": it['startraw'],
+                       "endraw": it['endraw'],
                        "volume": self.cfg['volume'],
                        "pitch": self.cfg['pitch'],
                        "tts_type": int(self.cfg['tts_type']),
@@ -167,7 +174,8 @@ class DubbingSrt(BaseTask):
                 shutil.copy2(it['filename'],name)
 
     def align(self) -> None:
-        if self.cfg['target_sub'].endswith('.txt'):
+        print(self.queue_tts)
+        if self.cfg['target_sub'].endswith('.txt') or len(self.queue_tts)==1:
             if self.cfg['tts_type'] !=tts.EDGE_TTS:
                 tools.runffmpeg(['-y','-i',self.queue_tts[0]['filename'],'-b:a','128k',self.cfg['target_wav']])        
             return

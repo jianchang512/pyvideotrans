@@ -59,12 +59,13 @@ class BaseRecogn(BaseCon):
             self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings['zh_hant_s'] else False
         else:
             self.maxlen = int(float(config.settings.get('other_len',60)))
-        
+
         if not tools.vail_file(self.audio_file):
             raise Exception(f'[error]not exists {self.audio_file}')
 
     # 出错时发送停止信号
     def run(self) -> Union[List[Dict], None]:
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         try:
             if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:

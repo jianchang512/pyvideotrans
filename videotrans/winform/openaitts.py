@@ -33,6 +33,8 @@ def openwin():
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
+        else:
+            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         winobj.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
@@ -76,7 +78,7 @@ def openwin():
         config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
         config.getset_params(config.params)
-        tools.set_process(text='chattts', type="refreshtts")
+        tools.set_process(text='openaitts', type="refreshtts")
         winobj.close()
 
     def setallmodels():

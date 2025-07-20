@@ -332,6 +332,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['openaitts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+        elif type == tts.QWEN_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = config.params['qwentts_role'].split(',')
+            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.GEMINI_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params['gemini_ttsrole'].split(',')
@@ -1018,8 +1022,7 @@ class WinAction(WinActionSub):
         #    self.main.start_subform()
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
-            if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,
-                                tts.F5_TTS,tts.OPENAI_TTS,tts.GEMINI_TTS,tts.CHATTERBOX_TTS]:
+            if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,  tts.F5_TTS,tts.OPENAI_TTS,tts.QWEN_TTS,tts.GEMINI_TTS,tts.CHATTERBOX_TTS]:
                 self.main.tts_type.setCurrentIndex(0)
                 self.main.tts_type.setCurrentIndex(currentIndex)
         elif d['type'] == 'refreshmodel_list':

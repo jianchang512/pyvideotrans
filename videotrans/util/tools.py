@@ -612,12 +612,12 @@ def _build_hw_command(args: list, hw_codec: str):
                 crf_value = args[i+1]
                 hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
                 if hw_quality_value is not None:
-                    config.logger.info(f"将 -crf {crf_value} 替换为硬件参数 {hw_quality_param} {hw_quality_value}")
+                    # config.logger.info(f"将 -crf {crf_value} 替换为硬件参数 {hw_quality_param} {hw_quality_value}")
                     new_args.extend([hw_quality_param, str(hw_quality_value)])
                 else:
-                    config.logger.warning(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。")
+                    config.logger.error(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。")
             else:
-                 config.logger.warning(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。")
+                 config.logger.error(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。")
             i += 2
             continue
 
@@ -634,13 +634,13 @@ def _build_hw_command(args: list, hw_codec: str):
     if  "-c:s" not in new_args and "-vf" not in new_args  and   is_input_media and is_output_mp4 and config.settings.get('cuda_decode', False):
         if encoder_family == 'nvenc':
             hw_decode_opts = ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda']
-            config.logger.info("启用 CUDA 硬件解码。")
+            # config.logger.info("启用 CUDA 硬件解码。")
         elif encoder_family == 'qsv':
             hw_decode_opts = ['-hwaccel', 'qsv', '-hwaccel_output_format', 'qsv']
-            config.logger.info("启用 QSV 硬件解码。")
+            # config.logger.info("启用 QSV 硬件解码。")
         elif encoder_family == 'videotoolbox':
             hw_decode_opts = ['-hwaccel', 'videotoolbox']
-            config.logger.info("启用 VideoToolbox 硬件解码。")
+            # config.logger.info("启用 VideoToolbox 硬件解码。")
     
     return new_args, hw_decode_opts
 
@@ -684,7 +684,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             config.video_codec = get_video_codec() 
             
         if config.video_codec and 'libx' not in config.video_codec:
-            config.logger.info(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
+            # config.logger.info(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
             final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
         else:
             config.logger.info("未找到或未选择硬件编码器，将使用软件编码。")
@@ -869,7 +869,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
         )
         return p.stdout.strip()
     except FileNotFoundError as e:
-        msg = f"Command not found: '{FFPROBE_BIN}'. Ensure FFmpeg is installed and in your PATH."
+        msg = f"Command not found: '{config.FFPROBE_BIN}'. Ensure FFmpeg is installed and in your PATH."
         config.logger.error(msg)
         raise _FFprobeInternalError(msg) from e
     except subprocess.CalledProcessError as e:
@@ -1702,11 +1702,6 @@ def get_clone_role(set_p=False):
 def set_process(*, text="", type="logs", uuid=None, nologs=False):
     try:
         if text:
-            if not nologs:
-                if type == 'error':
-                    config.logger.error(text)
-                else:
-                    config.logger.info(text)
             # 移除html
             if type == 'error':
                 text = text.replace('\\n', ' ').strip()
@@ -1886,11 +1881,10 @@ def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_siz
     )
 
     # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
-    if nonsilent_chunks:
-        start_index, end_index = nonsilent_chunks[-1]
-    else:
-        # If the whole audio is silent, just return it as is
+    if not nonsilent_chunks:
         return input_file_path, length
+
+    start_index, end_index = nonsilent_chunks[-1]
 
     # Remove the silence from the end by slicing the audio segment
     trimmed_audio = audio[:end_index]
@@ -1900,12 +1894,9 @@ def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_siz
     if format in ['wav', 'mp3', 'm4a']:
         trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
         return input_file_path, length
-    try:
-        trimmed_audio.export(input_file_path + ".mp3", format="mp3")
-        runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
-    except Exception:
-        pass
-    return input_file_path, length
+    trimmed_audio.export(input_file_path + ".mp3", format="mp3")
+    runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
+    return input_file_path, len(AudioSegment.from_file(input_file_path , format=format))
 
 
 def remove_qsettings_data():

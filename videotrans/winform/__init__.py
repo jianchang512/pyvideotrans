@@ -5,4 +5,4 @@ from . import  baidu, ai302,  fn_audiofromvideo, azure, azuretts, chatgpt, chatt
     localllm, ott, fn_peiyin, fn_recogn, fn_separate, setini, tencent, transapi, ttsapi, fn_vas, fn_watermark, \
     fn_youtube,  zijiehuoshan, fn_videoandaudio, fn_videoandsrt, fn_formatcover, openaitts, recognapi,sttapi, \
     openairecognapi, \
-    fn_subtitlescover, fn_editer,volcenginetts,f5tts,deepgram,claude,libre,ali,zhipuai,siliconflow,kokoro,parakeet,chatterbox,deepseek,openrouter,fn_peiyinrole
+    fn_subtitlescover, fn_editer,volcenginetts,f5tts,deepgram,claude,libre,ali,zhipuai,siliconflow,kokoro,parakeet,chatterbox,deepseek,openrouter,fn_peiyinrole,qwentts
