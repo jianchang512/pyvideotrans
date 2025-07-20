@@ -106,6 +106,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.OPENAI_TTS:
             rolelist = config.params.get('openaitts_role','')
             self.voice_role.addItems(['No']+rolelist.split(','))
+        elif config.params['tts_type'] == tts.QWEN_TTS:
+            rolelist = config.params.get('qwentts_role','')
+            self.voice_role.addItems(['No']+rolelist.split(','))
         elif config.params['tts_type'] == tts.GEMINI_TTS:
             rolelist = config.params.get('gemini_ttsrole','')
             self.voice_role.addItems(['No']+rolelist.split(','))
@@ -330,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_chatterbox.triggered.connect(winform.chatterbox.openwin)
         self.actiontts_cosyvoice.triggered.connect(winform.cosyvoice.openwin)
         self.actionopenaitts_key.triggered.connect(winform.openaitts.openwin)
+        self.actionqwentts_key.triggered.connect(winform.qwentts.openwin)
         self.actionopenairecognapi_key.triggered.connect(winform.openairecognapi.openwin)
         self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
         self.actiontts_f5tts.triggered.connect(winform.f5tts.openwin)

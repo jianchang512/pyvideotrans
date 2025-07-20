@@ -361,6 +361,8 @@ def parse_init():
         "initial_prompt_bn": "",
         "initial_prompt_fil": "",
         "initial_prompt_fa": "",
+        "initial_prompt_ur": "",
+        "initial_prompt_yue": "",
         "whisper_threads": 0,
         "whisper_worker": 1,
         "beam_size": 5,
@@ -470,6 +472,7 @@ proxy=settings.get('proxy','')
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
 
 ChatTTS_voicelist = re.split(r'[,，]', str(settings['chattts_voice']))
+
 _chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
 _claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
 _azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
@@ -482,15 +485,15 @@ _guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if 
 _deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
 _openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
 
-if len(_chatgpt_model_list) < 1:
-    _chatgpt_model_list = ['']
-if len(_claude_model_list) < 1:
-    _claude_model_list = ['']
-if len(_localllm_model_list) < 1:
-    _localllm_model_list = ['']
-if len(_zijiehuoshan_model_list) < 1:
-    _zijiehuoshan_model_list = ['']
-
+_chatgpt_model_list= _chatgpt_model_list if len(_chatgpt_model_list)>0 else ['']
+_claude_model_list= _claude_model_list if len(_claude_model_list)>0 else ['']
+_azure_model_list= _azure_model_list if len(_azure_model_list)>0 else ['']
+_localllm_model_list= _localllm_model_list if len(_localllm_model_list)>0 else ['']
+_zijiehuoshan_model_list= _zijiehuoshan_model_list if len(_zijiehuoshan_model_list)>0 else ['']
+_zhipuai_model_list= _zhipuai_model_list if len(_zhipuai_model_list)>0 else ['']
+_guiji_model_list= _guiji_model_list if len(_guiji_model_list)>0 else ['']
+_deepseek_model_list= _deepseek_model_list if len(_deepseek_model_list)>0 else ['']
+_openrouter_model_list=_openrouter_model_list if len(_openrouter_model_list)>0 else ['']
 
 # 设置或获取 config.params
 def getset_params(obj=None):
@@ -706,6 +709,8 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
         "listen_text_fil": "Hello, kaibigan ko",
         "listen_text_fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
+        "listen_text_ur":"ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
+        "listen_text_yue":"你好啊親愛嘅朋友，希望你今日好開心",
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
@@ -858,6 +863,12 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_model": "tts-1",
         "openaitts_instructions": "",
         "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
+
+
+        "qwentts_key": "",
+        "qwentts_model": "qwen-tts-latest",
+        "qwentts_role": "Chelsie,Cherry,Serena,Ethan,Dylan,Jada,Sunny",
+
 
         "kokoro_api": "",
 

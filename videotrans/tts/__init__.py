@@ -21,6 +21,7 @@ KOKORO_TTS = 14
 GOOGLECLOUD_TTS = 15
 GEMINI_TTS = 16
 CHATTERBOX_TTS = 17
+QWEN_TTS = 18
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
@@ -41,6 +42,7 @@ TTS_NAME_LIST = [
     "Google Cloud TTS",
     "Gemini TTS",
     "ChatterBox(仅英语)" if config.defaulelang=='zh' else 'ChatterBox(Eng)',
+    "Qwen TTS"
 ]
 
 DOUBAO_302AI={
@@ -113,6 +115,8 @@ DOUBAO_302AI={
 def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko','en','yu']:
         return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
+    if tts_type == QWEN_TTS and langcode[:2] not in ['zh','en','yu']:
+        return 'Qwen TS 仅支持中英配音' if config.defaulelang == 'zh' else 'Qwen TTS only supports Chinese, English'
     if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko','yu']:
         return 'CosyVoice仅支持中日韩语言配音' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean'
 
@@ -138,6 +142,12 @@ def is_input_api(tts_type: int = None,return_str=False):
             return "Please configure the api and key information of the OpenAI API channel first."
         from videotrans.winform import openaitts as openaitts_win
         openaitts_win.openwin()
+        return False
+    if tts_type == QWEN_TTS and not config.params["qwentts_key"]:
+        if return_str:
+            return "Please configure the api key information of the Qwen TTS  channel first."
+        from videotrans.winform import qwentts as qwentts_win
+        qwentts_win.openwin()
         return False
     if tts_type == KOKORO_TTS and not config.params["kokoro_api"]:
         if return_str:
@@ -280,6 +290,9 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == OPENAI_TTS:
         from videotrans.tts._openaitts import OPENAITTS
         OPENAITTS(**kwargs).run()
+    elif tts_type == QWEN_TTS:
+        from videotrans.tts._qwentts import QWENTTS
+        QWENTTS(**kwargs).run()
     elif tts_type == ELEVENLABS_TTS:
         from videotrans.tts._elevenlabs import ElevenLabsC
         ElevenLabsC(**kwargs).run()

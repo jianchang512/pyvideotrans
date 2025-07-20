@@ -71,6 +71,7 @@ class BaseTrans(BaseCon):
     # 实际操作 # 出错时发送停止信号
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         if self.is_srt:
             source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
@@ -123,21 +124,7 @@ class BaseTrans(BaseCon):
                     raw_len = len(it)
                     sep_len = len(sep_res)
 
-                    # 如果返回数量和原始语言数量不一致，则重新切割
-                    '''
-                    if sep_len + 1 < raw_len:
-                        sep_res = []
-                        for it_n in it:
-                            time.sleep(self.wait_sec)
-                            t = self._get_cache(it_n)
-                            if not t:
-                                t = tools.cleartext(self._item_task(it_n))
-                                self._set_cache(it_n, t)
-                            self._signal(
-                                text=t + "\n",
-                                type='subtitle')
-                            sep_res.append(t)
-                    '''
+                    
 
                     for x, result_item in enumerate(sep_res):
                         if x < len(it):
@@ -269,9 +256,6 @@ class BaseTrans(BaseCon):
         ## new 
         
             
-        
-        #if not self.refine3:
-        #    return raws_list
         config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
         for i,it in enumerate(raws_list):
             it['text']=it['text'].strip().split("\n")

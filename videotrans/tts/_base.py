@@ -77,11 +77,11 @@ class BaseTTS(BaseCon):
     # 入口 调用子类 _exec() 然后创建线程池调用 _item_task 或直接在 _exec 中实现逻辑
     # 若捕获到异常，则直接抛出  出错时发送停止信号
     def run(self) -> None:
+        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         if len(self.queue_tts)<1:
             raise Exception('无需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
         try:
-            print('a1==')
             self._exec()
         except IPLimitExceeded as e:
             raise
@@ -102,12 +102,12 @@ class BaseTTS(BaseCon):
                 self._set_proxy(type='del')
             if self.error:
                 config.logger.error(f'{self.__class__.__name__}: {self.error=}')
-
-        print('a2==')
         # 是否播放
         if self.play and tools.vail_file(self.queue_tts[0]['filename']):
             threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
             return
+        elif self.play:
+            raise Exception(self.error)
 
         # 记录出错的字幕行数，超过总数 1/3 报错
         err = 0

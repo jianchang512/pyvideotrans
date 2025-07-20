@@ -663,6 +663,7 @@ class TransCreate(BaseTask):
             filename_md5=tools.get_md5(f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
             tmp_dict = {
                 "text": it['text'],
+                "line": it['line'],
                 "ref_text": source_subs[i]['text'] if source_subs and i<len(source_subs) else '',
                 "role": voice_role,
                 "start_time_source": source_subs[i]['start_time'] if source_subs and i<len(source_subs) else it['start_time'],
@@ -916,6 +917,7 @@ class TransCreate(BaseTask):
             audio_length = int(tools.get_audio_time(self.cfg['target_wav']) * 1000)
         except Exception:
             audio_length = 0
+        config.logger.info(f'判断音视频各自时长:{audio_length=},{video_time=}')
         if audio_length <= 0 or audio_length == video_time:
             return
 
@@ -933,6 +935,7 @@ class TransCreate(BaseTask):
                 # 先对音频末尾移除静音
                 tools.remove_silence_from_end(self.cfg['target_wav'], is_start=False)
                 audio_length = int(tools.get_audio_time(self.cfg['target_wav']) * 1000)
+                config.logger.info(f'音频大于视频，对音频移除尾部静音后:{audio_length=},{video_time=}')
             except Exception:
                 audio_length = 0
 
@@ -944,6 +947,7 @@ class TransCreate(BaseTask):
             try:
                 # 对视频末尾定格延长
                 self.status_text = '视频末尾延长中' if config.defaulelang == 'zh' else 'Extension at the end of the video'
+                config.logger.info(f'音频大于视频，需要延长视频:{audio_length - video_time}')
                 self._novoicemp4_add_time(audio_length - video_time)
             except Exception as e:
                 config.logger.exception(f'视频末尾延长失败:{str(e)}', exc_info=True)
@@ -954,6 +958,7 @@ class TransCreate(BaseTask):
                 format="mp4" if ext == 'm4a' else ext) + AudioSegment.silent(
                 duration=video_time - audio_length)
             m.export(self.cfg['target_wav'], format="mp4" if ext == 'm4a' else ext)
+            config.logger.info(f'音频小于视频，需要延长音频:{video_time-audio_length}')
 
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
     def _join_video_audio_srt(self) -> None:

@@ -41,6 +41,7 @@ from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
+from videotrans.ui.qwentts import Ui_qwenttsform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.recogn import Ui_recogn
@@ -267,6 +268,11 @@ class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
 class OpenAITTSForm(QDialog, Ui_openaittsform):  # <===
     def __init__(self, parent=None):
         super(OpenAITTSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class QwenTTSForm(QDialog, Ui_qwenttsform):  # <===
+    def __init__(self, parent=None):
+        super(QwenTTSForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
