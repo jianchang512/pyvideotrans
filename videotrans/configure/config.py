@@ -276,7 +276,7 @@ def parse_init():
         
         "Faster_Whisper_XXL":"",
 
-        "crf": 25,
+        "crf": 23,
         "cuda_qp": False,
         "cuda_decode":False,
         
@@ -299,10 +299,7 @@ def parse_init():
         "guiji_model":"Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
-        "audio_rate": 3,
-        "video_rate": 10,
         "remove_silence": False,
-        "force_edit_srt": True,
         "vad": True,
         "threshold":0.5,
         "min_speech_duration_ms":1000,
@@ -324,7 +321,7 @@ def parse_init():
         "aitrans_thread": 50,
         "retries": 2,
         "translation_wait": 0,
-        "dubbing_wait": 0,
+        "dubbing_wait": 1,
         "dubbing_thread": 5,
         "save_segment_audio":False,
         "countdown_sec": 120,
@@ -717,11 +714,10 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
 
-        "voice_autorate": False,
+        "voice_autorate": True,
         "voice_role": "No",
         "voice_rate": "0",
-        "video_autorate": False,
-        "append_video": True,
+        "video_autorate": True,
 
         "deepl_authkey": "",
         "deepl_api": "",
@@ -954,7 +950,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "dubb_tts_type":0,
         "dubb_role":0,
         "dubb_out_format":0,
-        "dubb_voice_autorate":False,
+        "dubb_voice_autorate":True,
         "dubb_hecheng_rate":0,
         "dubb_pitch_rate":0,
         "dubb_volume_rate":0,

@@ -591,7 +591,6 @@ class WinAction(WinActionSub):
         config.task_countdown = int(float(config.settings.get('countdown_sec', 1)))
 
         # 顶部行
-        self.cfg['append_video'] = self.main.append_video.isChecked()
         self.cfg['translate_type'] = self.main.translate_type.currentIndex()
         self.cfg['source_language'] = self.main.source_language.currentText()
         self.cfg['target_language'] = self.main.target_language.currentText()
@@ -627,7 +626,6 @@ class WinAction(WinActionSub):
         except:
             self.cfg['voice_rate'] = '+0%'
         # 配音自动加速
-        self.cfg['append_video'] = self.main.append_video.isChecked()
         self.cfg['voice_autorate'] = self.main.voice_autorate.isChecked()
         self.cfg['video_autorate'] = self.main.video_autorate.isChecked()
         self.cfg['is_separate'] = self.main.is_separate.isChecked()

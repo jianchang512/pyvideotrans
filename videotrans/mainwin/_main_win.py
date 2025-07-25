@@ -234,7 +234,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_type.setDisabled(True if config.params['recogn_type'] > 0 else False)
         self.voice_autorate.setChecked(bool(config.params['voice_autorate']))
         self.video_autorate.setChecked(bool(config.params['video_autorate']))
-        self.append_video.setChecked(bool(config.params['append_video']))
         self.clear_cache.setChecked(bool(config.params.get('clear_cache')))
         self.enable_cuda.setChecked(True if config.params['cuda'] else False)
         self.only_video.setChecked(True if config.params['only_video'] else False)

@@ -29,6 +29,7 @@ class OPENAITTS(BaseTTS):
     def _exec(self):
         if not config.params['openaitts_key']:
             raise Exception('必须在TTS设置 - OpenAI TTS 中填写 SK' if config.defaulelang=='zh' else 'please input your OpenAI TTS SK')
+        self.dub_nums=1
         self._local_mul_thread()
     def _item_task(self, data_item: dict = None):
         if not self.is_test and tools.vail_file(data_item['filename']):

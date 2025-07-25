@@ -137,10 +137,7 @@ class Ui_setini(object):
                 "chattts_voice": "chatTTS 音色值"
             },
             "justify": {
-                "audio_rate": "音频最大加速倍数，默认3，即最大加速到 3倍速度，需设置1-100的数字，比如3，代表最大加速3倍",
-                "video_rate": "视频慢速倍数：大于1的数，代表最大允许慢速多少倍，0或1代表不进行视频慢放",
                 "remove_silence": "是否移除配音末尾空白",
-                "force_edit_srt": "是否强制修改字幕时间轴以便匹配声音，若不选中则保持原始字幕时间轴，可能导致字幕和声音不匹配"
             },
             "whisper": {
                 "vad": "是否在faster-whisper字幕整体识别模式时启用VAD",
@@ -222,10 +219,7 @@ class Ui_setini(object):
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
             "model_list": "faster和openai的模型列表",
-            "audio_rate": "音频最大加速倍数",
-            "video_rate": "视频慢速倍数",
             "remove_silence": "移除配音末尾空白",
-            "force_edit_srt": "强制修改字幕时间轴",
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
 
@@ -358,10 +352,7 @@ class Ui_setini(object):
                     "chattts_voice": "chatTTS voice tone"
                 },
                 "justify": {
-                    "audio_rate": "Maximum audio speed multiplier, default is 3, which means a maximum speed of 3 times, should be a number between 1 and 100, e.g., 3 represents a maximum speed of 3 times",
-                    "video_rate": "Video slow motion multiplier: a number greater than 1 represents the maximum allowable slow motion, 0 or 1 means no slow motion",
                     "remove_silence": "Whether to remove silence at the end of the dubbing",
-                    "force_edit_srt": "force subtitle timeline adjustment to match the audio, do not adjust, keep the original subtitle timeline, no adjustment may cause subtitles and audio to be out of sync"
                 },
                 "whisper": {
                     "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
@@ -455,10 +446,7 @@ class Ui_setini(object):
                 "localllm_model": "Local LLM Model List",
                 "zijiehuoshan_model": "Byte Volcano Inference Access Point",
                 "model_list": "Models for Faster and OpenAI",
-                "audio_rate": "Maximum Audio Speed Multiplier",
-                "video_rate": "Video Slow Motion Multiplier",
                 "remove_silence": "Remove End Silence in Dubbing",
-                "force_edit_srt": "Force Edit Subtitle Timing",
                 "bgm_split_time": "bgm segment time/s",
                 
                 "max_speech_duration_s": "max speech duration sec.",

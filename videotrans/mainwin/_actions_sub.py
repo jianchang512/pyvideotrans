@@ -156,8 +156,6 @@ class WinActionSub:
         self.main.align_btn.show()
         self.main.voice_rate.show()
         self.main.label_6.show()
-        self.main.append_video.setChecked(True)
-        self.main.append_video.show()
         self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.show()
         self.main.video_autorate.setChecked(True)
@@ -234,8 +232,6 @@ class WinActionSub:
         self.main.align_btn.hide()
         self.main.label_6.hide()
         self.main.voice_rate.hide()
-        self.main.append_video.setChecked(True)
-        self.main.append_video.hide()
         self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.hide()
         self.main.video_autorate.setChecked(True)
@@ -447,12 +443,10 @@ class WinActionSub:
             self.cfg['voice_role'] = 'No'
             self.cfg['voice_rate'] = '+0%'
             self.cfg['voice_autorate'] = False
-            self.cfg['append_video'] = False
             self.cfg['back_audio'] = ''
             self.cfg['copysrt_rawvideo']=self.main.copysrt_rawvideo.isChecked()
         elif self.main.app_mode == 'biaozhun_jd':
             self.cfg['voice_autorate'] = True
-            self.cfg['append_video'] = True
             self.cfg['is_separate'] = False
             self.cfg['back_audio'] = ''
 
@@ -486,7 +480,6 @@ class WinActionSub:
         self.main.recogn_type.setDisabled(type)
         self.main.voice_autorate.setDisabled(type)
         self.main.video_autorate.setDisabled(type)
-        self.main.append_video.setDisabled(type)
         self.main.voice_role.setDisabled(type)
         self.main.voice_rate.setDisabled(type)
         self.main.is_loop_bgm.setDisabled(type)
