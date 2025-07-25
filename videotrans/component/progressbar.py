@@ -93,5 +93,6 @@ class ClickableProgressBar(QLabel):
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:
             if self.error:
+                self.error+="\n\n"+ ('请尝试查看文档或搜索报错<https://pvt9.com>' if config.defaulelang=='zh' else 'Please try to view the document or search for error <https://pvt9.com>')
                 QMessageBox.critical(self, config.transobj['anerror'], self.error)
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))

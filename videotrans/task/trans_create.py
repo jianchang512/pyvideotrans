@@ -62,7 +62,6 @@ class TransCreate(BaseTask):
             'app_mode': "biaozhun",
 
             "subtitle_type": 0,
-            "append_video": False,
             'only_video': False,
 
             "volume":"+0%",
@@ -470,14 +469,13 @@ class TransCreate(BaseTask):
         if self.cfg['voice_autorate'] or self.cfg['video_autorate']:
             self.status_text = '声画变速对齐阶段' if config.defaulelang == 'zh' else 'Sound & video speed alignment stage'
         try:
-            shoud_video_rate = self.cfg['video_autorate'] and int(float(config.settings['video_rate'])) > 1
+            shoud_video_rate = self.cfg['video_autorate']
             # 如果时需要慢速或者需要末尾延长视频，需等待 novoice_mp4 分离完毕
-            if shoud_video_rate or self.cfg['append_video']:
-                tools.is_novoice_mp4(self.cfg['novoice_mp4'], self.cfg['noextname'])
+            tools.is_novoice_mp4(self.cfg['novoice_mp4'], self.cfg['noextname'])
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
-                shoud_audiorate=self.cfg['voice_autorate'] and int(float(config.settings['audio_rate'])) > 1,
+                shoud_audiorate=self.cfg['voice_autorate'],
                 # 视频是否需慢速，需要时对 novoice_mp4进行处理
                 shoud_videorate=shoud_video_rate,
                 novoice_mp4=self.cfg['novoice_mp4'],
@@ -496,9 +494,6 @@ class TransCreate(BaseTask):
             # 更新字幕
             srt = ""
             for (idx, it) in enumerate(self.queue_tts):
-                if not config.settings['force_edit_srt']:
-                    it['startraw'] = tools.ms_to_time_string(ms=it['start_time_source'])
-                    it['endraw'] = tools.ms_to_time_string(ms=it['end_time_source'])
                 srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
             # 字幕保存到目标文件夹
             with  Path(self.cfg['target_sub']).open('w', encoding="utf-8") as f:
@@ -574,8 +569,8 @@ class TransCreate(BaseTask):
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'],ignore_errors=True)
-            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-            shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
+            #Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+            #shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
 
@@ -712,47 +707,11 @@ class TransCreate(BaseTask):
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
                 text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
-                name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
-                shutil.copy2(it['filename'],name)
+                name= f'{outname}/{it["line"]}-{text[:60]}.mp3'
+                if Path(it['filename']).exists():
+                    shutil.copy2(it['filename'],name)
 
 
-    def _novoicemp4_add_time(self, duration_ms):
-        if duration_ms < 1000 or self._exit():
-            return
-        self._signal(text=f'{config.transobj["shipinmoweiyanchang"]} {duration_ms}ms')
-        # 等待无声视频分离结束
-        tools.is_novoice_mp4(self.cfg['novoice_mp4'], self.cfg['noextname'], uuid=self.uuid)
-
-        shutil.copy2(self.cfg['novoice_mp4'], self.cfg['novoice_mp4'] + ".raw.mp4")
-
-        # 计算需要定格的时长
-        freeze_duration = duration_ms / 1000
-
-        if freeze_duration <= 0:
-            return
-        try:
-            # 构建 FFmpeg 命令
-            default_codec = f"libx{config.settings['video_codec']}"
-            cmd = [
-                '-y',
-                '-i',
-                self.cfg['novoice_mp4'],
-                '-vf',
-                f'tpad=stop_mode=clone:stop_duration={freeze_duration}',
-                '-c:v',
-                default_codec,  # 使用 libx264 编码器，可根据需要更改
-                '-crf', f'{config.settings["crf"]}',
-                '-preset', config.settings['preset'],
-                self.cfg['cache_folder'] + "/last-all.mp4"
-            ]
-            tools.runffmpeg(cmd)
-            shutil.copy2(self.cfg['cache_folder'] + "/last-all.mp4", self.cfg['novoice_mp4'])
-        except Exception as  e:
-            # 延长失败
-            config.logger.exception(e, exc_info=True)
-            shutil.copy2(self.cfg['novoice_mp4'] + ".raw.mp4", self.cfg['novoice_mp4'])
-        finally:
-            Path(f"{self.cfg['novoice_mp4']}.raw.mp4").unlink(missing_ok=True)
 
     # 添加背景音乐
     def _back_music(self) -> None:
@@ -907,58 +866,7 @@ class TransCreate(BaseTask):
         basename=os.path.basename(process_end_subtitle_ass)
         return basename, subtitle_langcode
 
-    # 延长视频末尾对齐声音
-    def _append_video(self) -> None:
-        # 有配音 延长视频或音频对齐
-        if self._exit() or not self.shoud_dubbing  :
-            return
-        video_time = self.video_time
-        try:
-            audio_length = int(tools.get_audio_time(self.cfg['target_wav']) * 1000)
-        except Exception:
-            audio_length = 0
-        config.logger.info(f'判断音视频各自时长:{audio_length=},{video_time=}')
-        if audio_length <= 0 or audio_length == video_time:
-            return
 
-        # 不延长视频末尾，如果音频大于时长则阶段
-        if  not self.cfg['append_video']:
-            if audio_length>video_time:
-                ext=self.cfg['target_wav'].split('.')[-1]
-                m = AudioSegment.from_file( self.cfg['target_wav'],  format="mp4" if ext == 'm4a' else ext)
-                m[0:video_time].export(self.cfg['target_wav'], format="mp4" if ext == 'm4a' else ext)
-            return
-
-
-        if audio_length > video_time:
-            try:
-                # 先对音频末尾移除静音
-                tools.remove_silence_from_end(self.cfg['target_wav'], is_start=False)
-                audio_length = int(tools.get_audio_time(self.cfg['target_wav']) * 1000)
-                config.logger.info(f'音频大于视频，对音频移除尾部静音后:{audio_length=},{video_time=}')
-            except Exception:
-                audio_length = 0
-
-        if audio_length <= 0 or audio_length == video_time:
-            return
-
-        if audio_length > video_time:
-            # 视频末尾延长
-            try:
-                # 对视频末尾定格延长
-                self.status_text = '视频末尾延长中' if config.defaulelang == 'zh' else 'Extension at the end of the video'
-                config.logger.info(f'音频大于视频，需要延长视频:{audio_length - video_time}')
-                self._novoicemp4_add_time(audio_length - video_time)
-            except Exception as e:
-                config.logger.exception(f'视频末尾延长失败:{str(e)}', exc_info=True)
-        else:
-            ext = self.cfg['target_wav'].split('.')[-1]
-            m = AudioSegment.from_file(
-                self.cfg['target_wav'],
-                format="mp4" if ext == 'm4a' else ext) + AudioSegment.silent(
-                duration=video_time - audio_length)
-            m.export(self.cfg['target_wav'], format="mp4" if ext == 'm4a' else ext)
-            config.logger.info(f'音频小于视频，需要延长音频:{video_time-audio_length}')
 
     # 最终合成视频 source_mp4=原始mp4视频文件，noextname=无扩展名的视频文件名字
     def _join_video_audio_srt(self) -> None:
@@ -985,7 +893,7 @@ class TransCreate(BaseTask):
         # 重新嵌入分离出的背景音
         self._separate()
         # 有配音 延长视频或音频对齐
-        self._append_video()
+        #self._append_video()
         
 
         self.precent = min(max(90, self.precent), 90)
@@ -1017,7 +925,7 @@ class TransCreate(BaseTask):
                         "-c:a",
                         "aac",
                         "-b:a",
-                        "192k",
+                        "128k",
                         "-vf",
                         f"subtitles={subtitles_file}",
                         "-movflags",
@@ -1026,6 +934,7 @@ class TransCreate(BaseTask):
                         f'{config.settings["crf"]}',
                         '-preset',
                         config.settings['preset'],
+                        "-shortest",
                         Path(self.cfg['targetdir_mp4']).as_posix()
                     ])
                 else:
@@ -1050,9 +959,10 @@ class TransCreate(BaseTask):
                         "-metadata:s:s:0",
                         f"language={subtitle_langcode}",
                         "-b:a",
-                        "192k",
+                        "128k",
                         "-movflags",
                         "+faststart",
+                        "-shortest",
                         Path(self.cfg['targetdir_mp4']).as_posix()
                     ])
             elif self.cfg['voice_role'] != 'No':
@@ -1071,9 +981,10 @@ class TransCreate(BaseTask):
                     "-c:a",
                     "aac",
                     "-b:a",
-                    "192k",
+                    "128k",
                     "-movflags",
                     "+faststart",
+                    "-shortest",
                     Path(self.cfg['targetdir_mp4']).as_posix()
                 ])
             # 硬字幕无配音  原始 wav 合并
@@ -1097,7 +1008,7 @@ class TransCreate(BaseTask):
                     cmd.append('aac')
                 cmd += [
                     "-b:a",
-                    "192k",
+                    "128k",
                     "-vf",
                     f"subtitles={subtitles_file}",
                     "-movflags",
@@ -1106,6 +1017,7 @@ class TransCreate(BaseTask):
                     f'{config.settings["crf"]}',
                     '-preset',
                     config.settings['preset'],
+                    "-shortest",
                     Path(self.cfg['targetdir_mp4']).as_posix(),
                 ]
                 tools.runffmpeg(cmd)
@@ -1144,7 +1056,8 @@ class TransCreate(BaseTask):
                     '-crf',
                     f'{config.settings["crf"]}',
                     '-preset',
-                    config.settings['preset']
+                    config.settings['preset'],
+                    "-shortest",
                 ]
                 cmd.append(Path(self.cfg['targetdir_mp4']).as_posix())
                 tools.runffmpeg(cmd)

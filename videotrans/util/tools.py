@@ -21,10 +21,6 @@ from videotrans.configure import config
 
 
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
-
-# 获取代理，如果已设置os.environ代理，则返回该代理值,否则获取系统代理
-
-
 def get_gptsovits_role():
     if not config.params['gptsovits_role'].strip():
         return None
@@ -710,7 +706,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         config.queue_novice[noextname] = 'ing'
 
     try:
-        config.logger.info(f"执行 FFmpeg 命令 (force_cpu={force_cpu}): {' '.join(cmd)}")
+        # config.logger.info(f"执行 FFmpeg 命令 (force_cpu={force_cpu}): {' '.join(cmd)}")
         
         creationflags = 0
         if sys.platform == 'win32':
@@ -781,65 +777,6 @@ def hide_show_element(wrap_layout, show_status):
 
     hide_recursive(wrap_layout, show_status)
 
-
-# 获取视频信息
-def get_video_info0708(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
-    mp4_file = Path(mp4_file).as_posix()
-    out = runffprobe(
-        ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file])
-    if out is False:
-        raise Exception(f'ffprobe error:dont get video information')
-    out = json.loads(out)
-    result = {
-        "video_fps": 30,
-        "video_codec_name": "",
-        "audio_codec_name": "",
-        "width": 0,
-        "height": 0,
-        "time": 0,
-        "streams_len": 0,
-        "streams_audio": 0,
-        "color": "yuv420p"
-    }
-    if "streams" not in out or len(out["streams"]) < 1:
-        raise Exception(f'ffprobe error:streams is 0')
-
-    if "format" in out and out['format']['duration']:
-        result['time'] = int(float(out['format']['duration']) * 1000)
-    for it in out['streams']:
-        result['streams_len'] += 1
-        if it['codec_type'] == 'video':
-            result['video_codec_name'] = it['codec_name']
-            result['width'] = int(it['width'])
-            result['height'] = int(it['height'])
-            result['color'] = it['pix_fmt'].lower()
-
-            fps_split = it['r_frame_rate'].split('/')
-            if len(fps_split) != 2 or fps_split[1] == '0':
-                fps1 = 30
-            else:
-                fps1 = round(int(fps_split[0]) / int(fps_split[1]), 2)
-
-            fps_split = it['avg_frame_rate'].split('/')
-            if len(fps_split) != 2 or fps_split[1] == '0':
-                fps = fps1
-            else:
-                fps = round(int(fps_split[0]) / int(fps_split[1]), 2)
-
-            result['video_fps'] = fps if fps >= 16 and fps <= 60 else 30
-        elif it['codec_type'] == 'audio':
-            result['streams_audio'] += 1
-            result['audio_codec_name'] = it['codec_name']
-
-    if video_time:
-        return result['time']
-    if video_fps:
-        return result['video_fps']
-    if video_scale:
-        return result['width'], result['height']
-    if get_codec:
-        return result['video_codec_name'], result['audio_codec_name']
-    return result
 
 
 class _FFprobeInternalError(Exception):
@@ -1000,6 +937,7 @@ def get_video_duration(file_path):
     return get_video_info(file_path, video_time=True)
 
 
+
 # 获取某个视频的fps
 def get_video_fps(file_path):
     return get_video_info(file_path, video_fps=True)
@@ -1134,8 +1072,6 @@ def wav2m4a(wavfile, m4afile, extra=None):
         Path(wavfile).as_posix(),
         "-c:a",
         "aac",
-        "-ar",
-        "48000",
         "-b:a",
         "128k",
         Path(m4afile).as_posix()
@@ -1153,26 +1089,12 @@ def wav2mp3(wavfile, mp3file, extra=None):
         "-y",
         "-i",
         Path(wavfile).as_posix(),
-        "-ar",
-        "48000",
         "-b:a",
         "128k",
         Path(mp3file).as_posix()
     ]
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
-    return runffmpeg(cmd)
-
-
-def whisper16mp3(wavfile, mp3file):
-    cmd = [
-        "-y",
-        "-i",
-        Path(wavfile).as_posix(),
-        "-ar",
-        "16000",
-        Path(mp3file).as_posix()
-    ]
     return runffmpeg(cmd)
 
 
@@ -1238,34 +1160,26 @@ def concat_multi_audio(*, out=None, concat_txt=None):
     os.chdir(config.TEMP_DIR)
     return True
 
-
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None, max_rate=100):
     from pydub import AudioSegment
-    audio = AudioSegment.from_file(file_path)
+    ext=file_path[-3:]
+    audio = AudioSegment.from_file(file_path,format='mp4' if ext=='m4a' else ext)
 
     # 首先确保原时长和目标时长单位一致（毫秒）
     current_duration_ms = len(audio)
-
-    # 计算速度变化率
-    speedup_ratio = current_duration_ms / target_duration_ms
-
-    if target_duration_ms <= 0 or speedup_ratio <= 1:
+    if target_duration_ms <= 0 or current_duration_ms<=0 or current_duration_ms>=target_duration_ms:
         return True
-    rate = min(max_rate, speedup_ratio)
-    # 变速处理
-    try:
-        fast_audio = audio.speedup(playback_speed=rate)
-        # 如果处理后的音频时长稍长于目标时长，进行剪裁
-        if len(fast_audio) > target_duration_ms:
-            fast_audio = fast_audio[:target_duration_ms]
-    except Exception:
-        fast_audio = audio[:target_duration_ms]
-
+    temp_file = config.SYS_TMP+f'/{time.time_ns()}.{ext}'
+    atempo=target_duration_ms/current_duration_ms
+    runffmpeg(["-i",file_path, "-filter:a",f"atempo={atempo}",temp_file])
+    audio=AudioSegment.from_file(temp_file,format='mp4' if ext=='m4a' else ext)
+    diff = len(audio)-target_duration_ms
+    if diff > 0:
+        audio = audio[:-diff]
     if out:
-        fast_audio.export(out, format=out.split('.')[-1])
+        audio.export(out, format=ext)
         return True
-    fast_audio.export(file_path, format=file_path.split('.')[-1])
-    # 返回速度调整后的音频
+    audio.export(file_path,format=ext)
     return True
 
 
@@ -1294,7 +1208,7 @@ print(ms_to_time_string(ms=12030))
 '''
 
 
-def ms_to_time_string(*, ms=0, seconds=None):
+def ms_to_time_string(*, ms=0, seconds=None,sepflag=','):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
         td = timedelta(milliseconds=ms)
@@ -1305,7 +1219,7 @@ def ms_to_time_string(*, ms=0, seconds=None):
     milliseconds = td.microseconds // 1000
 
     time_string = f"{hours}:{minutes}:{seconds},{milliseconds}"
-    return format_time(time_string, ',')
+    return format_time(time_string, f'{sepflag}')
 
 
 # 将不规范的 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
@@ -1371,7 +1285,6 @@ def srt_str_to_listdict(srt_string):
             # 解析时间戳
             start_time_groups = time_match.groups()[0:4]
             end_time_groups = time_match.groups()[4:8]
-            print(f'当前时间行{i=},{start_time_groups}-->{end_time_groups}')
 
             def parse_time(time_groups):
                 h, m, s, ms = time_groups
@@ -1601,62 +1514,6 @@ def match_target_amplitude(sound, target_dBFS):
     return sound.apply_gain(change_in_dBFS)
 
 
-# 从视频中切出一段时间的视频片段 cuda + h264_cuvid
-def cut_from_video(*, ss="", to="", source="", pts="", out=""):
-    video_codec = config.settings['video_codec']
-    cmd1 = [
-        "-y",        
-        '-ss',
-        format_time(ss, '.')
-    ]
-    if to != '':
-        cmd1.append("-to")
-        cmd1.append(format_time(to, '.'))  # 如果开始结束时间相同，则强制持续时间1s)
-        
-    
-    cmd1 += ['-i',source,'-an']
-    
-    if pts and float(pts)>1.01:
-        cmd1 += ["-vf", f"setpts={pts}*PTS"]
-        config.logger.info(f'视频慢速{pts=}，为防止硬件编码时setpts滤镜出错，强制CPU软编码 ')
-
-    cmd1 += ["-c:v", f"libx{video_codec}"]
-    crf=int(config.settings.get("crf", 1))
-    preset=config.settings.get('preset','fast')
-    
-    
-    # 不支持硬件编码，强制软编码，一步到位
-    if config.video_codec.startswith('libx'):
-        cmd1+=['-crf', f'{crf}', '-preset', preset,f'{out}']
-        return runffmpeg(cmd1,force_cpu=True)
-    
-    # 支持硬件编码，如果不存在 pts，则可直接使用硬件编码
-    if "-vf" not in cmd1:
-        cmd1+=['-crf', f'{crf}', '-preset', preset,f'{out}']
-        return runffmpeg(cmd1)
-    # 如果 pts存在，硬件加速应用 setpts滤镜容易出错，先使用软件应用滤镜操作生成中间视频，再使用硬件编码压缩该视频
-    # 如果要求的crf<10则直接软编码输出，无需中间文件
-    if crf<=10:
-        cmd1+=['-crf', f'{crf}', '-preset', 'ultrafast',f'{out}']
-        return runffmpeg(cmd1,force_cpu=True)
-    # 如果crf>10，则先生成crf=10的中间文件，再硬件压缩出需要的crf文件
-    cmd1+=['-crf', f'10', '-preset', 'ultrafast',f'{out}-crf10.mp4']
-    runffmpeg(cmd1,force_cpu=True)
-    # 开始硬件压缩
-    cmd_end=["-y","-i",f"{out}-crf10.mp4","-c:v", f"libx{video_codec}","-crf",f"{crf}",f"{out}"]
-    config.logger.info(f'当前{crf=},{pts=},软编码应用滤镜后的中间文件是{out}-crf10.mp4,需要执行的硬件压缩命令:{cmd_end=}')
-    runffmpeg(cmd_end)
-    # 删除庞大的中间文件,忽略错误
-    try:
-        Path(f"{out}-crf10.mp4").unlink()
-    except:
-        pass
-    return True
-    
-    
-    
-
-
 # 从音频中截取一个片段
 def cut_from_audio(*, ss, to, audio_file, out_file):
     cmd = [
@@ -1762,37 +1619,6 @@ def kill_ffmpeg_processes():
     except:
         pass
 
-
-def remove_silence_from_chunk(audio, silence_threshold=-50.0, chunk_size=10, is_start=True):
-    from pydub.silence import detect_nonsilent
-    """
-    Removes silence from the end of an audio file.
-
-    :param input_file_path: path to the input mp3 file
-    :param silence_threshold: the threshold in dBFS considered as silence
-    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
-    :return: an AudioSegment without silence at the end
-    """
-    # Load the audio file
-    # Detect non-silent chunks
-    nonsilent_chunks = detect_nonsilent(
-        audio,
-        min_silence_len=chunk_size,
-        silence_thresh=silence_threshold
-    )
-
-    # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
-    if nonsilent_chunks:
-        start_index, end_index = nonsilent_chunks[-1]
-    else:
-        # If the whole audio is silent, just return it as is
-        return audio
-
-    # Remove the silence from the end by slicing the audio segment
-    trimmed_audio = audio[:end_index]
-    if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
-        trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
-    return trimmed_audio
 
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
@@ -2091,207 +1917,6 @@ def get_video_codec(force_test: bool = False) -> str:
     _codec_cache[cache_key] = selected_codec
     config.logger.info(f"最终确定的编码器: {selected_codec}")
     return selected_codec
-
-def get_video_codec0708(force_test: bool = False) -> str:
-    """
-    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
-
-    根据平台优先选择硬件编码器。如果硬件测试失败，则回退到软件编码
-    (libx264/libx265)。缓存结果。
-
-    依赖 'config' 模块获取设置和路径。假设 'ffmpeg' 在系统 PATH 中，
-    测试输入文件存在，并且 TEMP_DIR 可写。
-    将所有逻辑保留在此单一函数内。移除了预检查。
-
-    Args:
-        force_test (bool): 如果为 True，则忽略缓存并重新运行测试。默认为 False。
-
-    Returns:
-        str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
-    """
-    _codec_cache = config.codec_cache # 使用 config 中的缓存
-
-    plat = platform.system()
-    try:
-        video_codec_pref = int(config.settings['video_codec'])
-    except (ValueError, KeyError, TypeError):
-        config.logger.warning("配置中 'video_codec' 无效或缺失。将默认使用 H.264 (264)。")
-        video_codec_pref = 264
-
-    # --- 缓存检查 ---
-    cache_key = (plat, video_codec_pref)
-    if not force_test and cache_key in _codec_cache:
-        config.logger.info(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
-        return _codec_cache[cache_key]
-
-    # --- 确定编解码器基础信息 ---
-    if video_codec_pref == 265:
-        h_prefix = 'hevc'
-        default_codec = 'libx265'
-    else:
-        if video_codec_pref != 264:
-             config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
-        h_prefix = 'h264'
-        default_codec = 'libx264'
-
-    selected_codec = default_codec # 初始化为回退选项
-
-    # --- 定义路径 (假设有效) ---
-    try:
-        # 内部使用 Path 对象，传递给子进程时转为字符串
-        test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
-        temp_dir = Path(config.TEMP_DIR)
-    except Exception as e:
-        # 捕获配置本身格式错误导致的路径构建潜在错误
-        config.logger.error(f"从配置构建路径时出错: {e}。将回退到 {default_codec}。")
-        _codec_cache[cache_key] = default_codec
-        return default_codec
-
-    # --- 内部测试函数 (增强版) ---
-    def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
-        """ 测试指定编码器。成功返回 True，失败返回 False。 """
-        timestamp = int(time.time() * 1000)
-        output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
-
-        command = [
-            "ffmpeg",
-            "-y",
-            "-hide_banner",
-            "-loglevel", "error",
-            "-t", "1", # 编码 1 秒以加速测试
-            "-i", str(test_input_file), # 假设此文件存在
-            "-c:v", encoder_to_test,
-            "-f", "mp4",
-            str(output_file) # 假设 temp_dir 可写
-        ]
-
-        creationflags = 0
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NO_WINDOW
-
-        config.logger.info(f"正在尝试测试编码器: {encoder_to_test}...")
-        success = False
-        try:
-            # 直接尝试执行命令。缺少 ffmpeg、输入文件丢失、
-            # 临时目录不可写或编码器无效等错误会在此处引发异常。
-            process = subprocess.run(
-                command,
-                check=True,
-                capture_output=True,
-                text=True,
-                encoding='utf-8', # 尝试指定编码以更好地处理stderr
-                errors='ignore', # 忽略解码错误
-                creationflags=creationflags,
-                timeout=timeout
-            )
-            config.logger.info(f"成功: 编码器 '{encoder_to_test}' 测试通过。")
-            success = True
-        except FileNotFoundError:
-            # 会捕获 'ffmpeg' 命令本身在 PATH 中未找到的情况
-            config.logger.error(f"失败: 测试 {encoder_to_test} 时在 PATH 中未找到 'ffmpeg' 命令。")
-            # 如果 ffmpeg 缺失，尝试其他编码器意义不大。
-            # 当前逻辑仅标记此测试失败并可能尝试其他，
-            # 但若 ffmpeg 完全缺失则可能不是期望行为。
-            # 目前，仅记录日志并为此测试返回 False。
-        except subprocess.CalledProcessError as e:
-            # 捕获 ffmpeg 以非零状态退出的情况 (例如，无效编码器、输入文件丢失、其他 ffmpeg 错误)
-            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。返回码: {e.returncode}")
-            config.logger.warning(f"FFmpeg 命令: {' '.join(command)}")
-            if e.stderr:
-                # 记录 ffmpeg 的错误信息，这对于调试至关重要
-                config.logger.warning(f"FFmpeg 标准错误输出(stderr):\n{e.stderr.strip()}")
-            else:
-                config.logger.warning("FFmpeg 标准错误输出(stderr): (空)")
-        except PermissionError:
-            # 可能在 TEMP_DIR 不可写时发生
-            config.logger.error(f"失败: 写入临时文件 {output_file} 时权限被拒绝。请检查 {temp_dir} 的权限。")
-        except subprocess.TimeoutExpired:
-            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
-        except Exception as e:
-            # 捕获任何其他意外错误 (例如，路径字符串问题、操作系统错误)
-            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True) # 记录 traceback
-            config.logger.error(f"FFmpeg 命令: {' '.join(command)}")
-        finally:
-            # 无论成功与否，都清理测试文件
-            if output_file.exists():
-                try:
-                    output_file.unlink(missing_ok=True)
-                except OSError as e:
-                    config.logger.warning(f"无法删除临时测试文件 {output_file}: {e}")
-            return success # 仅当子进程无异常运行时返回 True
-
-    # --- 特定平台的编码器测试逻辑 ---
-    config.logger.info(f"平台: {plat}。正在检测最佳的 '{h_prefix}' 编码器。")
-    try:
-        if plat == 'Darwin':
-            encoder_name = f"{h_prefix}_videotoolbox"
-            if test_encoder_internal(encoder_name):
-                selected_codec = encoder_name
-
-        elif plat in ['Windows', 'Linux']:
-            nvenc_selected = False
-            # 首先尝试 NVIDIA
-            try:
-                import torch
-                if torch.cuda.is_available():
-                    config.logger.info("PyTorch 报告 CUDA 可用。正在测试 nvenc...")
-                    encoder_name = f"{h_prefix}_nvenc"
-                    if test_encoder_internal(encoder_name):
-                        selected_codec = encoder_name
-                        nvenc_selected = True
-                    else:
-                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
-                else:
-                    config.logger.info("PyTorch 报告 CUDA 不可用。基于 torch 跳过 nvenc 测试。")
-            except Exception:
-                config.logger.info("未找到 torch 模块。正在尝试直接测试 nvenc。")
-
-
-            # 如果 torch 未导入、报告无 CUDA 或上述 nvenc 测试失败
-            if not nvenc_selected:
-                 # 仅当尚未选择编码器时，才尝试直接测试 nvenc
-                 if selected_codec == default_codec:
-                    config.logger.info("正在尝试直接进行 nvenc 测试 (如果尚未选择)。")
-                    encoder_name = f"{h_prefix}_nvenc"
-                    if test_encoder_internal(encoder_name):
-                        selected_codec = encoder_name
-                        nvenc_selected = True # 标记为已选择
-                    else:
-                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
-
-
-            if not nvenc_selected:
-                config.logger.info("正在测试 qsv...")
-                encoder_name = f"{h_prefix}_qsv"
-                if test_encoder_internal(encoder_name):
-                    selected_codec = encoder_name
-                elif plat == 'Linux':
-                    config.logger.info("正在测试 Linux vaapi...")
-                    encoder_name = f"{h_prefix}_vaapi"
-                    if test_encoder_internal(encoder_name):
-                        selected_codec = encoder_name
-                elif plat == 'Windows':
-                    config.logger.info("正在测试 Windows amf...")
-                    encoder_name = f"{h_prefix}_amf"
-                    if test_encoder_internal(encoder_name):
-                        selected_codec = encoder_name
-                    else:
-                        config.logger.info(f"{encoder_name} 测试失败或不可用。")
-        else:
-             config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
-    except Exception as e:
-        config.logger.error(f"在平台特定测试期间发生意外错误: {e}", exc_info=True)
-        config.logger.warning(f"因错误，将回退到软件编码器: {default_codec}")
-        selected_codec = default_codec
-
-    # --- 最终结果 ---
-    if selected_codec == default_codec:
-        config.logger.info(f"未找到或未选择合适的硬件编码器。将使用软件编码器: {selected_codec}")
-    else:
-        config.logger.info(f"已选择硬件编码器: {selected_codec}")
-
-    _codec_cache[cache_key] = selected_codec # 缓存结果
-    return selected_codec
 # 设置ass字体格式
 def set_ass_font(srtfile=None):
     if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
@@ -2333,66 +1958,6 @@ def cleartext(text: str, remove_start_end=True):
         res_text = res_text[1:]
     return res_text
 
-
-# 如果仅相差一行，直接拆分最后一行内容为两行
-'''
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello, my friend, today is']
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello, my friend', ' today is']
-
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello  my friend  today is monday is it']
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧', 'hello  my friend  today is', ' monday is it']
-
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天气不错哦是吧']
-['你好啊', ' 朋友们', '今天是', '星期几你好啊朋友们哈哈今天天', '气不错哦是吧']
-
-['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦,是吧！']
-['你好啊', ' 朋友们', '今天是', '星期几你好啊,朋友们!哈哈!今天天气不错哦', '是吧']
-'''
-
-
-def split_line(sep_list):
-    # 先移除最后一行开头结尾的无效字符
-    sep = sep_list[-1].strip()
-    if not sep:
-        return False
-    flag = [",", ".", "?", ";", ":", "'", "\"", "-", "_", "/", "\\", "+", "-", "=", "!", "*", "(", ")", "{", "}", "，",
-            "。", "·", "？", "！", "（", "）", "｛", "｝", "【", "】"]
-    if sep[0] in flag:
-        sep = sep[1:].strip()
-    if sep and sep[-1] in flag:
-        sep = sep[:-1].strip()
-
-    # 移除后最后一行 无有效文字或字符少于3
-    if not sep or len(sep) < 3:
-        return False
-
-    # 先尝试标点符号拆分
-    res1 = re.split(r'[,.，。；？?、]', sep)
-    if len(res1) > 1:
-        sep_list[-1] = ",".join(res1[:-1])
-        sep_list.append(res1[-1])
-        return sep_list
-
-    # 再尝试空格拆分，
-    res2 = sep.split(" ")
-    # 不存在空格 强制按字符分割
-    if len(res2) < 2:
-        pos = int(len(sep) / -3)
-        sep_list[-1] = sep[:pos]
-        sep_list.append(sep[pos:])
-        return sep_list
-
-    # 存在一个空格则平分
-    if len(res2) == 2:
-        sep_list[-1] = res2[0]
-        sep_list.append(res2[1])
-        return sep_list
-
-    # 取后三分之一
-    pos = int(len(res2) / -3)
-    sep_list[-1] = " ".join(res2[:pos])
-    sep_list.append(" ".join(res2[pos:]))
-    return sep_list
 
 
 # 删除临时文件

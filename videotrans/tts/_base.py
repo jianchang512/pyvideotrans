@@ -11,7 +11,6 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import IPLimitExceeded
 from videotrans.util import tools
 
 
@@ -83,8 +82,6 @@ class BaseTTS(BaseCon):
             raise Exception('无需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
         try:
             self._exec()
-        except IPLimitExceeded as e:
-            raise
         except requests.exceptions.ProxyError as e:
             proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
             raise Exception(f'代理错误请检查:{proxy=} {e}')
@@ -92,7 +89,7 @@ class BaseTTS(BaseCon):
             msg = ''
             if self.api_url:
                 msg=f'无法连接当前API:{self.api_url}' if config.defaulelang=='zh' else f'Check API:{self.api_url}'
-            raise IPLimitExceeded(msg=msg,name=self.__class__.__name__)
+            raise RuntimeError(msg)
         except Exception as e:
             self.error = str(e) if not self.error else self.error
             self._signal(text=self.error, type="error")

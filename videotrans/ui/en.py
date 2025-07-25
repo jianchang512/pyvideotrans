@@ -432,11 +432,6 @@ class Ui_MainWindow(object):
 
 
 
-        # self.gaoji_layout_inner.addLayout(self.layout_voice_rate)
-
-        self.append_video = QtWidgets.QCheckBox(self.layoutWidget)
-        self.append_video.setObjectName("append_video")
-
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setObjectName("voice_autorate")
 
@@ -477,9 +472,6 @@ class Ui_MainWindow(object):
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
 
-
-
-        self.gaoji_layout_inner.addWidget(self.append_video)
         self.gaoji_layout_inner.addWidget(self.voice_autorate)
         self.gaoji_layout_inner.addWidget(self.video_autorate)
         self.gaoji_layout_inner.addWidget(self.subtitle_type)
@@ -1037,9 +1029,6 @@ class Ui_MainWindow(object):
         self.voice_autorate.setToolTip(config.uilanglist.get("shuoming03"))
         self.video_autorate.setText('视频慢速' if config.defaulelang == 'zh' else 'Slow video')
         self.video_autorate.setToolTip('视频自动慢速处理' if config.defaulelang == 'zh' else 'Video Auto Slow')
-        self.append_video.setText('视频延长' if config.defaulelang == 'zh' else 'Video Extension')
-        self.append_video.setToolTip(
-            '如果配音时长大于视频时，是否视频末尾延长' if config.defaulelang == 'zh' else 'If the dubbing time is longer than the video time, is the end of the video extended?')
 
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
         self.is_separate.setText('保留原始背景音' if config.defaulelang == 'zh' else 'Retain original background sound')

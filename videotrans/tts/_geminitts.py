@@ -27,6 +27,7 @@ class GEMINITTS(BaseTTS):
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
+        self.dub_nums=1
         self._local_mul_thread()
     def _item_task(self, data_item: dict = None):
         if not self.is_test and tools.vail_file(data_item['filename']):

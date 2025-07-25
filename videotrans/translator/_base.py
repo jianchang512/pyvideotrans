@@ -7,7 +7,6 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import IPLimitExceeded
 from videotrans.util import tools
 
 
@@ -144,7 +143,7 @@ class BaseTrans(BaseCon):
                     msg=''
                     if self.api_url:
                         msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise IPLimitExceeded(msg=msg+str(e), name=self.__class__.__name__)
+                    raise RuntimeError(msg)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)
@@ -232,7 +231,7 @@ class BaseTrans(BaseCon):
                     msg=''
                     if self.api_url:
                         msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise IPLimitExceeded(msg=msg+str(e), name=self.__class__.__name__)
+                    raise RuntimeError(msg)
                 except Exception as e:
                     self.error = f'{e}'
                     config.logger.exception(e, exc_info=True)

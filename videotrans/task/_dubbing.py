@@ -189,7 +189,7 @@ class DubbingSrt(BaseTask):
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
-                shoud_audiorate=self.cfg['voice_autorate'] and int(float(config.settings.get('audio_rate',1))) > 1,
+                shoud_audiorate=self.cfg['voice_autorate'],
                 raw_total_time=self.queue_tts[-1]['end_time'],
                 noextname=self.cfg['noextname'],
                 target_audio=self.cfg['target_wav'],
@@ -205,17 +205,6 @@ class DubbingSrt(BaseTask):
                 except:
                     pass
             self.queue_tts = rate_inst.run()
-            # 更新字幕
-            if config.settings['force_edit_srt']:
-                srt = ""
-                for (idx, it) in enumerate(self.queue_tts):
-                    it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-                    it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-                    srt += f"{idx + 1}\n{it['startraw']} --> {it['endraw']}\n{it['text']}\n\n"
-                # 字幕保存到目标文件夹
-                with Path(self.cfg['target_sub'] + "-AlignToAudio.srt").open('w',encoding="utf-8") as f:
-                    f.write(srt.strip())
-                    f.flush()
         except Exception as e:
             self.hasend = True
             tools.send_notification(str(e), f'{self.cfg["basename"]}')
