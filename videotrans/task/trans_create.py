@@ -121,17 +121,13 @@ class TransCreate(BaseTask):
         # 临时文件夹
         if 'cache_folder' not in self.cfg or not self.cfg['cache_folder']:
             self.cfg['cache_folder'] = f"{config.TEMP_DIR}/{self.uuid}"
-        #if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
-        #    self.cfg['target_dir'] = Path(self.cfg['target_dir']).as_posix()
+
         # 创建文件夹
         self.cfg['target_dir']=re.sub(r'/{2,}','/',self.cfg['target_dir'])
         Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
         Path(self.cfg['cache_folder']).mkdir(parents=True, exist_ok=True)
         # 存放分离后的无声音mp4
         self.cfg['novoice_mp4'] = f"{self.cfg['cache_folder']}/novoice.mp4"
-
-
-
 
         self.set_source_language(self.cfg['source_language'],is_del=True)
 
@@ -569,8 +565,8 @@ class TransCreate(BaseTask):
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'],ignore_errors=True)
-            #Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-            #shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
+            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+            shutil.rmtree(self.cfg['cache_folder'],ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
 
@@ -789,9 +785,9 @@ class TransCreate(BaseTask):
                     self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.m4a"
                 # 背景音合并配音
                 tools.backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
+                shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
             except Exception as e:
-                config.logger.exception('合并原始背景失败' + config.transobj['Error merging background and dubbing'] + str(e),
-                                        exc_info=True)
+                config.logger.exception(e, exc_info=True)
 
     # 处理所需字幕
     def _process_subtitles(self) -> tuple[str, str]:

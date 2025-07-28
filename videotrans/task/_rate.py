@@ -353,7 +353,7 @@ class SpeedRate:
         它的主要任务不再仅仅是处理视频，而是“测量物理现实”。
         1. `_create_clip_meta`：创建一个包含所有裁切任务的“蓝图”。
         2. 循环遍历蓝图，调用 `_cut_to_intermediate` 生成每个视频片段。
-        3. **关键一步**：片段生成后，`real_duration_ms = tools.get_video_duration(task['out'])`
+        3. **关键一步**：片段生成后，`real_duration_ms `
            这行代码就是“物理探测仪”，它测量出片段的真实时长。
         4. 将真实时长存回任务元数据中，供后续的音频重建阶段使用。
 
@@ -373,7 +373,7 @@ class SpeedRate:
 
             real_duration_ms = 0
             if Path(task['out']).exists() and Path(task['out']).stat().st_size > 0:
-                real_duration_ms = tools.get_video_duration(task['out'])
+                real_duration_ms = self._get_video_duration_safe(task['out'])
 
             task['real_duration_ms'] = real_duration_ms
 
@@ -576,6 +576,34 @@ class SpeedRate:
             merged_audio += AudioSegment.silent(duration=final_gap)
 
         return merged_audio
+    def _get_video_duration_safe(self, file_path):
+        """
+        一个健壮的视频时长获取方法，用于替代直接调用 tools.get_video_duration。
+
+        它包含多层安全检查，以防止因单个片段问题导致整个程序崩溃。
+        1. 检查文件是否存在且大小不为0。
+        2. 使用 try-except 块捕获 ffprobe 可能抛出的任何异常。
+
+        :param file_path: 视频文件的路径
+        :return: 视频时长（毫秒），如果失败则返回 0
+        """
+        path_obj = Path(file_path)
+        # 检查1：文件是否存在且非空
+        if not path_obj.exists() or path_obj.stat().st_size == 0:
+            config.logger.warning(f"视频时长探测失败：文件不存在或为空 -> {file_path}")
+            return 0
+        
+        try:
+            # 尝试获取时长
+            duration_ms = tools.get_video_info(file_path, video_time=True)
+            if duration_ms is None:
+                config.logger.warning(f"视频时长探测返回 None，可能文件已损坏 -> {file_path}")
+                return 0
+            return duration_ms
+        except Exception as e:
+            # 检查2：捕获所有可能的异常，特别是 ffprobe 错误
+            config.logger.error(f"探测视频时长时发生严重错误: {e}。文件 -> {file_path}。将视其时长为0。")
+            return 0
 
     def _finalize_files(self, merged_audio):
         """

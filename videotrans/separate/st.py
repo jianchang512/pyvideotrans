@@ -15,6 +15,7 @@ from videotrans.separate.vr import AudioPre
 
 def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=None, percent=[0, 1]):
     infos = []
+    pre_fun=None
     try:
         func = AudioPre
         pre_fun = func(
@@ -44,7 +45,8 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=N
         yield "\n".join(infos)
     finally:
         try:
-            del pre_fun.model
+            if hasattr(pre_fun, "model"):
+                del pre_fun.model
             del pre_fun
         except Exception:
             traceback.print_exc()

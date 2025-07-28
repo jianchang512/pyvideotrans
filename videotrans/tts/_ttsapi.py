@@ -1,5 +1,6 @@
 import copy
 import sys
+import time
 from pathlib import Path
 from typing import Union, Dict, List
 from urllib.parse import urlparse
@@ -10,8 +11,9 @@ from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
+RETRY_NUMS = 2
+RETRY_DELAY = 5
 
-# 线程池并发
 
 class TTSAPI(BaseTTS):
 
@@ -22,114 +24,113 @@ class TTSAPI(BaseTTS):
         if not api_url.startswith('http'):
             self.api_url = 'http://' + api_url
         else:
-            self.api_url=api_url
-        self.proxies=None
+            self.api_url = api_url
+        self.proxies = None
 
     def _exec(self) -> None:
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        if self._exit():
-            return
-        if not data_item:
-            return
-        if not self.is_test and tools.vail_file(data_item['filename']):
-            return
-        try:
-            text = data_item['text'].strip()
-            role = data_item['role'].strip()
-            if not text:
-                return
-            speed = 1.0
-            if self.rate:
-                speed += float(self.rate.replace('%', '')) / 100
-            volume=1.0
-            if self.volume:
-                volume += float(self.volume.replace('%', '')) / 100
-            pitch=0
-            if self.pitch:
-                pitch += int(self.pitch.replace('Hz', ''))
-            pitch=min(max(-12,pitch),12)
-            if '/t2a_v2' in  self.api_url and 'minimax' in self.api_url:
-                res=self._302aiMinimax(text,role,speed,volume,pitch)      
-                config.logger.info(f'返回数据 {res["base_resp"]=}')                
-                if res['base_resp']['status_code']!=0:
-                    self.error=res['base_resp']['status_msg']
-                    return
-            else:
-                res=self._apirequests(text,role,speed,volume,pitch)
-                config.logger.info(f'返回数据 {res["code"]=}')
-                if "code" not in res or "msg" not in res:
-                    self.error = f'TTS-API:{res}'
-                    return
-                if res['code'] != 0:
-                    self.error = f'TTS-API:{res["msg"]}'
-                    return
-            
-            if 'data' not in res or not res['data']:
-                raise Exception('未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned')
-            # 返回的是音频url地址
-            if isinstance(res['data'],str) and res['data'].startswith('http'):
-                url = res['data']
-                res = requests.get(url)
-                if res.status_code != 200:
-                    self.error = f'{url=}'
-                    return
+        role = data_item['role'].strip()
 
-                tmp_filename=data_item['filename']
-                try:
-                    # 如果url指向的音频不是mp3，则需要转为mp3
-                    url_ext=Path(urlparse(url).path.rpartition('/')[-1]).suffix.lower()
-                except Exception:
-                    url_ext='.mp3'
-                
-                if url_ext!='.mp3':
-                    tmp_filename+=f'{url_ext}'
-                with open(tmp_filename, 'wb') as f:
-                    f.write(res.content)
-                if tmp_filename != data_item['filename']:
-                    tools.runffmpeg([
-                        "-y","-i",tmp_filename,data_item['filename']
-                    ])
-            elif isinstance(res['data'],str) and res['data'].startswith('data:audio'):
-                # 返回 base64数据
-                self._base64_to_audio(res['data'],data_item['filename'])
-            elif isinstance(res['data'],dict) and 'audio' in res['data']:
-                with open(data_item['filename'],'wb') as f:
-                    f.write(bytes.fromhex(res['data']['audio']))
-            else:
-                raise Exception('未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned')
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.error = ''
-            self.has_done += 1
-        except requests.ConnectionError as e:
-            self.error = str(e)
-            config.logger.exception(e, exc_info=True)
-        except Exception as e:
-            self.error = str(e)
-            config.logger.exception(e, exc_info=True)
-        finally:
-            if self.error:
-                self._signal(text=self.error)
-            else:
+        speed = 1.0
+        if self.rate:
+            speed += float(self.rate.replace('%', '')) / 100
+        volume = 1.0
+        if self.volume:
+            volume += float(self.volume.replace('%', '')) / 100
+        pitch = 0
+        if self.pitch:
+            pitch += int(self.pitch.replace('Hz', ''))
+        pitch = min(max(-12, pitch), 12)
+
+        for attempt in range(RETRY_NUMS):
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
+            try:
+                if '/t2a_v2' in self.api_url and 'minimax' in self.api_url:
+                    res = self._302aiMinimax(data_item['text'], role, speed, volume, pitch)
+                    config.logger.info(f'返回数据 {res["base_resp"]=}')
+                    if res['base_resp']['status_code'] != 0:
+                        self.error = res['base_resp']['status_msg']
+                        time.sleep(RETRY_DELAY)
+                        continue
+                else:
+                    res = self._apirequests(data_item['text'], role, speed, volume, pitch)
+                    config.logger.info(f'返回数据 {res["code"]=}')
+                    if "code" not in res or "msg" not in res or res['code'] != 0:
+                        self.error = f'TTS-API:{res["msg"]}'
+                        time.sleep(RETRY_DELAY)
+                        continue
+
+                if 'data' not in res or not res['data']:
+                    self.erro = '未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned'
+                    time.sleep(RETRY_DELAY)
+                    continue
+                # 返回的是音频url地址
+                if isinstance(res['data'], str) and res['data'].startswith('http'):
+                    url = res['data']
+                    res = requests.get(url)
+                    res.raise_for_status()
+
+                    tmp_filename = data_item['filename']
+                    try:
+                        # 如果url指向的音频不是mp3，则需要转为mp3
+                        url_ext = Path(urlparse(url).path.rpartition('/')[-1]).suffix.lower()
+                    except Exception:
+                        url_ext = '.mp3'
+
+                    if url_ext != '.mp3':
+                        tmp_filename += f'{url_ext}'
+                    with open(tmp_filename, 'wb') as f:
+                        f.write(res.content)
+                    if tmp_filename != data_item['filename']:
+                        tools.runffmpeg([
+                            "-y", "-i", tmp_filename, data_item['filename']
+                        ])
+                elif isinstance(res['data'], str) and res['data'].startswith('data:audio'):
+                    # 返回 base64数据
+                    self._base64_to_audio(res['data'], data_item['filename'])
+                elif isinstance(res['data'], dict) and 'audio' in res['data']:
+                    with open(data_item['filename'], 'wb') as f:
+                        f.write(bytes.fromhex(res['data']['audio']))
+                else:
+                    self.error = '未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned'
+                    time.sleep(RETRY_DELAY)
+                    continue
+                if self.inst and self.inst.precent < 80:
+                    self.inst.precent += 0.1
+                self.error = ''
+                self.has_done += 1
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-    
-    def _apirequests(self,text,role,speed=1.0,volume=1.0,pitch=0):
+                return
+            except requests.ConnectionError as e:
+                self.error = str(e)
+                config.logger.exception(e, exc_info=True)
+                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+                time.sleep(RETRY_DELAY)
+            except Exception as e:
+                self.error = str(e)
+                config.logger.exception(e, exc_info=True)
+                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+                time.sleep(RETRY_DELAY)
+
+    def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),
-                    "language": self.language[:2] if self.language else "",
-                    "extra": config.params['ttsapi_extra'],
-                    "voice": role,
-                    "ostype": sys.platform,
-                    "rate": speed}
+                "language": self.language[:2] if self.language else "",
+                "extra": config.params['ttsapi_extra'],
+                "voice": role,
+                "ostype": sys.platform,
+                "rate": speed}
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         }
         config.logger.info(f'发送数据 {data=}')
-        resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers,proxies=None)
-        resraw.raise_for_status()            
+        resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers, proxies=None)
+        resraw.raise_for_status()
         return resraw.json()
+
     """
 青涩青年音色:male-qn-qingse,
 精英青年音色:male-qn-jingying,
@@ -178,31 +179,32 @@ Cute Elf:Cute_Elf,
 Attractive Girl:Attractive_Girl,
 Serene Woman:Serene_Woman    
     """
-    def _302aiMinimax(self,text,role,speed=1.0,volume=1.0,pitch=0.0):
+
+    def _302aiMinimax(self, text, role, speed=1.0, volume=1.0, pitch=0.0):
         import json
         payload = json.dumps({
-           "model": "speech-01-turbo",
-           "text": text,
-           "stream": False,
-           "voice_setting": {
-              "voice_id": role.split(':')[-1],
-              "speed": speed,
-              "vol": volume,
-              "pitch": pitch
-           },
-           "emotion":config.params.get('ttsapi_emotion','happy'),
-           "language_boost":config.params.get('ttsapi_language_boost','auto'),           
-           "audio_setting": {
-              "audio_sample_rate": 32000,
-              "bitrate": 128000,
-              "format": "mp3",
-              "channel": 1
-           }
-        },ensure_ascii=False)
+            "model": "speech-01-turbo",
+            "text": text,
+            "stream": False,
+            "voice_setting": {
+                "voice_id": role.split(':')[-1],
+                "speed": speed,
+                "vol": volume,
+                "pitch": pitch
+            },
+            "emotion": config.params.get('ttsapi_emotion', 'happy'),
+            "language_boost": config.params.get('ttsapi_language_boost', 'auto'),
+            "audio_setting": {
+                "audio_sample_rate": 32000,
+                "bitrate": 128000,
+                "format": "mp3",
+                "channel": 1
+            }
+        }, ensure_ascii=False)
         print(payload)
         headers = {
-           'Authorization': f"Bearer {config.params['ttsapi_extra']}",
-           'Content-Type': 'application/json'
+            'Authorization': f"Bearer {config.params['ttsapi_extra']}",
+            'Content-Type': 'application/json'
         }
 
         response = requests.request("POST", self.api_url, headers=headers, data=payload)

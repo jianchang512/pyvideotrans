@@ -1,13 +1,12 @@
 import asyncio
-import threading
-import time, re
 from pathlib import Path
+
 import aiohttp
+from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
+
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
-from edge_tts import Communicate
 
 # --- 常量定义 ---
 # 最大并发数，可以根据需要调整，或者放入配置文件
@@ -52,13 +51,12 @@ class EdgeTTS(BaseTTS):
                 await asyncio.sleep(self.wait_sec)
 
             # 移除可能存在的说话人标签
-            text_to_speak = re.sub(r'\[?spk\-?\d{1,2}\]','',item['text'].strip(),re.I)
-            config.logger.info(f"开始处理任务 [{index + 1}/{total_tasks}]: {text_to_speak}")
+            config.logger.info(f"开始处理任务 [{index + 1}/{total_tasks}]: {item['text']}")
 
             for attempt in range(MAX_RETRIES):
                 try:
                     communicate = Communicate(
-                        text_to_speak,
+                        item['text'],
                         voice=item['role'],
                         rate=self.rate,
                         volume=self.volume,
@@ -77,24 +75,23 @@ class EdgeTTS(BaseTTS):
 
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} [{index + 1}/{total_tasks}]')
                     config.logger.info(f"任务 [{index + 1}/{total_tasks}] 成功.")
-                    return # 成功，退出函数
+                    return  # 成功，退出函数
 
                 except (NoAudioReceived, aiohttp.ClientError) as e:
                     config.logger.warning(
                         f"任务 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{MAX_RETRIES} 次尝试失败: {e}. "
                         f"{RETRY_DELAY} 秒后重试..."
                     )
-                    if attempt < MAX_RETRIES - 1:
-                        await asyncio.sleep(RETRY_DELAY)
-                    else:
-                        # 所有重试均失败，记录严重错误并抛出异常
-                        config.logger.error(f"任务 [{index + 1}/{total_tasks}] 在 {MAX_RETRIES} 次尝试后最终失败。")
-                        # 向上抛出异常，由 asyncio.gather 捕获
-                        raise Exception(f"配音失败，请检查网络或代理设置: {e}") from e
+                    config.logger.error(f"任务 [{index + 1}/{total_tasks}] 在 {MAX_RETRIES} 次尝试后最终失败。")
+                    self.error=str(e)
+                    self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
+                    await asyncio.sleep(RETRY_DELAY)
                 except Exception as e:
                     # 捕获其他未知异常
                     config.logger.exception(e, exc_info=True)
-                    raise Exception(f"异步合成时发生未知错误: {e}") from e
+                    self.error=str(e)
+                    self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
+                    await asyncio.sleep(RETRY_DELAY)
 
 
     async def _task_queue(self):
@@ -132,17 +129,15 @@ class EdgeTTS(BaseTTS):
         finally:
             print('配音完毕')
 
-
     # 执行入口，外部会调用该方法
     def _exec(self) -> None:
         if self._exit():
             return
-
         try:
             # asyncio.run 会自动管理事件循环的创建和销毁
             asyncio.run(self._task_queue())
         except Exception as e:
             # 将异步世界中的异常传递到同步世界
-            config.logger.error(f"配音主流程发生错误: {e}")
+            config.logger.exception(e,exc_info=True)
             # 这里可以直接 raise，让外部的 run 方法的 try-except 块来处理
             raise

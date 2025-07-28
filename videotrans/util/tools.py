@@ -880,6 +880,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     if "streams" not in out or not out["streams"]:
         raise Exception('ffprobe error: streams is 0')
 
+    result['streams_len'] = len(out['streams'])
 
     if "format" in out and out['format'].get('duration'):
         try:
@@ -888,7 +889,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         except (ValueError, TypeError):
             config.logger.warning(f"Could not parse duration: {out['format'].get('duration')}")
 
-    result['streams_len'] = len(out['streams'])
     
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -1562,6 +1562,8 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False):
             # 移除html
             if type == 'error':
                 text = text.replace('\\n', ' ').strip()
+        if type=='logs':
+            text=text[:150]
         log = {"text": text, "type": type, "uuid": uuid}
         if uuid:
             config.push_queue(uuid, log)

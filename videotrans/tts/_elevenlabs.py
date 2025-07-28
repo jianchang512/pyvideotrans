@@ -1,19 +1,20 @@
 import copy
 import json
 import os
-import re
 import time
 
+import elevenlabs
 import httpx
-from elevenlabs import ElevenLabs,VoiceSettings
-
+from elevenlabs import ElevenLabs, VoiceSettings
+from elevenlabs.core import ApiError
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
+RETRY_NUMS = 2
+RETRY_DELAY = 5
 
-# 单个线程执行，防止远端限制
 
 class ElevenLabsC(BaseTTS):
 
@@ -23,32 +24,13 @@ class ElevenLabsC(BaseTTS):
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = pro
+    def _item_task(self, data_item: dict = None):
+        role = data_item['role']
 
-    # 强制单个线程执行，防止频繁并发失败
-    def _exec(self):
-        prev_text = None
-        speed=1.0
-        if self.rate and self.rate !='+0%':
-            speed+=float(self.rate.replace('%',''))
-
-        while len(self.copydata) > 0:
-            if self._exit():
-                return
-            try:
-                data_item = self.copydata.pop(0)
-                if tools.vail_file(data_item['filename']):
-                    data_item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',data_item['text'].strip(),re.I)
-                    prev_text = data_item['text']
-                    continue
-            except:
-                return
-
-            text = data_item['text'].strip()
-            text =re.sub(r'\[?spk\-?\d{1,2}\]','',text.strip(),re.I)
-            role = data_item['role']
-            if not text:
-                prev_text = None
-                continue
+        speed = 1.0
+        if self.rate and self.rate != '+0%':
+            speed += float(self.rate.replace('%', ''))
+        for attempt in range(RETRY_NUMS):
             try:
                 with open(os.path.join(config.ROOT_DIR, 'elevenlabs.json'), 'r', encoding="utf-8") as f:
                     jsondata = json.loads(f.read())
@@ -59,12 +41,12 @@ class ElevenLabsC(BaseTTS):
                 )
 
                 response = client.text_to_speech.convert(
-                    text=text,
+                    text=data_item['text'],
                     voice_id=jsondata[role]['voice_id'],
                     model_id=config.params.get("elevenlabstts_models"),
-                    previous_text=prev_text,
+
                     output_format="mp3_44100_128",
-                    next_text=self.copydata[0]['text'] if len(self.copydata) > 0 else None,
+
                     apply_text_normalization='auto',
                     voice_settings=VoiceSettings(
                         speed=speed,
@@ -82,21 +64,26 @@ class ElevenLabsC(BaseTTS):
                     self.inst.precent += 0.1
                 self.error = ''
                 self.has_done += 1
-                prev_text = text
-            except Exception as e:
-                error = str(e)
-                print(error)
-                config.logger.error(error)
-                self.error = error
-                if error and re.search(r'rate|limit', error, re.I) is not None:
-                    self._signal(
-                        text='超过频率限制，等待60s后重试' if config.defaulelang == 'zh' else 'Frequency limit exceeded, wait 60s and retry')
-                    self.copydata.append(data_item)
-                    time.sleep(60)
-                    continue
-            finally:
+
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                time.sleep(self.wait_sec)
+                return
+            except ApiError as e:
+                config.logger.exception(e,exc_info=True)
+                self.error = str(e.body['detail']['message'])
+                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+                if e.status_code in [401,403,404,422,425]:
+                    return
+                time.sleep(RETRY_DELAY)
+            except Exception as e:
+                config.logger.exception(e,exc_info=True)
+                self.error = str(e)
+                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+                time.sleep(60)
+    # 强制单个线程执行，防止频繁并发失败
+    def _exec(self):
+        self.dub_nums = 1
+        self._local_mul_thread()
+
 
 
 class ElevenLabsClone():
@@ -106,9 +93,10 @@ class ElevenLabsClone():
         self.output_file_path = output_file_path
         self.source_language = source_language
         self.target_language = target_language
+        self.error = ''
         pro = self._set_proxy(type='set')
         if pro:
-            self.proxies =  pro
+            self.proxies = pro
         self.client = ElevenLabs(
             api_key=config.params['elevenlabstts_key'],
             httpx_client=httpx.Client(proxy=self.proxies) if pro else None
@@ -144,24 +132,33 @@ class ElevenLabsClone():
         # 转为mp3发送
         mp3_audio = config.TEMP_DIR + f'/elevlabs-clone-{time.time()}.mp3'
         tools.runffmpeg(['-y', '-i', self.input_file_path, mp3_audio])
-        with open(mp3_audio, "rb") as audio_file:
-            response = self.client.dubbing.dub_a_video_or_an_audio_file(
-                file=(os.path.basename(mp3_audio), audio_file, "audio/mpeg"),
-                target_lang=self.target_language[:2],
-                source_lang='auto' if self.source_language == 'auto' else self.source_language[:2],
-                num_speakers=0,
-                watermark=False  # reduces the characters used if enabled, only works for videos not audio
-            )
+        for attempt in range(RETRY_NUMS):
+            try:
+                with open(mp3_audio, "rb") as audio_file:
+                    response = self.client.dubbing.dub_a_video_or_an_audio_file(
+                        file=(os.path.basename(mp3_audio), audio_file, "audio/mpeg"),
+                        target_lang=self.target_language[:2],
+                        source_lang='auto' if self.source_language == 'auto' else self.source_language[:2],
+                        num_speakers=0,
+                        watermark=False  # reduces the characters used if enabled, only works for videos not audio
+                    )
 
-        dubbing_id = response.dubbing_id
-        if self.wait_for_dubbing_completion(dubbing_id):
-            # 返回为mp3数据，转为 原m4a格式
-            with open(self.output_file_path + ".mp3", "wb") as file:
-                for chunk in self.client.dubbing.get_dubbed_file(dubbing_id, self.target_language):
-                    file.write(chunk)
-            tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", self.output_file_path])
-            return True
-        raise Exception('Dubbing Timeout ')
+                dubbing_id = response.dubbing_id
+                if self.wait_for_dubbing_completion(dubbing_id):
+                    # 返回为mp3数据，转为 原m4a格式
+                    with open(self.output_file_path + ".mp3", "wb") as file:
+                        for chunk in self.client.dubbing.get_dubbed_file(dubbing_id, self.target_language):
+                            file.write(chunk)
+                    tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", self.output_file_path])
+                    self.error = ""
+                    return True
+            except Exception as e:
+                config.logger.exception(e,exc_info=True)
+                self.error = str(e)
+                time.sleep(RETRY_DELAY)
+
+        if self.error:
+            raise RuntimeError(self.error)
 
     def wait_for_dubbing_completion(self, dubbing_id: str) -> bool:
         MAX_ATTEMPTS = 120

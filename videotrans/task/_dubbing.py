@@ -169,12 +169,12 @@ class DubbingSrt(BaseTask):
 
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
-                text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
-                name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
-                shutil.copy2(it['filename'],name)
+                if Path(it['filename']).exists():
+                    text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
+                    name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
+                    shutil.copy2(it['filename'],name)
 
     def align(self) -> None:
-        print(self.queue_tts)
         if self.cfg['target_sub'].endswith('.txt') or len(self.queue_tts)==1:
             if self.cfg['tts_type'] !=tts.EDGE_TTS:
                 tools.runffmpeg(['-y','-i',self.queue_tts[0]['filename'],'-b:a','128k',self.cfg['target_wav']])        

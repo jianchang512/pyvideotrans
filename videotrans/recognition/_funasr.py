@@ -55,6 +55,7 @@ class FunasrRecogn(BaseRecogn):
         threading.Thread(target=_checkdown).start()
         if self.model_name=='SenseVoiceSmall':
             return self._exec1()
+        raw_subtitles = []
         try:
             model = AutoModel(
                             model=self.model_name,model_revision="v2.0.4",
@@ -62,9 +63,7 @@ class FunasrRecogn(BaseRecogn):
                               punc_model="ct-punc", punc_model_revision="v2.0.4",
                               local_dir=config.ROOT_DIR + "/models",
                               hub='ms',
-                              
-                              
-                              spk_model="cam++", spk_model_revision="v2.0.2",
+                              spk_model="cam++" if config.params.get('paraformer_spk',False) else None, spk_model_revision="v2.0.2",
                               disable_update=True,
                               disable_progress_bar=True,
                               disable_log=True,
@@ -75,7 +74,7 @@ class FunasrRecogn(BaseRecogn):
             self._tosend(msg)
             res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
                                  sentence_timestamp=True, batch_size_s=100,disable_pbar=True)
-            raw_subtitles = []
+
 
             for it in res[0]['sentence_info']:
                 tmp={
@@ -90,7 +89,6 @@ class FunasrRecogn(BaseRecogn):
                 tmp['time']=f"{tmp['startraw']} --> {tmp['endraw']}"
                 raw_subtitles.append(tmp)
         except Exception as e:
-            err=str(e)
             raise
         finally: 
             config.FUNASR_DOWNMSG=''
@@ -104,6 +102,8 @@ class FunasrRecogn(BaseRecogn):
     def _exec1(self) -> Union[List[Dict], None]:
         if self._exit():
             return        
+        model=None
+        vm=None
         try:
             from funasr.utils.postprocess_utils import rich_transcription_postprocess
             model = AutoModel(
@@ -164,7 +164,6 @@ class FunasrRecogn(BaseRecogn):
                 )
             return srts
         except Exception as e:
-            err=str(e)
             raise
         finally:
             config.FUNASR_DOWNMSG=''
