@@ -39,7 +39,7 @@ class ParaketRecogn(BaseRecogn):
                 transcript = client.audio.transcriptions.create(
                     file=(self.audio_file, file.read()),
                     model='parakeet_srt_words',
-                    prompt='',
+                    prompt=self.detect_language[:2].lower(),
                     response_format="srt"
                 )
                 if not transcript or  not isinstance(transcript, str):

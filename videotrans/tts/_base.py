@@ -36,11 +36,11 @@ class BaseTTS(BaseCon):
         self.pitch = '+0Hz'
 
         self.len = len(queue_tts)
+        if self.len < 1:
+            raise Exception("No data")
         self.has_done = 0
         self.proxies = None  # 代理
 
-        if self.len < 1:
-            raise Exception("No data")
         self.queue_tts = copy.deepcopy(queue_tts)
         # 线程池时先复制一份再pop，以便出错重试时数据正常
         self.copydata = []
@@ -49,10 +49,26 @@ class BaseTTS(BaseCon):
         self.dub_nums = int(float(config.settings.get('dubbing_thread', 1))) if self.len > 1 else 1
         self.error = ''
         self.api_url = ''
-        self._fomat_vrp()
+        self._cleantts()
 
-    # 语速、音量、音调规范化为 edge-tts/azure-tts 格式
-    def _fomat_vrp(self):
+    def _cleantts(self):
+        normalizer=None
+        if self.language[:2]=='zh':
+            from videotrans.util.cn_tn import TextNorm
+            normalizer = TextNorm(to_banjiao = True)
+        elif self.language[:2]=='en':
+            from videotrans.util.en_tn import EnglishNormalizer
+            normalizer = EnglishNormalizer()
+        for i,it in enumerate(self.queue_tts):
+            text=re.sub(r'\[?spk\-?\d{1,2}\]','',it.get('text','').strip(),re.I)
+            if normalizer:
+                text=normalizer(text)
+            if not text:
+                # 移除该条目
+                self.queue_tts.pop(i)
+            else:
+                self.queue_tts[i]['text']=text
+
         if "volume" in self.queue_tts[0]:
             self.volume = self.queue_tts[0]['volume']
         if "rate" in self.queue_tts[0]:
@@ -66,6 +82,7 @@ class BaseTTS(BaseCon):
             self.volume = f'+{self.volume}'
         if re.match(r'^\d+(\.\d+)?Hz$', self.pitch, re.I):
             self.pitch = f'+{self.pitch}'
+
         if not re.match(r'^[+-]\d+(\.\d+)?%$', self.rate):
             self.rate = '+0%'
         if not re.match(r'^[+-]\d+(\.\d+)?%$', self.volume):
@@ -73,6 +90,9 @@ class BaseTTS(BaseCon):
         if not re.match(r'^[+-]\d+(\.\d+)?Hz$', self.pitch, re.I):
             self.pitch = '+0Hz'
         self.pitch=self.pitch.replace('%','')
+
+
+
     # 入口 调用子类 _exec() 然后创建线程池调用 _item_task 或直接在 _exec 中实现逻辑
     # 若捕获到异常，则直接抛出  出错时发送停止信号
     def run(self) -> None:
@@ -80,57 +100,35 @@ class BaseTTS(BaseCon):
         self._signal(text="")
         if len(self.queue_tts)<1:
             raise Exception('无需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
-        try:
-            self._exec()
-        except requests.exceptions.ProxyError as e:
-            proxy=None if not self.proxies else f'{list(self.proxies.values())[0]}'
-            raise Exception(f'代理错误请检查:{proxy=} {e}')
-        except (requests.ConnectionError, requests.exceptions.RetryError, requests.Timeout):
-            msg = ''
-            if self.api_url:
-                msg=f'无法连接当前API:{self.api_url}' if config.defaulelang=='zh' else f'Check API:{self.api_url}'
-            raise RuntimeError(msg)
-        except Exception as e:
-            self.error = str(e) if not self.error else self.error
-            self._signal(text=self.error, type="error")
-            raise Exception(f'{self.error}:{e}')
-        finally:
-            if self.shound_del:
-                self._set_proxy(type='del')
-            if self.error:
-                config.logger.error(f'{self.__class__.__name__}: {self.error=}')
+        self._exec()
+        if self.shound_del:
+            self._set_proxy(type='del')
+
         # 是否播放
         if self.play and tools.vail_file(self.queue_tts[0]['filename']):
             threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
             return
-        elif self.play:
+        if self.play and self.error:
             raise Exception(self.error)
 
-        # 记录出错的字幕行数，超过总数 1/3 报错
-        err = 0
+        # 记录成功数量
+        succeed_nums = 0
         for it in self.queue_tts:
-            if it['text'].strip() and not tools.vail_file(it['filename']):
-                err += 1
-        # 错误量大于 1/2
-        if err > int(len(self.queue_tts) / 2):
-            msg = (self.error if self.error else '')+ config.transobj["peiyindayu31"]
+            if it['text'].strip() and tools.vail_file(it['filename']):
+                succeed_nums += 1
+        # 全部失败
+        if succeed_nums<1:
+            msg = ('配音全部失败 ' if config.defaulelang=='zh' else 'Dubbing failed ')+self.error
             self._signal(text= msg, type="error")
             raise Exception(msg)
+        self._signal(text=f"配音成功{succeed_nums}个，失败 {len(self.queue_tts)-succeed_nums}个" if config.defaulelang=='zh' else f"Dubbing succeeded {succeed_nums}，failed {len(self.queue_tts)-succeed_nums}")
         # 去除末尾静音
         if config.settings['remove_silence']:
             for it in self.queue_tts:
                 if tools.vail_file(it['filename']):
                     tools.remove_silence_from_end(it['filename'])
-    # 实际业务逻辑 子类实现 在此创建线程池，或单线程时直接创建逻辑
-    # 抛出异常则停止
-    def _exec(self) -> None:
-        pass
 
-    # 每条字幕任务，由线程池调用 data_item 是 queue_tts 中每个元素
-    def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
-        pass
-
-    # 用于除  elevenlabs edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
+    # 用于除  edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
     def _local_mul_thread(self) -> None:
         if self._exit():
             return
@@ -138,34 +136,26 @@ class BaseTTS(BaseCon):
             raise Exception(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
-        all_task = []
-        normalizer=None
-        if self.language[:2]=='zh':
-            from videotrans.util.cn_tn import TextNorm
-            normalizer = TextNorm(to_banjiao = True)
-        elif self.language[:2]=='en':
-            from videotrans.util.en_tn import EnglishNormalizer
-            normalizer = EnglishNormalizer()
-            
         if len(self.queue_tts)==1 or self.dub_nums==1:
             for k, item in enumerate(self.queue_tts):
                 if k>0:
-                    print(f'{self.wait_sec=}')
                     time.sleep(self.wait_sec)
-                if normalizer:
-                    item['text']=normalizer(item['text'])
-                    print(f'normalizer:{item["text"]}')
-                item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',item['text'].strip(),re.I)
                 self._item_task(item)
-        else:
-            with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
-                for k, item in enumerate(self.queue_tts):
-                    if normalizer:
-                        item['text']=normalizer(item['text'])
-                        print(f'normalizer:{item["text"]}')
-                    item['text']=re.sub(r'\[?spk\-?\d{1,2}\]','',item['text'].strip(),re.I)
-                    all_task.append(pool.submit(self._item_task, item))
-                _ = [i.result() for i in all_task]
+            return
+
+        all_task = []
+        with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
+            for k, item in enumerate(self.queue_tts):
+                all_task.append(pool.submit(self._item_task, item))
+            _ = [i.result() for i in all_task]
+
+    # 实际业务逻辑 子类实现 在此创建线程池，或单线程时直接创建逻辑
+    def _exec(self) -> None:
+        pass
+
+    # 每条字幕任务，由线程池调用 data_item 是 queue_tts 中每个元素
+    def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
+        pass
 
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:

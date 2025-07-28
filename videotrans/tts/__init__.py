@@ -1,7 +1,5 @@
 from videotrans.configure import config
 
-
-
 # 数字代表界面中的显示顺序
 EDGE_TTS = 0
 COSYVOICE_TTS = 1
@@ -24,111 +22,113 @@ CHATTERBOX_TTS = 17
 QWEN_TTS = 18
 
 TTS_NAME_LIST = [
-    "Edge-TTS(免费)" if config.defaulelang=='zh' else 'Edge-TTS',
-    'CosyVoice(本地)' if config.defaulelang=='zh' else 'CosyVoice',
-    "ChatTTS(本地)" if config.defaulelang=='zh' else 'ChatTTS',
+    "Edge-TTS(免费)" if config.defaulelang == 'zh' else 'Edge-TTS',
+    'CosyVoice(本地)' if config.defaulelang == 'zh' else 'CosyVoice',
+    "ChatTTS(本地)" if config.defaulelang == 'zh' else 'ChatTTS',
     "302.AI",
-    "FishTTS(本地)" if config.defaulelang=='zh' else 'FishTTS',
+    "FishTTS(本地)" if config.defaulelang == 'zh' else 'FishTTS',
     "Azure-TTS",
-    "GPT-SoVITS(本地)" if config.defaulelang=='zh' else 'GPT-SoVITS',
-    "clone-voice(本地)" if config.defaulelang=='zh' else 'clone-voice',
+    "GPT-SoVITS(本地)" if config.defaulelang == 'zh' else 'GPT-SoVITS',
+    "clone-voice(本地)" if config.defaulelang == 'zh' else 'clone-voice',
     "OpenAI TTS",
     "Elevenlabs.io",
     "Google TTS",
     "自定义TTSAPI" if config.defaulelang == 'zh' else 'Customize API',
     "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
-    "F5/Index/Spark/Dia TTS" if config.defaulelang=='zh' else 'f5/index/spark/dia-TTS',
-    "kokoro-TTS(本地)" if config.defaulelang=='zh' else 'kokoro-TTS',
+    "F5/Index/Spark/Dia TTS" if config.defaulelang == 'zh' else 'f5/index/spark/dia-TTS',
+    "kokoro-TTS(本地)" if config.defaulelang == 'zh' else 'kokoro-TTS',
     "Google Cloud TTS",
     "Gemini TTS",
-    "ChatterBox(仅英语)" if config.defaulelang=='zh' else 'ChatterBox(Eng)',
+    "ChatterBox(仅英语)" if config.defaulelang == 'zh' else 'ChatterBox(Eng)',
     "Qwen TTS"
 ]
 
-DOUBAO_302AI={
-            "灿灿": "zh_female_cancan_mars_bigtts",
-            "清新女声": "zh_female_qingxinnvsheng_mars_bigtts",
-            "爽快思思": "zh_female_shuangkuaisisi_moon_bigtts",
-            "温暖阿虎": "zh_male_wennuanahu_moon_bigtts",
-            "少年梓辛": "zh_male_shaonianzixin_moon_bigtts",
-            "知性女声": "zh_female_zhixingnvsheng_mars_bigtts",
-            "清爽男大": "zh_male_qingshuangnanda_mars_bigtts",
-            "邻家女孩": "zh_female_linjianvhai_moon_bigtts",
-            "渊博小叔": "zh_male_yuanboxiaoshu_moon_bigtts",
-            "阳光青年": "zh_male_yangguangqingnian_mars_bigtts",
-            "甜美小源": "zh_female_tianmeixiaoyuan_moon_bigtts",
-            "清澈梓梓": "zh_female_qingchezizi_moon_bigtts",
-            "解说小明": "zh_male_jieshuoxiaoming_moon_bigtts",
-            "开朗姐姐": "zh_female_kailangjiejie_moon_bigtts",
-            "邻家男孩": "zh_male_linjiananhai_moon_bigtts",
-            "甜美悦悦": "zh_female_tianmeiyueyue_moon_bigtts",
-            "心灵鸡汤": "zh_female_xinlingjitang_moon_bigtts",
-            "京腔侃爷": "zh_male_jingqiangkanye_moon_bigtts",
-            "湾湾小何": "zh_female_wanwanxiaohe_moon_bigtts",
-            "湾区大叔": "zh_female_wanqudashu_moon_bigtts",
-            "呆萌川妹": "zh_female_daimengchuanmei_moon_bigtts",
-            "广州德哥": "zh_male_guozhoudege_moon_bigtts",
-            "北京小爷": "zh_male_beijingxiaoye_moon_bigtts",
-            "浩宇小哥": "zh_male_haoyuxiaoge_moon_bigtts",
-            "广西远舟": "zh_male_guangxiyuanzhou_moon_bigtts",
-            "妹坨洁儿": "zh_female_meituojieer_moon_bigtts",
-            "豫州子轩": "zh_male_yuzhouzixuan_moon_bigtts",
-            "奶气萌娃": "zh_male_naiqimengwa_mars_bigtts",
-            "婆婆": "zh_female_popo_mars_bigtts",
-            "高冷御姐": "zh_female_gaolengyujie_moon_bigtts",
-            "傲娇霸总": "zh_male_aojiaobazong_moon_bigtts",
-            "魅力女友": "zh_female_meilinvyou_moon_bigtts",
-            "深夜播客": "zh_male_shenyeboke_moon_bigtts",
-            "柔美女友": "zh_female_sajiaonvyou_moon_bigtts",
-            "撒娇学妹": "zh_female_yuanqinvyou_moon_bigtts",
-            "病弱少女": "ICL_zh_female_bingruoshaonv_tob",
-            "活泼女孩": "ICL_zh_female_huoponvhai_tob",
-            "东方浩然": "zh_male_dongfanghaoran_moon_bigtts",
-            "和蔼奶奶": "ICL_zh_female_heainainai_tob",
-            "邻居阿姨": "ICL_zh_female_linjuayi_tob",
-            "温柔小雅": "zh_female_wenrouxiaoya_moon_bigtts",
-            "天才童声": "zh_male_tiancaitongsheng_mars_bigtts",
-            "猴哥": "zh_male_sunwukong_mars_bigtts",
-            "熊二": "zh_male_xionger_mars_bigtts",
-            "佩奇猪": "zh_female_peiqi_mars_bigtts",
-            "武则天": "zh_female_wuzetian_mars_bigtts",
-            "顾姐": "zh_female_gujie_mars_bigtts",
-            "樱桃丸子": "zh_female_yingtaowanzi_mars_bigtts",
-            "广告解说": "zh_male_chunhui_mars_bigtts",
-            "少儿故事": "zh_female_shaoergushi_mars_bigtts",
-            "四郎": "zh_male_silang_mars_bigtts",
-            "磁性解说男声": "zh_male_jieshuonansheng_mars_bigtts",
-            "鸡汤妹妹": "zh_female_jitangmeimei_mars_bigtts",
-            "贴心女声": "zh_female_tiexinnvsheng_mars_bigtts",
-            "俏皮女声": "zh_female_qiaopinvsheng_mars_bigtts",
-            "萌丫头": "zh_female_mengyatou_mars_bigtts",
-            "悬疑解说": "zh_male_changtianyi_mars_bigtts",
-            "儒雅青年": "zh_male_ruyaqingnian_mars_bigtts",
-            "霸气青叔": "zh_male_baqiqingshu_mars_bigtts",
-            "擎苍": "zh_male_qingcang_mars_bigtts",
-            "古风少御": "zh_female_gufengshaoyu_mars_bigtts",
-            "温柔淑女": "zh_female_wenroushunv_mars_bigtts"
-        }
+DOUBAO_302AI = {
+    "灿灿": "zh_female_cancan_mars_bigtts",
+    "清新女声": "zh_female_qingxinnvsheng_mars_bigtts",
+    "爽快思思": "zh_female_shuangkuaisisi_moon_bigtts",
+    "温暖阿虎": "zh_male_wennuanahu_moon_bigtts",
+    "少年梓辛": "zh_male_shaonianzixin_moon_bigtts",
+    "知性女声": "zh_female_zhixingnvsheng_mars_bigtts",
+    "清爽男大": "zh_male_qingshuangnanda_mars_bigtts",
+    "邻家女孩": "zh_female_linjianvhai_moon_bigtts",
+    "渊博小叔": "zh_male_yuanboxiaoshu_moon_bigtts",
+    "阳光青年": "zh_male_yangguangqingnian_mars_bigtts",
+    "甜美小源": "zh_female_tianmeixiaoyuan_moon_bigtts",
+    "清澈梓梓": "zh_female_qingchezizi_moon_bigtts",
+    "解说小明": "zh_male_jieshuoxiaoming_moon_bigtts",
+    "开朗姐姐": "zh_female_kailangjiejie_moon_bigtts",
+    "邻家男孩": "zh_male_linjiananhai_moon_bigtts",
+    "甜美悦悦": "zh_female_tianmeiyueyue_moon_bigtts",
+    "心灵鸡汤": "zh_female_xinlingjitang_moon_bigtts",
+    "京腔侃爷": "zh_male_jingqiangkanye_moon_bigtts",
+    "湾湾小何": "zh_female_wanwanxiaohe_moon_bigtts",
+    "湾区大叔": "zh_female_wanqudashu_moon_bigtts",
+    "呆萌川妹": "zh_female_daimengchuanmei_moon_bigtts",
+    "广州德哥": "zh_male_guozhoudege_moon_bigtts",
+    "北京小爷": "zh_male_beijingxiaoye_moon_bigtts",
+    "浩宇小哥": "zh_male_haoyuxiaoge_moon_bigtts",
+    "广西远舟": "zh_male_guangxiyuanzhou_moon_bigtts",
+    "妹坨洁儿": "zh_female_meituojieer_moon_bigtts",
+    "豫州子轩": "zh_male_yuzhouzixuan_moon_bigtts",
+    "奶气萌娃": "zh_male_naiqimengwa_mars_bigtts",
+    "婆婆": "zh_female_popo_mars_bigtts",
+    "高冷御姐": "zh_female_gaolengyujie_moon_bigtts",
+    "傲娇霸总": "zh_male_aojiaobazong_moon_bigtts",
+    "魅力女友": "zh_female_meilinvyou_moon_bigtts",
+    "深夜播客": "zh_male_shenyeboke_moon_bigtts",
+    "柔美女友": "zh_female_sajiaonvyou_moon_bigtts",
+    "撒娇学妹": "zh_female_yuanqinvyou_moon_bigtts",
+    "病弱少女": "ICL_zh_female_bingruoshaonv_tob",
+    "活泼女孩": "ICL_zh_female_huoponvhai_tob",
+    "东方浩然": "zh_male_dongfanghaoran_moon_bigtts",
+    "和蔼奶奶": "ICL_zh_female_heainainai_tob",
+    "邻居阿姨": "ICL_zh_female_linjuayi_tob",
+    "温柔小雅": "zh_female_wenrouxiaoya_moon_bigtts",
+    "天才童声": "zh_male_tiancaitongsheng_mars_bigtts",
+    "猴哥": "zh_male_sunwukong_mars_bigtts",
+    "熊二": "zh_male_xionger_mars_bigtts",
+    "佩奇猪": "zh_female_peiqi_mars_bigtts",
+    "武则天": "zh_female_wuzetian_mars_bigtts",
+    "顾姐": "zh_female_gujie_mars_bigtts",
+    "樱桃丸子": "zh_female_yingtaowanzi_mars_bigtts",
+    "广告解说": "zh_male_chunhui_mars_bigtts",
+    "少儿故事": "zh_female_shaoergushi_mars_bigtts",
+    "四郎": "zh_male_silang_mars_bigtts",
+    "磁性解说男声": "zh_male_jieshuonansheng_mars_bigtts",
+    "鸡汤妹妹": "zh_female_jitangmeimei_mars_bigtts",
+    "贴心女声": "zh_female_tiexinnvsheng_mars_bigtts",
+    "俏皮女声": "zh_female_qiaopinvsheng_mars_bigtts",
+    "萌丫头": "zh_female_mengyatou_mars_bigtts",
+    "悬疑解说": "zh_male_changtianyi_mars_bigtts",
+    "儒雅青年": "zh_male_ruyaqingnian_mars_bigtts",
+    "霸气青叔": "zh_male_baqiqingshu_mars_bigtts",
+    "擎苍": "zh_male_qingcang_mars_bigtts",
+    "古风少御": "zh_female_gufengshaoyu_mars_bigtts",
+    "温柔淑女": "zh_female_wenroushunv_mars_bigtts"
+}
+
 
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
-    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko','en','yu']:
+    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
-    if tts_type == QWEN_TTS and langcode[:2] not in ['zh','en','yu']:
+    if tts_type == QWEN_TTS and langcode[:2] not in ['zh', 'en', 'yu']:
         return 'Qwen TS 仅支持中英配音' if config.defaulelang == 'zh' else 'Qwen TTS only supports Chinese, English'
-    if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko','yu']:
+    if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko', 'yu']:
         return 'CosyVoice仅支持中日韩语言配音' if config.defaulelang == 'zh' else 'CosyVoice only supports Chinese, English, Japanese and Korean'
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return 'ChatTTS 仅支持中英语言配音' if config.defaulelang == 'zh' else 'ChatTTS only supports Chinese, English'
 
-    if tts_type == GOOGLECLOUD_TTS and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'hi', 'ar', 'tr', 'th', 'vi', 'id','yu']:
+    if tts_type == GOOGLECLOUD_TTS and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru',
+                                                            'hi', 'ar', 'tr', 'th', 'vi', 'id', 'yu']:
         return 'Google Cloud TTS 仅支持中、英、日、韩、法、德、西、意、葡、俄、印、阿、土、泰、越、印尼语言配音' if config.defaulelang == 'zh' else 'Google Cloud TTS only supports Chinese, English, Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian, Hindi, Arabic, Turkish, Thai, Vietnamese, Indonesian'
 
-    if tts_type == VOLCENGINE_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','th','vi','id','yu']:
+    if tts_type == VOLCENGINE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'th', 'vi', 'id', 'yu']:
         return '字节火山语音合成 仅支持中、日、英、葡萄牙、西班牙、泰语、越南、印尼语言配音' if config.defaulelang == 'zh' else 'Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian'
-    if tts_type == KOKORO_TTS and  langcode[:2] not in ['zh', 'ja', 'en','pt','es','it','hi','fr']:
+    if tts_type == KOKORO_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'it', 'hi', 'fr']:
         return 'kokoro tts 仅支持中、日、英、葡萄牙、西班牙、意大利、印度、法语配音' if config.defaulelang == 'zh' else 'Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr'
 
     return True
@@ -136,7 +136,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
 # 判断是否填写了相关配音渠道所需要的信息
 # 正确返回True，失败返回False，并弹窗
-def is_input_api(tts_type: int = None,return_str=False):
+def is_input_api(tts_type: int = None, return_str=False):
     if tts_type == OPENAI_TTS and not config.params["openaitts_key"]:
         if return_str:
             return "Please configure the api and key information of the OpenAI API channel first."
@@ -212,25 +212,27 @@ def is_input_api(tts_type: int = None,return_str=False):
     if tts_type == AZURE_TTS and (not config.params['azure_speech_key'] or not config.params['azure_speech_region']):
         if return_str:
             return "Please configure the api and key information of the Azure TTS channel first."
-        from videotrans.winform import  azuretts as azuretts_win
+        from videotrans.winform import azuretts as azuretts_win
         azuretts_win.openwin()
         return False
     if tts_type == GEMINI_TTS and not config.params['gemini_key']:
         if return_str:
             return "Please configure the Gemini key information."
-        from videotrans.winform import  gemini as gemini_win
+        from videotrans.winform import gemini as gemini_win
         gemini_win.openwin()
         return False
-    if tts_type == VOLCENGINE_TTS and (not config.params['volcenginetts_appid'] or not config.params['volcenginetts_access'] or not config.params['volcenginetts_cluster']):
+    if tts_type == VOLCENGINE_TTS and (
+            not config.params['volcenginetts_appid'] or not config.params['volcenginetts_access'] or not config.params[
+        'volcenginetts_cluster']):
         if return_str:
             return "Please configure the api and key information of the VolcEngine TTS channel first."
-        from videotrans.winform import  volcenginetts as volcengine_win
+        from videotrans.winform import volcenginetts as volcengine_win
         volcengine_win.openwin()
         return False
     if tts_type == F5_TTS and not config.params['f5tts_url']:
         if return_str:
             return "Please configure the api and key information of the VolcEngine F5-TTS channel first."
-        from videotrans.winform import  f5tts as f5tts_win
+        from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
     if tts_type == GOOGLECLOUD_TTS and not config.params.get('gcloud_credential_json'):
