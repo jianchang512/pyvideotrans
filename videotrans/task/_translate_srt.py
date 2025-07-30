@@ -1,6 +1,5 @@
 import copy
 from pathlib import Path
-from typing import Dict
 import datetime
 from videotrans.configure import config
 
@@ -8,42 +7,44 @@ from videotrans.task._base import BaseTask
 from videotrans.translator import run
 from videotrans.util import tools
 import shutil
+from typing import Dict,Any
+from dataclasses import dataclass, field
+
 """
 仅字幕翻译
 """
 
 
+@dataclass
 class TranslateSrt(BaseTask):
-    """
-    obj={
-    name:原始音视频完整路径和名字
-    dirname
-    basename
-    noextname
-    ext
-    target_dir
-    uuid
-    }
+    # ==================================================================
+    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
+    #    这些属性都在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
+    # ==================================================================
 
-    cfg={
-        translate_type
-        text_list
-        target_language
-        inst
-        uuid
-        source_code
-    }
-    """
 
-    def __init__(self, cfg: Dict = None, obj: Dict = None):
-        super().__init__(cfg, obj)
-        self.shoud_trans = True
+    # 这两个属性依赖于 cfg，所以它们没有默认值，在 post_init 中设置。
+    out_format: int = field(init=False)
+    rename: bool = field(init=False)
+    # 在这个子类中，shoud_trans 总是 True，我们直接在定义中声明这一点。
+    shoud_trans: bool = field(default=True, init=False)
+
+
+    # ==================================================================
+    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
+    #    它不接收任何参数，与父类保持一致。
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__。
+        # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
+        super().__post_init__()
+
         # 存放目标文件夹
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
             self.cfg['target_dir'] = config.HOME_DIR + f"/translate"
         if not Path(self.cfg['target_dir']).exists():
             Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
-        self.out_format=int(cfg.get('out_format',0))
+        self.out_format=int(self.cfg.get('out_format',0))
         # 生成目标字幕文件
         self.cfg['target_sub'] = self.cfg['target_dir'] + '/' + self.cfg[
             'noextname'] + f'.{self.cfg["target_code"]}.srt'
@@ -51,7 +52,7 @@ class TranslateSrt(BaseTask):
         if self.cfg['name']==self.cfg['target_sub']:
             shutil.copy2(self.cfg['source_sub'],f"{self.cfg['source_sub']}-Raw-Subtitle.srt")
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
-        self.rename=cfg.get('rename',False)
+        self.rename=self.cfg.get('rename',False)
 
 
     def prepare(self):
@@ -79,7 +80,7 @@ class TranslateSrt(BaseTask):
                 raise Exception('Is emtpy '+self.cfg['basename'])
             raw_subtitles=self._check_target_sub(source_sub_list,raw_subtitles)
             if self.out_format==0:
-                tools.save_srt(raw_subtitles, self.cfg['target_sub'])
+                self._save_srt_target(raw_subtitles, self.cfg['target_sub'])
                 self._signal(text=Path(self.cfg['target_sub']).read_text(encoding='utf-8'), type='replace')
             else:
                 target_length = len(raw_subtitles)

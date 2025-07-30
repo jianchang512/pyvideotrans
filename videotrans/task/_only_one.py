@@ -5,7 +5,8 @@ import shutil
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, QObject
+from typing import Optional, List, Dict, Any
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -13,11 +14,22 @@ from videotrans.task.trans_create import TransCreate
 
 class Worker(QThread):
     uito = Signal(str)
-    def __init__(self, *, parent=None, app_mode=None, txt=None, obj_list = None,cfg=None):
+
+    app_mode: Optional[str]
+    cfg: Optional[Dict[str, Any]]
+    txt: Optional[str]
+    obj_list: Optional[List[Dict[str, Any]]]
+
+    def __init__(self, *,
+                 parent: Optional[QObject] = None,
+                 app_mode: Optional[str] = None,
+                 txt: Optional[str] = None,
+                 obj_list: Optional[List[Dict[str, Any]]] = None,
+                 cfg: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent)
         self.app_mode = app_mode
         self.cfg=cfg
-        # 等待执行的任务uuid
+
         self.txt = txt
         # 存放处理好的 视频路径等信息
         self.obj_list = obj_list
@@ -27,7 +39,7 @@ class Worker(QThread):
             if self.cfg['clear_cache'] and Path(obj['target_dir']).is_dir():
                 shutil.rmtree(obj['target_dir'], ignore_errors=True)
             Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
-            trk = TransCreate(copy.deepcopy(self.cfg), obj)
+            trk = TransCreate(cfg=copy.deepcopy(self.cfg), obj=obj)
             config.task_countdown=0
             trk.prepare()
             self._post(text=trk.cfg['source_sub'], type='edit_subtitle_source')

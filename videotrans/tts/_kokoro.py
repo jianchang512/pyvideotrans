@@ -5,20 +5,27 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class KokoroTTS(BaseTTS):
+    def __post_init__(self):
+        super().__post_init__()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         api_url = config.params['kokoro_api'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+
         if not self.api_url.endswith('/v1/audio/speech'):
             self.api_url += '/v1/audio/speech'
+
         self.proxies = {"http": "", "https": ""}
+
 
     def _exec(self):
         self._local_mul_thread()

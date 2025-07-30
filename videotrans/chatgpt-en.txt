@@ -1,34 +1,31 @@
-# Role:
-You are a multilingual translator, good at translating text into {lang}, and outputting the translation.
+# Task: Line-by-line Translation
 
-## Rules:
-- Use colloquial expressions for translation, ensuring the translation is concise and avoiding long sentences.
-- If a line cannot be translated, return it as is.  Do not output error messages or explanations.
-- One line of the original text must be translated into one line of the translated text, two lines of original text must be translated as two lines of the translated text, and so on. It is strictly forbidden to translate one line of the original text into two lines of the translated text, or to translate two lines of the original text into one line of the translated text.
-- The number of lines in the translation must be equal to the number of lines in the original content.
+Translate the text within the `<INPUT>` tags line by line into **{lang}**.
 
-## Restrictions:
-- Translate literally, do not interpret or answer the original content.
-- Only return the translated text, not the original text.
-- Keep line breaks in the translated text.
+**Core Rules:**
+1.  **Strict Line-for-Line Translation**: The output must have the exact same number of lines as the input. Even if a sentence is split across lines, translate each line separately.
+2.  **Preserve Untranslatable Content**: Untranslatable lines (like code, proper nouns, or paths) should be kept as-is.
+3.  **Required Format**: All output must be wrapped within `<TRANSLATE_TEXT>` tags.
 
-## Output Format
-Use the following XML tag structure to output the final translation result:
+---
+### Format Example
+The example below illustrates the required **format** and **rules**.
+
+**Ignore the specific languages in the example.** Your target language is the one specified at the start of this task.
+
+#### Input:
+This is
+a long sentence.
+config_path
+
+#### Output:
 ```xml
 <TRANSLATE_TEXT>
-Translated Result
+这是
+一个长句子。
+config_path
 </TRANSLATE_TEXT>
 ```
-
-## Output Example:
-```xml
-<TRANSLATE_TEXT>
-{lang} Translated Text
-</TRANSLATE_TEXT>
-```xml
-
-## Input Specification
-Process the original content within the <INPUT> tags.
-
+---
 
 <INPUT></INPUT>

@@ -14,6 +14,8 @@ from videotrans import translator, recognition, tts
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.util import tools
+from dataclasses import dataclass
+
 
 # Import lazy do TextToSpeechClient
 TextToSpeechClient = None
@@ -127,16 +129,15 @@ def _list_gcloud_voices_for(lang_code: str, cred_path: str):
             config.logger.error("Arquivo de credenciais não encontrado ou inválido")
         return []
 
+@dataclass
 class WinAction(WinActionSub):
-    def __init__(self, main=None):
-        super().__init__(main=main)
 
 
     def _reset(self):
         # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
         self.edit_subtitle_type = ''
         # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
-        self.wait_subtitle = None
+        self.wait_subtitle = ''
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
         self.main.source_mp4.setText(config.transobj["No select videos"])
@@ -235,15 +236,18 @@ class WinAction(WinActionSub):
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
-                                                  model_name=self.main.model_name.currentText())
         if (self.main.model_name.currentText()=='paraformer-zh' and recogn_type== recognition.FUNASR_CN ) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
             self.main.show_spk.setVisible(True)
         else:
             self.main.show_spk.setVisible(False)
+
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
+                                                  model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
-            QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
-            return
+            self.main.show_tips.setText(is_allow_lang)
+        else:
+            self.main.show_tips.setText('')
+
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
@@ -271,9 +275,10 @@ class WinAction(WinActionSub):
         if lang and lang != '-':
             is_allow_lang = tts.is_allow_lang(langcode=lang, tts_type=type)
             if is_allow_lang is not True:
-                QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
-                self.main.tts_type.setCurrentIndex(0)
-                return False
+                self.main.show_tips.setText(is_allow_lang)
+            else:
+                self.main.show_tips.setText('')
+
 
         config.line_roles = {}
         if type == tts.GOOGLE_TTS:
@@ -392,14 +397,16 @@ class WinAction(WinActionSub):
     # 目标语言改变时设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
-        print(f'{t=}')
+
         role = self.main.voice_role.currentText()
         code = translator.get_code(show_text=t)
-        print(f'{code=}')
+
         if code and code != '-':
             is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=self.main.tts_type.currentIndex())
             if is_allow_lang is not True:
-                return QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
+                self.main.show_tips.setText(is_allow_lang)
+            else:
+                self.main.show_tips.setText('')
             # 判断翻译渠道是否支持翻译到该目标语言
             if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(), show_target=t,
                                              win=self.main) is not True:
@@ -522,8 +529,9 @@ class WinAction(WinActionSub):
         langcode = translator.get_code(show_text=self.main.source_language.currentText())
         res = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
         if res is not True:
-            QMessageBox.critical(self.main, config.transobj['anerror'], res)
-            return False
+            self.main.show_tips.setText(res)
+        else:
+            self.main.show_tips.setText('')
 
         # 原始语言是最后一个，即auto自动检查
         if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
@@ -534,8 +542,9 @@ class WinAction(WinActionSub):
         is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),
                                                   model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
-            QMessageBox.critical(self.main, config.transobj['anerror'], is_allow_lang)
-            return False
+            self.main.show_tips.setText(is_allow_lang)
+        else:
+            self.main.show_tips.setText('')
         # 判断是否填写自定义识别api openai-api识别
         return recognition.is_input_api(recogn_type=self.main.recogn_type.currentIndex())
 
@@ -709,7 +718,7 @@ class WinAction(WinActionSub):
            
         config.line_roles = {}
 
-        if self.main.app_mode in ['biaozhun_jd', 'biaozhun', 'tiqu']:
+        if self.main.app_mode in ['biaozhun', 'tiqu']:
             self.cfg['app_mode'] = self.main.app_mode
 
         self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
@@ -806,8 +815,7 @@ class WinAction(WinActionSub):
 
         # 启动任务
         tools.set_process(text=config.transobj['kaishichuli'], uuid=self.obj_list[0]['uuid'])
-        if self.main.app_mode not in ['biaozhun_jd', 'tiqu'] and (
-                config.settings.get('is_queue') or len(self.obj_list) == 1):
+        if self.main.app_mode not in ['tiqu'] and len(self.obj_list) == 1:
             self.is_batch = False
             from videotrans.task._only_one import Worker
             task = Worker(

@@ -1,7 +1,7 @@
 import json
 import os
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
@@ -10,17 +10,18 @@ from tencentcloud.tmt.v20180321 import tmt_client, models
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 
-
+@dataclass
 class Tencent(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
+
         proxy = os.environ.get('http_proxy')
         if proxy:
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
+            if 'http_proxy' in os.environ: del os.environ['http_proxy']
+            if 'https_proxy' in os.environ: del os.environ['https_proxy']
+            if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
     def _item_task(self, data: Union[List[str], str]) -> str:
 

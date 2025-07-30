@@ -1,31 +1,35 @@
 # -*- coding: utf-8 -*-
 import json
 import re
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class DeepLX(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
+
         url = config.params['deeplx_address'].strip().rstrip('/')
         key = config.params['deeplx_key'].strip()
+
         if "/translate" not in url:
-            url+='/translate'
+            url += '/translate'
+
         self.api_url = f"http://{url}" if not url.startswith('http') else url
+
         if key and "key=" not in self.api_url:
             if "?" in self.api_url:
-                self.api_url+=f"&key={key}"
+                self.api_url += f"&key={key}"
             else:
-                self.api_url+=f"?key={key}"
-            
+                self.api_url += f"?key={key}"
+
         if not re.search(r'localhost', url) and not re.match(r'https?://(\d+\.){3}\d+', url):
             pro = self._set_proxy(type='set')
             if pro:

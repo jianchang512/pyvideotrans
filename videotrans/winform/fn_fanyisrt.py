@@ -173,7 +173,7 @@ def openwin():
         if winobj.save_source.isChecked():
             SOURCE_DIR=Path(video_list[0]['name']).parent.as_posix()
         for it in video_list:
-            trk = TranslateSrt({
+            trk = TranslateSrt(cfg={
                 "out_format":winobj.out_format.currentIndex(),
                 "translate_type": translate_type,
                 "text_list": tools.get_subtitle_from_srt(it['name']),
@@ -183,7 +183,7 @@ def openwin():
                 "uuid": it['uuid'],
                 "source_code": source_code,
                 "target_code": target_code
-            }, it)
+            }, obj=it)
             config.trans_queue.append(trk)
 
         th = SignThread(uuid_list=uuid_list, parent=winobj)

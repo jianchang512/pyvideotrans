@@ -2,7 +2,7 @@ import copy
 import os
 import time
 from pathlib import Path
-from typing import Union, Dict, List
+
 
 import httpx
 import requests
@@ -11,16 +11,18 @@ from openai import OpenAI, APIConnectionError
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional,Union
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class ChatterBoxTTS(BaseTTS):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
+    def __post_init__(self):
+        super().__post_init__()
         api_url = config.params['chatterbox_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self.proxies = {"http": "", "https": ""}

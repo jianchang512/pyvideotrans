@@ -8,18 +8,44 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class CosyVoice(BaseTTS):
+    # ==================================================================
+    # 1. 无需定义新字段。
+    #    因为 `copydata`, `api_url`, `proxies` 都已在父类 BaseTTS 中
+    #    用 field(init=False) 定义过。我们在这里只是为它们赋新值。
+    # ==================================================================
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    # ==================================================================
+    # 2. 实现 __post_init__ 来处理本类的特定初始化逻辑
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__
+        # 这将确保 BaseTTS 的所有初始化逻辑都已完成。
+        # self.queue_tts 此时已经是深拷贝，self.copydata 此时是 []
+        super().__post_init__()
+
+        # --- 从这里开始，是 CosyVoice 的特定逻辑 ---
+
+        # 将旧 __init__ 的逻辑迁移至此
+
+        # 1. 为 self.copydata 赋值，这是本类特有的行为
         self.copydata = copy.deepcopy(self.queue_tts)
+
+        # 2. 计算并覆盖父类中 api_url 的默认值
         api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+
+        # 3. 覆盖父类中 proxies 的默认值
         self.proxies = {"http": "", "https": ""}
 
     def _exec(self):

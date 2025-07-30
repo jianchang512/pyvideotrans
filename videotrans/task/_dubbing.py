@@ -3,8 +3,6 @@ import json
 import re
 import shutil
 import time
-from pathlib import Path
-from typing import Dict
 
 from videotrans.configure import config
 
@@ -14,50 +12,65 @@ from videotrans.task._rate import SpeedRate
 from videotrans import tts
 from videotrans.util import tools
 
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, Any
+
+
 """
 仅字幕翻译
 """
 
 
+@dataclass
 class DubbingSrt(BaseTask):
-    """
-    obj={
-    name:原始音视频完整路径和名字
-    dirname
-    basename
-    noextname
-    ext
-    target_dir
-    uuid
-    }
+    # ==================================================================
+    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
+    #    这些属性都将在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
+    # ==================================================================
 
-    cfg={
-        translate_type
-        text_list
-        target_language
-        inst
-        uuid
-        source_code
-    }
-    """
 
-    def __init__(self, cfg: Dict = None, obj: Dict = None):
-        super().__init__(cfg, obj)
-        self.shoud_dubbing = True
-        self.is_multi_role=cfg.get('is_multi_role',False)
+    # 这两个属性依赖于 cfg，所以它们没有默认值，在 post_init 中设置。
+    is_multi_role: bool = field(init=False)
+    rename: bool = field(init=False)
+    # 在这个子类中，shoud_dubbing 总是 True，所以我们直接覆盖父类的默认值。
+    shoud_dubbing: bool = field(default=True, init=False)
+
+
+    # ==================================================================
+    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__。
+        # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
+        super().__post_init__()
+
+        # --- 从这里开始，是您旧 __init__ 的所有剩余逻辑，几乎原封不动 ---
+
+        # 1. 初始化本类的状态属性
+        #    此时 self.cfg 已经是完全准备好的了
+        self.is_multi_role = self.cfg.get('is_multi_role', False)
+        self.rename = self.cfg.get('rename', False)
+        # self.shoud_dubbing 已经被上面的 field 定义处理了，无需再写
+
+        # 2. 处理路径和配置
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
-            self.cfg['target_dir'] = config.HOME_DIR + f"/tts"
-        # 存放目标文件夹
-        if not Path(self.cfg['target_dir']).exists():
-            Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
-        # 字幕文件
-        self.cfg['target_sub'] = self.cfg['name']
-        # 配音文件
-        self.cfg['target_wav'] = self.cfg['target_dir'] + f'/{self.cfg["noextname"]}.{self.cfg["out_ext"]}'
+            self.cfg['target_dir'] = f"{config.HOME_DIR}/tts"
 
-        Path(self.cfg["cache_folder"]).mkdir(parents=True, exist_ok=True)
+        # 3. 执行副作用（创建文件夹等）
+        Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
+        # 假设 self.cfg 中一定有 'cache_folder'，这与您的原始代码行为一致
+        if self.cfg.get('cache_folder'):
+            Path(self.cfg["cache_folder"]).mkdir(parents=True, exist_ok=True)
+
+        # 4. 计算并更新 self.cfg
+        self.cfg['target_sub'] = self.cfg['name']
+        # 假设 self.cfg 中有 'noextname' 和 'out_ext'
+        self.cfg['target_wav'] = f'{self.cfg["target_dir"]}/{self.cfg["noextname"]}.{self.cfg["out_ext"]}'
+
+        # 5. 调用方法
         self._signal(text='字幕配音处理中' if config.defaulelang == 'zh' else ' Dubbing from subtitles ')
-        self.rename=self.cfg.get('rename',False)
+
 
     def prepare(self):
         if self._exit():
@@ -185,7 +198,7 @@ class DubbingSrt(BaseTask):
         try:
             target_path=Path(self.cfg['target_wav'])
             if target_path.is_file() and target_path.stat().st_size > 0:
-                self.cfg['target_wav']=self.cfg['target_wav'][:-4]+f'-{tools.get_current_time_as_yymmddhhmmss()}{target_path.suffix}'
+                self.cfg['target_wav']=self.cfg['target_wav'][:-4]+f'-{time.time()}{target_path.suffix}'
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,

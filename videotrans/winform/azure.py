@@ -59,7 +59,7 @@ def openwin():
 
     from videotrans.component import AzureForm
     winobj = config.child_forms.get('azurew')
-    config.params["azure_template"]=tools.get_prompt('azure')
+    config.params["azure_template"] = tools.get_prompt('azure')
     if winobj is not None:
         winobj.show()
         update_ui()

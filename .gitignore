@@ -19,6 +19,7 @@ dist
 source
 build
 test.py
+test.json
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
 ffmpeg/ffplay.exe
@@ -43,7 +44,7 @@ videotrans/translator/freechatgpt.py
 videotrans/cfg.json
 videotrans/params.json
 videotrans/glossary.txt
-/tmp/
+tmp/
 runtime
 f5-tts
 

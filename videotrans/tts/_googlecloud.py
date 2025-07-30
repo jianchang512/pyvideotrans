@@ -1,9 +1,11 @@
 import os
+from typing import Optional
+
 from videotrans.tts._base import BaseTTS
 from videotrans.configure import config
 from videotrans.util import tools
 from google.cloud import texttospeech
-
+from dataclasses import dataclass, field
 # import lazy do client de TTS
 try:
     from google.cloud.texttospeech import (
@@ -17,16 +19,19 @@ try:
 except ImportError:
     TextToSpeechClient = None
 
-
+@dataclass
 class GoogleCloudTTS(BaseTTS):
     """
     TTS usando Google Cloud Text-to-Speech.
     """
+    client:Optional = None
+    cred_path:str=""
+    language_code:str=""
+    voice_name:str=""
+    encoding:str=""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.client = None
-        # parâmetros vindos do params.json
+    def __post_init__(self):
+        super().__post_init__()
         self.cred_path = config.params.get("gcloud_credential_json", "").strip()
         self.language_code = config.params.get("gcloud_language_code", "en-US")
         self.voice_name = config.params.get("gcloud_voice_name", "")

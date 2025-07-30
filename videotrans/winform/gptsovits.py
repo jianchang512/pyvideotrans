@@ -1,35 +1,12 @@
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans.util.ListenVoice import ListenVoice
 
 
 def openwin():
-    class TestTTS(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None, language=None, role=None):
-            super().__init__(parent=parent)
-            self.text = text
-            self.language = language
-            self.role = role
-
-        def run(self):
-            try:
-                tts.run(
-                    queue_tts=[{
-                        "text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testgptsovitstts.mp3", "tts_type": tts.GPTSOVITS_TTS}],
-                    language=self.language,
-                    play=True,
-                    is_test=True
-                )
-                self.uito.emit("ok")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -42,16 +19,20 @@ def openwin():
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
-            url = 'http://' + url    
+            url = 'http://' + url
         config.params["gptsovits_url"] = url
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
-        task = TestTTS(parent=winobj,
-                       text="你好啊我的朋友",
-                       role=getrole(),
-                       language="zh")
         winobj.test.setText('测试中请稍等...')
-        task.uito.connect(feed)
-        task.start()
+
+        wk = ListenVoice(parent=winobj, queue_tts=[{
+            "text": '你好啊我的朋友',
+            "role": getrole(),
+            "filename": config.TEMP_HOME + f"/test-gptsovits.mp3",
+            "tts_type": tts.GPTSOVITS_TTS}],
+                         language="zh",
+                         tts_type=tts.GPTSOVITS_TTS)
+        wk.uito.connect(feed)
+        wk.start()
 
     def getrole():
         tmp = winobj.role.toPlainText().strip()

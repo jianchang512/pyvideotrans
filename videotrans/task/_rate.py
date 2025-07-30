@@ -470,10 +470,19 @@ class SpeedRate:
              config.logger.error("最终视频编码失败，保留原始无声视频。")
              self.novoice_mp4 = self.novoice_mp4_original
 
-        if Path(intermediate_merged_path).exists(): os.remove(intermediate_merged_path)
         for clip_path in valid_clips:
-            if Path(clip_path).exists(): os.remove(clip_path)
-        if Path(concat_txt_path).exists(): os.remove(concat_txt_path)
+            try:
+                if Path(clip_path).exists():
+                    os.remove(clip_path)
+            except:
+                pass
+        try:
+            if Path(intermediate_merged_path).exists():
+                os.remove(intermediate_merged_path)
+            if Path(concat_txt_path).exists():
+                os.remove(concat_txt_path)
+        except:
+            pass
 
     def _recalculate_timeline_and_merge_audio(self, clip_meta_list):
         """
@@ -694,4 +703,8 @@ class SpeedRate:
             cmd.append(destination_path)
             tools.runffmpeg(cmd, force_cpu=True)
         finally:
-            if Path(wavfile).exists(): os.remove(wavfile)
+            try:
+                if Path(wavfile).exists():
+                    os.remove(wavfile)
+            except:
+                pass

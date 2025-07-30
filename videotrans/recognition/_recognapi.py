@@ -1,8 +1,8 @@
 # zh_recogn 识别
 import re
 import time
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 
 from videotrans.configure import config
@@ -36,21 +36,29 @@ from videotrans.recognition._base import BaseRecogn
 """
 
 
+@dataclass
 class APIRecogn(BaseRecogn):
+    raws: List = field(default_factory=list, init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __post_init__(self):
+        super().__post_init__()
+
         self.raws = []
+
         api_url = config.params['recognapi_url'].strip().rstrip('/').lower()
+
         if not api_url:
             raise Exception('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
+
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
-        if config.params['recognapi_key']:
-            if api_url.find('?') > 0:
+
+        if config.params.get('recognapi_key'):
+            if '?' in api_url:
                 api_url += f'&sk={config.params["recognapi_key"]}'
             else:
                 api_url += f'?sk={config.params["recognapi_key"]}'
+
         self.api_url = api_url
 
     def _exec(self) -> Union[List[Dict], None]:

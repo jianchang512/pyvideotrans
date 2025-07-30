@@ -71,10 +71,6 @@ class SetThreadTransDubb(QDialog):
         # 设置确认按钮高度为35
         self.ok_button.setFixedHeight(35)
 
-        
-
-
-        
 
         wait_layout = QHBoxLayout()
         wait_layout.addWidget(self.wait_label)

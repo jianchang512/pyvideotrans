@@ -1,29 +1,12 @@
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans.util.TestSrtTrans import TestSrtTrans
+
 
 def openwin():
-    class Test(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None):
-            super().__init__(parent=parent)
-            self.text = text
-
-        def run(self):
-
-            try:
-                raw = "你好啊我的朋友"
-                text = translator.run(translate_type=translator.TRANSAPI_INDEX, text_list=raw,
-                                      source_code='zh-cn',
-                                      target_code="en", is_test=True)
-                self.uito.emit(f"ok:{raw}\n{str(text)}")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
@@ -40,8 +23,9 @@ def openwin():
         miyue = winobj.miyue.text()
         config.params["trans_api_url"] = url
         config.params["trans_secret"] = miyue
-        task = Test(parent=winobj, text="你好啊我的朋友")
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+
+        task = TestSrtTrans(parent=winobj, translator_type=translator.TRANSAPI_INDEX)
         task.uito.connect(feed)
         task.start()
 

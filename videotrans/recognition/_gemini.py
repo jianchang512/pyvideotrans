@@ -1,95 +1,118 @@
 # zh_recogn 识别
 import socket
 import time,os,re
-from typing import Union, List, Dict
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 
+from google.genai.errors import APIError
 from pydub import AudioSegment
-from pydub.silence import split_on_silence
+
 from pathlib import Path
 
-import requests
+
 
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
 from videotrans.translator import LANGNAME_DICT
-import google
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
-from google.api_core.exceptions import ServerError, TooManyRequests, RetryError, DeadlineExceeded, GatewayTimeout
 
-safetySettings = {
-    'HATE': 'BLOCK_NONE',
-    'HARASSMENT': 'BLOCK_NONE',
-    'SEXUAL' : 'BLOCK_NONE',
-    'DANGEROUS' : 'BLOCK_NONE'
-}
+from google import genai
+from google.genai import types
 
-
+@dataclass
 class GeminiRecogn(BaseRecogn):
+    raws: List[Any] = field(default_factory=list, init=False)
+    api_keys: List[str] = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
-        pro = self._set_proxy(type='set')
-        self.target_code=kwargs.get('target_code',None)
+    def __post_init__(self):
+        super().__post_init__()
+        self._set_proxy(type='set')
         if self.target_code:
-            self.target_code=LANGNAME_DICT.get(self.target_code)
-        self.api_keys=config.params.get('gemini_key','').strip().split(',')
+            self.target_code = LANGNAME_DICT.get(self.target_code, self.target_code)
+
+        self.api_keys = config.params.get('gemini_key', '').strip().split(',')
+
 
  
  
     def _exec(self):
         seg_list=self.cut_audio()
-        nums=int(config.settings.get('gemini_recogn_chunk',100))
+        nums=int(config.settings.get('gemini_recogn_chunk',50))
         seg_list=[seg_list[i:i + nums] for i in  range(0, len(seg_list), nums)]
         if len(seg_list)<1:
             raise Exception(f'VAD error')
         srt_str_list=[]
-        generation_config = {
-                  "temperature": 1,
-                  "top_p": 0.95,
-                  "top_k": 40,
-                  "response_mime_type": "text/plain",
-                  "max_output_tokens": 8192
-        }
+
+
         prompt= config.params['gemini_srtprompt']
 
         for seg_group in seg_list:
             api_key=self.api_keys.pop(0)
             self.api_keys.append(api_key)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(
-              model_name=config.params.get('gemini_model'),
-              generation_config=generation_config,
-              safety_settings=safetySettings,
-            )
-            retry=0          
-
-
+            # genai.configure(api_key=api_key)
+            # model = genai.GenerativeModel(
+            #   model_name=config.params.get('gemini_model'),
+            #   generation_config=generation_config,
+            #   safety_settings=safetySettings,
+            # )
+            retry=0
             try:
-                response=None
-                files=[]
-                for f in seg_group:
-                    files.append(
-                        {
-                            "mime_type": "audio/wav",
-                            "data": Path(f['file']).read_bytes()
-                        }
+                client = genai.Client(
+                        api_key=api_key
                     )
-                
-                chat_session = model.start_chat(
-                    history=[
-                        {
-                            "role": "user",
-                            "parts": files,
-                        }
-                    ]
-                )
+                parts=[]
+                for f in seg_group:
+                    parts.append(
+                        types.Part.from_bytes(
+                            mime_type="audio/wav",
+                            data=Path(f['file']).read_bytes()
+                        )
+                    )
+                parts.append(types.Part.from_text(text=prompt))
+
+
                 config.logger.info(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
-                response = chat_session.send_message(prompt,request_options={"timeout":600})
-                config.logger.info(f'gemini返回结果:{response.text=}')
-                m=re.findall(r'<audio_text>(.*?)<\/audio_text>',response.text.strip(),re.I|re.S)
+                generate_content_config = types.GenerateContentConfig(
+                    max_output_tokens=65530,
+                    thinking_config = types.ThinkingConfig(
+                        thinking_budget=0,
+                    ),
+                    safety_settings=[
+                        types.SafetySetting(
+                            category="HARM_CATEGORY_HARASSMENT",
+                            threshold="BLOCK_NONE",  # Block most
+                        ),
+                        types.SafetySetting(
+                            category="HARM_CATEGORY_HATE_SPEECH",
+                            threshold="BLOCK_NONE",  # Block most
+                        ),
+                        types.SafetySetting(
+                            category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                            threshold="BLOCK_NONE",  # Block most
+                        ),
+                        types.SafetySetting(
+                            category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                            threshold="BLOCK_NONE",  # Block none
+                        ),
+                    ],
+                )
+                contents = [
+                    types.Content(
+                        role="user",
+                        parts=parts
+                    )
+                ]
+                res_text=""
+                for chunk in client.models.generate_content_stream(
+                    model=config.params.get('gemini_model'),
+                    contents=contents,
+                    config=generate_content_config,
+
+                ):
+                    res_text+=chunk.text
+
+                config.logger.info(f'gemini返回结果:{res_text=}')
+                m=re.findall(r'<audio_text>(.*?)<\/audio_text>',res_text.strip(),re.I|re.S)
                 if len(m)<1:
                     continue
                 str_s=[]
@@ -99,7 +122,7 @@ class GeminiRecogn(BaseRecogn):
                         endraw=tools.ms_to_time_string(ms=f['end_time'])
                         text=m[i].strip()
                         if not config.params.get('paraformer_spk',False):
-                            text=re.sub(r'\[?spk\-?\d{1,2}\]','',text,re.I)
+                            text=re.sub(r'\[?spk\-?\d{1,}\]','',text,re.I)
                         srt={
                             "line":len(srt_str_list)+1,
                             "start_time":f['start_time'],
@@ -114,82 +137,20 @@ class GeminiRecogn(BaseRecogn):
                     text=('\n\n'.join(str_s))+"\n\n",
                     type='subtitle'
                 )
-            except TooManyRequests as e:               
-                
-                err=f'429 请求太快或超出Gemini每日限制 [{retry}]' if config.defaulelang=='zh' else f'429 Request too more or out of limit'
-                raise Exception(err)
-            
-            except (RetryError,socket.timeout,ServerError) as e:
-                error=str(e) if config.defaulelang !='zh' else '无法连接到Gemini,请尝试使用或更换代理'
-                raise requests.ConnectionError(error)
-            except google.api_core.exceptions.PermissionDenied:
-                raise Exception(f'您无权访问所请求的资源或模型' if config.defaulelang =='zh' else 'You donot have permission for the requested resource')
-            except google.api_core.exceptions.ResourceExhausted:                
-                raise Exception(f'您的配额已用尽。请稍等片刻，然后重试,若仍如此，请查看Google账号 ' if config.defaulelang =='zh' else 'Your quota is exhausted. Please wait a bit and try again')
-            except google.auth.exceptions.DefaultCredentialsError:                
-                raise Exception(f'验证失败，可能 Gemini API Key 不正确 ' if config.defaulelang =='zh' else 'Authentication fails. Please double-check your API key and try again')
-            except google.api_core.exceptions.InvalidArgument as e:                
-                raise Exception(f'文件过大或 Gemini API Key 不正确 {e}' if config.defaulelang =='zh' else f'Invalid argument. One example is the file is too large and exceeds the payload size limit. Another is providing an invalid API key {e}')
-            except google.api_core.exceptions.RetryError:
-                raise Exception('无法连接到Gemini，请尝试使用或更换代理' if config.defaulelang=='zh' else 'Can be caused when using a proxy that does not support gRPC.')
-            except genai.types.BlockedPromptException as e:
-                raise Exception(self._get_error(e.args[0].finish_reason))
-            except genai.types.StopCandidateException as e:
+
+            except APIError as e:
                 config.logger.exception(e, exc_info=True)
-                if int(e.args[0].finish_reason>1):
-                    raise Exception(self._get_error(e.args[0].finish_reason))
+                raise RuntimeError(f'{e.code}:{e.message}')
             except Exception as e:
                 error = str(e)
                 config.logger.error(f'[Gemini]请求失败:{error=}')
-                if error.find('User location is not supported') > -1:
-                    raise Exception("当前请求ip(或代理服务器)所在国家不在Gemini API允许范围")
-                raise 
+                raise
 
         if len(srt_str_list)<1:
             raise Exception('No result:The return format may not meet the requirements')
         return srt_str_list
-    def _get_error(self, num=5, type='error'):
-        REASON_CN = {
-            2: "已达到请求中指定的最大令牌数量",
-            3: "Gemini安全限制:候选响应内容被标记",
-            4:"Gemini安全限制:候选响应内容因背诵原因被标记",
-            5:"Gemini安全限制:原因不明",
-            6:"Gemini安全限制:候选回应内容因使用不支持的语言而被标记",
-            7:"Gemini安全限制:由于内容包含禁用术语，令牌生成停止",
-            8:"Gemini安全限制:令牌生成因可能包含违禁内容而停止",
-            9: "Gemini安全限制:令牌生成停止，因为内容可能包含敏感的个人身份信息",
-            10: "模型生成的函数调用无效",
-        }
-        REASON_EN = {
-            2: "The maximum number of tokens as specified in the request was reached",
-            3: "The response candidate content was flagged for safety reasons",
-            4: "The response candidate content was flagged  for recitation reasons",
-            5: "Unknown reason",
-            6:"The response candidate content was flagged for using an unsupported language",
-            7:"Token generation stopped because the content contains forbidden terms",
-            8:"Token generation stopped for potentially containing prohibited content",
-            9:"Token generation stopped because the content potentially contains  Sensitive Personally Identifiable Information",
-            10:"The function call generated by the model is invalid",
-        }
-        forbid_cn = {
-            0: "Gemini安全限制::安全考虑",
-            1: "Gemini安全限制::出于安全考虑，提示已被屏蔽",
-            2: "Gemini安全限制:提示因未知原因被屏蔽了",
-            3: "Gemini安全限制:提示因术语屏蔽名单中包含的字词而被屏蔽",
-            4: "Gemini安全限制:系统屏蔽了此提示，因为其中包含禁止的内容。",
-        }
-        forbid_en = {
-            0: "Prompt was blocked by gemini",
-            1: "Prompt was blocked due to safety reasons",
-            2: "Prompt was blocked due to unknown reasons",
-            3:"Prompt was blocked due to the terms which are included from the terminology blocklist",
-            4:"Prompt was blocked due to prohibited content."
-        }
-        if config.defaulelang == 'zh':
-            return REASON_CN[num] if type == 'error' else forbid_cn[num]
-        return REASON_EN[num] if type == 'error' else forbid_en[num]
-    
-    
+
+
     # 根据 时间开始结束点，切割音频片段,并保存为wav到临时目录，记录每个wav的绝对路径到list，然后返回该list
     def cut_audio(self):
         

@@ -2,8 +2,8 @@ import json
 import re
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
@@ -12,12 +12,14 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
-
+@dataclass
 class GoogleRecogn(BaseRecogn):
+    raws: List = field(init=False, default_factory=list)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
+
+    def __post_init__(self):
+        super().__post_init__()
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -87,10 +89,12 @@ class GoogleRecogn(BaseRecogn):
             self._signal(text=f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             self._signal(text=f"{srt_line['text']}\n", type='subtitle')
         return self.raws
-
+    def match_target_amplitude(self,sound, target_dBFS):
+        change_in_dBFS = target_dBFS - sound.dBFS
+        return sound.apply_gain(change_in_dBFS)
     # split audio by silence
     def _shorten_voice_old(self, normalized_sound):
-        normalized_sound = tools.match_target_amplitude(normalized_sound, -20.0)
+        normalized_sound = self.match_target_amplitude(normalized_sound, -20.0)
         max_interval = int(config.settings['interval_split']) * 1000
         buffer = int(config.settings['voice_silence'])
         nonsilent_data = []

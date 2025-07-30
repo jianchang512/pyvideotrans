@@ -2,27 +2,37 @@ import copy
 import os
 import sys
 import time
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Set
 
 import requests
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class GPTSoVITS(BaseTTS):
+    splits: Set[str] = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.proxies = {"http": "", "https": ""}
+
+        # 2. 处理并设置 api_url (同样是覆盖父类的值)
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+
+        # 3. 初始化本类新增的属性
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
-        self.proxies = {"http": "", "https": ""}
+
 
     def _exec(self):
         self._local_mul_thread()

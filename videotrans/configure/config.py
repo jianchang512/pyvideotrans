@@ -10,23 +10,24 @@ import tempfile
 from pathlib import Path
 from queue import Queue
 
-MAINWIN=None
+MAINWIN = None
+
 
 # 获取程序执行目录
 def _get_executable_path():
     if getattr(sys, 'frozen', False):
         # 如果程序是被"冻结"打包的，使用这个路径
         os.environ['TQDM_DISABLE'] = '1'
-        
+
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
 
-SYS_TMP=Path(tempfile.gettempdir()).as_posix()
+
+SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 
 # 程序根目录
 ROOT_DIR = _get_executable_path()
-
 
 _root_path = Path(ROOT_DIR)
 
@@ -36,7 +37,7 @@ _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
 
 TEMP_DIR = _temp_path.as_posix()
-Path(TEMP_DIR+'/dubbing_cache').mkdir(exist_ok=True)
+Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True)
 
 # 日志目录 logs
 _logs_path = _root_path / "logs"
@@ -129,27 +130,24 @@ FFPROBE_BIN = "ffprobe"
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
 
-
-
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 
-
 # 语言
-env_lang = os.environ.get('PYVIDEOTRANS_LANG') # 新增：读取环境变量
-if env_lang: # 新增：如果环境变量存在，则使用它
+env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
+if env_lang:  # 新增：如果环境变量存在，则使用它
     defaulelang = env_lang
-else: # 原有逻辑
+else:  # 原有逻辑
     try:
         defaulelang = locale.getdefaultlocale()[0][:2].lower()
     except Exception:
         defaulelang = "zh"
 
-if defaulelang=='zh':
-    os.environ['HF_ENDPOINT']='https://hf-mirror.com'
+if defaulelang == 'zh':
+    os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
 ####################################
 # 存储所有任务的进度队列，以uuid为键
@@ -183,7 +181,7 @@ exit_soft = False
 child_forms = {}
 
 # info form
-INFO_WIN={"data":{},"win":None}
+INFO_WIN = {"data": {}, "win": None}
 
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, "ing"=需等待，end=成功完成，error=出错了
 queue_novice = {}
@@ -216,31 +214,29 @@ align_queue = []
 # 合成队列
 assemb_queue = []
 
-
 # 执行模式 gui 或 api
-exec_mode="gui"
+exec_mode = "gui"
 
 # funasr模型
-FUNASR_MODEL=['paraformer-zh','SenseVoiceSmall']
+FUNASR_MODEL = ['paraformer-zh', 'SenseVoiceSmall']
 # 存储下载进度
-FUNASR_DOWNMSG=""
+FUNASR_DOWNMSG = ""
 
-DEEPGRAM_MODEL=[
-            "nova-3",
-            "whisper-large",
-            "whisper-medium",
-            "whisper-small",
-            "whisper-base",
-            "whisper-tiny",
-            "nova-2",
-            "enhanced",
-            "base",
+DEEPGRAM_MODEL = [
+    "nova-3",
+    "whisper-large",
+    "whisper-medium",
+    "whisper-small",
+    "whisper-base",
+    "whisper-tiny",
+    "nova-2",
+    "enhanced",
+    "base",
 
-        ]
-
+]
 
 # 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov","mts","webm","ogg","ts"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 
@@ -252,11 +248,10 @@ video_codec = None
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
 
-DEFAULT_GEMINI_MODEL="gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 
-line_roles={}
-dubbing_role={}
-
+line_roles = {}
+dubbing_role = {}
 
 
 # 设置默认高级参数值
@@ -265,54 +260,48 @@ def parse_init():
     try:
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
     except:
-        _defaulthomedir=ROOT_DIR+'/hometemp'
+        _defaulthomedir = ROOT_DIR + '/hometemp'
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
-        
+
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
         "homedir": _defaulthomedir,
         "lang": "",
-        "is_queue":False,
-        
-        "Faster_Whisper_XXL":"",
+
+        "Faster_Whisper_XXL": "",
 
         "crf": 23,
-        "cuda_qp": False,
-        "cuda_decode":False,
-        
-        "videoslow_hard":True,
-        
+        "cuda_decode": False,
+
+
         "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "video_codec": 264,
-        
+
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
         "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
         "azure_model": "gpt-4.1,gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
         "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
-        "zhipuai_model":"glm-4-flash",
-        "deepseek_model":"deepseek-chat,deepseek-reasoner",
-        "openrouter_model":"moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
-        "guiji_model":"Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
+        "zhipuai_model": "glm-4-flash",
+        "deepseek_model": "deepseek-chat,deepseek-reasoner",
+        "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
+        "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "remove_silence": False,
         "vad": True,
-        "threshold":0.5,
-        "min_speech_duration_ms":1000,
-        "max_speech_duration_s":8,
-        "min_silence_duration_ms":250,
-        "speech_pad_ms":200,
-        
-        
+        "threshold": 0.5,
+        "min_speech_duration_ms": 1000,
+        "max_speech_duration_s": 8,
+        "min_silence_duration_ms": 250,
+        "speech_pad_ms": 200,
 
+        "overall_maxsecs": 15,
 
-        "overall_maxsecs":15,
-
-        "rephrase":False,
+        "rephrase": False,
 
         "voice_silence": 200,
         "interval_split": 10,
@@ -323,7 +312,7 @@ def parse_init():
         "translation_wait": 0,
         "dubbing_wait": 1,
         "dubbing_thread": 5,
-        "save_segment_audio":False,
+        "save_segment_audio": False,
         "countdown_sec": 120,
         "backaudio_volume": 0.8,
         "separate_sec": 600,
@@ -360,8 +349,6 @@ def parse_init():
         "initial_prompt_fa": "",
         "initial_prompt_ur": "",
         "initial_prompt_yue": "",
-        "whisper_threads": 0,
-        "whisper_worker": 1,
         "beam_size": 5,
         "best_of": 5,
         "temperature": 0.0,
@@ -370,26 +357,26 @@ def parse_init():
         "fontname": "黑体",
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
-        "subtitle_position":2,
-        "marginV":10,
+        "subtitle_position": 2,
+        "marginV": 10,
         "cjk_len": 20,
         "other_len": 60,
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
-        "llm_ai_type":"openai",
+        "llm_ai_type": "openai",
 
-        "gemini_recogn_chunk":100,
+        "gemini_recogn_chunk": 50,
 
         "zh_hant_s": True,
         "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
-        "proxy":""
-        
+        "proxy": ""
+
     }
-    if not os.path.exists(ROOT_DIR + "/videotrans/cfg.json"):        
+    if not Path(ROOT_DIR + "/videotrans/cfg.json").exists():
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(default , ensure_ascii=False))
+            f.write(json.dumps(default, ensure_ascii=False))
         return default
     try:
         temp_json = json.loads(Path(ROOT_DIR + "/videotrans/cfg.json").read_text(encoding='utf-8'))
@@ -411,16 +398,12 @@ def parse_init():
                 _settings[key] = False
             elif value:
                 _settings[key] = value
-        if _settings['model_list'].find('large-v3-turbo') == -1:
-            _settings['model_list']=_settings['model_list'].replace(',large-v3,',',large-v3,large-v3-turbo,')
-        if _settings['gemini_model'].find('gemini') == -1:
-            _settings["gemini_model"] = DEFAULT_GEMINI_MODEL
         default.update(_settings)
         if not default['homedir']:
             default['homedir'] = _defaulthomedir
         Path(default['homedir']).mkdir(parents=True, exist_ok=True)
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(default,ensure_ascii=False))
+            f.write(json.dumps(default, ensure_ascii=False))
         return default
 
 
@@ -432,16 +415,15 @@ HOME_DIR = settings['homedir']
 TEMP_HOME = settings['homedir'] + f"/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
-copying=False
+copying = False
 
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 # 首先检查环境变量，然后是 settings['lang']，最后是 locale
 env_lang_override = os.environ.get('PYVIDEOTRANS_LANG')
 if env_lang_override:
     defaulelang = env_lang_override
-elif settings['lang']: # 保留从 settings 加载的逻辑，但环境变量优先
+elif settings['lang']:  # 保留从 settings 加载的逻辑，但环境变量优先
     defaulelang = settings['lang'].lower()
-# 注意：之前的 defaulelang 初始化已经考虑了 locale 和默认 "zh"
 
 
 # 语言代码文件是否存在##############################
@@ -463,7 +445,7 @@ rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
 langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
-proxy=settings.get('proxy','')
+proxy = settings.get('proxy', '')
 #############################################
 # openai  faster-whisper 识别模型
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
@@ -482,191 +464,36 @@ _guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if 
 _deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
 _openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
 
-_chatgpt_model_list= _chatgpt_model_list if len(_chatgpt_model_list)>0 else ['']
-_claude_model_list= _claude_model_list if len(_claude_model_list)>0 else ['']
-_azure_model_list= _azure_model_list if len(_azure_model_list)>0 else ['']
-_localllm_model_list= _localllm_model_list if len(_localllm_model_list)>0 else ['']
-_zijiehuoshan_model_list= _zijiehuoshan_model_list if len(_zijiehuoshan_model_list)>0 else ['']
-_zhipuai_model_list= _zhipuai_model_list if len(_zhipuai_model_list)>0 else ['']
-_guiji_model_list= _guiji_model_list if len(_guiji_model_list)>0 else ['']
-_deepseek_model_list= _deepseek_model_list if len(_deepseek_model_list)>0 else ['']
-_openrouter_model_list=_openrouter_model_list if len(_openrouter_model_list)>0 else ['']
+_chatgpt_model_list = _chatgpt_model_list if len(_chatgpt_model_list) > 0 else ['']
+_claude_model_list = _claude_model_list if len(_claude_model_list) > 0 else ['']
+_azure_model_list = _azure_model_list if len(_azure_model_list) > 0 else ['']
+_localllm_model_list = _localllm_model_list if len(_localllm_model_list) > 0 else ['']
+_zijiehuoshan_model_list = _zijiehuoshan_model_list if len(_zijiehuoshan_model_list) > 0 else ['']
+_zhipuai_model_list = _zhipuai_model_list if len(_zhipuai_model_list) > 0 else ['']
+_guiji_model_list = _guiji_model_list if len(_guiji_model_list) > 0 else ['']
+_deepseek_model_list = _deepseek_model_list if len(_deepseek_model_list) > 0 else ['']
+_openrouter_model_list = _openrouter_model_list if len(_openrouter_model_list) > 0 else ['']
+
 
 # 设置或获取 config.params
 def getset_params(obj=None):
-    prompt_zh = """# 角色：
-你是一个多语言翻译器，擅长将文字翻译到 {lang}，并输出译文。
-
-## 规则：
-- 翻译使用口语化表达，确保译文简洁，避免长句。
-- 遇到无法翻译的行，直接原样返回，禁止输出错误信息或解释。
-- 一行原文必须翻译为一行译文，两行原文必选翻译为两行译文，以此类推。严禁将一行原文翻译为两行译文，也不可将两行原文翻译为一行译文。
-- 必须保证译文行数与原始内容行数相等。
-
-## 限制：
-- 按字面意思翻译，不要解释或回答原文内容。
-- 仅返回译文即可，不得返回原文。
-- 译文中保留换行符。
-
-## 输出格式
-使用以下 XML 标签结构输出最终翻译结果：
-```xml
-<TRANSLATE_TEXT>
-翻译结果
-</TRANSLATE_TEXT>
-```
-
-## 输出示例：
-```xml
-<TRANSLATE_TEXT>
-{lang}译文文本
-</TRANSLATE_TEXT>
-```xml
-
-## 输入规范
-处理<INPUT>标签内的原始内容。
-
-
-<INPUT></INPUT>
-
-"""
-    prompt_en = """# Role:
-You are a multilingual translator, good at translating text into {lang}, and outputting the translation.
-
-## Rules:
-- Use colloquial expressions for translation, ensuring the translation is concise and avoiding long sentences.
-- If a line cannot be translated, return it as is.  Do not output error messages or explanations.
-- One line of the original text must be translated into one line of the translated text, two lines of original text must be translated as two lines of the translated text, and so on. It is strictly forbidden to translate one line of the original text into two lines of the translated text, or to translate two lines of the original text into one line of the translated text.
-- The number of lines in the translation must be equal to the number of lines in the original content.
-
-## Restrictions:
-- Translate literally, do not interpret or answer the original content.
-- Only return the translated text, not the original text.
-- Keep line breaks in the translated text.
-
-## Output Format
-Use the following XML tag structure to output the final translation result:
-```xml
-<TRANSLATE_TEXT>
-Translated Result
-</TRANSLATE_TEXT>
-```
-
-## Output Example:
-```xml
-<TRANSLATE_TEXT>
-{lang} Translated Text
-</TRANSLATE_TEXT>
-```xml
-
-## Input Specification
-Process the original content within the <INPUT> tags.
-
-
-<INPUT></INPUT>
-
-"""
-    prompt_zh_srt="""# 角色：
-你是一个SRT字幕翻译器，擅长将字幕翻译到 {lang}，并输出符合 EBU-STL 标准的双语SRT字幕。
-
-## 规则：
-- 翻译时使用口语化表达，确保译文简洁，避免长句。
-- 翻译结果必须为符合 EBU-STL 标准的SRT字幕，字幕文本为双语对照。
-- 遇到无法翻译的内容，直接返回空行，不输出任何错误信息或解释。
-- 由数字、空格、各种符号组成的内容不要翻译，原样返回。
-
-## 限制：
-- 每条字幕必须包含2行文本，第一行为原始字幕文本，第二行为翻译结果文本。
-
-## 输出格式
-使用以下 XML 标签结构输出最终翻译结果：
-```xml
-<TRANSLATE_TEXT>
-翻译结果
-</TRANSLATE_TEXT>
-```
-
-## 输出示例：
-```xml
-<TRANSLATE_TEXT>
-1
-00:00:00,760 --> 00:00:01,256
-原文文本
-{lang}译文文本
-
-2
-00:00:01,816 --> 00:00:04,488
-原文文本
-{lang}译文文本
-</TRANSLATE_TEXT>
-```xml
-
-## 输入规范
-处理<INPUT>标签内的原始SRT字幕内容，并保留原始序号、时间码格式(00:00:00,000)和空行
-
-
-<INPUT></INPUT>
-
-"""
-    prompt_en_srt="""# Role:
-You are an SRT subtitle translator, proficient in translating subtitles into {lang}, and outputting bilingual SRT subtitles that comply with the EBU-STL standard.
-
-## Rules:
-- Use colloquial expressions during translation, ensuring the translation is concise and avoids long sentences.
-- The translation result must be an EBU-STL standard-compliant SRT subtitle, with the subtitle text being a bilingual comparison.
-- If you encounter content that cannot be translated, return a blank line directly, without outputting any error messages or explanations.
-- Do not translate content consisting of numbers, spaces, and various symbols; return them as is.
-
-## Restrictions:
-- Each subtitle must contain 2 lines of text, the first line is the original subtitle text, and the second line is the translated text.
-
-## Output Format
-Use the following XML tag structure to output the final translation result:
-```xml
-<TRANSLATE_TEXT>
-Translation Result
-</TRANSLATE_TEXT>
-```
-
-## Output Example:
-```xml
-<TRANSLATE_TEXT>
-1
-00:00:00,760 --> 00:00:01,256
-Original Text
-{lang} Translated Text
-
-2
-00:00:01,816 --> 00:00:04,488
-Original Text
-{lang} Translated Text
-</TRANSLATE_TEXT>
-```xml
-
-## Input Specification
-Process the original SRT subtitle content within the <INPUT> tag, and preserve the original sequence number, timecode format (00:00:00,000), and blank lines.
-
-
-<INPUT></INPUT>
-
-"""
     # 保存到json
     if obj is not None:
         with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(obj, ensure_ascii=False))
         return obj
-    #获取
+    # 获取
     default = {
         "last_opendir": HOME_DIR,
         "cuda": False,
-        
-        "paraformer_spk":False,
 
-        "line_roles":{},
+        "paraformer_spk": False,
+
+        "line_roles": {},
 
         "only_video": False,
         "is_separate": False,
-        "remove_noise":False,
+        "remove_noise": False,
 
         "target_dir": "",
 
@@ -701,13 +528,13 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
         "listen_text_nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
         "listen_text_sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
-        
+
         "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
         "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
         "listen_text_fil": "Hello, kaibigan ko",
         "listen_text_fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
-        "listen_text_ur":"ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
-        "listen_text_yue":"你好啊親愛嘅朋友，希望你今日好開心",
+        "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
+        "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
 
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
@@ -733,16 +560,16 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "tencent_SecretId": "",
         "tencent_SecretKey": "",
         "tencent_termlist": "",
-        
-        "gcloud_credential_json":"",
-        "gcloud_language_code":"",
-        "gcloud_voice_name":"",
-        "gcloud_audio_encoding":"",
-        "gcloud_ssml_gender":"",
-        
-        "ali_id":"",
-        "ali_key":"",
-    
+
+        "gcloud_credential_json": "",
+        "gcloud_language_code": "",
+        "gcloud_voice_name": "",
+        "gcloud_audio_encoding": "",
+        "gcloud_ssml_gender": "",
+
+        "ali_id": "",
+        "ali_key": "",
+
         "baidu_appid": "",
         "baidu_miyue": "",
 
@@ -769,47 +596,10 @@ Process the original SRT subtitle content within the <INPUT> tag, and preserve t
         "gemini_model": "gemini-2.0-flash",
         "gemini_template": "",
         "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
-        "gemini_ttsstyle":"",
-        "gemini_ttsmodel":"gemini-2.5-flash-preview-tts",
+        "gemini_ttsstyle": "",
+        "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
 
-        "gemini_srtprompt":"""# 角色
-你是一名转录助手，能够高效地将音频文件转录为文本，确保准确性并保持音频文件的顺序。
-
-## 技能
-### 技能 1: 音频转录
-- 将每个音频文件转录为文本，确保转录语言与音频中所讲语言一致。
-- 按照接收到的音频文件的顺序保持转录结果的顺序。
-- 示例响应格式：
-  ```
-  <result>
-      <audio_text>[音频文件1的转录结果]</audio_text>
-      <audio_text>[音频文件2的转录结果]</audio_text>
-  </result>
-  ```
-
-## 约束
-- 不要道歉或提供额外的解释。
-- 确保输出完整并包含所有音频文件。
-""" if defaulelang=='zh' else """# Role
-You are a transcription assistant who efficiently transcribes audio files into text, ensuring accuracy and maintaining the sequence of the provided audio files.
-
-## Skills
-### Skill 1: Audio Transcription
-- Transcribe each audio file into text, ensuring the transcription language matches the language spoken in the audio.
-- Maintain the order of transcription results as per the sequence of the received audio files.
-- Example response format:
-  ```
-  <result>
-      <audio_text>[Transcription result for audio file 1]</audio_text>
-      <audio_text>[Transcription result for audio file 2]</audio_text>
-  </result>
-  ```
-
-## Constraints
-- Do not apologize or provide additional explanations.
-- Ensure the output is complete and includes all audio files.""",
-        
-
+        "gemini_srtprompt": "",
 
         "localllm_api": "",
         "localllm_key": "",
@@ -819,22 +609,21 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "localllm_temperature": "0.7",
         "localllm_top_p": "1.0",
 
-        "zhipu_key":"",
+        "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
-        "zhipu_template":"",
-        
-        
-        "guiji_key":"",
+        "zhipu_template": "",
+
+        "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
-        "guiji_template":"",
-        
-        "deepseek_key":"",
+        "guiji_template": "",
+
+        "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
-        "deepseek_template":"",
-        
-        "openrouter_key":"",
+        "deepseek_template": "",
+
+        "openrouter_key": "",
         "openrouter_model": _openrouter_model_list[0],
-        "openrouter_template":"",
+        "openrouter_template": "",
 
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
@@ -860,11 +649,9 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openaitts_instructions": "",
         "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
 
-
         "qwentts_key": "",
         "qwentts_model": "qwen-tts-latest",
         "qwentts_role": "Chelsie,Cherry,Serena,Ethan,Dylan,Jada,Sunny",
-
 
         "kokoro_api": "",
 
@@ -872,8 +659,8 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "openairecognapi_key": "",
         "openairecognapi_prompt": "",
         "openairecognapi_model": "whisper-1",
-        
-        "parakeet_address":"",
+
+        "parakeet_address": "",
 
         "clone_api": "",
         "clone_voicelist": ["clone"],
@@ -885,7 +672,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "stt_url": "",
         "stt_model": "tiny",
 
-        "sense_url":"",
+        "sense_url": "",
 
         "ttsapi_url": "",
         "ttsapi_voice_role": "",
@@ -904,7 +691,7 @@ You are a transcription assistant who efficiently transcribes audio files into t
         "chatterbox_role": "",
         "chatterbox_cfg_weight": 0.5,
         "chatterbox_exaggeration": 0.5,
-        
+
         "gptsovits_url": "",
         "gptsovits_role": "",
         "gptsovits_isv2": True,
@@ -915,65 +702,53 @@ You are a transcription assistant who efficiently transcribes audio files into t
 
         "fishtts_url": "",
         "fishtts_role": "",
-        
+
         "f5tts_url": "",
         "f5tts_model": "",
         "f5tts_ttstype": "F5-TTS",
         "f5tts_role": "",
-        "f5tts_is_whisper":False,
+        "f5tts_is_whisper": False,
 
         "doubao_appid": "",
         "doubao_access": "",
 
-        "volcenginetts_appid":"",
-        "volcenginetts_access":"",
-        "volcenginetts_cluster":"",
+        "volcenginetts_appid": "",
+        "volcenginetts_access": "",
+        "volcenginetts_cluster": "",
 
         "chattts_api": "",
 
         "app_mode": "biaozhun",
 
-        "stt_source_language":0,
-        "stt_recogn_type":0,
-        "stt_model_name":"",
-        "stt_remove_noise":False,
+        "stt_source_language": 0,
+        "stt_recogn_type": 0,
+        "stt_model_name": "",
+        "stt_remove_noise": False,
 
-        "deepgram_apikey":"",
-        "deepgram_utt":200,
+        "deepgram_apikey": "",
+        "deepgram_utt": 200,
 
-        "trans_translate_type":0,
-        "trans_source_language":0,
-        "trans_target_language":1,
-        "trans_out_format":0,
+        "trans_translate_type": 0,
+        "trans_source_language": 0,
+        "trans_target_language": 1,
+        "trans_out_format": 0,
 
-        "dubb_source_language":0,
-        "dubb_tts_type":0,
-        "dubb_role":0,
-        "dubb_out_format":0,
-        "dubb_voice_autorate":True,
-        "dubb_hecheng_rate":0,
-        "dubb_pitch_rate":0,
-        "dubb_volume_rate":0,
-
+        "dubb_source_language": 0,
+        "dubb_tts_type": 0,
+        "dubb_role": 0,
+        "dubb_out_format": 0,
+        "dubb_voice_autorate": True,
+        "dubb_hecheng_rate": 0,
+        "dubb_pitch_rate": 0,
+        "dubb_volume_rate": 0,
 
     }
     # 创建默认提示词文件
-    Path(ROOT_DIR+'/videotrans/prompts/srt').mkdir(parents=True,exist_ok=True)
-    def _create_default_promot():
-        prompt_langcode = '' if defaulelang == "zh" else "-en"
-        _root_path = Path(ROOT_DIR)
-        for ainame in ['chatgpt','azure','gemini','localllm','ai302','zijie']:
-            chatgpt_path = _root_path / f'videotrans/{ainame}{prompt_langcode}.txt'
-            if not chatgpt_path.exists():
-                with chatgpt_path.open('w',encoding='utf-8') as f:
-                    f.write(prompt_zh if defaulelang=='zh' else prompt_en)
-            chatgpt_path = _root_path / f'videotrans/prompts/srt/{ainame}{prompt_langcode}.txt'
-            if not chatgpt_path.exists():
-                with chatgpt_path.open('w', encoding='utf-8') as f:
-                    f.write(prompt_zh_srt if defaulelang=='zh' else prompt_en_srt)
+    Path(ROOT_DIR + '/videotrans/prompts/srt').mkdir(parents=True, exist_ok=True)
+
+
     try:
-        _create_default_promot()
-        if os.path.exists(ROOT_DIR + "/videotrans/params.json"):
+        if Path(ROOT_DIR + "/videotrans/params.json").exists():
             default.update(json.loads(Path(ROOT_DIR + "/videotrans/params.json").read_text(encoding='utf-8')))
         else:
             with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
@@ -982,16 +757,13 @@ You are a transcription assistant who efficiently transcribes audio files into t
         pass
     return default
 
-# api key 翻译配置等信息，每次执行任务均有变化
+
 params = getset_params()
+gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
+if Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').exists():
+    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').read_text(encoding='utf-8')
 
-gemini_recogn_txt= 'gemini_recogn.txt' if defaulelang=='zh' else 'gemini_recogn-en.txt'
-if Path(ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').exists():
-    params['gemini_srtprompt']=Path(ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').read_text(encoding='utf-8')
+ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
+                    'ms', 'uk', 'cs', 'tl']
 
-
-
-
-ELEVENLABS_CLONE=['zh','en','fr','de','hi','pt','es','ja','ko','ar','ru','id','it','tr','pl','sv','ms','uk','cs','tl']
-
-codec_cache={}
+codec_cache = {}

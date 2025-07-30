@@ -7,6 +7,7 @@ import threading
 import time
 from pathlib import Path
 
+from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl, QThread, Signal,Qt
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox, QFileDialog
@@ -16,7 +17,7 @@ from videotrans.configure import config
 from videotrans.task._dubbing import DubbingSrt
 from videotrans.tts import EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS,QWEN_TTS, GPTSOVITS_TTS,CHATTERBOX_TTS, COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS, CLONE_VOICE_TTS, TTS_API,GEMINI_TTS, is_input_api, is_allow_lang, VOLCENGINE_TTS,KOKORO_TTS
 from videotrans.util import tools
-
+from videotrans.util.ListenVoice import ListenVoice
 
 
 class SignThread(QThread):
@@ -320,7 +321,13 @@ def openwin():
 
         if role == 'clone':
             return
-        threading.Thread(target=tts.run, kwargs={'language':lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
+        def feed(d):
+            if d != "ok":
+                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+        wk=ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
+        wk.uito.connect(feed)
+        wk.start()
+
 
     def change_by_lang(type):
         if type in [EDGE_TTS, AZURE_TTS,VOLCENGINE_TTS,AI302_TTS,KOKORO_TTS]:
@@ -349,7 +356,9 @@ def openwin():
             langcode = translator.get_code(show_text=language)
             is_allow_lang_res = is_allow_lang(langcode=langcode, tts_type=tts_type)
             if is_allow_lang_res is not True:
-                return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+                winobj.loglabel.setText(is_allow_lang_res)
+            else:
+                winobj.loglabel.setText('')
         else:
             code_list=[key for key, value in langname_dict.items() if value == language]
             if not code_list:
@@ -393,7 +402,7 @@ def openwin():
         video_list = [tools.format_video(it, None) for it in winobj.hecheng_files]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
-            trk = DubbingSrt({
+            trk = DubbingSrt(cfg={
                 "voice_role": role,
                 "cache_folder": config.TEMP_HOME + f'/{it["uuid"]}',
                 "target_language_code": langcode,
@@ -407,7 +416,7 @@ def openwin():
                 "tts_type": tts_type,
                 "out_ext": winobj.out_format.currentText(),
                 "voice_autorate": winobj.voice_autorate.isChecked()
-            }, it)
+            }, obj=it)
             config.dubb_queue.append(trk)
 
         th = SignThread(uuid_list=uuid_list, parent=winobj)
@@ -458,7 +467,7 @@ def openwin():
         
         winobj.hecheng_language.clear()
         langnamelist=getlangnamelist(type)
-        print(f'{langnamelist=}')
+
         winobj.hecheng_language.addItems(langnamelist)
         if current_text in langnamelist:
             winobj.hecheng_language.setCurrentText(current_text)
@@ -467,8 +476,9 @@ def openwin():
             code = translator.get_code(show_text=current_text)
             is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
             if is_allow_lang_res is not True:
-                winobj.tts_type.setCurrentIndex(0)
-                return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+                winobj.loglabel.setText(is_allow_lang_res)
+            else:
+                winobj.loglabel.setText('')
             if is_input_api(tts_type=type) is not True:
                 winobj.tts_type.setCurrentIndex(0)
                 return False
@@ -540,8 +550,10 @@ def openwin():
             if code and code != '-':
                 is_allow_lang_reg = is_allow_lang(langcode=code, tts_type=tts_type)
                 if is_allow_lang_reg is not True:
-                    return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_reg)
-            print(f'==={code=}')
+                    winobj.loglabel.setText(is_allow_lang_reg)
+                else:
+                    winobj.loglabel.setText('')
+
         # 不是跟随语言变化的配音渠道，无需继续处理
         if not change_by_lang(tts_type):
             return

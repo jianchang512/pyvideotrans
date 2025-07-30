@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Dict
+
 
 from videotrans.configure import config
 
@@ -9,37 +9,36 @@ from videotrans.recognition import run,Faster_Whisper_XXL
 from videotrans.task._base import BaseTask
 from videotrans.task._remove_noise import remove_noise
 from videotrans.util import tools
-
+from typing import Dict,Any
+from dataclasses import dataclass, field
 """
 仅语音识别
 """
 
 
+@dataclass
 class SpeechToText(BaseTask):
-    """
-    obj={
-    name:原始音视频完整路径和名字
-    dirname
-    basename
-    noextname
-    ext
-    target_dir
-    uuid
-    }
+    # ==================================================================
+    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
+    #    这些属性都在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
+    # ==================================================================
+    # 这个属性依赖于 cfg，所以它没有默认值，在 post_init 中设置。
+    out_format: str = field(init=False)
 
-    cfg={
-    source_language
-    recogn_type 识别模式索引
-    split_type 整体识别/均等分割
-    model_name 模型名字
-    cuda 是否启用cuda
-    }
-    """
+    # 在这个子类中，shoud_recogn 总是 True，我们直接在定义中声明。
+    shoud_recogn: bool = field(default=True, init=False)
 
-    def __init__(self, cfg: Dict = None, obj: Dict = None):
-        super().__init__(cfg, obj)
-        self.out_format=cfg.get('out_format','srt')
-        self.shoud_recogn = True
+
+
+    # ==================================================================
+    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
+    #    它不接收任何参数，与父类保持一致。
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__。
+        # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
+        super().__post_init__()
+        self.out_format=self.cfg.get('out_format','srt')
         # 存放目标文件夹
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
             self.cfg['target_dir'] = config.HOME_DIR + f"/recogn"

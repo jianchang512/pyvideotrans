@@ -1,33 +1,11 @@
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util.ListenVoice import ListenVoice
 
 
 def openwin():
-    class TestTTS(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None, role=None, language=None):
-            super().__init__(parent=parent)
-            self.text = text
-            self.role = role
-            self.language = language
-
-        def run(self):
-            try:
-                tts.run(
-                    queue_tts=[{"text": self.text, "role": self.role, "filename": config.TEMP_HOME + "/testaiazure.mp3",
-                                "tts_type": tts.AZURE_TTS}],
-                    language=self.language,
-                    play=True,
-                    is_test=True
-                )
-                self.uito.emit("ok")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -46,15 +24,12 @@ def openwin():
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
-
-        task = TestTTS(parent=winobj,
-                       text="你好啊我的朋友" if config.defaulelang == 'zh' else 'hello,my friend',
-                       role="zh-CN-YunjianNeural" if config.defaulelang == 'zh' else 'en-US-AvaNeural',
-                       language="zh-CN" if config.defaulelang == 'zh' else 'en-US'
-                       )
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
-        task.uito.connect(feed)
-        task.start()
+        wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": 'zh-CN-YunjianNeural',
+                                                    "filename": config.TEMP_HOME + f"/test-azure.wav",
+                                                    "tts_type": tts.AZURE_TTS}], language="zh", tts_type=tts.AZURE_TTS)
+        wk.uito.connect(feed)
+        wk.start()
+        winobj.test.setText('testing...')
 
     def save():
         key = winobj.speech_key.text()

@@ -1,6 +1,7 @@
 from videotrans.configure import config
-from PySide6 import QtWidgets
 from videotrans.util import tools
+
+
 def openwin():
     def save():
         url = winobj.ott_address.text().strip()

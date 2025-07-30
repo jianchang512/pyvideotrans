@@ -1,7 +1,7 @@
 # stt项目识别接口
 import os
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 
 from videotrans.configure import config
@@ -26,18 +26,20 @@ from videotrans.recognition._base import BaseRecogn
 """
 
 
+@dataclass
 class SttAPIRecogn(BaseRecogn):
+    raws: List = field(default_factory=list, init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
-        api_url = config.params['stt_url'].strip().rstrip('/').lower()
+    def __post_init__(self):
+        super().__post_init__()
+        api_url = config.params.get('stt_url', '').strip().rstrip('/').lower()
         if not api_url:
             raise Exception('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
+
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
-        api_url=api_url if api_url.endswith('/api') else f'{api_url}/api'
-        self.api_url = api_url
+        self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():

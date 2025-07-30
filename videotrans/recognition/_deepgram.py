@@ -1,8 +1,8 @@
 # stt项目识别接口
 import json
 import os,re
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 import zhconv
 from videotrans.configure import config
@@ -16,14 +16,23 @@ from deepgram import (
 from deepgram_captions import DeepgramConverter, srt
 import httpx
 
+@dataclass
 class DeepgramRecogn(BaseRecogn):
+    raws: List[Any] = field(default_factory=list, init=False)
+    zimu_len: int = field(init=False)
+    join_flag: str = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __post_init__(self):
+        super().__post_init__()
         self.raws = []
-        self.zimu_len=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh','ja','ko'] else config.settings.get('other_len')
-        self.join_flag='' if self.detect_language[:2] in ['zh','ja','ko'] else ' '
-        self.proxies=self._set_proxy(type='set')
+        if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
+            self.zimu_len = int(config.settings.get('cjk_len'))
+            self.join_flag = ''
+        else:
+            self.zimu_len = int(config.settings.get('other_len'))
+            self.join_flag = ' '
+        self.proxies = self._set_proxy(type='set')
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():

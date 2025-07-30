@@ -1,42 +1,20 @@
+from pathlib import Path
+
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans.util.ListenVoice import ListenVoice
 
-from pathlib import Path
 
 def openwin():
-    class TestTTS(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None, role=None,tts_type='f5-tts'):
-            super().__init__(parent=parent)
-            self.text = text
-            self.role = role
-            self.tts_type=tts_type
-
-        def run(self):
-            try:
-                config.box_tts='ing'
-                tts.run(
-                    queue_tts=[{"text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + f"/test{self.tts_type}.wav", "tts_type": tts.F5_TTS}],
-                    language="zh",
-                    play=True,
-                    is_test=True
-                )
-                self.uito.emit("ok")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
-            
+
         winobj.test.setText('Test')
 
     def test():
@@ -45,30 +23,27 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
-        print(f'{url=}')
+
         role = winobj.role.toPlainText().strip()
         if not role:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写参考音频才可测试')
             return
-        role_test=getrole()
+        role_test = getrole()
         if not role_test:
             return
-        is_whisper=winobj.is_whisper.isChecked()
-        config.params["f5tts_is_whisper"]=is_whisper
+        is_whisper = winobj.is_whisper.isChecked()
+        config.params["f5tts_is_whisper"] = is_whisper
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
         config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
         config.getset_params(config.params)
-        
-        task = TestTTS(parent=winobj,
-                       text="你好啊我的朋友",
-                       
-                       role=role_test,
-                       tts_type=winobj.ttstype.currentText()
-                       )
+
         winobj.test.setText('测试中请稍等...')
-        task.uito.connect(feed)
-        task.start()
+        wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": role_test,
+                                                    "filename": config.TEMP_HOME + f"/test-f5tts.wav",
+                                                    "tts_type": tts.F5_TTS}], language="zh", tts_type=tts.F5_TTS)
+        wk.uito.connect(feed)
+        wk.start()
 
     def getrole():
         tmp = winobj.role.toPlainText().strip()
@@ -86,7 +61,7 @@ def openwin():
                 QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                "每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容")
                 return
-            elif not Path(config.ROOT_DIR+f'/f5-tts/{s[0]}').is_file():
+            elif not Path(config.ROOT_DIR + f'/f5-tts/{s[0]}').is_file():
                 QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
                                                f"请将音频文件存放在 {config.ROOT_DIR}/f5-tts 目录下")
                 return
@@ -101,11 +76,11 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         role = winobj.role.toPlainText().strip()
-        is_whisper=winobj.is_whisper.isChecked()
+        is_whisper = winobj.is_whisper.isChecked()
 
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
-        config.params["f5tts_is_whisper"]=is_whisper
+        config.params["f5tts_is_whisper"] = is_whisper
         config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
         print(winobj.ttstype.currentText())
         config.getset_params(config.params)
@@ -114,7 +89,7 @@ def openwin():
 
     from videotrans.component import F5TTSForm
     winobj = config.child_forms.get('f5ttsw')
-    Path(config.ROOT_DIR+"/f5-tts").mkdir(exist_ok=True)
+    Path(config.ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     if winobj is not None:
         winobj.show()
         winobj.raise_()

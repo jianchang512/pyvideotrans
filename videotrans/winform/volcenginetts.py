@@ -1,33 +1,13 @@
 import json
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util.ListenVoice import ListenVoice
 
 
 def openwin():
-    class TestTTS(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None):
-            super().__init__(parent=parent)
-            self.text = text
-
-        def run(self):
-            from videotrans.tts import run
-            try:
-                run(
-                    queue_tts=[{"text": self.text, "role": "通用男声", "filename": config.TEMP_HOME + "/testvolcenginetts.mp3",  "tts_type": tts.VOLCENGINE_TTS}],
-                    language="zh-CN",
-                    play=True,
-                    is_test=True
-                )
-                self.uito.emit("ok")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -36,9 +16,7 @@ def openwin():
         winobj.test.setText('测试')
 
     def test():
-        # volcenginetts_appid
-        # volcenginetts_access
-        # volcenginetts_cluster
+
         appid = winobj.volcenginetts_appid.text().strip()
         access = winobj.volcenginetts_access.text().strip()
         cluster = winobj.volcenginetts_cluster.text().strip()
@@ -48,10 +26,17 @@ def openwin():
         config.params["volcenginetts_appid"] = appid
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster
-        task = TestTTS(parent=winobj, text="你好啊我的朋友")
+        wk = ListenVoice(parent=winobj, queue_tts=[{
+            "text": '你好啊我的朋友',
+            "role": "通用男声",
+            "filename": config.TEMP_HOME + f"/test-volcenginetts.mp3",
+            "tts_type": tts.VOLCENGINE_TTS}],
+                         language="zh",
+                         tts_type=tts.VOLCENGINE_TTS)
+        wk.uito.connect(feed)
+        wk.start()
         winobj.test.setText('测试中请稍等...')
-        task.uito.connect(feed)
-        task.start()
+
 
     def save():
         appid = winobj.volcenginetts_appid.text().strip()

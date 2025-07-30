@@ -23,7 +23,12 @@ class Ui_ai302form(object):
 
         h1= QtWidgets.QHBoxLayout()
 
-        self.label_2 = QtWidgets.QLabel(ai302form)
+        self.label_1 = QtWidgets.QLabel()
+        self.label_1.setObjectName("label_1")
+        self.label_1.setText("已接入文字大模型翻译字幕 及 语音识别 和 openai/豆包/Azure/Minimaxi/Dubbingx 配音角色")
+        v1.addWidget(self.label_1)
+
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setObjectName("label_2")
         self.ai302_key = QtWidgets.QLineEdit(ai302form)
         self.ai302_key.setMinimumSize(QtCore.QSize(0, 35))
@@ -89,7 +94,7 @@ class Ui_ai302form(object):
         QtCore.QMetaObject.connectSlotsByName(ai302form)
 
     def retranslateUi(self, ai302form):
-        ai302form.setWindowTitle("302.ai 接入翻译渠道配置")
+        ai302form.setWindowTitle("302.ai 接入翻译和配音渠道配置")
         self.label_3.setText('选择模型')
         self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
         self.ai302_template.setPlaceholderText("prompt")

@@ -2,7 +2,8 @@ import multiprocessing
 import threading
 import time
 from pathlib import Path
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import zhconv
 
 from videotrans.configure import config
@@ -11,18 +12,19 @@ from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
 
+@dataclass
 class FasterAll(BaseRecogn):
+    raws: List = field(default_factory=list, init=False)
+    pidfile: str = field(default="", init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
-        self.pidfile = ""
-        if self.detect_language[:2].lower() in ['zh', 'ja', 'ko','yu']:
+    def __post_init__(self):
+        super().__post_init__()
+
+        if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
             self.flag.append(" ")
-            self.maxlen = int(config.settings['cjk_len'])
+            self.maxlen = int(config.settings.get('cjk_len', 20)) # 使用 .get 更安全
         else:
-            self.maxlen = int(config.settings['other_len'])
-        self.error = ''
+            self.maxlen = int(config.settings.get('other_len', 60)) # 使用 .get 更安全
 
     # 获取新进程的结果
     def _get_signal_from_process(self, q: multiprocessing.Queue):

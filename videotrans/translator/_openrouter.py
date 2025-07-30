@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 from pathlib import Path
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import httpx,requests
 from openai import OpenAI, APIConnectionError
 
@@ -10,19 +10,22 @@ from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class OpenRouter(BaseTrans):
+    prompt: str = field(init=False)
+    api_key: str = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',50))
-       
-        
-        # 是srt则获取srt的提示词
-        self.prompt = tools.get_prompt(ainame='openrouter',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
-        self.model_name=config.params.get('openrouter_model',"")
-        self.api_url='https://openrouter.ai/api/v1'
-        self.api_key=config.params.get('openrouter_key','')
+    def __post_init__(self):
+
+        super().__post_init__()
+
+
+        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
+        self.model_name = config.params.get('openrouter_model', "")
+        self.api_url = 'https://openrouter.ai/api/v1'
+
+        self.prompt = tools.get_prompt(ainame='openrouter', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.api_key = config.params.get('openrouter_key', '')
 
 
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -30,7 +33,7 @@ class OpenRouter(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
+                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},

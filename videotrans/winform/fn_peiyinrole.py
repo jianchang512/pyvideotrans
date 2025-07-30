@@ -201,7 +201,9 @@ def openwin():
             langcode = translator.get_code(show_text=language)
             is_allow_lang_res = is_allow_lang(langcode=langcode, tts_type=tts_type)
             if is_allow_lang_res is not True:
-                return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+                winobj.loglabel.setText(is_allow_lang_res)
+            else:
+                winobj.loglabel.setText('')
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
@@ -231,7 +233,7 @@ def openwin():
         video_obj = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
         
-        trk = DubbingSrt({
+        trk = DubbingSrt(cfg={
             "voice_role": role,  # Default role
             "cache_folder": config.TEMP_HOME + f'/{uuid}',
             "target_language_code": langcode,
@@ -246,7 +248,7 @@ def openwin():
             "is_multi_role":True,
             "out_ext": winobj.out_format.currentText(),
             "voice_autorate": winobj.voice_autorate.isChecked()
-        }, video_obj)
+        }, obj=video_obj)
         config.dubb_queue.append(trk)
 
         th = SignThread(uuid_list=[uuid], parent=winobj)
@@ -302,8 +304,9 @@ def openwin():
             code = translator.get_code(show_text=current_text)
             is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
             if is_allow_lang_res is not True:
-                winobj.tts_type.setCurrentIndex(0)
-                return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+                winobj.loglabel.setText( is_allow_lang_res)
+            else:
+                winobj.loglabel.setText('')
             if is_input_api(tts_type=type) is not True:
                 winobj.tts_type.setCurrentIndex(0)
                 return False
@@ -373,7 +376,9 @@ def openwin():
             if code and code != '-':
                 is_allow_lang_reg = is_allow_lang(langcode=code, tts_type=tts_type)
                 if is_allow_lang_reg is not True:
-                    return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_reg)
+                    winobj.loglabel.setText(is_allow_lang_reg)
+                else:
+                    winobj.loglabel.setText('')
         
         if not change_by_lang(tts_type):
             return

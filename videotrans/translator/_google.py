@@ -1,7 +1,8 @@
 import random
 import re
 import time
-from typing import Union, List
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 from urllib.parse import quote
 
 import requests
@@ -10,12 +11,12 @@ from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class Google(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https": pro, "http": pro}

@@ -8,38 +8,44 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import Dict, Optional, ClassVar
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class VolcEngineTTS(BaseTTS):
+    error_status: ClassVar[Dict[str, str]] = {
+        "3001": "无效的请求,若是正式版，可能当前所用音色需要单独从字节火山购买",
+        "3003": "并发超限",
+        "3005": "后端服务器负载高",
+        "3006": "服务中断",
+        "3010": "文本长度超限",
+        "3011": "参数有误或者文本为空、文本与语种不匹配、文本只含标点",
+        "3030": "单次请求超过服务最长时间限制",
+        "3031": "后端出现异常",
+        "3032": "等待获取音频超时",
+        "3040": "音色克隆链路网络异常",
+        "3050": "音色克隆音色查询失败"
+    }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.error_status = {
-            "3001": "无效的请求,若是正式版，可能当前所用音色需要单独从字节火山购买",
-            "3003": "并发超限",
-            "3005": "后端服务器负载高",
-            "3006": "服务中断",
-            "3010": "文本长度超限",
-            "3011": "参数有误或者文本为空、文本与语种不匹配、文本只含标点",
-            "3030": "单次请求超过服务最长时间限制",
-            "3031": "后端出现异常",
-            "3032": "等待获取音频超时",
-            "3040": "音色克隆链路网络异常",
-            "3050": "音色克隆音色查询失败"
-        }
-        self.fangyan = {
-            "东北": "zh_dongbei",
-            "粤语": "zh_yueyu",
-            "上海": "zh_shanghai",
-            "西安": "zh_xian",
-            "成都": "zh_chengdu",
-            "台湾": "zh_taipu",
-            "广西": "zh_guangxi"
-        }
-        self.voice_type = None
+    fangyan: ClassVar[Dict[str, str]] = {
+        "东北": "zh_dongbei",
+        "粤语": "zh_yueyu",
+        "上海": "zh_shanghai",
+        "西安": "zh_xian",
+        "成都": "zh_chengdu",
+        "台湾": "zh_taipu",
+        "广西": "zh_guangxi"
+    }
+    voice_type: Optional[str] = field(init=False, default=None)
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
 
     def _exec(self):
         # 并发限制为1，防止限流
