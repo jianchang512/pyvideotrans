@@ -9,17 +9,41 @@ from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class ChatTTS(BaseTTS):
+    # ==================================================================
+    # 1. ChatTTS 没有引入新的、需要预先声明的字段。
+    #    它只是修改了从父类继承来的字段的值。
+    #    因此，我们不需要在这里添加新的 field 定义。
+    # ==================================================================
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    # ==================================================================
+    # 2. 实现 __post_init__ 来处理本类的特定初始化逻辑和覆盖操作。
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__。
+        # 这将确保 BaseTTS 的所有初始化逻辑（包括对 copydata, api_url, proxies 的初始赋值）都已完成。
+        super().__post_init__()
+
+        # --- 从这里开始，是 ChatTTS 的特定逻辑，它会覆盖父类的某些设置 ---
+
+        # 1. 覆盖属性
+        # 您的旧代码再次执行了 deepcopy，我们保留这个行为。
         self.copydata = copy.deepcopy(self.queue_tts)
+
+        # 从配置中读取并处理 API URL
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
+
+        # 为代理设置一个具体的值
         self.proxies = {"http": "", "https": ""}
 
     def _exec(self):

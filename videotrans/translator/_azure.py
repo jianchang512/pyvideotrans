@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import httpx,requests
 from openai import AzureOpenAI, APIConnectionError
 
@@ -9,15 +9,16 @@ from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class AzureGPT(BaseTrans):
+    prompt: str = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',50))
-        self.prompt = tools.get_prompt(ainame='azure',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+    def __post_init__(self):
+        super().__post_init__()
+        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
+        self.model_name = config.params["azure_model"]
+        self.prompt = tools.get_prompt(ainame='azure', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
         self._check_proxy()
-        self.model_name=config.params["azure_model"]
 
         
     def _check_proxy(self):
@@ -39,7 +40,7 @@ class AzureGPT(BaseTrans):
         text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {'role': 'system',
-             'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
+             'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},
         ]

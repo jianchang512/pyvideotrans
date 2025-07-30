@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import httpx,requests
 from openai import OpenAI, APIConnectionError, APIError
 
@@ -9,18 +9,23 @@ from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class LocalLLM(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',50))
+    prompt: str = field(init=False)
+
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.api_url = config.params['localllm_api']
-        self.prompt = tools.get_prompt(ainame='localllm',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.model_name = config.params["localllm_model"]
+
+        self.prompt = tools.get_prompt(ainame='localllm', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+
         self._check_proxy()
-        if not self.api_url:
-            raise Exception('Input your API URL')
-        self.model_name=config.params["localllm_model"]
+
 
         
     def _check_proxy(self):
@@ -40,7 +45,7 @@ class LocalLLM(BaseTrans):
         text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {'role': 'system',
-             'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
+             'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},
         ]

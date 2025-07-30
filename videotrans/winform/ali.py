@@ -1,35 +1,19 @@
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
-
-
 # set baidu
+from videotrans.util.TestSrtTrans import TestSrtTrans
+
+
 def openwin():
-    class TestTask(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None):
-            super().__init__(parent=parent)
-
-        def run(self):
-            try:
-                raw = "你好啊我的朋友"
-                text = translator.run(translate_type=translator.ALI_INDEX,
-                                      text_list=raw,
-                                      source_code="zh",
-                                      target_code="en", is_test=True)
-                self.uito.emit(f"ok:{raw}\n{text}")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if not d.startswith("ok"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+
     def save():
         appid = winobj.ali_id.text()
         miyue = winobj.ali_key.text()
@@ -37,6 +21,7 @@ def openwin():
         config.params["ali_key"] = miyue
         config.getset_params(config.params)
         winobj.close()
+
     def test():
         appid = winobj.ali_id.text()
         miyue = winobj.ali_key.text()
@@ -46,9 +31,9 @@ def openwin():
         config.params["ali_id"] = appid
         config.params["ali_key"] = miyue
 
-
-        task = TestTask(parent=winobj)
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+
+        task = TestSrtTrans(parent=winobj, translator_type=translator.ALI_INDEX)
         task.uito.connect(feed)
         task.start()
 

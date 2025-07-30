@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
 import json
 import re
-from typing import Union, List
 
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class Libre(BaseTrans):
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
         url = config.params['libre_address'].strip().rstrip('/')
-        key = config.params['libre_key'].strip()
-        if "/translate" not in url:
-            url+='/translate'
-        self.api_url = f"http://{url}" if not url.startswith('http') else url
+        key = config.params['libre_key'].strip() # Retained for logical equivalence
 
-            
+        if "/translate" not in url:
+            url += '/translate'
+
+        self.api_url = f"http://{url}" if not url.startswith('http') else url
         if not re.search(r'localhost', url) and not re.match(r'https?://(\d+\.){3}\d+', url):
             pro = self._set_proxy(type='set')
             if pro:

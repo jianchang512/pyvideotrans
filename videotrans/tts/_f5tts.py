@@ -3,34 +3,39 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Union, Dict, List
+
 
 import requests
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class F5TTS(BaseTTS):
+    v1_local: bool = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __post_init__(self):
+        super().__post_init__()
         self.copydata = copy.deepcopy(self.queue_tts)
         api_url = config.params['f5tts_url'].strip().rstrip('/').lower()
         self.api_url = f'http://{api_url}' if not api_url.startswith('http') else api_url
         self.v1_local = True
-
         sepflag = self.api_url.find('/', 9)
         if sepflag > -1:
             self.api_url = self.api_url[:sepflag]
+
         if not re.search(r'127.0.0.1|localhost', self.api_url):
             self.v1_local = False
         elif re.search(r'^https:', self.api_url):
             self._set_proxy(type='set')
+
 
     def _exec(self):
         self._local_mul_thread()

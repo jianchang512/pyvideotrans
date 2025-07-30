@@ -10,19 +10,20 @@ from google.genai.errors import APIError
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
-
+@dataclass
 class GEMINITTS(BaseTTS):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
+    def __post_init__(self):
+        super().__post_init__()
         self.proxies = self._set_proxy(type='set')
 
-    # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         self.dub_nums = 1
         self._local_mul_thread()

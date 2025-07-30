@@ -10,22 +10,22 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
-
+@dataclass
 class TTSAPI(BaseTTS):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
+    def __post_init__(self):
+        super().__post_init__()
         api_url = config.params['ttsapi_url'].strip().rstrip('/').lower()
         if not api_url.startswith('http'):
             self.api_url = 'http://' + api_url
         else:
             self.api_url = api_url
-        self.proxies = None
 
     def _exec(self) -> None:
         self._local_mul_thread()

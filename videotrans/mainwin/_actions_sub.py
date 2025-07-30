@@ -16,28 +16,43 @@ from videotrans.configure import config
 from videotrans.util import tools
 
 
-class WinActionSub:
+from dataclasses import dataclass, field
+from typing import Optional, Dict, List, Any
 
-    def __init__(self,main=None):
-        self.main = main
-        # 更新按钮
-        self.update_btn = None
-        # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
-        self.edit_subtitle_type = 'edit_subtitle_source'
-        # 进度按钮
-        self.processbtns = {}
-        # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
-        self.wait_subtitle = None
-        # 存放需要处理的视频dict信息，包括uuid
-        self.obj_list = []
-        self.is_render = False
-        self.is_batch = True
-        self.cfg = {}
-        self.queue_mp4 = []
-        self.scroll_area = None
-        self.scroll_area_after = None
-        self.scroll_area_search = None
-        self.removing_layout=False
+from videotrans.util.ListenVoice import ListenVoice
+
+
+@dataclass
+class WinActionSub:
+    # ==================================================================
+    # 1. 定义唯一的 __init__ 参数。
+    #    这将生成 __init__(self, main: Optional[Any] = None)，与原始签名完全兼容。
+    # ==================================================================
+    main: Optional[Any] = None
+
+    # ==================================================================
+    # 2. 定义所有其他属性为“仅内部状态”，不作为 __init__ 参数。
+    #    我们使用 `field(init=False, ...)` 来实现这一点。
+    # ==================================================================
+
+    # -- UI 和状态相关 --
+    update_btn: Optional[Any] = field(default=None, init=False)
+    edit_subtitle_type: str = field(default='edit_subtitle_source', init=False)
+    wait_subtitle: str = field(default='', init=False)
+    is_render: bool = field(default=False, init=False)
+    is_batch: bool = field(default=True, init=False)
+    removing_layout: bool = field(default=False, init=False)
+
+    # -- UI 对象实例 --
+    scroll_area: Optional[Any] = field(default=None, init=False)
+    scroll_area_after: Optional[Any] = field(default=None, init=False)
+    scroll_area_search: Optional[Any] = field(default=None, init=False)
+
+    # -- 数据容器 (使用 default_factory 处理可变类型) --
+    processbtns: Dict = field(default_factory=dict, init=False)
+    obj_list: List[Dict] = field(default_factory=list, init=False)
+    cfg: Dict = field(default_factory=dict, init=False)
+    queue_mp4: List[str] = field(default_factory=list, init=False)
 
     def show_model_help(self):
         
@@ -279,6 +294,13 @@ class WinActionSub:
         else:
             tools.open_url(title=title)
 
+    def remove_qsettings_data(self):
+        try:
+            Path(config.ROOT_DIR + "/videotrans/params.json").unlink(missing_ok=True)
+            Path(config.ROOT_DIR + "/videotrans/cfg.json").unlink(missing_ok=True)
+        except Exception:
+            pass
+
     def clearcache(self):
         if config.defaulelang == 'zh':
             question = tools.show_popup('确认进行清理？', '清理后需要重启软件并重新填写设置菜单中各项配置信息')
@@ -289,7 +311,7 @@ class WinActionSub:
         if question == QMessageBox.Yes:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-            tools.remove_qsettings_data()
+            self.remove_qsettings_data()
             QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
                                     'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
@@ -438,17 +460,13 @@ class WinActionSub:
         if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No',''," ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
-            #self.cfg['is_separate'] = False
             self.cfg['subtitle_type'] = 0
             self.cfg['voice_role'] = 'No'
             self.cfg['voice_rate'] = '+0%'
             self.cfg['voice_autorate'] = False
             self.cfg['back_audio'] = ''
             self.cfg['copysrt_rawvideo']=self.main.copysrt_rawvideo.isChecked()
-        elif self.main.app_mode == 'biaozhun_jd':
-            self.cfg['voice_autorate'] = True
-            self.cfg['is_separate'] = False
-            self.cfg['back_audio'] = ''
+
 
     # 导入背景声音
     def get_background(self):
@@ -512,7 +530,7 @@ class WinActionSub:
         if not lang:
             return QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
-        from videotrans import tts
+
         text = config.params.get(f'listen_text_{lang}')
         if not text:
             return QMessageBox.critical(self.main, config.transobj['anerror'],
@@ -551,7 +569,13 @@ class WinActionSub:
             QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
             return
-        threading.Thread(target=tts.run, kwargs={"language":lang,"queue_tts": [obj], "play": True, "is_test": True}).start()
+        def feed(d):
+            if d != "ok":
+                QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], d)
+        wk=ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
+        wk.uito.connect(feed)
+        wk.start()
+
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):

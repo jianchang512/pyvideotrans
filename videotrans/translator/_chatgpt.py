@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import re,math,time
 from pathlib import Path
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import httpx,requests,json
 from openai import OpenAI, APIConnectionError, APIError,RateLimitError
 
@@ -11,19 +11,18 @@ from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from json.decoder import JSONDecodeError
 
+@dataclass
 class ChatGPT(BaseTrans):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.trans_thread=int(config.settings.get('aitrans_thread',50))
+    prompt: str = field(init=False)
+    def __post_init__(self):
+        super().__post_init__()
+        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.api_url = self._get_url(config.params['chatgpt_api'])
-        if not config.params['chatgpt_key']:
-            raise Exception('必须在翻译设置 - OpenAI ChatGPT 填写 SK' if config.defaulelang=='zh' else 'please input your sk password')
-        
-        # 是srt则获取srt的提示词
-        self.prompt = tools.get_prompt(ainame='chatgpt',is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.model_name = config.params["chatgpt_model"]
+
+        self.prompt = tools.get_prompt(ainame='chatgpt', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+
         self._check_proxy()
-        self.model_name=config.params["chatgpt_model"]
 
     def llm_segment(self,words_all,inst=None,ai_type='openai'):
         # 以2000个字或单词分成一批
@@ -160,7 +159,7 @@ class ChatGPT(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a translation assistant specializing in converting SRT subtitle content from one language to another while maintaining the original format and structure." if config.defaulelang != 'zh' else '您是一名翻译助理，专门负责将 SRT 字幕内容从一种语言转换为另一种语言，同时保持原始格式和结构。'},
+                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>',f'<INPUT>{text}</INPUT>')},

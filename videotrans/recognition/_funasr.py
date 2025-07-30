@@ -1,8 +1,8 @@
 # stt项目识别接口
 import re,os,threading,time
 from pathlib import Path
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 
 
 from pydub import AudioSegment
@@ -13,17 +13,20 @@ from videotrans.recognition._base import BaseRecogn
 from funasr import AutoModel
 
 
-
+@dataclass
 class FunasrRecogn(BaseRecogn):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    raws: List = field(init=False, default_factory=list)
+
+
+    def __post_init__(self):
+        super().__post_init__()
+
         proxy = os.environ.get('http_proxy')
         if proxy:
             del os.environ['http_proxy']
             del os.environ['https_proxy']
             del os.environ['all_proxy']
-        self.raws = []
 
     def remove_unwanted_characters(self,text: str) -> str:
         # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符

@@ -8,19 +8,45 @@ import requests
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Set
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class CloneVoice(BaseTTS):
+    # ==================================================================
+    # 1. 定义本类独有的状态属性，并使用 init=False
+    #    这里我们为 splits 添加了明确的类型 Set[str]
+    # ==================================================================
+    splits: Set[str] = field(init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    # ==================================================================
+    # 2. 实现 __post_init__ 来处理本类的特定初始化逻辑
+    # ==================================================================
+    def __post_init__(self):
+        # 关键第一步：调用父类的 __post_init__
+        # 这将确保 BaseTTS 的所有初始化逻辑都已完成。
+        # 注意：此时 self.copydata 已经被父类设为 []，self.api_url 设为 '' 等。
+        super().__post_init__()
+
+        # --- 从这里开始，是 CloneVoice 的特定逻辑，它会覆盖父类的某些设置 ---
+
+        # 1. 初始化本类独有的属性
+        self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…"}
+
+        # 2. 覆盖父类中已经初始化的属性
         self.copydata = copy.deepcopy(self.queue_tts)
-        api_url = config.params['clone_api'].strip().rstrip('/').lower()
-        self.api_url = 'http://' + api_url.replace('http://', '')
-        self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
+
+        api_url = config.params.get('clone_api', '').strip().rstrip('/').lower()
+        # 确保即使 api_url 为空也不会出错
+        if api_url:
+            self.api_url = 'http://' + api_url.replace('http://', '')
+
+        # proxies 在父类中默认为 None，这里我们给它一个具体的字典值
         self.proxies = {"http": "", "https": ""}
 
     def _exec(self):

@@ -8,20 +8,25 @@ from gtts import gTTS
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
 
+@dataclass
 class GTTS(BaseTTS):
+    api_url: str = field(default='https://translate.google.com', init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
-        self.api_url = 'https://translate.google.com'
+    def __post_init__(self):
+        super().__post_init__()
+
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https": pro, "http": pro}
+
 
     def _exec(self):
         self._local_mul_thread()

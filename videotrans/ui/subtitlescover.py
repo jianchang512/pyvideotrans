@@ -56,7 +56,8 @@ class Ui_subtitlescover(object):
         self.formatlist.addItems([
             "srt",
             "ass",
-            "vtt"
+            "vtt",
+            "txt"
         ])
 
         self.formLayout_3.addWidget(self.labelformat)
@@ -95,12 +96,12 @@ class Ui_subtitlescover(object):
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
 
     def retranslateUi(self, subtitlescover):
-        subtitlescover.setWindowTitle('将字幕在 SRT/ASS/VTT 格式间互相转换' if config.defaulelang == 'zh' else 'Convert subtitles between SRT/ASS/VTT formats')
+        subtitlescover.setWindowTitle('将字幕在 SRT/ASS/VTT/TXT 格式间互相转换' if config.defaulelang == 'zh' else 'Convert subtitles between SRT/ASS/VTT/TXT formats')
 
         self.selectbtn.setText(
             '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
 
-        self.labelformat.setText('要转换到的字幕格式' if config.defaulelang == 'zh' else 'Target format')
+        self.labelformat.setText('要转换到的格式' if config.defaulelang == 'zh' else 'Target format')
 
         self.pathdir.setPlaceholderText(
             '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')

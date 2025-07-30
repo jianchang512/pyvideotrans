@@ -6,8 +6,7 @@ import time,os
 
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar
-
+from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QMessageBox
 
 from videotrans.configure import config
 
@@ -27,22 +26,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.width = width
         self.height = height
         self.resize(width, height)
+        # 实际行为实例
         self.win_action = None
+        # 功能模式 dict{str,instance}
         self.moshis = None
+        # 当前目标文件夹
         self.target_dir=None
+        # 当前app模式
         self.app_mode = "biaozhun"
         # 当前所有可用角色列表
         self.current_rolelist = []
+        self.languagename = config.langnamelist
 
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
-        self.languagename = config.langnamelist
         self.setupUi(self)
         self.initUI()
         self.show()
         QTimer.singleShot(50, self._set_cache_set)
         QTimer.singleShot(100, self._start_subform)
         QTimer.singleShot(500, self._bindsignal)
+        QTimer.singleShot(1000, self.is_writable)
 
     def initUI(self):
         from videotrans.translator import TRANSLASTE_NAME_LIST
@@ -121,8 +125,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and  config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
-
-
 
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
@@ -343,7 +345,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsiliconflow_key.triggered.connect(winform.siliconflow.openwin)
 
 
-        self.actionyoutube.triggered.connect(winform.fn_youtube.openwin)
         self.actionwatermark.triggered.connect(winform.fn_watermark.openwin)
         self.actionsepar.triggered.connect(winform.fn_separate.openwin)
         self.actionsetini.triggered.connect(winform.setini.openwin)
@@ -386,21 +387,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
         
+    def is_writable(self):
+        import uuid
+        temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
 
+        try:
+            with open(temp_file_path, 'w') as f:
+                pass
+        except OSError as e:
+            QMessageBox.warning(self, config.transobj['anerror'], f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang=='zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
+        finally:
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except OSError as e:
+                    pass
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
-        print(f'{state=},{Qt.CheckState.Checked=}')
         if state:
-            print("Checkbox is checked")
             config.settings['aisendsrt']=True
         else:
-            print("Checkbox is unchecked")
             config.settings['aisendsrt']=False
 
 
     def changeEvent(self, event):
-
         super().changeEvent(event)  # 确保父类的事件处理被调用
         if event.type() == QEvent.Type.ActivationChange:
             if self.isActiveWindow():  # 只有在窗口被激活时才执行

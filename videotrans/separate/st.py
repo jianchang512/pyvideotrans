@@ -5,7 +5,7 @@ from pathlib import Path
 
 import librosa
 import soundfile as sf
-import torch
+
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -17,6 +17,7 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=N
     infos = []
     pre_fun=None
     try:
+        import torch
         func = AudioPre
         pre_fun = func(
             agg=10,
@@ -50,6 +51,7 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=N
             del pre_fun
         except Exception:
             traceback.print_exc()
+        import torch
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     yield "\n".join(infos)

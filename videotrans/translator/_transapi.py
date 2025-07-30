@@ -1,4 +1,5 @@
-from typing import Union, List
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 from urllib.parse import quote
 
 import requests
@@ -6,16 +7,18 @@ import requests
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 
-
+@dataclass
 class TransAPI(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
+
         url = config.params['trans_api_url'].strip().rstrip('/').lower()
         if not url.startswith('http'):
             url = f"http://{url}"
-        self.api_url = url + ('&' if url.find('?') > 0 else '/?')
+        self.api_url = url + ('&' if '?' in url else '/?')
+
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https": pro, "http": pro}

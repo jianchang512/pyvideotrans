@@ -2,20 +2,21 @@ import multiprocessing
 import threading
 import time
 from pathlib import Path
-from typing import List, Dict, Union
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 from videotrans.configure import config
 from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
-
+@dataclass
 class FasterAvg(BaseRecogn):
+    raws: List[Any] = field(default_factory=list, init=False)
+    pidfile: str = field(default="", init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
-        self.pidfile = ""
+    def __post_init__(self):
+        super().__post_init__()
+
 
     # 获取新进程的结果
     def _get_signal_from_process(self, q):

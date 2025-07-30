@@ -184,7 +184,8 @@ def set_proxy(set_val=''):
 def get_302ai(role_name=None):
     from videotrans import tts
     role_dict = get_azure_rolelist()
-    role_dict['zh'].extend(list(tts.DOUBAO_302AI.keys()))
+    role_dict['zh']=['No']+list(tts.AI302_doubao.keys())+list(tts.AI302_minimaxi.keys())+list(tts.AI302_dubbingx.keys())+list(tts.AI302_openai.keys())+role_dict['zh'][1:]
+    role_dict['ja']+=list(tts.AI302_doubao_ja.keys())
     return role_dict
 
 
@@ -1201,12 +1202,6 @@ def show_popup(title, text, parent=None):
     return x
 
 
-'''
-格式化毫秒或秒为符合srt格式的 2位小时:2位分:2位秒,3位毫秒 形式
-print(ms_to_time_string(ms=12030))
--> 00:00:12,030
-'''
-
 
 def ms_to_time_string(*, ms=0, seconds=None,sepflag=','):
     # 计算小时、分钟、秒和毫秒
@@ -1249,27 +1244,6 @@ def format_time(s_time="", separate=','):
     ms = f'{int(ms):03}'[-3:]
     return f"{hou}:{min}:{sec}{separate}{ms}"
 
-
-# 将 datetime.timedelta 对象的秒和微妙转为毫秒整数值
-def toms(td):
-    return (td.seconds * 1000) + int(td.microseconds / 1000)
-
-
-# 将 时:分:秒,毫秒 转为毫秒整数值
-def get_ms_from_hmsm(time_str):
-    time_str=time_str.replace('.',',')
-    h, m, sec2ms = 0, 0, '00,000'
-    tmp0 = time_str.split(":")
-    if len(tmp0) == 3:
-        h, m, sec2ms = tmp0[0], tmp0[1], tmp0[2]
-    elif len(tmp0) == 2:
-        m, sec2ms = tmp0[0], tmp0[1]
-
-    tmp = sec2ms.split(',')
-    ms = tmp[1] if len(tmp) == 2 else 0
-    sec = tmp[0]
-
-    return int(int(h) * 3600000 + int(m) * 60000 + int(sec) * 1000 + int(ms))
 
 
 def srt_str_to_listdict(srt_string):
@@ -1394,20 +1368,6 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     return result
 
 
-# 将字幕字典列表写入srt文件
-def save_srt(srt_list, srt_file):
-    txt = get_srt_from_list(srt_list)
-    with open(srt_file, "w", encoding="utf-8") as f:
-        f.write(txt)
-    return True
-
-
-def get_current_time_as_yymmddhhmmss(format='hms'):
-    """将当前时间转换为 YYMMDDHHmmss 格式的字符串。"""
-    now = datetime.datetime.now()
-    return now.strftime("%y%m%d%H%M%S" if format != 'hms' else "%H%M%S")
-
-
 # 从 字幕 对象中获取 srt 字幕串
 def get_srt_from_list(srt_list):
     txt = ""
@@ -1471,7 +1431,6 @@ def srt2ass(srt_file, ass_file, maxlen=40):
         f.write("".join(ass_str))
 
     
-    
 # 判断 novoice.mp4是否创建好
 def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
@@ -1507,11 +1466,6 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             t += 3
             continue
         return True
-
-
-def match_target_amplitude(sound, target_dBFS):
-    change_in_dBFS = target_dBFS - sound.dBFS
-    return sound.apply_gain(change_in_dBFS)
 
 
 # 从音频中截取一个片段
@@ -1550,7 +1504,6 @@ def get_clone_role(set_p=False):
         if set_p:
             raise
     return False
-
 
 # 综合写入日志，默认sp界面
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
@@ -1620,8 +1573,6 @@ def kill_ffmpeg_processes():
                     os.kill(pid, signal.SIGKILL)
     except:
         pass
-
-
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
@@ -1727,14 +1678,6 @@ def remove_silence_from_file(input_file_path, silence_threshold=-50.0, chunk_siz
     return input_file_path, len(AudioSegment.from_file(input_file_path , format=format))
 
 
-def remove_qsettings_data():
-    try:
-        Path(config.ROOT_DIR + "/videotrans/params.json").unlink(missing_ok=True)
-        Path(config.ROOT_DIR + "/videotrans/cfg.json").unlink(missing_ok=True)
-    except Exception:
-        pass
-
-
 def open_url(url=None, title: str = None):
     import webbrowser
     if url:
@@ -1785,12 +1728,9 @@ def vail_file(file=None):
     return True
 
 
-
-
-
 def get_video_codec(force_test: bool = False) -> str:
     """
-    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器（优化版）。
+    通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
 
     根据平台优先选择硬件编码器。如果硬件测试失败，则回退到软件编码。
     结果会被缓存。此版本通过数据驱动设计和提前检查来优化结构和效率。
@@ -1822,15 +1762,12 @@ def get_video_codec(force_test: bool = False) -> str:
     if video_codec_pref not in [264, 265]:
         config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
 
-    # --- 优化点 1: 数据驱动设计 ---
-    # 定义各平台硬件编码器的检测优先级
     ENCODER_PRIORITY = {
         'Darwin': ['videotoolbox'],
         'Windows': ['nvenc', 'qsv', 'amf'],
         'Linux': ['nvenc', 'vaapi', 'qsv']
     }
 
-    # --- 定义路径和内部测试函数 (与原版基本相同，但做微小调整) ---
     try:
         test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
         temp_dir = Path(config.TEMP_DIR)
@@ -1840,7 +1777,6 @@ def get_video_codec(force_test: bool = False) -> str:
         return default_codec
 
     def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
-        # 这个内部函数的设计已经很好了，几乎不需要修改
         timestamp = int(time.time() * 1000)
         output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
         command = [
@@ -1874,11 +1810,13 @@ def get_video_codec(force_test: bool = False) -> str:
         except Exception as e:
             config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True)
         finally:
-            if output_file.exists():
-                output_file.unlink(missing_ok=True)
+            try:
+                if output_file.exists():
+                    output_file.unlink(missing_ok=True)
+            except:
+                pass
             return success
 
-    # --- 优化点 2: 统一的、数据驱动的测试流程 ---
     selected_codec = default_codec # 初始化为回退选项
     
     encoders_to_test = ENCODER_PRIORITY.get(plat, [])
@@ -1908,7 +1846,6 @@ def get_video_codec(force_test: bool = False) -> str:
                 config.logger.info(f"所有硬件加速器测试均失败。将使用软件编码器: {selected_codec}")
 
         except FileNotFoundError:
-            # --- 优化点 2 的实现: 如果 ffmpeg 未找到，直接回退 ---
             config.logger.error(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
             selected_codec = default_codec # 确保回退
         except Exception as e:
@@ -1959,8 +1896,6 @@ def cleartext(text: str, remove_start_end=True):
     if res_text and res_text[0] in ['，', ',']:
         res_text = res_text[1:]
     return res_text
-
-
 
 # 删除临时文件
 def _unlink_tmp():
@@ -2286,61 +2221,3 @@ def show_glossary_editor(parent):
     dialog.exec()  # 显示模态窗口
 
 
-def is_writable(directory_path: str):
-    import uuid
-    import stat # 虽然主要用EAFP，但保留os模块用于路径操作
-
-    """
-    跨平台检查一个目录是否对当前用户可写。
-
-    采用 EAFP (Easier to Ask Forgiveness than Permission) 方法：
-    尝试在目录中创建并删除一个临时文件来判断实际的写权限。
-
-    Args:
-        directory_path: 要检查的目录路径。
-
-    Returns:
-        如果目录存在且可写，则返回 True；否则返回 False。
-    """
-    # 1. 首先检查路径是否存在且确实是一个目录
-    if not os.path.isdir(directory_path):
-        # 如果路径不存在，或者存在但不是一个目录，则它不是一个可写的目录
-        return False
-
-    # 2. 尝试在目录中创建一个唯一的临时文件 (EAFP)
-    # 生成一个非常不可能冲突的临时文件名
-    # 使用点开头通常使其在类Unix系统上隐藏
-    temp_filename = f".permission_test_{uuid.uuid4()}.tmp"
-    temp_file_path = os.path.join(directory_path, temp_filename)
-
-    write_successful = False
-    try:
-        # 尝试以写模式('w')打开（并创建）文件
-        # 'with' 语句确保文件句柄在使用后会被关闭
-        with open(temp_file_path, 'w') as f:
-            # 实际上不需要写入任何内容，只要能成功打开即可证明有写权限
-            pass
-        # 如果代码执行到这里，说明文件创建成功
-        write_successful = True
-
-    except OSError as e:
-        # 捕获所有与OS相关的错误，最常见的是 PermissionError，
-        # 但也可能包括其他问题（如磁盘满、无效路径字符等），这些都意味着无法写入。
-        # print(f"Debug: Caught OSError trying to write to {temp_file_path}: {e}") # 可选的调试输出
-        write_successful = False
-
-    finally:
-        # 3. 清理：无论成功与否，都尝试删除创建的临时文件（如果它存在）
-        # 检查文件是否确实被创建了（可能在open之前就失败了）
-        if os.path.exists(temp_file_path):
-            try:
-                os.remove(temp_file_path)
-            except OSError as e:
-                # 在某些边缘情况下，即使创建成功，删除也可能失败
-                # (例如，权限在创建和删除之间被更改了)。
-                # 我们不应让清理失败影响函数的主要结果（是否可写）。
-                # 可以选择记录这个警告。
-                # print(f"Warning: Could not remove temp file {temp_file_path}: {e}")
-                pass
-
-    return write_successful

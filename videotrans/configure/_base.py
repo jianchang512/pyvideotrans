@@ -3,12 +3,13 @@ import os
 from videotrans.util import tools
 
 
-class BaseCon:
+from dataclasses import dataclass, field
+from typing import Optional
 
-    def __init__(self, **kwargs):
-        self.uuid = None
-        # True=如果未设置环境代理变量，仅仅在网络代理文本框中填写了代理，则请求完毕需删除代理恢复原样
-        self.shound_del = False
+@dataclass
+class BaseCon:
+    uuid: Optional[str] = field(default=None, init=False)
+    shound_del: bool = field(default=False, init=False)
 
     def _signal(self, **kwargs):
         if 'uuid' not in kwargs:

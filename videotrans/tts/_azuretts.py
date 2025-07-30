@@ -5,12 +5,13 @@ import azure.cognitiveservices.speech as speechsdk
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
 
-
+@dataclass
 class AzureTTS(BaseTTS):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    con_num: int = field(init=False)
+    def __post_init__(self):
+        super().__post_init__()
         self.con_num = int(float(config.settings.get('azure_lines', 1)))
 
     def _item_task_pl(self, items: list = None):

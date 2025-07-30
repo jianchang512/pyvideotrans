@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 
 from PySide6 import QtWidgets
@@ -35,6 +36,24 @@ def openwin():
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
                         shutil.copy2(self.subtitlefiles, RESULT_DIR + f'/{raw_path.name}')
+                        continue
+                    if self.target_format == 'txt':
+                        if raw_path.name.lower().endswith('.srt'):
+                            srt_list=tools.get_subtitle_from_srt(v,is_file=True)
+                        else:
+                            tmp_srt=config.TEMP_HOME+f'/{time.time()}.srt'
+                            tools.runffmpeg([
+                                "-y",
+                                "-i",
+                                os.path.normpath(v),
+                                tmp_srt
+                            ])
+                            srt_list=tools.get_subtitle_from_srt(tmp_srt,is_file=True)
+                        txt_list=[]
+                        for srt in srt_list:
+                            txt_list.append(srt['text'])
+                        with open(RESULT_DIR + f"/{Path(v).stem}.{self.target_format}",'w',encoding='utf-8') as f:
+                            f.write("\n".join(txt_list))
                         continue
                     tools.runffmpeg([
                         "-y",

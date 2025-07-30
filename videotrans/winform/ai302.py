@@ -3,29 +3,11 @@ import webbrowser
 from pathlib import Path
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.util import tools
-
-
-class TestAI302(QThread):
-    uito = Signal(str)
-
-    def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
-
-    def run(self):
-        try:
-            raw = "你好啊我的朋友"
-            text = translator.run(translate_type=translator.AI302_INDEX, text_list=raw,
-                                  target_code="en",
-                                  source_code="zh-cn",
-                                  is_test=True)
-            self.uito.emit(f"ok:{raw}\n{text}")
-        except Exception as e:
-            self.uito.emit(str(e))
+from videotrans.util.TestSrtTrans import TestSrtTrans
 
 
 def openwin():
@@ -45,11 +27,10 @@ def openwin():
         config.params["ai302_model"] = model
         config.params["ai302_template"] = template
 
-        task = TestAI302(parent=winobj)
         winobj.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestSrtTrans(parent=winobj, translator_type=translator.AI302_INDEX)
         task.uito.connect(feed)
         task.start()
-        winobj.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_ai302():
         key = winobj.ai302_key.text()
@@ -91,11 +72,11 @@ def openwin():
             winobj.ai302_model.setCurrentText(current_text)
         config.settings['ai302_models'] = t
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings,ensure_ascii=False))
+            f.write(json.dumps(config.settings, ensure_ascii=False))
 
     from videotrans.component import AI302Form
     winobj = config.child_forms.get('ai302fyw')
-    config.params["ai302_template"]=tools.get_prompt('ai302')
+    config.params["ai302_template"] = tools.get_prompt('ai302')
     if winobj is not None:
         winobj.show()
         update_ui()

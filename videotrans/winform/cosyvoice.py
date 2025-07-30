@@ -1,33 +1,12 @@
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
+from videotrans.util.ListenVoice import ListenVoice
 
 
 def openwin():
-    class TestTTS(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None, text=None, role=None):
-            super().__init__(parent=parent)
-            self.text = text
-            self.role = role
-
-        def run(self):
-            try:
-                tts.run(
-                    queue_tts=[{"text": self.text, "role": self.role,
-                                "filename": config.TEMP_HOME + "/testcosyvoice.mp3", "tts_type": tts.COSYVOICE_TTS}],
-                    language="zh",
-                    play=True,
-                    is_test=True
-                )
-                self.uito.emit("ok")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -38,16 +17,20 @@ def openwin():
     def test():
         url = winobj.api_url.text().strip()
         if tools.check_local_api(url) is not True:
-            return        
+            return
         if not url.startswith('http'):
             url = 'http://' + url
         config.params["cosyvoice_url"] = url
-        task = TestTTS(parent=winobj,
-                       text="你好啊我的朋友",
-                       role="中文女")
         winobj.test.setText('测试中请稍等...')
-        task.uito.connect(feed)
-        task.start()
+        wk = ListenVoice(parent=winobj, queue_tts=[{
+            "text": '你好啊我的朋友',
+            "role": '中文女',
+            "filename": config.TEMP_HOME + f"/test-cosyvoice.mp3",
+            "tts_type": tts.COSYVOICE_TTS}],
+                         language="zh",
+                         tts_type=tts.COSYVOICE_TTS)
+        wk.uito.connect(feed)
+        wk.start()
 
     def save():
         url = winobj.api_url.text().strip()

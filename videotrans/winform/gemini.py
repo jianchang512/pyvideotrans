@@ -2,38 +2,22 @@ import json
 import os
 from pathlib import Path
 
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans import translator
-from PySide6.QtCore import QThread, Signal
 from PySide6 import QtWidgets
 
+from videotrans import translator
+from videotrans.configure import config
+from videotrans.util import tools
+from videotrans.util.TestSrtTrans import TestSrtTrans
+
+
 def openwin():
-    class TestTask(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None):
-            super().__init__(parent=parent)
-
-        def run(self):
-            try:
-                raw = "你好啊我的朋友"
-                text = translator.run(translate_type=translator.GEMINI_INDEX,
-                                      text_list=raw,
-                                      target_code="en",
-                                      source_code="zh-cn",
-                                      is_test=True)
-                self.uito.emit(f"ok:{raw}\n{text}")
-            except Exception as e:
-                self.uito.emit(str(e))
-    
     def feed(d):
         if not d.startswith("ok"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
-    
+
     def test():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
@@ -42,42 +26,38 @@ def openwin():
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
-        
-        ttsmodel=winobj.ttsmodel.currentText()
-        config.params["gemini_ttsmodel"]=ttsmodel
-        
+
+        ttsmodel = winobj.ttsmodel.currentText()
+        config.params["gemini_ttsmodel"] = ttsmodel
+
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
 
         config.getset_params(config.params)
-        task = TestTask(parent=winobj)
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestSrtTrans(parent=winobj, translator_type=translator.GEMINI_INDEX)
         task.uito.connect(feed)
         task.start()
-    
+
     def save():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
         template = winobj.gemini_template.toPlainText()
         gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
-        
-
 
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
         config.params["gemini_template"] = template
         config.params["gemini_srtprompt"] = gemini_srtprompt
-        
-        ttsmodel=winobj.ttsmodel.currentText()
-        config.params["gemini_ttsmodel"]=ttsmodel
-        
-        
+
+        ttsmodel = winobj.ttsmodel.currentText()
+        config.params["gemini_ttsmodel"] = ttsmodel
 
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
-        gemini_recogn_txt= 'gemini_recogn.txt' if config.defaulelang=='zh' else 'gemini_recogn-en.txt'    
-        with Path(config.ROOT_DIR+f'/videotrans/{gemini_recogn_txt}').open('w', encoding='utf-8') as f:
-            f.write(gemini_srtprompt)    
+        gemini_recogn_txt = 'gemini_recogn.txt' if config.defaulelang == 'zh' else 'gemini_recogn-en.txt'
+        with Path(config.ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').open('w', encoding='utf-8') as f:
+            f.write(gemini_srtprompt)
         config.getset_params(config.params)
         winobj.close()
 
@@ -103,10 +83,10 @@ def openwin():
             winobj.gemini_key.setText(config.params["gemini_key"])
         if config.params["gemini_model"]:
             winobj.model.setCurrentText(config.params["gemini_model"])
-        
+
         if config.params["gemini_ttsmodel"]:
             winobj.ttsmodel.setCurrentText(config.params["gemini_ttsmodel"])
-            
+
         if config.params["gemini_template"]:
             winobj.gemini_template.setPlainText(config.params["gemini_template"])
         if config.params["gemini_srtprompt"]:
@@ -114,7 +94,7 @@ def openwin():
 
     from videotrans.component import GeminiForm
     winobj = config.child_forms.get('geminiw')
-    config.params["gemini_template"]=tools.get_prompt('gemini')
+    config.params["gemini_template"] = tools.get_prompt('gemini')
     if winobj is not None:
         winobj.show()
         update_ui()

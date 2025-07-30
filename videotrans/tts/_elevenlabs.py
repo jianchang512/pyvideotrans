@@ -11,19 +11,20 @@ from elevenlabs.core import ApiError
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
-
+@dataclass
 class ElevenLabsC(BaseTTS):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.copydata = copy.deepcopy(self.queue_tts)
+    def __post_init__(self):
+        super().__post_init__()
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = pro
+
     def _item_task(self, data_item: dict = None):
         role = data_item['role']
 

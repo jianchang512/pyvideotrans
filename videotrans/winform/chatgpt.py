@@ -3,32 +3,14 @@ import os
 from pathlib import Path
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.util import tools
-
+from videotrans.util.TestSrtTrans import TestSrtTrans
 
 
 def openwin():
-    class TestChatgpt(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None):
-            super().__init__(parent=parent)
-
-        def run(self):
-            try:
-                raw = "你好啊我的朋友"
-                text = translator.run(translate_type=translator.CHATGPT_INDEX, text_list=raw,
-                                      target_code="en",
-                                      source_code="zh",
-                                      is_test=True)
-                self.uito.emit(f"ok:{raw}\n{text}")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if not d.startswith("ok"):
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
@@ -46,7 +28,7 @@ def openwin():
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
-            url = 'http://' + url    
+            url = 'http://' + url
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
 
@@ -58,9 +40,8 @@ def openwin():
         config.params["chatgpt_max_token"] = max_token
         config.params["chatgpt_model"] = model
         config.params["chatgpt_template"] = template
-
-        task = TestChatgpt(parent=winobj)
         winobj.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)
         task.uito.connect(feed)
         task.start()
 
@@ -74,7 +55,7 @@ def openwin():
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
-            url = 'http://' + url    
+            url = 'http://' + url
         model = winobj.chatgpt_model.currentText()
         template = winobj.chatgpt_template.toPlainText()
         with Path(tools.get_prompt_file('chatgpt')).open('w', encoding='utf-8') as f:
@@ -127,7 +108,7 @@ def openwin():
 
     from videotrans.component import ChatgptForm
     winobj = config.child_forms.get('chatgptw')
-    config.params["chatgpt_template"]=tools.get_prompt('chatgpt')
+    config.params["chatgpt_template"] = tools.get_prompt('chatgpt')
     if winobj is not None:
         winobj.show()
         update_ui()

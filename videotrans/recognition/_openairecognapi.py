@@ -2,8 +2,8 @@
 import re
 import time
 from pathlib import Path
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import httpx
 import requests
 import json
@@ -17,12 +17,14 @@ from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 from openai import OpenAI, APIConnectionError
 
+@dataclass
 class OpenaiAPIRecogn(BaseRecogn):
+    raws: List[Any] = field(default_factory=list, init=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
+    def __post_init__(self):
+        super().__post_init__()
         self.api_url = self._get_url(config.params['openairecognapi_url'])
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():

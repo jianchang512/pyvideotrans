@@ -1,5 +1,4 @@
-import torch
-import torch.nn.functional as F
+
 from torch import nn
 
 from . import spec_utils
@@ -49,6 +48,8 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout2d(0.1) if dropout else None
 
     def __call__(self, x, skip=None):
+        import torch
+        import torch.nn.functional as F
         x = F.interpolate(x, scale_factor=2, mode="bilinear", align_corners=True)
 
         if skip is not None:
@@ -86,6 +87,8 @@ class ASPPModule(nn.Module):
 
     def forward(self, x):
         _, _, h, w = x.size()
+        import torch
+        import torch.nn.functional as F
         feat1 = F.interpolate(
             self.conv1(x), size=(h, w), mode="bilinear", align_corners=True
         )

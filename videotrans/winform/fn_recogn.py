@@ -3,7 +3,7 @@ import os
 import time
 from pathlib import Path
 
-import torch
+
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl, QThread, Signal
 from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
@@ -150,7 +150,9 @@ def openwin():
 
         is_allow_lang_res = is_allow_lang(langcode=langcode, recogn_type=recogn_type,model_name=model)
         if is_allow_lang_res is not True:
-            return QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+            winobj.loglabel.setText(is_allow_lang_res)
+        else:
+            winobj.loglabel.setText('')
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
         if is_input_api(recogn_type=recogn_type) is not True:
             return
@@ -185,7 +187,7 @@ def openwin():
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             for it in video_list:
-                trk = SpeechToText({
+                trk = SpeechToText(cfg={
                     "recogn_type": recogn_type,
                     "split_type": ["all", "avg"][split_type_index],
                     "model_name": model,
@@ -195,7 +197,7 @@ def openwin():
                     "out_format":winobj.out_format.currentText(),
                     "remove_noise":winobj.remove_noise.isChecked()
 
-                }, it)
+                }, obj=it)
                 config.prepare_queue.append(trk)
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
@@ -213,6 +215,7 @@ def openwin():
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
+            import torch
             if not torch.cuda.is_available():
                 QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nocuda'])
                 winobj.is_cuda.setChecked(False)
@@ -234,7 +237,7 @@ def openwin():
     def show_xxl_select():
         import sys
         if sys.platform != 'win32':
-            QMessageBox.critical(winobj, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            QMessageBox.critical(winobj, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
             from PySide6.QtWidgets import QFileDialog
@@ -261,7 +264,7 @@ def openwin():
             # faster
             tools.hide_show_element(winobj.equal_split_layout, True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN,recognition.PARAKEET]:  # 可选模型，whisper funasr deepram
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.Deepgram,recognition.FUNASR_CN]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
         else:
@@ -286,7 +289,9 @@ def openwin():
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         is_allow_lang_res = is_allow_lang(langcode=lang, recogn_type=recogn_type,model_name=winobj.shibie_model.currentText())
         if is_allow_lang_res is not True:
-            QMessageBox.critical(winobj, config.transobj['anerror'], is_allow_lang_res)
+            winobj.loglabel.setText(is_allow_lang_res)
+        else:
+            winobj.loglabel.setText('')
 
     def stop_recogn():
         config.box_recogn = 'stop'

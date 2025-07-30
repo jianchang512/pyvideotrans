@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 import time
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from urllib.parse import quote
 
+@dataclass
 class MyMemory(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = {"https": pro, "http": pro}

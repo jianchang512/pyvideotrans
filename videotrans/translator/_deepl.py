@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import deepl
 import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 
-
+@dataclass
 class DeepL(BaseTrans):
+    def __post_init__(self):
+        super().__post_init__()
+        self.api_url = None if not config.params.get('deepl_api') else config.params['deepl_api'].rstrip('/')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.api_url = None if not config.params['deepl_api'] else config.params['deepl_api'].rstrip('/')
-        self.aisendsrt=False
+        self.aisendsrt = False
 
         pro = self._set_proxy(type='set')
         if pro:

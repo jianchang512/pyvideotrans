@@ -61,7 +61,6 @@ from videotrans.ui.videoandaudio import Ui_videoandaudio
 from videotrans.ui.videoandsrt import Ui_videoandsrt
 from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
-from videotrans.ui.youtube import Ui_youtubeform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.f5tts import Ui_f5ttsform
 from videotrans.ui.peiyinrole import Ui_peiyinrole
@@ -228,11 +227,6 @@ class AliForm(QDialog, Ui_aliform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class YoutubeForm(QDialog, Ui_youtubeform):  # <===
-    def __init__(self, parent=None):
-        super(YoutubeForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class SeparateForm(QDialog, Ui_separateform):  # <===

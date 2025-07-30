@@ -1,8 +1,8 @@
 # zh_recogn 识别
 import os
 import time
-from typing import Union, List, Dict
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 
 from videotrans.configure import config
@@ -10,12 +10,15 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
-
+@dataclass
 class DoubaoRecogn(BaseRecogn):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.raws = []
+    raws: List = field(init=False, default_factory=list)
+
+
+    def __post_init__(self):
+        super().__post_init__()
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():

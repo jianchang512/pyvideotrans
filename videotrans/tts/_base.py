@@ -5,7 +5,8 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Union, Dict
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 
 import requests
 
@@ -14,42 +15,44 @@ from videotrans.configure._base import BaseCon
 from videotrans.util import tools
 
 
+@dataclass
 class BaseTTS(BaseCon):
-    """
-    queue_tts:List[Dict[role,text,filename]] 组装好的每条数据
-    language:str 字幕语言代码
-    inst: TransCreate instance 视频翻译任务时实例
-    uuid: str 任务唯一标识符
-    play:bool 是否播放
-    """
+    queue_tts: Optional[List[Dict[str, Any]]] = field(default=None, repr=False)
+    language: Optional[str] = None
+    inst: Optional[Any] = None  # inst 类型未知，使用 Any
+    uuid: Optional[str] = None
+    play: bool = False
+    is_test: bool = False
 
-    def __init__(self, queue_tts: List[dict] = None, language=None, inst=None, uuid=None, play=False, is_test=False):
+    volume: str = field(default='+0%', init=False)
+    rate: str = field(default='+0%', init=False)
+    pitch: str = field(default='+0Hz', init=False)
+
+
+    len: int = field(init=False)
+    has_done: int = field(default=0, init=False)
+    proxies: Optional = field(default=None, init=False)
+    copydata: List = field(default_factory=list, init=False)
+    wait_sec: float = field(init=False)
+    dub_nums: int = field(init=False)
+    error: str = field(default='', init=False)
+    api_url: str = field(default='', init=False)
+
+
+    def __post_init__(self):
         super().__init__()
-        self.play = play
-        self.language = language
-        self.inst = inst
-        self.uuid = uuid
-        self.is_test = is_test
 
-        self.volume = '+0%'
-        self.rate = '+0%'
-        self.pitch = '+0Hz'
-
-        self.len = len(queue_tts)
-        if self.len < 1:
+        if not self.queue_tts:
             raise Exception("No data")
-        self.has_done = 0
-        self.proxies = None  # 代理
 
-        self.queue_tts = copy.deepcopy(queue_tts)
-        # 线程池时先复制一份再pop，以便出错重试时数据正常
-        self.copydata = []
-        self.wait_sec=float(config.settings.get('dubbing_wait', 0))
+        self.len = len(self.queue_tts)
+        self.queue_tts = copy.deepcopy(self.queue_tts)
 
+        self.wait_sec = float(config.settings.get('dubbing_wait', 0))
         self.dub_nums = int(float(config.settings.get('dubbing_thread', 1))) if self.len > 1 else 1
-        self.error = ''
-        self.api_url = ''
+
         self._cleantts()
+
 
     def _cleantts(self):
         normalizer=None
@@ -60,7 +63,7 @@ class BaseTTS(BaseCon):
             from videotrans.util.en_tn import EnglishNormalizer
             normalizer = EnglishNormalizer()
         for i,it in enumerate(self.queue_tts):
-            text=re.sub(r'\[?spk\-?\d{1,2}\]','',it.get('text','').strip(),re.I)
+            text=re.sub(r'\[?spk\-?\d{1,}\]','',it.get('text','').strip(),re.I)
             if normalizer:
                 text=normalizer(text)
             if not text:
@@ -183,7 +186,7 @@ class BaseTTS(BaseCon):
                     wav_file.write(wav_bytes)
 
                 tools.runffmpeg([
-                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a","192k",output_path
+                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a","128k",output_path
                 ])
                 return
         # 将base64编码的字符串解码为字节

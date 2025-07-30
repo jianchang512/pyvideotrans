@@ -131,10 +131,7 @@ class StartWindow(QtWidgets.QWidget):
             import traceback
             from PySide6.QtWidgets import QMessageBox
             msg=traceback.format_exc()
-            if msg.find('torch._C')>0:
-                QtWidgets.QMessageBox.critical(startwin,"Error",'因底层torch升级，请重新下载完整包' if config.defaulelang=='zh' else 'Please download the full package again')
-            else:
-                QtWidgets.QMessageBox.critical(startwin,"Error",msg)
+            QtWidgets.QMessageBox.critical(startwin,"Error",msg)
 
         QTimer.singleShot(500, lambda :self.close())
 

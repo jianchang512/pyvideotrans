@@ -7,6 +7,9 @@ from edge_tts.exceptions import NoAudioReceived
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
 
 # --- 常量定义 ---
 # 最大并发数，可以根据需要调整，或者放入配置文件
@@ -17,27 +20,29 @@ MAX_RETRIES = 3
 RETRY_DELAY = 5
 
 
+@dataclass
 class EdgeTTS(BaseTTS):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # 将代理设置逻辑统一到 __init__ 中
-        self.proxies = None
-        # 优先从 edgetts.txt 文件读取代理
+    def __post_init__(self):
+        super().__post_init__()
+        found_proxy = None
         proxy_file = Path(config.ROOT_DIR) / 'edgetts.txt'
         if proxy_file.is_file():
             try:
-                self.proxies = 'http://' + proxy_file.read_text(encoding='utf-8').strip()
-                config.logger.info(f"从 {proxy_file} 加载代理: {self.proxies}")
+                proxy_str = proxy_file.read_text(encoding='utf-8').strip()
+                if proxy_str: # 确保文件不是空的
+                    found_proxy = 'http://' + proxy_str
+                    config.logger.info(f"从 {proxy_file} 加载代理: {found_proxy}")
             except Exception as e:
                 config.logger.error(f"从 {proxy_file} 加载代理失败: {e}")
 
-        # 如果文件代理不存在，则使用父类设置的代理
-        if not self.proxies:
+        if not found_proxy:
             pro = self._set_proxy(type='set')
             if pro:
-                self.proxies = pro
-                config.logger.info(f"使用系统设置的代理: {self.proxies}")
+                found_proxy = pro
+                config.logger.info(f"使用系统设置的代理: {found_proxy}")
+
+        if found_proxy:
+            self.proxies = found_proxy
 
     async def _create_audio_with_retry(self, item, index, total_tasks, semaphore):
         """
@@ -51,7 +56,7 @@ class EdgeTTS(BaseTTS):
                 await asyncio.sleep(self.wait_sec)
 
             # 移除可能存在的说话人标签
-            config.logger.info(f"开始处理任务 [{index + 1}/{total_tasks}]: {item['text']}")
+            config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {item['text']}")
 
             for attempt in range(MAX_RETRIES):
                 try:
@@ -74,15 +79,15 @@ class EdgeTTS(BaseTTS):
                             self.inst.precent = progress
 
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} [{index + 1}/{total_tasks}]')
-                    config.logger.info(f"任务 [{index + 1}/{total_tasks}] 成功.")
+                    config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 成功.")
                     return  # 成功，退出函数
 
                 except (NoAudioReceived, aiohttp.ClientError) as e:
                     config.logger.warning(
-                        f"任务 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{MAX_RETRIES} 次尝试失败: {e}. "
+                        f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{MAX_RETRIES} 次尝试失败: {e}. "
                         f"{RETRY_DELAY} 秒后重试..."
                     )
-                    config.logger.error(f"任务 [{index + 1}/{total_tasks}] 在 {MAX_RETRIES} 次尝试后最终失败。")
+                    config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {MAX_RETRIES} 次尝试后最终失败。")
                     self.error=str(e)
                     self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
                     await asyncio.sleep(RETRY_DELAY)

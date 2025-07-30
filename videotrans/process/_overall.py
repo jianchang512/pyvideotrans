@@ -4,7 +4,7 @@ import re
 import time
 from pathlib import Path
 
-import torch
+
 
 from faster_whisper import WhisperModel
 
@@ -23,9 +23,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
 
 
     try:
-        # 不存在 / ，是普通本地已有模型，直接本地加载，否则在线下载
-        local_file_only = False #True if model_name.find('/') == -1 else False
-      
+
         msg = f'[{model_name}]若不存在将从 hf-mirror.com 下载到 models 目录内' if defaulelang == 'zh' else f'If [{model_name}] not exists, download model from huggingface'
         write_log({"text": msg, "type": "logs"})
         if model_name.startswith('distil-'):
@@ -39,11 +37,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
                 model_name,
                 device="cuda" if is_cuda else "cpu",
                 compute_type=com_type,
-                download_root=down_root,
-                num_workers=int(settings['whisper_worker']),
-                cpu_threads=os.cpu_count() if settings['whisper_threads'] < 1 else 
-                    settings['whisper_threads'],
-                local_files_only=local_file_only
+                download_root=down_root
             )
         except Exception as e:
             if re.match(r'not support', str(e), re.I):
@@ -51,10 +45,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
                 model = WhisperModel(
                     model_name,
                     device="cuda" if is_cuda else "cpu",
-                    download_root=down_root,
-                    num_workers=settings['whisper_worker'],
-                    cpu_threads=os.cpu_count() if settings['whisper_threads'] < 1 else settings['whisper_threads'],
-                    local_files_only=local_file_only
+                    download_root=down_root
                 )
             else:
                 err['msg'] = str(e)
@@ -102,6 +93,7 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
         err['msg'] = '_process:'+str(e)
     finally:
         try:
+            import torch
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
         except:

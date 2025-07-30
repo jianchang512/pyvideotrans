@@ -1,41 +1,18 @@
 import json
-import os
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal
 
 from videotrans import recognition
 from videotrans.configure import config
-
-
 # set chatgpt
 from videotrans.util import tools
+from videotrans.util.TestSTT import TestSTT
 
 
 def openwin():
-    class TestOpenairecognapi(QThread):
-        uito = Signal(str)
-
-        def __init__(self, *, parent=None):
-            super().__init__(parent=parent)
-
-        def run(self):
-            try:
-                config.box_recogn = 'ing'
-                res = recognition.run(
-                    audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.mp3',
-                    cache_folder=config.SYS_TMP,
-                    recogn_type=recognition.OPENAI_API,
-                    detect_language="zh-cn"
-                )
-                srt_str = tools.get_srt_from_list(res)
-                self.uito.emit(f"ok:{srt_str}")
-            except Exception as e:
-                self.uito.emit(str(e))
-
     def feed(d):
         if d.startswith("ok"):
-            QtWidgets.QMessageBox.information(winobj, "ok",d[3:])
+            QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
             QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
         winobj.test_openairecognapi.setText(
@@ -56,11 +33,10 @@ def openwin():
         config.params["openairecognapi_url"] = url
         config.params["openairecognapi_model"] = model
         config.params["openairecognapi_prompt"] = prompt
-        task = TestOpenairecognapi(parent=winobj)
         winobj.test_openairecognapi.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        task = TestSTT(parent=winobj, recogn_type=recognition.OPENAI_API)
         task.uito.connect(feed)
         task.start()
-        winobj.test_openairecognapi.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
     def save_openairecognapi():
         key = winobj.openairecognapi_key.text()
@@ -70,9 +46,8 @@ def openwin():
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
-            url = 'http://' + url    
-        
-        
+            url = 'http://' + url
+
         model = winobj.openairecognapi_model.currentText()
 
         config.params["openairecognapi_key"] = key

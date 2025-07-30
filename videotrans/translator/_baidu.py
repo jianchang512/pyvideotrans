@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
-import hashlib
+import hashlib,os
 import time
-from typing import Union, List
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-
+@dataclass
 class Baidu(BaseTrans):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.aisendsrt=False
+    def __post_init__(self):
+        super().__post_init__()
+        self.aisendsrt = False
+
+        proxy = os.environ.get('http_proxy')
+        if proxy:
+            if 'http_proxy' in os.environ: del os.environ['http_proxy']
+            if 'https_proxy' in os.environ: del os.environ['https_proxy']
+            if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         text = "\n".join(data)
