@@ -15,10 +15,7 @@ from videotrans.task.trans_create import TransCreate
 class Worker(QThread):
     uito = Signal(str)
 
-    app_mode: Optional[str]
-    cfg: Optional[Dict[str, Any]]
-    txt: Optional[str]
-    obj_list: Optional[List[Dict[str, Any]]]
+
 
     def __init__(self, *,
                  parent: Optional[QObject] = None,

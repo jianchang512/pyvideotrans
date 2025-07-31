@@ -61,11 +61,6 @@ AI302_doubao = {"北京小爷（多情感）": "zh_male_beijingxiaoye_emo_v2_mar
                 "温柔文雅": "ICL_zh_female_wenrouwenya_tob", "开朗轻快": "ICL_zh_male_kailangqingkuai_tob",
                 "活泼爽朗": "ICL_zh_male_huoposhuanglang_tob", "率真小伙": "ICL_zh_male_shuaizhenxiaohuo_tob",
                 "温柔小哥": "zh_male_wenrouxiaoge_mars_bigtts",
-
-
-
-
-
                 "京腔侃爷/Harmony": "zh_male_jingqiangkanye_moon_bigtts",
                 "湾湾小何": "zh_female_wanwanxiaohe_moon_bigtts", "湾区大叔": "zh_female_wanqudashu_moon_bigtts",
                 "呆萌川妹": "zh_female_daimengchuanmei_moon_bigtts", "广州德哥": "zh_male_guozhoudege_moon_bigtts",

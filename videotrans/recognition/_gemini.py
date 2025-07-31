@@ -49,12 +49,7 @@ class GeminiRecogn(BaseRecogn):
         for seg_group in seg_list:
             api_key=self.api_keys.pop(0)
             self.api_keys.append(api_key)
-            # genai.configure(api_key=api_key)
-            # model = genai.GenerativeModel(
-            #   model_name=config.params.get('gemini_model'),
-            #   generation_config=generation_config,
-            #   safety_settings=safetySettings,
-            # )
+
             retry=0
             try:
                 client = genai.Client(
