@@ -64,6 +64,7 @@ class TransCreate(BaseTask):
             "novoice_mp4": None, "targetdir_mp4": None, "instrument": None, "vocal": None,
             "shibie_audio": None, 'background_music': None, 'app_mode': "biaozhun",
             "subtitle_type": 0, 'only_video': False, "volume": "+0%", "pitch": "+0Hz", "voice_rate": "+0%",
+            "back_audio":None,"voice_role":None,"is_separate":False,"subtitles":None,"source_language":None,"target_language":None,"noextname":None
         }
         # 将用户传入的配置 (已存在于 self.cfg) 合并到默认配置之上。
         # 这是为了模拟旧代码中 cfg_default.update(cfg) 的行为。
@@ -108,7 +109,7 @@ class TransCreate(BaseTask):
 
         # 存放分离后的无声音mp4
         self.cfg['novoice_mp4'] = f"{self.cfg['cache_folder']}/novoice.mp4"
-
+        print(self.cfg['source_language'])
         self.set_source_language(self.cfg['source_language'], is_del=True)
 
         # 如果配音角色不是No 并且不存在目标音频，则需要配音
