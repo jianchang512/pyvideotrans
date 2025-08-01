@@ -9,8 +9,15 @@ from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=2
+RETRY_DELAY=10
+
 
 @dataclass
 class GoogleRecogn(BaseRecogn):
@@ -19,12 +26,12 @@ class GoogleRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
+        self._set_proxy(type='set')
 
-
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        self._set_proxy(type='set')
 
         tmp_path = Path(f'{self.cache_folder}/{Path(self.audio_file).name}_tmp')
         tmp_path.mkdir(parents=True, exist_ok=True)
@@ -40,10 +47,8 @@ class GoogleRecogn(BaseRecogn):
                 f.write(json.dumps(nonsilent_data))
 
         total_length = len(nonsilent_data)
-        try:
-            recognizer = sr.Recognizer()
-        except Exception as e:
-            raise
+        recognizer = sr.Recognizer()
+
 
         for i, duration in enumerate(nonsilent_data):
             if self._exit():
@@ -56,17 +61,15 @@ class GoogleRecogn(BaseRecogn):
             audio_chunk = normalized_sound[start_time:end_time]
             audio_chunk.export(chunk_filename, format="wav")
 
-            try:
-                with sr.AudioFile(chunk_filename) as source:
-                    audio_data = recognizer.record(source)
-                    try:
-                        text = recognizer.recognize_google(audio_data, language=self.detect_language)
-                    except sr.UnknownValueError:
-                        text = ""
-                    except sr.RequestError as e:
-                        raise
-            except Exception as e:
-                raise
+
+            with sr.AudioFile(chunk_filename) as source:
+                audio_data = recognizer.record(source)
+                try:
+                    text = recognizer.recognize_google(audio_data, language=self.detect_language)
+                except sr.UnknownValueError:
+                    text = ""
+                except sr.RequestError as e:
+                    raise
 
             text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'")).strip()
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
@@ -92,7 +95,7 @@ class GoogleRecogn(BaseRecogn):
     def match_target_amplitude(self,sound, target_dBFS):
         change_in_dBFS = target_dBFS - sound.dBFS
         return sound.apply_gain(change_in_dBFS)
-    # split audio by silence
+
     def _shorten_voice_old(self, normalized_sound):
         normalized_sound = self.match_target_amplitude(normalized_sound, -20.0)
         max_interval = int(config.settings['interval_split']) * 1000

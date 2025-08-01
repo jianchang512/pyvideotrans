@@ -56,7 +56,7 @@ class BaseTrans(BaseCon):
             return True
         return False
 
-    # 实际操作 # 出错时发送停止信号
+    # 实际操作 run|runsrt -> _item_task
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
@@ -74,64 +74,38 @@ class BaseTrans(BaseCon):
             return self.runsrt()
 
         for i, it in enumerate(self.split_source_text):
-            # 失败后重试 self.retry 次
-            while 1:
-                if self._exit():
-                    return
-                if self.iter_num > self.retry:
-                    msg = f'{"字幕翻译失败" if config.defaulelang == "zh" else " Translation Subtitles error"},{self.error}'
-                    self._signal(text=msg, type="error")
-                    raise Exception(msg)
+            if self._exit():
+                return
 
-                self.iter_num += 1
-                try:
-                    result = self._get_cache(it)
-                    if not result:
-                        result = tools.cleartext(self._item_task(it))
-                        self._set_cache(it, result)
-                    if self.inst and self.inst.precent < 75:
-                        self.inst.precent += 0.01
-                    # 非srt直接break
-                    if not self.is_srt:
-                        self.target_list.append(result)
-                        self.iter_num = 0
-                        self.error = ''
-                        break
-                    sep_res = result.split("\n")
+            result = self._get_cache(it)
+            if not result:
+                result = tools.cleartext(self._item_task(it))
+                self._set_cache(it, result)
+            if self.inst and self.inst.precent < 75:
+                self.inst.precent += 0.01
+            # 非srt直接break
+            if not self.is_srt:
+                self.target_list.append(result)
+                break
+            sep_res = result.split("\n")
 
-                    for x, result_item in enumerate(sep_res):
-                        if x < len(it):
-                            self.target_list.append(result_item.strip())
-                            self._signal(
-                                text=result_item + "\n",
-                                type='subtitle')
-                            self._signal(
-                                text=config.transobj['starttrans'] + f' {i * self.trans_thread + x + 1} ')
-                    # 行数不匹配填充空行
-                    if len(sep_res) < len(it):
-                        tmp = ["" for x in range(len(it) - len(sep_res))]
-                        self.target_list += tmp
-                except (requests.exceptions.ProxyError, requests.ConnectionError, requests.exceptions.RetryError,
-                        requests.Timeout) as e:
-                    msg = ''
-                    if self.api_url:
-                        msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise RuntimeError(msg)
-                except Exception as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
+            for x, result_item in enumerate(sep_res):
+                if x < len(it):
+                    self.target_list.append(result_item.strip())
                     self._signal(
-                        text=f"出错，10s后重试," if config.defaulelang == 'zh' else f'{self.iter_num} retries occurs, 10s later retry')
-                    time.sleep(10)
-                else:
-                    # 成功 未出错
-                    self.error = ''
-                    self.error_code = 0
-                    self.iter_num = 0
-                    if self.inst and self.inst.status_text:
-                        self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
-                    time.sleep(self.wait_sec)
-                    break
+                        text=result_item + "\n",
+                        type='subtitle')
+                    self._signal(
+                        text=config.transobj['starttrans'] + f' {i * self.trans_thread + x + 1} ')
+            # 行数不匹配填充空行
+            if len(sep_res) < len(it):
+                tmp = ["" for x in range(len(it) - len(sep_res))]
+                self.target_list += tmp
+
+            if self.inst and self.inst.status_text:
+                self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
+            time.sleep(self.wait_sec)
+
 
         # 恢复原代理设置
         if self.shound_del:
@@ -153,61 +127,34 @@ class BaseTrans(BaseCon):
     def runsrt(self):
         result_srt_str_list = []
         for i, it in enumerate(self.split_source_text):
-            while 1:
-                if self._exit():
-                    return
-                if self.iter_num > self.retry:
-                    msg = f'{"字幕翻译阶段失败" if config.defaulelang == "zh" else " Translate subtitles error "},{self.error}'
-                    self._signal(text=msg, type="error")
-                    raise Exception(msg)
+            if self._exit():
+                return
+            for j, srt in enumerate(it):
+                srt['text'] = srt['text'].strip().replace("\n", " ")
+                it[j] = srt
+            srt_str = "\n\n".join(
+                [f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
+            result = self._get_cache(srt_str)
+            if not result:
+                result = tools.cleartext(self._item_task(srt_str))
+                if not result.strip():
+                    raise RuntimeError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
+                self._set_cache(it, result)
 
-                self.iter_num += 1
+            if self.inst and self.inst.precent < 75:
+                self.inst.precent += 0.1
 
-                try:
-                    for j, srt in enumerate(it):
-                        srt['text'] = srt['text'].strip().replace("\n", " ")
-                        it[j] = srt
-                    srt_str = "\n\n".join(
-                        [f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
-                    result = self._get_cache(srt_str)
-                    if not result:
-                        result = tools.cleartext(self._item_task(srt_str))
-                        if not result.strip():
-                            raise Exception('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
-                        self._set_cache(it, result)
+            self._signal(text=result, type='subtitle')
+            result_srt_str_list.append(result)
 
-                    if self.inst and self.inst.precent < 75:
-                        self.inst.precent += 0.1
-
-                    self._signal(text=result, type='subtitle')
-                    result_srt_str_list.append(result)
-                except (requests.exceptions.ProxyError, requests.ConnectionError, requests.Timeout,
-                        requests.exceptions.RetryError) as e:
-                    msg = ''
-                    if self.api_url:
-                        msg = f'无法连接当前API:{self.api_url} ' if config.defaulelang == 'zh' else f'Check API:{self.api_url} '
-                    raise RuntimeError(msg)
-                except Exception as e:
-                    self.error = f'{e}'
-                    config.logger.exception(e, exc_info=True)
-                    self._signal(
-                        text=f"出错，10s后重试," if config.defaulelang == 'zh' else f'retries occurs, 10s later retry')
-                    time.sleep(10)
-                else:
-                    # 成功 未出错
-                    self.error = ''
-                    self.error_code = 0
-                    self.iter_num = 0
-                    if self.inst and self.inst.status_text:
-                        self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
-                    time.sleep(self.wait_sec)
-                    break
+            if self.inst and self.inst.status_text:
+                self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
+            time.sleep(self.wait_sec)
 
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')
         raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
-        ## new 
 
         # 双语翻译结果，只取最后一行
         config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
@@ -241,3 +188,5 @@ class BaseTrans(BaseCon):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
         return tools.get_md5(
             f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
+
+

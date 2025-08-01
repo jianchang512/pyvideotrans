@@ -4,8 +4,6 @@ aiohttp
 certifi
 deepl
 elevenlabs
-google-ai-generativelanguage
-google-generativeai
 gtts
 httpx
 huggingface-hub
@@ -53,3 +51,5 @@ alibabacloud_alimt20181012==1.1.0
 samplerate;sys_platform == 'win32'
 google-cloud-texttospeech>=2.14.0
 hdbscan
+tenacity
+google-genai

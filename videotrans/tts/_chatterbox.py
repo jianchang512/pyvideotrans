@@ -9,10 +9,13 @@ import requests
 from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional,Union
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 
 RETRY_NUMS = 2
@@ -31,49 +34,37 @@ class ChatterBoxTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        role = data_item['role']
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            role = data_item['role']
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                if data_item.get('ref_wav') or (
-                        role and role != 'chatterbox' and Path(f'{config.ROOT_DIR}/chatterbox/{role}').exists()):
-                    # 克隆
-                    self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
-                    self.has_done += 1
-                    if self.inst and self.inst.precent < 80:
-                        self.inst.precent += 0.1
-                    return
-                client = OpenAI(api_key='123456', base_url=self.api_url + '/v1',
-                                http_client=httpx.Client(proxy=None, timeout=7200))
-                response = client.audio.speech.create(
-                    model="chatterbox-tts",  # 这是一个兼容性参数
-                    voice=self.language,  # 这也是一个兼容性参数
-                    input=data_item['text'],
-                    speed=float(config.params["chatterbox_cfg_weight"]),  # 兼容，用于传递 cfg_weight
-                    instructions=str(config.params["chatterbox_exaggeration"]),  # 兼容传递 exaggeration
-                    response_format="mp3"  # 请求mp3格式
-                )
-
-                response.stream_to_file(data_item['filename'])
+            if data_item.get('ref_wav') or (
+                    role and role != 'chatterbox' and Path(f'{config.ROOT_DIR}/chatterbox/{role}').exists()):
+                # 克隆
+                self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
                 self.has_done += 1
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                self.error = ''
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
-            except APIConnectionError as e:
-                config.logger.exception(e, exc_info=True)
-                self.error = '无法连接到 ChatterBox TTS 服务，请检查是否部署并启动 https://github.com/jianchang512/chatterbox-api 项目' if config.defaulelang == 'zh' else 'Unable to connect to ChatterBox TTS service. Please check whether the https://github.com/jianchang512/chatterbox-api project is deployed and started.'
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                config.logger.exception(e, exc_info=True)
-                error = str(e)
-                self.error = error
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+            client = OpenAI(api_key='123456', base_url=self.api_url + '/v1',
+                            http_client=httpx.Client(proxy=None, timeout=7200))
+            response = client.audio.speech.create(
+                model="chatterbox-tts",  # 这是一个兼容性参数
+                voice=self.language,  # 这也是一个兼容性参数
+                input=data_item['text'],
+                speed=float(config.params["chatterbox_cfg_weight"]),  # 兼容，用于传递 cfg_weight
+                instructions=str(config.params["chatterbox_exaggeration"]),  # 兼容传递 exaggeration
+                response_format="mp3"  # 请求mp3格式
+            )
 
+            response.stream_to_file(data_item['filename'])
+            self.has_done += 1
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        _run()
     def _item_task_clone(self, text, role, ref_wav=None, filename=None):
         import mimetypes
         if ref_wav:

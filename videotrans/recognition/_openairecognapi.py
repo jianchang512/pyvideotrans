@@ -11,11 +11,17 @@ import json
 from pydub import AudioSegment
 
 from videotrans.configure import config
-
+from videotrans.configure._except import RetryRaise
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 from openai import OpenAI, APIConnectionError
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=2
+RETRY_DELAY=10
+
 
 @dataclass
 class OpenaiAPIRecogn(BaseRecogn):
@@ -24,12 +30,6 @@ class OpenaiAPIRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = self._get_url(config.params['openairecognapi_url'])
-
-
-    def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
-
         if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
             pro = self._set_proxy(type='set')
             if pro:
@@ -38,10 +38,27 @@ class OpenaiAPIRecogn(BaseRecogn):
             self.proxies = None
         if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params["openairecognapi_model"].find('gpt-4o-')>-1:
             return self._thrid_api()
-        try:
-            # 大于20M 从wav转为mp3
-            if Path(self.audio_file).stat().st_size > 20971520:
-                mp3_tmp = config.TEMP_HOME + f'/recogn{time.time()}.mp3'
+
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    def _exec(self) -> Union[List[Dict], None]:
+        if self._exit():
+            return
+
+        # 大于20M 从wav转为mp3
+        if Path(self.audio_file).stat().st_size > 20971520:
+            mp3_tmp = config.TEMP_HOME + f'/recogn{time.time()}.mp3'
+            tools.runffmpeg([
+                "-y",
+                "-i",
+                Path(self.audio_file).as_posix(),
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                mp3_tmp
+            ])
+            # 如果仍大于 再转为8k
+            if not Path(mp3_tmp).exists() or Path(mp3_tmp).stat().st_size > 20971520:
                 tools.runffmpeg([
                     "-y",
                     "-i",
@@ -49,81 +66,56 @@ class OpenaiAPIRecogn(BaseRecogn):
                     "-ac",
                     "1",
                     "-ar",
-                    "16000",
+                    "8000",
                     mp3_tmp
                 ])
-                # 如果仍大于 再转为8k
-                if not Path(mp3_tmp).exists() or Path(mp3_tmp).stat().st_size > 20971520:
-                    tools.runffmpeg([
-                        "-y",
-                        "-i",
-                        Path(self.audio_file).as_posix(),
-                        "-ac",
-                        "1",
-                        "-ar",
-                        "8000",
-                        mp3_tmp
-                    ])
-                if Path(mp3_tmp).exists():
-                    self.audio_file = mp3_tmp
-            if not Path(self.audio_file).is_file():
-                raise Exception(f'No file {self.audio_file}')
-            # 发送请求
-            raws=[]
-            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies))
-            with open(self.audio_file, 'rb') as file:
-                transcript = client.audio.transcriptions.create(
-                    file=(self.audio_file, file.read()),
-                    model=config.params["openairecognapi_model"],
-                    prompt=config.params['openairecognapi_prompt'],
-                    response_format="verbose_json"
-                )
-                if not hasattr(transcript, 'segments'):
-                    raise Exception(f'返回字幕无时间戳，无法使用')
-                for i, it in enumerate(transcript.segments):
-                    raws.append({
-                        "line":len(raws)+1,
-                        "start_time":it['start']*1000,
-                        "end_time":it['end']*1000,
-                        "text":it['text'],
-                        "time":tools.ms_to_time_string(ms=it['start']*1000)+' --> '+tools.ms_to_time_string(ms=it['end']*1000),
-                    })
-            return raws
-        except (requests.ConnectionError, requests.HTTPError, requests.Timeout, requests.exceptions.ProxyError) as e:
-            api_url_msg = f' 当前Api: {self.api_url}' if self.api_url else ''
-            proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
-            proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
-            msg = f'网络连接错误{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else str(e)
-            raise Exception(msg)
-        except Exception:
-            raise
+            if Path(mp3_tmp).exists():
+                self.audio_file = mp3_tmp
+        if not Path(self.audio_file).is_file():
+            raise RuntimeError(f'No {self.audio_file}')
+        # 发送请求
+        raws=[]
+        client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies))
+        with open(self.audio_file, 'rb') as file:
+            transcript = client.audio.transcriptions.create(
+                file=(self.audio_file, file.read()),
+                model=config.params["openairecognapi_model"],
+                prompt=config.params['openairecognapi_prompt'],
+                response_format="verbose_json"
+            )
+            if not hasattr(transcript, 'segments'):
+                raise RuntimeError(f'返回字幕无时间戳，无法使用')
+            for i, it in enumerate(transcript.segments):
+                raws.append({
+                    "line":len(raws)+1,
+                    "start_time":it['start']*1000,
+                    "end_time":it['end']*1000,
+                    "text":it['text'],
+                    "time":tools.ms_to_time_string(ms=it['start']*1000)+' --> '+tools.ms_to_time_string(ms=it['end']*1000),
+                })
+        return raws
+
+
 
     def _thrid_api(self):
-        try:
-            # 发送请求
-            raws=self.cut_audio()
-            client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies,timeout=7200))
-            for i,it in enumerate(raws):
-                with open(it['file'], 'rb') as file:
-                    transcript = client.audio.transcriptions.create(
-                        file=(it['file'], file.read()),
-                        model=config.params["openairecognapi_model"],
-                        prompt=config.params['openairecognapi_prompt'],
-                        timeout=7200,
-                        response_format="json"
-                    )
-                    if not hasattr(transcript, 'text'):
-                        continue
-                    raws[i]['text']=transcript.text
-            return raws
-        except APIConnectionError as e:
-            api_url_msg = f' 当前Api: {self.api_url}' if self.api_url else ''
-            proxy_msg = '' if not self.proxies else f'{list(self.proxies.values())[0]}'
-            proxy_msg = f'' if not proxy_msg else f',当前代理:{proxy_msg}'
-            msg = f'网络连接错误{api_url_msg} {proxy_msg}' if config.defaulelang == 'zh' else str(e)
-            raise Exception(msg)
-        except Exception:
-            raise
+        # 发送请求
+        raws=self.cut_audio()
+        client=OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,  http_client=httpx.Client(proxy=self.proxies,timeout=7200))
+        for i,it in enumerate(raws):
+            with open(it['file'], 'rb') as file:
+                transcript = client.audio.transcriptions.create(
+                    file=(it['file'], file.read()),
+                    model=config.params["openairecognapi_model"],
+                    prompt=config.params['openairecognapi_prompt'],
+                    timeout=7200,
+                    response_format="json"
+                )
+                if not hasattr(transcript, 'text'):
+                    continue
+                raws[i]['text']=transcript.text
+        return raws
+
+
     def cut_audio(self):
 
         sampling_rate=16000
@@ -157,7 +149,7 @@ class OpenaiAPIRecogn(BaseRecogn):
         # 在config.TEMP_DIR下创建一个以当前时间戳为名的文件夹，用于保存切割后的音频片段
         dir_name = f"{config.TEMP_DIR}/{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
-        print(f"Saving segments to {dir_name}")
+
         data=[]
         audio = AudioSegment.from_file(self.audio_file,format=self.audio_file[-3:])
         for it in speech_chunks:

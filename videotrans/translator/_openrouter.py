@@ -7,8 +7,15 @@ import httpx,requests
 from openai import OpenAI, APIConnectionError
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
+
 
 @dataclass
 class OpenRouter(BaseTrans):
@@ -28,7 +35,9 @@ class OpenRouter(BaseTrans):
         self.api_key = config.params.get('openrouter_key', '')
 
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {
@@ -43,21 +52,18 @@ class OpenRouter(BaseTrans):
         pro = self._set_proxy(type='set')
         
         model = OpenAI(api_key=self.api_key, base_url=self.api_url,http_client=httpx.Client(proxy=pro,timeout=7200))
-        try:
-            response = model.chat.completions.create(
+        response = model.chat.completions.create(
                 model=self.model_name,
                 messages=message,
                 max_tokens=8092
             )
-        except APIConnectionError:
-            raise requests.ConnectionError('Network connection failed')
-        config.logger.info(f'[openrouter]响应:{response=}')
+
         result=""
         if response.choices:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[openrouter]请求失败:{response=}')
-            raise Exception(f"no choices:{response=}")
+            raise RuntimeError(f"no choices:{response=}")
         
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
         if match:

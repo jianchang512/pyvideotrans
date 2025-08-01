@@ -3,10 +3,13 @@ import time
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 
 RETRY_NUMS = 2
@@ -31,33 +34,24 @@ class KokoroTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-
-        speed = 1.0
-        if self.rate:
-            rate = float(self.rate.replace('%', '')) / 100
-            speed += rate
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            speed = 1.0
+            if self.rate:
+                rate = float(self.rate.replace('%', '')) / 100
+                speed += rate
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                data = {"input": data_item['text'], "voice": data_item['role'], "speed": speed}
-                res = requests.post(self.api_url, json=data, proxies=self.proxies, timeout=3600)
-                res.raise_for_status()
-                with open(data_item['filename'], 'wb') as f:
-                    f.write(res.content)
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
-            except (requests.ConnectionError, requests.Timeout) as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = "连接失败，请检查是否启动了api服务" if config.defaulelang == 'zh' else 'Connection failed, please check if the api service is started'
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                self.error = str(e)
-                config.logger.exception(e, exc_info=True)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+
+            data = {"input": data_item['text'], "voice": data_item['role'], "speed": speed}
+            res = requests.post(self.api_url, json=data, proxies=self.proxies, timeout=3600)
+            res.raise_for_status()
+            with open(data_item['filename'], 'wb') as f:
+                f.write(res.content)
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
+        _run()

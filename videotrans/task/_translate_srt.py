@@ -99,7 +99,7 @@ class TranslateSrt(BaseTask):
                 print(f"{self.cfg['target_sub']=}")
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
-            msg = f'{str(e)}{str(e.args)}'
+            msg = f'{str(e)}'
             tools.send_notification(msg, f'{self.cfg["basename"]}')
             self._signal(text=f"{msg}", type='error')
             raise

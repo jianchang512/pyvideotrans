@@ -66,13 +66,10 @@ class TransCreate(BaseTask):
             "subtitle_type": 0, 'only_video': False, "volume": "+0%", "pitch": "+0Hz", "voice_rate": "+0%",
             "back_audio":None,"voice_role":None,"is_separate":False,"subtitles":None,"source_language":None,"target_language":None,"noextname":None
         }
-        # 将用户传入的配置 (已存在于 self.cfg) 合并到默认配置之上。
-        # 这是为了模拟旧代码中 cfg_default.update(cfg) 的行为。
+
         final_cfg = cfg_default.copy()
         final_cfg.update(self.cfg)
 
-        # 关键: 将 self.cfg 更新为完全合并后的版本。
-        # 这样，当父类的 __post_init__ 运行时，它将使用这个完整的配置。
         self.cfg = final_cfg
         self.video_codec_num = int(config.settings.get('video_codec', 264))
 
@@ -109,7 +106,7 @@ class TransCreate(BaseTask):
 
         # 存放分离后的无声音mp4
         self.cfg['novoice_mp4'] = f"{self.cfg['cache_folder']}/novoice.mp4"
-        print(self.cfg['source_language'])
+
         self.set_source_language(self.cfg['source_language'], is_del=True)
 
         # 如果配音角色不是No 并且不存在目标音频，则需要配音
@@ -160,13 +157,12 @@ class TransCreate(BaseTask):
 
         # 开启一个线程读秒
         def runing():
-            t = 0
+            t = time.time()
             while not self.hasend:
                 if self._exit():
                     return
                 time.sleep(2)
-                t += 2
-                self._signal(text=f"{self.status_text} {t}s???{self.precent}", type="set_precent", nologs=True)
+                self._signal(text=f"{self.status_text} {int(time.time()-t)}s???{self.precent}", type="set_precent", nologs=True)
 
         threading.Thread(target=runing).start()
 
@@ -346,7 +342,7 @@ class TransCreate(BaseTask):
 
 
         except Exception as e:
-            msg = f'{str(e)}{str(e.args)}'
+            msg = f'{str(e)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
                 msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 {msg} ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
             elif re.search(r'out\s+?of.*?memory', msg, re.I):

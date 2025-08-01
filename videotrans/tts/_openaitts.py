@@ -6,13 +6,16 @@ import httpx
 from openai import OpenAI, RateLimitError, APIConnectionError
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 RETRY_NUMS = 2
-RETRY_DELAY = 5
+RETRY_DELAY = 10
 
 
 @dataclass
@@ -35,52 +38,37 @@ class OPENAITTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        role = data_item['role']
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            role = data_item['role']
 
-        speed = 1.0
-        if self.rate:
-            rate = float(self.rate.replace('%', '')) / 100
-            speed += rate
-        for attempt in range(RETRY_NUMS):
+            speed = 1.0
+            if self.rate:
+                rate = float(self.rate.replace('%', '')) / 100
+                speed += rate
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
-                                http_client=httpx.Client(proxy=self.proxies, timeout=7200))
-                with client.audio.speech.with_streaming_response.create(
-                        model=config.params['openaitts_model'],
-                        voice=role,
-                        input=data_item['text'],
-                        timeout=7200,
-                        speed=speed,
-                        instructions=config.params.get('openaitts_instructions', '')
-                ) as response:
-                    with open(data_item['filename'], 'wb') as f:
-                        for chunk in response.iter_bytes():
-                            f.write(chunk)
 
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
-            except RateLimitError as e:
-                config.logger.exception(e, exc_info=True)
-                self.error = '超过频率限制' if config.defaulelang == 'zh' else 'Frequency limit exceeded'
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(30)
-            except APIConnectionError as e:
-                config.logger.exception(e, exc_info=True)
-                self.error = '无法连接到OpenAI服务，请尝试使用或更换代理' if config.defaulelang == 'zh' else 'Cannot connect to OpenAI service, please try using or changing proxy'
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                config.logger.exception(e, exc_info=True)
-                error = str(e)
-                self.error = error
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+            client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
+                            http_client=httpx.Client(proxy=self.proxies, timeout=7200))
+            with client.audio.speech.with_streaming_response.create(
+                    model=config.params['openaitts_model'],
+                    voice=role,
+                    input=data_item['text'],
+                    timeout=7200,
+                    speed=speed,
+                    instructions=config.params.get('openaitts_instructions', '')
+            ) as response:
+                with open(data_item['filename'], 'wb') as f:
+                    for chunk in response.iter_bytes():
+                        f.write(chunk)
+
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        _run()
 
     def _get_url(self, url=""):
         if not url:

@@ -7,8 +7,15 @@ from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
+
 
 @dataclass
 class Libre(BaseTrans):
@@ -30,7 +37,9 @@ class Libre(BaseTrans):
         else:
             self.proxies = {"http": "", "https": ""}
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         jsondata = {
             "q": "\n".join(data),
             "source": 'auto',
@@ -40,14 +49,8 @@ class Libre(BaseTrans):
         config.logger.info(f'[Libre]发送请求数据,{jsondata=}')
 
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
-        config.logger.info(f'[libre]返回响应,{response.text=}')
-        if response.status_code != 200:
-            raise Exception(f'Libre: status_code={response.status_code} {response.reason} {response.text}')
-        try:
-            result = response.json()
-            result = tools.cleartext(result['translatedText'])
-        except json.JSONDecoder:
-            raise Exception(f'无有效返回:{response.text=}')
-        except Exception as e:
-            raise Exception(f'无有效返回 {response.status_code} {response.reason}:{response.text=} ')
+        response.raise_for_status()
+        result = response.json()
+        result = tools.cleartext(result['translatedText'])
+
         return result.lower()  if self.target_code[:2]=='en' else result

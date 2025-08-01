@@ -6,11 +6,17 @@ from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 import mimetypes
 
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=2
+RETRY_DELAY=10
 
 @dataclass
 class AI302Recogn(BaseRecogn):
@@ -20,10 +26,9 @@ class AI302Recogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
 
-
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit(): return
         apikey = config.params.get('ai302_key')
 
 
@@ -37,39 +42,36 @@ class AI302Recogn(BaseRecogn):
             'Accept': 'application/json',
             'Authorization': f'Bearer {apikey}',
         }
-        try:
-            prompt=config.settings.get(f'initial_prompt_{self.detect_language}')
-            
-            config.logger.info(f'{prompt=}')
-            response = requests.post(url,
-                                     files={"file":open(self.audio_file, 'rb')},
-                                     data={
-                                         "model":'whisper-3',
-                                         'response_format':'verbose_json',
-                                         'prompt':prompt,
-                                         'language':langcode},
-                                     headers=headers)
-            response.raise_for_status()
-            config.logger.info(f'{response.json()=}')
-            for i, it in enumerate(response.json()['segments']):
-                if self._exit():
-                    return
-                srt = {
-                    "line": i + 1,
-                    "start_time": int(it['start']*1000),
-                    "end_time": int(it['end']*1000),
-                    "text": it['text']
-                }
-                srt["endraw"]= tools.ms_to_time_string(ms=srt["end_time"])
-                srt["startraw"]= tools.ms_to_time_string(ms=srt["start_time"])
-                srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
-                self._signal(
-                    text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
-                    type='subtitle'
-                )
-                self.raws.append(srt)
-            return self.raws
-        except requests.exceptions.RequestException as e:
-               raise Exception(f'为原始视频生成字幕阶段网络请求出错:{e}')
-        except Exception as e:
-            raise
+
+        prompt=config.settings.get(f'initial_prompt_{self.detect_language}')
+
+        config.logger.info(f'{prompt=}')
+        response = requests.post(url,
+                                 files={"file":open(self.audio_file, 'rb')},
+                                 data={
+                                     "model":'whisper-3',
+                                     'response_format':'verbose_json',
+                                     'prompt':prompt,
+                                     'language':langcode},
+                                 headers=headers)
+        response.raise_for_status()
+        config.logger.info(f'{response.json()=}')
+        for i, it in enumerate(response.json()['segments']):
+            if self._exit():
+                return
+            srt = {
+                "line": i + 1,
+                "start_time": int(it['start']*1000),
+                "end_time": int(it['end']*1000),
+                "text": it['text']
+            }
+            srt["endraw"]= tools.ms_to_time_string(ms=srt["end_time"])
+            srt["startraw"]= tools.ms_to_time_string(ms=srt["start_time"])
+            srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
+            self._signal(
+                text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
+                type='subtitle'
+            )
+            self.raws.append(srt)
+        return self.raws
+

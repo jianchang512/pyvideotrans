@@ -10,7 +10,13 @@ from alibabacloud_tea_util import models as util_models
 from alibabacloud_tea_util.client import Client as UtilClient
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
 
 @dataclass
 class Ali(BaseTrans):
@@ -39,8 +45,10 @@ class Ali(BaseTrans):
         # Endpoint 请参考 https://api.aliyun.com/product/alimt
         cf.endpoint = f'mt.cn-hangzhou.aliyuncs.com'
         return alimt20181012Client(cf)
-    
+
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         client = self.create_client()
         translate_general_request = alimt_20181012_models.TranslateGeneralRequest(
             format_type='text',
@@ -51,12 +59,10 @@ class Ali(BaseTrans):
         )
         runtime = util_models.RuntimeOptions()
         
-        try:
-            res=client.translate_with_options(translate_general_request, runtime)
-            config.logger.info(f'ali：{res.body=}')
-            if int(res.body.code)!=200:
-                raise Exception(f'error:{res.body.code}')
-            return res.body.data.translated
-        except Exception as error:
-            raise
+
+        res=client.translate_with_options(translate_general_request, runtime)
+        if int(res.body.code)!=200:
+            raise RuntimeError(f'error:{res.body.code}')
+        return res.body.data.translated
+
         

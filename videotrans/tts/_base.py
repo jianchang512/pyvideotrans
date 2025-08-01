@@ -12,6 +12,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.configure._except import RetryRaise
 from videotrans.util import tools
 
 
@@ -98,32 +99,39 @@ class BaseTTS(BaseCon):
 
     # 入口 调用子类 _exec() 然后创建线程池调用 _item_task 或直接在 _exec 中实现逻辑
     # 若捕获到异常，则直接抛出  出错时发送停止信号
+    # run->exec->_local_mul_thread->item_task
+    # run->exec->item_task
     def run(self) -> None:
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         if len(self.queue_tts)<1:
-            raise Exception('无需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
-        self._exec()
-        if self.shound_del:
-            self._set_proxy(type='del')
+            raise RuntimeError('没有需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
+        # 入口，多线程或单线程或异步在此方法内执行完毕，若抛出异常，则全部失败
+        try:
+            self._exec()
+        finally:
+            if self.shound_del:
+                self._set_proxy(type='del')
 
         # 是否播放
-        if self.play and tools.vail_file(self.queue_tts[0]['filename']):
-            threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
-            return
-        if self.play and self.error:
-            raise Exception(self.error)
+        if self.play:
+            if tools.vail_file(self.queue_tts[0]['filename']):
+                threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
+                return
+            raise RuntimeError(self.error if self.error else "Test Error")
+
 
         # 记录成功数量
         succeed_nums = 0
         for it in self.queue_tts:
             if it['text'].strip() and tools.vail_file(it['filename']):
                 succeed_nums += 1
-        # 全部失败
+        # 只有全部配音都失败，才视为失败
         if succeed_nums<1:
             msg = ('配音全部失败 ' if config.defaulelang=='zh' else 'Dubbing failed ')+self.error
             self._signal(text= msg, type="error")
-            raise Exception(msg)
+            raise RuntimeError(msg)
+
         self._signal(text=f"配音成功{succeed_nums}个，失败 {len(self.queue_tts)-succeed_nums}个" if config.defaulelang=='zh' else f"Dubbing succeeded {succeed_nums}，failed {len(self.queue_tts)-succeed_nums}")
         # 去除末尾静音
         if config.settings['remove_silence']:
@@ -131,19 +139,25 @@ class BaseTTS(BaseCon):
                 if tools.vail_file(it['filename']):
                     tools.remove_silence_from_end(it['filename'])
 
-    # 用于除  edge-tts 之外的所有tts渠道，线程池并发，在此调用 _item_task
+    # 用于除  edge-tts 之外的渠道，在此进行单或多线程气动。调用 _item_task
+    # exec->_local_mul_thread->item_task
     def _local_mul_thread(self) -> None:
         if self._exit():
             return
         if self.api_url and len(self.api_url) < 10:
-            raise Exception(
+            raise RuntimeError(
                 f'{self.__class__.__name__} API 接口不正确，请到设置中重新填写' if config.defaulelang == 'zh' else 'clone-voice API interface is not correct, please go to Settings to fill in again')
 
+        # 只有全部配音都失败，才视为失败，因此拦截 _item_task 的所有异常
         if len(self.queue_tts)==1 or self.dub_nums==1:
             for k, item in enumerate(self.queue_tts):
                 if k>0:
                     time.sleep(self.wait_sec)
-                self._item_task(item)
+                # 屏蔽异常，其他继续
+                try:
+                    self._item_task(item)
+                except Exception as e:
+                    self.error=str(e)
             return
 
         all_task = []
@@ -159,6 +173,15 @@ class BaseTTS(BaseCon):
     # 每条字幕任务，由线程池调用 data_item 是 queue_tts 中每个元素
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
+
+
+    # 有失败发生时，记录失败原因，不抛出异常，只要有一条字幕配音成功，即视为成功
+    def _raise(self,retry_state):
+        try:
+            RetryRaise._raise(retry_state)
+        except BaseException as e:
+            self.error = str(e)
+            self._signal(text=self.error)
 
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:

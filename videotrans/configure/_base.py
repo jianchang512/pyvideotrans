@@ -5,12 +5,10 @@ from videotrans.util import tools
 
 from dataclasses import dataclass, field
 from typing import Optional
-
 @dataclass
 class BaseCon:
     uuid: Optional[str] = field(default=None, init=False)
     shound_del: bool = field(default=False, init=False)
-
     def _signal(self, **kwargs):
         if 'uuid' not in kwargs:
             kwargs['uuid'] = self.uuid
@@ -41,3 +39,4 @@ class BaseCon:
                     os.environ['all_proxy'] = proxy
                 return proxy
         return None
+

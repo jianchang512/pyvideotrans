@@ -24,35 +24,17 @@ from typing import Dict, Any
 
 @dataclass
 class DubbingSrt(BaseTask):
-    # ==================================================================
-    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
-    #    这些属性都将在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
-    # ==================================================================
 
-
-    # 这两个属性依赖于 cfg，所以它们没有默认值，在 post_init 中设置。
     is_multi_role: bool = field(init=False)
     rename: bool = field(init=False)
-    # 在这个子类中，shoud_dubbing 总是 True，所以我们直接覆盖父类的默认值。
     shoud_dubbing: bool = field(default=True, init=False)
 
 
-    # ==================================================================
-    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
-    # ==================================================================
     def __post_init__(self):
-        # 关键第一步：调用父类的 __post_init__。
-        # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
         super().__post_init__()
 
-        # --- 从这里开始，是您旧 __init__ 的所有剩余逻辑，几乎原封不动 ---
-
-        # 1. 初始化本类的状态属性
-        #    此时 self.cfg 已经是完全准备好的了
         self.is_multi_role = self.cfg.get('is_multi_role', False)
         self.rename = self.cfg.get('rename', False)
-        # self.shoud_dubbing 已经被上面的 field 定义处理了，无需再写
-
         # 2. 处理路径和配置
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
             self.cfg['target_dir'] = f"{config.HOME_DIR}/tts"

@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional, ClassVar,Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
 
@@ -34,6 +35,12 @@ from videotrans.recognition._base import BaseRecogn
                 ]
             }
 """
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=2
+RETRY_DELAY=10
+
 
 
 @dataclass
@@ -42,13 +49,10 @@ class APIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-
         self.raws = []
-
         api_url = config.params['recognapi_url'].strip().rstrip('/').lower()
-
         if not api_url:
-            raise Exception('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
+            raise RuntimeError('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
@@ -60,7 +64,7 @@ class APIRecogn(BaseRecogn):
                 api_url += f'?sk={config.params["recognapi_key"]}'
 
         self.api_url = api_url
-
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -71,25 +75,26 @@ class APIRecogn(BaseRecogn):
         files = {"audio": chunk}
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
-        try:
-            res = requests.post(f"{self.api_url}",data={"language":self.detect_language}, files=files, proxies={"http": "", "https": ""}, timeout=3600)
-            res = res.json()
-            if "code" not in res or res['code'] != 0:
-                raise Exception(f'{res["msg"]}')
-            if "data" not in res or len(res['data']) < 1:
-                raise Exception(f'识别出错{res=}')
-            self._signal(
-                text=tools.get_srt_from_list(res['data']),
-                type='replace_subtitle'
-            )
-            return res['data']
-        except Exception as e:
-            raise
+
+        res = requests.post(f"{self.api_url}",data={"language":self.detect_language}, files=files, proxies={"http": "", "https": ""}, timeout=3600)
+        res.raise_for_status()
+        res = res.json()
+        if "code" not in res or res['code'] != 0:
+            raise RuntimeError(f'{res["msg"]}')
+        if "data" not in res or len(res['data']) < 1:
+            raise RuntimeError(f'识别出错{res=}')
+        self._signal(
+            text=tools.get_srt_from_list(res['data']),
+            type='replace_subtitle'
+        )
+        return res['data']
+
+
 
     def _whisperzero(self):
         api_key=config.params.get("recognapi_key")
         if not api_key:
-            raise Exception('必须填写api key' if config.defaulelang=='zh' else 'api key must be filled in')
+            raise RuntimeError('必须填写api key' if config.defaulelang=='zh' else 'api key must be filled in')
         # 上传 self.audio_file
         with open(self.audio_file, "rb") as f:
             audio_file=f.read()
@@ -102,9 +107,6 @@ class APIRecogn(BaseRecogn):
         })
         response.raise_for_status()
         audio_url=response.json()['audio_url']
-
-        # 开始转录
-
 
         payload = {
             "detect_language": True if not self.detect_language or self.detect_language=='auto' else False,
@@ -140,7 +142,7 @@ class APIRecogn(BaseRecogn):
             d=response.json()
             if d['status']=='error':
                 config.logger.error(d)
-                raise Exception(f"Error:{d['error_code']}")
+                raise RuntimeError(f"Error:{d['error_code']}")
             if d['status']=='done':
                 config.logger.info(d)
                 sens=d['result']['transcription']['subtitles'][0]['subtitles']
