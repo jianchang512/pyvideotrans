@@ -10,7 +10,12 @@ from videotrans.configure import config
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-
+"""
+faster-whisper
+openai-whisper
+funasr
+内置的本地大模型不重试
+"""
 
 @dataclass
 class FasterAll(BaseRecogn):
@@ -22,9 +27,9 @@ class FasterAll(BaseRecogn):
 
         if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
             self.flag.append(" ")
-            self.maxlen = int(config.settings.get('cjk_len', 20)) # 使用 .get 更安全
+            self.maxlen = int(config.settings.get('cjk_len', 20))
         else:
-            self.maxlen = int(config.settings.get('other_len', 60)) # 使用 .get 更安全
+            self.maxlen = int(config.settings.get('other_len', 60))
 
     # 获取新进程的结果
     def _get_signal_from_process(self, q: multiprocessing.Queue):
@@ -42,8 +47,8 @@ class FasterAll(BaseRecogn):
                         if self.inst and self.inst.status_text and data['type']=='log':
                             self.inst.status_text=data['text']
                         self._signal(text=data['text'], type=data['type'])
-            except Exception as e:
-                print(e)
+            except:
+                pass
             time.sleep(0.2)
 
     def get_srtlist(self,raws):
@@ -63,10 +68,7 @@ class FasterAll(BaseRecogn):
 
     def _exec(self):
         # 修复CUDA fork问题：强制使用spawn方法
-        try:
-            multiprocessing.set_start_method('spawn', force=True)
-        except RuntimeError:
-            pass
+        multiprocessing.set_start_method('spawn', force=True)
 
         while 1:
             if self._exit() and self.pidfile:
@@ -132,7 +134,7 @@ class FasterAll(BaseRecogn):
                                 words_list+=it['words']
                             self._signal(text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting...")
                             self.raws=self.re_segment_sentences(words_list,self.detect_language[:2])
-                        except Exception as e:
+                        except:
                             self.get_srtlist(raws)
                 try:
                     if process.is_alive():
@@ -150,7 +152,7 @@ class FasterAll(BaseRecogn):
             Path(self.pidfile).unlink(missing_ok=True)
 
         if self.error:
-            raise Exception(self.error)
+            raise RuntimeError(self.error)
         if len(self.raws)<1:
-            raise Exception('未识别到有效文字' if config.defaulelang=='zh' else 'No speech detected')
+            raise RuntimeError('未识别到有效文字' if config.defaulelang=='zh' else 'No speech detected')
         return self.raws

@@ -15,7 +15,7 @@ from typing import List, Dict, Any, Optional
 # 最大并发数，可以根据需要调整，或者放入配置文件
 MAX_CONCURRENT_TASKS = int(float(config.settings.get('dubbing_thread', 5)))
 # 单个任务的最大重试次数
-MAX_RETRIES = 3
+RETRY_NUMS = 3
 # 重试前的等待时间（秒）
 RETRY_DELAY = 5
 
@@ -32,8 +32,8 @@ class EdgeTTS(BaseTTS):
                 if proxy_str: # 确保文件不是空的
                     found_proxy = 'http://' + proxy_str
                     config.logger.info(f"从 {proxy_file} 加载代理: {found_proxy}")
-            except Exception as e:
-                config.logger.error(f"从 {proxy_file} 加载代理失败: {e}")
+            except:
+                pass
 
         if not found_proxy:
             pro = self._set_proxy(type='set')
@@ -58,7 +58,7 @@ class EdgeTTS(BaseTTS):
             # 移除可能存在的说话人标签
             config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {item['text']}")
 
-            for attempt in range(MAX_RETRIES):
+            for attempt in range(RETRY_NUMS):
                 try:
                     communicate = Communicate(
                         item['text'],
@@ -84,17 +84,17 @@ class EdgeTTS(BaseTTS):
 
                 except (NoAudioReceived, aiohttp.ClientError) as e:
                     config.logger.warning(
-                        f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{MAX_RETRIES} 次尝试失败: {e}. "
+                        f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{RETRY_NUMS} 次尝试失败: {e}. "
                         f"{RETRY_DELAY} 秒后重试..."
                     )
-                    config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {MAX_RETRIES} 次尝试后最终失败。")
+                    config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {RETRY_NUMS} 次尝试后最终失败。")
                     self.error=str(e)
                     self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
                     await asyncio.sleep(RETRY_DELAY)
                 except Exception as e:
                     # 捕获其他未知异常
                     config.logger.exception(e, exc_info=True)
-                    self.error=str(e)
+                    self.error=str(e.args)
                     self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
                     await asyncio.sleep(RETRY_DELAY)
 
@@ -144,5 +144,3 @@ class EdgeTTS(BaseTTS):
         except Exception as e:
             # 将异步世界中的异常传递到同步世界
             config.logger.exception(e,exc_info=True)
-            # 这里可以直接 raise，让外部的 run 方法的 try-except 块来处理
-            raise

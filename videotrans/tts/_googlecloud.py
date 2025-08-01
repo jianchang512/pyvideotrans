@@ -1,11 +1,18 @@
+import logging
 import os
 from typing import Optional
+
+from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_log, retry_if_not_exception_type
 
 from videotrans.tts._base import BaseTTS
 from videotrans.configure import config
 from videotrans.util import tools
 from google.cloud import texttospeech
 from dataclasses import dataclass, field
+
+RETRY_NUMS = 2
+RETRY_DELAY = 5
+
 # import lazy do client de TTS
 try:
     from google.cloud.texttospeech import (
@@ -38,7 +45,7 @@ class GoogleCloudTTS(BaseTTS):
         self.encoding = config.params.get("gcloud_audio_encoding", "MP3")
         
         if not self.cred_path or not os.path.isfile(self.cred_path):
-            raise Exception("Arquivo de credenciais do Google Cloud TTS não configurado ou não encontrado")
+            raise RuntimeError("Arquivo de credenciais do Google Cloud TTS não configurado ou não encontrado")
 
     def _check_client(self):
         """Verifica se o cliente TTS está disponível e se o arquivo de credenciais existe."""
@@ -69,42 +76,40 @@ class GoogleCloudTTS(BaseTTS):
                 - rate: taxa de fala como string (ex: "+10%", "-5%")
                 - pitch: tom da voz
         """
-        if not data_item or tools.vail_file(data_item["filename"]):
-            return
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            if not data_item or tools.vail_file(data_item["filename"]):
+                return
 
-        text = data_item["text"].strip()
-        if not text:
-            return
 
-        # checa dependências antes de tudo
-        self._check_client()
+            # checa dependências antes de tudo
+            self._check_client()
 
-        try:
             if not self.client:
                 self.client = texttospeech.TextToSpeechClient.from_service_account_file(self.cred_path)
 
             # prepara request
             synthesis_input = texttospeech.SynthesisInput(text=text)
-            
+
             # tenta inferir gênero se precisar
             gender = getattr(
                 SsmlVoiceGender,
                 config.params.get("gcloud_ssml_gender", "SSML_VOICE_GENDER_UNSPECIFIED"),
                 None
             )
-            
+
             # pega a voz (role) que veio do pipeline, ou usa o default do config
             voice_name = data_item.get("role", self.voice_name)
             if not voice_name or voice_name == "No":
                 config.logger.warning("Nenhuma voz selecionada, usando voz padrão")
                 voice_name = self.voice_name
-                
+
             voice_params = texttospeech.VoiceSelectionParams(
                 language_code=self.language_code,  # o idioma (ex: pt-BR)
                 name=voice_name,
                 ssml_gender=gender,
             )
-            
+
             # Extrai e normaliza o speaking_rate
             rate_str = data_item.get("rate", "+0%")
             # remove sinal de +/– e % e converte para float
@@ -116,7 +121,7 @@ class GoogleCloudTTS(BaseTTS):
                 rate_val = 0.0
             # converte de percentual para fator (ex: "+10%" → 1.10)
             speaking_rate = 1.0 + (rate_val / 100.0)
-            
+
             # Extrai e normaliza o pitch
             pitch_str = data_item.get("pitch", "+0Hz")
             pitch_val = 0.0
@@ -126,7 +131,7 @@ class GoogleCloudTTS(BaseTTS):
             except ValueError:
                 config.logger.warning(f"Tom inválido: {pitch_str}, usando 0Hz")
                 pitch_val = 0.0
-            
+
             audio_config = texttospeech.AudioConfig(
                 audio_encoding=getattr(texttospeech.AudioEncoding, self.encoding),
                 speaking_rate=speaking_rate,
@@ -155,8 +160,4 @@ class GoogleCloudTTS(BaseTTS):
             self.error = ""
             self._signal(text=f"{self.has_done}/{self.len}")
 
-        except Exception as e:
-            self.error = str(e)
-            config.logger.error(f"Erro ao sintetizar voz com Google Cloud TTS: {str(e)}")
-            self._signal(text=f"Erro: {self.error}")
-            raise 
+        _run()

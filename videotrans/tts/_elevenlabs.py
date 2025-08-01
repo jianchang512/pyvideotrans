@@ -9,13 +9,16 @@ from elevenlabs import ElevenLabs, VoiceSettings
 from elevenlabs.core import ApiError
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 RETRY_NUMS = 2
-RETRY_DELAY = 5
+RETRY_DELAY = 10
 
 @dataclass
 class ElevenLabsC(BaseTTS):
@@ -26,60 +29,50 @@ class ElevenLabsC(BaseTTS):
             self.proxies = pro
 
     def _item_task(self, data_item: dict = None):
-        role = data_item['role']
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            role = data_item['role']
 
-        speed = 1.0
-        if self.rate and self.rate != '+0%':
-            speed += float(self.rate.replace('%', ''))
-        for attempt in range(RETRY_NUMS):
-            try:
-                with open(os.path.join(config.ROOT_DIR, 'elevenlabs.json'), 'r', encoding="utf-8") as f:
-                    jsondata = json.loads(f.read())
+            speed = 1.0
+            if self.rate and self.rate != '+0%':
+                speed += float(self.rate.replace('%', ''))
 
-                client = ElevenLabs(
-                    api_key=config.params['elevenlabstts_key'],
-                    httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
+            with open(os.path.join(config.ROOT_DIR, 'elevenlabs.json'), 'r', encoding="utf-8") as f:
+                jsondata = json.loads(f.read())
+
+            client = ElevenLabs(
+                api_key=config.params['elevenlabstts_key'],
+                httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
+            )
+
+            response = client.text_to_speech.convert(
+                text=data_item['text'],
+                voice_id=jsondata[role]['voice_id'],
+                model_id=config.params.get("elevenlabstts_models"),
+
+                output_format="mp3_44100_128",
+
+                apply_text_normalization='auto',
+                voice_settings=VoiceSettings(
+                    speed=speed,
+                    stability=0,
+                    similarity_boost=0,
+                    style=0,
+                    use_speaker_boost=True
                 )
+            )
+            with open(data_item['filename'], 'wb') as f:
+                for chunk in response:
+                    if chunk:
+                        f.write(chunk)
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
 
-                response = client.text_to_speech.convert(
-                    text=data_item['text'],
-                    voice_id=jsondata[role]['voice_id'],
-                    model_id=config.params.get("elevenlabstts_models"),
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        _run()
 
-                    output_format="mp3_44100_128",
-
-                    apply_text_normalization='auto',
-                    voice_settings=VoiceSettings(
-                        speed=speed,
-                        stability=0,
-                        similarity_boost=0,
-                        style=0,
-                        use_speaker_boost=True
-                    )
-                )
-                with open(data_item['filename'], 'wb') as f:
-                    for chunk in response:
-                        if chunk:
-                            f.write(chunk)
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
-            except ApiError as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = str(e.body['detail']['message'])
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                if e.status_code in [401,403,404,422,425]:
-                    return
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(60)
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         self.dub_nums = 1

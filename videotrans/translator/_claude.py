@@ -5,17 +5,17 @@ from typing import List, Dict, Any, Optional, Union
 import anthropic
 import httpx
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
+RETRY_NUMS=3
+RETRY_DELAY=5
 @dataclass
 class Claude(BaseTrans):
     prompt: str = field(init=False)
-
-
-    # ==================================================================
-    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
-    # ==================================================================
     def __post_init__(self):
         super().__post_init__()
 
@@ -51,7 +51,9 @@ class Claude(BaseTrans):
 
         return url
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         message = [
             {
@@ -72,24 +74,13 @@ class Claude(BaseTrans):
             api_key=config.params['claude_key'],
             http_client=httpx.Client(proxy=self.proxies)
         )
-        try:
-            response = client.messages.create(
-                model=config.params['claude_model'],
-                max_tokens=8096,
-                system="You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。',
-                messages=message
-            )
-        except anthropic.APIConnectionError as e:
-            print("The server could not be reached")
-            config.logger.exception(e,exc_info=True)
-            raise Exception("The server could not be reached" if config.defaulelang!='zh' else '服务器无法访问,请尝试使用代理')
-        except anthropic.RateLimitError as e:
-            config.logger.exception(e,exc_info=True)
-            self.error_code=429
-            raise Exception("Too many requests, please try again later" if config.defaulelang!='zh' else '429,请求次数过多,请稍后再试或调大翻译后暂停秒数')
-        except anthropic.APIStatusError as e:
-            config.logger.exception(e,exc_info=True)
-            raise Exception(f"{e}" if config.defaulelang!='zh' else f'{e}')
+
+        response = client.messages.create(
+            model=config.params['claude_model'],
+            max_tokens=8096,
+            system="You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。',
+            messages=message
+        )
 
 
         config.logger.info(f'[claude ai]返回响应:{response=}')
@@ -98,7 +89,7 @@ class Claude(BaseTrans):
             result = response.content[0].text.strip()
         else:
             config.logger.error(f'[claude]请求失败:{response=}')
-            raise Exception(f"no content:{response=}")
+            raise RuntimeError(f"no content:{response=}")
         
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result,re.S)
         if match:

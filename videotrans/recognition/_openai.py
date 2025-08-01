@@ -12,7 +12,16 @@ from pydub import AudioSegment
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
+
+"""
+faster-whisper
+openai-whisper
+funasr
+内置的本地大模型不重试
+"""
 
 @dataclass
 class OpenaiWhisperRecogn(BaseRecogn):
@@ -41,9 +50,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        if self.model_name.find('/') > -1:
-            raise Exception(
-                'huggingface上的自定义模型只可用于faster-whisper模式' if config.defaulelang == 'zh' else 'The model only use when faster-whisper')
+
         tmp_path = Path(f'{self.cache_folder}/{Path(self.audio_file).name}_tmp')
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_path = tmp_path.as_posix()
@@ -128,7 +135,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
                 del self.model
-            except Exception:
+            except:
                 pass
         if len(self.raws) < 1:
             raise RuntimeError('识别结果为空' if config.defaulelang == 'zh' else 'Recognition result is empty')

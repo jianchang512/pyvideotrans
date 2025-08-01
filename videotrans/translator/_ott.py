@@ -3,7 +3,14 @@ from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
+
 
 @dataclass
 class OTT(BaseTrans):
@@ -24,16 +31,17 @@ class OTT(BaseTrans):
 
 
     # 实际发出请求获取结果
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         jsondata = {
             "q": "\n".join(data),
             "source": "auto",
             "target": self.target_code[:2]
         }
         response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
-        if response.status_code != 200:
-            raise Exception(f'status_code={response.status_code} {response.reason}')
+        response.raise_for_status()
         result = response.json()
         if "error" in result:
-            raise Exception(f'{result=}')
+            raise RuntimeError(f'{result=}')
         return result['translatedText'].strip()

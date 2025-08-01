@@ -7,9 +7,11 @@ import requests
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
@@ -22,27 +24,16 @@ class AI302(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                self._generate(data=data_item)
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
-            except (requests.ConnectionError, requests.exceptions.ProxyError,requests.Timeout, requests.exceptions.RetryError) as e:
-                config.logger.exception(e,exc_info=True)
-                # 中文和英文
-                self.error = '连接失败，请尝试使用或切换代理' if config.defaulelang == 'zh' else 'Connect  failed, please try to use or switch proxy'
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+            self._generate(data=data_item)
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        _run()
 
 
     def _generate(self, data):

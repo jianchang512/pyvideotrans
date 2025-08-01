@@ -8,10 +8,13 @@ from pathlib import Path
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Union
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -261,22 +264,19 @@ class F5TTS(BaseTTS):
 
     def _item_task(self, data_item: Union[Dict, List, None]):
 
-        ttstype = config.params.get('f5tts_ttstype')
         # Spark-TTS','Index-TTS Dia-TTS
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            ttstype = config.params.get('f5tts_ttstype')
             if self._exit():
                 return
-            try:
-                if ttstype == 'Spark-TTS':
-                    self._item_task_spark(data_item)
-                elif ttstype == 'Index-TTS':
-                    self._item_task_index(data_item)
-                elif ttstype == 'Dia-TTS':
-                    self._item_task_dia(data_item)
-                else:
-                    self._item_task_v1(data_item)
-            except Exception as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+            if ttstype == 'Spark-TTS':
+                self._item_task_spark(data_item)
+            elif ttstype == 'Index-TTS':
+                self._item_task_index(data_item)
+            elif ttstype == 'Dia-TTS':
+                self._item_task_dia(data_item)
+            else:
+                self._item_task_v1(data_item)
+
+        _run()

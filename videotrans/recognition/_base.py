@@ -45,11 +45,12 @@ class BaseRecogn(BaseCon):
     def __post_init__(self):
         super().__init__()
         self.device = 'cuda' if self.is_cuda else 'cpu'
-
+        # 断句标志
         self.flag = [
             ",", ".", "?", "!", ";",
             "，", "。", "？", "；", "！"
         ]
+        # 连接字符 中日韩粤语 直接连接，无需空格，其他语言空格连接
         self.join_word_flag = " "
 
 
@@ -58,17 +59,17 @@ class BaseRecogn(BaseCon):
             self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings.get('zh_hant_s') else False
         else:
             self.maxlen = int(float(config.settings.get('other_len', 60)))
-            self.jianfan = False # 确保在所有分支中都初始化
+            self.jianfan = False
 
         if not tools.vail_file(self.audio_file):
-            raise Exception(f'[error]not exists {self.audio_file}')
+            raise RuntimeError(f'No {self.audio_file}')
 
-    # 出错时发送停止信号
+    # run->_exec
     def run(self) -> Union[List[Dict], None]:
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         try:
-            if self.detect_language[:2].lower() in ['zh', 'ja', 'ko']:
+            if self.detect_language[:2].lower() in ['zh', 'ja', 'ko','yu']:
                 self.flag.append(" ")
                 self.join_word_flag = ""
             return self._exec()
@@ -92,12 +93,12 @@ class BaseRecogn(BaseCon):
                 self.inst.status_text="正在重新断句..." if config.defaulelang=='zh' else "Re-segmenting..."
             return ob.llm_segment(words,self.inst,config.settings.get('llm_ai_type','openai'))
         except json.decoder.JSONDecodeError as e:
-            self.inst.status_text="使用LLM重新断句失败" if config.defaulelang=='zh' else "Re-segmenting Error"
-            config.logger.error(f"使用ChatGPT重新断句失败[JSONDecodeError]，已恢复原样 {e}")
+            self.inst.status_text="使用LLM重新断句失败,所用模型可能不支持输出JSON格式" if config.defaulelang=='zh' else "Re-segmenting Error"
+            config.logger.error(f"重新断句失败[JSONDecodeError]，已恢复原样 {e}")
             raise
         except Exception as e:
             self.inst.status_text="使用LLM重新断句失败" if config.defaulelang=='zh' else "Re-segmenting Error"
-            config.logger.error(f"使用ChatGPT重新断句失败[except]，已恢复原样 {e}")
+            config.logger.error(f"重新断句失败[except]，已恢复原样 {e}")
             raise
 
     # True 退出

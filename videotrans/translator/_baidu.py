@@ -6,8 +6,14 @@ from typing import List, Dict, Any, Optional, Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
 
 @dataclass
 class Baidu(BaseTrans):
@@ -22,7 +28,9 @@ class Baidu(BaseTrans):
             if 'https_proxy' in os.environ: del os.environ['https_proxy']
             if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         text = "\n".join(data)
         salt = int(time.time())
         strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"
@@ -38,16 +46,15 @@ class Baidu(BaseTrans):
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
         resraw = requests.get(requrl, proxies={"http": "", "https": ""})
-        if resraw.status_code != 200:
-            raise Exception(f'Baidu status_code={resraw.status_code} {resraw.reason}')
+        resraw.raise_for_status()
         res = resraw.json()
         config.logger.info(f'[Baidu]返回响应:{res=}')
 
         if "error_code" in res or "trans_result" not in res or len(res['trans_result']) < 1:
             config.logger.info(f'Baidu 返回响应:{resraw}')
-            raise Exception(res['error_msg'])
+            raise RuntimeError(res['error_msg'])
 
         result = [tools.cleartext(tres['dst']) for tres in res['trans_result']]
         if not result or len(result) < 1:
-            raise Exception(f'no result:{res=}')
+            raise RuntimeError(f'no result:{res=}')
         return "\n".join(result)

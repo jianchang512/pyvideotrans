@@ -9,6 +9,14 @@ from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
+"""
+faster-whisper
+openai-whisper
+funasr
+内置的本地大模型不重试
+"""
+
+
 @dataclass
 class FasterAvg(BaseRecogn):
     raws: List[Any] = field(default_factory=list, init=False)
@@ -31,8 +39,8 @@ class FasterAvg(BaseRecogn):
                         if self.inst and self.inst.status_text and data['type']=='log':
                             self.inst.status_text=data['text']
                         self._signal(text=data['text'], type=data['type'])
-            except Exception as e:
-                print(e)
+            except:
+                pass
             time.sleep(0.5)
 
     def _exec(self) -> Union[List[Dict], None]:
@@ -84,22 +92,23 @@ class FasterAvg(BaseRecogn):
                     self.error = 'err[msg]='+str(err['msg'])
                 elif len(list(raws))<1:
                     self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
-                else:
-                    self.raws = list(raws)
+                    raise RuntimeError(self.error)
+                self.raws = list(raws)
                 try:
                     if process.is_alive():
                         process.terminate()
                 except:
                     pass
-        except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
-            config.logger.exception(e, exc_info=True)
-            self.error=str(e)
         except Exception as e:
             self.error='_avagel'+str(e)
+            raise
         finally:
             config.model_process = None
             self.has_done = True
-            Path(self.pidfile).unlink(missing_ok=True)
+            try:
+                Path(self.pidfile).unlink(missing_ok=True)
+            except:
+                pass
 
         if self.error:
             raise Exception(self.error)

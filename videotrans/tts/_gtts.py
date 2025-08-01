@@ -6,10 +6,13 @@ import requests
 from gtts import gTTS
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 
 RETRY_NUMS = 2
@@ -32,30 +35,21 @@ class GTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                lans = self.language.split('-')
-                if len(lans) > 1:
-                    self.language = f'{lans[0]}-{lans[1].upper()}'
-                response = gTTS(data_item['text'], lang=self.language, lang_check=False)
-                response.save(data_item['filename'])
 
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
-            except requests.ConnectionError as e:
-                self.error = str(e)
-                config.logger.exception(e, exc_info=True)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
-            except Exception as e:
-                self.error = str(e)
-                config.logger.exception(e, exc_info=True)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
-                time.sleep(RETRY_DELAY)
+            lans = self.language.split('-')
+            if len(lans) > 1:
+                self.language = f'{lans[0]}-{lans[1].upper()}'
+            response = gTTS(data_item['text'], lang=self.language, lang_check=False)
+            response.save(data_item['filename'])
+
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
+        _run()

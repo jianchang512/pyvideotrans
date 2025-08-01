@@ -18,25 +18,13 @@ from dataclasses import dataclass, field
 
 @dataclass
 class SpeechToText(BaseTask):
-    # ==================================================================
-    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
-    #    这些属性都在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
-    # ==================================================================
-    # 这个属性依赖于 cfg，所以它没有默认值，在 post_init 中设置。
     out_format: str = field(init=False)
 
     # 在这个子类中，shoud_recogn 总是 True，我们直接在定义中声明。
     shoud_recogn: bool = field(default=True, init=False)
 
 
-
-    # ==================================================================
-    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
-    #    它不接收任何参数，与父类保持一致。
-    # ==================================================================
     def __post_init__(self):
-        # 关键第一步：调用父类的 __post_init__。
-        # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
         super().__post_init__()
         self.out_format=self.cfg.get('out_format','srt')
         # 存放目标文件夹
@@ -85,8 +73,6 @@ class SpeechToText(BaseTask):
                 if Path(txt_file).exists():
                     cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
                 
-                print(cmd)
-                print(self.cfg['target_dir'])
                 while 1:
                     if not config.copying:
                         break
@@ -116,12 +102,12 @@ class SpeechToText(BaseTask):
                 if self._exit():
                     return
                 if not raw_subtitles or len(raw_subtitles) < 1:
-                    raise Exception(self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.cfg['detect_language']))
+                    raise RuntimeError(self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}',self.cfg['detect_language']))
                 self._save_srt_target(raw_subtitles, self.cfg['target_sub'])
 
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
-            msg = f'{str(e)}{str(e.args)}'
+            msg = f'{str(e)}'
             tools.send_notification(msg, f'{self.cfg["basename"]}')
             self._signal(text=f"{msg}", type='error')
             raise

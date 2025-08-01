@@ -6,7 +6,13 @@ import deepl
 import requests
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
 
 @dataclass
 class DeepL(BaseTrans):
@@ -20,7 +26,9 @@ class DeepL(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
         text=("\n".join(data)).strip()
         # text可能是中文 英文 日文 越南语等任何一种语言，也可能text全部由特殊符号组成，键盘上可以打出来的所有特殊符号，如果全是符号，则返回原text
         if not text or re.match(r'^[\s ~`!@#$%^&*()_+\-=\[\]{}\\|;,./?><:"\'，。、；‘’“”：《》？【】｛｝（）—！·￥…ー]+$', text):

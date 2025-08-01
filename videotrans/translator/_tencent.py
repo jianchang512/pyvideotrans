@@ -8,7 +8,14 @@ from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.tmt.v20180321 import tmt_client, models
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
+
+RETRY_NUMS=3
+RETRY_DELAY=5
+
 
 @dataclass
 class Tencent(BaseTrans):
@@ -23,8 +30,9 @@ class Tencent(BaseTrans):
             if 'https_proxy' in os.environ: del os.environ['https_proxy']
             if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
-
+        if self._exit(): return
         cred = credential.Credential(config.params.get('tencent_SecretId','').strip(), config.params['tencent_SecretKey'])
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
         httpProfile = HttpProfile(proxy="")

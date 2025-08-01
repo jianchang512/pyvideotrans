@@ -6,10 +6,13 @@ import requests
 import urllib3
 
 from videotrans.configure import config
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -32,48 +35,39 @@ class QWENTTS(BaseTTS):
 
     def _item_task(self, data_item: dict = None):
 
-        role = data_item['role']
         # 主循环，用于无限重试连接错误
-        for attempt in range(RETRY_NUMS):
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=self._raise)
+        def _run():
+            role = data_item['role']
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                response = dashscope.audio.qwen_tts.SpeechSynthesizer.call(
-                    model=config.params.get('qwentts_model', 'qwen-tts-latest'),
-                    api_key=config.params.get('qwentts_key', ''),
-                    text=data_item['text'],
-                    voice=role,
-                )
 
-                if response is None:
-                    self.error = "API call returned None response"
-                    time.sleep(RETRY_DELAY)
-                    continue
+            response = dashscope.audio.qwen_tts.SpeechSynthesizer.call(
+                model=config.params.get('qwentts_model', 'qwen-tts-latest'),
+                api_key=config.params.get('qwentts_key', ''),
+                text=data_item['text'],
+                voice=role,
+            )
 
-                if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
-                    self.error = f"{response.message if hasattr(response, 'message') else str(response)}"
-                    time.sleep(RETRY_DELAY)
-                    continue
-
-                resurl = requests.get(response.output.audio["url"])
-                resurl.raise_for_status()  # 检查请求是否成功
-                with open(data_item['filename'] + '.wav', 'wb') as f:
-                    f.write(resurl.content)
-                tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
-
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.error = ''
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                # 任务成功，跳出 while True 循环并结束函数
-                return
-            except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError) as e:
-                config.logger.exception(f'连接qwentts失败:{e}', exc_info=True)
-                self._signal(text=f'连接QwenTTS失败,暂停30s后重试:{e}')
-                time.sleep(30)
-            except Exception as e:
-                config.logger.exception(e, exc_info=True)
-                self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+            if response is None:
+                self.error = "API call returned None response"
                 time.sleep(RETRY_DELAY)
+                raise RuntimeError(self.error)
+
+            if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
+                self.error = f"{response.message if hasattr(response, 'message') else str(response)}"
+                time.sleep(RETRY_DELAY)
+                raise RuntimeError(self.error)
+
+            resurl = requests.get(response.output.audio["url"])
+            resurl.raise_for_status()  # 检查请求是否成功
+            with open(data_item['filename'] + '.wav', 'wb') as f:
+                f.write(resurl.content)
+            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+
+            if self.inst and self.inst.precent < 80:
+                self.inst.precent += 0.1
+            self.error = ''
+            self.has_done += 1
+            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+        _run()
