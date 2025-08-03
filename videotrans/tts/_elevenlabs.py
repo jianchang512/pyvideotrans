@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
 import logging
+import io
+from typing import Iterator, Union
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
@@ -126,49 +128,36 @@ class ElevenLabsClone():
         # 转为mp3发送
         mp3_audio = config.TEMP_DIR + f'/elevlabs-clone-{time.time()}.mp3'
         tools.runffmpeg(['-y', '-i', self.input_file_path, mp3_audio])
-        for attempt in range(RETRY_NUMS):
-            try:
-                with open(mp3_audio, "rb") as audio_file:
-                    response = self.client.dubbing.dub_a_video_or_an_audio_file(
-                        file=(os.path.basename(mp3_audio), audio_file, "audio/mpeg"),
-                        target_lang=self.target_language[:2],
-                        source_lang='auto' if self.source_language == 'auto' else self.source_language[:2],
-                        num_speakers=0,
-                        watermark=False  # reduces the characters used if enabled, only works for videos not audio
-                    )
 
-                dubbing_id = response.dubbing_id
-                if self.wait_for_dubbing_completion(dubbing_id):
-                    # 返回为mp3数据，转为 原m4a格式
+        try:
+            with open(mp3_audio, "rb") as f:
+                file_content_bytes = f.read()
+            
+            audio_data = io.BytesIO(file_content_bytes)
+            audio_data.name = os.path.basename(mp3_audio)
+            # Start dubbing
+            dubbed = self.client.dubbing.create(
+                file=audio_data, target_lang=self.target_language[:2]
+            )
+            
+            while True:
+                status = self.client.dubbing.get(dubbed.dubbing_id).status
+                if status == "dubbed":
+                    dubbed_file = self.client.dubbing.audio.get(dubbed.dubbing_id, target_lang)
+                    if isinstance(dubbed_file, Iterator):
+                        dubbed_file = b"".join(dubbed_file)
                     with open(self.output_file_path + ".mp3", "wb") as file:
-                        for chunk in self.client.dubbing.get_dubbed_file(dubbing_id, self.target_language):
-                            file.write(chunk)
+                        f.write(dubbed_file)
                     tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", self.output_file_path])
                     self.error = ""
                     return True
-            except Exception as e:
-                config.logger.exception(e,exc_info=True)
-                self.error = str(e)
-                time.sleep(RETRY_DELAY)
 
-        if self.error:
-            raise RuntimeError(self.error)
+                print("Audio is still being dubbed...")
+                time.sleep(5)
+        except ApiError as e:
+            raise RuntimeError(e.body.get('detail',{}).get('message',''))
+        except Exception as e:
+            config.logger.exception(e,exc_info=True)
+            self.error = str(e)
+            raise 
 
-    def wait_for_dubbing_completion(self, dubbing_id: str) -> bool:
-        MAX_ATTEMPTS = 120
-        CHECK_INTERVAL = 10  # In seconds
-        for _ in range(MAX_ATTEMPTS):
-            metadata = self.client.dubbing.get_dubbing_project_metadata(dubbing_id)
-            if metadata.status == "dubbed":
-                return True
-            elif metadata.status == "dubbing":
-                print(
-                    "Dubbing in progress... Will check status again in",
-                    CHECK_INTERVAL,
-                    "seconds.",
-                )
-                time.sleep(CHECK_INTERVAL)
-            else:
-                raise Exception("Dubbing failed:", metadata.error_message)
-
-        raise Exception("Dubbing timed out")

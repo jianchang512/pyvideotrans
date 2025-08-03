@@ -1,7 +1,7 @@
 from videotrans.configure import config
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError,Timeout,ConnectionError
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError,RateLimitError,APIConnectionError,APIError
-
+from elevenlabs.core import ApiError as ApiError_11
 
 class RetryRaise:
     # 定义一个类属性，属于这些异常的是永久性错误，无法通过重试恢复，直接不重试
@@ -42,6 +42,8 @@ class RetryRaise:
                     ('连接失败，请检查网络或代理' if config.defaulelang == 'zh' else 'Connection timed out') + f': {ex.message}')
             if isinstance(ex, APIError):
                 raise RuntimeError(ex.message)
+            if isinstance(ex, APIError_11):
+                raise RuntimeError(ex.body.get('detail',{}).get('message',''))    
 
             if isinstance(ex, (Timeout, ConnectionError)):
                 raise RuntimeError(
