@@ -350,7 +350,6 @@ class WinAction(WinActionSub):
                 self.main.current_rolelist = tools.get_elevenlabs_role()
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif self.change_by_lang(type):
-            print(f'{type=}')
             self.set_voice_role(self.main.target_language.currentText())
         elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
@@ -472,7 +471,6 @@ class WinAction(WinActionSub):
             return
         try:
             vt = code.split('-')[0] if code !='yue' else "zh"
-            print(f'{vt=}')
             
             if vt not in show_rolelist:
                 self.main.voice_role.addItems(['No'])

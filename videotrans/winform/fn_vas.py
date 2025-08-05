@@ -14,6 +14,35 @@ from videotrans import translator
 from videotrans.configure import config
 from videotrans.util import tools
 
+def format_milliseconds(milliseconds):
+    """
+    将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
+
+    Args:
+        milliseconds (int): 毫秒数。
+
+    Returns:
+        str: 格式化后的字符串，格式为 HH:mm:ss.zz。
+    """
+    if not isinstance(milliseconds, int):
+        raise TypeError("毫秒数必须是整数")
+    if milliseconds < 0:
+        raise ValueError("毫秒数必须是非负整数")
+
+    seconds = milliseconds / 1000
+
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
+
+    # 格式化为两位数字字符串
+    formatted_hours = f"{int(hours):02}"
+    formatted_minutes = f"{int(minutes):02}"
+    formatted_seconds = f"{int(seconds):02}"
+    formatted_milliseconds = f"{milliseconds_part:02}"
+
+
+    return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
 # 视频 字幕 音频 合并
 def openwin():
@@ -235,8 +264,8 @@ def openwin():
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
             srt_list=tools.get_subtitle_from_srt(file_path,is_file=True)
             for it in srt_list:
-                start_str=tools.format_milliseconds(it['start_time'])
-                end_str=tools.format_milliseconds(it['end_time'])
+                start_str=format_milliseconds(it['start_time'])
+                end_str=format_milliseconds(it['end_time'])
                 text=it['text'].replace("\n","\\N")
                 file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
         return True

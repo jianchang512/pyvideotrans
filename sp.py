@@ -11,154 +11,142 @@ License: GPL-V3
 # 写的这么烂，一看就不是AI写的
 
 """
-import argparse
-import multiprocessing
-import os
+
+"""
+pyVideoTrans: ... (你的注释保持不变)
+"""
+
 import sys
 import time
 print(f"\n####开始启动时间:{time.time()}")
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
-
-
-# 解决 modelscope GUI下下载失败问题 xxx is not registered
-def is_console_app():
-    # 在Windows上，当以`pythonw.exe`或`console=False`打包时，stdout/stderr为None
-    # 在macOS/Linux上，即使是GUI应用，通常也有有效的流，但重定向无害。
-    return sys.stdout is None or sys.stderr is None
-
-
-# 只有在以无控制台模式运行时才进行重定向
-if is_console_app():
-    try:
-        log_dir = os.path.join(os.getcwd(), "logs")
-        os.makedirs(log_dir, exist_ok=True)
-        log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")
-        log_file = open(log_file_path, 'a', encoding='utf-8', buffering=1)
-
-        # 重定向
-        sys.stdout = log_file
-        sys.stderr = log_file
-
-        print(f"\n\n--- Application started at {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
-    except Exception as e:
-        pass
-
-
-# 全局异常处理函数
-def global_exception_hook(exctype, value, tb):
-    tb_str = "".join(traceback.format_exception(exctype, value, tb))
-    print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
-
-    if QtWidgets.QApplication.instance():
-        error_box = QtWidgets.QMessageBox()
-        error_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-        error_box.setWindowTitle("Application Error")
-        error_box.setText("An unexpected error occurred. The application will now close.")
-        error_box.setDetailedText(tb_str)
-        error_box.exec()
-
-    sys.exit(1)
-
-
-sys.excepthook = global_exception_hook
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
+from PySide6.QtCore import Qt, QTimer, QPoint, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
-from videotrans import VERSION
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
-cli_args, unknown = parser.parse_known_args()  # 使用 parse_known_args 以避免与 PySide6 参数冲突
+VERSION = "v3.77"
 
-if cli_args.lang:
-    os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
-
-
-class StartWindow(QtWidgets.QWidget):
+class StartWindow(QWidget):
     def __init__(self):
-        super(StartWindow, self).__init__()
-        self.width = 1200
-        self.height = 700
+        super().__init__()
+        self.main_window = None
+
         self.resize(560, 350)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) # 使窗口背景透明
 
-        self.label = QtWidgets.QLabel(self)
+        # 使用一个简单的 QLabel 作为背景
+        self.background_label = QLabel(self)
         self.pixmap = QPixmap("./videotrans/styles/logo.png")
-        self.label.setPixmap(self.pixmap)
-        self.label.setScaledContents(True)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.label.setGeometry(self.rect())  # 直接设置几何形状覆盖
+        self.background_label.setPixmap(self.pixmap)
+        self.background_label.setScaledContents(True)
+        self.background_label.setGeometry(self.rect())
 
-        self.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
-
-        v1 = QtWidgets.QVBoxLayout()
-        v1.addStretch(1)
-        h1 = QtWidgets.QHBoxLayout()
-        v1.addLayout(h1)
-        v1.addStretch(0)
-        h1.addStretch(1)
-        self.lab = QtWidgets.QLabel()
-        self.lab.setStyleSheet("""font-size:16px;color:#fff;text-align:center;background-color:transparent""")
-        self.lab.setText(f"pyVideoTrans {VERSION} Loading...")
-        h1.addWidget(self.lab)
-        h1.addStretch(0)
-        self.setLayout(v1)
-
-        self.show()
-        self.center()
-        QTimer.singleShot(100, self.run)
-
-    def run(self):
-        # 创建并显示窗口B
-        import videotrans.ui.dark.darkstyle_rc
-        with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
-            app.setStyleSheet(f.read())
-        from videotrans.configure import config
-        try:
-            from videotrans.mainwin._main_win import MainWindow
-            sets = QSettings("pyvideotrans", "settings")
-            w, h = int(self.width * 0.85), int(self.height * 0.85)
-            size = sets.value("windowSize", QSize(w, h))
-            try:
-                w = size.width()
-                h = size.height()
-            except:
-                pass
-            config.MAINWIN = MainWindow(width=w, height=h)
-            config.MAINWIN.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
-        except Exception as e:
-            import traceback
-            from PySide6.QtWidgets import QMessageBox
-            msg = traceback.format_exc()
-            QtWidgets.QMessageBox.critical(startwin, "Error", msg)
-
-        QTimer.singleShot(500, lambda: self.close())
+        # 在背景上叠加文字
+        v_layout = QVBoxLayout(self)
+        v_layout.addStretch(1)
+        h_layout = QHBoxLayout()
+        v_layout.addLayout(h_layout)
+        h_layout.addStretch(1)
+        self.status_label = QLabel(f"pyVideoTrans {VERSION} Loading...")
+        self.status_label.setStyleSheet("font-size:16px; color:white; background-color:transparent;")
+        h_layout.addWidget(self.status_label)
+        h_layout.addStretch(1)
+        v_layout.setContentsMargins(0, 0, 0, 20)
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
-        screen_resolution = screen.geometry()
-        self.width, self.height = screen_resolution.width(), screen_resolution.height()
-        self.move(QPoint(int((self.width - 560) / 2), int((self.height - 350) / 2)))
+        if screen:
+            center_point = screen.geometry().center()
+            self.move(center_point.x() - self.width() // 2, center_point.y() - self.height() // 2)
 
+def initialize_full_app(start_window, app_instance):    
+    import os
+    import argparse
+    import traceback
+    
+    from PySide6 import QtWidgets
+
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
+
+    # 设置日志
+    if sys.stdout is None or sys.stderr is None:
+        try:
+            log_dir = os.path.join(os.getcwd(), "logs")
+            os.makedirs(log_dir, exist_ok=True)
+            log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")
+            log_file = open(log_file_path, 'a', encoding='utf-8', buffering=1)
+            sys.stdout = log_file
+            sys.stderr = log_file
+            print(f"\n\n--- Application started at {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
+        except Exception:
+            pass
+
+    # 设置全局异常钩子
+    def global_exception_hook(exctype, value, tb):
+        tb_str = "".join(traceback.format_exception(exctype, value, tb))
+        print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
+        if QtWidgets.QApplication.instance():
+            QtWidgets.QMessageBox.critical(None, "Application Error", f"An unexpected error occurred:\n{value}", tb_str)
+        sys.exit(1)
+    sys.excepthook = global_exception_hook
+
+    # 解析命令行参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
+    cli_args, unknown = parser.parse_known_args()
+    if cli_args.lang:
+        os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
+
+    # 导入资源
+    import videotrans.ui.dark.darkstyle_rc 
+    with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
+        app_instance.setStyleSheet(f.read())
+    
+    from videotrans.configure import config 
+    from videotrans.mainwin._main_win import MainWindow
+    
+    main_window_created = False
+    try:
+        from PySide6.QtCore import QSettings
+        screen = QGuiApplication.primaryScreen().geometry()
+        sets = QSettings("pyvideotrans", "settings")
+        w, h = int(screen.width() * 0.85), int(screen.height() * 0.85)
+        size = sets.value("windowSize", QSize(w, h))
+        w, h = size.width(), size.height()        
+        start_window.main_window = MainWindow(width=w, height=h)
+        main_window_created=True
+    except Exception as e:
+        sys.excepthook(type(e), e, e.__traceback__)
+        app_instance.quit()
+        return
+    
+    # 7. 关闭启动窗口并显示主窗口
+    if main_window_created and start_window.main_window:
+        print(f"#### 所有初始化完毕，准备关闭启动窗口: {time.time()}")
+        start_window.main_window.show()
+        QTimer.singleShot(1000, lambda: start_window.close())
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
+    # Windows 打包需要
+    import multiprocessing
+    multiprocessing.freeze_support()
+    
+    # 在创建 QApplication 之前，设置 HighDpi
     try:
-        QtWidgets.QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    except:
+        QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    except AttributeError:
         pass
+    
 
-    app = QtWidgets.QApplication(sys.argv)
-    startwin = None
-    try:
-        startwin = StartWindow()
-    except Exception as e:
-        import traceback
-
-        msg = traceback.format_exc()
-        QtWidgets.QMessageBox.critical(startwin, "Error", msg)
+    app = QApplication(sys.argv)
+    
+    splash = StartWindow()
+    splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
+    splash.center()
+    splash.show()
+    
+    QTimer.singleShot(50, lambda: initialize_full_app(splash, app))
     sys.exit(app.exec())

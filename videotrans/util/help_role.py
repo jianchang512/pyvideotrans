@@ -1,7 +1,3 @@
-
-
-
-# 获取 elenevlabs 的角色列表
 import json
 import os
 import re
@@ -95,8 +91,9 @@ def set_proxy(set_val=''):
 def get_302ai(role_name=None):
     from videotrans import tts
     role_dict = get_azure_rolelist()
-    role_dict['zh']=['No']+list(tts.AI302_doubao.keys())+list(tts.AI302_minimaxi.keys())+list(tts.AI302_dubbingx.keys())+list(tts.AI302_openai.keys())+role_dict['zh'][1:]
-    role_dict['ja']+=list(tts.AI302_doubao_ja.keys())
+    role_dict['zh'] = ['No'] + list(tts.AI302_doubao.keys()) + list(tts.AI302_minimaxi.keys()) + list(
+        tts.AI302_dubbingx.keys()) + list(tts.AI302_openai.keys()) + role_dict['zh'][1:]
+    role_dict['ja'] += list(tts.AI302_doubao_ja.keys())
     return role_dict
 
 
@@ -354,14 +351,14 @@ def get_kokoro_rolelist():
             "bm_george",
             "bm_lewis"
         ],
-        "zh": ["No","zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia",
+        "zh": ["No", "zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia",
                "zm_yunyang"],
-        "ja": ["No","jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo"],
-        "fr": ["No","ff_siwis"],
-        "it": ["No","if_sara", "im_nicola"],
-        "hi": ["No","hf_alpha", "hf_beta", "hm_omega", "hm_psi"],
-        "es": ["No","ef_dora", "em_alex", "em_santa"],
-        "pt": ["No","pf_dora", "pm_alex", "pm_santa"]
+        "ja": ["No", "jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo"],
+        "fr": ["No", "ff_siwis"],
+        "it": ["No", "if_sara", "im_nicola"],
+        "hi": ["No", "hf_alpha", "hf_beta", "hm_omega", "hm_psi"],
+        "es": ["No", "ef_dora", "em_alex", "em_santa"],
+        "pt": ["No", "pf_dora", "pm_alex", "pm_santa"]
     }
 
     return voice_list
@@ -380,9 +377,10 @@ def get_gptsovits_role():
         rolelist[tmp[0]] = {"refer_wav_path": tmp[0], "prompt_text": tmp[1], "prompt_language": tmp[2]}
     return rolelist
 
+
 def get_chatterbox_role():
     from videotrans.configure import config
-    rolelist = ['chatterbox','clone']
+    rolelist = ['chatterbox', 'clone']
     if not config.params['chatterbox_role'].strip():
         return rolelist
     for it in config.params['chatterbox_role'].strip().split("\n"):
@@ -446,6 +444,7 @@ def get_f5tts_role():
         rolelist[tmp[0]] = {"ref_audio": tmp[0], "ref_text": tmp[1]}
     return rolelist
 
+
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
     from videotrans.configure import config
@@ -467,3 +466,25 @@ def get_clone_role(set_p=False):
         if set_p:
             raise
     return False
+
+
+# 综合写入日志，默认sp界面
+# type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
+# uuid 任务的唯一id，用于确定插入哪个子队列
+# nologs=False不写入日志
+def set_process(*, text="", type="logs", uuid=None, nologs=False):
+    from videotrans.configure import config
+    try:
+        if text:
+            # 移除html
+            if type == 'error':
+                text = text.replace('\\n', ' ').strip()
+        if type == 'logs':
+            text = text[:150]
+        log = {"text": text, "type": type, "uuid": uuid}
+        if uuid:
+            config.push_queue(uuid, log)
+        else:
+            config.global_msg.append(log)
+    except:
+        pass

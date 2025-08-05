@@ -1,80 +1,26 @@
 import platform
+import shutil
 import threading
 import time, os
-
-# ==================== 诊断开始 ====================
-print("[诊断] MainWindow: 开始导入模块...")
-last_time_module = time.perf_counter()
-
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
-from PySide6 import QtWidgets
-from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QMessageBox
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 PySide6 模块耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
+from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QMessageBox,QSizePolicy
 from pathlib import Path
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 pathlib 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
 from videotrans.configure import config
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 videotrans.configure 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
 from videotrans.ui.en import Ui_MainWindow
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 videotrans.ui.en 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
 from videotrans.util import tools
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 videotrans.util.tools 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
 from videotrans.mainwin._actions import WinAction
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 videotrans.mainwin._actions 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
-
 from videotrans import VERSION, recognition, tts
-
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 videotrans.VERSION, recognition, tts 耗时: {current_time_module - last_time_module:.4f} 秒")
-
-last_time_module = current_time_module
-
 from videotrans.component.controlobj import TextGetdir
 from videotrans.recognition import RECOGN_NAME_LIST
 from videotrans.tts import TTS_NAME_LIST
-current_time_module = time.perf_counter()
-print(f"[诊断] MainWindow: 导入 TextGetdir,RECOGN_NAME_LIST,TTS_NAME_LIST 耗时: {current_time_module - last_time_module:.4f} 秒")
-last_time_module = current_time_module
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
-        # ==================== 诊断开始 ====================
-        print("\n--- [诊断] MainWindow __init__ 开始执行 ---")
-        init_start_time = time.perf_counter()
-        last_time_init = init_start_time
-        # ==================== 诊断结束 ====================
-
+        
         super(MainWindow, self).__init__(parent)
         
-        # ==================== 诊断开始 ====================
-        current_time_init = time.perf_counter()
-        print(f"[诊断] super().__init__() 耗时: {current_time_init - last_time_init:.4f} 秒")
-        last_time_init = current_time_init
-        # ==================== 诊断结束 ====================
-
+        
         self.width = width
         self.height = height
         self.resize(width, height)
@@ -90,46 +36,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_rolelist = []
         self.languagename = config.langnamelist
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-        # ==================== 诊断开始 ====================
-        current_time_init = time.perf_counter()
-        print(f"[诊断] 初始化变量和设置图标耗时: {current_time_init - last_time_init:.4f} 秒")
-        last_time_init = current_time_init
-        # ==================== 诊断结束 ====================
-
+        
         self.setupUi(self)
         
-        # ==================== 诊断开始 ====================
-        current_time_init = time.perf_counter()
-        print(f"[诊断] self.setupUi(self) 耗时: {current_time_init - last_time_init:.4f} 秒")
-        last_time_init = current_time_init
-        # ==================== 诊断结束 ====================
-
+        
         self._replace_placeholders()
         self.initUI()
         
-        # ==================== 诊断开始 ====================
-        current_time_init = time.perf_counter()
-        print(f"[诊断] self.initUI() / _replace_placeholders() 耗时: {current_time_init - last_time_init:.4f} 秒")
-        last_time_init = current_time_init
-        # ==================== 诊断结束 ====================
+        
+        
         self._retranslateUi_from_logic()
-        current_time_init = time.perf_counter()
-        print(f"[诊断] self._retranslateUi_from_logic() 耗时: {current_time_init - last_time_init:.4f} 秒")
-
         self.show()
-
-
         QTimer.singleShot(50, self._set_cache_set)
         QTimer.singleShot(100, self._start_subform)
         QTimer.singleShot(500, self._bindsignal)
         QTimer.singleShot(1000, self.is_writable)
-
-        # ==================== 诊断开始 ====================
-        total_init_time = time.perf_counter() - init_start_time
-        print(f"--- [诊断] MainWindow __init__ 执行完毕，总耗时: {total_init_time:.4f} 秒 ---\n")
-        # ==================== 诊断结束 ====================
+        
+        
     
     
     def _replace_placeholders(self):
@@ -140,9 +63,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.addItems(TTS_NAME_LIST)
         # 创建真正的 TextGetdir 实例
         self.subtitle_area = TextGetdir(self)
-        self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")
-
+        self.subtitle_area.setPlaceholderText(
+            f"{config.transobj['zimubianjitishi']}\n\n{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
         # 替换占位符
         index = self.source_area_layout.indexOf(self.subtitle_area_placeholder)
         self.source_area_layout.insertWidget(index, self.subtitle_area)
@@ -259,9 +183,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
         self.action_biaozhun.setToolTip(
             '批量进行视频翻译，并可按照需求自定义所有配置选项' if config.defaulelang == 'zh' else 'Batch video translation with all configuration options customizable on demand')
-
-
-
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
             '批量将音频或视频中的语音识别为srt字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in audio or video as srt subtitles')
@@ -328,19 +249,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     
     def initUI(self):
-        # ==================== 诊断开始 ====================
-        print("\n--- [诊断] initUI 开始执行 ---")
-        initUI_start_time = time.perf_counter()
-        last_time_initUI = initUI_start_time
-        # ==================== 诊断结束 ====================
-
+        
         from videotrans.translator import TRANSLASTE_NAME_LIST
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 导入 TRANSLASTE_NAME_LIST 耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
+
+        
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
@@ -356,19 +269,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pvt9.com "
         self.setWindowTitle(self.rawtitle)
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 初始化状态栏和下拉框耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
+        
+
+        
 
         self.win_action = WinAction(self)
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 实例化 WinAction 耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
+        
+
+        
         
         self.win_action.tts_type_change(config.params['tts_type'])
         
@@ -388,11 +297,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.setCurrentIndex(config.params['tts_type'])
         self.voice_role.clear()
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 设置各种类型和语言的默认值耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
+        
 
         # 这部分可能有网络或文件IO操作，需要重点监控
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
@@ -432,11 +337,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 根据TTS类型设置角色列表耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
+
+        
 
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
@@ -445,12 +347,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
+
         
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        print(f"[诊断] initUI: 设置目标语言和角色耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        last_time_initUI = current_time_initUI
-        # ==================== 诊断结束 ====================
 
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
@@ -483,29 +381,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.params['recogn_type'] == recognition.GEMINI_SPEECH:
             self.show_spk.setVisible(True)
             
-        # ==================== 诊断开始 ====================
-        current_time_initUI = time.perf_counter()
-        total_initUI_time = current_time_initUI - initUI_start_time
-        print(f"[诊断] initUI: 设置识别模型耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
-        print(f"--- [诊断] initUI 执行完毕，总耗时: {total_initUI_time:.4f} 秒 ---")
-        # ==================== 诊断结束 ====================
+        
 
     def _bindsignal(self):
-        # ==================== 诊断开始 ====================
-        print("\n--- [诊断] _bindsignal 开始执行 (延迟500ms后) ---")
-        bind_start_time = time.perf_counter()
-        last_time_bind = bind_start_time
-        # ==================== 诊断结束 ====================
+        
+
+        
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.get_role_list import GetRoleWorker
         from videotrans.task.job import start_thread
         from videotrans.mainwin._signal import UUIDSignalThread
         
-        # ==================== 诊断开始 ====================
-        current_time_bind = time.perf_counter()
-        print(f"[诊断] _bindsignal: 导入任务模块耗时: {current_time_bind - last_time_bind:.4f} 秒")
-        last_time_bind = current_time_bind
-        # ==================== 诊断结束 ====================
+        
+
+        
         
         update_role = GetRoleWorker(parent=self)
         update_role.start()
@@ -516,17 +405,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         uuid_signal.uito.connect(self.win_action.update_data)
         uuid_signal.start()
         start_thread(self)
-        # ==================== 诊断开始 ====================
-        total_bind_time = time.perf_counter() - bind_start_time
-        print(f"--- [诊断] _bindsignal 执行完毕，总耗时: {total_bind_time:.4f} 秒 ---")
-        # ==================== 诊断结束 ====================
-        print(f"\n####信号结束:{time.time()}")
+        
+
+        
+        print(f"\n####信号绑定结束:{time.time()}")
 
     def _set_cache_set(self):
-        # ==================== 诊断开始 ====================
-        print("\n--- [诊断] _set_cache_set 开始执行 (延迟50ms后) ---")
-        set_cache_start_time = time.perf_counter()
-        # ==================== 诊断结束 ====================
+        
+
+        
         
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
@@ -620,18 +507,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
         
-        # ==================== 诊断开始 ====================
-        total_set_cache_time = time.perf_counter() - set_cache_start_time
-        print(f"--- [诊断] _set_cache_set 执行完毕，总耗时: {total_set_cache_time:.4f} 秒 ---")
-        # ==================== 诊断结束 ====================
+
+        
         print(f"\n####缓存读取结束:{time.time()}")
 
     def _start_subform(self):
-        # ==================== 诊断开始 ====================
-        print("\n--- [诊断] _start_subform 开始执行 (延迟100ms后) ---")
-        subform_start_time = time.perf_counter()
-        last_time_subform = subform_start_time
-        # ==================== 诊断结束 ====================
+        
+        
         
         self.import_sub.setCursor(Qt.PointingHandCursor)
 
@@ -646,13 +528,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.setCursor(Qt.PointingHandCursor)
 
         from videotrans import winform
-        
-        # ==================== 诊断开始 ====================
-        current_time_subform = time.perf_counter()
-        print(f"[诊断] _start_subform: 导入 videotrans.winform 耗时: {current_time_subform - last_time_subform:.4f} 秒")
-        last_time_subform = current_time_subform
-        # ==================== 诊断结束 ====================
-
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 
@@ -712,8 +587,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_fanyi.triggered.connect(lambda: winform.get_win('fn_fanyisrt').openwin())
         self.action_yuyinshibie.triggered.connect(lambda: winform.get_win('fn_recogn').openwin())
         self.action_yuyinhecheng.triggered.connect(lambda: winform.get_win('fn_peiyin').openwin())
-
-
         self.action_ffmpeg.triggered.connect(lambda: self.win_action.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.win_action.open_url('discord'))
@@ -731,11 +604,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
-        # ==================== 诊断开始 ====================
-        total_subform_time = time.perf_counter() - subform_start_time
-        print(f"--- [诊断] _start_subform 执行完毕，总耗时: {total_subform_time:.4f} 秒 ---")
-        # ==================== 诊断结束 ====================
-
+        
+        
         print(f"\n####启动窗口结束:{time.time()}")
 
     def is_writable(self):
@@ -768,6 +638,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.isActiveWindow():
                 self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
+    def kill_ffmpeg_processes(self):
+        import platform
+        import signal
+        import getpass,subprocess
+        try:
+            system_platform = platform.system()
+            current_user = getpass.getuser()
+
+            if system_platform == "Windows":
+                subprocess.call(f"taskkill /F /FI \"USERNAME eq {current_user}\" /IM ffmpeg.exe", shell=True)
+            elif system_platform == "Linux" or system_platform == "Darwin":
+                process = subprocess.Popen(['ps', '-U', current_user], stdout=subprocess.PIPE)
+                out, err = process.communicate()
+
+                for line in out.splitlines():
+                    if b'ffmpeg' in line:
+                        pid = int(line.split(None, 1)[0])
+                        os.kill(pid, signal.SIGKILL)
+        except:
+            pass
+
     def closeEvent(self, event):
         config.exit_soft = True
         config.current_status = 'stop'
@@ -792,10 +683,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         print('等待所有进程退出...')
         try:
-            tools.kill_ffmpeg_processes()
+            self.kill_ffmpeg_processes()
+            time.sleep(3)
         except:
             pass
-        time.sleep(3)
         os.chdir(config.ROOT_DIR)
-        tools._unlink_tmp()
+        try:
+            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
+        except:
+            pass
+        try:
+            shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
+        except:
+            pass
         event.accept()

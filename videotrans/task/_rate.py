@@ -66,6 +66,7 @@ class SpeedRate:
 2. 如果不存在视频文件，则无需其他处理
 
 
+## 小于 1024B 的视频片段可视为无效，过滤掉，容器、元信息加一帧图片，尺寸在 1024B以上
 
     ===============================================================================================
     """
@@ -372,7 +373,7 @@ class SpeedRate:
             self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param, out=task['out'])
 
             real_duration_ms = 0
-            if Path(task['out']).exists() and Path(task['out']).stat().st_size > 0:
+            if Path(task['out']).exists() and Path(task['out']).stat().st_size > 1024:
                 real_duration_ms = self._get_video_duration_safe(task['out'])
 
             task['real_duration_ms'] = real_duration_ms
@@ -426,21 +427,34 @@ class SpeedRate:
 
     def _cut_to_intermediate(self, ss, to, source, pts, out):
         """将视频片段裁切为标准化的中间格式"""
-        config.logger.info(f"正在生成中间片段: {Path(out).name}, 原始范围: {ss}-{to}, PTS={pts or '1.0'}")
         cmd = ['-y', '-ss', tools.ms_to_time_string(ms=ss,sepflag='.'), '-to', tools.ms_to_time_string(ms=to,sepflag='.'), '-i', source,
                '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10',
                '-pix_fmt', 'yuv420p', '-r', str(self.source_video_fps)]
+        config.logger.info(f"正在生成中间片段: {Path(out).name}, 原始范围: {ss}-{to}, PTS={pts or '1.0'},cmd="+(" ".join(cmd)))
+        
         if pts: cmd.extend(['-vf', f'setpts={pts}*PTS,fps={self.source_video_fps}'])
         cmd.append(out)
-        tools.runffmpeg(cmd, force_cpu=True)
-        if not Path(out).exists() or Path(out).stat().st_size == 0:
-            config.logger.warning(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。")
-            if pts: cmd.pop(-2); cmd.pop(-2)
+        try:
             tools.runffmpeg(cmd, force_cpu=True)
-
+            if not Path(out).exists() and pts:
+                config.logger.warning(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。")
+                if pts: cmd.pop(-2); cmd.pop(-2)
+                tools.runffmpeg(cmd, force_cpu=True)
+            # 有效视频片段不可能小于 1024字节
+            if Path(out).exists():
+                st_size=Path(out).stat().st_size
+                if st_size < 1024:
+                    config.logger.warning(f"中间片段 {Path(out).name} 生成成功，但尺寸为 {st_size} < 1024B，无效需删除。")
+                    Path(out).unlink(missing_ok=True)                
+        except:
+            try:
+                Path(out).unlink(missing_ok=True)
+            except:
+                pass
+                
     def _concat_and_finalize(self, clip_meta_list):
-        """无损拼接中间片段，然后进行一次性的最终编码"""
-        valid_clips = [task['out'] for task in clip_meta_list if Path(task['out']).exists() and Path(task['out']).stat().st_size > 0]
+        """无损拼接中间片段，然后进行一次性的最终编码，有效片段不可能小于 1024B"""
+        valid_clips = [task['out'] for task in clip_meta_list if Path(task['out']).exists() and Path(task['out']).stat().st_size > 1024]
         if not valid_clips:
             config.logger.error("没有任何有效的视频中间片段生成，视频处理失败！")
             self.novoice_mp4 = self.novoice_mp4_original
@@ -469,13 +483,14 @@ class SpeedRate:
         else:
              config.logger.error("最终视频编码失败，保留原始无声视频。")
              self.novoice_mp4 = self.novoice_mp4_original
-
+        # 删除临时片段
         for clip_path in valid_clips:
             try:
                 if Path(clip_path).exists():
                     os.remove(clip_path)
             except:
                 pass
+        
         try:
             if Path(intermediate_merged_path).exists():
                 os.remove(intermediate_merged_path)
@@ -630,7 +645,9 @@ class SpeedRate:
 
             if self.novoice_mp4 and tools.vail_file(self.novoice_mp4):
                 config.logger.info("开始最终音视频时长对齐检查...")
-                video_duration_ms = tools.get_video_duration(self.novoice_mp4)
+                video_duration_ms = self._get_video_duration_safe(self.novoice_mp4)
+                if video_duration_ms==0:
+                    raise RuntimeError(f'Duration is 0: {self.novoice_mp4}')
                 audio_duration_ms = self._get_audio_time_ms(self.target_audio)
 
                 config.logger.info(f"最终检查: 视频物理总长 = {video_duration_ms}ms, 音频物理总长 = {audio_duration_ms}ms")
@@ -673,7 +690,7 @@ class SpeedRate:
 
         except Exception as e:
             config.logger.exception(f"导出或对齐最终音视频时发生致命错误: {e}")
-            raise RuntimeError(f"导出或对齐最终音视频时发生致命错误: {e}")
+            raise RuntimeError(f"{e}")
 
         config.logger.info("所有处理完成，音视频已成功生成。")
 

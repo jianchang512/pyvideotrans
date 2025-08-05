@@ -552,22 +552,33 @@ class TransCreate(BaseTask):
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
-            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-            shutil.rmtree(self.cfg['cache_folder'], ignore_errors=True)
+            #Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+            #shutil.rmtree(self.cfg['cache_folder'], ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
+
+
+    # 从原始视频分离出 无声视频 cuda + h264_cuvid
+    def split_novoice_byraw(self):
+        cmd = [
+            "-y",
+            "-i",
+            self.cfg['name'],
+            "-an",
+            "-c:v",
+            "copy" if self.is_copy_video else f"libx{self.video_codec_num}"
+        ]
+        if not self.is_copy_video:
+            cmd += ["-crf", f'{config.settings["crf"]}']
+        cmd += [self.cfg['novoice_mp4']]
+        return tools.runffmpeg(cmd, noextname=self.cfg['noextname'])
 
     # 分离音频 和 novoice.mp4
     def _split_wav_novicemp4(self) -> None:
         # 不是 提取字幕时，需要分离出视频
         if self.cfg['app_mode'] not in ['tiqu']:
             config.queue_novice[self.cfg['noextname']] = 'ing'
-            threading.Thread(
-                target=tools.split_novoice_byraw,
-                args=(self.cfg['name'],
-                      self.cfg['novoice_mp4'],
-                      self.cfg['noextname'],
-                      "copy" if self.is_copy_video else f"libx{self.video_codec_num}")).start()
+            threading.Thread(target=self.split_novoice_byraw).start()
             if not self.is_copy_video:
                 self.status_text = '视频需要转码，耗时可能较久..' if config.defaulelang == 'zh' else 'Video needs transcoded and take a long time..'
         else:
@@ -578,11 +589,7 @@ class TransCreate(BaseTask):
             try:
                 self._signal(text=config.transobj['Separating background music'])
                 self.status_text = config.transobj['Separating background music']
-                tools.split_audio_byraw(
-                    self.cfg['name'],
-                    self.cfg['source_wav'],
-                    True,
-                    uuid=self.uuid)
+                self.split_audio_byraw(True)
             except Exception as e:
                 pass
             finally:
@@ -600,7 +607,7 @@ class TransCreate(BaseTask):
         if not self.cfg['is_separate']:
             try:
                 self.status_text = config.transobj['kaishitiquyinpin']
-                tools.split_audio_byraw(self.cfg['name'], self.cfg['source_wav'])
+                self.split_audio_byraw()
                 # 需要识别
                 if self.shoud_recogn:
                     tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
@@ -610,6 +617,62 @@ class TransCreate(BaseTask):
         if self.cfg['source_wav']:
             shutil.copy2(self.cfg['source_wav'], self.cfg['target_dir'] + f"/{os.path.basename(self.cfg['source_wav'])}")
         self.status_text = config.transobj['endfenliyinpin']
+
+
+    # 从原始视频中分离出音频 cuda + h264_cuvid
+    def split_audio_byraw(self,is_separate=False):
+        cmd = [
+            "-y",
+            "-i",
+            self.cfg['name'],
+            "-vn",
+            "-ac",
+            "1",
+            "-b:a",
+            "128k",
+            "-c:a",
+            "aac",
+            self.cfg['source_wav']
+        ]
+        rs = tools.runffmpeg(cmd)
+        if not is_separate:
+            return rs
+        # 继续人声分离
+
+        tmpdir = config.TEMP_DIR + f"/{time.time()}"
+        os.makedirs(tmpdir, exist_ok=True)
+        tmpfile = tmpdir + "/raw.wav"
+        tools.runffmpeg([
+            "-y",
+            "-i",
+            self.cfg['name'],
+            "-vn",
+            "-ac",
+            "2",
+            "-ar",
+            "44100",
+            "-c:a",
+            "pcm_s16le",
+            tmpfile
+        ])
+        from videotrans.separate import st
+        try:
+            path = Path(self.cfg['source_wav']).parent.as_posix()
+            vocal_file = path + '/vocal.wav'
+            if not tools.vail_file(vocal_file):
+                self._signal(text=config.transobj['Separating vocals and background music, which may take a longer time'])
+                try:
+                    st.start(audio=tmpfile, path=path, uuid=self.uuid)
+                except Exception as e:
+                    msg = f"separate vocal and background music:{str(e)}"
+                    self._signal(text=msg)
+                    raise
+            if not tools.vail_file(vocal_file):
+                return False
+        except Exception as e:
+            msg = f"separate vocal and background music:{str(e)}"
+            self._signal(text=msg)
+            raise
 
     # 配音预处理，去掉无效字符，整理开始时间
     def _tts(self) -> None:
@@ -773,10 +836,25 @@ class TransCreate(BaseTask):
                                              out=self.cfg['cache_folder'] + "/instrument-concat.m4a")
                     self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.m4a"
                 # 背景音合并配音
-                tools.backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
+                self.backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
                 shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
+    #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
+    def backandvocal(self,backwav, peiyinm4a):
+        import tempfile
+        backwav = Path(backwav).as_posix()
+        peiyinm4a = Path(peiyinm4a).as_posix()
+        tmpdir = tempfile.gettempdir()
+        tmpwav = Path(tmpdir + f'/{time.time()}-1.m4a').as_posix()
+        tmpm4a = Path(tmpdir + f'/{time.time()}.m4a').as_posix()
+        # 背景转为m4a文件,音量降低为0.8
+        tools.wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
+        tools.runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
+                   "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'aac',
+                   tmpwav])
+        shutil.copy2(tmpwav, peiyinm4a)
+
 
     # 处理所需字幕
     def _process_subtitles(self) -> tuple[str, str]:

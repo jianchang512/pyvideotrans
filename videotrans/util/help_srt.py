@@ -1,12 +1,7 @@
-
-
-
 # 将普通文本转为合法的srt字符串
 import copy
 import os
 import re
-import textwrap
-import time
 from datetime import timedelta
 
 
@@ -67,48 +62,6 @@ def is_srt_string(input_text):
     return True
 
 
-def clean_srt(srt):
-    # 替换特殊符号
-    srt = re.sub(r'&gt;', '>', srt)
-    # ：: 换成 :
-    srt = re.sub(r'([：:])\s*', ':', srt)
-    # ,， 换成 ,
-    srt = re.sub(r'([,，])\s*', ',', srt)
-    srt = re.sub(r'([`’\'\"])\s*', '', srt)
-
-    # 秒和毫秒间的.换成,
-    srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt)
-    # 时间行前后加空格
-    time_line = r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
-    srt = re.sub(time_line, r"\n\1 --> \2\n", srt)
-    # twenty one\n00:01:18,560 --> 00:01:22,000\n
-    srt = re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
-                 "\n" + r'1\n\1\n', srt)
-    # 去除多余的空行
-    srt = "\n".join([it.strip() for it in srt.splitlines() if it.strip()])
-
-    # 删掉以空格或换行连接的多个时间行
-    time_line2 = r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
-    srt = re.sub(time_line2, r'\n\1 --> \2\n', srt)
-    srt_list = [it.strip() for it in srt.splitlines() if it.strip()]
-
-    remove_list = []
-    for it in srt_list:
-        if len(remove_list) > 0 and str(it) == str(remove_list[-1]):
-            if re.match(r'^\d{1,4}$', it):
-                continue
-            if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
-                continue
-        remove_list.append(it)
-
-    srt = "\n".join(remove_list)
-
-    # 行号前添加换行符
-    srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
-    return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
-
-
-
 # 删除翻译结果的特殊字符
 def cleartext(text: str, remove_start_end=True):
     res_text = text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
@@ -123,8 +76,7 @@ def cleartext(text: str, remove_start_end=True):
     return res_text
 
 
-
-def ms_to_time_string(*, ms=0, seconds=None,sepflag=','):
+def ms_to_time_string(*, ms=0, seconds=None, sepflag=','):
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
         td = timedelta(milliseconds=ms)
@@ -164,7 +116,6 @@ def format_time(s_time="", separate=','):
     sec = f'{int(sec):02}'
     ms = f'{int(ms):03}'[-3:]
     return f"{hou}:{min}:{sec}{separate}{ms}"
-
 
 
 def srt_str_to_listdict(srt_string):
@@ -222,9 +173,9 @@ def srt_str_to_listdict(srt_string):
             text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
             text = re.sub(r'\n{2,}', '\n', text).strip()
             if text and text[0] in ['-']:
-                text=text[1:]
-            if text and len(text)>0 and text[-1] in ['-',']']:
-                text=text[:-1]
+                text = text[1:]
+            if text and len(text) > 0 and text[-1] in ['-', ']']:
+                text = text[:-1]
             it = {
                 "line": len(srt_list) + 1,  # 字幕索引，转换为整数
                 "start_time": int(start_time),
@@ -280,7 +231,6 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         raise Exception(f"srt is empty:{srtfile=},{content=}")
     result = format_srt(copy.copy(content))
 
-
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
@@ -317,71 +267,8 @@ def get_srt_from_list(srt_list):
             startraw = it['startraw']
             endraw = it['endraw']
 
-
         txt += f"{line}\n{startraw} --> {endraw}\n{it['text']}\n\n"
     return txt
-
-
-# 将srt字幕转为 ass字幕
-def srt2ass(srt_file, ass_file, maxlen=40):
-    from videotrans.configure import config
-    srt_list = get_subtitle_from_srt(srt_file)
-    text = ""
-    for i, it in enumerate(srt_list):
-        it['text'] = textwrap.fill(it['text'], maxlen, replace_whitespace=False).strip()
-        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-    tmp_srt = config.TEMP_DIR + f"/{time.time()}.srt"
-    with open(tmp_srt, 'w', encoding='utf-8', errors='ignore') as f:
-        f.write(text)
-    from . import help_ffmpeg
-    help_ffmpeg.runffmpeg(['-y', '-i', tmp_srt, ass_file])
-    with open(ass_file, 'r', encoding='utf-8') as f:
-        ass_str = f.readlines()
-
-    for i, it in enumerate(ass_str):
-        if it.find('Style: ') == 0:
-            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,{marginV},1'.format(
-                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
-                fontcolor=config.settings['fontcolor'],
-                fontbordercolor=config.settings['fontbordercolor'],
-                fontbackcolor=config.settings['fontbordercolor'],
-                subtitle_position=int(config.settings.get('subtitle_position',2)),
-                marginV=int(config.settings.get('marginV',10))
-                )
-            break
-
-    with open(ass_file, 'w', encoding='utf-8') as f:
-        f.write("".join(ass_str))
-
-def format_milliseconds(milliseconds):
-    """
-    将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
-
-    Args:
-        milliseconds (int): 毫秒数。
-
-    Returns:
-        str: 格式化后的字符串，格式为 HH:mm:ss.zz。
-    """
-    if not isinstance(milliseconds, int):
-        raise TypeError("毫秒数必须是整数")
-    if milliseconds < 0:
-        raise ValueError("毫秒数必须是非负整数")
-
-    seconds = milliseconds / 1000
-
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
-
-    # 格式化为两位数字字符串
-    formatted_hours = f"{int(hours):02}"
-    formatted_minutes = f"{int(minutes):02}"
-    formatted_seconds = f"{int(seconds):02}"
-    formatted_milliseconds = f"{milliseconds_part:02}"
-
-
-    return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
 
 def set_ass_font(srtfile=None):
@@ -401,13 +288,12 @@ def set_ass_font(srtfile=None):
                 i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,{marginV},1'.format(
                 fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
                 fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
-                subtitle_position=int(config.settings.get('subtitle_position',2)),
-                marginV=int(config.settings.get('marginV',10))
-                )
+                subtitle_position=int(config.settings.get('subtitle_position', 2)),
+                marginV=int(config.settings.get('marginV', 10))
+            )
         elif it.find('Dialogue: ') == 0:
             ass_str[i] = it.replace('  ', '\\N')
 
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
     return assfile
-

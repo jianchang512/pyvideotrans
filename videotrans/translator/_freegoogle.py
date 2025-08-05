@@ -44,5 +44,45 @@ class FreeGoogle(BaseTrans):
         re_result=re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<',response.text)
         if not re_result or len(re_result.groups())<1:
             raise Exception(f'no result:{re_result=}')
-        return tools.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
+        return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
 
+
+    def clean_srt(self,srt):
+        # 替换特殊符号
+        srt = re.sub(r'&gt;', '>', srt)
+        # ：: 换成 :
+        srt = re.sub(r'([：:])\s*', ':', srt)
+        # ,， 换成 ,
+        srt = re.sub(r'([,，])\s*', ',', srt)
+        srt = re.sub(r'([`’\'\"])\s*', '', srt)
+
+        # 秒和毫秒间的.换成,
+        srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt)
+        # 时间行前后加空格
+        time_line = r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
+        srt = re.sub(time_line, r"\n\1 --> \2\n", srt)
+        # twenty one\n00:01:18,560 --> 00:01:22,000\n
+        srt = re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
+                     "\n" + r'1\n\1\n', srt)
+        # 去除多余的空行
+        srt = "\n".join([it.strip() for it in srt.splitlines() if it.strip()])
+
+        # 删掉以空格或换行连接的多个时间行
+        time_line2 = r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
+        srt = re.sub(time_line2, r'\n\1 --> \2\n', srt)
+        srt_list = [it.strip() for it in srt.splitlines() if it.strip()]
+
+        remove_list = []
+        for it in srt_list:
+            if len(remove_list) > 0 and str(it) == str(remove_list[-1]):
+                if re.match(r'^\d{1,4}$', it):
+                    continue
+                if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
+                    continue
+            remove_list.append(it)
+
+        srt = "\n".join(remove_list)
+
+        # 行号前添加换行符
+        srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
+        return srt.strip().replace('&#39;', '"').replace('&quot;', "'")

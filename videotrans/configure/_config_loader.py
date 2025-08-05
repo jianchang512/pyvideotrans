@@ -769,6 +769,3 @@ ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 
                     'ms', 'uk', 'cs', 'tl']
 
 codec_cache = {}
-
-
-print(f'config.py模块加载耗时:{time.time() - _st_time}s ')
