@@ -8,9 +8,9 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
-from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
+
 
 
 from videotrans.configure import config
@@ -48,17 +48,17 @@ class WinActionSub:
             msg='From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n'
 
         # 创建 QMessageBox
-        msg_box = QMessageBox(self.main)
+        msg_box = QtWidgets.QMessageBox(self.main)
         msg_box.setWindowTitle("Help")
         msg_box.setText(msg)
 
         # 添加 OK 按钮
-        ok_button = msg_box.addButton(QMessageBox.Ok)
+        ok_button = msg_box.addButton(QtWidgets.QMessageBox.Ok)
         ok_button.setText("知道了" if config.defaulelang=='zh' else 'OK')
 
         # 添加“模型选择教程”按钮
-        tutorial_button = QPushButton("点击查看模型选择教程" if config.defaulelang=='zh' else "Model Selection Tutorial")
-        msg_box.addButton(tutorial_button, QMessageBox.ActionRole)
+        tutorial_button = QtWidgets.QPushButton("点击查看模型选择教程" if config.defaulelang=='zh' else "Model Selection Tutorial")
+        msg_box.addButton(tutorial_button, QtWidgets.QMessageBox.ActionRole)
 
         # 显示消息框
         msg_box.exec()
@@ -69,9 +69,9 @@ class WinActionSub:
 
     def update_tips(self,text):
         if not self.update_btn:
-            self.update_btn = QPushButton()
+            self.update_btn = QtWidgets.QPushButton()
             self.update_btn.setStyleSheet('color:#ffff00;border:0')
-            self.update_btn.setCursor(QtCore.Qt.PointingHandCursor)
+            self.update_btn.setCursor(Qt.PointingHandCursor)
             self.update_btn.clicked.connect(lambda: self.open_url('download'))
             self.main.container.addWidget(self.update_btn)
         self.update_btn.setText(text)
@@ -92,7 +92,7 @@ class WinActionSub:
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nocuda'])
+            QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['nocuda'])
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
@@ -115,7 +115,6 @@ class WinActionSub:
         self.main.copysrt_rawvideo.hide()
 
         # 翻译
-        #self.main.translate_type.setCurrentIndex(1)
         self.main.label_9.show()
         self.main.translate_type.show()
         self.main.label_2.show()
@@ -126,7 +125,6 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        #self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.show()
         self.main.tts_type.show()
         self.main.tts_type.setDisabled(False)
@@ -141,8 +139,6 @@ class WinActionSub:
         self.main.pitch_rate.setDisabled(False)
 
         # 语音识别行
-        #self.main.split_type.setCurrentIndex(0)
-        #self.main.model_name.setCurrentIndex(0)
         self.main.reglabel.show()
         self.main.recogn_type.show()
         self.main.model_name_help.show()
@@ -194,7 +190,6 @@ class WinActionSub:
         self.main.copysrt_rawvideo.show()
 
         # 翻译
-        #self.main.translate_type.setCurrentIndex(1)
         self.main.label_9.show()
         self.main.translate_type.show()
         self.main.label_2.show()
@@ -205,7 +200,6 @@ class WinActionSub:
         self.main.proxy.show()
 
         # 配音角色
-        #self.main.tts_type.setCurrentIndex(tts.EDGE_TTS)
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.hide()
@@ -217,8 +211,6 @@ class WinActionSub:
         self.main.pitch_rate.hide()
 
         # 语音识别行
-        #self.main.split_type.setCurrentIndex(0)
-        #self.main.model_name.setCurrentIndex(0)
         self.main.reglabel.show()
         self.main.recogn_type.show()
         self.main.model_name_help.show()
@@ -259,7 +251,7 @@ class WinActionSub:
         from videotrans import translator
         langtext=self.main.source_language.currentText()
         langcode=translator.get_code(show_text=langtext)
-        #self.main.rephrase.setDisabled(False if langcode and langcode[:2] =='zh' else True)
+
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
         def hide_recursive(layout, show_status):
@@ -295,11 +287,11 @@ class WinActionSub:
         else:
             question = tools.show_popup('Confirm cleanup?', 'The software needs to be restarted after cleaning')
 
-        if question == QMessageBox.Yes:
+        if question == QtWidgets.QMessageBox.Yes:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
             self.remove_qsettings_data()
-            QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
+            QtWidgets.QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
                                     'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
 
@@ -314,11 +306,10 @@ class WinActionSub:
         mp4_list=[]
         if self.main.select_file_type.isChecked():
             """选择文件夹并添加到 selected_files 列表中"""
-            folder_path = QFileDialog.getExistingDirectory(
+            folder_path = QtWidgets.QFileDialog.getExistingDirectory(
                 self.main,
                 "选择文件夹" if config.defaulelang else 'Select folder',
                 config.params['last_opendir']
-                # QDir.currentPath()
             )
 
             if not folder_path:
@@ -332,7 +323,7 @@ class WinActionSub:
             self.main.target_dir=config.params['last_opendir']+f'/{p.name}_video_out'
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
-            fnames, _ = QFileDialog.getOpenFileNames(self.main,
+            fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                      '选择一或多个文件' if config.defaulelang=='zh' else "Select one or more files",
                                                      config.params['last_opendir'],
                                                      f'Files({format_str})')
@@ -350,7 +341,7 @@ class WinActionSub:
 
     # 保存目录
     def get_save_dir(self):
-        dirname = QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],
                                                    config.params['last_opendir'])
         dirname = Path(dirname).as_posix()
         self.main.target_dir=dirname
@@ -381,7 +372,7 @@ class WinActionSub:
         如果不知道什么是代理请勿随意填写
         ChatGPT等api地址请填写在菜单-设置-对应配置内。
         如果确认代理地址无误，请点击 Yes 继续执行""" if config.defaulelang == 'zh' else 'The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.')
-                if question != QMessageBox.Yes:
+                if question != QtWidgets.QMessageBox.Yes:
                     self.update_status('stop')
                     return False
         # 设置或删除代理
@@ -402,7 +393,7 @@ class WinActionSub:
     # 核对字幕
     def check_txt(self, txt=''):
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            QMessageBox.critical(self.main, config.transobj['anerror'],
+            QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.')
             return False
         return True
@@ -417,7 +408,7 @@ class WinActionSub:
         from videotrans import recognition
         if not torch.cuda.is_available():
             self.cfg['cuda']=False
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
+            QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocuda"])
             return False
 
         if self.main.recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
@@ -434,7 +425,7 @@ class WinActionSub:
             if not allow:
                 self.cfg['cuda']=False
                 self.main.enable_cuda.setChecked(False)
-                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
+                QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj["nocudnn"])
                 return False
         self.cfg['cuda']=True
         return True
@@ -458,7 +449,7 @@ class WinActionSub:
     # 导入背景声音
     def get_background(self):
         format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
-        fname, _ = QFileDialog.getOpenFileName(self.main, 'Background music', config.params['last_opendir'],
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', config.params['last_opendir'],
                                                f"Audio files({format_str})")
         if not fname:
             return
@@ -515,16 +506,16 @@ class WinActionSub:
         from videotrans import translator
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
-            return QMessageBox.critical(self.main, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
 
         text = config.params.get(f'listen_text_{lang}')
         if not text:
-            return QMessageBox.critical(self.main, config.transobj['anerror'],
+            return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                         '该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen')
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
-            return QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])
+            return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['mustberole'])
         voice_dir = tempfile.gettempdir()+'/pyvideotrans'
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
@@ -553,7 +544,7 @@ class WinActionSub:
             "pitch": pitch,
         }
         if role == 'clone':
-            QMessageBox.critical(self.main, config.transobj['anerror'],
+            QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                  '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
             return
         def feed(d):
@@ -582,10 +573,10 @@ class WinActionSub:
             return True
         for vurl in self.queue_mp4:
             if re.search(r'[:\?\*<>\|\"]', vurl[4:]):
-                return QMessageBox.critical(self.main, config.transobj['anerror'],
+                return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                             '视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ')
             if len(vurl) > 255:
-                return QMessageBox.critical(self.main, config.transobj['anerror'],
+                return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                             f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}')
         return True
 
@@ -613,7 +604,7 @@ class WinActionSub:
                 if len(it) > 1:
                     msg += ",".join(it)
             if msg:
-                QMessageBox.critical(self.main, config.transobj['anerror'],
+                QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'],
                                      f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ')
                 return False
         return True
@@ -710,7 +701,7 @@ class WinActionSub:
     
     def replace_text(self, s_text='', t_text=''):
         if not s_text:
-            return QMessageBox.critical(self.main, config.transobj['anerror'], "必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered')
+            return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], "必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered')
 
         top_layout = self.scroll_area.widget().layout()
         if top_layout is None:
@@ -758,7 +749,7 @@ class WinActionSub:
             default_role = self.cfg.get('voice_role', 'No')
 
             if len(checked_checkbox_names) < 1:
-                return QMessageBox.critical(self.main, config.transobj['anerror'], "至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle')
+                return QtWidgets.QMessageBox.critical(self.main, config.transobj['anerror'], "至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle')
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
@@ -793,7 +784,6 @@ class WinActionSub:
             # 创建并配置 QLineEdit
             line_time = QtWidgets.QLineEdit()
             line_time.setObjectName(f'time_{it["line"]}')
-            # line_time.setFixedWidth(150)
             line_time.setText(f'{it["time"]}')
 
             line_edit = QtWidgets.QPlainTextEdit()

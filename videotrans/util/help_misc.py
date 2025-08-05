@@ -7,7 +7,6 @@ import subprocess
 import time
 from pathlib import Path
 
-
 def show_popup(title, text, parent=None):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
@@ -24,8 +23,6 @@ def show_popup(title, text, parent=None):
     msg.setIcon(QMessageBox.Information)
     x = msg.exec()  # 显示消息框
     return x
-
-
 
 def open_url(url=None, title: str = None):
     import webbrowser
@@ -52,20 +49,6 @@ def open_url(url=None, title: str = None):
     if title and title in title_url_dict:
         return webbrowser.open_new_tab(title_url_dict[title])
 
-
-def open_dir(dirname=None):
-    if not dirname:
-        return
-    from PySide6.QtCore import QUrl
-    from PySide6.QtGui import QDesktopServices
-    dirname = dirname.strip()
-    if not os.path.isdir(dirname):
-        dirname = os.path.dirname(dirname)
-    if not dirname or not os.path.isdir(dirname):
-        return
-    QDesktopServices.openUrl(QUrl.fromLocalFile(dirname))
-
-
 def vail_file(file=None):
     if not file:
         return False
@@ -75,8 +58,6 @@ def vail_file(file=None):
     if p.stat().st_size == 0:
         return False
     return True
-
-
 
 def hide_show_element(wrap_layout, show_status):
     def hide_recursive(layout, show_status):
@@ -91,44 +72,6 @@ def hide_show_element(wrap_layout, show_status):
                 hide_recursive(item.layout(), show_status)
 
     hide_recursive(wrap_layout, show_status)
-
-
-
-# 删除临时文件
-def _unlink_tmp():
-    from videotrans.configure import config
-    try:
-        shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-    except Exception as e:
-        print(f'删除文件失败 {e}')
-        pass
-    try:
-        shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-    except Exception as e:
-        print(f'删除文件失败 {e}')
-        pass
-
-
-# 启动删除未使用的 临时文件夹，处理关闭时未能正确删除而遗留的
-def del_unused_tmp():
-    from videotrans.configure import config
-    remain = Path(config.TEMP_DIR).name
-
-    def get_tmplist(pathdir):
-        dirs = []
-        for p in Path(pathdir).iterdir():
-            if p.is_dir() and re.match(r'tmp\d{4}', p.name) and p.name != remain:
-                dirs.append(p.resolve().as_posix())
-        return dirs
-
-    wait_remove = [*get_tmplist(config.ROOT_DIR), *get_tmplist(config.HOME_DIR)]
-
-    try:
-        for p in wait_remove:
-            shutil.rmtree(p, ignore_errors=True)
-    except Exception:
-        pass
-
 
 def shutdown_system():
     # 获取当前操作系统类型
@@ -146,7 +89,6 @@ def shutdown_system():
     else:
         print(f"Unsupported system: {system}")
 
-
 # 获取 prompt提示词
 def get_prompt(ainame, is_srt=True):
     from videotrans.configure import config
@@ -161,7 +103,6 @@ def get_prompt(ainame, is_srt=True):
         content = content.replace('<INPUT></INPUT>', f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
     return content
 
-
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame, is_srt=True):
     from videotrans.configure import config
@@ -170,7 +111,6 @@ def get_prompt_file(ainame, is_srt=True):
     if is_srt and config.settings.get('aisendsrt', False):
         prompt_path += 'prompts/srt/'
     return f'{prompt_path}{prompt_name}'
-
 
 def check_local_api(api):
     from videotrans.configure import config
@@ -197,9 +137,6 @@ def check_local_api(api):
         msg_box.exec()
         return False
     return True
-
-
-
 
 def show_glossary_editor(parent):
     from PySide6.QtWidgets import (QVBoxLayout, QTextEdit, QDialog,
@@ -252,9 +189,6 @@ def show_glossary_editor(parent):
     dialog.setWindowModality(Qt.WindowModality.ApplicationModal)  # 设置模态窗口
     dialog.exec()  # 显示模态窗口
 
-
-
-
 # 判断 novoice.mp4是否创建好
 def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
@@ -293,13 +227,11 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             continue
         return True
 
-
 # 将字符串做 md5 hash处理
 def get_md5(input_string: str):
     md5 = hashlib.md5()
     md5.update(input_string.encode('utf-8'))
     return md5.hexdigest()
-
 
 def pygameaudio(filepath):
     from .playmp3 import AudioPlayer

@@ -3,7 +3,6 @@ ctranslate2
 aiohttp
 certifi
 deepl
-elevenlabs
 gtts
 httpx
 huggingface-hub
