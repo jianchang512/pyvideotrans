@@ -1,28 +1,80 @@
 import platform
-
 import threading
-import time,os
+import time, os
 
+# ==================== 诊断开始 ====================
+print("[诊断] MainWindow: 开始导入模块...")
+last_time_module = time.perf_counter()
 
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
+from PySide6 import QtWidgets
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QMessageBox
+
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 PySide6 模块耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
+
+from pathlib import Path
+
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 pathlib 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
 
 from videotrans.configure import config
 
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 videotrans.configure 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
 
 from videotrans.ui.en import Ui_MainWindow
+
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 videotrans.ui.en 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
+
 from videotrans.util import tools
+
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 videotrans.util.tools 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
+
 from videotrans.mainwin._actions import WinAction
-from videotrans import VERSION, recognition
-from videotrans  import tts
-from pathlib import Path
 
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 videotrans.mainwin._actions 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
 
+from videotrans import VERSION, recognition, tts
+
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 videotrans.VERSION, recognition, tts 耗时: {current_time_module - last_time_module:.4f} 秒")
+
+last_time_module = current_time_module
+
+from videotrans.component.controlobj import TextGetdir
+from videotrans.recognition import RECOGN_NAME_LIST
+from videotrans.tts import TTS_NAME_LIST
+current_time_module = time.perf_counter()
+print(f"[诊断] MainWindow: 导入 TextGetdir,RECOGN_NAME_LIST,TTS_NAME_LIST 耗时: {current_time_module - last_time_module:.4f} 秒")
+last_time_module = current_time_module
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
+        # ==================== 诊断开始 ====================
+        print("\n--- [诊断] MainWindow __init__ 开始执行 ---")
+        init_start_time = time.perf_counter()
+        last_time_init = init_start_time
+        # ==================== 诊断结束 ====================
+
         super(MainWindow, self).__init__(parent)
+        
+        # ==================== 诊断开始 ====================
+        current_time_init = time.perf_counter()
+        print(f"[诊断] super().__init__() 耗时: {current_time_init - last_time_init:.4f} 秒")
+        last_time_init = current_time_init
+        # ==================== 诊断结束 ====================
+
         self.width = width
         self.height = height
         self.resize(width, height)
@@ -31,25 +83,265 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 功能模式 dict{str,instance}
         self.moshis = None
         # 当前目标文件夹
-        self.target_dir=None
+        self.target_dir = None
         # 当前app模式
         self.app_mode = "biaozhun"
         # 当前所有可用角色列表
         self.current_rolelist = []
         self.languagename = config.langnamelist
-
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
+
+        # ==================== 诊断开始 ====================
+        current_time_init = time.perf_counter()
+        print(f"[诊断] 初始化变量和设置图标耗时: {current_time_init - last_time_init:.4f} 秒")
+        last_time_init = current_time_init
+        # ==================== 诊断结束 ====================
+
         self.setupUi(self)
+        
+        # ==================== 诊断开始 ====================
+        current_time_init = time.perf_counter()
+        print(f"[诊断] self.setupUi(self) 耗时: {current_time_init - last_time_init:.4f} 秒")
+        last_time_init = current_time_init
+        # ==================== 诊断结束 ====================
+
+        self._replace_placeholders()
         self.initUI()
+        
+        # ==================== 诊断开始 ====================
+        current_time_init = time.perf_counter()
+        print(f"[诊断] self.initUI() / _replace_placeholders() 耗时: {current_time_init - last_time_init:.4f} 秒")
+        last_time_init = current_time_init
+        # ==================== 诊断结束 ====================
+        self._retranslateUi_from_logic()
+        current_time_init = time.perf_counter()
+        print(f"[诊断] self._retranslateUi_from_logic() 耗时: {current_time_init - last_time_init:.4f} 秒")
+
         self.show()
+
+
         QTimer.singleShot(50, self._set_cache_set)
         QTimer.singleShot(100, self._start_subform)
         QTimer.singleShot(500, self._bindsignal)
         QTimer.singleShot(1000, self.is_writable)
 
+        # ==================== 诊断开始 ====================
+        total_init_time = time.perf_counter() - init_start_time
+        print(f"--- [诊断] MainWindow __init__ 执行完毕，总耗时: {total_init_time:.4f} 秒 ---\n")
+        # ==================== 诊断结束 ====================
+    
+    
+    def _replace_placeholders(self):
+        """
+        用真正的自定义组件替换UI文件中的占位符
+        """
+        self.recogn_type.addItems(RECOGN_NAME_LIST)
+        self.tts_type.addItems(TTS_NAME_LIST)
+        # 创建真正的 TextGetdir 实例
+        self.subtitle_area = TextGetdir(self)
+        self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.subtitle_area.setObjectName("subtitle_area")
+
+        # 替换占位符
+        index = self.source_area_layout.indexOf(self.subtitle_area_placeholder)
+        self.source_area_layout.insertWidget(index, self.subtitle_area)
+        self.subtitle_area_placeholder.hide()
+        self.subtitle_area_placeholder.deleteLater()
+
+    def _retranslateUi_from_logic(self):
+        
+        self.btn_get_video.setToolTip(
+            config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
+        self.btn_get_video.setText('选择要处理的视频' if config.defaulelang == 'zh' else 'Select the video')
+        self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
+        self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
+
+        self.label_9.setText(config.uilanglist.get("Translate channel")+"\u2193")
+        self.label_9.setCursor(Qt.PointingHandCursor)
+        self.translate_type.setToolTip(
+            '翻译字幕文字时使用的翻译渠道' if config.defaulelang == 'zh' else 'Translation channels used in translating subtitle text')
+        self.label.setText('网络代理\u2193' if config.defaulelang == 'zh' else 'Proxy')
+        self.label.setToolTip('点击查看网络代理填写教程' if config.defaulelang=='zh' else 'Click to view the tutorial for filling in the network proxy')
+        self.label.setCursor(Qt.PointingHandCursor)
+
+        self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
+        self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
+        self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
+        self.label_2.setText('发音语言 ' if config.defaulelang=='zh' else "Speech language ")
+        self.source_language.setToolTip(config.uilanglist.get("The language used for the original video pronunciation"))
+        self.label_3.setText(config.uilanglist.get("Target lang"))
+        self.target_language.setToolTip(config.uilanglist.get("What language do you want to translate into"))
+        self.tts_text.setText("配音渠道\u2193" if config.defaulelang == 'zh' else "Dubbing channel\u2193")
+        self.tts_text.setCursor(Qt.PointingHandCursor)
+        self.label_4.setText(config.uilanglist.get("Dubbing role")+" ")
+        self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
+
+        self.model_name.setToolTip(config.uilanglist.get(
+            "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
+        self.split_type.setToolTip(config.uilanglist.get(
+            "Overall recognition is suitable for videos with or without background music and noticeable silence"))
+        self.subtitle_type.setToolTip(config.uilanglist.get("shuoming02"))
+
+        self.label_6.setText(config.uilanglist.get("Dubbing speed"))
+        self.voice_rate.setToolTip(config.uilanglist.get("Overall acceleration or deceleration of voice over playback"))
+        self.voice_autorate.setText('配音加速' if config.defaulelang == 'zh' else 'Dubbing acceler')
+        self.voice_autorate.setToolTip(config.uilanglist.get("shuoming03"))
+        self.video_autorate.setText('视频慢速' if config.defaulelang == 'zh' else 'Slow video')
+        self.video_autorate.setToolTip('视频自动慢速处理' if config.defaulelang == 'zh' else 'Video Auto Slow')
+
+        self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
+        self.is_separate.setText('保留原始背景音' if config.defaulelang == 'zh' else 'Retain original background sound')
+        self.is_separate.setToolTip('若选中则分离人声和背景声，最终输出视频再将背景声嵌入' if config.defaulelang=='zh' else 'If selected, separate human voice and background sound, \nand finally output video will embed background sound')
+        self.startbtn.setText(config.uilanglist.get("Start"))
+        self.addbackbtn.setText('添加额外背景音频' if config.defaulelang=='zh' else 'Add background audio')
+        self.addbackbtn.setToolTip('为输出视频额外添加一个音频作为背景声音' if config.defaulelang=='zh' else 'Add background audio for output video')
+        self.back_audio.setPlaceholderText(config.uilanglist.get("back_audio_place"))
+        self.back_audio.setToolTip(config.uilanglist.get("back_audio_place"))
+        self.stop_djs.setText(config.uilanglist.get("Pause"))
+        self.import_sub.setText(config.uilanglist.get("Import srt"))
+
+        self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
+        self.menu_TTS.setTitle(config.uilanglist.get("&TTSsetting"))
+        self.menu_RECOGN.setTitle(config.uilanglist.get("&RECOGNsetting"))
+        self.menu.setTitle(config.uilanglist.get("&Tools"))
+        self.menu_H.setTitle(config.uilanglist.get("&Help"))
+        self.toolBar.setWindowTitle("toolBar")
+        self.actionbaidu_key.setText("百度翻译" if config.defaulelang == 'zh' else "Baidu Key")
+        self.actionali_key.setText("阿里机器翻译" if config.defaulelang == 'zh' else "Alibaba Translation")
+        self.actionchatgpt_key.setText("OpenAI API 及兼容AI" if  config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
+        self.actionzhipuai_key.setText("智谱AI" if  config.defaulelang == 'zh' else 'Zhipu AI')
+        self.actionsiliconflow_key.setText('硅基流动' if  config.defaulelang == 'zh' else  "Siliconflow")
+        self.actiondeepseek_key.setText('DeepSeek')
+        self.actionopenrouter_key.setText('OpenRouter.ai')
+        self.actionclaude_key.setText("Claude API")
+        self.actionlibretranslate_key.setText("LibreTranslate API")
+        self.actionopenaitts_key.setText("OpenAI TTS")
+        self.actionqwentts_key.setText("Qwen TTS")
+        self.actionopenairecognapi_key.setText( "OpenAI语音识别及兼容API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
+        self.actionparakeet_key.setText( 'Nvidia parakeet-tdt')
+        self.actionai302_key.setText("302.AI API Key" if config.defaulelang == 'zh' else "302.AI API KEY")
+        self.actionlocalllm_key.setText("本地大模型(兼容OpenAI)" if config.defaulelang == 'zh' else "Local LLM API")
+        self.actionzijiehuoshan_key.setText("字节火山大模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
+        self.actiondeepL_key.setText("DeepL Key")
+
+        self.action_ffmpeg.setText("FFmpeg")
+        self.action_ffmpeg.setToolTip(config.uilanglist.get("Go FFmpeg website"))
+        self.action_git.setText("Github Repository")
+        self.action_issue.setText(config.uilanglist.get("Post issue"))
+        self.actiondeepLX_address.setText("DeepLX Api")
+        self.actionott_address.setText("OTT离线翻译Api" if config.defaulelang == 'zh' else "OTT Api")
+        self.actionclone_address.setText("clone-voice" if config.defaulelang == 'zh' else "Clone-Voice TTS")
+        self.actionkokoro_address.setText("Kokoro TTS")
+        self.actionchattts_address.setText("ChatTTS")
+        self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
+        self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
+        self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
+        self.actionsttapi.setText("STT语音识别API" if config.defaulelang == 'zh' else "STT Speech Recognition API")
+        self.actiondeepgram.setText("Deepgram.com语音识别" if config.defaulelang == 'zh' else "Deepgram Speech Recognition API")
+        self.actiondoubao_api.setText("字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine subtitles")
+        self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
+        self.actiontts_chatterbox.setText("ChatterBox TTS")
+        self.actiontts_cosyvoice.setText("CosyVoice TTS")
+        self.actiontts_fishtts.setText("Fish TTS")
+        self.actiontts_f5tts.setText("F5/index/SparK/Dia TTS")
+        self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
+        self.action_website.setText(config.uilanglist.get("Documents"))
+        self.action_discord.setText("Discord")
+        self.action_blog.setText("bbs" if config.defaulelang == 'zh' else 'BBS')
+        self.action_models.setText(config.uilanglist["Download Models"])
+        self.action_gtrans.setText('下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
+        self.action_cuda.setText('CUDA & cuDNN')
+        self.action_online.setText('免责声明' if config.defaulelang == 'zh' else 'Disclaimer')
+        self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang == 'zh' else "Tencent Key")
+        self.action_about.setText(config.uilanglist.get("Donating developers"))
+
+        self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
+        self.action_biaozhun.setToolTip(
+            '批量进行视频翻译，并可按照需求自定义所有配置选项' if config.defaulelang == 'zh' else 'Batch video translation with all configuration options customizable on demand')
+
+
+
+        self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
+        self.action_yuyinshibie.setToolTip(
+            '批量将音频或视频中的语音识别为srt字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in audio or video as srt subtitles')
+
+        self.action_yuyinhecheng.setText(config.uilanglist.get("From  Text  Into  Speech"))
+        self.action_yuyinhecheng.setToolTip(
+            '根据srt字幕文件批量进行配音' if config.defaulelang == 'zh' else 'Batch dubbing based on srt subtitle files')
+
+        self.action_tiquzimu.setText(config.uilanglist.get("Extract Srt And Translate"))
+        self.action_tiquzimu.setToolTip(
+            '批量将视频中的语音识别为字幕，并可选择是否同时翻译字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in video as srt subtitles')
+
+        self.action_yinshipinfenli.setText(config.uilanglist.get("Separate Video to audio"))
+        self.action_yinshipinfenli.setToolTip(config.uilanglist.get("Separate audio and silent videos from videos"))
+
+        self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
+        self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
+
+        self.action_subtitleediter.setText('字幕编辑与翻译' if config.defaulelang == 'zh' else 'Subtitle Editing & Translate')
+        self.action_subtitleediter.setToolTip(
+            '导入字幕修改与翻译' if config.defaulelang == 'zh' else 'Importing subtitles and exporting them after modifying them or translation')
+
+        self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
+        self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
+
+        self.action_fanyi.setText(config.uilanglist.get("Text  Or Srt  Translation"))
+        self.action_fanyi.setToolTip(
+            '将多个srt字幕文件批量进行翻译' if config.defaulelang == 'zh' else 'Batch translation of multiple srt subtitle files')
+
+        self.action_hebingsrt.setText('合并两个字幕' if config.defaulelang == 'zh' else 'Combine Two Subtitles')
+        self.action_hebingsrt.setToolTip(
+            '将2个字幕文件合并为一个，组成双语字幕' if config.defaulelang == 'zh' else 'Combine 2 subtitle files into one to form bilingual subtitles')
+
+        self.action_clearcache.setText("Clear Cache" if config.defaulelang != 'zh' else '清理缓存和配置')
+
+        self.actionazure_key.setText("AzureGPT 翻译 " if config.defaulelang == 'zh' else 'AzureOpenAI Translation')
+        self.actionazure_tts.setText("AzureAI 配音" if config.defaulelang == 'zh' else 'AzureAI TTS')
+        self.actiongemini_key.setText("Gemini Pro")
+        self.actionElevenlabs_key.setText("ElevenLabs.io")
+
+        self.actionwatermark.setText('批量视频添加水印' if config.defaulelang == 'zh' else 'Add watermark to video')
+        self.actionsepar.setText('人声/背景音分离' if config.defaulelang == 'zh' else 'Vocal & instrument Separate')
+        self.actionsetini.setText('高级选项' if config.defaulelang == 'zh' else 'Options')
+
+        self.actionvideoandaudio.setText('视频与音频合并' if config.defaulelang == 'zh' else 'Batch video/audio merger')
+        self.actionvideoandaudio.setToolTip(
+            '批量将视频和音频一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and audio one-to-one')
+
+        self.actionvideoandsrt.setText('视频与字幕合并' if config.defaulelang == 'zh' else 'Batch Video Srt merger')
+        self.actionvideoandsrt.setToolTip(
+            '批量将视频和srt字幕一一对应合并' if config.defaulelang == 'zh' else 'Batch merge video and srt subtitles one by one.')
+
+        self.actionformatcover.setText('音视频格式转换' if config.defaulelang == 'zh' else 'Batch Audio/Video conver')
+        self.actionformatcover.setToolTip(
+            '批量将音频和视频转换格式' if config.defaulelang == 'zh' else 'Batch convert audio and video formats')
+
+        self.actionsubtitlescover.setText('批转换字幕格式' if config.defaulelang == 'zh' else 'Conversion Subtitle Format')
+        self.actionsubtitlescover.setToolTip(
+            '批量将字幕文件进行格式转换(srt/ass/vtt)' if config.defaulelang == 'zh' else 'Batch convert subtitle formats (srt/ass/vtt)')
+
+        self.actionsrtmultirole.setText('字幕多角色配音' if config.defaulelang == 'zh' else 'Multi voice dubbing for SRT')
+        self.actionsrtmultirole.setToolTip('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
+    
+    
+    
     def initUI(self):
+        # ==================== 诊断开始 ====================
+        print("\n--- [诊断] initUI 开始执行 ---")
+        initUI_start_time = time.perf_counter()
+        last_time_initUI = initUI_start_time
+        # ==================== 诊断结束 ====================
+
         from videotrans.translator import TRANSLASTE_NAME_LIST
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 导入 TRANSLASTE_NAME_LIST 耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
+
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
@@ -60,28 +352,49 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename[:-1])
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
-
         
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pvt9.com "
         self.setWindowTitle(self.rawtitle)
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 初始化状态栏和下拉框耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
 
         self.win_action = WinAction(self)
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 实例化 WinAction 耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
+        
         self.win_action.tts_type_change(config.params['tts_type'])
+        
         try:
             config.params['translate_type'] = int(config.params['translate_type'])
-        except Exception:
+        except:
             config.params['translate_type'] = 0
         self.translate_type.setCurrentIndex(config.params['translate_type'])
 
         if config.params['source_language'] and config.params['source_language'] in self.languagename:
             self.source_language.setCurrentText(config.params['source_language'])
         try:
-            config.params['tts_type']=int(config.params['tts_type'])
+            config.params['tts_type'] = int(config.params['tts_type'])
         except:
-            config.params['tts_type']=0
+            config.params['tts_type'] = 0
 
         self.tts_type.setCurrentIndex(config.params['tts_type'])
         self.voice_role.clear()
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 设置各种类型和语言的默认值耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
+
+        # 这部分可能有网络或文件IO操作，需要重点监控
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
             threading.Thread(target=tools.get_clone_role).start()
@@ -100,90 +413,121 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
         elif config.params['tts_type'] == tts.F5_TTS:
             rolelist = tools.get_f5tts_role()
-            self.voice_role.addItems(['clone']+list(rolelist.keys()) if rolelist else ['clone'])
+            self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
         elif config.params['tts_type'] == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['No'])
         elif config.params['tts_type'] == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
-            self.voice_role.addItems(['No']+rolelist)
+            self.voice_role.addItems(['No'] + rolelist)
         elif config.params['tts_type'] == tts.OPENAI_TTS:
-            rolelist = config.params.get('openaitts_role','')
-            self.voice_role.addItems(['No']+rolelist.split(','))
+            rolelist = config.params.get('openaitts_role', '')
+            self.voice_role.addItems(['No'] + rolelist.split(','))
         elif config.params['tts_type'] == tts.QWEN_TTS:
-            rolelist = config.params.get('qwentts_role','')
-            self.voice_role.addItems(['No']+rolelist.split(','))
+            rolelist = config.params.get('qwentts_role', '')
+            self.voice_role.addItems(['No'] + rolelist.split(','))
         elif config.params['tts_type'] == tts.GEMINI_TTS:
-            rolelist = config.params.get('gemini_ttsrole','')
-            self.voice_role.addItems(['No']+rolelist.split(','))
+            rolelist = config.params.get('gemini_ttsrole', '')
+            self.voice_role.addItems(['No'] + rolelist.split(','))
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 根据TTS类型设置角色列表耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
 
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
             self.win_action.set_voice_role(config.params['target_language'])
-            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and  config.params['voice_role'] in self.current_rolelist:
+            if config.params['voice_role'] and config.params['voice_role'] != 'No' and self.current_rolelist and \
+                    config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
+        
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        print(f"[诊断] initUI: 设置目标语言和角色耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        last_time_initUI = current_time_initUI
+        # ==================== 诊断结束 ====================
 
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
-        except Exception:
+        except:
             config.params['recogn_type'] = 0
-
-        # 设置当前识别类型
         self.recogn_type.setCurrentIndex(config.params['recogn_type'])
-
-        # 设置需要显示的模型
         self.model_name.clear()
-        if config.params['recogn_type']==recognition.Deepgram:
+        if config.params['recogn_type'] == recognition.Deepgram:
             self.model_name.addItems(config.DEEPGRAM_MODEL)
-            curr=config.DEEPGRAM_MODEL
-        elif config.params['recogn_type']==recognition.FUNASR_CN:
+            curr = config.DEEPGRAM_MODEL
+        elif config.params['recogn_type'] == recognition.FUNASR_CN:
             self.model_name.addItems(config.FUNASR_MODEL)
-            curr=config.FUNASR_MODEL
-            
+            curr = config.FUNASR_MODEL
         else:
             self.model_name.addItems(config.WHISPER_MODEL_LIST)
-            curr=config.WHISPER_MODEL_LIST
+            curr = config.WHISPER_MODEL_LIST
         if config.params['model_name'] in curr:
             self.model_name.setCurrentText(config.params['model_name'])
-
-        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER,recognition.Faster_Whisper_XXL,recognition.OPENAI_WHISPER,recognition.FUNASR_CN,recognition.Deepgram]:
+        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
+                                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+                                                recognition.Deepgram]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
-
         self.moshis = {
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        if config.params['model_name']=='paraformer-zh' or config.params['recogn_type']==recognition.Deepgram or config.params['recogn_type']==recognition.GEMINI_SPEECH:
+        if config.params['model_name'] == 'paraformer-zh' or config.params['recogn_type'] == recognition.Deepgram or \
+                config.params['recogn_type'] == recognition.GEMINI_SPEECH:
             self.show_spk.setVisible(True)
-
-
+            
+        # ==================== 诊断开始 ====================
+        current_time_initUI = time.perf_counter()
+        total_initUI_time = current_time_initUI - initUI_start_time
+        print(f"[诊断] initUI: 设置识别模型耗时: {current_time_initUI - last_time_initUI:.4f} 秒")
+        print(f"--- [诊断] initUI 执行完毕，总耗时: {total_initUI_time:.4f} 秒 ---")
+        # ==================== 诊断结束 ====================
 
     def _bindsignal(self):
-        try:
-            from videotrans.task.check_update import CheckUpdateWorker
-            from videotrans.task.get_role_list import GetRoleWorker
-            from videotrans.task.job import start_thread
-            from videotrans.mainwin._signal import UUIDSignalThread
-            update_role = GetRoleWorker(parent=self)
-            update_role.start()
-            self.check_update = CheckUpdateWorker(parent=self)
-            self.check_update.start()
+        # ==================== 诊断开始 ====================
+        print("\n--- [诊断] _bindsignal 开始执行 (延迟500ms后) ---")
+        bind_start_time = time.perf_counter()
+        last_time_bind = bind_start_time
+        # ==================== 诊断结束 ====================
+        from videotrans.task.check_update import CheckUpdateWorker
+        from videotrans.task.get_role_list import GetRoleWorker
+        from videotrans.task.job import start_thread
+        from videotrans.mainwin._signal import UUIDSignalThread
+        
+        # ==================== 诊断开始 ====================
+        current_time_bind = time.perf_counter()
+        print(f"[诊断] _bindsignal: 导入任务模块耗时: {current_time_bind - last_time_bind:.4f} 秒")
+        last_time_bind = current_time_bind
+        # ==================== 诊断结束 ====================
+        
+        update_role = GetRoleWorker(parent=self)
+        update_role.start()
+        self.check_update = CheckUpdateWorker(parent=self)
+        self.check_update.start()
 
-            uuid_signal = UUIDSignalThread(parent=self)
-            uuid_signal.uito.connect(self.win_action.update_data)
-            uuid_signal.start()
-            start_thread(self)
-        except Exception as e:
-            print(e)
+        uuid_signal = UUIDSignalThread(parent=self)
+        uuid_signal.uito.connect(self.win_action.update_data)
+        uuid_signal.start()
+        start_thread(self)
+        # ==================== 诊断开始 ====================
+        total_bind_time = time.perf_counter() - bind_start_time
+        print(f"--- [诊断] _bindsignal 执行完毕，总耗时: {total_bind_time:.4f} 秒 ---")
+        # ==================== 诊断结束 ====================
+        print(f"\n####信号结束:{time.time()}")
 
-
-    # 设置各种默认值和设置文字 提示等
     def _set_cache_set(self):
+        # ==================== 诊断开始 ====================
+        print("\n--- [诊断] _set_cache_set 开始执行 (延迟50ms后) ---")
+        set_cache_start_time = time.perf_counter()
+        # ==================== 诊断结束 ====================
+        
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
@@ -211,7 +555,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             config.params['tts_type'] = int(config.params['tts_type'])
-        except Exception:
+        except:
             config.params['tts_type'] = 0
 
         if config.params['split_type']:
@@ -223,12 +567,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             self.voice_rate.setValue(int(config.params['voice_rate'].replace('%', '')))
-        except Exception:
+        except:
             self.voice_rate.setValue(0)
         try:
             self.pitch_rate.setValue(int(config.params['pitch'].replace('Hz', '')))
             self.volume_rate.setValue(int(config.params['volume']))
-        except Exception:
+        except:
             self.pitch_rate.setValue(0)
             self.volume_rate.setValue(0)
         self.addbackbtn.clicked.connect(self.win_action.get_background)
@@ -242,10 +586,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
         self.rephrase.setChecked(config.settings.get('rephrase'))
         self.remove_noise.setChecked(config.params.get('remove_noise'))
-        self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo',False))
+        self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo', False))
 
-        self.bgmvolume.setText(str(config.settings.get('backaudio_volume',0.8)))
-        self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio',True)))
+        self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
+        self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
 
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
@@ -253,7 +597,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
         self.source_language.currentTextChanged.connect(self.win_action.source_language_change)
-
 
         self.proxy.textChanged.connect(self.win_action.change_proxy)
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)
@@ -270,15 +613,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reglabel.clicked.connect(self.win_action.click_reglabel)
         self.label_9.clicked.connect(self.win_action.click_translate_type)
         self.tts_text.clicked.connect(self.win_action.click_tts_type)
-        from videotrans.util import tools
-        self.label.clicked.connect(lambda :tools.open_url(url='https://pvt9.com/proxy'))
-        self.hfaster_help.clicked.connect(lambda :tools.open_url(url='https://pvt9.com/vad'))
+
+        self.label.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/proxy'))
+        self.hfaster_help.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/vad'))
         self.split_label.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/splitmode'))
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
-        self.glossary.clicked.connect(lambda:tools.show_glossary_editor(self))
-
+        self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
+        
+        # ==================== 诊断开始 ====================
+        total_set_cache_time = time.perf_counter() - set_cache_start_time
+        print(f"--- [诊断] _set_cache_set 执行完毕，总耗时: {total_set_cache_time:.4f} 秒 ---")
+        # ==================== 诊断结束 ====================
+        print(f"\n####缓存读取结束:{time.time()}")
 
     def _start_subform(self):
+        # ==================== 诊断开始 ====================
+        print("\n--- [诊断] _start_subform 开始执行 (延迟100ms后) ---")
+        subform_start_time = time.perf_counter()
+        last_time_subform = subform_start_time
+        # ==================== 诊断结束 ====================
+        
         self.import_sub.setCursor(Qt.PointingHandCursor)
 
         self.model_name_help.setCursor(Qt.PointingHandCursor)
@@ -290,84 +644,75 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listen_btn.setCursor(Qt.PointingHandCursor)
         self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
-    
+
         from videotrans import winform
+        
+        # ==================== 诊断开始 ====================
+        current_time_subform = time.perf_counter()
+        print(f"[诊断] _start_subform: 导入 videotrans.winform 耗时: {current_time_subform - last_time_subform:.4f} 秒")
+        last_time_subform = current_time_subform
+        # ==================== 诊断结束 ====================
 
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
-        
 
+        self.actionbaidu_key.triggered.connect(lambda: winform.get_win('baidu').openwin())
+        self.actionali_key.triggered.connect(lambda: winform.get_win('ali').openwin())
+        self.actionparakeet_key.triggered.connect(lambda: winform.get_win('parakeet').openwin())
+        self.actionsrtmultirole.triggered.connect(lambda: winform.get_win('fn_peiyinrole').openwin())
+        self.actionsubtitlescover.triggered.connect(lambda: winform.get_win('fn_subtitlescover').openwin())
+        self.actionazure_key.triggered.connect(lambda: winform.get_win('azure').openwin())
+        self.actionazure_tts.triggered.connect(lambda: winform.get_win('azuretts').openwin())
+        self.actiongemini_key.triggered.connect(lambda: winform.get_win('gemini').openwin())
+        self.actiontencent_key.triggered.connect(lambda: winform.get_win('tencent').openwin())
+        self.actionchatgpt_key.triggered.connect(lambda: winform.get_win('chatgpt').openwin())
+        self.actionclaude_key.triggered.connect(lambda: winform.get_win('claude').openwin())
+        self.actionlibretranslate_key.triggered.connect(lambda: winform.get_win('libre').openwin())
+        self.actionai302_key.triggered.connect(lambda: winform.get_win('ai302').openwin())
+        self.actionlocalllm_key.triggered.connect(lambda: winform.get_win('localllm').openwin())
+        self.actionzijiehuoshan_key.triggered.connect(lambda: winform.get_win('zijiehuoshan').openwin())
+        self.actiondeepL_key.triggered.connect(lambda: winform.get_win('deepL').openwin())
+        self.actionElevenlabs_key.triggered.connect(lambda: winform.get_win('elevenlabs').openwin())
+        self.actiondeepLX_address.triggered.connect(lambda: winform.get_win('deepLX').openwin())
+        self.actionott_address.triggered.connect(lambda: winform.get_win('ott').openwin())
+        self.actionclone_address.triggered.connect(lambda: winform.get_win('clone').openwin())
+        self.actionkokoro_address.triggered.connect(lambda: winform.get_win('kokoro').openwin())
+        self.actionchattts_address.triggered.connect(lambda: winform.get_win('chattts').openwin())
+        self.actiontts_api.triggered.connect(lambda: winform.get_win('ttsapi').openwin())
+        self.actionrecognapi.triggered.connect(lambda: winform.get_win('recognapi').openwin())
+        self.actionsttapi.triggered.connect(lambda: winform.get_win('sttapi').openwin())
+        self.actiondeepgram.triggered.connect(lambda: winform.get_win('deepgram').openwin())
+        self.actiondoubao_api.triggered.connect(lambda: winform.get_win('doubao').openwin())
+        self.actiontrans_api.triggered.connect(lambda: winform.get_win('transapi').openwin())
+        self.actiontts_gptsovits.triggered.connect(lambda: winform.get_win('gptsovits').openwin())
+        self.actiontts_chatterbox.triggered.connect(lambda: winform.get_win('chatterbox').openwin())
+        self.actiontts_cosyvoice.triggered.connect(lambda: winform.get_win('cosyvoice').openwin())
+        self.actionopenaitts_key.triggered.connect(lambda: winform.get_win('openaitts').openwin())
+        self.actionqwentts_key.triggered.connect(lambda: winform.get_win('qwentts').openwin())
+        self.actionopenairecognapi_key.triggered.connect(lambda: winform.get_win('openairecognapi').openwin())
+        self.actiontts_fishtts.triggered.connect(lambda: winform.get_win('fishtts').openwin())
+        self.actiontts_f5tts.triggered.connect(lambda: winform.get_win('f5tts').openwin())
+        self.actiontts_volcengine.triggered.connect(lambda: winform.get_win('volcenginetts').openwin())
+        self.actionzhipuai_key.triggered.connect(lambda: winform.get_win('zhipuai').openwin())
+        self.actiondeepseek_key.triggered.connect(lambda: winform.get_win('deepseek').openwin())
+        self.actionopenrouter_key.triggered.connect(lambda: winform.get_win('openrouter').openwin())
+        self.actionsiliconflow_key.triggered.connect(lambda: winform.get_win('siliconflow').openwin())
+        self.actionwatermark.triggered.connect(lambda: winform.get_win('fn_watermark').openwin())
+        self.actionsepar.triggered.connect(lambda: winform.get_win('fn_separate').openwin())
+        self.actionsetini.triggered.connect(lambda: winform.get_win('setini').openwin())
+        self.actionvideoandaudio.triggered.connect(lambda: winform.get_win('fn_videoandaudio').openwin())
+        self.actionvideoandsrt.triggered.connect(lambda: winform.get_win('fn_videoandsrt').openwin())
+        self.actionformatcover.triggered.connect(lambda: winform.get_win('fn_formatcover').openwin())
+        self.actionsubtitlescover.triggered.connect(lambda: winform.get_win('fn_subtitlescover').openwin())
+        self.action_hebingsrt.triggered.connect(lambda: winform.get_win('fn_hebingsrt').openwin())
+        self.action_yinshipinfenli.triggered.connect(lambda: winform.get_win('fn_audiofromvideo').openwin())
+        self.action_hun.triggered.connect(lambda: winform.get_win('fn_hunliu').openwin())
+        self.action_yingyinhebing.triggered.connect(lambda: winform.get_win('fn_vas').openwin())
+        self.action_subtitleediter.triggered.connect(lambda: winform.get_win('fn_editer').openwin())
+        self.action_fanyi.triggered.connect(lambda: winform.get_win('fn_fanyisrt').openwin())
+        self.action_yuyinshibie.triggered.connect(lambda: winform.get_win('fn_recogn').openwin())
+        self.action_yuyinhecheng.triggered.connect(lambda: winform.get_win('fn_peiyin').openwin())
 
-        self.actionbaidu_key.triggered.connect(winform.baidu.openwin)
-        self.actionali_key.triggered.connect(winform.ali.openwin)
-        
-        self.actionparakeet_key.triggered.connect(winform.parakeet.openwin)
-        
-        self.actionsrtmultirole.triggered.connect(winform.fn_peiyinrole.openwin)
-        self.actionsubtitlescover.triggered.connect(winform.fn_subtitlescover.openwin)
-
-        self.actionazure_key.triggered.connect(winform.azure.openwin)
-        self.actionazure_tts.triggered.connect(winform.azuretts.openwin)
-        self.actiongemini_key.triggered.connect(winform.gemini.openwin)
-        self.actiontencent_key.triggered.connect(winform.tencent.openwin)
-        self.actionchatgpt_key.triggered.connect(winform.chatgpt.openwin)
-        self.actionclaude_key.triggered.connect(winform.claude.openwin)
-        self.actionlibretranslate_key.triggered.connect(winform.libre.openwin)
-
-        self.actionai302_key.triggered.connect(winform.ai302.openwin)
-        self.actionlocalllm_key.triggered.connect(winform.localllm.openwin)
-        self.actionzijiehuoshan_key.triggered.connect(winform.zijiehuoshan.openwin)
-        self.actiondeepL_key.triggered.connect(winform.deepL.openwin)
-        self.actionElevenlabs_key.triggered.connect(winform.elevenlabs.openwin)
-        self.actiondeepLX_address.triggered.connect(winform.deepLX.openwin)
-        self.actionott_address.triggered.connect(winform.ott.openwin)
-        self.actionclone_address.triggered.connect(winform.clone.openwin)
-        self.actionkokoro_address.triggered.connect(winform.kokoro.openwin)
-        self.actionchattts_address.triggered.connect(winform.chattts.openwin)
-        self.actiontts_api.triggered.connect(winform.ttsapi.openwin)
-        self.actionrecognapi.triggered.connect(winform.recognapi.openwin)
-        self.actionsttapi.triggered.connect(winform.sttapi.openwin)
-        self.actiondeepgram.triggered.connect(winform.deepgram.openwin)
-        self.actiondoubao_api.triggered.connect(winform.doubao.openwin)
-        self.actiontrans_api.triggered.connect(winform.transapi.openwin)
-        self.actiontts_gptsovits.triggered.connect(winform.gptsovits.openwin)
-        self.actiontts_chatterbox.triggered.connect(winform.chatterbox.openwin)
-        self.actiontts_cosyvoice.triggered.connect(winform.cosyvoice.openwin)
-        self.actionopenaitts_key.triggered.connect(winform.openaitts.openwin)
-        self.actionqwentts_key.triggered.connect(winform.qwentts.openwin)
-        self.actionopenairecognapi_key.triggered.connect(winform.openairecognapi.openwin)
-        self.actiontts_fishtts.triggered.connect(winform.fishtts.openwin)
-        self.actiontts_f5tts.triggered.connect(winform.f5tts.openwin)
-        self.actiontts_volcengine.triggered.connect(winform.volcenginetts.openwin)
-        self.actionzhipuai_key.triggered.connect(winform.zhipuai.openwin)
-        self.actiondeepseek_key.triggered.connect(winform.deepseek.openwin)
-        self.actionopenrouter_key.triggered.connect(winform.openrouter.openwin)
-        self.actionsiliconflow_key.triggered.connect(winform.siliconflow.openwin)
-
-
-        self.actionwatermark.triggered.connect(winform.fn_watermark.openwin)
-        self.actionsepar.triggered.connect(winform.fn_separate.openwin)
-        self.actionsetini.triggered.connect(winform.setini.openwin)
-
-        self.actionvideoandaudio.triggered.connect(winform.fn_videoandaudio.openwin)
-
-        self.actionvideoandsrt.triggered.connect(winform.fn_videoandsrt.openwin)
-
-        self.actionformatcover.triggered.connect(winform.fn_formatcover.openwin)
-
-        self.actionsubtitlescover.triggered.connect(winform.fn_subtitlescover.openwin)
-        self.action_hebingsrt.triggered.connect(winform.fn_hebingsrt.openwin)
-        self.action_yinshipinfenli.triggered.connect(winform.fn_audiofromvideo.openwin)
-        self.action_hun.triggered.connect(winform.fn_hunliu.openwin)
-        self.action_yingyinhebing.triggered.connect(winform.fn_vas.openwin)
-
-        self.action_subtitleediter.triggered.connect(winform.fn_editer.openwin)
-
-        self.action_fanyi.triggered.connect(winform.fn_fanyisrt.openwin)
-
-        self.action_yuyinshibie.triggered.connect(winform.fn_recogn.openwin)
-
-        self.action_yuyinhecheng.triggered.connect(winform.fn_peiyin.openwin)
 
         self.action_ffmpeg.triggered.connect(lambda: self.win_action.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
@@ -385,8 +730,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
-        Path(config.TEMP_DIR+'/stop_process.txt').unlink(missing_ok=True)
-        
+        Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
+        # ==================== 诊断开始 ====================
+        total_subform_time = time.perf_counter() - subform_start_time
+        print(f"--- [诊断] _start_subform 执行完毕，总耗时: {total_subform_time:.4f} 秒 ---")
+        # ==================== 诊断结束 ====================
+
+        print(f"\n####启动窗口结束:{time.time()}")
+
     def is_writable(self):
         import uuid
         temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
@@ -395,7 +746,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             with open(temp_file_path, 'w') as f:
                 pass
         except OSError as e:
-            QMessageBox.warning(self, config.transobj['anerror'], f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang=='zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
+            QMessageBox.warning(self, config.transobj['anerror'],
+                                f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang == 'zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
         finally:
             if os.path.exists(temp_file_path):
                 try:
@@ -406,27 +758,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
         if state:
-            config.settings['aisendsrt']=True
+            config.settings['aisendsrt'] = True
         else:
-            config.settings['aisendsrt']=False
-
+            config.settings['aisendsrt'] = False
 
     def changeEvent(self, event):
-        super().changeEvent(event)  # 确保父类的事件处理被调用
+        super().changeEvent(event)
         if event.type() == QEvent.Type.ActivationChange:
-            if self.isActiveWindow():  # 只有在窗口被激活时才执行
-                # print("Window activated")
+            if self.isActiveWindow():
                 self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
     def closeEvent(self, event):
         config.exit_soft = True
-        config.current_status='stop'
+        config.current_status = 'stop'
         try:
-            with open(config.TEMP_DIR+'/stop_process.txt','w',encoding='utf-8') as f:
+            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
                 f.write('stop')
         except:
             pass
-        sets=QSettings("pyvideotrans", "settings")
+        sets = QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())
         self.hide()
         try:
@@ -439,11 +789,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception:
             pass
         time.sleep(3)
-        from videotrans.util import tools
+
         print('等待所有进程退出...')
         try:
             tools.kill_ffmpeg_processes()
-        except Exception:
+        except:
             pass
         time.sleep(3)
         os.chdir(config.ROOT_DIR)
