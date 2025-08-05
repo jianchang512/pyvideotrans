@@ -11,13 +11,17 @@ License: GPL-V3
 # 写的这么烂，一看就不是AI写的
 
 """
+import argparse
 import multiprocessing
-import sys, os
+import os
+import sys
 import time
-import argparse 
+print(f"\n####开始启动时间:{time.time()}")
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
+
 
 # 解决 modelscope GUI下下载失败问题 xxx is not registered
 def is_console_app():
@@ -25,49 +29,50 @@ def is_console_app():
     # 在macOS/Linux上，即使是GUI应用，通常也有有效的流，但重定向无害。
     return sys.stdout is None or sys.stderr is None
 
+
 # 只有在以无控制台模式运行时才进行重定向
 if is_console_app():
     try:
-        log_dir = os.path.join(os.getcwd(),"logs")
+        log_dir = os.path.join(os.getcwd(), "logs")
         os.makedirs(log_dir, exist_ok=True)
-        log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")        
+        log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")
         log_file = open(log_file_path, 'a', encoding='utf-8', buffering=1)
-        
+
         # 重定向
         sys.stdout = log_file
         sys.stderr = log_file
-        
+
         print(f"\n\n--- Application started at {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
     except Exception as e:
         pass
+
 
 # 全局异常处理函数
 def global_exception_hook(exctype, value, tb):
     tb_str = "".join(traceback.format_exception(exctype, value, tb))
     print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
-    
+
     if QtWidgets.QApplication.instance():
         error_box = QtWidgets.QMessageBox()
         error_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         error_box.setWindowTitle("Application Error")
         error_box.setText("An unexpected error occurred. The application will now close.")
-        error_box.setDetailedText(tb_str) 
+        error_box.setDetailedText(tb_str)
         error_box.exec()
-    
+
     sys.exit(1)
-    
-sys.excepthook=global_exception_hook
+
+
+sys.excepthook = global_exception_hook
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer, QPoint, QSettings, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
 from videotrans import VERSION
 
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
-cli_args, unknown = parser.parse_known_args() # 使用 parse_known_args 以避免与 PySide6 参数冲突
+cli_args, unknown = parser.parse_known_args()  # 使用 parse_known_args 以避免与 PySide6 参数冲突
 
 if cli_args.lang:
     os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
@@ -86,11 +91,9 @@ class StartWindow(QtWidgets.QWidget):
         self.label.setPixmap(self.pixmap)
         self.label.setScaledContents(True)
         self.label.setAlignment(Qt.AlignCenter)
-        self.label.setGeometry(self.rect()) #直接设置几何形状覆盖
+        self.label.setGeometry(self.rect())  # 直接设置几何形状覆盖
 
         self.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
-
-
 
         v1 = QtWidgets.QVBoxLayout()
         v1.addStretch(1)
@@ -117,29 +120,30 @@ class StartWindow(QtWidgets.QWidget):
         from videotrans.configure import config
         try:
             from videotrans.mainwin._main_win import MainWindow
-            sets=QSettings("pyvideotrans", "settings")
-            w,h=int(self.width*0.85), int(self.height*0.85)
-            size = sets.value("windowSize", QSize(w,h))
+            sets = QSettings("pyvideotrans", "settings")
+            w, h = int(self.width * 0.85), int(self.height * 0.85)
+            size = sets.value("windowSize", QSize(w, h))
             try:
-                w=size.width()
-                h=size.height()
+                w = size.width()
+                h = size.height()
             except:
                 pass
-            config.MAINWIN=MainWindow(width=w, height=h)
+            config.MAINWIN = MainWindow(width=w, height=h)
             config.MAINWIN.move(QPoint(int((self.width - w) / 2), int((self.height - h) / 2)))
         except Exception as e:
             import traceback
             from PySide6.QtWidgets import QMessageBox
-            msg=traceback.format_exc()
-            QtWidgets.QMessageBox.critical(startwin,"Error",msg)
+            msg = traceback.format_exc()
+            QtWidgets.QMessageBox.critical(startwin, "Error", msg)
 
-        QTimer.singleShot(500, lambda :self.close())
+        QTimer.singleShot(500, lambda: self.close())
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
         screen_resolution = screen.geometry()
         self.width, self.height = screen_resolution.width(), screen_resolution.height()
         self.move(QPoint(int((self.width - 560) / 2), int((self.height - 350) / 2)))
+
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # Windows 上需要这个来避免子进程的递归执行问题
@@ -154,6 +158,7 @@ if __name__ == "__main__":
         startwin = StartWindow()
     except Exception as e:
         import traceback
-        msg=traceback.format_exc()
-        QtWidgets.QMessageBox.critical(startwin,"Error",msg)
+
+        msg = traceback.format_exc()
+        QtWidgets.QMessageBox.critical(startwin, "Error", msg)
     sys.exit(app.exec())

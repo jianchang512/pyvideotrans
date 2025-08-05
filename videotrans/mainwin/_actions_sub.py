@@ -5,37 +5,24 @@ import shutil
 import sys
 import threading
 from pathlib import Path
+from dataclasses import dataclass, field
+from typing import Optional, Dict, List, Any
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QTimer, Qt
-
 from PySide6.QtWidgets import QMessageBox, QFileDialog, QPushButton
 
 
 from videotrans.configure import config
 from videotrans.util import tools
-
-
-from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Any
-
 from videotrans.util.ListenVoice import ListenVoice
 
 
 @dataclass
 class WinActionSub:
-    # ==================================================================
-    # 1. 定义唯一的 __init__ 参数。
-    #    这将生成 __init__(self, main: Optional[Any] = None)，与原始签名完全兼容。
-    # ==================================================================
+
     main: Optional[Any] = None
 
-    # ==================================================================
-    # 2. 定义所有其他属性为“仅内部状态”，不作为 __init__ 参数。
-    #    我们使用 `field(init=False, ...)` 来实现这一点。
-    # ==================================================================
-
-    # -- UI 和状态相关 --
     update_btn: Optional[Any] = field(default=None, init=False)
     edit_subtitle_type: str = field(default='edit_subtitle_source', init=False)
     wait_subtitle: str = field(default='', init=False)

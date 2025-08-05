@@ -3,32 +3,30 @@ import re
 import threading
 from pathlib import Path
 import os
+from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
-
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 from videotrans import translator, recognition, tts
-
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.util import tools
-from dataclasses import dataclass
 
 
 # Import lazy do TextToSpeechClient
-TextToSpeechClient = None
-try:
-    from google.cloud.texttospeech import TextToSpeechClient
-except ImportError:
-    try:
-        from google.cloud import texttospeech
-        TextToSpeechClient = texttospeech.TextToSpeechClient
-    except ImportError:
-        pass
 
 def _list_gcloud_voices_for(lang_code: str, cred_path: str):
+    TextToSpeechClient = None
+    try:
+        from google.cloud.texttospeech import TextToSpeechClient
+    except ImportError:
+        try:
+            from google.cloud import texttospeech
+            TextToSpeechClient = texttospeech.TextToSpeechClient
+        except ImportError:
+            pass
     """Lista as vozes do Google Cloud TTS disponíveis para um idioma específico."""
     if not cred_path:
         config.logger.error("Caminho das credenciais do Google Cloud TTS não configurado")

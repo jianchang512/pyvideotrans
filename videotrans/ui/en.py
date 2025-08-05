@@ -2,10 +2,10 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtWidgets import QSizePolicy
 
-from videotrans.component.controlobj import TextGetdir
 from videotrans.configure import config
-from videotrans.recognition import RECOGN_NAME_LIST
-from videotrans.tts import TTS_NAME_LIST
+#from videotrans.component.controlobj import TextGetdir
+#from videotrans.recognition import RECOGN_NAME_LIST
+#from videotrans.tts import TTS_NAME_LIST
 
 
 
@@ -192,7 +192,7 @@ class Ui_MainWindow(object):
         self.tts_type = QtWidgets.QComboBox(self.layoutWidget)
         self.tts_type.setMinimumSize(QtCore.QSize(160, 30))
         self.tts_type.setObjectName("tts_type")
-        self.tts_type.addItems(TTS_NAME_LIST)
+        #self.tts_type.addItems(TTS_NAME_LIST)
         self.tts_type.setToolTip('选择用来配音的渠道' if config.defaulelang=='zh' else 'Select the channel used to dub')
         self.horizontalLayout.addWidget(self.tts_text)
         self.horizontalLayout.addWidget(self.tts_type)
@@ -270,7 +270,7 @@ class Ui_MainWindow(object):
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
         self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
         self.recogn_type.setObjectName("label_5")
-        self.recogn_type.addItems(RECOGN_NAME_LIST)
+        #self.recogn_type.addItems(RECOGN_NAME_LIST)
         self.recogn_type.setToolTip(config.uilanglist['model_type_tips'])
 
         self.model_name_help = QtWidgets.QPushButton(self.layoutWidget)
@@ -600,19 +600,26 @@ class Ui_MainWindow(object):
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
 
-        source_area_layout=QtWidgets.QVBoxLayout()
+        self.source_area_layout=QtWidgets.QVBoxLayout()
+        """
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.subtitle_area.setPlaceholderText(
             f"{config.transobj['zimubianjitishi']}\n\n{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
+        """
+        # ** 关键修改：使用占位符替换自定义组件 **
+        self.subtitle_area_placeholder = QtWidgets.QWidget(self)
+        self.subtitle_area_placeholder.setObjectName("subtitle_area_placeholder")
+
+           
         self.import_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.import_sub.setObjectName("import_sub")
-        source_area_layout.addWidget(self.subtitle_area)
-        source_area_layout.addWidget(self.import_sub)
+        self.source_area_layout.addWidget(self.subtitle_area_placeholder)
+        self.source_area_layout.addWidget(self.import_sub)
         self.target_subtitle_area= QtWidgets.QVBoxLayout()
 
 
-        self.subtitle_layout.addLayout(source_area_layout)
+        self.subtitle_layout.addLayout(self.source_area_layout)
         self.subtitle_layout.addLayout(self.target_subtitle_area)
 
 
@@ -987,8 +994,9 @@ class Ui_MainWindow(object):
 
 
         # 200ms后渲染文字
-        QTimer.singleShot(50, self.retranslateUi)
+        #QTimer.singleShot(50, self.retranslateUi)
 
+"""
     def retranslateUi(self):
         self.btn_get_video.setToolTip(
             config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
@@ -1163,3 +1171,4 @@ class Ui_MainWindow(object):
 
         self.actionsrtmultirole.setText('字幕多角色配音' if config.defaulelang == 'zh' else 'Multi voice dubbing for SRT')
         self.actionsrtmultirole.setToolTip('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
+"""

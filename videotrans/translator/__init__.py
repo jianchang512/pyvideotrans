@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from typing import Union, List
-
-
-
 from videotrans.configure import config
 
 
