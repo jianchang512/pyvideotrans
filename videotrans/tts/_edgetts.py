@@ -56,7 +56,7 @@ class EdgeTTS(BaseTTS):
                 await asyncio.sleep(self.wait_sec)
 
             # 移除可能存在的说话人标签
-            config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {item['text']}")
+            config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {self.rate=},{self.volume=},{self.pitch=}, {item['text']}")
 
             for attempt in range(RETRY_NUMS):
                 try:
@@ -68,7 +68,8 @@ class EdgeTTS(BaseTTS):
                         proxy=self.proxies,
                         pitch=self.pitch
                     )
-                    await communicate.save(item['filename'])
+                    await communicate.save(item['filename']+".mp3")
+                    self.convert_to_wav(item['filename']+".mp3", item['filename'])
 
                     # 成功后，更新进度并立即返回
                     if self.inst:

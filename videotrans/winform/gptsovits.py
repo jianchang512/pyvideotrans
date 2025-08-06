@@ -27,7 +27,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": getrole(),
-            "filename": config.TEMP_HOME + f"/test-gptsovits.mp3",
+            "filename": config.TEMP_HOME + f"/test-gptsovits.wav",
             "tts_type": tts.GPTSOVITS_TTS}],
                          language="zh",
                          tts_type=tts.GPTSOVITS_TTS)

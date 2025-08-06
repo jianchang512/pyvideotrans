@@ -63,7 +63,7 @@ class QWENTTS(BaseTTS):
             resurl.raise_for_status()  # 检查请求是否成功
             with open(data_item['filename'] + '.wav', 'wb') as f:
                 f.write(resurl.content)
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1

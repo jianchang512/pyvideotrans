@@ -83,19 +83,13 @@ class F5TTS(BaseTTS):
         )
 
         config.logger.info(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) else result
-        if self.v1_local or (isinstance(wav_file, str) and Path(wav_file).is_file()):
-            tools.wav2mp3(wav_file, data_item['filename'])
+        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
+        if isinstance(wav_file, dict) and "value" in wav_file:
+            wav_file = wav_file['value']
+        if isinstance(wav_file, str) and Path(wav_file).is_file():
+            self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            resp = requests.get(self.api_url + f'/gradio_api/file=' + Path(wav_file).as_posix())
-            resp.raise_for_status()
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(resp.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'F5-TTS合成声音失败-2:{text=}'
-                return
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            return
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -137,19 +131,14 @@ class F5TTS(BaseTTS):
         )
 
         config.logger.info(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) else result
-        if self.v1_local or (isinstance(wav_file, str) and Path(wav_file).is_file()):
-            tools.wav2mp3(wav_file, data_item['filename'])
+        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
+        if isinstance(wav_file, dict) and "value" in wav_file:
+            wav_file = wav_file['value']
+        if isinstance(wav_file, str) and Path(wav_file).is_file():
+            self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            resp = requests.get(self.api_url + f'/gradio_api/file=' + Path(wav_file).as_posix())
-            resp.raise_for_status()
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(resp.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'Spark-TTS合成声音失败-2:{text=}'
-                return
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            return
+
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -188,21 +177,13 @@ class F5TTS(BaseTTS):
         )
 
         config.logger.info(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) else result
+        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
-        if self.v1_local or (isinstance(wav_file, str) and Path(wav_file).is_file()):
-            tools.wav2mp3(wav_file, data_item['filename'])
+        if isinstance(wav_file, str) and Path(wav_file).is_file():
+            self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            resp = requests.get(self.api_url + f'/gradio_api/file=' + Path(wav_file).as_posix())
-            resp.raise_for_status()
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(resp.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'index-TTS合成声音失败-2:{text=}'
-                return
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            return
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -243,19 +224,13 @@ class F5TTS(BaseTTS):
         )
 
         config.logger.info(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) else result
-        if self.v1_local or (isinstance(wav_file, str) and Path(wav_file).is_file()):
-            tools.wav2mp3(wav_file, data_item['filename'])
+        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
+        if isinstance(wav_file, dict) and "value" in wav_file:
+            wav_file = wav_file['value']
+        if isinstance(wav_file, str) and Path(wav_file).is_file():
+            self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            resp = requests.get(self.api_url + f'/gradio_api/file=' + Path(wav_file).as_posix())
-            resp.raise_for_status()
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(resp.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'Dia-TTS合成声音失败-2:{text=}'
-                return
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            return
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''

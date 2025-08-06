@@ -85,7 +85,7 @@ class DubbingSrt(BaseTask):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        
+        # txt 结尾直接合成为一个
         if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type']==tts.EDGE_TTS:
             from edge_tts import Communicate
             import asyncio
@@ -103,7 +103,7 @@ class DubbingSrt(BaseTask):
                 await communicate_task.save(tmp_name)
                 
                 if not self.cfg["target_wav"].endswith('.mp3'):
-                    tools.runffmpeg(['-y','-i',tmp_name,'-b:a','192k',self.cfg['target_wav']])
+                    tools.runffmpeg(['-y','-i',tmp_name,'-b:a','128k',self.cfg['target_wav']])
                 
             asyncio.run(_async_dubb())
             return
@@ -147,7 +147,7 @@ class DubbingSrt(BaseTask):
                        "volume": self.cfg['volume'],
                        "pitch": self.cfg['pitch'],
                        "tts_type": int(self.cfg['tts_type']),
-                       "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.mp3"}
+                       "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.wav"}
             queue_tts.append(tmp_dict)
         Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True,exist_ok=True)
         self.queue_tts = queue_tts
@@ -166,7 +166,7 @@ class DubbingSrt(BaseTask):
             for it in self.queue_tts:
                 if Path(it['filename']).exists():
                     text=re.sub(r'["\'*?\\/\|:<>\r\n\t]+','',it['text'])
-                    name= f'{outname}/{it["start_time"]}-{text[:60]}.mp3'
+                    name= f'{outname}/{it["start_time"]}-{text[:60]}.wav'
                     shutil.copy2(it['filename'],name)
 
     def align(self) -> None:

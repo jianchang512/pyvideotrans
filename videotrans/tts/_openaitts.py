@@ -59,10 +59,10 @@ class OPENAITTS(BaseTTS):
                     speed=speed,
                     instructions=config.params.get('openaitts_instructions', '')
             ) as response:
-                with open(data_item['filename'], 'wb') as f:
+                with open(data_item['filename']+".mp3", 'wb') as f:
                     for chunk in response.iter_bytes():
                         f.write(chunk)
-
+            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''

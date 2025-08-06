@@ -77,12 +77,8 @@ class AI302(BaseTTS):
             raise RuntimeError(res.get('error',{}).get("message"))
         req_audio=requests.get(audio_url)
         req_audio.raise_for_status()
-        if audio_url.split('?')[0].lower().endswith('.mp3'):
-            with open(data['filename'], 'wb') as f:
-                f.write(req_audio.content)
-        else:
-            with open(data['filename']+".wav", 'wb') as f:
-                f.write(req_audio.content)
-            tools.wav2mp3(data['filename']+".wav", data['filename'])
+        with open(data['filename']+".mp3", 'wb') as f:
+            f.write(req_audio.content)
+        self.convert_to_wav(data['filename']+".mp3", data['filename'])
 
 

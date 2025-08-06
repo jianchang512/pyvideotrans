@@ -103,7 +103,7 @@ class CosyVoice(BaseTTS):
                 self.error = f'CosyVoice 合成声音失败-2'
                 time.sleep(RETRY_DELAY)
                 raise RuntimeError(self.error)
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
+            self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
