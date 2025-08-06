@@ -12,9 +12,6 @@ License: GPL-V3
 
 """
 
-"""
-pyVideoTrans: ... (你的注释保持不变)
-"""
 
 import sys
 import time
@@ -33,16 +30,15 @@ class StartWindow(QWidget):
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) # 使窗口背景透明
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) # 窗口背景透明
 
-        # 使用一个简单的 QLabel 作为背景
         self.background_label = QLabel(self)
         self.pixmap = QPixmap("./videotrans/styles/logo.png")
         self.background_label.setPixmap(self.pixmap)
         self.background_label.setScaledContents(True)
         self.background_label.setGeometry(self.rect())
 
-        # 在背景上叠加文字
+        # 背景上叠加文字
         v_layout = QVBoxLayout(self)
         v_layout.addStretch(1)
         h_layout = QHBoxLayout()
@@ -71,7 +67,7 @@ def initialize_full_app(start_window, app_instance):
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
 
-    # 设置日志
+    # 日志
     if sys.stdout is None or sys.stderr is None:
         try:
             log_dir = os.path.join(os.getcwd(), "logs")
@@ -84,7 +80,7 @@ def initialize_full_app(start_window, app_instance):
         except Exception:
             pass
 
-    # 设置全局异常钩子
+    # 全局异常钩子
     def global_exception_hook(exctype, value, tb):
         tb_str = "".join(traceback.format_exception(exctype, value, tb))
         print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
@@ -93,14 +89,14 @@ def initialize_full_app(start_window, app_instance):
         sys.exit(1)
     sys.excepthook = global_exception_hook
 
-    # 解析命令行参数
+    # 命令行参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--lang', type=str, help='Set the application language (e.g., en, zh)')
     cli_args, unknown = parser.parse_known_args()
     if cli_args.lang:
         os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
 
-    # 导入资源
+    # 导入qss image 资源
     import videotrans.ui.dark.darkstyle_rc 
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
@@ -123,7 +119,7 @@ def initialize_full_app(start_window, app_instance):
         app_instance.quit()
         return
     
-    # 7. 关闭启动窗口并显示主窗口
+    # 显示主窗口
     if main_window_created and start_window.main_window:
         print(f"#### 所有初始化完毕，准备关闭启动窗口: {time.time()}")
         start_window.main_window.show()
@@ -134,7 +130,7 @@ if __name__ == "__main__":
     import multiprocessing
     multiprocessing.freeze_support()
     
-    # 在创建 QApplication 之前，设置 HighDpi
+    # 设置 HighDpi
     try:
         QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     except AttributeError:

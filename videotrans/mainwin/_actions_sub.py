@@ -10,13 +10,9 @@ from typing import Optional, Dict, List, Any
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
-
-
-
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
-
 
 @dataclass
 class WinActionSub:

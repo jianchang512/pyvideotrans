@@ -11,15 +11,12 @@ from videotrans.ui.en import Ui_MainWindow
 from videotrans.util import tools
 from videotrans.mainwin._actions import WinAction
 from videotrans import VERSION, recognition, tts
-from videotrans.component.controlobj import TextGetdir
-from videotrans.recognition import RECOGN_NAME_LIST
-from videotrans.tts import TTS_NAME_LIST
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
         
         super(MainWindow, self).__init__(parent)
-        
         
         self.width = width
         self.height = height
@@ -35,33 +32,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
         self.languagename = config.langnamelist
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        
-        self.setupUi(self)
-        
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))        
+        self.setupUi(self)        
         
         self._replace_placeholders()
         self.initUI()
-        
-        
         
         self._retranslateUi_from_logic()
         self.show()
         QTimer.singleShot(50, self._set_cache_set)
         QTimer.singleShot(100, self._start_subform)
-        QTimer.singleShot(500, self._bindsignal)
-        QTimer.singleShot(1000, self.is_writable)
-        
-        
+        QTimer.singleShot(400, self._bindsignal)
+        QTimer.singleShot(800, self.is_writable)  
     
     
     def _replace_placeholders(self):
         """
         用真正的自定义组件替换UI文件中的占位符
         """
-        self.recogn_type.addItems(RECOGN_NAME_LIST)
-        self.tts_type.addItems(TTS_NAME_LIST)
-        # 创建真正的 TextGetdir 实例
+        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
+        self.tts_type.addItems(tts.TTS_NAME_LIST)
+
+        from videotrans.component.controlobj import TextGetdir
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")
@@ -74,7 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area_placeholder.deleteLater()
 
     def _retranslateUi_from_logic(self):
-        
+        """设置显示文字"""
         self.btn_get_video.setToolTip(
             config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText('选择要处理的视频' if config.defaulelang == 'zh' else 'Select the video')
@@ -246,14 +238,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsrtmultirole.setText('字幕多角色配音' if config.defaulelang == 'zh' else 'Multi voice dubbing for SRT')
         self.actionsrtmultirole.setToolTip('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
     
-    
-    
     def initUI(self):
         
         from videotrans.translator import TRANSLASTE_NAME_LIST
-        
-
-        
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusBar.addWidget(self.statusLabel)
@@ -268,17 +255,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pvt9.com "
         self.setWindowTitle(self.rawtitle)
-        
-        
-
-        
-
-        self.win_action = WinAction(self)
-        
-        
-
-        
-        
+        self.win_action = WinAction(self)        
         self.win_action.tts_type_change(config.params['tts_type'])
         
         try:
@@ -297,9 +274,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tts_type.setCurrentIndex(config.params['tts_type'])
         self.voice_role.clear()
         
-        
-
-        # 这部分可能有网络或文件IO操作，需要重点监控
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
             threading.Thread(target=tools.get_clone_role).start()
@@ -337,9 +311,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
         
-
-        
-
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
             self.win_action.set_voice_role(config.params['target_language'])
@@ -347,9 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
-
-        
-
+                
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except:
@@ -367,9 +336,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             curr = config.WHISPER_MODEL_LIST
         if config.params['model_name'] in curr:
             self.model_name.setCurrentText(config.params['model_name'])
-        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
-                                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
-                                                recognition.Deepgram]:
+        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -377,24 +344,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        if config.params['model_name'] == 'paraformer-zh' or config.params['recogn_type'] == recognition.Deepgram or \
-                config.params['recogn_type'] == recognition.GEMINI_SPEECH:
+        if config.params['model_name'] == 'paraformer-zh' or config.params['recogn_type'] == recognition.Deepgram or  config.params['recogn_type'] == recognition.GEMINI_SPEECH:
             self.show_spk.setVisible(True)
             
         
-
-    def _bindsignal(self):
-        
-
-        
+    def _bindsignal(self):       
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.get_role_list import GetRoleWorker
         from videotrans.task.job import start_thread
-        from videotrans.mainwin._signal import UUIDSignalThread
-        
-        
-
-        
+        from videotrans.mainwin._signal import UUIDSignalThread        
         
         update_role = GetRoleWorker(parent=self)
         update_role.start()
@@ -406,15 +364,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         uuid_signal.start()
         start_thread(self)
         
-
-        
         print(f"\n####信号绑定结束:{time.time()}")
 
     def _set_cache_set(self):
-        
-
-        
-        
+    
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
@@ -507,16 +460,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
         
-
-        
         print(f"\n####缓存读取结束:{time.time()}")
 
     def _start_subform(self):
-        
-        
-        
+    
         self.import_sub.setCursor(Qt.PointingHandCursor)
-
         self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.stop_djs.setCursor(Qt.PointingHandCursor)
         self.continue_compos.setCursor(Qt.PointingHandCursor)
@@ -605,13 +553,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
         
-        
         print(f"\n####启动窗口结束:{time.time()}")
 
     def is_writable(self):
         import uuid
         temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
-
         try:
             with open(temp_file_path, 'w') as f:
                 pass
@@ -679,9 +625,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.INFO_WIN['win'].close()
         except Exception:
             pass
-        time.sleep(3)
-
         print('等待所有进程退出...')
+        time.sleep(3)
         try:
             self.kill_ffmpeg_processes()
             time.sleep(3)
