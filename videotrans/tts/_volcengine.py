@@ -118,8 +118,9 @@ class VolcEngineTTS(BaseTTS):
             resp_json = resp.json()
             if "data" in resp_json:
                 data = resp_json["data"]
-                with open(data_item['filename'], "wb") as f:
+                with open(data_item['filename']+".mp3", "wb") as f:
                     f.write(base64.b64decode(data))
+                self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
             if 'code' in resp_json:

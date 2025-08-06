@@ -153,7 +153,7 @@ class GoogleCloudSettingsForm(QWidget):
         try:
             tts = GoogleCloudTTS()
             # cria um arquivo temporário simples
-            tmp = "test_gcloud.mp3"
+            tmp = "test_gcloud.wav"
             tts._item_task({"filename": tmp, "text": "This is a test."})
             QMessageBox.information(self, "Teste OK", f"Áudio gerado com sucesso: {tmp}")
         except Exception as e:

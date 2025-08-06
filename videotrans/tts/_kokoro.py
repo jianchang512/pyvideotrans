@@ -46,8 +46,9 @@ class KokoroTTS(BaseTTS):
             data = {"input": data_item['text'], "voice": data_item['role'], "speed": speed}
             res = requests.post(self.api_url, json=data, proxies=self.proxies, timeout=3600)
             res.raise_for_status()
-            with open(data_item['filename'], 'wb') as f:
+            with open(data_item['filename']+".mp3", 'wb') as f:
                 f.write(res.content)
+            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''

@@ -146,7 +146,7 @@ class GoogleCloudTTS(BaseTTS):
             )
 
             # garante diretório
-            out_path = data_item["filename"]
+            out_path = data_item["filename"]+".mp3"
             parent = os.path.dirname(out_path)
             if parent and not os.path.exists(parent):
                 os.makedirs(parent, exist_ok=True)
@@ -154,7 +154,7 @@ class GoogleCloudTTS(BaseTTS):
             # grava saída
             with open(out_path, "wb") as f:
                 f.write(response.audio_content)
-
+            self.convert_to_wav(out_path,data_item['filename'])
             # atualiza progresso
             self.has_done += 1
             self.error = ""

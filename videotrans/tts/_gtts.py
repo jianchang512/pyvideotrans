@@ -44,7 +44,8 @@ class GTTS(BaseTTS):
             if len(lans) > 1:
                 self.language = f'{lans[0]}-{lans[1].upper()}'
             response = gTTS(data_item['text'], lang=self.language, lang_check=False)
-            response.save(data_item['filename'])
+            response.save(data_item['filename']+".mp3")
+            self.convert_to_wav(data_item['filename']+".mp3",data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1

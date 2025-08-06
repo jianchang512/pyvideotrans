@@ -63,10 +63,11 @@ class ElevenLabsC(BaseTTS):
                     use_speaker_boost=True
                 )
             )
-            with open(data_item['filename'], 'wb') as f:
+            with open(data_item['filename']+".mp3", 'wb') as f:
                 for chunk in response:
                     if chunk:
                         f.write(chunk)
+            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''
@@ -143,12 +144,12 @@ class ElevenLabsClone():
             while True:
                 status = self.client.dubbing.get(dubbed.dubbing_id).status
                 if status == "dubbed":
-                    dubbed_file = self.client.dubbing.audio.get(dubbed.dubbing_id, target_lang)
+                    dubbed_file = self.client.dubbing.audio.get(dubbed.dubbing_id)
                     if isinstance(dubbed_file, Iterator):
                         dubbed_file = b"".join(dubbed_file)
                     with open(self.output_file_path + ".mp3", "wb") as file:
                         f.write(dubbed_file)
-                    tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", self.output_file_path])
+                    tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", "-ar","48000","-ac","2","-b:a","128k",self.output_file_path])
                     self.error = ""
                     return True
 

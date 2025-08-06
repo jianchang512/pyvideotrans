@@ -59,7 +59,7 @@ class ChatTTS(BaseTTS):
                 raise RuntimeError(self.error)
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
-                tools.wav2mp3(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
+                self.convert_to_wav(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 self.has_done += 1
@@ -74,8 +74,8 @@ class ChatTTS(BaseTTS):
             with open(data_item['filename'] + ".wav", 'wb') as f:
                 f.write(resb.content)
             time.sleep(1)
-            tools.wav2mp3(data_item['filename'] + ".wav", data_item['filename'])
-            Path(data_item['filename'] + ".wav").unlink(missing_ok=True)
+            self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
+
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1

@@ -46,7 +46,7 @@ class GEMINITTS(BaseTTS):
             try:
                 self.generate_tts_segment(data_item['text'], role, config.params['gemini_ttsmodel'],
                                           data_item['filename'] + '.wav')
-                tools.wav2mp3(data_item['filename'] + '.wav', data_item['filename'])
+                self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 self.error = ''

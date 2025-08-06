@@ -628,21 +628,6 @@ def wav2m4a(wavfile, m4afile, extra=None):
         cmd = cmd[:3] + extra + cmd[3:]
     return runffmpeg(cmd)
 
-# wav转为 mp3 cuda + h264_cuvid
-def wav2mp3(wavfile, mp3file, extra=None):
-    if not wavfile or not Path(wavfile).exists():
-        raise Exception(f'No Exists: {wavfile}')
-    cmd = [
-        "-y",
-        "-i",
-        Path(wavfile).as_posix(),
-        "-b:a",
-        "128k",
-        Path(mp3file).as_posix()
-    ]
-    if extra:
-        cmd = cmd[:3] + extra + cmd[3:]
-    return runffmpeg(cmd)
 
 # 创建 多个连接文件
 def create_concat_txt(filelist, concat_txt=None):
@@ -674,18 +659,21 @@ def concat_multi_audio(*, out=None, concat_txt=None):
     os.chdir(config.TEMP_DIR)
     return True
 
-def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None, max_rate=100):
+def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None):
     from pydub import AudioSegment
     ext = file_path[-3:]
     audio = AudioSegment.from_file(file_path, format='mp4' if ext == 'm4a' else ext)
 
-    # 首先确保原时长和目标时长单位一致（毫秒）
+    # 首先确保原时长和目标时长单位一致（毫秒）,缩短音频到 target_duration_ms
     current_duration_ms = len(audio)
-    if target_duration_ms <= 0 or current_duration_ms <= 0 or current_duration_ms >= target_duration_ms:
+    if not target_duration_ms or target_duration_ms <= 0 or current_duration_ms <= 0 or current_duration_ms <= target_duration_ms:
         return True
     from videotrans.configure import config
     temp_file = config.SYS_TMP + f'/{time.time_ns()}.{ext}'
-    atempo = target_duration_ms / current_duration_ms
+    atempo = current_duration_ms/target_duration_ms
+    if atempo<=1:
+        return True
+    atempo=min(100,atempo)
     runffmpeg(["-i", file_path, "-filter:a", f"atempo={atempo}", temp_file])
     audio = AudioSegment.from_file(temp_file, format='mp4' if ext == 'm4a' else ext)
     diff = len(audio) - target_duration_ms

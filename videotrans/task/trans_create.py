@@ -551,12 +551,12 @@ class TransCreate(BaseTask):
             volume = self.cfg['volume'].replace('%', '').strip()
             try:
                 volume = 1 + float(volume) / 100
-                tmp_name = self.cfg['cache_folder'] + f'/volume-{volume}-{Path(self.cfg["target_wav"]).name}'
-                tools.runffmpeg(['-y', '-i', self.cfg['target_wav'], '-af', f"volume={volume}", tmp_name])
+                if volume != 1.0:
+                    tmp_name = self.cfg['cache_folder'] + f'/volume-{volume}-{Path(self.cfg["target_wav"]).name}'
+                    tools.runffmpeg(['-y', '-i', self.cfg['target_wav'], '-af', f"volume={volume}", tmp_name])
+                    shutil.copy2(tmp_name, self.cfg['target_wav'])
             except:
                 pass
-            else:
-                shutil.copy2(tmp_name, self.cfg['target_wav'])
 
     # 将 视频、音频、字幕合成
     def assembling(self) -> None:
@@ -732,7 +732,7 @@ class TransCreate(BaseTask):
                 "volume": self.cfg['volume'],
                 "pitch": self.cfg['pitch'],
                 "tts_type": self.cfg['tts_type'],
-                "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.mp3"
+                "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.wav"
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
@@ -770,7 +770,7 @@ class TransCreate(BaseTask):
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
                 text = re.sub(r'["\'*?\\/\|:<>\r\n\t]+', '', it['text'])
-                name = f'{outname}/{it["line"]}-{text[:60]}.mp3'
+                name = f'{outname}/{it["line"]}-{text[:60]}.wav'
                 if Path(it['filename']).exists():
                     shutil.copy2(it['filename'], name)
 

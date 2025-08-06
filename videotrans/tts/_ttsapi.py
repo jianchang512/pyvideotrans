@@ -71,36 +71,25 @@ class TTSAPI(BaseTTS):
                 time.sleep(RETRY_DELAY)
                 raise RuntimeError(self.error)
             # 返回的是音频url地址
+            tmp_filename = data_item['filename']+".mp3"
             if isinstance(res['data'], str) and res['data'].startswith('http'):
                 url = res['data']
                 res = requests.get(url)
                 res.raise_for_status()
-
-                tmp_filename = data_item['filename']
-                try:
-                    # 如果url指向的音频不是mp3，则需要转为mp3
-                    url_ext = Path(urlparse(url).path.rpartition('/')[-1]).suffix.lower()
-                except:
-                    url_ext = '.mp3'
-
-                if url_ext != '.mp3':
-                    tmp_filename += f'{url_ext}'
                 with open(tmp_filename, 'wb') as f:
                     f.write(res.content)
-                if tmp_filename != data_item['filename']:
-                    tools.runffmpeg([
-                        "-y", "-i", tmp_filename, data_item['filename']
-                    ])
             elif isinstance(res['data'], str) and res['data'].startswith('data:audio'):
                 # 返回 base64数据
-                self._base64_to_audio(res['data'], data_item['filename'])
+                self._base64_to_audio(res['data'], tmp_filename)
             elif isinstance(res['data'], dict) and 'audio' in res['data']:
-                with open(data_item['filename'], 'wb') as f:
+                with open(tmp_filename, 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
             else:
                 self.error = '未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned'
                 time.sleep(RETRY_DELAY)
                 raise RuntimeError(self.error)
+            self.convert_to_wav(tmp_filename, data_item['filename'])
+
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''

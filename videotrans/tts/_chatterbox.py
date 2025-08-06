@@ -58,7 +58,8 @@ class ChatterBoxTTS(BaseTTS):
                 response_format="mp3"  # 请求mp3格式
             )
 
-            response.stream_to_file(data_item['filename'])
+            response.stream_to_file(data_item['filename']+".mp3")
+            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
             self.has_done += 1
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
@@ -101,5 +102,6 @@ class ChatterBoxTTS(BaseTTS):
             # 检查HTTP响应状态码，如果不是2xx，则会引发HTTPError
             response.raise_for_status()
             # 将返回的二进制音频内容写入文件
-            with open(filename, 'wb') as output_file:
+            with open(filename+".mp3", 'wb') as output_file:
                 output_file.write(response.content)
+            self.convert_to_wav(filename+".mp3", filename)

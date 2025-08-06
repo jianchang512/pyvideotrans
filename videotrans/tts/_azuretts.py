@@ -70,7 +70,7 @@ class AzureTTS(BaseTTS):
                         self.inst.precent += 0.1
                     self.error = ''
                     if tools.vail_file(filename):
-                        tools.wav2mp3(filename, items[0]['filename'])
+                        self.convert_to_wav(filename, items[0]['filename'])
                     else:
                         raise RuntimeError('TTS error')
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
@@ -91,7 +91,8 @@ class AzureTTS(BaseTTS):
                             "-t",
                             str((bookmarks[i + 1]['time'] - it['time']) / 1000)
                         ]
-                    cmd += [items[i]['filename']]
+
+                    cmd += ["-ar","48000","-ac","2","-c:a","pcm_s16le",items[i]['filename']]
                     tools.runffmpeg(cmd)
                     self.has_done += 1
                     if self.inst and self.inst.precent < 80:
@@ -142,7 +143,7 @@ class AzureTTS(BaseTTS):
                     self.inst.precent += 0.1
                 self.error = ''
                 if tools.vail_file(filename):
-                    tools.wav2mp3(filename, data_item['filename'])
+                    self.convert_to_wav(filename, data_item['filename'])
                 else:
                     self.error = "TTS error"
                     raise RuntimeError(self.error)

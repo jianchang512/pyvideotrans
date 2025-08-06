@@ -164,7 +164,7 @@ def openwin():
         pitch = int(winobj.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
-        voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.mp3"
+        voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
 
         obj = {
             "text": text, "rate": rate, "role": role, "filename": voice_file, "tts_type": tts_type,
