@@ -14,9 +14,6 @@ from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.util import tools
 
-
-# Import lazy do TextToSpeechClient
-
 def _list_gcloud_voices_for(lang_code: str, cred_path: str):
     TextToSpeechClient = None
     try:
@@ -130,7 +127,6 @@ def _list_gcloud_voices_for(lang_code: str, cred_path: str):
 @dataclass
 class WinAction(WinActionSub):
 
-
     def _reset(self):
         # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
         self.edit_subtitle_type = ''
@@ -160,7 +156,6 @@ class WinAction(WinActionSub):
         self.main.continue_compos.setText('')
         self.main.continue_compos.setDisabled(True)
         self.main.subtitle_area.setReadOnly(True)
-        # self.main.target_subtitle_area.setReadOnly(True)
         self.update_subtitle()
         config.task_countdown = -1
 
@@ -238,6 +233,7 @@ class WinAction(WinActionSub):
             self.main.show_spk.setVisible(True)
         else:
             self.main.show_spk.setVisible(False)
+            self.main.show_spk.setChecked(False)
 
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
@@ -248,6 +244,26 @@ class WinAction(WinActionSub):
 
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
+
+    def check_model_name(self):
+        recogn_type=self.main.recogn_type.currentIndex()
+        model=self.main.model_name.currentText()
+        res = recognition.check_model_name(
+            recogn_type=recogn_type,
+            name=model,
+            source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
+            source_language_currentText=self.main.source_language.currentText()
+        )
+
+        if res is not True:
+            return QMessageBox.critical(self.main, config.transobj['anerror'], res)
+          
+        if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
+            self.main.show_spk.setVisible(True)
+        else:
+            self.main.show_spk.setVisible(False)
+        return True
+
 
     # 判断 语音参数 vad参数区域是否应该可见
     # 仅当是 faster并且 是整体识别
@@ -523,7 +539,9 @@ class WinAction(WinActionSub):
     # 核对所选语音识别模式是否正确
     def check_reccogn(self):
         langcode = translator.get_code(show_text=self.main.source_language.currentText())
-        res = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex())
+        recogn_type=self.main.recogn_type.currentIndex()
+        model_name=self.main.model_name.currentText()
+        res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type,model_name=model_name)
         if res is not True:
             self.main.show_tips.setText(res)
         else:
@@ -535,39 +553,9 @@ class WinAction(WinActionSub):
                                  '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
 
-        is_allow_lang = recognition.is_allow_lang(langcode=langcode, recogn_type=self.main.recogn_type.currentIndex(),
-                                                  model_name=self.main.model_name.currentText())
-        if is_allow_lang is not True:
-            self.main.show_tips.setText(is_allow_lang)
-        else:
-            self.main.show_tips.setText('')
-        # 判断是否填写自定义识别api openai-api识别
-        return recognition.is_input_api(recogn_type=self.main.recogn_type.currentIndex())
+        # 判断是否填写自定义识别 api openai-api识别
+        return recognition.is_input_api(recogn_type=recogn_type)
 
-    def check_model_name(self):
-        recogn_type=self.main.recogn_type.currentIndex()
-        model=self.main.model_name.currentText()
-        res = recognition.check_model_name(
-            recogn_type=recogn_type,
-            name=model,
-            source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
-            source_language_currentText=self.main.source_language.currentText()
-        )
-
-        if res == 'download':
-            from videotrans.winform import fn_downmodel
-            return fn_downmodel.openwin(model_name=self.main.model_name.currentText(),
-                                        recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
-        if res is not True:
-            return QMessageBox.critical(self.main, config.transobj['anerror'], res)
-        
-   
-   
-        if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
-            self.main.show_spk.setVisible(True)
-        else:
-            self.main.show_spk.setVisible(False)
-        return True
 
     # 检测开始状态并启动
     def check_start(self):
@@ -669,11 +657,6 @@ class WinAction(WinActionSub):
         # 设置各项模式参数
         self.set_mode()
 
-        # 检测模型是否存在
-        if not txt and self.main.recogn_type.currentIndex() in [recognition.OPENAI_WHISPER,
-                                                                recognition.FASTER_WHISPER] and self.check_model_name() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
         # 判断CUDA
         if self.cuda_isok() is not True:
             self.main.startbtn.setDisabled(False)
@@ -1020,8 +1003,6 @@ class WinAction(WinActionSub):
             self.main.startbtn.setText(d['text'])
             self.main.startbtn.setDisabled(True)
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
-        #elif d['type'] == 'subform':
-        #    self.main.start_subform()
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
             if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS,  tts.F5_TTS,tts.OPENAI_TTS,tts.QWEN_TTS,tts.GEMINI_TTS,tts.CHATTERBOX_TTS]:

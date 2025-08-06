@@ -388,8 +388,8 @@ def get_video_codec(force_test: bool = False) -> str:
         except subprocess.CalledProcessError as e:
             config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。FFmpeg 返回码: {e.returncode}")
             # 只在有 stderr 时记录，避免日志混乱
-            if e.stderr and e.stderr.strip():
-                config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
+            #if e.stderr and e.stderr.strip():
+            #    config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
         except PermissionError:
             config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。")
         except subprocess.TimeoutExpired:

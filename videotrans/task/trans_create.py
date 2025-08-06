@@ -24,10 +24,6 @@ from ._remove_noise import remove_noise
 
 @dataclass
 class TransCreate(BaseTask):
-    # ==================================================================
-    # 1. 定义 TransCreate 自己独有的“状态”属性
-    #    它会自动继承 BaseTask 的所有字段
-    # ==================================================================
     # 存放原始语言字幕
     source_srt_list: List = field(default_factory=list)
 
@@ -57,14 +53,39 @@ class TransCreate(BaseTask):
     def __post_init__(self):
         # 首先，处理本类的默认配置
         cfg_default = {
-            "cache_folder": None, "target_dir": None, "remove_noise": False,
-            "detect_language": None, 'subtitle_language': None, "source_language_code": None,
-            "target_language_code": None, "source_sub": None, "target_sub": None,
-            "source_wav": "", "source_wav_output": "", "target_wav": "", "target_wav_output": "",
-            "novoice_mp4": None, "targetdir_mp4": None, "instrument": None, "vocal": None,
-            "shibie_audio": None, 'background_music': None, 'app_mode': "biaozhun",
-            "subtitle_type": 0, 'only_video': False, "volume": "+0%", "pitch": "+0Hz", "voice_rate": "+0%",
-            "back_audio":None,"voice_role":None,"is_separate":False,"subtitles":None,"source_language":None,"target_language":None,"noextname":None
+            "cache_folder": None, 
+            "target_dir": None,
+            "remove_noise": False,
+ 
+            "detect_language": None,
+            'subtitle_language': None,
+            "source_language_code": None,
+            "target_language_code": None,
+            "source_sub": None,
+            "target_sub": None,
+            "source_wav": "",
+            "source_wav_output": "",
+            "target_wav": "",
+            "target_wav_output": "",
+            "novoice_mp4": None, 
+            "targetdir_mp4": None, 
+            "instrument": None, 
+            "vocal": None,
+            "shibie_audio": None, 
+            'background_music': None, 
+            'app_mode': "biaozhun",
+            "subtitle_type": 0, 
+            'only_video': False, 
+            "volume": "+0%", 
+            "pitch": "+0Hz", 
+            "voice_rate": "+0%",
+            "back_audio":None,
+            "voice_role":None,
+            "is_separate":False,
+            "subtitles":None,
+            "source_language":None,
+            "target_language":None,
+            "noextname":None
         }
 
         final_cfg = cfg_default.copy()
@@ -73,8 +94,7 @@ class TransCreate(BaseTask):
         self.cfg = final_cfg
         self.video_codec_num = int(config.settings.get('video_codec', 264))
 
-        # 使用处理好的完整配置来调用父类的 __post_init__
-        # 这会正确地设置 self.cfg, self.uuid 等基础属性
+        # 设置 self.cfg, self.uuid 等基础属性
         super().__post_init__()
 
         if "app_mode" not in self.cfg:
@@ -126,7 +146,6 @@ class TransCreate(BaseTask):
         if self.cfg['is_separate']:
             # 背景音乐
             self.cfg['instrument'] = f"{self.cfg['cache_folder']}/instrument.wav"
-            # 转为8k采样率，降低文件
             self.cfg['vocal'] = f"{self.cfg['cache_folder']}/vocal.wav"
             self._unlink_size0(self.cfg['instrument'])
             self._unlink_size0(self.cfg['vocal'])
@@ -175,8 +194,7 @@ class TransCreate(BaseTask):
         if source_code:
             self.cfg['source_language_code'] = source_code
         # 检测字幕原始语言
-        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code']) if self.cfg[
-                                                                                                          'source_language_code'] != 'auto' else 'auto'
+        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code']) if self.cfg['source_language_code'] != 'auto' else 'auto'
         # 原始语言一定存在
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
@@ -234,7 +252,49 @@ class TransCreate(BaseTask):
         if self._exit():
             return
         # 将原始视频分离为无声视频和音频
-        self._split_wav_novicemp4()
+        # 不是 提取字幕时，需要分离出视频
+        if self.cfg['app_mode'] not in ['tiqu']:
+            config.queue_novice[self.cfg['noextname']] = 'ing'
+            threading.Thread(target=self._split_novoice_byraw).start()
+            if not self.is_copy_video:
+                self.status_text = '视频需要转码，耗时可能较久..' if config.defaulelang == 'zh' else 'Video needs transcoded and take a long time..'
+        else:
+            config.queue_novice[self.cfg['noextname']] = 'end'
+
+        # 添加是否保留背景选项
+        if self.cfg['is_separate'] and (not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument'])):
+            try:
+                self._signal(text=config.transobj['Separating background music'])
+                self.status_text = config.transobj['Separating background music']
+                self._split_audio_byraw(True)
+            except Exception as e:
+                pass
+            finally:
+                if not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument']) :
+                    # 分离失败
+                    self.cfg['instrument'] = None
+                    self.cfg['vocal'] = None
+                    self.cfg['is_separate'] = False
+                    self.shoud_separate = False
+                elif self.shoud_recogn:
+                    # 需要识别时
+                    # 分离成功后转为16k待识别音频
+                    tools.conver_to_16k(self.cfg['vocal'], self.cfg['shibie_audio'])
+        # 不分离，或分离失败
+        if not self.cfg['is_separate']:
+            try:
+                self.status_text = config.transobj['kaishitiquyinpin']
+                self._split_audio_byraw()
+                # 需要识别
+                if self.shoud_recogn:
+                    tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
+            except Exception as e:
+                self._signal(text=str(e), type='error')
+                raise
+        if self.cfg['source_wav']:
+            shutil.copy2(self.cfg['source_wav'], self.cfg['target_dir'] + f"/{os.path.basename(self.cfg['source_wav'])}")
+        self.status_text = config.transobj['endfenliyinpin']
+
 
     def _recogn_succeed(self) -> None:
         # 仅提取字幕
@@ -363,7 +423,6 @@ class TransCreate(BaseTask):
 
         # 如果存在目标语言字幕，前台直接使用该字幕替换
         if self._srt_vail(self.cfg['target_sub']):
-            print(f'已存在，不需要翻译==')
             # 判断已存在的字幕文件中是否存在有效字幕纪录
             # 通知前端替换字幕
             self._signal(
@@ -552,14 +611,14 @@ class TransCreate(BaseTask):
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
-            #Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-            #shutil.rmtree(self.cfg['cache_folder'], ignore_errors=True)
+            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+            shutil.rmtree(self.cfg['cache_folder'], ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
 
 
-    # 从原始视频分离出 无声视频 cuda + h264_cuvid
-    def split_novoice_byraw(self):
+    # 从原始视频分离出 无声视频
+    def _split_novoice_byraw(self):
         cmd = [
             "-y",
             "-i",
@@ -573,54 +632,8 @@ class TransCreate(BaseTask):
         cmd += [self.cfg['novoice_mp4']]
         return tools.runffmpeg(cmd, noextname=self.cfg['noextname'])
 
-    # 分离音频 和 novoice.mp4
-    def _split_wav_novicemp4(self) -> None:
-        # 不是 提取字幕时，需要分离出视频
-        if self.cfg['app_mode'] not in ['tiqu']:
-            config.queue_novice[self.cfg['noextname']] = 'ing'
-            threading.Thread(target=self.split_novoice_byraw).start()
-            if not self.is_copy_video:
-                self.status_text = '视频需要转码，耗时可能较久..' if config.defaulelang == 'zh' else 'Video needs transcoded and take a long time..'
-        else:
-            config.queue_novice[self.cfg['noextname']] = 'end'
-
-        # 添加是否保留背景选项
-        if self.cfg['is_separate'] and (not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument'])):
-            try:
-                self._signal(text=config.transobj['Separating background music'])
-                self.status_text = config.transobj['Separating background music']
-                self.split_audio_byraw(True)
-            except Exception as e:
-                pass
-            finally:
-                if not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument']) :
-                    # 分离失败
-                    self.cfg['instrument'] = None
-                    self.cfg['vocal'] = None
-                    self.cfg['is_separate'] = False
-                    self.shoud_separate = False
-                elif self.shoud_recogn:
-                    # 需要识别时
-                    # 分离成功后转为16k待识别音频
-                    tools.conver_to_16k(self.cfg['vocal'], self.cfg['shibie_audio'])
-        # 不分离，或分离失败
-        if not self.cfg['is_separate']:
-            try:
-                self.status_text = config.transobj['kaishitiquyinpin']
-                self.split_audio_byraw()
-                # 需要识别
-                if self.shoud_recogn:
-                    tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
-            except Exception as e:
-                self._signal(text=str(e), type='error')
-                raise
-        if self.cfg['source_wav']:
-            shutil.copy2(self.cfg['source_wav'], self.cfg['target_dir'] + f"/{os.path.basename(self.cfg['source_wav'])}")
-        self.status_text = config.transobj['endfenliyinpin']
-
-
-    # 从原始视频中分离出音频 cuda + h264_cuvid
-    def split_audio_byraw(self,is_separate=False):
+    # 从原始视频中分离出音频
+    def _split_audio_byraw(self,is_separate=False):
         cmd = [
             "-y",
             "-i",
@@ -823,8 +836,7 @@ class TransCreate(BaseTask):
                 # 获取音频长度
                 atime = tools.get_audio_time(self.cfg['instrument'])
                 beishu = math.ceil(vtime / atime)
-                # instrument_file = self.cfg['cache_folder'] + f'/instrument.wav'
-                # shutil.copy2(self.cfg['instrument'], instrument_file)
+
                 instrument_file = self.cfg['instrument']
                 config.logger.info(f'合并背景音 {beishu=},{atime=},{vtime=}')
                 if config.settings['loop_backaudio'] and atime + 1 < vtime:
@@ -836,12 +848,13 @@ class TransCreate(BaseTask):
                                              out=self.cfg['cache_folder'] + "/instrument-concat.m4a")
                     self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.m4a"
                 # 背景音合并配音
-                self.backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
+                self._backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
                 shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
+                
     #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
-    def backandvocal(self,backwav, peiyinm4a):
+    def _backandvocal(self,backwav, peiyinm4a):
         import tempfile
         backwav = Path(backwav).as_posix()
         peiyinm4a = Path(peiyinm4a).as_posix()
