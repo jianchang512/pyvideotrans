@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import datetime,time
 _st_time=time.time()
 import json
@@ -11,91 +10,32 @@ import sys
 import tempfile
 from pathlib import Path
 from queue import Queue
-
 MAINWIN = None
-
-
 # 获取程序执行目录
 def _get_executable_path():
     if getattr(sys, 'frozen', False):
         # 如果程序是被"冻结"打包的，使用这个路径
         os.environ['TQDM_DISABLE'] = '1'
-
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
-
-
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
-
 # 程序根目录
 ROOT_DIR = _get_executable_path()
-
 _root_path = Path(ROOT_DIR)
-
 _tmpname = f'tmp'
 # 程序根下临时目录tmp
 _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
-
 TEMP_DIR = _temp_path.as_posix()
 Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True)
-
 # 日志目录 logs
 _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = _logs_path.as_posix()
-
 # 确保同时只能一个 faster-whisper进程在执行
 model_process = None
-
-# 模型下载地址
-MODELS_DOWNLOAD = {
-    "openai": {
-        "tiny.en": "https://openaipublic.azureedge.net/main/whisper/models/d3dd57d32accea0b295c96e26691aa14d8822fac7d9d27d5dc00b4ca2826dd03/tiny.en.pt",
-        "tiny": "https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt",
-        "base.en": "https://openaipublic.azureedge.net/main/whisper/models/25a8566e1d0c1e2231d1c762132cd20e0f96a85d16145c3a00adf5d1ac670ead/base.en.pt",
-        "base": "https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt",
-        "small.en": "https://openaipublic.azureedge.net/main/whisper/models/f953ad0fd29cacd07d5a9eda5624af0f6bcf2258be67c92b79389873d91e0872/small.en.pt",
-        "small": "https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt",
-        "medium.en": "https://openaipublic.azureedge.net/main/whisper/models/d7440d1dc186f76616474e0ff0b3b6b879abc9d1a4926b7adfa41db2d497ab4f/medium.en.pt",
-        "medium": "https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt",
-        "large-v1": "https://openaipublic.azureedge.net/main/whisper/models/e4b87e7e0bf463eb8e6956e646f1e277e901512310def2c24bf0e11bd3c28e9a/large-v1.pt",
-        "large-v2": "https://openaipublic.azureedge.net/main/whisper/models/81f7c96c852ee8fc832187b0132e569d6c3065a3252ed18e56effd0b6a73e524/large-v2.pt",
-        "large-v3": "https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt",
-        "large-v3-turbo": "https://openaipublic.azureedge.net/main/whisper/models/aff26ae408abcba5fbf8813c21e62b0941638c5f6eebfb145be0c9839262a19a/large-v3-turbo.pt",
-    },
-    "faster": {
-        "tiny": "https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7z",
-        "tiny.en": "https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.en.7z",
-        "base": "https://github.com/jianchang512/stt/releases/download/0.0/faster-base.7z",
-        "base.en": "https://github.com/jianchang512/stt/releases/download/0.0/faster-base.en.7z",
-
-        "small": "https://github.com/jianchang512/stt/releases/download/0.0/faster-small.7z",
-        "small.en": "https://github.com/jianchang512/stt/releases/download/0.0/faster-small.en.7z",
-
-        "medium": "https://github.com/jianchang512/stt/releases/download/0.0/faster-medium.7z",
-        "medium.en": "https://github.com/jianchang512/stt/releases/download/0.0/faster-medium.en.7z",
-
-        "large-v1": "https://huggingface.co/spaces/mortimerme/s4/resolve/main/faster-large-v1.7z?download=true",
-
-        "large-v2": "https://huggingface.co/spaces/mortimerme/s4/resolve/main/largev2-jieyao-dao-models.7z",
-
-        "large-v3": "https://huggingface.co/spaces/mortimerme/s4/resolve/main/faster-largev3.7z?download=true",
-        "large-v3-turbo": "https://github.com/jianchang512/stt/releases/download/0.0/faster-large-v3-turbo.7z",
-
-        "distil-whisper-small.en": "https://github.com/jianchang512/stt/releases/download/0.0/distil-whisper-small.en.7z",
-
-        "distil-whisper-medium.en": "https://github.com/jianchang512/stt/releases/download/0.0/distil-whisper-medium.en.7z",
-
-        "distil-whisper-large-v2": "https://github.com/jianchang512/stt/releases/download/0.0/distil-whisper-large-v2.7z",
-
-        "distil-whisper-large-v3": "https://github.com/jianchang512/stt/releases/download/0.0/distil-whisper-large-v3.7z"
-    }
-}
-
 ###################################
-
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.INFO)
 # 创建文件处理器，并设置级别G
@@ -112,8 +52,6 @@ _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
-
-
 # 捕获所有未处理的异常
 def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
@@ -121,23 +59,18 @@ def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-
 # 安装自定义异常钩子
 sys.excepthook = _log_uncaught_exceptions
-
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
-
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
-
 # 语言
 env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
 if env_lang:  # 新增：如果环境变量存在，则使用它
@@ -147,16 +80,12 @@ else:  # 原有逻辑
         defaulelang = locale.getdefaultlocale()[0][:2].lower()
     except Exception:
         defaulelang = "zh"
-
 if defaulelang == 'zh':
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-
 ####################################
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
-
-
 def push_queue(uuid, jsondata):
     if uuid in stoped_uuid_set:
         return
@@ -168,28 +97,19 @@ def push_queue(uuid, jsondata):
             uuid_logs_queue[uuid].put_nowait(jsondata)
     except Exception:
         pass
-
-
 # 存储已停止/暂停的任务
 stoped_uuid_set = set()
-
 # 全局消息，不存在uuid，用于控制软件
 global_msg = []
-
 # 软件退出
 exit_soft = False
-
 # 所有设置窗口和子窗口
 child_forms = {}
-
 # info form
 INFO_WIN = {"data": {}, "win": None}
-
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, "ing"=需等待，end=成功完成，error=出错了
 queue_novice = {}
-
 #################################################
-
 # 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
 current_status = "stop"
 # 工具箱翻译进行状态,ing进行中，其他停止
@@ -198,10 +118,8 @@ box_trans = "stop"
 box_tts = "stop"
 # 工具箱识别状态
 box_recogn = 'stop'
-
 # 倒计时数秒
 task_countdown = 0
-
 #####################################
 # 预先处理队列
 prepare_queue = []
@@ -215,15 +133,12 @@ dubb_queue = []
 align_queue = []
 # 合成队列
 assemb_queue = []
-
 # 执行模式 gui 或 api
 exec_mode = "gui"
-
 # funasr模型
 FUNASR_MODEL = ['paraformer-zh', 'SenseVoiceSmall']
 # 存储下载进度
 FUNASR_DOWNMSG = ""
-
 DEEPGRAM_MODEL = [
     "nova-3",
     "whisper-large",
@@ -234,28 +149,20 @@ DEEPGRAM_MODEL = [
     "nova-2",
     "enhanced",
     "base",
-
 ]
-
 # 支持的视频格式
 VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
-
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
 video_codec = None
-
 #######################################
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
-
 DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
-
 line_roles = {}
 dubbing_role = {}
-
-
 # 设置默认高级参数值
 def parse_init():
     _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
@@ -264,23 +171,17 @@ def parse_init():
     except:
         _defaulthomedir = ROOT_DIR + '/hometemp'
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
-
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
         "homedir": _defaulthomedir,
         "lang": "",
-
         "Faster_Whisper_XXL": "",
-
         "crf": 23,
         "cuda_decode": False,
-
-
         "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "video_codec": 264,
-
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
@@ -300,11 +201,8 @@ def parse_init():
         "max_speech_duration_s": 8,
         "min_silence_duration_ms": 250,
         "speech_pad_ms": 200,
-
         "overall_maxsecs": 15,
-
         "rephrase": False,
-
         "voice_silence": 200,
         "interval_split": 10,
         "bgm_split_time": 300,
@@ -366,15 +264,12 @@ def parse_init():
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
         "llm_ai_type": "openai",
-
         "gemini_recogn_chunk": 50,
-
         "zh_hant_s": True,
         "azure_lines": 100,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy": ""
-
     }
     if not Path(ROOT_DIR + "/videotrans/cfg.json").exists():
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
@@ -407,8 +302,6 @@ def parse_init():
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
         return default
-
-
 # 高级选项信息
 settings = parse_init()
 # 家目录
@@ -416,9 +309,7 @@ HOME_DIR = settings['homedir']
 # 家目录下的临时文件存储目录
 TEMP_HOME = settings['homedir'] + f"/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
-
 copying = False
-
 # default language 如果 ini中设置了，则直接使用，否则自动判断
 # 首先检查环境变量，然后是 settings['lang']，最后是 locale
 env_lang_override = os.environ.get('PYVIDEOTRANS_LANG')
@@ -426,14 +317,11 @@ if env_lang_override:
     defaulelang = env_lang_override
 elif settings['lang']:  # 保留从 settings 加载的逻辑，但环境变量优先
     defaulelang = settings['lang'].lower()
-
-
 # 语言代码文件是否存在##############################
 _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
 if not _lang_path.exists():
     defaulelang = "en"
     _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
-
 _obj = json.loads(_lang_path.read_text(encoding='utf-8'))
 # 交互语言代码
 transobj = _obj["translate_language"]
@@ -451,21 +339,16 @@ proxy = settings.get('proxy', '')
 #############################################
 # openai  faster-whisper 识别模型
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
-
 ChatTTS_voicelist = re.split(r'[,，]', str(settings['chattts_voice']))
-
 _chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
 _claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
 _azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 _localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
 _zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
-
 _zhipuai_model_list = [it.strip() for it in settings['zhipuai_model'].split(',') if it.strip()]
 _guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if it.strip()]
-
 _deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
 _openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
-
 _chatgpt_model_list = _chatgpt_model_list if len(_chatgpt_model_list) > 0 else ['']
 _claude_model_list = _claude_model_list if len(_claude_model_list) > 0 else ['']
 _azure_model_list = _azure_model_list if len(_azure_model_list) > 0 else ['']
@@ -475,8 +358,6 @@ _zhipuai_model_list = _zhipuai_model_list if len(_zhipuai_model_list) > 0 else [
 _guiji_model_list = _guiji_model_list if len(_guiji_model_list) > 0 else ['']
 _deepseek_model_list = _deepseek_model_list if len(_deepseek_model_list) > 0 else ['']
 _openrouter_model_list = _openrouter_model_list if len(_openrouter_model_list) > 0 else ['']
-
-
 # 设置或获取 config.params
 def getset_params(obj=None):
     # 保存到json
@@ -488,23 +369,17 @@ def getset_params(obj=None):
     default = {
         "last_opendir": HOME_DIR,
         "cuda": False,
-
         "paraformer_spk": False,
-
         "line_roles": {},
-
         "only_video": False,
         "is_separate": False,
         "remove_noise": False,
-
         "target_dir": "",
-
         "source_language": "en",
         "target_language": "zh-cn",
         "subtitle_language": "chi",
         "translate_type": 0,
         "subtitle_type": 0,  # embed soft
-
         "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
         "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
@@ -530,51 +405,40 @@ def getset_params(obj=None):
         "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
         "listen_text_nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
         "listen_text_sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
-
         "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
         "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
         "listen_text_fil": "Hello, kaibigan ko",
         "listen_text_fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
         "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
         "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
-
         "tts_type": 0,  # 所选的tts顺序
         "split_type": "all",
         "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
-
         "voice_autorate": True,
         "voice_role": "No",
         "voice_rate": "0",
         "video_autorate": True,
-
         "deepl_authkey": "",
         "deepl_api": "",
         "deepl_gid": "",
-
         "deeplx_address": "",
         "deeplx_key": "",
         "libre_address": "",
         "libre_key": "",
-
         "ott_address": "",
-
         "tencent_SecretId": "",
         "tencent_SecretKey": "",
         "tencent_termlist": "",
-
         "gcloud_credential_json": "",
         "gcloud_language_code": "",
         "gcloud_voice_name": "",
         "gcloud_audio_encoding": "",
         "gcloud_ssml_gender": "",
-
         "ali_id": "",
         "ali_key": "",
-
         "baidu_appid": "",
         "baidu_miyue": "",
-
         "chatgpt_api": "",
         "chatgpt_key": "",
         "chatgpt_max_token": "4096",
@@ -582,27 +446,22 @@ def getset_params(obj=None):
         "chatgpt_template": "",
         "chatgpt_temperature": "0.7",
         "chatgpt_top_p": "1.0",
-
         "claude_api": "",
         "claude_key": "",
         "claude_model": _claude_model_list[0],
         "claude_template": "",
-
         "azure_api": "",
         "azure_key": "",
         "azure_version": "2024-06-01",
         "azure_model": _azure_model_list[0],
         "azure_template": "",
-
         "gemini_key": "",
         "gemini_model": "gemini-2.0-flash",
         "gemini_template": "",
         "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
-
         "gemini_srtprompt": "",
-
         "localllm_api": "",
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
@@ -610,131 +469,97 @@ def getset_params(obj=None):
         "localllm_max_token": "4096",
         "localllm_temperature": "0.7",
         "localllm_top_p": "1.0",
-
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
         "zhipu_template": "",
-
         "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
         "guiji_template": "",
-
         "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
         "deepseek_template": "",
-
         "openrouter_key": "",
         "openrouter_model": _openrouter_model_list[0],
         "openrouter_template": "",
-
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
         "zijiehuoshan_template": "",
-
         "ai302_key": "",
         "ai302_model": "",
         "ai302_template": "",
-
         "trans_api_url": "",
         "trans_secret": "",
-
         "coquitts_role": "",
         "coquitts_key": "",
-
         "elevenlabstts_role": [],
         "elevenlabstts_key": "",
         "elevenlabstts_models": "eleven_flash_v2_5",
-
         "openaitts_api": "",
         "openaitts_key": "",
         "openaitts_model": "tts-1",
         "openaitts_instructions": "",
         "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
-
         "qwentts_key": "",
         "qwentts_model": "qwen-tts-latest",
         "qwentts_role": "Chelsie,Cherry,Serena,Ethan,Dylan,Jada,Sunny",
-
         "kokoro_api": "",
-
         "openairecognapi_url": "",
         "openairecognapi_key": "",
         "openairecognapi_prompt": "",
         "openairecognapi_model": "whisper-1",
-
         "parakeet_address": "",
-
         "clone_api": "",
         "clone_voicelist": ["clone"],
-
         "zh_recogn_api": "",
-
         "recognapi_url": "",
         "recognapi_key": "",
         "stt_url": "",
         "stt_model": "tiny",
-
         "sense_url": "",
-
         "ttsapi_url": "",
         "ttsapi_voice_role": "",
         "ttsapi_extra": "pyvideotrans",
         "ttsapi_language_boost": "auto",
         "ttsapi_emotion": "happy",
-
         "ai302tts_key": "",
         "ai302tts_model": "",
         "ai302tts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
-
         "azure_speech_region": "",
         "azure_speech_key": "",
-
         "chatterbox_url": "",
         "chatterbox_role": "",
         "chatterbox_cfg_weight": 0.5,
         "chatterbox_exaggeration": 0.5,
-
         "gptsovits_url": "",
         "gptsovits_role": "",
         "gptsovits_isv2": True,
         "gptsovits_extra": "pyvideotrans",
-
         "cosyvoice_url": "",
         "cosyvoice_role": "",
-
         "fishtts_url": "",
         "fishtts_role": "",
-
         "f5tts_url": "",
         "f5tts_model": "",
         "f5tts_ttstype": "F5-TTS",
         "f5tts_role": "",
         "f5tts_is_whisper": False,
-
         "doubao_appid": "",
         "doubao_access": "",
-
         "volcenginetts_appid": "",
         "volcenginetts_access": "",
         "volcenginetts_cluster": "",
-
         "chattts_api": "",
-
         "app_mode": "biaozhun",
-
         "stt_source_language": 0,
         "stt_recogn_type": 0,
         "stt_model_name": "",
         "stt_remove_noise": False,
-
         "deepgram_apikey": "",
         "deepgram_utt": 200,
-
         "trans_translate_type": 0,
         "trans_source_language": 0,
         "trans_target_language": 1,
         "trans_out_format": 0,
-
         "dubb_source_language": 0,
         "dubb_tts_type": 0,
         "dubb_role": 0,
@@ -743,12 +568,9 @@ def getset_params(obj=None):
         "dubb_hecheng_rate": 0,
         "dubb_pitch_rate": 0,
         "dubb_volume_rate": 0,
-
     }
     # 创建默认提示词文件
     Path(ROOT_DIR + '/videotrans/prompts/srt').mkdir(parents=True, exist_ok=True)
-
-
     try:
         if Path(ROOT_DIR + "/videotrans/params.json").exists():
             default.update(json.loads(Path(ROOT_DIR + "/videotrans/params.json").read_text(encoding='utf-8')))
@@ -758,14 +580,10 @@ def getset_params(obj=None):
     except Exception:
         pass
     return default
-
-
 params = getset_params()
 gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
 if Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').exists():
     params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').read_text(encoding='utf-8')
-
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
                     'ms', 'uk', 'cs', 'tl']
-
 codec_cache = {}
