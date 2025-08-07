@@ -21,7 +21,6 @@ from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.doubao import Ui_doubaoform
-from videotrans.ui.downmodel import Ui_downmodel
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.fanyi import Ui_fanyisrt
 from videotrans.ui.fishtts import Ui_fishttsform
@@ -588,12 +587,6 @@ class Videoandsrtform(QDialog, Ui_videoandsrt):  # <===
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
-
-class DownloadModelForm(QDialog, Ui_downmodel):  # <===
-    def __init__(self, parent=None):
-        super(DownloadModelForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class FormatcoverForm(QDialog, Ui_formatcover):  # <===

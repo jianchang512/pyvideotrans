@@ -31,6 +31,7 @@ __pycache__
 *.ui
 *.bak
 *.aac
+*.pyi
 5.wav
 15.wav
 *副本.py
