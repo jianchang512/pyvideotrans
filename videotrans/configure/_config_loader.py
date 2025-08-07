@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import datetime,time
-_st_time=time.time()
+import datetime
+import time
 import json
 import locale
 import logging
@@ -10,7 +10,10 @@ import sys
 import tempfile
 from pathlib import Path
 from queue import Queue
+
 MAINWIN = None
+
+
 # 获取程序执行目录
 def _get_executable_path():
     if getattr(sys, 'frozen', False):
@@ -19,6 +22,8 @@ def _get_executable_path():
         return Path(sys.executable).parent.as_posix()
     else:
         return Path(__file__).parent.parent.parent.as_posix()
+
+
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 # 程序根目录
 ROOT_DIR = _get_executable_path()
@@ -52,15 +57,8 @@ _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
-# 捕获所有未处理的异常
-def _log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        # 允许键盘中断（Ctrl+C）退出
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-# 安装自定义异常钩子
-sys.excepthook = _log_uncaught_exceptions
+
+
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
 # ffmpeg
@@ -72,13 +70,13 @@ os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 # 语言
-env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
-if env_lang:  # 新增：如果环境变量存在，则使用它
-    defaulelang = env_lang
+_env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
+if _env_lang:  # 新增：如果环境变量存在，则使用它
+    defaulelang = _env_lang
 else:  # 原有逻辑
     try:
         defaulelang = locale.getdefaultlocale()[0][:2].lower()
-    except Exception:
+    except:
         defaulelang = "zh"
 if defaulelang == 'zh':
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
@@ -86,6 +84,8 @@ if defaulelang == 'zh':
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
+
+
 def push_queue(uuid, jsondata):
     if uuid in stoped_uuid_set:
         return
@@ -97,6 +97,8 @@ def push_queue(uuid, jsondata):
             uuid_logs_queue[uuid].put_nowait(jsondata)
     except Exception:
         pass
+
+
 # 存储已停止/暂停的任务
 stoped_uuid_set = set()
 # 全局消息，不存在uuid，用于控制软件
@@ -163,6 +165,11 @@ AzureTTS_rolelist = None
 DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 line_roles = {}
 dubbing_role = {}
+ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
+                    'ms', 'uk', 'cs', 'tl']
+codec_cache = {}
+
+
 # 设置默认高级参数值
 def parse_init():
     _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
@@ -302,22 +309,20 @@ def parse_init():
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
         return default
+
 # 高级选项信息
 settings = parse_init()
+if not _env_lang and settings.get('lang'):
+    defaulelang = settings['lang'].lower()
 # 家目录
 HOME_DIR = settings['homedir']
 # 家目录下的临时文件存储目录
 TEMP_HOME = settings['homedir'] + f"/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
+## 用于 Faster_Whisper_XXL 渠道复制文件中状态标志
 copying = False
-# default language 如果 ini中设置了，则直接使用，否则自动判断
-# 首先检查环境变量，然后是 settings['lang']，最后是 locale
-env_lang_override = os.environ.get('PYVIDEOTRANS_LANG')
-if env_lang_override:
-    defaulelang = env_lang_override
-elif settings['lang']:  # 保留从 settings 加载的逻辑，但环境变量优先
-    defaulelang = settings['lang'].lower()
-# 语言代码文件是否存在##############################
+
+# 语言代码文件是否存在
 _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
 if not _lang_path.exists():
     defaulelang = "en"
@@ -335,29 +340,34 @@ rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
 langnamelist = list(langlist.values())
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
+# 代理地址
 proxy = settings.get('proxy', '')
 #############################################
 # openai  faster-whisper 识别模型
+
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
 ChatTTS_voicelist = re.split(r'[,，]', str(settings['chattts_voice']))
+
 _chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
-_claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
-_azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
-_localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
-_zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
-_zhipuai_model_list = [it.strip() for it in settings['zhipuai_model'].split(',') if it.strip()]
-_guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if it.strip()]
-_deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
-_openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
 _chatgpt_model_list = _chatgpt_model_list if len(_chatgpt_model_list) > 0 else ['']
+_claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
 _claude_model_list = _claude_model_list if len(_claude_model_list) > 0 else ['']
+_azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
 _azure_model_list = _azure_model_list if len(_azure_model_list) > 0 else ['']
+_localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
 _localllm_model_list = _localllm_model_list if len(_localllm_model_list) > 0 else ['']
+_zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
 _zijiehuoshan_model_list = _zijiehuoshan_model_list if len(_zijiehuoshan_model_list) > 0 else ['']
+_zhipuai_model_list = [it.strip() for it in settings['zhipuai_model'].split(',') if it.strip()]
 _zhipuai_model_list = _zhipuai_model_list if len(_zhipuai_model_list) > 0 else ['']
+_guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if it.strip()]
 _guiji_model_list = _guiji_model_list if len(_guiji_model_list) > 0 else ['']
+_deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
 _deepseek_model_list = _deepseek_model_list if len(_deepseek_model_list) > 0 else ['']
+_openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
 _openrouter_model_list = _openrouter_model_list if len(_openrouter_model_list) > 0 else ['']
+
+
 # 设置或获取 config.params
 def getset_params(obj=None):
     # 保存到json
@@ -581,9 +591,8 @@ def getset_params(obj=None):
         pass
     return default
 params = getset_params()
-gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
-if Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').exists():
-    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').read_text(encoding='utf-8')
-ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
-                    'ms', 'uk', 'cs', 'tl']
-codec_cache = {}
+
+# gemini 语音识别提示词
+_gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
+if Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').exists():
+    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').read_text(encoding='utf-8')
