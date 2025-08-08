@@ -15,7 +15,7 @@ from videotrans.configure import config
 from videotrans.recognition import FASTER_WHISPER, OPENAI_WHISPER, is_allow_lang, is_input_api
 from videotrans.task._speech2text import SpeechToText
 from videotrans.util import tools
-from videotrans.winform import fn_downmodel
+
 
 
 class SignThread(QThread):
@@ -115,8 +115,7 @@ def openwin():
             source_language_isLast=winobj.shibie_language.currentIndex() == winobj.shibie_language.count() - 1,
             source_language_currentText=winobj.shibie_language.currentText()
         )
-        if res == 'download':
-            return fn_downmodel.openwin(model_name=model, recogn_type=recognition.FASTER_WHISPER if recogn_type==recognition.Faster_Whisper_XXL else recogn_type)
+
         if res is not True:
             return QMessageBox.critical(winobj, config.transobj['anerror'], res)
         if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
