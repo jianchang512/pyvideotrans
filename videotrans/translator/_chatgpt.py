@@ -32,7 +32,8 @@ class ChatGPT(BaseTrans):
 
 
     def llm_segment(self,words_all,inst=None,ai_type='openai'):
-        if self._exit(): return
+        config.logger.info('llm_segment:self._exit()='+str(self._exit()))
+        #if self._exit(): return
         # 以2000个字或单词分成一批
         prompts_template=Path(config.ROOT_DIR+'/videotrans/recharge-llm.txt').read_text(encoding='utf-8')
         chunk_size=int(config.settings.get('llm_chunk_size',500))

@@ -80,9 +80,11 @@ class GPTSoVITS(BaseTTS):
 
                 if not self.api_url.endswith('/tts'):
                     self.api_url += '/tts'
-            config.logger.info(f'GPT-SoVITS post:{data=}\n{self.api_url=}')
+
+
+            config.logger.info(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
             # 克隆声音
-            response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
+            response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
 
             response.raise_for_status()
             # 获取响应头中的Content-Type
