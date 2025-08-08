@@ -740,9 +740,16 @@ class SpeedRate:
 
                 if duration_diff > TOLERANCE_MS:
                     config.logger.warning(f"视频比音频长 {duration_diff}ms，将在音频末尾补齐等长静音。")
-                    final_audio_segment = AudioSegment.from_file(self.target_audio)
-                    final_audio_segment += AudioSegment.silent(duration=duration_diff)
-                    self._export_audio(final_audio_segment, self.target_audio)
+                    
+                    
+
+                    
+                    # 直接在传入的AudioSegment对象上追加静音
+                    merged_audio += AudioSegment.silent(duration=duration_diff)
+                    
+                    # 重新导出修改后的、已在内存中的对象
+                    self._export_audio(merged_audio, self.target_audio)
+                    
                     config.logger.info("音频补齐静音操作完成。")
                 elif duration_diff < -TOLERANCE_MS:
                     freeze_duration_sec = abs(duration_diff) / 1000.0

@@ -24,4 +24,4 @@ class ListenVoice(QThread):
                 )
                 self.uito.emit("ok")
             except Exception as e:
-                self.uito.emit(str(e))
+                self.uito.emit(str(e)[:120])

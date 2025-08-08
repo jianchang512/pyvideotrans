@@ -122,9 +122,10 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         words_list = []
                         for it in list(alllist):
                             words_list += it['words']
-
+                        config.logger.info(f'开始重新断句:')
                         self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
                         self.raws = self.re_segment_sentences(words_list, self.detect_language[:2])
+                        config.logger.info(f'断句结果:{self.raws=}')
                     except:
                         self.get_srtlist(alllist)
         except Exception as e:
@@ -137,6 +138,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 del self.model
             except:
                 pass
-        if len(self.raws) < 1:
+        if not isinstance(self.raws,list) or len(self.raws) < 1:
             raise RuntimeError('识别结果为空' if config.defaulelang == 'zh' else 'Recognition result is empty')
         return self.raws
