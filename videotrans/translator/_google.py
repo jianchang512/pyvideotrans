@@ -30,8 +30,9 @@ class Google(BaseTrans):
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
+        print(f'{data=}')
         if self._exit(): return
-        text = quote(data)
+        text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
         url = f"https://translate.google.com/m?sl=auto&tl={self.target_code}&hl={self.target_code}&q={text}"
         config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
         headers = {
@@ -47,7 +48,11 @@ class Google(BaseTrans):
         return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
 
     def clean_srt(self,srt):
-        # 替换特殊符号
+        # 翻译后的srt字幕极大可能存在各种语法错误，符号和格式错乱
+        try:
+            srt = re.sub(r'(\d{2})\s*[:：]\s*(\d{2})[:：]\s*(\d{2})[\s\,，]+(\d{3})', r'\1:\2:\3,\4', srt)
+        except:
+            pass
         srt = re.sub(r'&gt;', '>', srt)
         # ：: 换成 :
         srt = re.sub(r'([：:])\s*', ':', srt)
