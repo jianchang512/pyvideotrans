@@ -61,19 +61,26 @@ class BaseTrans(BaseCon):
         # 开始对分割后的每一组进行处理
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
+        config.logger.info(f'#### 字幕翻译前准备1:{self.is_srt=},{self.aisendsrt=},{self.trans_thread=}')
         if self.is_srt:
+            # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
             source_text = [t['text'] for t in self.text_list] if not self.aisendsrt else self.text_list
             self.split_source_text = [source_text[i:i + self.trans_thread] for i in
                                       range(0, len(self.text_list), self.trans_thread)]
         else:
+            # 是多行文本字符串，以 \n 组装为list            
             source_text = self.text_list.strip().split("\n")
             self.split_source_text = [source_text[i:i + self.trans_thread] for i in
                                       range(0, len(source_text), self.trans_thread)]
-
+        config.logger.info(f'字幕翻译前准备2')
+        # 翻译字幕并且以完整srt格式发送
         if self.is_srt and self.aisendsrt:
             return self.runsrt()
-
         for i, it in enumerate(self.split_source_text):
+            """ it=['你好啊我的朋友','第二行'] 
+                此时 _item_task 接收的是 list[str]
+            """
+            config.logger.info(f'##### [以文字行形式翻译]')
             if self._exit():
                 return
 
@@ -124,9 +131,11 @@ class BaseTrans(BaseCon):
         return self.text_list
 
     # 发送完整字幕格式内容进行翻译
+    # 此时 _item_task 接收的是 srt格式的字符串
     def runsrt(self):
         result_srt_str_list = []
         for i, it in enumerate(self.split_source_text):
+            config.logger.info(f'#### [以完整SRT格式发送翻译]，it应是dict列表')
             if self._exit():
                 return
             for j, srt in enumerate(it):
