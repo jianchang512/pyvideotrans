@@ -177,6 +177,14 @@ class Ui_recogn(object):
         self.remove_noise.setText('降噪' if config.defaulelang=='zh' else 'Noise reduction')
         self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
 
+        self.copysrt_rawvideo=QtWidgets.QCheckBox()
+        self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
+        self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
+
+        self.copysrt_rawvideo.setText('字幕输出原位置' if config.defaulelang=='zh' else 'Moving subtitle')
+        self.copysrt_rawvideo.setToolTip('选中则字幕将保存到原音视频位置，并重命名为原音视频同名' if config.defaulelang=='zh' else 'If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video')
+
+
         h4.addStretch()
         h4.addWidget(self.shibie_startbtn)
         h4.addWidget(self.shibie_stop)
@@ -187,6 +195,7 @@ class Ui_recogn(object):
         h4.addWidget(self.othlinenums)
         h4.addWidget(self.rephrase)
         h4.addWidget(self.remove_noise)
+        h4.addWidget(self.copysrt_rawvideo)
 
         h4.addStretch()
 

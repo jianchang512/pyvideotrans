@@ -1,3 +1,4 @@
+import shutil
 import time
 from pathlib import Path
 
@@ -22,6 +23,7 @@ class SpeechToText(BaseTask):
 
     # 在这个子类中，shoud_recogn 总是 True，我们直接在定义中声明。
     shoud_recogn: bool = field(default=True, init=False)
+    copysrt_rawvideo: bool = field(default=False, init=False)
 
 
     def __post_init__(self):
@@ -40,7 +42,8 @@ class SpeechToText(BaseTask):
             Path(self.cfg['cache_folder']).mkdir(parents=True, exist_ok=True)
         self.cfg['shibie_audio'] = self.cfg['cache_folder'] + f'/{self.cfg["noextname"]}-{time.time()}.wav'
         self._signal(text='语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing')
-
+        self.copysrt_rawvideo=self.cfg.get('copysrt_rawvideo',False)
+        print(f'{self.copysrt_rawvideo=}')
     def prepare(self):
         if self._exit():
             return
@@ -123,13 +126,18 @@ class SpeechToText(BaseTask):
             content=re.sub(r"(\r\n|\r|\n|\s|^)\d+(\r\n|\r|\n)","\n",content)
             content=re.sub(r'\n\d+:\d+:\d+(\,\d+)\s*-->\s*\d+:\d+:\d+(\,\d+)?\n?','',content)
             with open(self.cfg['target_sub'][:-3]+'txt','w',encoding='utf-8') as f:
-                f.write(content)            
+                f.write(content)
+            self.cfg['target_sub']=self.cfg['target_sub'][:-3]+'txt'
         elif self.out_format !='srt':
             tools.runffmpeg(['-y', '-i',  self.cfg['target_sub'],  self.cfg['target_sub'][:-3]+self.out_format])
             Path(self.cfg['target_sub']).unlink(missing_ok=True)
+            self.cfg['target_sub']=self.cfg['target_sub'][:-3]+self.out_format
 
         if 'shound_del_name' in self.cfg:
             Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
+        if self.copysrt_rawvideo:
+            p = Path(self.cfg['name'])
+            shutil.copy2(self.cfg['target_sub'], f'{p.parent.as_posix()}/{p.stem}.{self.out_format}')
 
     def _exit(self):
         if config.exit_soft or config.box_recogn !='ing':

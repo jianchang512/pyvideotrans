@@ -450,9 +450,12 @@ class TransCreate(BaseTask):
             if self.cfg['app_mode'] == 'tiqu':
                 shutil.copy2(self.cfg['target_sub'],
                              f"{self.cfg['target_dir']}/{self.cfg['noextname']}.srt")
+
                 if self.cfg.get('copysrt_rawvideo'):
                     p = Path(self.cfg['name'])
                     shutil.copy2(self.cfg['target_sub'], f'{p.parent.as_posix()}/{p.stem}.srt')
+
+                    shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
                 Path(self.cfg['source_sub']).unlink(missing_ok=True)
                 Path(self.cfg['target_sub']).unlink(missing_ok=True)
                 self.hasend = True
