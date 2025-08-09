@@ -66,6 +66,7 @@ class SignThread(QThread):
 def openwin():
     RESULT_DIR = config.HOME_DIR + f"/recogn"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+    COPYSRT_TO_RAWDIR=RESULT_DIR
 
     def feed(d):
         if winobj.has_done or config.box_recogn!='ing':
@@ -106,7 +107,7 @@ def openwin():
             winobj.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
 
     def opendir_fn():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(COPYSRT_TO_RAWDIR))
 
     def check_model_name(recogn_type,model):
         res = recognition.check_model_name(
@@ -125,6 +126,7 @@ def openwin():
         return True
 
     def shibie_start_fun():
+        nonlocal COPYSRT_TO_RAWDIR
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
@@ -178,6 +180,7 @@ def openwin():
 
         winobj.shibie_opendir.setDisabled(False)
         try:
+            COPYSRT_TO_RAWDIR=RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
             winobj.shibie_startbtn.setDisabled(True)
             winobj.shibie_stop.setDisabled(False)
             winobj.loglabel.setText('')
@@ -194,8 +197,8 @@ def openwin():
                     "target_dir": RESULT_DIR,
                     "detect_language": langcode,
                     "out_format":winobj.out_format.currentText(),
-                    "remove_noise":winobj.remove_noise.isChecked()
-
+                    "remove_noise":winobj.remove_noise.isChecked(),
+                    "copysrt_rawvideo":winobj.copysrt_rawvideo.isChecked()
                 }, obj=it)
                 config.prepare_queue.append(trk)
             th = SignThread(uuid_list=uuid_list, parent=winobj)
@@ -203,7 +206,9 @@ def openwin():
             config.params["stt_source_language"]=winobj.shibie_language.currentIndex()
             config.params["stt_recogn_type"]=winobj.shibie_recogn_type.currentIndex()
             config.params["stt_model_name"]=winobj.shibie_model.currentText()
+            config.params["stt_out_format"]=winobj.out_format.currentText()
             config.params["stt_remove_noise"]=winobj.remove_noise.isChecked()
+            config.params["stt_copysrt_rawvideo"]=winobj.copysrt_rawvideo.isChecked()
             config.params["paraformer_spk"]=winobj.show_spk.isChecked()
             config.getset_params(config.params)
             th.start()
@@ -361,6 +366,8 @@ def openwin():
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.rephrase.setChecked(config.settings.get('rephrase'))
         winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
+        winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo',False))
+        winobj.out_format.setCurrentText(config.params.get('stt_out_format','txt'))
 
         default_lang=int(config.params.get('stt_source_language',0))
         winobj.shibie_language.setCurrentIndex(default_lang)

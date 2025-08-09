@@ -322,7 +322,7 @@
     "Recognize the sound in audio or video and output SRT text": "将音频或视频中的声音识别后输出srt字幕文件",
     "From  Text  Into  Speech": "批量为字幕配音",
     "Generate audio WAV from text or SRT subtitle files": "根据srt字幕文件创建配音文件",
-    "Extract Srt And Translate": "识别字幕并翻译",
+    "Extract Srt And Translate": "生成并翻译字幕",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "识别视频中的语音为srt字幕",
     "Separate Video to audio": "批量从视频中分离音频",
     "Separate audio and silent videos from videos": "将视频分离为音频文件和无声mp4视频文件",
