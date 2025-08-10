@@ -629,18 +629,29 @@ def wav2m4a(wavfile, m4afile, extra=None):
     return runffmpeg(cmd)
 
 
-# 创建 多个连接文件
+
 def create_concat_txt(filelist, concat_txt=None):
+    """
+    创建供FFmpeg concat使用的连接文件。
+    确保写入的是绝对路径，以避免FFmpeg因工作目录问题找不到文件。
+    """
     txt = []
     for it in filelist:
-        if not Path(it).exists() or Path(it).stat().st_size == 0:
+        path_obj = Path(it)
+        if not path_obj.exists() or path_obj.stat().st_size == 0:
             continue
-        txt.append(f"file '{os.path.basename(it)}'")
-    if len(txt) < 1:
-        raise Exception(f'file list no vail')
-    with Path(concat_txt).open('w', encoding='utf-8') as f:
+
+        safe_path = path_obj.resolve().as_posix()
+        txt.append(f"file '{safe_path}'")
+    
+    if not txt:
+        # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
+        raise ValueError("Cannot create concat txt from an empty or invalid file list.")
+
+    with open(concat_txt, 'w', encoding='utf-8') as f:
         f.write("\n".join(txt))
         f.flush()
+        
     return concat_txt
 
 # 多个音频片段连接
@@ -649,7 +660,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    cmd = ['-y', '-f', 'concat', '-i', concat_txt, "-b:a", "128k"]
+    cmd = ['-y', '-f', 'concat','-safe', '0', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
@@ -831,3 +842,53 @@ def format_video(name, target_dir=None):
 
     obj['uuid'] = help_misc.get_md5(f'{name}-{time.time()}')[:10]
     return obj
+
+
+# 导出可能较大的 wav 文件时，使用该函数，避免 大于4G 的音频出错
+def large_wav_export_with_soundfile(audio_segment, output_path: str):
+    import numpy as np
+    import soundfile as sf
+    from pydub import AudioSegment
+
+    # audio_segment = AudioSegment.from_file(...)
+    """
+    使用 soundfile 模块导出 pydub 的 AudioSegment 对象，以支持大文件。
+    
+    :param audio_segment: pydub 的音频对象
+    :param output_path: 输出的 .wav 文件路径
+    """
+    print(f"正在使用 soundfile 导出到: {output_path}")
+
+    # 1. 从 pydub 获取原始 PCM 数据（bytes）
+    raw_data = audio_segment.raw_data
+
+    # 2. 将原始数据转换为 NumPy 数组，这是 soundfile 的标准输入格式
+    #    需要确定正确的数据类型 (dtype)
+    sample_width = audio_segment.sample_width
+    if sample_width == 1:
+        dtype = np.int8  # 8-bit PCM
+    elif sample_width == 2:
+        dtype = np.int16 # 16-bit PCM
+    elif sample_width == 4:
+        dtype = np.int32 # 32-bit PCM
+    else:
+        raise ValueError(f"不支持的采样位宽: {sample_width}")
+
+    # frombuffer 从字节串创建数组，'C' 表示按C语言顺序
+    numpy_array = np.frombuffer(raw_data, dtype=dtype)
+
+    # 3. 如果是多声道，需要将一维数组重塑为 (n_frames, n_channels)
+    num_channels = audio_segment.channels
+    if num_channels > 1:
+        numpy_array = numpy_array.reshape((-1, num_channels))
+
+    # 4. 使用 soundfile 写入文件
+    #    soundfile 会自动处理文件大小，在需要时切换到 RF64
+    sf.write(
+        output_path,
+        numpy_array,
+        audio_segment.frame_rate,
+        subtype='PCM_16' if sample_width == 2 else ('PCM_24' if sample_width == 3 else 'PCM_32') # 根据需要选择子类型
+    )
+    print("使用 soundfile 导出成功！")
+
