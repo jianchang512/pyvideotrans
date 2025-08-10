@@ -198,11 +198,11 @@ class TransCreate(BaseTask):
         # 原始语言一定存在
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
-        self.cfg['source_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.m4a"
-        self.cfg['source_wav'] = f"{self.cfg['cache_folder']}/{self.cfg['source_language_code']}.m4a"
+        self.cfg['source_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.wav"
+        self.cfg['source_wav'] = f"{self.cfg['cache_folder']}/{self.cfg['source_language_code']}.wav"
 
-        if self.cfg['source_language_code'] != 'auto' and Path(f"{self.cfg['cache_folder']}/auto.m4a").exists():
-            Path(f"{self.cfg['cache_folder']}/auto.m4a").rename(self.cfg['source_wav'])
+        if self.cfg['source_language_code'] != 'auto' and Path(f"{self.cfg['cache_folder']}/auto.wav").exists():
+            Path(f"{self.cfg['cache_folder']}/auto.wav").rename(self.cfg['source_wav'])
         # 是否需要语音识别:只要不存在原始语言字幕文件就需要识别
         self.shoud_recogn = True
         # 作为识别音频
@@ -219,8 +219,8 @@ class TransCreate(BaseTask):
         if self.cfg['target_language_code']:
             self.cfg['target_sub'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.srt"
             # 配音后的目标语言音频文件
-            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.m4a"
-            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target.m4a"
+            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.wav"
+            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target.wav"
 
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
         if self.cfg['target_language_code'] and self.cfg['target_language_code'] != self.cfg[
@@ -229,8 +229,8 @@ class TransCreate(BaseTask):
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
         if self.cfg['voice_role'] != 'No' and self.cfg['source_language_code'] == self.cfg['target_language_code']:
-            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-dubbing.m4a"
-            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target-dubbing.m4a"
+            self.cfg['target_wav_output'] = f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-dubbing.wav"
+            self.cfg['target_wav'] = f"{self.cfg['cache_folder']}/target-dubbing.wav"
 
         if is_del:
             self._unlink_size0(self.cfg['source_sub'])
@@ -643,11 +643,9 @@ class TransCreate(BaseTask):
             self.cfg['name'],
             "-vn",
             "-ac",
-            "1",
-            "-b:a",
-            "128k",
+            "2",
             "-c:a",
-            "aac",
+            "pcm_s16le",
             self.cfg['source_wav']
         ]
         rs = tools.runffmpeg(cmd)
@@ -673,12 +671,11 @@ class TransCreate(BaseTask):
         ])
         from videotrans.separate import st
         try:
-            path = Path(self.cfg['source_wav']).parent.as_posix()
-            vocal_file = path + '/vocal.wav'
+            vocal_file = self.cfg['cache_folder'] + '/vocal.wav'
             if not tools.vail_file(vocal_file):
                 self._signal(text=config.transobj['Separating vocals and background music, which may take a longer time'])
                 try:
-                    st.start(audio=tmpfile, path=path, uuid=self.uuid)
+                    st.start(audio=tmpfile, path=self.cfg['cache_folder'], uuid=self.uuid)
                 except Exception as e:
                     msg = f"separate vocal and background music:{str(e)}"
                     self._signal(text=msg)
@@ -792,13 +789,13 @@ class TransCreate(BaseTask):
                 atime = tools.get_audio_time(self.cfg['background_music'])
 
                 # 转为m4a
-                bgm_file = self.cfg['cache_folder'] + f'/bgm_file.m4a'
-                if not self.cfg['background_music'].lower().endswith('.m4a'):
-                    tools.wav2m4a(self.cfg['background_music'], bgm_file)
-                    self.cfg['background_music'] = bgm_file
-                else:
-                    shutil.copy2(self.cfg['background_music'], bgm_file)
-                    self.cfg['background_music'] = bgm_file
+                bgm_file = self.cfg['cache_folder'] + f'/bgm_file.wav'
+                # if not self.cfg['background_music'].lower().endswith('.wav'):
+                self.convert_to_wav(self.cfg['background_music'], bgm_file)
+                self.cfg['background_music'] = bgm_file
+                # else:
+                #     shutil.copy2(self.cfg['background_music'], bgm_file)
+                #     self.cfg['background_music'] = bgm_file
 
                 beishu = math.ceil(vtime / atime)
                 if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
@@ -808,21 +805,21 @@ class TransCreate(BaseTask):
                     tools.create_concat_txt(file_list, concat_txt=concat_txt)
                     tools.concat_multi_audio(
                         concat_txt=concat_txt,
-                        out=self.cfg['cache_folder'] + "/bgm_file_extend.m4a")
-                    self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.m4a"
+                        out=self.cfg['cache_folder'] + "/bgm_file_extend.wav")
+                    self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.wav"
                 # 背景音频降低音量
                 tools.runffmpeg(
                     ['-y', '-i', self.cfg['background_music'], "-filter:a",
                      f"volume={config.settings['backaudio_volume']}",
-                     '-c:a', 'aac',
-                     self.cfg['cache_folder'] + f"/bgm_file_extend_volume.m4a"])
+                     '-c:a', 'pcm_s16le',
+                     self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"])
                 # 背景音频和配音合并
                 cmd = ['-y', '-i', self.cfg['target_wav'], '-i',
-                       self.cfg['cache_folder'] + f"/bgm_file_extend_volume.m4a",
+                       self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
                        '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2',
-                       self.cfg['cache_folder'] + f"/lastend.m4a"]
+                       self.cfg['cache_folder'] + f"/lastend.wav"]
                 tools.runffmpeg(cmd)
-                self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.m4a"
+                self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.wav"
             except Exception as e:
                 config.logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
 
@@ -848,27 +845,26 @@ class TransCreate(BaseTask):
                     concat_txt = self.cfg['cache_folder'] + f'/{time.time()}.txt'
                     tools.create_concat_txt(file_list, concat_txt=concat_txt)
                     tools.concat_multi_audio(concat_txt=concat_txt,
-                                             out=self.cfg['cache_folder'] + "/instrument-concat.m4a")
-                    self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.m4a"
+                                             out=self.cfg['cache_folder'] + "/instrument-concat.wav")
+                    self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.wav"
                 # 背景音合并配音
                 self._backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
                 shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
-                
+
     #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
     def _backandvocal(self,backwav, peiyinm4a):
         import tempfile
         backwav = Path(backwav).as_posix()
         peiyinm4a = Path(peiyinm4a).as_posix()
         tmpdir = tempfile.gettempdir()
-        tmpwav = Path(tmpdir + f'/{time.time()}-1.m4a').as_posix()
-        tmpm4a = Path(tmpdir + f'/{time.time()}.m4a').as_posix()
+        tmpwav = Path(tmpdir + f'/{time.time()}-1.wav').as_posix()
+        tmpm4a = Path(tmpdir + f'/{time.time()}.wav').as_posix()
         # 背景转为m4a文件,音量降低为0.8
         tools.wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
         tools.runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-                   "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'aac',
-                   tmpwav])
+                   "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'pcm_s16le', tmpwav])
         shutil.copy2(tmpwav, peiyinm4a)
 
 
@@ -1199,8 +1195,8 @@ class TransCreate(BaseTask):
                     f.write(f"""以下是可能生成的全部文件, 根据执行时配置的选项不同, 某些文件可能不会生成, 之所以生成这些文件和素材，是为了方便有需要的用户, 进一步使用其他软件进行处理, 而不必再进行语音导出、音视频分离、字幕识别等重复工作
 
         *.mp4 = 最终完成的目标视频文件
-        {self.cfg['source_language_code']}.m4a|.wav = 原始视频中的音频文件(包含所有背景音和人声)
-        {self.cfg['target_language_code']}.m4a = 配音后的音频文件(若选择了保留背景音乐则已混入)
+        {self.cfg['source_language_code']}.wav = 原始视频中的音频文件(包含所有背景音和人声)
+        {self.cfg['target_language_code']}.wav = 配音后的音频文件(若选择了保留背景音乐则已混入)
         {self.cfg['source_language_code']}.srt = 原始视频中根据声音识别出的字幕文件
         {self.cfg['target_language_code']}.srt = 翻译为目标语言后字幕文件
         shuang.srt = 双语字幕
@@ -1216,8 +1212,8 @@ class TransCreate(BaseTask):
         Here are the descriptions of all possible files that might exist. Depending on the configuration options when executing, some files may not be generated.
 
         *.mp4 = The final completed target video file
-        {self.cfg['source_language_code']}.m4a|.wav = The audio file in the original video (containing all sounds)
-        {self.cfg['target_language_code']}.m4a = The dubbed audio file (if you choose to keep the background music, it is already mixed in)
+        {self.cfg['source_language_code']}.wav = The audio file in the original video (containing all sounds)
+        {self.cfg['target_language_code']}.wav = The dubbed audio file (if you choose to keep the background music, it is already mixed in)
         {self.cfg['source_language_code']}.srt = Subtitles recognized in the original video
         {self.cfg['target_language_code']}.srt = Subtitles translated into the target language
         shuang.srt = Source language and target language subtitles srt 

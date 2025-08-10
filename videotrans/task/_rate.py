@@ -74,7 +74,7 @@ class SpeedRate:
 
     MIN_CLIP_DURATION_MS = 50
     # [新增] 统一所有中间音频文件的参数，防止拼接错误
-    AUDIO_SAMPLE_RATE = 48000
+    AUDIO_SAMPLE_RATE = 44100
     AUDIO_CHANNELS = 2
 
     def __init__(self,
@@ -720,13 +720,14 @@ class SpeedRate:
         final_video_duration = self.raw_total_time + time_offset
         final_gap = final_video_duration - current_timeline_ms
         if final_gap > self.MIN_CLIP_DURATION_MS:
+            # final_gap_path = Path(self.audio_clips_folder, "t_clip_zzzz_final_gap.wav").as_posix()
             final_gap_path = Path(self.audio_clips_folder, "t_clip_zzzz_final_gap.wav").as_posix()
             # [修正] 标准化
             silent_segment = AudioSegment.silent(duration=final_gap)
             self._standardize_audio_segment(silent_segment).export(final_gap_path, format="wav")
             audio_concat_list.append(final_gap_path)
             config.logger.info(f"理论模式：末尾添加静音 {final_gap}ms")
-
+        config.logger.info(f"{audio_concat_list=}")
         return audio_concat_list
 
     def _get_video_duration_safe(self, file_path):
@@ -759,6 +760,9 @@ class SpeedRate:
             # 初始拼接
             self._ffmpeg_concat_audio(audio_concat_list, self.target_audio)
 
+            if not tools.vail_file(self.target_audio):
+                 raise RuntimeError(f"音频拼接失败，最终文件未生成: {self.target_audio}")
+
             if self.novoice_mp4 and tools.vail_file(self.novoice_mp4):
                 config.logger.info("开始最终音视频时长对齐检查...")
                 video_duration_ms = self._get_video_duration_safe(self.novoice_mp4)
@@ -776,15 +780,30 @@ class SpeedRate:
                 TOLERANCE_MS = 250
 
                 if duration_diff > TOLERANCE_MS:
-                    config.logger.warning(f"视频比音频长 {duration_diff}ms，将在音频末尾补齐等长静音。")
+                    config.logger.warning(f"视频比音频长 {duration_diff}ms，将通过FFmpeg apad滤镜在音频末尾补齐等长静音。")
                     
-                    # [修正] 确保最终填充的静音也是标准化的
-                    current_audio = AudioSegment.from_file(self.target_audio)
-                    silence_to_append = AudioSegment.silent(duration=duration_diff)
-                    final_audio = current_audio + silence_to_append
-                    self._standardize_audio_segment(final_audio).export(self.target_audio, format=Path(self.target_audio).suffix[1:])
+                    # [核心修正] 使用FFmpeg apad滤镜高效添加静音，而不是pydub
+                    padded_audio_path = Path(f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
+                    pad_dur_sec = duration_diff / 1000.0
+                    
+                    cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
+                    
+                    # 保持编码参数一致
+                    ext = Path(self.target_audio).suffix.lower()
+                    if ext == '.wav':
+                        cmd.extend(["-c:a", "pcm_s16le"])
+                    elif ext == '.m4a':
+                        cmd.extend(["-c:a", "aac", "-b:a", "128k"])
+                    else: # 默认mp3
+                        cmd.extend(["-c:a", "libmp3lame", "-q:a", "2"])
+                    cmd.append(padded_audio_path)
+                    
+                    if tools.runffmpeg(cmd) and tools.vail_file(padded_audio_path):
+                        shutil.move(padded_audio_path, self.target_audio)
+                        config.logger.info("音频补齐静音并重新导出完成。")
+                    else:
+                        config.logger.error("使用apad滤镜填充静音失败！")
 
-                    config.logger.info("音频补齐静音并重新导出完成。")
 
                 elif duration_diff < -TOLERANCE_MS:
                     freeze_duration_sec = abs(duration_diff) / 1000.0
@@ -807,8 +826,11 @@ class SpeedRate:
                     config.logger.info("音视频时长差异在容忍范围内，无需额外对齐处理。")
 
             if Path(self.target_audio).exists():
-                shutil.copy2(self.target_audio, self.target_audio_original)
-                config.logger.info(f"最终音频文件已成功交付到: {self.target_audio_original}")
+                try:
+                    shutil.copy2(self.target_audio, self.target_audio_original)
+                    config.logger.info(f"最终音频文件已成功交付到: {self.target_audio_original}")
+                except shutil.SameFileError:
+                    pass
             else:
                  config.logger.error(f"最终音频文件 {self.target_audio} 未能生成，交付失败！")
 
@@ -835,51 +857,72 @@ class SpeedRate:
     
     def _ffmpeg_concat_audio(self, file_list, output_path):
         """
-        使用FFmpeg的concat demuxer来拼接音频文件列表。
+        [核心修正] 使用混合拼接法来健壮地拼接大量音频文件，以规避Windows命令行长度限制。
+        步骤1: 使用concat demuxer + 重新编码，生成一个临时的、干净的WAV文件。
+        步骤2: 将这个临时的WAV文件转码为最终的目标格式。
         """
         if not file_list:
             config.logger.warning("音频拼接列表为空，无法生成最终音频。")
             return
-            
-        concat_txt_path = Path(f'{self.cache_folder}/audio_concat_list.txt').as_posix()
+
+        concat_txt_path = Path(f'{self.cache_folder}/audio_clips/audio_concat_list.txt').as_posix()
+        temp_wav_output = Path(f'{self.cache_folder}/temp_concatenated.wav').as_posix()
+
         try:
+            # 步骤1: 使用concat demuxer进行稳定的拼接
+            config.logger.info(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表。{concat_txt_path=}")
             tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
-        except ValueError as e:
-            config.logger.error(f"无法创建音频拼接文件: {e}")
-            return
-        
-        ext = Path(output_path).suffix.lower()
-        # [修正] 拼接WAV时，由于输入已标准化，直接copy即可，转码在最后一步完成
-        cmd = ["-y", "-f", "concat", "-safe", "0", "-i", concat_txt_path, "-c", "copy"]
-        
-        # 创建一个临时的拼接后WAV文件
-        temp_wav_output = Path(self.cache_folder, f"temp_concated_{time.time_ns()}.wav").as_posix()
-        cmd.append(temp_wav_output)
-        
-        config.logger.info(f"正在使用FFmpeg拼接 {len(file_list)} 个WAV片段到临时文件 {temp_wav_output}")
-        tools.runffmpeg(cmd, force_cpu=True)
+            if not Path(concat_txt_path).exists():
+                raise RuntimeError(f"No {concat_txt_path}")
 
-        if not tools.vail_file(temp_wav_output):
-            config.logger.error(f"音频拼接失败，临时文件 {temp_wav_output} 未生成。")
-            return
+            cmd_step1 = [
+                "-y", 
+                "-f", "concat", 
+                "-safe", "0", 
+                "-i", concat_txt_path,
+                "-c:a", "pcm_s16le", 
+                "-ar", str(self.AUDIO_SAMPLE_RATE), 
+                "-ac", str(self.AUDIO_CHANNELS),
+                temp_wav_output
+            ]
+            config.logger.info(f"混合拼接步骤1: 正在将列表拼接并重新编码为临时WAV文件: {temp_wav_output}")
+            tools.runffmpeg(cmd_step1, force_cpu=True)
+            os.chdir(config.ROOT_DIR)
 
-        # 将拼接好的WAV转码为最终格式
-        config.logger.info(f"正在将拼接好的WAV转码为最终格式 {output_path}")
-        encode_cmd = ["-y", "-i", temp_wav_output]
-        if ext == '.wav':
-            encode_cmd.extend(["-c:a", "pcm_s16le", "-ar", str(self.AUDIO_SAMPLE_RATE), "-ac", str(self.AUDIO_CHANNELS)])
-        elif ext == '.m4a':
-            encode_cmd.extend(["-c:a", "aac", "-b:a", "192k", "-ar", str(self.AUDIO_SAMPLE_RATE), "-ac", str(self.AUDIO_CHANNELS)])
-        else: # 默认mp3
-            encode_cmd.extend(["-c:a", "libmp3lame", "-q:a", "2", "-ar", str(self.AUDIO_SAMPLE_RATE), "-ac", str(self.AUDIO_CHANNELS)])
-        encode_cmd.append(output_path)
-        tools.runffmpeg(encode_cmd, force_cpu=True)
-        
-        try:
-            if Path(concat_txt_path).exists():
-                os.remove(concat_txt_path)
-            if Path(temp_wav_output).exists():
-                os.remove(temp_wav_output)
-        except Exception as e:
-            config.logger.warning(f"清理音频拼接临时文件失败: {e}")
+            if not tools.vail_file(temp_wav_output):
+                config.logger.error(f"音频拼接失败，临时文件 {temp_wav_output} 未生成。")
+                return
 
+            # 步骤2: 将拼接好的临时WAV转码为最终格式
+            config.logger.info(f"混合拼接步骤2: 正在将临时WAV转码为最终格式: {output_path}")
+            cmd_step2 = ["-y", "-i", temp_wav_output]
+            
+            ext = Path(output_path).suffix.lower()
+            if ext == '.wav':
+                # 如果目标就是wav，直接复制即可
+                cmd_step2.extend(["-c:a", "copy"])
+            elif ext == '.m4a':
+                cmd_step2.extend(["-c:a", "aac", "-b:a", "128k"])
+            else: # 默认mp3
+                cmd_step2.extend(["-c:a", "libmp3lame", "-q:a", "2"])
+            
+            cmd_step2.append(str(output_path))
+            if ext=='.wav' and output_path[-4:]=='.wav':
+                try:
+                    shutil.copy2(temp_wav_output, output_path)
+                except shutil.SameFileError:
+                    pass
+            else:
+                tools.runffmpeg(cmd_step2, force_cpu=True)
+
+        finally:
+            pass
+            # 清理临时文件
+            try:
+                if Path(concat_txt_path).exists():
+                    os.remove(concat_txt_path)
+                if Path(temp_wav_output).exists():
+                    os.remove(temp_wav_output)
+                config.logger.info("已清理音频拼接临时文件。")
+            except Exception as e:
+                config.logger.warning(f"清理音频拼接临时文件失败: {e}")

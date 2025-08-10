@@ -85,7 +85,7 @@ def initialize_full_app(start_window, app_instance):
         tb_str = "".join(traceback.format_exception(exctype, value, tb))
         print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
         if QtWidgets.QApplication.instance():
-            QtWidgets.QMessageBox.critical(None, "Application Error",tb_str)
+            QtWidgets.QMessageBox.critical(app_instance, "Application Error",tb_str)
         sys.exit(1)
     sys.excepthook = global_exception_hook
 

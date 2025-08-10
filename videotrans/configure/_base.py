@@ -40,3 +40,17 @@ class BaseCon:
                 return proxy
         return None
 
+    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str):
+        cmd = [
+            "-y",
+            "-i",
+            mp3_file_path,
+            "-ar",
+            "44100",
+            "-ac",
+            "2",
+            "-c:a",
+            "pcm_s16le",
+            output_wav_file_path
+        ]
+        return tools.runffmpeg(cmd,force_cpu=True)

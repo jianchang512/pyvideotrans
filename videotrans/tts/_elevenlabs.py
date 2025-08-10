@@ -149,7 +149,7 @@ class ElevenLabsClone():
                         dubbed_file = b"".join(dubbed_file)
                     with open(self.output_file_path + ".mp3", "wb") as file:
                         f.write(dubbed_file)
-                    tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", "-ar","48000","-ac","2","-b:a","128k",self.output_file_path])
+                    tools.runffmpeg(['-y', '-i', self.output_file_path + ".mp3", "-ar","44100","-ac","2","-b:a","128k",self.output_file_path])
                     self.error = ""
                     return True
 

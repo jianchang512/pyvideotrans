@@ -95,13 +95,13 @@ class Worker(QThread):
                 while config.task_countdown>0:
                     time.sleep(1)
                     break
-                trk.dubbing()
             try:
+                trk.dubbing()
                 trk.align()
                 trk.assembling()
                 trk.task_done()
             except Exception as e:
-                raise
+                self._post(text=str(e),type='error')
 
 
     def _post(self,text,type='logs'):
