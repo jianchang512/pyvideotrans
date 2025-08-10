@@ -68,7 +68,7 @@ class ChatGPT(BaseTrans):
                 self._signal(text=msg)
             response = model.chat.completions.create(
                 model=model_name,
-                max_tokens= 8092,
+                max_completion_tokens=8192,
                 messages=message,
                 response_format= { "type":"json_object" }
             )
@@ -160,9 +160,9 @@ class ChatGPT(BaseTrans):
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxies,timeout=7200))
         response = model.chat.completions.create(
-                model='gpt-4o-mini' if config.params['chatgpt_model'].lower().find('gpt-3.5') > -1 else config.params['chatgpt_model'],
+                model=config.params['chatgpt_model'],
                 timeout=7200,
-                max_tokens= int(config.params.get('chatgpt_max_token')) if config.params.get('chatgpt_max_token') else 4096,
+                max_completion_tokens= int(config.params.get('chatgpt_max_token',8192)),
                 temperature=float(config.params.get('chatgpt_temperature',0.7)),
                 top_p=float(config.params.get('chatgpt_top_p',1.0)),
                 messages=message

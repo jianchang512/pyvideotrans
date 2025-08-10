@@ -367,7 +367,7 @@ def get_video_codec(force_test: bool = False) -> str:
         timestamp = int(time.time() * 1000)
         output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
         command = [
-            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "ffmpeg", "-y", "-hide_banner",
             "-t", "1", "-i", str(test_input_file),
             "-c:v", encoder_to_test, "-f", "mp4", str(output_file)
         ]
@@ -391,11 +391,11 @@ def get_video_codec(force_test: bool = False) -> str:
             #if e.stderr and e.stderr.strip():
             #    config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
         except PermissionError:
-            config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。")
+            config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。 {command=}")
         except subprocess.TimeoutExpired:
-            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。")
+            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
         except Exception as e:
-            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e}", exc_info=True)
+            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e} {command=}", exc_info=True)
         finally:
             try:
                 if output_file.exists():
@@ -609,6 +609,8 @@ def conver_to_16k(audio, target_audio):
         "1",
         "-ar",
         "16000",
+        "-c:a",
+        "pcm_s16le",
         Path(target_audio).as_posix(),
     ])
 
@@ -630,7 +632,10 @@ def wav2m4a(wavfile, m4afile, extra=None):
 
 
 
+
 def create_concat_txt(filelist, concat_txt=None):
+    from videotrans.configure import config
+
     """
     创建供FFmpeg concat使用的连接文件。
     确保写入的是绝对路径，以避免FFmpeg因工作目录问题找不到文件。
@@ -640,18 +645,18 @@ def create_concat_txt(filelist, concat_txt=None):
         path_obj = Path(it)
         if not path_obj.exists() or path_obj.stat().st_size == 0:
             continue
-
-        safe_path = path_obj.resolve().as_posix()
-        txt.append(f"file '{safe_path}'")
-    
+        # 存放名字，避免片段过多在windows上出现命令行截断错误
+        txt.append(f"file '{path_obj.name}'")
     if not txt:
         # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
         raise ValueError("Cannot create concat txt from an empty or invalid file list.")
 
+    config.logger.info(f'{txt=},{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:
         f.write("\n".join(txt))
         f.flush()
-        
+    # 进入路径下
+    os.chdir(os.path.dirname(concat_txt))
     return concat_txt
 
 # 多个音频片段连接

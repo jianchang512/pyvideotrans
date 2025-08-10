@@ -570,6 +570,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.remove(temp_file_path)
                 except OSError as e:
                     pass
+        threading.Thread(target=tools.get_video_codec,args=(True,)).start()
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
