@@ -130,7 +130,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            tools.show_error(d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText('')
@@ -154,8 +154,7 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.')
+            tools.show_error('必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.')
             return
 
         winobj.startbtn.setText(

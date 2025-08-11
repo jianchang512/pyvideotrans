@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QMessageBox, QFileDialog
+from PySide6.QtWidgets import QFileDialog
 
 from videotrans import translator, recognition, tts
 from videotrans.configure import config
@@ -177,12 +177,12 @@ class WinAction(WinActionSub):
                 if rs is not True:
                     return False
         except Exception as e:
-            QMessageBox.critical(self.main, config.transobj['anerror'], str(e))
+            tools.show_error( str(e))
 
     def show_xxl_select(self):
         import sys
         if sys.platform != 'win32':
-            QMessageBox.critical(self.main, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            tools.show_error('faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
             from PySide6.QtWidgets import QFileDialog
@@ -256,7 +256,7 @@ class WinAction(WinActionSub):
         )
 
         if res is not True:
-            return QMessageBox.critical(self.main, config.transobj['anerror'], res)
+            return tools.show_error( res)
           
         if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
             self.main.show_spk.setVisible(True)
@@ -305,9 +305,7 @@ class WinAction(WinActionSub):
             cred = config.params.get("gcloud_credential_json", "").strip()
             
             if not cred:
-                QMessageBox.warning(
-                    self.main,
-                    "Configuração Necessária",
+                tools.show_error(
                     "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
                     "Configurações > Google Cloud TTS > Credenciais"
                 )
@@ -322,9 +320,7 @@ class WinAction(WinActionSub):
                 self.main.current_rolelist = roles
                 
                 if not roles:
-                    QMessageBox.warning(
-                        self.main,
-                        "Nenhuma Voz Encontrada",
+                    tools.show_error(
                         f"Não foi possível encontrar vozes para o idioma {lang}.\n\n"
                         "Verifique:\n"
                         "1. Se o arquivo de credenciais está correto\n"
@@ -338,9 +334,7 @@ class WinAction(WinActionSub):
                     
             except Exception as e:
                 config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-                QMessageBox.critical(
-                    self.main,
-                    "Erro",
+                tools.show_error(
                     f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
                     "Verifique os logs para mais detalhes."
                 )
@@ -447,9 +441,7 @@ class WinAction(WinActionSub):
         if tts_type == tts.GOOGLECLOUD_TTS:
             cred = config.params.get("gcloud_credential_json", "").strip()
             if not cred:
-                QMessageBox.warning(
-                    self.main,
-                    "Configuração Necessária",
+                tools.show_error(
                     "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
                     "Configurações > Google Cloud TTS > Credenciais"
                 )
@@ -483,7 +475,7 @@ class WinAction(WinActionSub):
 
         if not show_rolelist:
             self.main.target_language.setCurrentText('-')
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+            tools.show_error( config.transobj['waitrole'])
             return
         try:
             vt = code.split('-')[0] if code !='yue' else "zh"
@@ -493,7 +485,7 @@ class WinAction(WinActionSub):
                 return
             if len(show_rolelist[vt]) < 2:
                 self.main.target_language.setCurrentText('-')
-                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+                tools.show_error(config.transobj['waitrole'])
                 return
             self.main.current_rolelist = show_rolelist[vt]
             self.main.voice_role.addItems(show_rolelist[vt])
@@ -515,8 +507,7 @@ class WinAction(WinActionSub):
                     self.main.subtitle_area.clear()
                     self.main.subtitle_area.insertPlainText(content.strip())
                 else:
-                    return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                                config.transobj['import src error'])
+                    return tools.show_error(config.transobj['import src error'])
 
     # 判断是否需要翻译
     def shound_translate(self):
@@ -532,7 +523,7 @@ class WinAction(WinActionSub):
             return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No', '', ' ']:
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['wufapeiyin'])
+            tools.show_error( config.transobj['wufapeiyin'])
             return False
         return True
 
@@ -549,8 +540,7 @@ class WinAction(WinActionSub):
 
         # 原始语言是最后一个，即auto自动检查
         if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'],
-                                 '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
+            tools.show_error( '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
 
         # 判断是否填写自定义识别 api openai-api识别
@@ -572,8 +562,7 @@ class WinAction(WinActionSub):
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
-            QMessageBox.critical(self.main, config.transobj['anerror'],
-                                 '必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected')
+            tools.show_error('必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected')
             self.main.startbtn.setDisabled(False)
             return
 
@@ -668,8 +657,7 @@ class WinAction(WinActionSub):
 
         if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
-            return QMessageBox.critical(self.main, config.transobj['anerror'],
-                                        '必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
+            return tools.show_error('必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
@@ -686,11 +674,11 @@ class WinAction(WinActionSub):
             
             if err:
                 self.main.startbtn.setDisabled(False)
-                return QMessageBox.critical(self.main, config.transobj['anerror'],err)
+                return tools.show_error(err)
            
         if self.main.rephrase.isChecked() and not config.params.get('chatgpt_key'):
             self.main.startbtn.setDisabled(False)
-            QMessageBox.critical(self.main, "Error",config.transobj['llmduanju'])
+            tools.show_error(config.transobj['llmduanju'])
             from videotrans.winform import chatgpt
             chatgpt.openwin()
             return
@@ -915,8 +903,7 @@ class WinAction(WinActionSub):
                 try:
                     tools.shutdown_system()
                 except Exception as e:
-                    QMessageBox.critical(self.main, config.transobj['anerror'],
-                                         config.transobj['shutdownerror'] + str(e))
+                    tools.show_error(config.transobj['shutdownerror'] + str(e))
             self.main.target_dir = None
             self.main.btn_save_dir.setToolTip('')
         else:
@@ -951,7 +938,7 @@ class WinAction(WinActionSub):
             self.create_btns()
         # 任务开始执行，初始化按钮等
         elif d['type']=='shitingerror':
-            QMessageBox.critical(self.main, config.transobj['anerror'],d['text'])
+            tools.show_error(d['text'])
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end
             self.update_status(d['type'])
@@ -1056,9 +1043,7 @@ class WinAction(WinActionSub):
         if tts_type == tts.GOOGLECLOUD_TTS:
             cred = config.params.get("gcloud_credential_json", "").strip()
             if not cred:
-                QMessageBox.warning(
-                    self.main,
-                    "Configuração Necessária",
+                tools.show_error(
                     "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
                     "Configurações > Google Cloud TTS > Credenciais"
                 )
@@ -1073,9 +1058,7 @@ class WinAction(WinActionSub):
                 self.main.current_rolelist = roles
                 
                 if not roles:
-                    QMessageBox.warning(
-                        self.main,
-                        "Nenhuma Voz Encontrada",
+                    tools.show_error(
                         f"Não foi possível encontrar vozes para o idioma {t}.\n\n"
                         "Verifique:\n"
                         "1. Se o arquivo de credenciais está correto\n"
@@ -1089,10 +1072,7 @@ class WinAction(WinActionSub):
                     
             except Exception as e:
                 config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-                QMessageBox.critical(
-                    self.main,
-                    "Erro",
-                    f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
+                tools.show_error(f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
                     "Verifique os logs para mais detalhes."
                 )
                 self.main.voice_role.clear()
@@ -1114,7 +1094,7 @@ class WinAction(WinActionSub):
 
         if not show_rolelist:
             self.main.target_language.setCurrentText('-')
-            QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+            tools.show_error(config.transobj['waitrole'])
             return
         try:
             vt = code.split('-')[0]
@@ -1123,7 +1103,7 @@ class WinAction(WinActionSub):
                 return
             if len(show_rolelist[vt]) < 2:
                 self.main.target_language.setCurrentText('-')
-                QMessageBox.critical(self.main, config.transobj['anerror'], config.transobj['waitrole'])
+                tools.show_error(config.transobj['waitrole'])
                 return
             self.main.current_rolelist = show_rolelist[vt]
             self.main.voice_role.addItems(show_rolelist[vt])

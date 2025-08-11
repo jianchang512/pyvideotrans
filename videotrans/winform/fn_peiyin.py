@@ -284,12 +284,11 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['mustberole'])
+            return tools.show_error(config.transobj['mustberole'])
         voice_dir = config.TEMP_DIR+'/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -323,7 +322,7 @@ def openwin():
             return
         def feed(d):
             if d != "ok":
-                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+                tools.show_error( d)
         wk=ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
         wk.uito.connect(feed)
         wk.start()
@@ -346,7 +345,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No','-','']:
-            return QMessageBox.critical(winobj, config.transobj['anerror'],config.transobj['yuyanjuesebixuan'])
+            return tools.show_error(config.transobj['yuyanjuesebixuan'])
                                         
         if is_input_api(tts_type=tts_type) is not True:
             return False
@@ -362,7 +361,7 @@ def openwin():
         else:
             code_list=[key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return QMessageBox.critical(winobj, config.transobj['anerror'], f'{language} is not support -1')
+                return tools.show_error( f'{language} is not support -1')
             langcode=code_list[0]
 
         if rate >= 0:
@@ -375,8 +374,7 @@ def openwin():
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
         if len(winobj.hecheng_files) < 1 and not txt:
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
+            return tools.show_error('必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
         if len(winobj.hecheng_files)>0 and winobj.save_to_srt.isChecked():
             RESULT_DIR=Path(winobj.hecheng_files[0]).parent.as_posix()
         if not Path(config.TEMP_HOME).is_dir():
@@ -575,7 +573,7 @@ def openwin():
             show_rolelist = tools.get_azure_rolelist()
         if not show_rolelist:
             winobj.hecheng_language.setCurrentText('-')
-            QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nojueselist'])
+            tools.show_error(config.transobj['nojueselist'])
             return
         try:
             vt = code.split('-')[0] if code !='yue' else "zh"
@@ -584,7 +582,7 @@ def openwin():
                 return
             if len(show_rolelist[vt]) < 2:
                 winobj.hecheng_language.setCurrentText('-')
-                QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['waitrole'])
+                tools.show_error(config.transobj['waitrole'])
                 return
             winobj.hecheng_role.addItems(show_rolelist[vt])
         except:
@@ -614,7 +612,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            QMessageBox.critical(winobj,config.transobj['anerror'],winobj.error_msg)
+            tools.show_error(winobj.error_msg)
 
     from videotrans.component import Peiyinform
     try:

@@ -118,7 +118,7 @@ def openwin():
         )
 
         if res is not True:
-            return QMessageBox.critical(winobj, config.transobj['anerror'], res)
+            return tools.show_error(res)
         if (model=='paraformer-zh' and recogn_type==recognition.FUNASR_CN) or recogn_type==recognition.Deepgram or recogn_type==recognition.GEMINI_SPEECH:
             winobj.show_spk.setVisible(True)
         else:
@@ -142,12 +142,11 @@ def openwin():
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        config.transobj["nocudnn"])
+            return tools.show_error(config.transobj["nocudnn"])
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
-            return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['bixuyinshipin'])
+            return tools.show_error(config.transobj['bixuyinshipin'])
 
         is_allow_lang_res = is_allow_lang(langcode=langcode, recogn_type=recogn_type,model_name=model)
         if is_allow_lang_res is not True:
@@ -159,7 +158,7 @@ def openwin():
             return
 
         if winobj.rephrase.isChecked() and not config.params.get('chatgpt_key'):
-            QMessageBox.critical(winobj, "Error",config.transobj['llmduanju'])
+            tools.show_error(config.transobj['llmduanju'])
             from videotrans.winform import chatgpt
             chatgpt.openwin()
             return
@@ -214,14 +213,14 @@ def openwin():
             th.start()
 
         except Exception as e:
-            QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
+            tools.show_error(str(e))
 
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
             import torch
             if not torch.cuda.is_available():
-                QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nocuda'])
+                tools.show_error(config.transobj['nocuda'])
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -231,7 +230,7 @@ def openwin():
             if winobj.shibie_recogn_type.currentIndex() == FASTER_WHISPER:
                 from torch.backends import cudnn
                 if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                    QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj["nocudnn"])
+                    tools.show_error( config.transobj["nocudnn"])
                     winobj.is_cuda.setChecked(False)
                     winobj.is_cuda.setDisabled(True)
                     return False
@@ -241,7 +240,7 @@ def openwin():
     def show_xxl_select():
         import sys
         if sys.platform != 'win32':
-            QMessageBox.critical(winobj, config.transobj['anerror'], 'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            tools.show_error('faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
             from PySide6.QtWidgets import QFileDialog
@@ -308,7 +307,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            QMessageBox.critical(winobj, config.transobj['anerror'], winobj.error_msg)
+            tools.show_error(winobj.error_msg)
 
     # 点击语音识别，显示隐藏faster时的详情设置
     def click_reglabel(self):

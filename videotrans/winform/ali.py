@@ -3,13 +3,14 @@ from PySide6 import QtWidgets
 from videotrans import translator
 from videotrans.configure import config
 # set baidu
+from videotrans.util import tools
 from videotrans.util.TestSrtTrans import TestSrtTrans
 
 
 def openwin():
     def feed(d):
         if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error( d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
@@ -26,8 +27,7 @@ def openwin():
         appid = winobj.ali_id.text()
         miyue = winobj.ali_key.text()
         if not appid or not miyue:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret')
+            return tools.show_error('必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret')
         config.params["ali_id"] = appid
         config.params["ali_key"] = miyue
 

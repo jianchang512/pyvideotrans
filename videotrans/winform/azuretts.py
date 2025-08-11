@@ -2,6 +2,7 @@ from PySide6 import QtWidgets
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 
 
@@ -10,13 +11,13 @@ def openwin():
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
         key = winobj.speech_key.text().strip()
         if not key:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '填写Azure speech key ')
+            tools.show_error( '填写Azure speech key ')
             return
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):

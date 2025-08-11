@@ -24,6 +24,43 @@ def show_popup(title, text, parent=None):
     x = msg.exec()  # 显示消息框
     return x
 
+
+
+def show_error(tb_str):
+    """槽函数 显示对话框。"""
+    from PySide6 import QtWidgets
+    from PySide6.QtGui import QIcon
+    from videotrans.configure import config
+
+    # 1. 创建 QMessageBox 实例
+    msg_box = QtWidgets.QMessageBox()
+
+    # 2. 设置图标、标题和文本
+    icon_path = f"{config.ROOT_DIR}/videotrans/styles/icon.ico"
+    try:
+        msg_box.setWindowIcon(QIcon(icon_path))
+    except Exception as e:
+        print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
+
+    msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+    msg_box.setWindowTitle(config.transobj.get('anerror', 'Error'))
+    msg_box.setText(tb_str[:300])
+    msg_box.setDetailedText(tb_str)
+
+
+
+    # 5. 设置样式表
+    msg_box.setStyleSheet("""
+            QMessageBox {
+                min-width: 400px;
+                max-width: 800px;
+                min-height: 400px;
+                max-height: 700px;
+            }
+        """)
+
+    # 6. 显示对话框
+    msg_box.exec()
 def open_url(url=None, title: str = None):
     import webbrowser
     if url:

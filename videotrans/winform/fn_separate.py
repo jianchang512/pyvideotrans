@@ -29,14 +29,13 @@ def openwin():
             if len(d) > 5:
                 winobj.set.setText(d[5:])
         elif d.startswith('error:'):
-            QMessageBox.critical(winobj, config.transobj['anerror'], d[6:])
+            tools.show_error( d[6:])
 
     def start():
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 config.transobj['must select audio or video file'])
+            tools.show_error(config.transobj['must select audio or video file'])
             return
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止

@@ -175,7 +175,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         """为选中的行分配角色"""
         selected_role = self.tmp_rolelist.currentText()
         if not selected_role or selected_role in ['-', 'No']:
-            QtWidgets.QMessageBox.warning(self, "提示", "请先在下拉列表中选择一个有效的角色。")
+            tools.show_error("请先在下拉列表中选择一个有效的角色。")
             return
 
         assigned_count = 0

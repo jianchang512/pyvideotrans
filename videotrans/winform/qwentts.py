@@ -12,13 +12,13 @@ def openwin():
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error( d)
         winobj.test_qwentts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
         key = winobj.qwentts_key.text().strip()
         if not key:
-            QtWidgets.QMessageBox.warning(winobj, "Error", "API Key is empty")
+            tools.show_error("API Key is empty")
             return
 
         model = winobj.qwentts_model.currentText()

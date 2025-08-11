@@ -325,10 +325,10 @@ class Ui_subtitleEditor(QWidget):
     def fanyi(self):
         target_language = self.fanyi_target.currentText()
         if target_language=='-':
-            return QMessageBox.critical(self, config.transobj['anerror'], '必须选择目标语言' if config.defaulelang=='zh' else 'Please select target language')
+            return tools.show_error('必须选择目标语言' if config.defaulelang=='zh' else 'Please select target language')
 
         if target_language==self.fanyi_source.currentText():
-            return QMessageBox.critical(self, config.transobj['anerror'], '原语言和目标语言不得相同' if config.defaulelang=='zh' else 'Can not translate to source language')
+            return tools.show_error('原语言和目标语言不得相同' if config.defaulelang=='zh' else 'Can not translate to source language')
 
         rs = translator.is_allow_translate(translate_type=self.translate_type.currentIndex(), show_target=target_language)
         if rs is not True:
@@ -394,7 +394,7 @@ class Ui_subtitleEditor(QWidget):
 
     def set_target_text(self):
         if not Path(self.target_file).exists():
-            return QMessageBox.critical(self, config.transobj['anerror'], '翻译失败' if config.defaulelang == 'zh' else 'Translate failed')
+            return tools.show_error('翻译失败' if config.defaulelang == 'zh' else 'Translate failed')
         target_list=tools.get_subtitle_from_srt(self.target_file)
         for i in range(self.content_layout.count()):
             layout = self.content_layout.itemAt(i)
@@ -676,7 +676,7 @@ class Ui_subtitleEditor(QWidget):
                                     msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time = widget.time().toString('HH:mm:ss,zzz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
+                                return tools.show_error(msg)
                             self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText().strip()
@@ -754,7 +754,7 @@ class Ui_subtitleEditor(QWidget):
                                     msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time = widget.time().toString('HH:mm:ss.zz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
+                                return tools.show_error(msg)
                             self.lastend_time = msec
                         elif isinstance(widget, QTextEdit):
                             text = widget.toPlainText()
@@ -797,7 +797,7 @@ class Ui_subtitleEditor(QWidget):
                                     msg = f'第{index}行不正确，结束时间不得小于开始时间' if config.defaulelang == 'zh' else f'Line {index} is incorrect, the end time must not be less than the start time'
                                 end_time = widget.time().toString('HH:mm:ss.zzz')
                             if msg:
-                                return QMessageBox.critical(self, config.transobj['anerror'], msg)
+                                return tools.show_error(msg)
                             self.lastend_time = msec
 
                         elif isinstance(widget, QTextEdit):

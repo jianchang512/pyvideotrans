@@ -11,7 +11,7 @@ def openwin():
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText(
             '测试' if config.defaulelang == 'zh' else 'Test')
 

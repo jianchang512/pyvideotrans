@@ -276,7 +276,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            tools.show_error(d['text'])
             winobj.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_opendir.setDisabled(False)
@@ -331,12 +331,10 @@ def openwin():
         except Exception:
             pass
         if not video:
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
             return
         if not audio and not srt:
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
+            tools.show_error('音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
             return
 
         winobj.ysphb_startbtn.setText(

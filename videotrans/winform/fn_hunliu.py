@@ -51,7 +51,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            tools.show_error(d['text'])
             winobj.hun_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.hun_startbtn.setDisabled(False)
             winobj.hun_opendir.setDisabled(False)
@@ -81,8 +81,7 @@ def openwin():
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频')
+            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频')
             return
 
         winobj.hun_startbtn.setText(

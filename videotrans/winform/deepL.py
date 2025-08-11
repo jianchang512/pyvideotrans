@@ -3,12 +3,13 @@ from PySide6 import QtWidgets
 from videotrans import translator
 from videotrans.configure import config
 # set deepl key
+from videotrans.util import tools
 from videotrans.util.TestSrtTrans import TestSrtTrans
 
 def openwin():
     def feed(d):
         if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
@@ -18,8 +19,7 @@ def openwin():
         api = winobj.deepl_api.text().strip()
         gid = winobj.deepl_gid.text().strip()
         if not key:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写 密钥' if config.defaulelang == 'zh' else 'Please input auth Secret')
+            return tools.show_error('必须填写 密钥' if config.defaulelang == 'zh' else 'Please input auth Secret')
 
         config.params['deepl_authkey'] = key
         config.params['deepl_api'] = api

@@ -10,7 +10,7 @@ def openwin():
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText(
             '测试' if config.defaulelang == 'zh' else 'Test')
 
@@ -20,8 +20,7 @@ def openwin():
         config.params["doubao_appid"] = appid
         config.params["doubao_access"] = access
         if not appid or not access:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                           '必须填写 Appid & Access_token')
+            tools.show_error('必须填写 Appid & Access_token')
             return
 
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -33,8 +32,7 @@ def openwin():
         appid = winobj.doubao_appid.text()
         access = winobj.doubao_access.text()
         if not appid or not access:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                           '必须填写 Appid & Access_token')
+            tools.show_error('必须填写 Appid & Access_token')
             return
         config.params["doubao_appid"] = appid
         config.params["doubao_access"] = access

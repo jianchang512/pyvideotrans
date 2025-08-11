@@ -2,6 +2,7 @@ from PySide6 import QtWidgets
 
 from videotrans import recognition
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.TestSTT import TestSTT
 
 
@@ -10,15 +11,14 @@ def openwin():
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                           '必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
             return
         config.params["deepgram_apikey"] = apikey
         config.params["deepgram_utt"] = 200 if utt else 200
@@ -32,8 +32,7 @@ def openwin():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                           '必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
             return
 
         config.params["deepgram_apikey"] = apikey

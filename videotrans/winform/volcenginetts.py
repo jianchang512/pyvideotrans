@@ -4,6 +4,7 @@ from PySide6 import QtWidgets
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 
 
@@ -12,7 +13,7 @@ def openwin():
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText('测试')
 
     def test():
@@ -21,8 +22,7 @@ def openwin():
         access = winobj.volcenginetts_access.text().strip()
         cluster = winobj.volcenginetts_cluster.text().strip()
         if not appid or not access or not cluster:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写 appid access 和 cluster')
+            return tools.show_error('必须填写 appid access 和 cluster')
         config.params["volcenginetts_appid"] = appid
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster
