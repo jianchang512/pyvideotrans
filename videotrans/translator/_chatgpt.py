@@ -68,7 +68,7 @@ class ChatGPT(BaseTrans):
                 self._signal(text=msg)
             response = model.chat.completions.create(
                 model=model_name,
-                max_completion_tokens=8192,
+                max_completion_tokens= max(int(config.params.get('chatgpt_max_token',8192)),8192),
                 messages=message,
                 response_format= { "type":"json_object" }
             )
@@ -79,11 +79,12 @@ class ChatGPT(BaseTrans):
                 self._signal(text=msg)
 
 
-            if not hasattr(response,'choices'):
+            if not hasattr(response,'choices') or not response.choices:
                 config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
                 raise RuntimeError(f"no choices:{response=}")
+                
             if response.choices[0].finish_reason=='length':
-                raise RuntimeError(f"请增加最大输出token或降低LLM重新断句每批次字/单词数")
+                raise RuntimeError(f"Please increase max_token")
             if not response.choices[0].message.content:
                 config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
                 raise RuntimeError(f"no choices:{response=}")
@@ -169,7 +170,7 @@ class ChatGPT(BaseTrans):
             )
         config.logger.info(f'[chatGPT]响应:{response=}')
         result=""
-        if response.choices:
+        if hasattr(response,'choices') and response.choices:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[chatGPT]请求失败:{response=}')

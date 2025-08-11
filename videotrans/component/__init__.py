@@ -8,7 +8,7 @@ __all__ = [
     "BaiduForm", "ChatgptForm", "DeepLForm", "DeepLXForm", "TencentForm", 
     "ElevenlabsForm", "InfoForm", "AzureForm", "GeminiForm", "SetLineRole", 
     "OttForm", "CloneForm", "SeparateForm", "TtsapiForm", "GPTSoVITSForm", 
-    "TransapiForm", "ArticleForm", "    AzurettsForm", "ChatttsForm", "LocalLLMForm",
+    "TransapiForm", "ArticleForm", "AzurettsForm", "ChatttsForm", "LocalLLMForm",
     "ZijiehuoshanForm", "HebingsrtForm", "DoubaoForm", "FishTTSForm", "CosyVoiceForm", 
     "AI302Form", "SetINIForm", "WatermarkForm", "GetaudioForm", "HunliuForm", 
     "VASForm", "Fanyisrt", "Recognform", "Peiyinform", "Videoandaudioform", 

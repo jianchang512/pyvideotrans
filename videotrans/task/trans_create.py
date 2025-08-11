@@ -790,12 +790,10 @@ class TransCreate(BaseTask):
 
                 # 转为m4a
                 bgm_file = self.cfg['cache_folder'] + f'/bgm_file.wav'
-                # if not self.cfg['background_music'].lower().endswith('.wav'):
+
                 self.convert_to_wav(self.cfg['background_music'], bgm_file)
                 self.cfg['background_music'] = bgm_file
-                # else:
-                #     shutil.copy2(self.cfg['background_music'], bgm_file)
-                #     self.cfg['background_music'] = bgm_file
+
 
                 beishu = math.ceil(vtime / atime)
                 if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
@@ -809,15 +807,21 @@ class TransCreate(BaseTask):
                     self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.wav"
                 # 背景音频降低音量
                 tools.runffmpeg(
-                    ['-y', '-i', self.cfg['background_music'], "-filter:a",
-                     f"volume={config.settings['backaudio_volume']}",
-                     '-c:a', 'pcm_s16le',
-                     self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"])
+                    ['-y', 
+                    '-i', self.cfg['background_music'], 
+                    "-filter:a", f"volume={config.settings['backaudio_volume']}",
+                    '-c:a', 'pcm_s16le',
+                    self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"
+                    ])
                 # 背景音频和配音合并
-                cmd = ['-y', '-i', self.cfg['target_wav'], '-i',
-                       self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
-                       '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2',
-                       self.cfg['cache_folder'] + f"/lastend.wav"]
+                cmd = ['-y', 
+                    '-i', self.cfg['target_wav'], 
+                    '-i', self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
+                    '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", 
+                    '-ac', '2',
+                    '-c:a', 'pcm_s16le',
+                    self.cfg['cache_folder'] + f"/lastend.wav"
+                ]
                 tools.runffmpeg(cmd)
                 self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.wav"
             except Exception as e:
@@ -862,7 +866,7 @@ class TransCreate(BaseTask):
         tmpwav = Path(tmpdir + f'/{time.time()}-1.wav').as_posix()
         tmpm4a = Path(tmpdir + f'/{time.time()}.wav').as_posix()
         # 背景转为m4a文件,音量降低为0.8
-        tools.wav2m4a(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
+        self.convert_to_wav(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
         tools.runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
                    "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'pcm_s16le', tmpwav])
         shutil.copy2(tmpwav, peiyinm4a)
