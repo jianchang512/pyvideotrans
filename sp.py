@@ -37,7 +37,21 @@ def show_global_error_dialog(tb_str):
         
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle("Application Error")
-    msg_box.setText(tb_str)
+    msg_box.setText(tb_str[:300])
+    if len(tb_str)>300:
+        msg_box.setInformativeText(tb_str.strip().splitlines()[-1])
+        msg_box.setDetailedText(tb_str)
+
+
+    msg_box.setStyleSheet("""
+            QMessageBox {
+                min-width: 400px;
+                max-width: 800px;
+                min-height: 400px;
+                max-height: 700px;
+            }
+        """)
+
     msg_box.exec()
 
 

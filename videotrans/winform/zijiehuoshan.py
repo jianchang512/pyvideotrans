@@ -12,7 +12,7 @@ from videotrans.util.TestSrtTrans import TestSrtTrans
 def openwin():
     def feed(d):
         if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test_zijiehuoshan.setText('测试')
@@ -21,7 +21,7 @@ def openwin():
         key = winobj.zijiehuoshan_key.text()
         model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], '必须填写API key和推理接入点')
+            return tools.show_error('必须填写API key和推理接入点')
 
         template = winobj.zijiehuoshan_template.toPlainText()
         config.params["zijiehuoshan_key"] = key

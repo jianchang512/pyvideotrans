@@ -15,7 +15,7 @@ def openwin():
             tools.set_process(text='chatterbox', type="refreshtts")
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         winobj.test.setText('Test')
 
     def test():
@@ -47,8 +47,7 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip()
             if not Path(config.ROOT_DIR + f"/chatterbox/{s}").exists():
-                QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                               f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder')
+                tools.show_error(f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder')
                 return
 
             role = s

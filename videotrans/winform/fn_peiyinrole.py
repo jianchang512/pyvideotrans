@@ -142,12 +142,11 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['mustberole'])
+            return tools.show_error(config.transobj['mustberole'])
         voice_dir = config.TEMP_DIR+'/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -181,8 +180,7 @@ def openwin():
     def hecheng_start_fun():
         nonlocal RESULT_DIR
         if not winobj.srt_path:
-            return QMessageBox.critical(winobj, config.transobj['anerror'],
-                                        '请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.')
+            return tools.show_error('请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.')
 
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
@@ -192,7 +190,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No','-','']:
-            return QMessageBox.critical(winobj, config.transobj['anerror'], '必须选择一个默认角色' if config.defaulelang=='zh' else 'A default role must be selected')
+            return tools.show_error('必须选择一个默认角色' if config.defaulelang=='zh' else 'A default role must be selected')
                                         
         if is_input_api(tts_type=tts_type) is not True:
             return False
@@ -207,7 +205,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return QMessageBox.critical(winobj, config.transobj['anerror'], f'{language} is not support -1')
+                return tools.show_error(f'{language} is not support -1')
             langcode = code_list[0]
         
 
@@ -402,7 +400,7 @@ def openwin():
 
         if not show_rolelist:
             winobj.hecheng_language.setCurrentText('-')
-            QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['nojueselist'])
+            tools.show_error(config.transobj['nojueselist'])
             return
         try:
             vt = code.split('-')[0] if code !='yue' else "zh"
@@ -411,7 +409,7 @@ def openwin():
                 return
             if len(show_rolelist[vt]) < 2:
                 winobj.hecheng_language.setCurrentText('-')
-                QMessageBox.critical(winobj, config.transobj['anerror'], config.transobj['waitrole'])
+                tools.show_error(config.transobj['waitrole'])
                 return
             winobj.hecheng_role.addItems(show_rolelist[vt])
         except Exception as e:
@@ -434,7 +432,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            QMessageBox.critical(winobj, config.transobj['anerror'], winobj.error_msg)
+            tools.show_error( winobj.error_msg)
 
     try:
         from videotrans.component import Peiyinformrole

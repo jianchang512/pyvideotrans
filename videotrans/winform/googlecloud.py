@@ -6,6 +6,8 @@ from videotrans.configure import config
 from videotrans.tts._googlecloud import GoogleCloudTTS
 
 # Import lazy do TextToSpeechClient
+from videotrans.util import tools
+
 TextToSpeechClient = None
 try:
     from google.cloud.texttospeech import TextToSpeechClient
@@ -92,9 +94,7 @@ class GoogleCloudSettingsForm(QWidget):
                     from google.cloud import texttospeech
                     TextToSpeechClient = texttospeech.TextToSpeechClient
                 except ImportError:
-                    QMessageBox.critical(
-                        self,
-                        "Erro de Dependência",
+                    tools.show_error(
                         "O pacote google-cloud-texttospeech não está instalado.\n\n"
                         "Por favor, instale-o com:\n"
                         "pip install google-cloud-texttospeech"
@@ -124,9 +124,7 @@ class GoogleCloudSettingsForm(QWidget):
             elif filtered:
                 self.voice_cb.setCurrentText(filtered[0])
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Erro ao Listar Vozes",
+            tools.show_error(
                 f"Falha ao buscar vozes do Google Cloud TTS:\n{str(e)}"
             )
 
@@ -157,9 +155,7 @@ class GoogleCloudSettingsForm(QWidget):
             tts._item_task({"filename": tmp, "text": "This is a test."})
             QMessageBox.information(self, "Teste OK", f"Áudio gerado com sucesso: {tmp}")
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Erro no Teste",
+            tools.show_error(
                 f"Falha ao testar síntese de voz:\n{str(e)}"
             )
 

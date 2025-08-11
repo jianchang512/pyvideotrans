@@ -67,7 +67,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            tools.show_error(d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
             winobj.resultbtn.setDisabled(False)
@@ -97,8 +97,7 @@ def openwin():
 
     def start():
         if len(winobj.videourls) < 1:
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
             return
         winobj.has_done = False
 

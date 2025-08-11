@@ -685,8 +685,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             if return_str:
                 return config.transobj['deepl_nosupport'] + f':{show_target}'
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.critical(win, config.transobj['anerror'],
-                                 config.transobj['deepl_nosupport'] + f':{show_target}')
+            tools.show_error(config.transobj['deepl_nosupport'] + f':{show_target}')
             return False
     return True
 

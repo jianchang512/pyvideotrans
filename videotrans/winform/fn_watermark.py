@@ -120,7 +120,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d['text'])
+            tools.show_error(d['text'])
             winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText('')
@@ -155,8 +155,7 @@ def openwin():
         winobj.has_done = False
         png = winobj.pngurl.text()
         if len(winobj.videourls) < 1 or not png:
-            QMessageBox.critical(winobj, config.transobj['anerror'],
-                                 '必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
+            tools.show_error('必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
             return
 
         winobj.startbtn.setText(

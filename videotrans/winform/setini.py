@@ -58,7 +58,7 @@ def openwin():
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(line_edit_dict, ensure_ascii=False))
         except Exception as e:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], str(e))
+            return tools.show_error(str(e))
         else:
             config.settings = line_edit_dict
             if shoud_model_list_sign:

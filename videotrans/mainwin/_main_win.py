@@ -4,7 +4,7 @@ import threading
 import time, os
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QMessageBox,QSizePolicy
+from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar,QSizePolicy
 from pathlib import Path
 from videotrans.configure import config
 from videotrans.ui.en import Ui_MainWindow
@@ -562,8 +562,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             with open(temp_file_path, 'w') as f:
                 pass
         except OSError as e:
-            QMessageBox.warning(self, config.transobj['anerror'],
-                                f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang == 'zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
+            tools.show_error(f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang == 'zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
         finally:
             if os.path.exists(temp_file_path):
                 try:

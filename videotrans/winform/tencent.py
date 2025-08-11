@@ -8,7 +8,7 @@ from videotrans.util.TestSrtTrans import TestSrtTrans
 def openwin():
     def feed(d):
         if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
@@ -18,8 +18,7 @@ def openwin():
         SecretKey = winobj.tencent_SecretKey.text().strip()
         term = winobj.tencent_term.text().strip()
         if not SecretId or not SecretKey:
-            return QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'],
-                                                  '必须填写ID 和 Key等信息' if config.defaulelang == 'zh' else 'Please input SecretId and SecretKey')
+            return tools.show_error('必须填写ID 和 Key等信息' if config.defaulelang == 'zh' else 'Please input SecretId and SecretKey')
         config.params["tencent_SecretId"] = SecretId
         config.params["tencent_SecretKey"] = SecretKey
         config.params["tencent_termlist"] = term

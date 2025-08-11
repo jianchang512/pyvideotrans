@@ -3,13 +3,14 @@ from PySide6.QtWidgets import QMessageBox
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 
 
 def openwin():
     def feed(d):
         if not d.startswith("ok"):
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
@@ -39,7 +40,7 @@ def openwin():
             winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
 
         except Exception as e:
-            QMessageBox.critical(winobj, "Error", str(e))
+            tools.show_error(str(e))
 
     from videotrans.component import ElevenlabsForm
     winobj = config.child_forms.get('elevenlabsw')

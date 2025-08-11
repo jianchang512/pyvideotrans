@@ -11,7 +11,7 @@ def openwin():
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            QtWidgets.QMessageBox.critical(winobj, config.transobj['anerror'], d)
+            tools.show_error( d)
         winobj.test.setText('测试api')
 
     def test():
