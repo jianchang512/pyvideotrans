@@ -210,7 +210,7 @@ def openwin():
                 return QMessageBox.critical(winobj, config.transobj['anerror'], f'{language} is not support -1')
             langcode = code_list[0]
         
-        print(f'{langcode=}')
+
         if rate >= 0:
             rate = f"+{rate}%"
         else:

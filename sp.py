@@ -85,8 +85,8 @@ def initialize_full_app(start_window, app_instance):
         tb_str = "".join(traceback.format_exception(exctype, value, tb))
         print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
         if QtWidgets.QApplication.instance():
-            QtWidgets.QMessageBox.critical(app_instance, "Application Error",tb_str)
-        sys.exit(1)
+            QtWidgets.QMessageBox.critical(None, "Application Error",tb_str)
+
     sys.excepthook = global_exception_hook
 
     # 命令行参数
@@ -118,7 +118,7 @@ def initialize_full_app(start_window, app_instance):
         sys.excepthook(type(e), e, e.__traceback__)
         app_instance.quit()
         return
-    
+
     # 显示主窗口
     if main_window_created and start_window.main_window:
         print(f"#### 所有初始化完毕，准备关闭启动窗口: {time.time()}")
