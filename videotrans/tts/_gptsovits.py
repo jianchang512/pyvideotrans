@@ -84,7 +84,7 @@ class GPTSoVITS(BaseTTS):
 
             config.logger.info(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
             # 克隆声音
-            response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
+            response = requests.get(f"{self.api_url}", params=data, proxies={"http": "", "https": ""},  timeout=3600)
 
             response.raise_for_status()
             # 获取响应头中的Content-Type

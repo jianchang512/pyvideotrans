@@ -20,8 +20,27 @@ print(f"\n####开始启动时间:{time.time()}")
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt, QTimer, QPoint, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
+from videotrans.configure._guiexcept import global_exception_hook, exception_handler
 
 VERSION = "v3.77"
+
+def show_global_error_dialog(tb_str):
+    """槽函数 显示对话框。"""
+    from PySide6 import QtWidgets
+
+    msg_box = QtWidgets.QMessageBox()    
+    icon_path = "./videotrans/styles/icon.ico"
+    try:
+        msg_box.setWindowIcon(QIcon(icon_path))
+    except Exception as e:
+        print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
+        
+    msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+    msg_box.setWindowTitle("Application Error")
+    msg_box.setText(tb_str)
+    msg_box.exec()
+
+
 
 class StartWindow(QWidget):
     def __init__(self):
@@ -60,8 +79,7 @@ def initialize_full_app(start_window, app_instance):
     import os
     import argparse
     import traceback
-    
-    from PySide6 import QtWidgets
+      
 
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -80,12 +98,6 @@ def initialize_full_app(start_window, app_instance):
         except Exception:
             pass
 
-    # 全局异常钩子
-    def global_exception_hook(exctype, value, tb):
-        tb_str = "".join(traceback.format_exception(exctype, value, tb))
-        print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
-        if QtWidgets.QApplication.instance():
-            QtWidgets.QMessageBox.critical(None, "Application Error",tb_str)
 
     sys.excepthook = global_exception_hook
 
@@ -113,6 +125,7 @@ def initialize_full_app(start_window, app_instance):
         size = sets.value("windowSize", QSize(w, h))
         w, h = size.width(), size.height()        
         start_window.main_window = MainWindow(width=w, height=h)
+        exception_handler.show_exception_signal.connect(show_global_error_dialog)
         main_window_created=True
     except Exception as e:
         sys.excepthook(type(e), e, e.__traceback__)
