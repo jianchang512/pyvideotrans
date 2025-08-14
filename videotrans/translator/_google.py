@@ -30,10 +30,11 @@ class Google(BaseTrans):
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
-        print(f'{data=}')
+
         if self._exit(): return
         text="\n".join([i.strip() for i in data]) if isinstance(data,list) else data
-        url = f"https://translate.google.com/m?sl=auto&tl={self.target_code}&hl={self.target_code}&q={text}"
+        source_code='auto' if not self.source_code else self.source_code
+        url = f"https://translate.google.com/m?sl={source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
         config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
