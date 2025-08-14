@@ -19,7 +19,7 @@ def openwin():
         api = winobj.deepl_api.text().strip()
         gid = winobj.deepl_gid.text().strip()
         if not key:
-            return tools.show_error('必须填写 密钥' if config.defaulelang == 'zh' else 'Please input auth Secret')
+            return tools.show_error('必须填写 密钥' if config.defaulelang == 'zh' else 'Please input auth Secret',False)
 
         config.params['deepl_authkey'] = key
         config.params['deepl_api'] = api

@@ -21,7 +21,7 @@ def openwin():
         key = winobj.zijiehuoshan_key.text()
         model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
-            return tools.show_error('必须填写API key和推理接入点')
+            return tools.show_error('必须填写API key和推理接入点',False)
 
         template = winobj.zijiehuoshan_template.toPlainText()
         config.params["zijiehuoshan_key"] = key

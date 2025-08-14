@@ -5,6 +5,8 @@ from videotrans.configure import config
 
 
 # 数字代表显示顺序
+from videotrans.util import tools
+
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
 MyMemoryAPI_INDEX = 2
@@ -684,7 +686,6 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         if target_list[index].lower() == 'no':
             if return_str:
                 return config.transobj['deepl_nosupport'] + f':{show_target}'
-            from PySide6.QtWidgets import QMessageBox
             tools.show_error(config.transobj['deepl_nosupport'] + f':{show_target}')
             return False
     return True

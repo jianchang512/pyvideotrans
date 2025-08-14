@@ -3,6 +3,7 @@ from PySide6 import QtWidgets
 from videotrans import recognition
 from videotrans.configure import config
 # set chatgpt
+from videotrans.util import tools
 from videotrans.util.TestSTT import TestSTT
 
 

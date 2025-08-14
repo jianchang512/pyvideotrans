@@ -18,7 +18,7 @@ def openwin():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key',False)
             return
         config.params["deepgram_apikey"] = apikey
         config.params["deepgram_utt"] = 200 if utt else 200
@@ -32,7 +32,7 @@ def openwin():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key',False)
             return
 
         config.params["deepgram_apikey"] = apikey

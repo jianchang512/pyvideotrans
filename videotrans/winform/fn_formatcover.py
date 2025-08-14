@@ -86,7 +86,7 @@ def openwin():
     def start():
         winobj.has_done = False
         if len(winobj.videourls) < 1:
-            tools.show_error('必须选择音频视频文件' if config.defaulelang == 'zh' else 'Must select videos or audios ')
+            tools.show_error('必须选择音频视频文件' if config.defaulelang == 'zh' else 'Must select videos or audios ',False)
             return
 
         winobj.startbtn.setText(

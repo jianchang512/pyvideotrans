@@ -81,7 +81,7 @@ def openwin():
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:
-            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频')
+            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频',False)
             return
 
         winobj.hun_startbtn.setText(

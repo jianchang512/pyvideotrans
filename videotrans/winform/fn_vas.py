@@ -331,10 +331,10 @@ def openwin():
         except Exception:
             pass
         if not video:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected',False)
             return
         if not audio and not srt:
-            tools.show_error('音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
+            tools.show_error('音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video',False)
             return
 
         winobj.ysphb_startbtn.setText(

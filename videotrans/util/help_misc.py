@@ -26,16 +26,15 @@ def show_popup(title, text, parent=None):
 
 
 
-def show_error(tb_str):
+def show_error(tb_str,report=True):
     """槽函数 显示对话框。"""
     from PySide6 import QtWidgets
-    from PySide6.QtGui import QIcon
+    from PySide6.QtGui import QIcon,QDesktopServices
+    from PySide6.QtCore import QUrl
     from videotrans.configure import config
 
-    # 1. 创建 QMessageBox 实例
     msg_box = QtWidgets.QMessageBox()
 
-    # 2. 设置图标、标题和文本
     icon_path = f"{config.ROOT_DIR}/videotrans/styles/icon.ico"
     try:
         msg_box.setWindowIcon(QIcon(icon_path))
@@ -45,11 +44,18 @@ def show_error(tb_str):
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle(config.transobj.get('anerror', 'Error'))
     msg_box.setText(tb_str[:300])
-    msg_box.setDetailedText(tb_str)
+    if len(tb_str)>300:
+        msg_box.setDetailedText(tb_str)
+    
+    # 添加一个标准的“OK”按钮
+    ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
+    
+    # 添加自定义的“报告错误”按钮
+    if report:
+        report_button = msg_box.addButton("报告错误" if config.defaulelang=='zh' else "Report Error", QtWidgets.QMessageBox.ButtonRole.ActionRole)
 
-
-
-    # 5. 设置样式表
+    msg_box.setDefaultButton(ok_button)
+    
     msg_box.setStyleSheet("""
             QMessageBox {
                 min-width: 400px;
@@ -58,15 +64,35 @@ def show_error(tb_str):
                 max-height: 700px;
             }
         """)
-
-    # 6. 显示对话框
     msg_box.exec()
+    if report:
+        clicked_button = msg_box.clickedButton()
+        if clicked_button == report_button:
+            import urllib.parse
+            import os,platform,sys
+            from videotrans import VERSION     
+
+            
+            # 对全部错误信息进行URL编码
+            encoded_content = urllib.parse.quote(f"{tb_str}\n=====\n{platform.platform()}\nversion:{VERSION}\nfrozen:{getattr(sys, 'frozen', False)}\n")
+            
+
+            full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
+            
+            # 调用系统默认浏览器打开链接
+            QDesktopServices.openUrl(QUrl(full_url))
+
+
+        
+    
+    
+    
 def open_url(url=None, title: str = None):
     import webbrowser
     if url:
         return webbrowser.open_new_tab(url)
     title_url_dict = {
-        'blog': "https://bbs.pyvideotrans.com",
+        'bbs': "https://bbs.pyvideotrans.com",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
@@ -151,27 +177,12 @@ def get_prompt_file(ainame, is_srt=True):
 
 def check_local_api(api):
     from videotrans.configure import config
-    from PySide6 import QtWidgets, QtGui
-    # 创建消息框
-    msg_box = QtWidgets.QMessageBox()
-    msg_box.setIcon(QtWidgets.QMessageBox.Critical)
-    msg_box.setText("API url error:")
-    msg_box.setWindowTitle(config.transobj['anerror'])
-
-    # 设置窗口图标
-    icon = QtGui.QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico")  # 替换为你的图标路径
-    msg_box.setWindowIcon(icon)
-
-    # 显示消息框
-
     if not api:
-        msg_box.setInformativeText('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
-        msg_box.exec()
+        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address',False)
         return False
     if api.find('0.0.0.0:') > -1:
-        msg_box.setInformativeText(
-            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
-        msg_box.exec()
+        show_error(
+            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ',False)
         return False
     return True
 

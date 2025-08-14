@@ -154,7 +154,7 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            tools.show_error('必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.')
+            tools.show_error('必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.',False)
             return
 
         winobj.startbtn.setText(

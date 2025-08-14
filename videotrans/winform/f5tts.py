@@ -26,7 +26,7 @@ def openwin():
 
         role = winobj.role.toPlainText().strip()
         if not role:
-            tools.show_error('必须填写参考音频才可测试')
+            tools.show_error('必须填写参考音频才可测试',False)
             return
         role_test = getrole()
         if not role_test:
@@ -54,13 +54,13 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip().split('#')
             if len(s) != 2:
-                tools.show_error("每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容")
+                tools.show_error("每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容",False)
                 return
             if not s[0].endswith(".wav"):
-                tools.show_error("每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容")
+                tools.show_error("每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容",False)
                 return
             elif not Path(config.ROOT_DIR + f'/f5-tts/{s[0]}').is_file():
-                tools.show_error(f"请将音频文件存放在 {config.ROOT_DIR}/f5-tts 目录下")
+                tools.show_error(f"请将音频文件存放在 {config.ROOT_DIR}/f5-tts 目录下",False)
                 return
             role = s[0]
         config.params['f5tts_role'] = tmp
