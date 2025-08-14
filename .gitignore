@@ -6,9 +6,7 @@
 edgetts.txt
 tmp
 images
-models/*.pt
-models/models--Systran--faster-whisper-base
-models/models--Systran--faster-whisper-tiny
+models
 dev
 venv
 chatterbox

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Union
 
 import requests
-
+import inspect,asyncio
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure._except import RetryRaise
@@ -108,7 +108,20 @@ class BaseTTS(BaseCon):
             raise RuntimeError('没有需要配音的字幕' if config.defaulelang=='zh' else 'No subtitles required')
         # 入口，多线程或单线程或异步在此方法内执行完毕，若抛出异常，则全部失败
         try:
-            self._exec()
+            # 检查 self._exec 是不是一个异步函数 (coroutine)
+            if inspect.iscoroutinefunction(self._exec):
+                # 如果是异步函数，我们需要一个事件循环来运行它
+                try:
+                    # 尝试获取当前线程正在运行的事件循环
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    # 如果没有，说明在同步环境中，使用 asyncio.run()
+                    asyncio.run(self._exec())
+                else:
+                    # 如果有，就在现有循环上运行它并等待完成
+                    loop.run_until_complete(self._exec())
+            else:
+                self._exec()
         finally:
             if self.shound_del:
                 self._set_proxy(type='del')

@@ -137,31 +137,8 @@ class EdgeTTS(BaseTTS):
 
 
     # 执行入口，外部会调用该方法
-    def _exec(self) -> None:
+    async def _exec(self) -> None:
         if self._exit():
             return
-            
-        try:
-            # 尝试获取当前线程正在运行的事件循环
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            # 如果没有正在运行的循环 (抛出 RuntimeError)，
-            # 说明处于一个同步环境中，可以使用 asyncio.run()
-            try:
-                print("No running event loop, starting new one with asyncio.run()")
-                asyncio.run(self._task_queue())
-            except Exception as e:
-                config.logger.error("Error running new event loop for EdgeTTS.", exc_info=True)
-                raise e
-        else:
-            # 如果 get_running_loop() 成功，说明已经在一个事件循环中。
-            # 不能再用 asyncio.run()，而是应该将协程作为任务提交给现有循环。
-            # 这是一个同步方法，但需要运行一个异步任务并等待结果。在这里“阻塞式”地运行它。
-            print("Found existing event loop, running task within it.")
-            try:
-                # 在现有循环上运行任务，并等待它完成
-                loop.run_until_complete(self._task_queue())
-            except Exception as e:
-                config.logger.error("Error running EdgeTTS task on existing event loop.", exc_info=True)
-                # 将异常向上抛出
-                raise e
+        await self._task_queue()
+

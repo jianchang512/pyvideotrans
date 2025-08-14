@@ -64,38 +64,11 @@ class Ui_chatgptform(object):
         self.chatgpt_max_token = QtWidgets.QLineEdit(chatgptform)
         self.chatgpt_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_max_token.setObjectName("chatgpt_max_token")
-        
-        
-        
-        label_temp=QtWidgets.QLabel(chatgptform)
-        label_temp.setMinimumSize(QtCore.QSize(0, 35))
-        label_temp.setText("temperature")
-        
-        self.chatgpt_temperature=QtWidgets.QLineEdit(chatgptform)
-        self.chatgpt_temperature.setObjectName("chatgpt_temperature")
 
-        
-        label_top_p=QtWidgets.QLabel(chatgptform)
-        label_top_p.setMinimumSize(QtCore.QSize(0, 35))
-        label_top_p.setText("top_p")
-        
-        self.chatgpt_top_p=QtWidgets.QLineEdit(chatgptform)
-        self.chatgpt_top_p.setObjectName("chatgpt_top_p")
-            
         h_token.addWidget(label_token)
         h_token.addWidget(self.chatgpt_max_token)
-        
-        h_token.addWidget(label_temp)
-        h_token.addWidget(self.chatgpt_temperature)
 
-        h_token.addWidget(label_top_p)
-        h_token.addWidget(self.chatgpt_top_p)
 
-           
-
-        
-
-        
 
         v1.addLayout(h2)
         v1.addLayout(h_token)
