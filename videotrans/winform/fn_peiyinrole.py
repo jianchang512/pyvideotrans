@@ -142,11 +142,11 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen',False)
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'])
+            return tools.show_error(config.transobj['mustberole'],False)
         voice_dir = config.TEMP_DIR+'/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -180,7 +180,7 @@ def openwin():
     def hecheng_start_fun():
         nonlocal RESULT_DIR
         if not winobj.srt_path:
-            return tools.show_error('请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.')
+            return tools.show_error('请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.',False)
 
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
@@ -190,7 +190,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No','-','']:
-            return tools.show_error('必须选择一个默认角色' if config.defaulelang=='zh' else 'A default role must be selected')
+            return tools.show_error('必须选择一个默认角色' if config.defaulelang=='zh' else 'A default role must be selected',False)
                                         
         if is_input_api(tts_type=tts_type) is not True:
             return False
@@ -205,7 +205,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1')
+                return tools.show_error(f'{language} is not support -1',False)
             langcode = code_list[0]
         
 

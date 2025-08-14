@@ -4,6 +4,7 @@ from typing import Optional
 
 from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_log, retry_if_not_exception_type
 
+from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.configure import config
 from videotrans.util import tools
@@ -89,7 +90,7 @@ class GoogleCloudTTS(BaseTTS):
                 self.client = texttospeech.TextToSpeechClient.from_service_account_file(self.cred_path)
 
             # prepara request
-            synthesis_input = texttospeech.SynthesisInput(text=text)
+            synthesis_input = texttospeech.SynthesisInput(text=data_item['text'])
 
             # tenta inferir gênero se precisar
             gender = getattr(

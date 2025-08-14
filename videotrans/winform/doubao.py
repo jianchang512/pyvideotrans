@@ -20,7 +20,7 @@ def openwin():
         config.params["doubao_appid"] = appid
         config.params["doubao_access"] = access
         if not appid or not access:
-            tools.show_error('必须填写 Appid & Access_token')
+            tools.show_error('必须填写 Appid & Access_token',False)
             return
 
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -32,7 +32,7 @@ def openwin():
         appid = winobj.doubao_appid.text()
         access = winobj.doubao_access.text()
         if not appid or not access:
-            tools.show_error('必须填写 Appid & Access_token')
+            tools.show_error('必须填写 Appid & Access_token',False)
             return
         config.params["doubao_appid"] = appid
         config.params["doubao_access"] = access

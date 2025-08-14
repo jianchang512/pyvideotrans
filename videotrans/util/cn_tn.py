@@ -67,6 +67,13 @@ CN_PUNCS_NONSTOP = '＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［
 CN_PUNCS = CN_PUNCS_STOP + CN_PUNCS_NONSTOP
 
 PUNCS = CN_PUNCS + string.punctuation
+
+# 要排除的符号
+chars_to_exclude = ',.，。？?!！'
+# 从 PUNCS 字符串中移除这些符号
+for char in chars_to_exclude:
+    PUNCS = PUNCS.replace(char, '')
+
 PUNCS_TRANSFORM = str.maketrans(PUNCS, ' ' * len(PUNCS), '') # replace puncs with space
 
 

@@ -142,11 +142,11 @@ def openwin():
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
-            return tools.show_error(config.transobj["nocudnn"])
+            return tools.show_error(config.transobj["nocudnn"],False)
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
-            return tools.show_error(config.transobj['bixuyinshipin'])
+            return tools.show_error(config.transobj['bixuyinshipin'],False)
 
         is_allow_lang_res = is_allow_lang(langcode=langcode, recogn_type=recogn_type,model_name=model)
         if is_allow_lang_res is not True:
@@ -157,11 +157,18 @@ def openwin():
         if is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.isChecked() and not config.params.get('chatgpt_key'):
-            tools.show_error(config.transobj['llmduanju'])
-            from videotrans.winform import chatgpt
-            chatgpt.openwin()
-            return
+        if winobj.rephrase.isChecked():
+            ai_type=config.settings.get('llm_ai_type','openai')
+            if ai_type=='openai' and not config.params.get('chatgpt_key'):
+                tools.show_error(config.transobj['llmduanju'],False)
+                from videotrans.winform import chatgpt
+                chatgpt.openwin()
+                return
+            if ai_type=='deepseek' and not config.params.get('deepseek_key'):
+                tools.show_error(config.transobj['llmduanju'],False)
+                from videotrans.winform import deepseek
+                deepseek.openwin()
+                return
 
         winobj.shibie_startbtn.setText(config.transobj["running"])
         winobj.label_shibie10.setText('')
@@ -220,7 +227,7 @@ def openwin():
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(config.transobj['nocuda'])
+                tools.show_error(config.transobj['nocuda'],False)
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -240,7 +247,7 @@ def openwin():
     def show_xxl_select():
         import sys
         if sys.platform != 'win32':
-            tools.show_error('faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows')
+            tools.show_error('faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang=='zh' else 'faster-whisper-xxl.exe is only available on Windows',False)
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(config.settings.get('Faster_Whisper_XXL','')).exists():
             from PySide6.QtWidgets import QFileDialog

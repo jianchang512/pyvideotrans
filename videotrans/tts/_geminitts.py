@@ -56,7 +56,7 @@ class GEMINITTS(BaseTTS):
             except APIError as e:
                 config.logger.exception(e, exc_info=True)
                 if e.code in [429,500]:
-                    self._signal(text=f"{data_item.get('line','')} retry {attempt}: {e.message}")
+                    self._signal(text=f"{data_item.get('line','')}  {e.message}")
                     time.sleep(30)
                 else:
                     self.error = str(e.message)
@@ -64,7 +64,7 @@ class GEMINITTS(BaseTTS):
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
                 self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} retry {attempt}: "+self.error)
+                self._signal(text=f"{data_item.get('line','')} "+self.error)
                 time.sleep(30)
         _run()
 

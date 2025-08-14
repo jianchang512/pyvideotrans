@@ -1,4 +1,4 @@
-import requests
+import requests,sys
 from PySide6.QtCore import QThread
 
 import videotrans
@@ -18,9 +18,8 @@ class CheckUpdateWorker(QThread):
             proxy = tools.set_proxy()
             if proxy:
                 proxies = {"http": proxy, "https": proxy}
-
-            res = requests.get(f"https://pyvideotrans.com/version.json?version={videotrans.VERSION_NUM}",
-                               proxies=proxies)
+            url=f"https://pyvideotrans.com/version.json?version={videotrans.VERSION}&os={sys.platform}"
+            res = requests.get(url, proxies=proxies)
             if res.status_code == 200:
                 d = res.json()
                 if d['version_num'] > videotrans.VERSION_NUM:

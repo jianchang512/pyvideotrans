@@ -544,7 +544,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_cuda.triggered.connect(lambda: self.win_action.open_url('cuda'))
         self.action_online.triggered.connect(lambda: self.win_action.open_url('online'))
         self.action_website.triggered.connect(lambda: self.win_action.open_url('website'))
-        self.action_blog.triggered.connect(lambda: self.win_action.open_url('blog'))
+        self.action_blog.triggered.connect(lambda: self.win_action.open_url('bbs'))
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)

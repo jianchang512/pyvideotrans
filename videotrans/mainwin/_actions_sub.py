@@ -88,7 +88,7 @@ class WinActionSub:
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            tools.show_error(config.transobj['nocuda'])
+            tools.show_error(config.transobj['nocuda'],False)
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
@@ -389,7 +389,7 @@ class WinActionSub:
     # 核对字幕
     def check_txt(self, txt=''):
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            tools.show_error('字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.')
+            tools.show_error('字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.',False)
             return False
         return True
 
@@ -403,7 +403,7 @@ class WinActionSub:
         from videotrans import recognition
         if not torch.cuda.is_available():
             self.cfg['cuda']=False
-            tools.show_error(config.transobj["nocuda"])
+            tools.show_error(config.transobj["nocuda"],False)
             return False
 
         if self.main.recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
@@ -501,14 +501,14 @@ class WinActionSub:
         from videotrans import translator
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
-            return tools.show_error('请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first')
+            return tools.show_error('请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first',False)
 
         text = config.params.get(f'listen_text_{lang}')
         if not text:
-            return tools.show_error('该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen')
+            return tools.show_error('该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen',False)
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'])
+            return tools.show_error(config.transobj['mustberole'],False)
         voice_dir = tempfile.gettempdir()+'/pyvideotrans'
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
@@ -537,7 +537,7 @@ class WinActionSub:
             "pitch": pitch,
         }
         if role == 'clone':
-            tools.show_error('原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned')
+            tools.show_error('原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned',False)
             return
         def feed(d):
             if d != "ok":
@@ -565,9 +565,9 @@ class WinActionSub:
             return True
         for vurl in self.queue_mp4:
             if re.search(r'[:\?\*<>\|\"]', vurl[4:]):
-                return tools.show_error('视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ')
+                return tools.show_error('视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ',False)
             if len(vurl) > 255:
-                return tools.show_error(f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}')
+                return tools.show_error(f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}',False)
         return True
 
     # 如果存在音频则设为提取
@@ -594,7 +594,7 @@ class WinActionSub:
                 if len(it) > 1:
                     msg += ",".join(it)
             if msg:
-                tools.show_error(f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ')
+                tools.show_error(f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ',False)
                 return False
         return True
 
@@ -690,7 +690,7 @@ class WinActionSub:
     
     def replace_text(self, s_text='', t_text=''):
         if not s_text:
-            return tools.show_error("必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered')
+            return tools.show_error("必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered',False)
 
         top_layout = self.scroll_area.widget().layout()
         if top_layout is None:
@@ -738,7 +738,7 @@ class WinActionSub:
             default_role = self.cfg.get('voice_role', 'No')
 
             if len(checked_checkbox_names) < 1:
-                return tools.show_error("至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle')
+                return tools.show_error("至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle',False)
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')

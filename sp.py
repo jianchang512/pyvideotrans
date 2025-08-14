@@ -22,38 +22,12 @@ from PySide6.QtCore import Qt, QTimer, QPoint, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
 from videotrans.configure._guiexcept import global_exception_hook, exception_handler
 
-VERSION = "v3.77"
+VERSION = "v3.78"
 
 def show_global_error_dialog(tb_str):
     """槽函数 显示对话框。"""
-    from PySide6 import QtWidgets
-
-    msg_box = QtWidgets.QMessageBox()    
-    icon_path = "./videotrans/styles/icon.ico"
-    try:
-        msg_box.setWindowIcon(QIcon(icon_path))
-    except Exception as e:
-        print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
-        
-    msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-    msg_box.setWindowTitle("Application Error")
-    msg_box.setText(tb_str[:300])
-    if len(tb_str)>300:
-        msg_box.setInformativeText(tb_str.strip().splitlines()[-1])
-        msg_box.setDetailedText(tb_str)
-
-
-    msg_box.setStyleSheet("""
-            QMessageBox {
-                min-width: 400px;
-                max-width: 800px;
-                min-height: 400px;
-                max-height: 700px;
-            }
-        """)
-
-    msg_box.exec()
-
+    from videotrans.util.tools import show_error
+    show_error(tb_str)
 
 
 class StartWindow(QWidget):

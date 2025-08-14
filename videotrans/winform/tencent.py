@@ -2,6 +2,7 @@ from PySide6 import QtWidgets
 
 from videotrans import translator
 from videotrans.configure import config
+from videotrans.util import tools
 from videotrans.util.TestSrtTrans import TestSrtTrans
 
 
@@ -18,7 +19,7 @@ def openwin():
         SecretKey = winobj.tencent_SecretKey.text().strip()
         term = winobj.tencent_term.text().strip()
         if not SecretId or not SecretKey:
-            return tools.show_error('必须填写ID 和 Key等信息' if config.defaulelang == 'zh' else 'Please input SecretId and SecretKey')
+            return tools.show_error('必须填写ID 和 Key等信息' if config.defaulelang == 'zh' else 'Please input SecretId and SecretKey',False)
         config.params["tencent_SecretId"] = SecretId
         config.params["tencent_SecretKey"] = SecretKey
         config.params["tencent_termlist"] = term

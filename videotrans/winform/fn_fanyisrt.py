@@ -143,7 +143,7 @@ def openwin():
         translate_type = winobj.fanyi_translate_type.currentIndex()
         source_code,target_code = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),show_target=target_language,translate_type=translate_type)
         if target_language == '-':
-            return tools.show_error(config.transobj["fanyimoshi1"])
+            return tools.show_error(config.transobj["fanyimoshi1"],False)
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:
@@ -155,7 +155,7 @@ def openwin():
         if rs is not True:
             return False
         if len(winobj.files) < 1:
-            return tools.show_error('必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files')
+            return tools.show_error('必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files',False)
         winobj.fanyi_sourcetext.clear()
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
@@ -306,7 +306,7 @@ def openwin():
     def export_srt():
         srt_string=winobj.fanyi_targettext.toPlainText().strip()
         if not srt_string:
-            return tools.show_error('没有翻译结果，无需保存' if config.defaulelang == 'zh' else 'No result, no need to save')
+            return tools.show_error('没有翻译结果，无需保存' if config.defaulelang == 'zh' else 'No result, no need to save',False)
         dialog = QFileDialog()
         dialog.setWindowTitle(config.transobj['savesrtto'])
         dialog.setNameFilters(["subtitle files (*.srt)"])

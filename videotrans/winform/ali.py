@@ -27,7 +27,7 @@ def openwin():
         appid = winobj.ali_id.text()
         miyue = winobj.ali_key.text()
         if not appid or not miyue:
-            return tools.show_error('必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret')
+            return tools.show_error('必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret',False)
         config.params["ali_id"] = appid
         config.params["ali_key"] = miyue
 

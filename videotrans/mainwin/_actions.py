@@ -540,7 +540,7 @@ class WinAction(WinActionSub):
 
         # 原始语言是最后一个，即auto自动检查
         if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
-            tools.show_error( '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
+            tools.show_error( '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.',False)
             return False
 
         # 判断是否填写自定义识别 api openai-api识别
@@ -562,7 +562,7 @@ class WinAction(WinActionSub):
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
-            tools.show_error('必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected')
+            tools.show_error('必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected',False)
             self.main.startbtn.setDisabled(False)
             return
 
@@ -657,7 +657,7 @@ class WinAction(WinActionSub):
 
         if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
-            return tools.show_error('必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
+            return tools.show_error('必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles',False)
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
@@ -674,14 +674,22 @@ class WinAction(WinActionSub):
             
             if err:
                 self.main.startbtn.setDisabled(False)
-                return tools.show_error(err)
+                return tools.show_error(err,False)
            
-        if self.main.rephrase.isChecked() and not config.params.get('chatgpt_key'):
-            self.main.startbtn.setDisabled(False)
-            tools.show_error(config.transobj['llmduanju'])
-            from videotrans.winform import chatgpt
-            chatgpt.openwin()
-            return
+        if self.main.rephrase.isChecked():
+            ai_type=config.settings.get('llm_ai_type','openai')
+            if ai_type=='openai' and not config.params.get('chatgpt_key'):
+                self.main.startbtn.setDisabled(False)
+                tools.show_error(config.transobj['llmduanju'],False)
+                from videotrans.winform import chatgpt
+                chatgpt.openwin()
+                return
+            if ai_type=='deepseek' and not config.params.get('deepseek_key'):
+                self.main.startbtn.setDisabled(False)
+                tools.show_error(config.transobj['llmduanju'],False)
+                from videotrans.winform import deepseek
+                deepseek.openwin()
+                return
            
         config.line_roles = {}
 

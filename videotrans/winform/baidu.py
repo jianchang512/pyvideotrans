@@ -27,7 +27,7 @@ def openwin():
         appid = winobj.baidu_appid.text()
         miyue = winobj.baidu_miyue.text()
         if not appid or not miyue:
-            return tools.show_error('必须填写 appid 和 密钥 等信息' if config.defaulelang == 'zh' else 'Please input appid and Secret')
+            return tools.show_error('必须填写 appid 和 密钥 等信息' if config.defaulelang == 'zh' else 'Please input appid and Secret',False)
         config.params["baidu_appid"] = appid
         config.params["baidu_miyue"] = miyue
 
