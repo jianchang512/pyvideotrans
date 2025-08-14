@@ -21,8 +21,6 @@ def openwin():
     def test():
         key = winobj.chatgpt_key.text()
         max_token = winobj.chatgpt_max_token.text().strip()
-        temperature = winobj.chatgpt_temperature.text().strip()
-        top_p = winobj.chatgpt_top_p.text().strip()
         url = winobj.chatgpt_api.text().strip()
         url = url if url else 'https://api.openai.com/v1'
         if tools.check_local_api(url) is not True:
@@ -33,8 +31,6 @@ def openwin():
         template = winobj.chatgpt_template.toPlainText()
 
         os.environ['OPENAI_API_KEY'] = key
-        config.params["chatgpt_temperature"] = temperature
-        config.params["chatgpt_top_p"] = top_p
         config.params["chatgpt_key"] = key
         config.params["chatgpt_api"] = url
         config.params["chatgpt_max_token"] = max_token
@@ -49,8 +45,6 @@ def openwin():
         key = winobj.chatgpt_key.text()
         url = winobj.chatgpt_api.text().strip()
         max_token = winobj.chatgpt_max_token.text().strip()
-        temperature = winobj.chatgpt_temperature.text().strip()
-        top_p = winobj.chatgpt_top_p.text().strip()
         url = url if url else 'https://api.openai.com/v1'
         if tools.check_local_api(url) is not True:
             return
@@ -63,8 +57,6 @@ def openwin():
             f.flush()
         config.params["chatgpt_max_token"] = max_token
         os.environ['OPENAI_API_KEY'] = key
-        config.params["chatgpt_temperature"] = temperature
-        config.params["chatgpt_top_p"] = top_p
         config.params["chatgpt_key"] = key
         config.params["chatgpt_api"] = url
         config.params["chatgpt_model"] = model
@@ -101,10 +93,6 @@ def openwin():
             winobj.chatgpt_template.setPlainText(config.params["chatgpt_template"])
         if config.params["chatgpt_max_token"]:
             winobj.chatgpt_max_token.setText(str(config.params["chatgpt_max_token"]))
-        if config.params["chatgpt_temperature"]:
-            winobj.chatgpt_temperature.setText(str(config.params["chatgpt_temperature"]))
-        if config.params["chatgpt_top_p"]:
-            winobj.chatgpt_top_p.setText(str(config.params["chatgpt_top_p"]))
 
     from videotrans.component import ChatgptForm
     winobj = config.child_forms.get('chatgptw')

@@ -36,13 +36,13 @@ class OpenaiAPIRecogn(BaseRecogn):
                 self.proxies = pro
         else:
             self.proxies = None
-        if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params["openairecognapi_model"].find('gpt-4o-')>-1:
-            return self._thrid_api()
 
     @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+        if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params["openairecognapi_model"].find('gpt-4o-')>-1:
+            return self._thrid_api()
 
         # 大于20M 从wav转为mp3
         if Path(self.audio_file).stat().st_size > 20971520:
@@ -81,6 +81,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 file=(self.audio_file, file.read()),
                 model=config.params["openairecognapi_model"],
                 prompt=config.params['openairecognapi_prompt'],
+                language=self.detect_language[:2].lower(),
                 response_format="verbose_json"
             )
             if not hasattr(transcript, 'segments'):
@@ -108,6 +109,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                     model=config.params["openairecognapi_model"],
                     prompt=config.params['openairecognapi_prompt'],
                     timeout=7200,
+                    language=self.detect_language[:2].lower(),
                     response_format="json"
                 )
                 if not hasattr(transcript, 'text'):

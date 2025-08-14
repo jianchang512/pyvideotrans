@@ -164,8 +164,6 @@ class ChatGPT(BaseTrans):
                 model=config.params['chatgpt_model'],
                 timeout=7200,
                 max_completion_tokens= int(config.params.get('chatgpt_max_token',8192)),
-                temperature=float(config.params.get('chatgpt_temperature',0.7)),
-                top_p=float(config.params.get('chatgpt_top_p',1.0)),
                 messages=message
             )
         config.logger.info(f'[chatGPT]响应:{response=}')
