@@ -71,9 +71,9 @@ class FasterAll(BaseRecogn):
         multiprocessing.set_start_method('spawn', force=True)
 
         while 1:
-            if self._exit() and self.pidfile:
-                Path(self.pidfile).unlink(missing_ok=True)
+            if self._exit():
                 return
+
             if config.model_process is not None:
                 import glob
                 if len(glob.glob(config.TEMP_DIR+'/*.lock'))==0:
@@ -116,9 +116,9 @@ class FasterAll(BaseRecogn):
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error = 'err[msg]='+str(err['msg'])
+                    self.error = str(err['msg'])
                 elif len(list(raws))<1:
-                    self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
+                    self.error = "没有识别到任何说话声,请检查说话语言是否同所选一致" if config.defaulelang=='zh' else "No speech detected"
                 else:
                     self.error=''
                     if self.detect_language=='auto' and self.inst and  hasattr(self.inst,'set_source_language'):
@@ -149,10 +149,19 @@ class FasterAll(BaseRecogn):
         finally:
             config.model_process = None
             self.has_done = True
-            Path(self.pidfile).unlink(missing_ok=True)
+        
+        if not self.error and len(self.raws)>0:
+            return self.raws
 
+        
+        if self.error and "CUBLAS_STATUS_NOT_SUPPORTED" in self.error:
+            raise RuntimeError("数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试" if config.defaulelang=='zh' else 'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again')
+        if self.error and "cudaErrorNoKernelImageForDevice" in self.error:
+            raise RuntimeError("pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x" if config.defaulelang=='zh' else 'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x')
+        
         if self.error:
             raise RuntimeError(self.error)
-        if len(self.raws)<1:
+        
+        if not self.raws or len(self.raws)<1:
             raise RuntimeError('未识别到有效文字' if config.defaulelang=='zh' else 'No speech detected')
-        return self.raws
+

@@ -859,7 +859,7 @@ class WinAction(WinActionSub):
     def set_process_btn_text(self, d):
         if isinstance(d, str):
             d = json.loads(d)
-        text, uuid, _type = d['text'], d['uuid'], d['type']
+        text, uuid, _type = d['text'], d.get('uuid',''), d.get('type','logs')
         if not uuid or uuid not in self.processbtns:
             return
         if _type == 'set_precent' and self.processbtns[uuid].precent < 100:
