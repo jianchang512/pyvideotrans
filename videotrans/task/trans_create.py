@@ -360,12 +360,16 @@ class TransCreate(BaseTask):
                     if not config.copying:
                         break
                     time.sleep(1)
-
-                subprocess.run(cmd)
+                cmdstr=" ".join(cmd)
                 outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
+                config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
+                subprocess.run(cmd,creationflags=0)
                 if outsrt_file != self.cfg['source_sub']:
-                    shutil.copy2(outsrt_file, self.cfg['source_sub'])
-                    Path(outsrt_file).unlink(missing_ok=True)
+                    try:
+                        shutil.copy2(outsrt_file, self.cfg['source_sub'])
+                    except shutil.SameFileError:
+                        pass
+                    #Path(outsrt_file).unlink(missing_ok=True)
                 self._signal(text=Path(self.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
             else:
                 raw_subtitles = run_recogn(

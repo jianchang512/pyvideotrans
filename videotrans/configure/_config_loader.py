@@ -13,10 +13,10 @@ from queue import Queue
 
 MAINWIN = None
 
-
+IS_FROZEN=True if getattr(sys, 'frozen', False) else False
 # 获取程序执行目录
 def _get_executable_path():
-    if getattr(sys, 'frozen', False):
+    if IS_FROZEN:
         # 如果程序是被"冻结"打包的，使用这个路径
         os.environ['TQDM_DISABLE'] = '1'
         return Path(sys.executable).parent.as_posix()
@@ -64,6 +64,9 @@ FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
+    if IS_FROZEN:
+        os.environ['PATH'] = os.environ['PATH']+f';{ROOT_DIR}/_internal/torch/lib'
+        
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
